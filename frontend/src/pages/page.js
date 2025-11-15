@@ -1,0 +1,1 @@
+console.log("This is the page.js file in the frontend/src/pages directory.");
