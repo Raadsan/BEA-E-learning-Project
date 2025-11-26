@@ -6,10 +6,10 @@ export default function FeaturedVideo() {
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <section className="bg-blue-600 py-12 sm:py-16 lg:py-20">
+    <section className="bg-white py-12 sm:py-16 lg:py-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-        <h2 className="text-white text-xl sm:text-2xl font-semibold mb-6 text-center">
+        <h2 className="text-gray-900 text-xl sm:text-2xl font-semibold mb-6 text-center">
           English for specific purpose (ESP)
         </h2>
         

@@ -47,7 +47,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative w-full h-screen overflow-hidden">
+    <section className="relative w-full overflow-hidden" style={{ height: '460px' }}>
       {/* Slideshow Container */}
       <div className="relative w-full h-full">
         {slides.map((slide, index) => (
@@ -65,38 +65,40 @@ export default function Hero() {
               priority={index === 0}
               sizes="100vw"
             />
+            {/* Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-black/40" />
           </div>
         ))}
       </div>
 
-      {/* Navigation Arrows */}
-      <button
-        onClick={goToPrevious}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white rounded-full p-2 transition-all shadow-lg"
-        aria-label="Previous slide"
-      >
-        <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      <button
-        onClick={goToNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white rounded-full p-2 transition-all shadow-lg"
-        aria-label="Next slide"
-      >
-        <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+      {/* Text Overlay */}
+      <div className="absolute inset-0 z-20 flex items-center">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl">
+            <h1 className="text-white text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-4 leading-tight">
+              Master English with
+              <br />
+              <span className="text-red-600">Global Standards</span>
+            </h1>
+            <p className="text-white text-base sm:text-lg mb-6 leading-relaxed">
+              Structured learning from A1 to C2, powered by CEFR framework and GSE scoring. Join thousands of learners across Somalia achieving their English language goals.
+            </p>
+            <button className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors text-base flex items-center gap-2">
+              <span>→</span>
+              <span>Start Learning Today</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Pagination Dots */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex gap-2">
         {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all ${
-              index === currentSlide ? "bg-red-600 w-8" : "bg-white/80 hover:bg-white"
+            className={`rounded-full transition-all ${
+              index === currentSlide ? "bg-red-600 w-8 h-3" : "bg-white w-3 h-3"
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />

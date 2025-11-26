@@ -4,7 +4,7 @@ export default function Introduction() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
         {/* Promotional Box */}
-        <div className="border border-pink-200 rounded-lg p-6 sm:p-8 mb-8 sm:mb-12">
+        <div className="rounded-xl p-6 sm:p-8 mb-8 sm:mb-12" style={{ backgroundColor: 'rgba(209, 213, 220, 0.3)' }}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* Left Side */}
             <div className="space-y-1">

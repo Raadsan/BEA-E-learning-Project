@@ -71,19 +71,24 @@ export default function FAQ() {
   return (
     <section className="bg-white py-12 sm:py-16 lg:py-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-gray-800 text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-8 sm:mb-12">
-            Frequently Asking Questions
-          </h2>
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-8 sm:mb-12">
+            <h2 className="text-gray-900 text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-gray-700 text-base sm:text-lg">
+              Have questions? We&apos;ve got answers. Can&apos;t find what you&apos;re looking for? Contact our support team 24/7.
+            </p>
+          </div>
           
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
+              <div key={index} className="bg-gray-100 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                  className="w-full flex items-center justify-between p-4 sm:p-6 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                  className="w-full flex items-center justify-between p-4 sm:p-6 bg-gray-100 hover:bg-gray-200 transition-colors text-left"
                 >
-                  <span className="text-gray-800 font-medium text-sm sm:text-base pr-4">
+                  <span className="text-gray-800 font-bold text-sm sm:text-base pr-4">
                     {faq.question}
                   </span>
                   <svg
@@ -99,7 +104,7 @@ export default function FAQ() {
                 </button>
                 
                 {openIndex === index && (
-                  <div className="p-4 sm:p-6 bg-white text-gray-600 text-sm sm:text-base">
+                  <div className="p-4 sm:p-6 bg-gray-100 text-gray-700 text-sm sm:text-base">
                     {faq.answer}
                   </div>
                 )}
