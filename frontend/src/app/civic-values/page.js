@@ -1,13 +1,13 @@
 import Header from "@/components/Header";
-import ContactUs from "@/components/ContactUs";
+import CivicValues from "@/components/CivicValues";
 import Footer from "@/components/Footer";
 
-export default function ContactUsPage() {
+export default function CivicValuesPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow">
-        <ContactUs />
+        <CivicValues />
       </main>
       <Footer />
     </div>

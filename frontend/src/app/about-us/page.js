@@ -4,9 +4,11 @@ import Footer from "@/components/Footer";
 
 export default function AboutUsPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <AboutUs />
+      <main className="flex-grow">
+        <AboutUs />
+      </main>
       <Footer />
     </div>
   );

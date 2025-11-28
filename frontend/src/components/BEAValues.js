@@ -5,6 +5,7 @@ export default function BEAValues() {
     {
       id: 1,
       title: "Rational Values",
+      slug: "rational-values",
       description: "Our Rational Values represent the guiding principles that uphold our mission and shape our learners into thoughtful, confident, and ethical individuals.",
       image: "/images/A Path to Global Opportunities.jpg",
       alt: "Rational Values"
@@ -12,6 +13,7 @@ export default function BEAValues() {
     {
       id: 2,
       title: "Pedagogical Values",
+      slug: "pedagogical-values",
       description: "Our Pedagogical Values define the principles that shape how we teach, inspire, and support our learners. These values reflect our belief that education should be student-centered, purposeful, and transformative. We focus on creating a learning environment that promotes curiosity, critical thinking, creativity, and meaningful engagement.",
       image: "/images/Innovative Learning Environment.jpg",
       alt: "Pedagogical Values"
@@ -19,6 +21,7 @@ export default function BEAValues() {
     {
       id: 3,
       title: "Civic Values",
+      slug: "civic-values",
       description: "Our Civic Values emphasize the importance of responsibility, participation, and respect within the community. We believe that education extends beyond the classroom—it prepares individuals to become active, ethical, and compassionate members of society.",
       image: "/images/A Path to Global Opportunities.jpg",
       alt: "Civic Values"
@@ -82,7 +85,8 @@ export default function BEAValues() {
               {valuesVideos.map((video) => (
                 <div
                   key={video.id}
-                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                  id={video.slug}
+                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 scroll-mt-20"
                 >
                   {/* Video Thumbnail */}
                   <div className="relative w-full h-48 overflow-hidden rounded-t-xl group">

@@ -4,9 +4,11 @@ import Footer from "@/components/Footer";
 
 export default function GeneralEnglishCoursePage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <GeneralEnglishCourse />
+      <main className="flex-grow">
+        <GeneralEnglishCourse />
+      </main>
       <Footer />
     </div>
   );
