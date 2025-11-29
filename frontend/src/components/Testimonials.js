@@ -1,4 +1,9 @@
+"use client";
+
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+
 export default function Testimonials() {
+  const [ref, isVisible] = useScrollAnimation({ threshold: 0.1 });
   const testimonials = [
     {
       id: 1,
@@ -24,23 +29,26 @@ export default function Testimonials() {
   ];
 
   return (
-    <section className="bg-gray-100 py-12 sm:py-16 lg:py-20">
+    <section ref={ref} className="bg-gray-100 py-12 sm:py-16 lg:py-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-gray-900 text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3">
+          <div className={`text-center mb-8 sm:mb-12 lg:mb-16 transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}>
+            <h2 className="text-gray-900 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2 sm:mb-3">
               What Our Students Say
             </h2>
-            <p className="text-gray-700 text-base sm:text-lg">
+            <p className="text-gray-700 text-sm sm:text-base lg:text-lg px-4">
               Join thousands of successful learners who achieved their English goals with us.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            {testimonials.map((testimonial) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {testimonials.map((testimonial, index) => (
               <div
                 key={testimonial.id}
-                className="bg-white rounded-lg p-6 shadow-md"
+                className={`bg-white rounded-lg p-4 sm:p-6 shadow-md transition-all duration-500 transform hover:-translate-y-2 hover:shadow-xl ${
+                  isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'
+                }`}
+                style={{ animationDelay: `${index * 0.15}s` }}
               >
                 {/* Stars */}
                 <div className="flex gap-1 mb-4">

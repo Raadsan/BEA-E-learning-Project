@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export default function PopularCourses() {
+  const [ref, isVisible] = useScrollAnimation({ threshold: 0.1 });
   const courses = [
     {
       id: 1,
@@ -32,36 +36,39 @@ export default function PopularCourses() {
   ];
 
   return (
-    <section className="bg-white py-12 sm:py-16 lg:py-20">
+    <section ref={ref} className="bg-white py-12 sm:py-16 lg:py-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className="flex items-center justify-between mb-10 sm:mb-12">
+          <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-10 lg:mb-12 gap-4 transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}>
             <div>
-              <h2 className="text-gray-800 text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-2">
+              <h2 className="text-gray-800 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2">
                 Popular Courses
               </h2>
-              <p className="text-gray-600 text-base">
+              <p className="text-gray-600 text-sm sm:text-base">
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
-            <a href="/programs" className="text-gray-800 font-semibold hover:underline text-sm sm:text-base border border-purple-300 rounded-lg px-4 py-2 whitespace-nowrap ml-4">
+            <a href="/programs" className="text-gray-800 font-semibold hover:underline text-sm sm:text-base border border-purple-300 rounded-lg px-3 sm:px-4 py-2 whitespace-nowrap transition-all duration-300 hover:scale-105 hover:border-purple-400">
               → View all courses
             </a>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            {courses.map((course) => (
+            {courses.map((course, index) => (
               <div
                 key={course.id}
-                className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300"
+                className={`bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 ${
+                  isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'
+                }`}
+                style={{ animationDelay: `${index * 0.15}s` }}
               >
                 {/* Course Image */}
-                <div className="relative h-48 bg-gray-200 overflow-hidden">
+                <div className="relative h-48 bg-gray-200 overflow-hidden group">
                   <Image
                     src={course.image}
                     alt={course.title}
                     fill
-                    className="object-cover"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   {/* Heart Icon */}
                   <button className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition-colors">
@@ -104,7 +111,7 @@ export default function PopularCourses() {
                   </div>
                   
                   {/* Enroll Button */}
-                  <button className="w-full bg-blue-800 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-900 transition-colors text-sm flex items-center justify-center gap-2">
+                  <button className="w-full bg-blue-800 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-900 transition-all duration-300 transform hover:scale-105 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                     <span>→</span>
                     <span>Enroll now</span>
                   </button>

@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export default function ProgramCards() {
+  const [ref, isVisible] = useScrollAnimation({ threshold: 0.1 });
   const programs = [
     {
       id: 1,
@@ -47,28 +51,31 @@ export default function ProgramCards() {
   ];
 
   return (
-    <section className="bg-white py-12 sm:py-16 lg:py-20">
+    <section ref={ref} className="bg-white py-12 sm:py-16 lg:py-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className="flex items-center justify-between mb-10 sm:mb-12">
+          <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-10 lg:mb-12 gap-4 transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}>
             <div>
-              <h2 className="text-gray-800 text-3xl sm:text-4xl lg:text-5xl font-bold mb-2">
+              <h2 className="text-gray-800 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2">
                 BEA Programs Portfolio
               </h2>
-              <p className="text-gray-600 text-base sm:text-lg">
+              <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
-            <a href="/programs" className="text-gray-800 font-semibold hover:underline text-sm sm:text-base whitespace-nowrap ml-4 border border-purple-300 rounded-lg px-4 py-2">
+            <a href="/programs" className="text-gray-800 font-semibold hover:underline text-sm sm:text-base whitespace-nowrap border border-purple-300 rounded-lg px-3 sm:px-4 py-2 transition-all duration-300 hover:scale-105 hover:border-purple-400">
               → View all programs
             </a>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {programs.map((program) => (
+            {programs.map((program, index) => (
               <div
                 key={program.id}
-                className="bg-white rounded-lg border border-gray-200 overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-lg"
+                className={`bg-white rounded-lg border border-gray-200 overflow-hidden group cursor-pointer transition-all duration-500 transform hover:-translate-y-2 hover:shadow-xl ${
+                  isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'
+                }`}
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {/* Image with Play Icon */}
                 <div className="relative h-48 bg-gray-200 overflow-hidden">
@@ -76,7 +83,7 @@ export default function ProgramCards() {
                     src={program.image}
                     alt={program.title}
                     fill
-                    className="object-cover"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   {/* Play Icon Overlay */}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">

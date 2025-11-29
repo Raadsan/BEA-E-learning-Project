@@ -1,25 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export default function FeaturedVideo() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [ref, isVisible] = useScrollAnimation({ threshold: 0.2 });
 
   return (
-    <section className="bg-white py-12 sm:py-16 lg:py-20">
+    <section ref={ref} className="bg-white py-12 sm:py-16 lg:py-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-        <h2 className="text-gray-900 text-xl sm:text-2xl font-semibold mb-6 text-center">
+        <h2 className={`text-gray-900 text-xl sm:text-2xl md:text-3xl font-semibold mb-4 sm:mb-6 text-center transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}>
           English for specific purpose (ESP)
         </h2>
         
-        <div className="relative bg-blue-800 rounded-lg overflow-hidden aspect-video">
+        <div className={`relative bg-blue-800 rounded-lg overflow-hidden aspect-video transition-all duration-700 delay-200 ${isVisible ? 'animate-scale-in opacity-100' : 'opacity-0'}`}>
           {/* Video Placeholder */}
           <div className="w-full h-full flex items-center justify-center bg-gray-900">
             {!isPlaying ? (
               <button
                 onClick={() => setIsPlaying(true)}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors"
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl"
                 aria-label="Play video"
               >
                 <svg className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600 ml-1" fill="currentColor" viewBox="0 0 20 20">

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export default function CountdownTimer() {
+  const [ref, isVisible] = useScrollAnimation({ threshold: 0.2 });
   const [timeLeft, setTimeLeft] = useState({
     days: 3,
     hours: 20,
@@ -101,13 +103,14 @@ export default function CountdownTimer() {
 
   return (
     <section 
+      ref={ref}
       className="py-8 sm:py-12 lg:py-16 relative overflow-hidden"
       style={{
         background: 'linear-gradient(90deg, #010080 0%, #6766B3 100%)'
       }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-8 sm:mb-12">
+        <div className={`text-center mb-8 sm:mb-12 transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}>
           <h2 className="text-white text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3">
             Next Time Stream Start in
           </h2>
@@ -117,12 +120,20 @@ export default function CountdownTimer() {
         </div>
         
         {/* White Card with Countdown Timers */}
-        <div className="bg-white rounded-xl shadow-lg p-8 sm:p-12 max-w-4xl mx-auto">
+        <div className={`bg-white rounded-xl shadow-lg p-8 sm:p-12 max-w-4xl mx-auto transition-all duration-700 delay-200 ${isVisible ? 'animate-scale-in opacity-100' : 'opacity-0'}`}>
           <div className="flex flex-wrap justify-center gap-8 sm:gap-12 lg:gap-16">
-            {renderCircularTimer(timeLeft.days, "Days", 0)}
-            {renderCircularTimer(timeLeft.hours, "Hours", 1)}
-            {renderCircularTimer(timeLeft.minutes, "Minutes", 2)}
-            {renderCircularTimer(timeLeft.seconds, "Seconds", 3)}
+            {[timeLeft.days, timeLeft.hours, timeLeft.minutes, timeLeft.seconds].map((value, index) => {
+              const labels = ["Days", "Hours", "Minutes", "Seconds"];
+              return (
+                <div 
+                  key={index}
+                  className={`transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}
+                  style={{ animationDelay: `${index * 0.15}s` }}
+                >
+                  {renderCircularTimer(value, labels[index], index)}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

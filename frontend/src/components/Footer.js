@@ -4,23 +4,23 @@ export default function Footer() {
   return (
     <footer className="text-white py-6 sm:py-8 lg:py-10" style={{ backgroundColor: '#010080' }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Logo Section */}
           <div className="flex flex-col">
-            <div className="mb-0">
+            <div className="mb-4 sm:mb-0">
               <Image
                 src="/images/footerlogo.png"
                 alt="BEA THE BLUEPRINT ENGLISH ACADEMY"
                 width={250}
                 height={80}
-                className="h-auto"
+                className="h-auto w-full max-w-[200px] sm:max-w-[250px]"
                 priority
               />
             </div>
             {/* Follow Us - aligned with Quick Links */}
-            <div className="mt-auto ml-5">
-              <h3 className="text-sm font-semibold mb-3 text-white">Follow Us</h3>
-              <div className="flex gap-3">
+            <div className="mt-4 sm:mt-auto sm:ml-5">
+              <h3 className="text-sm sm:text-base font-semibold mb-3 text-white">Follow Us</h3>
+              <div className="flex gap-2 sm:gap-3">
                 <a href="#" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
@@ -47,8 +47,8 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-sm font-semibold mb-4" style={{ color: '#87CEEB' }}>Quick Links</h3>
-            <ul className="space-y-2 text-sm text-white">
+            <h3 className="text-sm sm:text-base font-semibold mb-3 sm:mb-4" style={{ color: '#87CEEB' }}>Quick Links</h3>
+            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-white">
               <li><a href="#" className="hover:text-gray-300 transition-colors">About Us</a></li>
               <li><a href="#" className="hover:text-gray-300 transition-colors">Our Programs</a></li>
               <li><a href="#" className="hover:text-gray-300 transition-colors">BEA Values</a></li>
@@ -63,8 +63,8 @@ export default function Footer() {
 
           {/* Our Policies */}
           <div>
-            <h3 className="text-sm font-semibold mb-4" style={{ color: '#87CEEB' }}>Our Policies</h3>
-            <ul className="space-y-2 text-sm text-white">
+            <h3 className="text-sm sm:text-base font-semibold mb-3 sm:mb-4" style={{ color: '#87CEEB' }}>Our Policies</h3>
+            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-white">
               <li><a href="#" className="hover:text-gray-300 transition-colors">Data Policy</a></li>
               <li><a href="#" className="hover:text-gray-300 transition-colors">Copyright Policy</a></li>
               <li><a href="#" className="hover:text-gray-300 transition-colors">BEA Student Code of Conduct</a></li>
@@ -75,8 +75,8 @@ export default function Footer() {
 
           {/* Downloads */}
           <div>
-            <h3 className="text-sm font-semibold mb-4" style={{ color: '#87CEEB' }}>Downloads</h3>
-            <ul className="space-y-2 text-sm text-white">
+            <h3 className="text-sm sm:text-base font-semibold mb-3 sm:mb-4" style={{ color: '#87CEEB' }}>Downloads</h3>
+            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-white">
               <li><a href="#" className="hover:text-gray-300 transition-colors">The BEA Handbook</a></li>
               <li><a href="#" className="hover:text-gray-300 transition-colors">BEA Programs Portfolio</a></li>
               <li><a href="#" className="hover:text-gray-300 transition-colors">IELTS and TOEFL Test Guide</a></li>
@@ -87,9 +87,9 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar - aligned with Events and News */}
-        <div className="border-t border-white/20 pt-6 mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-white">
-          <div>© Copyright 2024, All Rights Reserved</div>
-          <div className="flex gap-4">
+        <div className="border-t border-white/20 pt-4 sm:pt-6 mt-6 sm:mt-8 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-xs sm:text-sm text-white">
+          <div className="text-center sm:text-left">© Copyright 2024, All Rights Reserved</div>
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
             <a href="#" className="hover:text-gray-300 transition-colors">Theme</a>
             <a href="#" className="hover:text-gray-300 transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-gray-300 transition-colors">Terms & Conditions</a>

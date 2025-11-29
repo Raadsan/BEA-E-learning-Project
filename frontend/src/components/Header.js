@@ -66,40 +66,42 @@ export default function Header() {
 
   return (
     <header className="bg-white sticky top-0 z-50 shadow-sm">
-      <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 bg-white">
+      <div className="container mx-auto px-2 sm:px-3 md:px-4 lg:px-6 bg-white">
         {/* First Row: Logo, Search, Icons */}
-        <div className="flex items-center justify-between pt-10 pb-8 bg-white -mt-0 h-12">
+        <div className="flex items-center justify-between py-2 sm:py-2.5 md:py-3 lg:py-3 bg-white gap-2 sm:gap-3 md:gap-4">
           {/* Logo */}
-          <div className="flex items-center flex-shrink-0">
-            <Image
-              src="/images/headerlogo.png"
-              alt="BEA Logo"
-              width={200}
-              height={100}
-              className="h-12 sm:h-14 md:h-16 lg:h-20 xl:h-24 w-auto object-contain"
-              priority
-            />
+          <div className="flex items-center flex-shrink-0 min-w-0">
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/images/headerlogo.png"
+                alt="BEA Logo"
+                width={200}
+                height={100}
+                className="h-7 sm:h-8 md:h-10 lg:h-12 xl:h-14 w-auto object-contain"
+                priority
+              />
+            </Link>
           </div>
 
           {/* Search Bar - Center */}
-          <div className="hidden md:flex items-center flex-1 justify-center mx-4 max-w-2xl">
-            <div className="flex items-center bg-gray-200 rounded-xl px-4 py-2.5 w-full">
+          <div className="hidden md:flex items-center flex-1 justify-center mx-2 lg:mx-3 max-w-md lg:max-w-xl xl:max-w-2xl min-w-0">
+            <div className="flex items-center bg-gray-200 rounded-lg sm:rounded-xl px-3 py-1.5 sm:py-2 w-full">
               <input
                 type="text"
                 placeholder="Search course..."
-                className="outline-none text-sm bg-transparent text-gray-700 placeholder-gray-400 flex-1"
+                className="outline-none text-xs sm:text-sm bg-transparent text-gray-700 placeholder-gray-400 flex-1 min-w-0"
               />
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
           </div>
 
           {/* Right Side Icons */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             {/* Heart Icon */}
-            <button className="hidden lg:block text-gray-600 hover:text-gray-800 transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button className="hidden lg:block text-gray-600 hover:text-gray-800 transition-colors p-1" aria-label="Favorites">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </button>
@@ -107,10 +109,10 @@ export default function Header() {
             {/* Theme Toggle (Moon Icon) */}
             <button
               onClick={() => setToggleOn(!toggleOn)}
-              className="hidden lg:block text-gray-600 hover:text-gray-800 transition-colors"
+              className="hidden lg:block text-gray-600 hover:text-gray-800 transition-colors p-1"
               aria-label="Toggle theme"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             </button>
@@ -118,7 +120,7 @@ export default function Header() {
             {/* Mobile Menu Button */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden text-gray-700 p-1"
+              className="lg:hidden text-gray-700 p-1.5 hover:bg-gray-100 rounded transition-colors"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
@@ -135,9 +137,9 @@ export default function Header() {
         </div>
 
         {/* Second Row: Navigation Links */}
-        <div className="bg-white pb-3 pt-2">
-          <nav className="hidden lg:flex items-center gap-4 xl:gap-6 py-0 h-8 ml-0">
-            <Link href="/" className="text-sm xl:text-base text-gray-800 hover:text-gray-600 transition-colors">
+        <div className="bg-white pb-1.5 sm:pb-2 lg:pb-2.5 pt-0.5 sm:pt-1 border-t border-gray-100 lg:border-t-0">
+          <nav className="hidden lg:flex items-center gap-3 xl:gap-4 py-1">
+            <Link href="/" className="text-sm xl:text-base text-gray-800 hover:text-red-600 transition-colors font-medium">
               Home
             </Link>
             
@@ -146,7 +148,7 @@ export default function Header() {
               <div className="flex items-center gap-1">
                 <Link
                   href="/programs"
-                  className="text-sm xl:text-base text-gray-800 hover:text-gray-600 transition-colors"
+                  className="text-sm xl:text-base text-gray-800 hover:text-red-600 transition-colors font-medium"
                 >
                   Programs
                 </Link>
@@ -237,7 +239,7 @@ export default function Header() {
               <div className="flex items-center gap-1">
                 <Link
                   href="/bea-values"
-                  className="text-sm xl:text-base text-gray-800 hover:text-gray-600 transition-colors"
+                  className="text-sm xl:text-base text-gray-800 hover:text-red-600 transition-colors font-medium"
                 >
                   BEA Values
                 </Link>
@@ -303,10 +305,10 @@ export default function Header() {
               )}
             </div>
 
-            <Link href="/exams" className="text-sm xl:text-base text-gray-800 hover:text-gray-600 transition-colors">
+            <Link href="/exams" className="text-sm xl:text-base text-gray-800 hover:text-red-600 transition-colors font-medium">
               Exams
             </Link>
-            <Link href="/contact-us" className="text-sm xl:text-base text-gray-800 hover:text-gray-600 transition-colors">
+            <Link href="/contact-us" className="text-sm xl:text-base text-gray-800 hover:text-red-600 transition-colors font-medium">
               Contact us
             </Link>
           </nav>
@@ -317,22 +319,20 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)}>
           <div 
-            className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl overflow-y-auto"
+            className="absolute right-0 top-0 h-full w-full sm:w-80 sm:max-w-[85vw] bg-white shadow-xl overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 space-y-4">
+            <div className="p-3 sm:p-4 space-y-3">
               {/* Mobile Search */}
-              <div className="flex items-center border border-gray-300 rounded-full bg-gray-200">
+              <div className="flex items-center bg-gray-200 rounded-xl px-4 py-2.5">
                 <input
                   type="text"
                   placeholder="Search course..."
-                  className="outline-none text-sm px-3 py-2 text-gray-700 placeholder-gray-500 bg-transparent flex-1"
+                  className="outline-none text-sm px-2 py-1 text-gray-700 placeholder-gray-400 bg-transparent flex-1"
                 />
-                <div className="px-3 flex items-center">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
+                <svg className="w-5 h-5 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
 
               {/* Mobile Navigation Links */}

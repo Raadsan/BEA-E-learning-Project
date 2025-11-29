@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState(null);
+  const [showAll, setShowAll] = useState(false);
+  const [ref, isVisible] = useScrollAnimation({ threshold: 0.1 });
 
   const faqs = [
     {
@@ -69,10 +72,10 @@ export default function FAQ() {
   ];
 
   return (
-    <section className="bg-white py-12 sm:py-16 lg:py-20">
+    <section ref={ref} className="bg-white py-12 sm:py-16 lg:py-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          <div className="mb-8 sm:mb-12">
+          <div className={`mb-8 sm:mb-12 transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}>
             <h2 className="text-gray-900 text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3">
               Frequently Asked Questions
             </h2>
@@ -82,35 +85,61 @@ export default function FAQ() {
           </div>
           
           <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <div key={index} className="bg-gray-100 rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                  className="w-full flex items-center justify-between p-4 sm:p-6 bg-gray-100 hover:bg-gray-200 transition-colors text-left"
+            {(showAll ? faqs : faqs.slice(0, 5)).map((faq, index) => {
+              // Use the actual index from the full array
+              const actualIndex = showAll ? index : index;
+              
+              return (
+                <div 
+                  key={actualIndex} 
+                  className={`bg-gray-100 rounded-lg overflow-hidden transition-all duration-500 ${
+                    isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'
+                  }`}
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <span className="text-gray-800 font-bold text-sm sm:text-base pr-4">
-                    {faq.question}
-                  </span>
-                  <svg
-                    className={`w-5 h-5 text-gray-600 flex-shrink-0 transition-transform ${
-                      openIndex === index ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  <button
+                    onClick={() => setOpenIndex(openIndex === actualIndex ? null : actualIndex)}
+                    className="w-full flex items-center justify-between p-4 sm:p-6 bg-gray-100 hover:bg-gray-200 transition-all duration-300 text-left"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                
-                {openIndex === index && (
-                  <div className="p-4 sm:p-6 bg-gray-100 text-gray-700 text-sm sm:text-base">
-                    {faq.answer}
-                  </div>
-                )}
-              </div>
-            ))}
+                    <span className="text-gray-800 font-bold text-sm sm:text-base pr-4">
+                      {faq.question}
+                    </span>
+                    <svg
+                      className={`w-5 h-5 text-gray-600 flex-shrink-0 transition-transform ${
+                        openIndex === actualIndex ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {openIndex === actualIndex && (
+                    <div className="p-4 sm:p-6 bg-gray-100 text-gray-700 text-sm sm:text-base animate-fade-in">
+                      {faq.answer}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
+
+          {/* See All / Show Less Button */}
+          {faqs.length > 5 && (
+            <div className={`mt-6 sm:mt-8 text-center transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}>
+              <button
+                onClick={() => {
+                  setShowAll(!showAll);
+                  setOpenIndex(null); // Close any open FAQs when toggling
+                }}
+                className="bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-900 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base shadow-md hover:shadow-lg"
+              >
+                {showAll ? "Show Less" : "See All"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </section>

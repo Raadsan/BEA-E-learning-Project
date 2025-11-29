@@ -1,4 +1,9 @@
+"use client";
+
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+
 export default function WhatMakesUsSpecial() {
+  const [ref, isVisible] = useScrollAnimation({ threshold: 0.1 });
   const features = [
     {
       id: 1,
@@ -84,10 +89,10 @@ export default function WhatMakesUsSpecial() {
   };
 
   return (
-    <section className="bg-white py-12 sm:py-16 lg:py-20">
+    <section ref={ref} className="bg-white py-12 sm:py-16 lg:py-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
+          <div className={`text-center mb-12 sm:mb-16 transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}>
             <h2 className="text-gray-800 text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
               What Makes Us Special
             </h2>
@@ -97,18 +102,21 @@ export default function WhatMakesUsSpecial() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12">
-            {features.map((feature) => (
+            {features.map((feature, index) => (
               <div
                 key={feature.id}
-                className="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-lg transition-all duration-300"
+                className={`group bg-white rounded-lg p-6 border border-gray-200 hover:shadow-lg hover:bg-[#010080] transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 ${
+                  isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'
+                }`}
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-lg mb-4 text-blue-600">
+                <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-lg mb-4 text-blue-600 transition-transform duration-300 group-hover:scale-110 group-hover:bg-blue-200 group-hover:text-white">
                   {getIcon(feature.icon)}
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3">
+                <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-white transition-colors duration-300">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
+                <p className="text-gray-600 text-sm leading-relaxed group-hover:text-white transition-colors duration-300">
                   {feature.description}
                 </p>
               </div>

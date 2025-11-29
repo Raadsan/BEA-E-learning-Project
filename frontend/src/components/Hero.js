@@ -47,9 +47,9 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative w-full overflow-hidden" style={{ height: '460px' }}>
-      {/* Slideshow Container */}
-      <div className="relative w-full h-full">
+    <section className="relative w-full overflow-hidden">
+      {/* Slideshow Container - Responsive auto height for all screen sizes */}
+      <div className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[75vh] xl:h-[80vh]">
         {slides.map((slide, index) => (
           <div
             key={slide.id}
@@ -69,40 +69,42 @@ export default function Hero() {
             <div className="absolute inset-0 bg-black/40" />
           </div>
         ))}
-      </div>
 
-      {/* Text Overlay */}
-      <div className="absolute inset-0 z-20 flex items-center">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
-            <h1 className="text-white text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-4 leading-tight">
-              Master English with
-              <br />
-              <span className="text-red-600">Global Standards</span>
-            </h1>
-            <p className="text-white text-base sm:text-lg mb-6 leading-relaxed">
-              Structured learning from A1 to C2, powered by CEFR framework and GSE scoring. Join thousands of learners across Somalia achieving their English language goals.
-            </p>
-            <button className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors text-base flex items-center gap-2">
-              <span>→</span>
-              <span>Start Learning Today</span>
-            </button>
+        {/* Text Overlay */}
+        <div className="absolute inset-0 z-20 flex items-center justify-center">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl mx-auto text-center">
+              <h1 className="text-white text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-4 leading-tight animate-fade-in-up">
+                Master English with
+                <br />
+                <span className="text-red-600">Global Standards</span>
+              </h1>
+              <p className="text-white text-base sm:text-lg mb-6 leading-relaxed animate-fade-in-up animate-delay-200">
+                Structured learning from A1 to C2, powered by CEFR framework and GSE scoring. Join thousands of learners across Somalia achieving their English language goals.
+              </p>
+              <div className="flex justify-center animate-fade-in-up animate-delay-400">
+                <button className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-300 transform hover:scale-105 text-base flex items-center gap-2 shadow-lg hover:shadow-xl">
+                  <span>→</span>
+                  <span>Start Learning Today</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Pagination Dots */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex gap-2">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goToSlide(index)}
-            className={`rounded-full transition-all ${
-              index === currentSlide ? "bg-red-600 w-8 h-3" : "bg-white w-3 h-3"
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+        {/* Pagination Dots */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex gap-2">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`rounded-full transition-all ${
+                index === currentSlide ? "bg-red-600 w-8 h-3" : "bg-white w-3 h-3"
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
