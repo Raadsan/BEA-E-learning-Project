@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function Header() {
   const [programsOpen, setProgramsOpen] = useState(false);
   const [beaValuesOpen, setBeaValuesOpen] = useState(false);
-  const [toggleOn, setToggleOn] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isDarkMode, toggleTheme } = useTheme();
 
   const programsMenu = [
     {
@@ -71,14 +72,14 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-white sticky top-0 z-50 shadow-sm" style={{ fontFamily: 'var(--font-opensans)' }}>
-      <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 bg-white">
+    <header className={`sticky top-0 z-50 shadow-sm transition-colors duration-300 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`} style={{ fontFamily: 'var(--font-opensans)' }}>
+      <div className={`container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         {/* First Row: Logo, Search, Icons */}
-        <div className="flex items-center justify-between pt-10 pb-8 bg-white -mt-0 h-12">
+        <div className={`flex items-center justify-between pt-10 pb-8 -mt-0 h-12 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
             <Image
-              src="/images/headerlogo.png"
+              src={isDarkMode ? "/images/footerlogo.png" : "/images/headerlogo.png"}
               alt="BEA Logo"
               width={200}
               height={100}
@@ -89,13 +90,13 @@ export default function Header() {
 
           {/* Search Bar - Center */}
           <div className="hidden md:flex items-center flex-1 justify-center mx-4 max-w-2xl">
-            <div className="flex items-center bg-gray-200 rounded-xl px-4 py-2.5 w-full">
+            <div className={`flex items-center rounded-xl px-4 py-2.5 w-full ${isDarkMode ? 'bg-white header-keep-white' : 'bg-gray-200'}`}>
               <input
                 type="text"
                 placeholder="Search course..."
-                className="outline-none text-sm bg-transparent text-gray-700 placeholder-gray-400 flex-1"
+                className={`header-search-input outline-none text-sm bg-transparent flex-1 ${isDarkMode ? 'text-gray-800 placeholder-gray-500' : 'text-gray-700 placeholder-gray-400'}`}
               />
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-5 h-5 ${isDarkMode ? 'text-gray-600' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -104,39 +105,45 @@ export default function Header() {
           {/* Right Side Icons */}
           <div className="flex items-center gap-3 sm:gap-4">
             {/* Heart Icon */}
-            <button className="hidden lg:block text-gray-600 hover:text-gray-800 transition-colors">
+            <button className={`hidden lg:block transition-colors ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </button>
 
-            {/* Theme Toggle (Moon Icon) */}
+            {/* Theme Toggle (Sun/Moon Icon) */}
             <button
-              onClick={() => setToggleOn(!toggleOn)}
-              className="hidden lg:block text-gray-600 hover:text-gray-800 transition-colors"
+              onClick={toggleTheme}
+              className={`hidden lg:block transition-colors ${isDarkMode ? 'text-yellow-300 hover:text-yellow-100' : 'text-gray-600 hover:text-gray-800'}`}
               aria-label="Toggle theme"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
+              {isDarkMode ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
             </button>
 
             {/* Login Button */}
             <Link
               href="/login"
-              className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold text-sm transition-all duration-300 hover:opacity-90"
-              style={{ backgroundColor: '#010080' }}
+              className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 hover:opacity-90 ${isDarkMode ? 'bg-white header-keep-white' : 'bg-[#010080] text-white'}`}
+              style={isDarkMode ? { color: '#010080' } : {}}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke={isDarkMode ? '#010080' : 'currentColor'} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
-              Login
+              <span style={isDarkMode ? { color: '#010080' } : {}}>Login</span>
             </Link>
 
             {/* Mobile Menu Button */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden text-gray-700 p-1"
+              className={`lg:hidden p-1 ${isDarkMode ? 'text-white' : 'text-gray-700'}`}
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
@@ -153,9 +160,9 @@ export default function Header() {
         </div>
 
         {/* Second Row: Navigation Links */}
-        <div className="bg-white pb-3 pt-2">
+        <div className={`pb-3 pt-2 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
           <nav className="hidden lg:flex items-center gap-4 xl:gap-6 py-0 h-8 ml-0">
-            <Link href="/" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: '#010080' }}>
+            <Link href="/" className={`text-sm xl:text-base hover:opacity-80 transition-colors ${isDarkMode ? 'text-white' : ''}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Home
             </Link>
             
@@ -165,7 +172,7 @@ export default function Header() {
                 <Link
                   href="/programs"
                   className="text-sm xl:text-base hover:opacity-80 transition-colors"
-                  style={{ color: '#010080' }}
+                  style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
                 >
                   Programs
                 </Link>
@@ -176,7 +183,7 @@ export default function Header() {
                     setBeaValuesOpen(false);
                   }}
                   className="flex items-center hover:opacity-80"
-                  style={{ color: '#010080' }}
+                  style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
                 >
                   <svg
                     className={`w-4 h-4 transition-transform ${programsOpen ? "rotate-180" : ""}`}
@@ -255,7 +262,7 @@ export default function Header() {
                 <Link
                   href="/bea-values"
                   className="text-sm xl:text-base hover:opacity-80 transition-colors"
-                  style={{ color: '#010080' }}
+                  style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
                 >
                   BEA Values
                 </Link>
@@ -265,7 +272,7 @@ export default function Header() {
                     setProgramsOpen(false);
                   }}
                   className="flex items-center hover:opacity-80"
-                  style={{ color: '#010080' }}
+                  style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
                 >
                   <svg
                     className={`w-4 h-4 transition-transform ${beaValuesOpen ? "rotate-180" : ""}`}
@@ -322,10 +329,10 @@ export default function Header() {
               )}
             </div>
 
-            <Link href="/exams" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: '#010080' }}>
+            <Link href="/exams" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Exams
             </Link>
-            <Link href="/contact-us" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: '#010080' }}>
+            <Link href="/contact-us" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Contact us
             </Link>
           </nav>
@@ -487,13 +494,19 @@ export default function Header() {
                   </svg>
                 </button>
                 <button
-                  onClick={() => setToggleOn(!toggleOn)}
-                  className="text-gray-700 hover:text-gray-900 transition-colors"
+                  onClick={toggleTheme}
+                  className={`transition-colors ${isDarkMode ? 'text-yellow-300 hover:text-yellow-100' : 'text-gray-700 hover:text-gray-900'}`}
                   aria-label="Toggle theme"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
+                  {isDarkMode ? (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                  )}
                 </button>
               </div>
 

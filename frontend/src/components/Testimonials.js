@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function Testimonials() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -48,14 +50,14 @@ export default function Testimonials() {
   ];
 
   return (
-    <section ref={sectionRef} className="bg-gray-100 py-12 sm:py-16 lg:py-20 overflow-hidden">
+    <section ref={sectionRef} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#04003a]' : 'bg-gray-100'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className={`text-center mb-8 sm:mb-12 lg:mb-16 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <h2 className="text-gray-900 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2 sm:mb-3">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2 sm:mb-3" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               What Our Students Say
             </h2>
-            <p className="text-gray-700 text-sm sm:text-base lg:text-lg px-4 sm:px-0">
+            <p className={`text-sm sm:text-base lg:text-lg px-4 sm:px-0 ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
               Join thousands of successful learners who achieved their English goals with us.
             </p>
           </div>
@@ -64,9 +66,9 @@ export default function Testimonials() {
             {testimonials.map((testimonial, index) => (
               <div
                 key={testimonial.id}
-                className={`bg-white rounded-lg p-4 sm:p-5 md:p-6 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 ${
+                className={`rounded-lg p-4 sm:p-5 md:p-6 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 ${
                   isVisible ? 'animate-fade-in-up' : 'opacity-0'
-                }`}
+                } ${isDarkMode ? 'bg-[#050040]' : 'bg-white'}`}
                 style={{ animationDelay: `${0.2 + index * 0.15}s` }}
               >
                 {/* Stars */}
@@ -84,7 +86,7 @@ export default function Testimonials() {
                 </div>
                 
                 {/* Quote */}
-                <p className="text-gray-700 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6">
+                <p className={`text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
                   &quot;{testimonial.quote}&quot;
                 </p>
                 
@@ -96,10 +98,10 @@ export default function Testimonials() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-gray-900 font-bold text-sm">
+                    <p className="font-bold text-sm" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                       {testimonial.name}
                     </p>
-                    <p className="text-gray-600 text-xs">
+                    <p className={`text-xs ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
                       {testimonial.role}
                     </p>
                   </div>

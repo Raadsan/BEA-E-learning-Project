@@ -65,8 +65,8 @@ export default function Hero() {
               priority={index === 0}
               sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1280px) 100vw, 100vw"
             />
-            {/* Dark overlay for better text readability */}
-            <div className="absolute inset-0 bg-black/40" />
+            {/* Soft blue overlay for better text readability */}
+            <div className="absolute inset-0" style={{ backgroundColor: 'rgba(1, 0, 128, 0.65)' }} />
           </div>
         ))}
       </div>

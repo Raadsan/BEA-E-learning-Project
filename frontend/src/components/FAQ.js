@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -92,14 +94,14 @@ export default function FAQ() {
   const displayedFaqs = showAll ? faqs : faqs.slice(0, 5);
 
   return (
-    <section ref={sectionRef} className="bg-white py-12 sm:py-16 lg:py-20 overflow-hidden">
+    <section ref={sectionRef} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
               <div className={`mb-6 sm:mb-8 lg:mb-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-                <h2 className="text-gray-900 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2 sm:mb-3">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2 sm:mb-3" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                   Frequently Asked Questions
                 </h2>
-                <p className="text-gray-700 text-sm sm:text-base lg:text-lg">
+                <p className={`text-sm sm:text-base lg:text-lg ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
                   Have questions? We&apos;ve got answers. Can&apos;t find what you&apos;re looking for? Contact our support team 24/7.
                 </p>
               </div>
@@ -108,20 +110,20 @@ export default function FAQ() {
             {displayedFaqs.map((faq, index) => (
               <div 
                 key={index} 
-                className={`bg-gray-100 rounded-lg overflow-hidden ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
+                className={`rounded-lg overflow-hidden ${isVisible ? 'animate-fade-in-up' : 'opacity-0'} ${isDarkMode ? 'bg-[#050040]' : 'bg-gray-100'}`}
                 style={{ animationDelay: `${0.1 + index * 0.05}s` }}
               >
                 <button
                   onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                  className="w-full flex items-center justify-between p-4 sm:p-6 bg-gray-100 hover:bg-gray-200 transition-colors text-left"
+                  className={`w-full flex items-center justify-between p-4 sm:p-6 transition-colors text-left ${isDarkMode ? 'bg-[#050040] hover:bg-[#060050]' : 'bg-gray-100 hover:bg-gray-200'}`}
                 >
-                  <span className="text-gray-800 font-bold text-sm sm:text-base pr-4">
+                  <span className="font-bold text-sm sm:text-base pr-4" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                     {faq.question}
                   </span>
                   <svg
-                    className={`w-5 h-5 text-gray-600 flex-shrink-0 transition-transform duration-300 ${
+                    className={`w-5 h-5 flex-shrink-0 transition-transform duration-300 ${
                       openIndex === index ? "rotate-180" : ""
-                    }`}
+                    } ${isDarkMode ? 'text-white' : 'text-gray-600'}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -135,7 +137,7 @@ export default function FAQ() {
                     openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
                   }`}
                 >
-                  <div className="p-4 sm:p-6 bg-gray-100 text-gray-700 text-sm sm:text-base">
+                  <div className={`p-4 sm:p-6 text-sm sm:text-base ${isDarkMode ? 'bg-[#050040] text-white' : 'bg-gray-100 text-gray-700'}`}>
                     {faq.answer}
                   </div>
                 </div>
@@ -148,7 +150,7 @@ export default function FAQ() {
             <div className={`mt-8 text-center ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.4s' }}>
               <button
                 onClick={() => setShowAll(!showAll)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-800 text-white font-semibold rounded-lg hover:bg-blue-900 transition-all duration-300 hover:scale-105"
+                className={`inline-flex items-center gap-2 px-6 py-3 font-semibold rounded-lg transition-all duration-300 hover:scale-105 ${isDarkMode ? 'bg-white text-[#010080] hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}
               >
                 <span>{showAll ? 'Show Less' : 'See All FAQs'}</span>
                 <svg 
@@ -160,7 +162,7 @@ export default function FAQ() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <p className="mt-2 text-gray-500 text-sm">
+              <p className={`mt-2 text-sm ${isDarkMode ? 'text-white' : 'text-gray-500'}`}>
                 {showAll ? `Showing all ${faqs.length} questions` : `Showing 5 of ${faqs.length} questions`}
               </p>
             </div>

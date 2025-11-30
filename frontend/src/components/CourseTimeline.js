@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function CourseTimeline() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -83,19 +85,19 @@ export default function CourseTimeline() {
   ];
 
   return (
-    <section ref={sectionRef} className="bg-gray-50 py-12 sm:py-16 lg:py-20 overflow-hidden">
+    <section ref={sectionRef} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#04003a]' : 'bg-gray-50'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className={`mb-8 sm:mb-10 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <h2 className="text-gray-900 text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Course Timeline
             </h2>
-            <p className="text-gray-700 text-base sm:text-lg">
+            <p className={`text-base sm:text-lg ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
               Plan ahead with our comprehensive course calendar. All courses include recorded sessions if you miss a live class.
             </p>
           </div>
           
-          <div className={`overflow-hidden border border-gray-200 ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
+          <div className={`overflow-hidden border ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'} ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -121,37 +123,39 @@ export default function CourseTimeline() {
                   {timelineData.map((item, index) => (
                     <tr 
                       key={index} 
-                      className={`border-b border-gray-200 transition-colors ${
-                        index % 2 === 0 ? "bg-white" : "bg-blue-50/30"
-                      } hover:bg-blue-50`}
+                      className={`transition-colors ${isDarkMode ? 'border-b border-[#1a1a3e]' : 'border-b border-gray-200'} ${
+                        isDarkMode 
+                          ? (index % 2 === 0 ? "bg-[#050040]" : "bg-[#03002e]/50")
+                          : (index % 2 === 0 ? "bg-white" : "bg-blue-50/30")
+                      } ${isDarkMode ? 'hover:bg-[#060050]' : 'hover:bg-blue-50'}`}
                     >
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap border-r border-gray-200">
-                        <span className="text-blue-900 font-semibold text-xs sm:text-sm">{item.course}</span>
+                      <td className={`px-4 sm:px-6 py-4 whitespace-nowrap border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
+                        <span className={`font-semibold text-xs sm:text-sm ${isDarkMode ? 'text-white' : 'text-blue-900'}`}>{item.course}</span>
                       </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap border-r border-gray-200">
-                        <div className="flex items-center gap-2 text-gray-600 text-xs sm:text-sm">
-                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <td className={`px-4 sm:px-6 py-4 whitespace-nowrap border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
+                        <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
+                          <svg className={`w-4 h-4 ${isDarkMode ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                           <span>{item.startDate}</span>
                         </div>
                       </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap border-r border-gray-200">
-                        <div className="flex items-center gap-2 text-gray-600 text-xs sm:text-sm">
-                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <td className={`px-4 sm:px-6 py-4 whitespace-nowrap border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
+                        <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
+                          <svg className={`w-4 h-4 ${isDarkMode ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                           <span>{item.endDate}</span>
                         </div>
                       </td>
-                      <td className="px-4 sm:px-6 py-4 border-r border-gray-200">
-                        <div className="text-gray-600 text-xs sm:text-sm">
+                      <td className={`px-4 sm:px-6 py-4 border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
+                        <div className={`text-xs sm:text-sm ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
                           <div>{item.schedule}</div>
-                          <div className="text-gray-500">{item.lessons}</div>
+                          <div className={isDarkMode ? 'text-white' : 'text-gray-500'}>{item.lessons}</div>
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <button className="bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors text-xs sm:text-sm font-semibold">
+                        <button className={`px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm font-semibold ${isDarkMode ? 'bg-white header-keep-white text-[#010080] hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}>
                           Book now
                         </button>
                       </td>

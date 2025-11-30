@@ -2,7 +2,6 @@ import Hero from "@/components/Hero";
 import Introduction from "@/components/Introduction";
 import WhatMakesUsSpecial from "@/components/WhatMakesUsSpecial";
 import CountdownTimer from "@/components/CountdownTimer";
-import PopularCourses from "@/components/PopularCourses";
 import CourseTimeline from "@/components/CourseTimeline";
 import FeaturedVideo from "@/components/FeaturedVideo";
 import ProgramCards from "@/components/ProgramCards";
@@ -17,7 +16,6 @@ export default function Home() {
       <Introduction />
       <WhatMakesUsSpecial />
       <CountdownTimer />
-      <PopularCourses />
       <CourseTimeline />
       <FeaturedVideo />
       <ProgramCards />

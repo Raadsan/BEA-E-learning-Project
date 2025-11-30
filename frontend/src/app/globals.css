@@ -3,6 +3,30 @@
 :root {
   --background: #ffffff;
   --foreground: #010080;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --text-primary: #010080;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  --section-bg: #f9fafb;
+  --section-bg-alt: #f3f4f6;
+  --input-bg: #f3f4f6;
+  --input-border: #d1d5db;
+}
+
+/* Dark mode variables */
+.dark {
+  --background: #03002e;
+  --foreground: #ffffff;
+  --card-bg: #050040;
+  --card-border: #1a1a3e;
+  --text-primary: #ffffff;
+  --text-secondary: #c7d2fe;
+  --text-muted: #a5b4fc;
+  --section-bg: #04003a;
+  --section-bg-alt: #050040;
+  --input-bg: #050040;
+  --input-border: #2a2a5e;
 }
 
 @theme inline {
@@ -12,17 +36,111 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #010080;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode body styles */
+.dark body,
+html.dark body {
+  background-color: #03002e;
+  color: #ffffff;
+}
+
+/* Dark mode section backgrounds - exclude header elements */
+.dark .bg-white:not(.header-keep-white) {
+  background-color: var(--card-bg) !important;
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: var(--section-bg) !important;
+}
+
+/* Dark mode text colors - ALL text white except red */
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700,
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: #ffffff !important;
+}
+
+/* Make all inline styled text white in dark mode */
+.dark [style*="color: #010080"],
+.dark [style*="color:#010080"] {
+  color: #ffffff !important;
+}
+
+/* Dark mode - text with blue colors to white */
+.dark .text-blue-900,
+.dark .text-blue-800,
+.dark .text-blue-700,
+.dark .text-blue-600 {
+  color: #ffffff !important;
+}
+
+/* Preserve red colors in dark mode */
+.dark .text-red-600,
+.dark .text-red-500,
+.dark .text-red-700 {
+  color: inherit;
+}
+
+/* Dark mode general text */
+.dark p,
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6,
+.dark span:not(.text-red-600):not(.text-red-500):not(.text-red-700),
+.dark label,
+.dark a:not(.text-red-600):not(.text-red-500):not(.text-red-700) {
+  color: #ffffff;
+}
+
+/* Keep red text red in dark mode */
+.dark .text-red-600 {
+  color: #dc2626 !important;
+}
+
+.dark .text-red-500 {
+  color: #ef4444 !important;
+}
+
+.dark .text-red-700 {
+  color: #b91c1c !important;
+}
+
+/* Dark mode borders */
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: var(--card-border) !important;
+}
+
+/* Dark mode cards */
+.dark .shadow-md,
+.dark .shadow-lg {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Dark mode inputs - exclude header search */
+.dark input:not(.header-search-input),
+.dark textarea {
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark input:not(.header-search-input)::placeholder,
+.dark textarea::placeholder {
+  color: var(--text-muted) !important;
 }
 
 /* Custom scrollbar for tables */
