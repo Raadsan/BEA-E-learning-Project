@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function BEAExams() {
+  const { isDarkMode } = useTheme();
   const [visibleSections, setVisibleSections] = useState({});
   const sectionRefs = {
     hero: useRef(null),
@@ -99,13 +101,15 @@ export default function BEAExams() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       {/* Hero Section */}
       <section 
         ref={sectionRefs.hero}
         className="relative flex items-center justify-center overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)',
+          background: isDarkMode 
+            ? 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)'
+            : 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)',
           height: '170px'
         }}
       >
@@ -117,16 +121,16 @@ export default function BEAExams() {
       </section>
 
       {/* Main Content Area */}
-      <section ref={sectionRefs.content} className="py-12 sm:py-16 lg:py-20 bg-white overflow-hidden">
+      <section ref={sectionRefs.content} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto space-y-6">
             {/* Introduction */}
-            <p className={`text-gray-800 leading-relaxed text-base sm:text-lg ${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <p className={`leading-relaxed text-base sm:text-lg ${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               As an Educational Institution, we believe every learner&apos;s journey begins with understanding their true level of English proficiency. To ensure every student receives the most effective and personalized learning experience, BEA employs two key assessments — the BEA Placement Test and the BEA Proficiency Test.
             </p>
             
             {/* Call to Action */}
-            <p className={`text-blue-900 font-serif text-base sm:text-lg font-semibold ${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+            <p className={`font-serif text-base sm:text-lg font-semibold ${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s', color: isDarkMode ? '#ffffff' : '#010080' }}>
               To learn more about BEA Exams, check the two tables below
             </p>
             
@@ -134,11 +138,11 @@ export default function BEAExams() {
             <div className="space-y-12 mt-12">
               {/* Placement Test Table */}
               <div ref={sectionRefs.placement}>
-                <h2 className={`text-2xl sm:text-3xl font-bold text-gray-900 mb-6 ${visibleSections.placement ? 'animate-fade-in-left' : 'opacity-0'}`}>
+                <h2 className={`text-2xl sm:text-3xl font-bold mb-6 ${visibleSections.placement ? 'animate-fade-in-left' : 'opacity-0'}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                   1. BEA PLACEMENT TEST
                 </h2>
                 
-                <div className={`overflow-hidden border border-gray-200 ${visibleSections.placement ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+                <div className={`overflow-hidden border ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'} ${visibleSections.placement ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
@@ -155,16 +159,18 @@ export default function BEAExams() {
                         {placementData.map((item, index) => (
                           <tr 
                             key={index} 
-                            className={`border-b border-gray-200 ${
-                              index % 2 === 0 ? "bg-white" : "bg-blue-50/30"
+                            className={`transition-colors ${isDarkMode ? 'border-b border-[#1a1a3e]' : 'border-b border-gray-200'} ${
+                              isDarkMode 
+                                ? (index % 2 === 0 ? "bg-[#050040]" : "bg-[#03002e]/50")
+                                : (index % 2 === 0 ? "bg-white" : "bg-blue-50/30")
                             }`}
                           >
-                            <td className="px-4 sm:px-6 py-5 align-top border-r border-gray-200">
-                              <span className="text-blue-900 font-semibold text-xs sm:text-sm">
+                            <td className={`px-4 sm:px-6 py-5 align-top border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
+                              <span className="font-semibold text-xs sm:text-sm" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                                 {item.category}
                               </span>
                             </td>
-                            <td className="px-4 sm:px-6 py-5 text-gray-600 text-xs sm:text-sm leading-relaxed">
+                            <td className="px-4 sm:px-6 py-5 text-xs sm:text-sm leading-relaxed" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                               {item.details}
                             </td>
                           </tr>
@@ -177,11 +183,11 @@ export default function BEAExams() {
               
               {/* Proficiency Test Table */}
               <div ref={sectionRefs.proficiency}>
-                <h2 className={`text-2xl sm:text-3xl font-bold text-gray-900 mb-6 ${visibleSections.proficiency ? 'animate-fade-in-left' : 'opacity-0'}`}>
+                <h2 className={`text-2xl sm:text-3xl font-bold mb-6 ${visibleSections.proficiency ? 'animate-fade-in-left' : 'opacity-0'}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                   2. BEA PROFICIENCY TEST
                 </h2>
                 
-                <div className={`overflow-hidden border border-gray-200 ${visibleSections.proficiency ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+                <div className={`overflow-hidden border ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'} ${visibleSections.proficiency ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
@@ -198,16 +204,18 @@ export default function BEAExams() {
                         {proficiencyData.map((item, index) => (
                           <tr 
                             key={index} 
-                            className={`border-b border-gray-200 ${
-                              index % 2 === 0 ? "bg-white" : "bg-blue-50/30"
+                            className={`transition-colors ${isDarkMode ? 'border-b border-[#1a1a3e]' : 'border-b border-gray-200'} ${
+                              isDarkMode 
+                                ? (index % 2 === 0 ? "bg-[#050040]" : "bg-[#03002e]/50")
+                                : (index % 2 === 0 ? "bg-white" : "bg-blue-50/30")
                             }`}
                           >
-                            <td className="px-4 sm:px-6 py-5 align-top border-r border-gray-200">
-                              <span className="text-blue-900 font-semibold text-xs sm:text-sm">
+                            <td className={`px-4 sm:px-6 py-5 align-top border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
+                              <span className="font-semibold text-xs sm:text-sm" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                                 {item.category}
                               </span>
                             </td>
-                            <td className="px-4 sm:px-6 py-5 text-gray-600 text-xs sm:text-sm leading-relaxed">
+                            <td className="px-4 sm:px-6 py-5 text-xs sm:text-sm leading-relaxed" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                               {item.details}
                             </td>
                           </tr>

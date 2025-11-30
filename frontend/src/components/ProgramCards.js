@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function ProgramCards() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -70,30 +72,30 @@ export default function ProgramCards() {
   ];
 
   return (
-    <section ref={sectionRef} className="bg-white py-12 sm:py-16 lg:py-20 overflow-hidden">
+    <section ref={sectionRef} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 sm:mb-10 lg:mb-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <div>
-              <h2 className="text-gray-800 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                 BEA Programs Portfolio
               </h2>
-              <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
+              <p className={`text-sm sm:text-base lg:text-lg ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
-            <a href="/programs" className="text-gray-800 font-semibold hover:underline text-xs sm:text-sm md:text-base whitespace-nowrap border border-purple-300 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 hover:bg-purple-50 transition-colors self-start sm:self-auto">
+            <a href="/programs" className={`font-semibold text-xs sm:text-sm md:text-base whitespace-nowrap border rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 hover:text-white transition-all duration-300 self-start sm:self-auto ${isDarkMode ? 'text-white border-white hover:bg-white hover:text-[#010080]' : ''}`} style={{ color: isDarkMode ? 'white' : '#010080', borderColor: isDarkMode ? 'white' : '#010080' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = isDarkMode ? 'white' : '#010080'; e.currentTarget.style.color = isDarkMode ? '#010080' : 'white'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = isDarkMode ? 'white' : '#010080'; }}>
               → View all programs
             </a>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {programs.map((program, index) => (
+            {programs.slice(0, 3).map((program, index) => (
               <div
                 key={program.id}
-                className={`bg-white rounded-lg border border-gray-200 overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${
+                className={`rounded-lg border overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${
                   isVisible ? 'animate-fade-in-up' : 'opacity-0'
-                }`}
+                } ${isDarkMode ? 'bg-[#050040] border-[#1a1a3e]' : 'bg-white border-gray-200'}`}
                 style={{ animationDelay: `${0.1 + index * 0.1}s` }}
               >
                 {/* Image with Play Icon */}
@@ -118,10 +120,10 @@ export default function ProgramCards() {
                 <div className="p-4 sm:p-5">
                   {/* Title with Heart Icon */}
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 flex-1">
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold flex-1" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                       {program.title}
                     </h3>
-                    <button className="text-gray-400 hover:text-red-500 transition-colors ml-2">
+                    <button className={`transition-colors ml-2 ${isDarkMode ? 'text-white hover:text-red-500' : 'text-gray-400 hover:text-red-500'}`}>
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                       </svg>
@@ -129,7 +131,7 @@ export default function ProgramCards() {
                   </div>
                   
                   {/* Description */}
-                  <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
+                  <p className={`text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4 ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
                     {program.description}
                   </p>
                   

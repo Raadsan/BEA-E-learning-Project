@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function WhatMakesUsSpecial() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -108,14 +110,14 @@ export default function WhatMakesUsSpecial() {
   };
 
   return (
-    <section ref={sectionRef} className="bg-white py-12 sm:py-16 lg:py-20 overflow-hidden">
+    <section ref={sectionRef} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className={`text-center mb-8 sm:mb-12 lg:mb-16 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <h2 className="text-gray-800 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               What Makes Us Special
             </h2>
-            <p className="text-gray-600 text-sm sm:text-base lg:text-lg px-4 sm:px-0">
+            <p className={`text-sm sm:text-base lg:text-lg px-4 sm:px-0 ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
               Discover the unique features that set BEA apart as Somalia&apos;s premier English language academy
             </p>
           </div>
@@ -124,18 +126,18 @@ export default function WhatMakesUsSpecial() {
             {features.map((feature, index) => (
               <div
                 key={feature.id}
-                className={`special-card bg-white rounded-lg p-4 sm:p-5 md:p-6 border border-gray-200 cursor-pointer ${
+                className={`special-card rounded-lg p-4 sm:p-5 md:p-6 border cursor-pointer ${
                   isVisible ? 'animate-fade-in-up' : 'opacity-0'
-                }`}
+                } ${isDarkMode ? 'bg-[#050040] border-[#1a1a3e]' : 'bg-white border-gray-200'}`}
                 style={{ animationDelay: `${0.1 + index * 0.1}s` }}
               >
-                <div className="special-card-icon flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blue-100 rounded-lg mb-3 sm:mb-4 text-blue-600 transition-all duration-300">
+                <div className={`special-card-icon flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg mb-3 sm:mb-4 transition-all duration-300 ${isDarkMode ? 'bg-[#03002e] text-white' : 'bg-blue-100 text-blue-600'}`}>
                   {getIcon(feature.icon)}
                 </div>
-                <h3 className="special-card-title text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3 transition-colors duration-300">
+                <h3 className="special-card-title text-base sm:text-lg font-bold mb-2 sm:mb-3 transition-colors duration-300" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                   {feature.title}
                 </h3>
-                <p className="special-card-description text-gray-600 text-xs sm:text-sm leading-relaxed transition-colors duration-300">
+                <p className={`special-card-description text-xs sm:text-sm leading-relaxed transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
                   {feature.description}
                 </p>
               </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState({
@@ -11,6 +12,7 @@ export default function CountdownTimer() {
   });
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -110,13 +112,13 @@ export default function CountdownTimer() {
           </svg>
           {/* Number */}
           <div className="relative z-10">
-            <div className="text-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">
+            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               {String(value).padStart(2, "0")}
             </div>
           </div>
         </div>
         {/* Label */}
-        <div className="text-black text-xs sm:text-sm md:text-base mt-1 sm:mt-2 font-medium">{label}</div>
+        <div className="text-xs sm:text-sm md:text-base mt-1 sm:mt-2 font-medium" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>{label}</div>
       </div>
     );
   };
@@ -126,7 +128,7 @@ export default function CountdownTimer() {
       ref={sectionRef}
       className="py-8 sm:py-12 lg:py-16 relative overflow-hidden"
       style={{
-        background: 'linear-gradient(90deg, #010080 0%, #6766B3 100%)'
+        background: isDarkMode ? '#03002e' : 'linear-gradient(90deg, #010080 0%, #6766B3 100%)'
       }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -140,7 +142,7 @@ export default function CountdownTimer() {
         </div>
         
         {/* White Card with Countdown Timers */}
-        <div className={`bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8 lg:p-12 max-w-4xl mx-auto ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+        <div className={`rounded-xl shadow-lg p-4 sm:p-6 md:p-8 lg:p-12 max-w-4xl mx-auto ${isVisible ? 'animate-scale-in' : 'opacity-0'} ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`} style={{ animationDelay: '0.1s' }}>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-12">
             {renderCircularTimer(timeLeft.days, "Days", 0)}
             {renderCircularTimer(timeLeft.hours, "Hours", 1)}
