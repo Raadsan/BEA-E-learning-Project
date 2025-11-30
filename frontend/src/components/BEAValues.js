@@ -1,6 +1,33 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 export default function BEAValues() {
+  const [visibleSections, setVisibleSections] = useState({});
+  const sectionRefs = {
+    hero: useRef(null),
+    content: useRef(null),
+    videos: useRef(null),
+  };
+
+  useEffect(() => {
+    const observers = [];
+    Object.entries(sectionRefs).forEach(([key, ref]) => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setVisibleSections(prev => ({ ...prev, [key]: true }));
+          }
+        },
+        { threshold: 0.1 }
+      );
+      if (ref.current) observer.observe(ref.current);
+      observers.push(observer);
+    });
+    return () => observers.forEach(obs => obs.disconnect());
+  }, []);
+
   const valuesVideos = [
     {
       id: 1,
@@ -32,36 +59,37 @@ export default function BEAValues() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section 
-        className="relative flex items-center justify-center"
+        ref={sectionRefs.hero}
+        className="relative flex items-center justify-center overflow-hidden"
         style={{
           background: 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)',
           height: '170px'
         }}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-serif italic text-white mb-4">
+          <h1 className={`text-5xl sm:text-6xl lg:text-7xl font-serif italic text-white mb-4 ${visibleSections.hero ? 'animate-fade-in-down' : 'opacity-0'}`}>
             Our BEA Values
           </h1>
         </div>
       </section>
 
       {/* Main Content Area */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-white">
+      <section ref={sectionRefs.content} className="py-12 sm:py-16 lg:py-20 bg-white overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto space-y-6 text-gray-800 leading-relaxed text-base sm:text-lg">
-            <p>
+            <p className={`${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               Our values form the foundation of everything we do — guiding our teaching philosophy, our community, and our vision for empowering learners through the English language. We believe that language is more than a skill; it is a bridge to opportunity, connection, and transformation.
             </p>
             
-            <p>
+            <p className={`${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
               Our academy is built on <strong>Excellence</strong>, ensuring the highest academic and professional standards in every program we deliver. We champion <strong>Integrity</strong>, honesty, respect, and responsibility in both teaching and learning. These values drive our teaching methods, inspiring creativity in the classroom and encouraging learners to think globally and act confidently in a changing world.
             </p>
             
-            <p>
+            <p className={`${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.3s' }}>
               We welcome learners from all backgrounds and cultures, celebrating <strong>Diversity</strong> as a source of strength. Through <strong>Collaboration</strong>, we nurture teamwork among students, teachers, and partners to achieve shared success.
             </p>
             
-            <p>
+            <p className={`${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.4s' }}>
               Finally, we are guided by a spirit of <strong>Continuous Growth</strong>—helping each learner and educator to reach their full potential, personally and professionally. These values define who we are, what we teach, and how we inspire every learner to become a confident, capable communicator in English — ready to lead, contribute, and make a difference globally.
             </p>
           </div>
@@ -69,10 +97,10 @@ export default function BEAValues() {
       </section>
 
       {/* Video Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-gray-100">
+      <section ref={sectionRefs.videos} className="py-12 sm:py-16 lg:py-20 bg-gray-100 overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
-            <div className="mb-10 sm:mb-12 text-center">
+            <div className={`mb-10 sm:mb-12 text-center ${visibleSections.videos ? 'animate-fade-in-up' : 'opacity-0'}`}>
               <h2 className="text-gray-900 text-xl sm:text-2xl lg:text-3xl font-serif font-bold mb-3">
                 Watch these 3 Videos to learn more about our BEA Values
               </h2>
@@ -82,11 +110,12 @@ export default function BEAValues() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-              {valuesVideos.map((video) => (
+              {valuesVideos.map((video, index) => (
                 <div
                   key={video.id}
                   id={video.slug}
-                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 scroll-mt-20"
+                  className={`bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-mt-20 ${visibleSections.videos ? 'animate-fade-in-up' : 'opacity-0'}`}
+                  style={{ animationDelay: `${0.2 + index * 0.15}s` }}
                 >
                   {/* Video Thumbnail */}
                   <div className="relative w-full h-48 overflow-hidden rounded-t-xl group">

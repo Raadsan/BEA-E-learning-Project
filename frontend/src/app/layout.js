@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display, Open_Sans } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -11,6 +11,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+});
+
+const openSans = Open_Sans({
+  variable: "--font-opensans",
+  subsets: ["latin"],
+});
+
 export const metadata = {
   title: "BEA - Blueprint English Academy",
   description: "Somalia's premier institution for English language education",
@@ -20,7 +30,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} ${openSans.variable} antialiased`}
       >
         {children}
       </body>

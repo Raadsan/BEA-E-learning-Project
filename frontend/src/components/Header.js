@@ -14,32 +14,38 @@ export default function Header() {
     {
       title: "8- Level General English Course for Adults",
       description: "Comprehensive program from beginner to advanced",
-      icon: "chart"
+      icon: "chart",
+      href: "/programs/8-level-general-english"
     },
     {
       title: "English for Specific Purposes (ESP)",
       description: "Tailored English for professional fields",
-      icon: "grid"
+      icon: "grid",
+      href: "/programs/esp"
     },
     {
       title: "IELTS & TOFEL Preparation Course",
       description: "Prepare for international English exams",
-      icon: "user"
+      icon: "user",
+      href: "/programs/ielts-toefl"
     },
     {
       title: "Professional Skills and Training Programs",
       description: "Develop essential workplace competencies",
-      icon: "wave"
+      icon: "wave",
+      href: "#"
     },
     {
       title: "Advanced Academic Writing Program",
       description: "Master academic and professional writing",
-      icon: "pie"
+      icon: "pie",
+      href: "/programs/academic-writing"
     },
     {
       title: "Digital Literacy and Virtual Communication",
       description: "Build digital skills for modern communication",
-      icon: "network"
+      icon: "network",
+      href: "/programs/digital-literacy"
     },
   ];
 
@@ -65,43 +71,41 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-white sticky top-0 z-50 shadow-sm">
-      <div className="container mx-auto px-2 sm:px-3 md:px-4 lg:px-6 bg-white">
+    <header className="bg-white sticky top-0 z-50 shadow-sm" style={{ fontFamily: 'var(--font-opensans)' }}>
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 bg-white">
         {/* First Row: Logo, Search, Icons */}
-        <div className="flex items-center justify-between py-2 sm:py-2.5 md:py-3 lg:py-3 bg-white gap-2 sm:gap-3 md:gap-4">
+        <div className="flex items-center justify-between pt-10 pb-8 bg-white -mt-0 h-12">
           {/* Logo */}
-          <div className="flex items-center flex-shrink-0 min-w-0">
-            <Link href="/" className="flex items-center">
-              <Image
-                src="/images/headerlogo.png"
-                alt="BEA Logo"
-                width={200}
-                height={100}
-                className="h-7 sm:h-8 md:h-10 lg:h-12 xl:h-14 w-auto object-contain"
-                priority
-              />
-            </Link>
+          <div className="flex items-center flex-shrink-0">
+            <Image
+              src="/images/headerlogo.png"
+              alt="BEA Logo"
+              width={200}
+              height={100}
+              className="h-12 sm:h-14 md:h-16 lg:h-20 xl:h-24 w-auto object-contain"
+              priority
+            />
           </div>
 
           {/* Search Bar - Center */}
-          <div className="hidden md:flex items-center flex-1 justify-center mx-2 lg:mx-3 max-w-md lg:max-w-xl xl:max-w-2xl min-w-0">
-            <div className="flex items-center bg-gray-200 rounded-lg sm:rounded-xl px-3 py-1.5 sm:py-2 w-full">
+          <div className="hidden md:flex items-center flex-1 justify-center mx-4 max-w-2xl">
+            <div className="flex items-center bg-gray-200 rounded-xl px-4 py-2.5 w-full">
               <input
                 type="text"
                 placeholder="Search course..."
-                className="outline-none text-xs sm:text-sm bg-transparent text-gray-700 placeholder-gray-400 flex-1 min-w-0"
+                className="outline-none text-sm bg-transparent text-gray-700 placeholder-gray-400 flex-1"
               />
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
           </div>
 
           {/* Right Side Icons */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-3 sm:gap-4">
             {/* Heart Icon */}
-            <button className="hidden lg:block text-gray-600 hover:text-gray-800 transition-colors p-1" aria-label="Favorites">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button className="hidden lg:block text-gray-600 hover:text-gray-800 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </button>
@@ -109,18 +113,30 @@ export default function Header() {
             {/* Theme Toggle (Moon Icon) */}
             <button
               onClick={() => setToggleOn(!toggleOn)}
-              className="hidden lg:block text-gray-600 hover:text-gray-800 transition-colors p-1"
+              className="hidden lg:block text-gray-600 hover:text-gray-800 transition-colors"
               aria-label="Toggle theme"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             </button>
 
+            {/* Login Button */}
+            <Link
+              href="/login"
+              className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold text-sm transition-all duration-300 hover:opacity-90"
+              style={{ backgroundColor: '#010080' }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              Login
+            </Link>
+
             {/* Mobile Menu Button */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden text-gray-700 p-1.5 hover:bg-gray-100 rounded transition-colors"
+              className="lg:hidden text-gray-700 p-1"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
@@ -137,9 +153,9 @@ export default function Header() {
         </div>
 
         {/* Second Row: Navigation Links */}
-        <div className="bg-white pb-1.5 sm:pb-2 lg:pb-2.5 pt-0.5 sm:pt-1 border-t border-gray-100 lg:border-t-0">
-          <nav className="hidden lg:flex items-center gap-3 xl:gap-4 py-1">
-            <Link href="/" className="text-sm xl:text-base text-gray-800 hover:text-red-600 transition-colors font-medium">
+        <div className="bg-white pb-3 pt-2">
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-6 py-0 h-8 ml-0">
+            <Link href="/" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: '#010080' }}>
               Home
             </Link>
             
@@ -148,7 +164,8 @@ export default function Header() {
               <div className="flex items-center gap-1">
                 <Link
                   href="/programs"
-                  className="text-sm xl:text-base text-gray-800 hover:text-red-600 transition-colors font-medium"
+                  className="text-sm xl:text-base hover:opacity-80 transition-colors"
+                  style={{ color: '#010080' }}
                 >
                   Programs
                 </Link>
@@ -158,7 +175,8 @@ export default function Header() {
                     setProgramsOpen(!programsOpen);
                     setBeaValuesOpen(false);
                   }}
-                  className="flex items-center text-gray-800 hover:text-gray-600"
+                  className="flex items-center hover:opacity-80"
+                  style={{ color: '#010080' }}
                 >
                   <svg
                     className={`w-4 h-4 transition-transform ${programsOpen ? "rotate-180" : ""}`}
@@ -173,12 +191,10 @@ export default function Header() {
               {programsOpen && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-[calc(100vw-2rem)] sm:w-[90vw] max-w-[480px] sm:max-w-[520px] md:max-w-[560px] rounded-lg shadow-lg border border-gray-200 p-2 sm:p-3 z-50" style={{ backgroundColor: '#010080' }}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 grid-rows-6 sm:grid-rows-3 gap-2 sm:gap-3">
-                    {programsMenu.map((item, index) => {
-                      const href = index === 0 ? "/programs/8-level-general-english" : "#";
-                      return (
+                    {programsMenu.map((item, index) => (
                       <Link
                         key={index}
-                        href={href}
+                        href={item.href}
                         className="flex items-start gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-lg hover:bg-blue-900 transition-colors group"
                         onClick={() => setProgramsOpen(false)}
                       >
@@ -227,8 +243,7 @@ export default function Header() {
                           </div>
                         </div>
                       </Link>
-                      );
-                    })}
+                    ))}
                   </div>
                 </div>
               )}
@@ -239,7 +254,8 @@ export default function Header() {
               <div className="flex items-center gap-1">
                 <Link
                   href="/bea-values"
-                  className="text-sm xl:text-base text-gray-800 hover:text-red-600 transition-colors font-medium"
+                  className="text-sm xl:text-base hover:opacity-80 transition-colors"
+                  style={{ color: '#010080' }}
                 >
                   BEA Values
                 </Link>
@@ -248,7 +264,8 @@ export default function Header() {
                     setBeaValuesOpen(!beaValuesOpen);
                     setProgramsOpen(false);
                   }}
-                  className="flex items-center text-gray-800 hover:text-gray-600"
+                  className="flex items-center hover:opacity-80"
+                  style={{ color: '#010080' }}
                 >
                   <svg
                     className={`w-4 h-4 transition-transform ${beaValuesOpen ? "rotate-180" : ""}`}
@@ -305,10 +322,10 @@ export default function Header() {
               )}
             </div>
 
-            <Link href="/exams" className="text-sm xl:text-base text-gray-800 hover:text-red-600 transition-colors font-medium">
+            <Link href="/exams" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: '#010080' }}>
               Exams
             </Link>
-            <Link href="/contact-us" className="text-sm xl:text-base text-gray-800 hover:text-red-600 transition-colors font-medium">
+            <Link href="/contact-us" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: '#010080' }}>
               Contact us
             </Link>
           </nav>
@@ -319,20 +336,22 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)}>
           <div 
-            className="absolute right-0 top-0 h-full w-full sm:w-80 sm:max-w-[85vw] bg-white shadow-xl overflow-y-auto"
+            className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-3 sm:p-4 space-y-3">
+            <div className="p-4 space-y-4">
               {/* Mobile Search */}
-              <div className="flex items-center bg-gray-200 rounded-xl px-4 py-2.5">
+              <div className="flex items-center border border-gray-300 rounded-full bg-gray-200">
                 <input
                   type="text"
                   placeholder="Search course..."
-                  className="outline-none text-sm px-2 py-1 text-gray-700 placeholder-gray-400 bg-transparent flex-1"
+                  className="outline-none text-sm px-3 py-2 text-gray-700 placeholder-gray-500 bg-transparent flex-1"
                 />
-                <svg className="w-5 h-5 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <div className="px-3 flex items-center">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
               </div>
 
               {/* Mobile Navigation Links */}
@@ -366,12 +385,10 @@ export default function Header() {
                   </div>
                   {programsOpen && (
                     <div className="mt-2 ml-4 space-y-1 bg-gray-50 rounded-lg p-2">
-                      {programsMenu.map((item, index) => {
-                        const href = index === 0 ? "/programs/8-level-general-english" : "#";
-                        return (
+                      {programsMenu.map((item, index) => (
                         <Link
                           key={index}
-                          href={href}
+                          href={item.href}
                           className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors rounded-lg text-sm"
                           onClick={() => {
                             setProgramsOpen(false);
@@ -380,8 +397,7 @@ export default function Header() {
                         >
                           {item.title}
                         </Link>
-                        );
-                      })}
+                      ))}
                     </div>
                   )}
                 </div>
@@ -479,6 +495,21 @@ export default function Header() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                   </svg>
                 </button>
+              </div>
+
+              {/* Mobile Login Button */}
+              <div className="pt-4">
+                <Link
+                  href="/login"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-semibold text-sm transition-all duration-300 hover:opacity-90"
+                  style={{ backgroundColor: '#010080' }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                  Login
+                </Link>
               </div>
             </div>
           </div>

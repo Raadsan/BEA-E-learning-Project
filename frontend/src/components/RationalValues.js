@@ -1,4 +1,31 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
 export default function RationalValues() {
+  const [visibleSections, setVisibleSections] = useState({});
+  const sectionRefs = {
+    hero: useRef(null),
+    content: useRef(null),
+  };
+
+  useEffect(() => {
+    const observers = [];
+    Object.entries(sectionRefs).forEach(([key, ref]) => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setVisibleSections(prev => ({ ...prev, [key]: true }));
+          }
+        },
+        { threshold: 0.1 }
+      );
+      if (ref.current) observer.observe(ref.current);
+      observers.push(observer);
+    });
+    return () => observers.forEach(obs => obs.disconnect());
+  }, []);
+
   const values = [
     {
       id: 1,
@@ -26,25 +53,26 @@ export default function RationalValues() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section 
-        className="relative flex items-center justify-center"
+        ref={sectionRefs.hero}
+        className="relative flex items-center justify-center overflow-hidden"
         style={{
           background: 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)',
           height: '170px'
         }}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-serif italic text-white mb-4">
+          <h1 className={`text-5xl sm:text-6xl lg:text-7xl font-serif italic text-white mb-4 ${visibleSections.hero ? 'animate-fade-in-down' : 'opacity-0'}`}>
             Rational Values
           </h1>
         </div>
       </section>
 
       {/* Main Content Area */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-white">
+      <section ref={sectionRefs.content} className="py-12 sm:py-16 lg:py-20 bg-white overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             {/* Introductory Paragraph */}
-            <div className="mb-10 sm:mb-12">
+            <div className={`mb-10 sm:mb-12 ${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`}>
               <p className="text-gray-800 text-base sm:text-lg leading-relaxed">
                 Our foundation is built upon values that guide every action, interaction, and educational decision. We believe that learning is not only about acquiring knowledge—it&apos;s about shaping character and nurturing a respectful, responsible, and inclusive community. Our Rational Values represent the guiding principles that uphold our mission and shape our learners into thoughtful, confident, and ethical individuals.
               </p>
@@ -52,10 +80,11 @@ export default function RationalValues() {
 
             {/* Value Cards */}
             <div className="space-y-6 sm:space-y-8">
-              {values.map((value) => (
+              {values.map((value, index) => (
                 <div
                   key={value.id}
-                  className="bg-white rounded-xl shadow-md p-6 sm:p-8 hover:shadow-lg transition-shadow duration-300"
+                  className={`bg-white rounded-xl shadow-md p-6 sm:p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`}
+                  style={{ animationDelay: `${0.1 + index * 0.1}s` }}
                 >
                   <div className="flex items-start gap-4">
                     {/* Icon */}

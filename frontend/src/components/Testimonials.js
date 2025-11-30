@@ -1,9 +1,28 @@
 "use client";
 
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useEffect, useRef, useState } from "react";
 
 export default function Testimonials() {
-  const [ref, isVisible] = useScrollAnimation({ threshold: 0.1 });
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   const testimonials = [
     {
       id: 1,
@@ -29,14 +48,14 @@ export default function Testimonials() {
   ];
 
   return (
-    <section ref={ref} className="bg-gray-100 py-12 sm:py-16 lg:py-20">
+    <section ref={sectionRef} className="bg-gray-100 py-12 sm:py-16 lg:py-20 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className={`text-center mb-8 sm:mb-12 lg:mb-16 transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}>
+          <div className={`text-center mb-8 sm:mb-12 lg:mb-16 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <h2 className="text-gray-900 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2 sm:mb-3">
               What Our Students Say
             </h2>
-            <p className="text-gray-700 text-sm sm:text-base lg:text-lg px-4">
+            <p className="text-gray-700 text-sm sm:text-base lg:text-lg px-4 sm:px-0">
               Join thousands of successful learners who achieved their English goals with us.
             </p>
           </div>
@@ -45,17 +64,17 @@ export default function Testimonials() {
             {testimonials.map((testimonial, index) => (
               <div
                 key={testimonial.id}
-                className={`bg-white rounded-lg p-4 sm:p-6 shadow-md transition-all duration-500 transform hover:-translate-y-2 hover:shadow-xl ${
-                  isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'
+                className={`bg-white rounded-lg p-4 sm:p-5 md:p-6 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 ${
+                  isVisible ? 'animate-fade-in-up' : 'opacity-0'
                 }`}
-                style={{ animationDelay: `${index * 0.15}s` }}
+                style={{ animationDelay: `${0.2 + index * 0.15}s` }}
               >
                 {/* Stars */}
-                <div className="flex gap-1 mb-4">
+                <div className="flex gap-1 mb-3 sm:mb-4">
                   {[...Array(5)].map((_, i) => (
                     <svg
                       key={i}
-                      className="w-5 h-5 text-yellow-400"
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -65,7 +84,7 @@ export default function Testimonials() {
                 </div>
                 
                 {/* Quote */}
-                <p className="text-gray-700 text-sm leading-relaxed mb-6">
+                <p className="text-gray-700 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6">
                   &quot;{testimonial.quote}&quot;
                 </p>
                 

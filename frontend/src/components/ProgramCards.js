@@ -1,10 +1,29 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export default function ProgramCards() {
-  const [ref, isVisible] = useScrollAnimation({ threshold: 0.1 });
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   const programs = [
     {
       id: 1,
@@ -51,10 +70,10 @@ export default function ProgramCards() {
   ];
 
   return (
-    <section ref={ref} className="bg-white py-12 sm:py-16 lg:py-20">
+    <section ref={sectionRef} className="bg-white py-12 sm:py-16 lg:py-20 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-10 lg:mb-12 gap-4 transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}>
+          <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 sm:mb-10 lg:mb-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <div>
               <h2 className="text-gray-800 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2">
                 BEA Programs Portfolio
@@ -63,27 +82,27 @@ export default function ProgramCards() {
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
-            <a href="/programs" className="text-gray-800 font-semibold hover:underline text-sm sm:text-base whitespace-nowrap border border-purple-300 rounded-lg px-3 sm:px-4 py-2 transition-all duration-300 hover:scale-105 hover:border-purple-400">
+            <a href="/programs" className="text-gray-800 font-semibold hover:underline text-xs sm:text-sm md:text-base whitespace-nowrap border border-purple-300 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 hover:bg-purple-50 transition-colors self-start sm:self-auto">
               → View all programs
             </a>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {programs.map((program, index) => (
               <div
                 key={program.id}
-                className={`bg-white rounded-lg border border-gray-200 overflow-hidden group cursor-pointer transition-all duration-500 transform hover:-translate-y-2 hover:shadow-xl ${
-                  isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'
+                className={`bg-white rounded-lg border border-gray-200 overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${
+                  isVisible ? 'animate-fade-in-up' : 'opacity-0'
                 }`}
-                style={{ animationDelay: `${index * 0.1}s` }}
+                style={{ animationDelay: `${0.1 + index * 0.1}s` }}
               >
                 {/* Image with Play Icon */}
-                <div className="relative h-48 bg-gray-200 overflow-hidden">
+                <div className="relative h-40 sm:h-44 md:h-48 bg-gray-200 overflow-hidden">
                   <Image
                     src={program.image}
                     alt={program.title}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="object-cover"
                   />
                   {/* Play Icon Overlay */}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
@@ -96,10 +115,10 @@ export default function ProgramCards() {
                 </div>
 
                 {/* Content */}
-                <div className="p-5">
+                <div className="p-4 sm:p-5">
                   {/* Title with Heart Icon */}
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-bold text-gray-900 flex-1">
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 flex-1">
                       {program.title}
                     </h3>
                     <button className="text-gray-400 hover:text-red-500 transition-colors ml-2">
@@ -110,13 +129,17 @@ export default function ProgramCards() {
                   </div>
                   
                   {/* Description */}
-                  <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                  <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
                     {program.description}
                   </p>
                   
                   {/* Explore more */}
                   <a
-                    href={program.id === 1 ? "/programs/8-level-general-english" : "#"}
+                    href={
+                      program.id === 1 ? "/programs/8-level-general-english" : 
+                      program.id === 2 ? "/programs/esp" : 
+                      program.id === 3 ? "/programs/ielts-toefl" : "#"
+                    }
                     className={`text-sm font-semibold inline-flex items-center gap-1 ${
                       program.color === "red" 
                         ? "text-red-600 hover:text-red-700" 

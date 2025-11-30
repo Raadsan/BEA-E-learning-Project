@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function ContactUs() {
   const [formData, setFormData] = useState({
@@ -9,6 +9,31 @@ export default function ContactUs() {
     phone: "",
     message: ""
   });
+  
+  const [visibleSections, setVisibleSections] = useState({});
+  const sectionRefs = {
+    hero: useRef(null),
+    contact: useRef(null),
+    schedule: useRef(null),
+    form: useRef(null),
+  };
+
+  useEffect(() => {
+    const observers = [];
+    Object.entries(sectionRefs).forEach(([key, ref]) => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setVisibleSections(prev => ({ ...prev, [key]: true }));
+          }
+        },
+        { threshold: 0.1 }
+      );
+      if (ref.current) observer.observe(ref.current);
+      observers.push(observer);
+    });
+    return () => observers.forEach(obs => obs.disconnect());
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -29,32 +54,33 @@ export default function ContactUs() {
     <div className="min-h-screen bg-white">
       {/* Get In Touch Section */}
       <section 
-        className="relative flex items-center justify-center py-16 sm:py-20"
+        ref={sectionRefs.hero}
+        className="relative flex items-center justify-center py-16 sm:py-20 overflow-hidden"
         style={{
           background: 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)'
         }}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4">
+          <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 ${visibleSections.hero ? 'animate-fade-in-down' : 'opacity-0'}`}>
             Get In Touch With Us
           </h1>
-          <p className="text-2xl sm:text-3xl font-bold text-white mb-6">
+          <p className={`text-2xl sm:text-3xl font-bold text-white mb-6 ${visibleSections.hero ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
             We&apos;re here to help you <span className="text-3xl sm:text-4xl">24/7</span>
           </p>
-          <p className="text-white text-base sm:text-lg max-w-3xl mx-auto">
+          <p className={`text-white text-base sm:text-lg max-w-3xl mx-auto ${visibleSections.hero ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.3s' }}>
             Have questions about our courses, need support, or want to discuss your learning goals? Our team is ready to assist you on your educational journey.
           </p>
         </div>
       </section>
 
       {/* Contact Information Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
+      <section ref={sectionRefs.contact} className="py-12 sm:py-16 lg:py-20 bg-gray-50 overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
-            <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
+            <div className={`bg-white rounded-lg shadow-md p-6 sm:p-8 ${visibleSections.contact ? 'animate-scale-in' : 'opacity-0'}`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Address */}
-              <div className="flex items-start gap-4">
+              <div className={`flex items-start gap-4 ${visibleSections.contact ? 'animate-fade-in-left' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +96,7 @@ export default function ContactUs() {
               </div>
 
               {/* Phone */}
-              <div className="flex items-start gap-4">
+              <div className={`flex items-start gap-4 ${visibleSections.contact ? 'animate-fade-in-right' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +111,7 @@ export default function ContactUs() {
               </div>
 
               {/* Email */}
-              <div className="flex items-start gap-4">
+              <div className={`flex items-start gap-4 ${visibleSections.contact ? 'animate-fade-in-left' : 'opacity-0'}`} style={{ animationDelay: '0.3s' }}>
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,7 +126,7 @@ export default function ContactUs() {
               </div>
 
               {/* Follow Us */}
-              <div className="flex items-start gap-4">
+              <div className={`flex items-start gap-4 ${visibleSections.contact ? 'animate-fade-in-right' : 'opacity-0'}`} style={{ animationDelay: '0.4s' }}>
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,17 +165,17 @@ export default function ContactUs() {
       </section>
 
       {/* Operational Schedule Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
+      <section ref={sectionRefs.schedule} className="py-12 sm:py-16 lg:py-20 bg-gray-50 overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className={`text-3xl sm:text-4xl font-bold text-gray-900 mb-4 ${visibleSections.schedule ? 'animate-fade-in-up' : 'opacity-0'}`}>
               Operational Schedule
             </h2>
-            <p className="text-gray-700 text-base sm:text-lg mb-8">
+            <p className={`text-gray-700 text-base sm:text-lg mb-8 ${visibleSections.schedule ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               If you were wondering how many days or hours we work, here is our day-to-day operational schedule for your reference.
             </p>
             
-            <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
+            <div className={`bg-white rounded-lg shadow-md p-6 sm:p-8 ${visibleSections.schedule ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-3 border-b border-gray-200">
                   <span className="font-semibold text-gray-900">Saturday</span>
@@ -186,14 +212,14 @@ export default function ContactUs() {
       </section>
 
       {/* Contact Form Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
+      <section ref={sectionRefs.form} className="py-12 sm:py-16 lg:py-20 bg-gray-50 overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className={`text-3xl sm:text-4xl font-bold text-gray-900 mb-4 ${visibleSections.form ? 'animate-fade-in-up' : 'opacity-0'}`}>
               Send us a message
             </h2>
             
-            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 sm:p-8">
+            <form onSubmit={handleSubmit} className={`bg-white rounded-lg shadow-md p-6 sm:p-8 ${visibleSections.form ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label htmlFor="name" className="block text-gray-700 font-semibold mb-2">

@@ -1,10 +1,29 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export default function PopularCourses() {
-  const [ref, isVisible] = useScrollAnimation({ threshold: 0.1 });
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   const courses = [
     {
       id: 1,
@@ -36,10 +55,10 @@ export default function PopularCourses() {
   ];
 
   return (
-    <section ref={ref} className="bg-white py-12 sm:py-16 lg:py-20">
+    <section ref={sectionRef} className="bg-white py-12 sm:py-16 lg:py-20 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-10 lg:mb-12 gap-4 transition-all duration-700 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}>
+          <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 sm:mb-10 lg:mb-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <div>
               <h2 className="text-gray-800 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2">
                 Popular Courses
@@ -48,27 +67,27 @@ export default function PopularCourses() {
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
-            <a href="/programs" className="text-gray-800 font-semibold hover:underline text-sm sm:text-base border border-purple-300 rounded-lg px-3 sm:px-4 py-2 whitespace-nowrap transition-all duration-300 hover:scale-105 hover:border-purple-400">
+            <a href="/programs" className="text-gray-800 font-semibold hover:underline text-xs sm:text-sm md:text-base border border-purple-300 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap hover:bg-purple-50 transition-colors self-start sm:self-auto">
               → View all courses
             </a>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {courses.map((course, index) => (
               <div
                 key={course.id}
-                className={`bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 ${
-                  isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0'
+                className={`bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 ${
+                  isVisible ? 'animate-fade-in-up' : 'opacity-0'
                 }`}
-                style={{ animationDelay: `${index * 0.15}s` }}
+                style={{ animationDelay: `${0.2 + index * 0.15}s` }}
               >
                 {/* Course Image */}
-                <div className="relative h-48 bg-gray-200 overflow-hidden group">
+                <div className="relative h-48 bg-gray-200 overflow-hidden">
                   <Image
                     src={course.image}
                     alt={course.title}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="object-cover"
                   />
                   {/* Heart Icon */}
                   <button className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition-colors">
@@ -111,7 +130,7 @@ export default function PopularCourses() {
                   </div>
                   
                   {/* Enroll Button */}
-                  <button className="w-full bg-blue-800 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-900 transition-all duration-300 transform hover:scale-105 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                  <button className="w-full bg-blue-800 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-900 transition-colors text-sm flex items-center justify-center gap-2">
                     <span>→</span>
                     <span>Enroll now</span>
                   </button>

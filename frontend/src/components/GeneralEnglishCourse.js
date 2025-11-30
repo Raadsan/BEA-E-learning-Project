@@ -1,6 +1,33 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 export default function GeneralEnglishCourse() {
+  const [visibleSections, setVisibleSections] = useState({});
+  const sectionRefs = {
+    hero: useRef(null),
+    intro: useRef(null),
+    levels: useRef(null),
+  };
+
+  useEffect(() => {
+    const observers = [];
+    Object.entries(sectionRefs).forEach(([key, ref]) => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setVisibleSections(prev => ({ ...prev, [key]: true }));
+          }
+        },
+        { threshold: 0.1 }
+      );
+      if (ref.current) observer.observe(ref.current);
+      observers.push(observer);
+    });
+    return () => observers.forEach(obs => obs.disconnect());
+  }, []);
+
   const levels = [
     {
       level: "A1",
@@ -80,6 +107,7 @@ export default function GeneralEnglishCourse() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section
+        ref={sectionRefs.hero}
         className="relative flex items-center justify-center overflow-hidden"
         style={{
           background: 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)',
@@ -94,11 +122,11 @@ export default function GeneralEnglishCourse() {
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-16">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif italic text-white mb-4 text-left">
+            <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-serif italic text-white mb-4 text-left ${visibleSections.hero ? 'animate-fade-in-left' : 'opacity-0'}`}>
               Introducing Our 8-Level<br />
               General English Course
             </h1>
-            <p className="text-white text-lg sm:text-xl font-medium text-left">
+            <p className={`text-white text-lg sm:text-xl font-medium text-left ${visibleSections.hero ? 'animate-fade-in-left' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
               English File 4th Edition Language Series
             </p>
           </div>
@@ -106,14 +134,14 @@ export default function GeneralEnglishCourse() {
       </section>
 
       {/* Introductory Text Section */}
-      <section className="py-8 sm:py-12 bg-white">
+      <section ref={sectionRefs.intro} className="py-8 sm:py-12 bg-white overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto space-y-6 text-gray-800 leading-relaxed text-base sm:text-lg">
-            <p>
+            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               The BBC Learning English File 4th Edition is a highly successful General English course that combines proven methodology with fresh, motivating content. It provides a comprehensive approach to language learning, focusing on real-world communication skills and building confidence in using English effectively.
             </p>
 
-            <p>
+            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
               The program is designed with students and teachers in mind, offering flexible learning paths that adapt to different learning styles and needs. Each level is carefully structured to build upon previous knowledge while introducing new concepts and skills, ensuring a smooth and progressive learning experience from beginner to advanced levels.
             </p>
           </div>
@@ -121,13 +149,13 @@ export default function GeneralEnglishCourse() {
       </section>
 
       {/* English File 4th Edition Language Series */}
-      <section id="levels" className="py-12 sm:py-16 lg:py-20 bg-white">
+      <section ref={sectionRefs.levels} id="levels" className="py-12 sm:py-16 lg:py-20 bg-white overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-center text-gray-900 mb-3">
+            <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-center text-gray-900 mb-3 ${visibleSections.levels ? 'animate-fade-in-up' : 'opacity-0'}`}>
               English File 4th Edition Language Series
             </h2>
-            <p className="text-center text-gray-600 text-lg sm:text-xl mb-12">
+            <p className={`text-center text-gray-600 text-lg sm:text-xl mb-12 ${visibleSections.levels ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               8 LEVELS, 8 OPPORTUNITIES
             </p>
 
@@ -136,7 +164,8 @@ export default function GeneralEnglishCourse() {
                 return (
                   <div
                     key={level.level}
-                    className="bg-white rounded-xl shadow-md overflow-hidden relative"
+                    className={`bg-white rounded-xl shadow-md overflow-hidden relative hover:shadow-xl transition-shadow duration-300 ${visibleSections.levels ? 'animate-fade-in-up' : 'opacity-0'}`}
+                    style={{ animationDelay: `${0.2 + index * 0.1}s` }}
                   >
                     {/* Book Image at Top */}
                     <div className="relative w-full h-64 sm:h-80 lg:h-96">

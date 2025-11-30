@@ -1,6 +1,29 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 export default function WhyChooseUs() {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   const reasons = [
     {
       id: 1,
@@ -47,19 +70,20 @@ export default function WhyChooseUs() {
   ];
 
   return (
-    <section className="bg-white py-12 sm:py-16 lg:py-20">
+    <section ref={sectionRef} className="bg-white py-12 sm:py-16 lg:py-20 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12 sm:mb-16 max-w-5xl mx-auto">
+        <div className={`text-center mb-12 sm:mb-16 max-w-5xl mx-auto ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
           <h2 className="text-blue-900 text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
             Why Students Are Choosing Us?
           </h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12 max-w-5xl mx-auto">
-          {reasons.map((reason) => (
+          {reasons.map((reason, index) => (
             <div
               key={reason.id}
-              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 h-[450px] flex flex-col"
+              className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 h-[450px] flex flex-col ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
+              style={{ animationDelay: `${0.1 + index * 0.1}s` }}
             >
               {/* Image */}
               <div className="relative w-full h-60 flex-shrink-0">
