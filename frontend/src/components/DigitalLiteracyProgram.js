@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 export default function DigitalLiteracyProgram() {
-  const [visibleSections, setVisibleSections] = useState({});
+  const [visibleSections, setVisibleSections] = useState({ table: true });
   const sectionRefs = {
     hero: useRef(null),
     intro: useRef(null),
@@ -57,16 +57,14 @@ export default function DigitalLiteracyProgram() {
       >
         {/* Background Image */}
         <div className="absolute inset-0">
-          <Image
+          <img
             src="/images/Digital Literacy & Virtual Communication Skills Program1.jpg"
             alt="Digital Literacy and Virtual Communication Skills Program"
-            fill
-            className="object-cover object-center lg:object-right"
-            priority
+            className="w-full h-full object-cover scale-110"
           />
         </div>
         
-        {/* Left Shadow/Gradient Overlay - Footer Blue Color */}
+        {/* Left Shadow/Gradient Overlay */}
         <div 
           className="absolute inset-0"
           style={{
@@ -76,12 +74,11 @@ export default function DigitalLiteracyProgram() {
         
         {/* Title Content */}
         <div className="relative h-full flex items-center">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
             <div className={`max-w-md ${visibleSections.hero ? 'animate-fade-in-left' : 'opacity-0'}`}>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-white leading-tight">
                 Digital Literacy and<br />
-                Virtual Communication<br />
-                Skills Program
+                Virtual Communication
               </h1>
             </div>
           </div>
@@ -89,9 +86,9 @@ export default function DigitalLiteracyProgram() {
       </section>
 
       {/* Introduction Section */}
-      <section ref={sectionRefs.intro} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto space-y-5 text-gray-700 leading-relaxed text-sm sm:text-base">
+      <section ref={sectionRefs.intro} className="py-8 sm:py-12 bg-white overflow-hidden">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="space-y-6 text-gray-800 leading-relaxed text-base sm:text-lg">
             <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               In today&apos;s fast-changing technology-driven world, the ability to use digital tools and communicate effectively online has become a must have skill to survive in living in an ever evolving digital world.
             </p>
@@ -113,10 +110,10 @@ export default function DigitalLiteracyProgram() {
 
       {/* Table Section */}
       <section ref={sectionRefs.table} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             {/* Section Title */}
-            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-8 ${visibleSections.table ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-center text-gray-900 mb-8 ${visibleSections.table ? 'animate-fade-in-up' : 'opacity-0'}`}>
               Our Digital Literacy Courses and their Focus Areas
             </h2>
             
@@ -162,13 +159,13 @@ export default function DigitalLiteracyProgram() {
 
       {/* Registration Section */}
       <section ref={sectionRefs.register} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <p className={`text-gray-700 text-sm sm:text-base leading-relaxed mb-8 ${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`}>
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div>
+            <p className={`text-gray-900 text-sm sm:text-base leading-relaxed mb-8 ${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`}>
               To learn more about the admission requirements for this program, course duration, weekly hours, learning method—in class or online, etc. Click the &quot;Register Now&quot; button below.
             </p>
             
-            <div className={`text-center ${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+            <div className={`${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               <button className="bg-blue-800 text-white px-8 py-3 rounded-full font-semibold text-sm sm:text-base hover:bg-blue-900 transition-all duration-300 hover:scale-105">
                 Register Now
               </button>

@@ -33,7 +33,7 @@ export default function Header() {
       title: "Professional Skills and Training Programs",
       description: "Develop essential workplace competencies",
       icon: "wave",
-      href: "#"
+      href: "/programs/professional-skills"
     },
     {
       title: "Advanced Academic Writing Program",

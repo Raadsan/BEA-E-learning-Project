@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 export default function ESPProgram() {
-  const [visibleSections, setVisibleSections] = useState({});
+  const [visibleSections, setVisibleSections] = useState({ courses: true });
   const sectionRefs = {
     hero: useRef(null),
     intro: useRef(null),
@@ -69,16 +69,14 @@ export default function ESPProgram() {
       >
         {/* Background Image */}
         <div className="absolute inset-0">
-          <Image
+          <img
             src="/images/English for Specific Purposes (ESP).webp"
             alt="English for Specific Purposes - Professional Team"
-            fill
-            className="object-cover object-center lg:object-right"
-            priority
+            className="w-full h-full object-cover scale-110"
           />
         </div>
         
-        {/* Left Shadow/Gradient Overlay - Footer Blue Color */}
+        {/* Left Shadow/Gradient Overlay */}
         <div 
           className="absolute inset-0"
           style={{
@@ -88,11 +86,11 @@ export default function ESPProgram() {
         
         {/* Title Content */}
         <div className="relative h-full flex items-center">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className={`max-w-xl ${visibleSections.hero ? 'animate-fade-in-left' : 'opacity-0'}`}>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-serif font-bold text-white leading-tight">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+            <div className={`max-w-md ${visibleSections.hero ? 'animate-fade-in-left' : 'opacity-0'}`}>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-white leading-tight">
                 English for Specific<br />
-                Purposes (ESP) Program
+                Purposes (ESP)
               </h1>
             </div>
           </div>
@@ -100,9 +98,9 @@ export default function ESPProgram() {
       </section>
 
       {/* Introduction Section */}
-      <section ref={sectionRefs.intro} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto space-y-5 text-gray-700 leading-relaxed text-sm sm:text-base">
+      <section ref={sectionRefs.intro} className="py-8 sm:py-12 bg-white overflow-hidden">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="space-y-6 text-gray-800 leading-relaxed text-base sm:text-lg">
             <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               Our English for Specific Purposes (ESP) program is designed to equip learners with the precise language skills they need to excel in their chosen professions. Whether communicating in the boardroom, writing for publication, or engaging with global clients, our ESP courses merge linguistic accuracy with real-world professional relevance.
             </p>
@@ -116,13 +114,11 @@ export default function ESPProgram() {
 
       {/* ESP Courses Table Section */}
       <section ref={sectionRefs.courses} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
-            <div className={`mb-8 ${visibleSections.courses ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              <h2 className="text-gray-900 text-xl sm:text-2xl lg:text-3xl font-serif font-bold">
-                Our ESP Courses Are Designed for these Professional Fields
-              </h2>
-            </div>
+            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-center text-gray-900 mb-8 ${visibleSections.courses ? 'animate-fade-in-up' : 'opacity-0'}`}>
+              Our ESP Courses Are Designed for these Professional Fields
+            </h2>
             
             {/* Table */}
             <div className={`overflow-hidden border border-gray-200 ${visibleSections.courses ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
@@ -166,17 +162,15 @@ export default function ESPProgram() {
 
       {/* Program Outcome Section */}
       <section ref={sectionRefs.outcome} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <h2 className={`text-gray-900 text-xl sm:text-2xl lg:text-3xl font-serif font-bold mb-5 ${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`}>
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 mb-6 ${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`}>
               Program Outcome
             </h2>
             
-            <div className={`text-gray-700 leading-relaxed text-sm sm:text-base ${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
-              <p>
-                Graduates of BEA&apos;s ESP program will emerge as confident, articulate professionals ready to navigate the linguistic challenges of their fields. By mastering both general fluency and sector-specific elements, learners gain a competitive edge in the global market. The BEA approach ensures every professional not only speaks English—but speaks the language of their career success.
-              </p>
-            </div>
+            <p className={`text-gray-900 text-sm sm:text-base leading-relaxed ${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+              Graduates of BEA&apos;s ESP program will emerge as confident, articulate professionals ready to navigate the linguistic challenges of their fields. By mastering both general fluency and sector-specific elements, learners gain a competitive edge in the global market. The BEA approach ensures every professional not only speaks English—but speaks the language of their career success.
+            </p>
           </div>
         </div>
       </section>

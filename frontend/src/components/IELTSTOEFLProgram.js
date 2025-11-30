@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 export default function IELTSTOEFLProgram() {
-  const [visibleSections, setVisibleSections] = useState({});
+  const [visibleSections, setVisibleSections] = useState({ table: true, comparison: true });
   const sectionRefs = {
     hero: useRef(null),
     intro: useRef(null),
@@ -90,50 +91,51 @@ export default function IELTSTOEFLProgram() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section - IELTS & TOEFL Logos */}
+      {/* Hero Section - Background Image with Left Shadow */}
       <section
         ref={sectionRefs.hero}
-        className="bg-white py-10 sm:py-14 lg:py-16 overflow-hidden"
+        className="relative overflow-hidden h-[350px] sm:h-[420px] lg:h-[500px]"
       >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`flex flex-col items-center justify-center gap-4 ${visibleSections.hero ? 'animate-fade-in-down' : 'opacity-0'}`}>
-            {/* IELTS Logo */}
-            <div className="text-center">
-              <span className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight" style={{ color: '#c8102e' }}>
-                IELTS
-              </span>
-              <span className="text-xl sm:text-2xl align-top" style={{ color: '#c8102e' }}>™</span>
-            </div>
-            
-            {/* TOEFL Logo */}
-            <div className="text-center">
-              <span className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight" style={{ color: '#00529b' }}>
-                TOEFL
-              </span>
-              <span className="text-lg sm:text-xl align-top" style={{ color: '#00529b' }}>®</span>
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="/images/IELTS & TOEFL Preparation Courses1.jpg"
+            alt="IELTS & TOEFL Preparation Course"
+            className="w-full h-full object-cover scale-110"
+          />
+        </div>
+        
+        {/* Left Shadow/Gradient Overlay */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to right, rgba(1, 0, 128, 0.95) 0%, rgba(1, 0, 128, 0.8) 20%, rgba(1, 0, 128, 0.4) 40%, rgba(1, 0, 128, 0.1) 55%, transparent 65%)'
+          }}
+        />
+        
+        {/* Title Content */}
+        <div className="relative h-full flex items-center">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+            <div className={`max-w-md ${visibleSections.hero ? 'animate-fade-in-left' : 'opacity-0'}`}>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-white leading-tight">
+                IELTS & TOEFL<br />
+                Preparation Course
+              </h1>
             </div>
           </div>
         </div>
       </section>
 
       {/* Introduction Section */}
-      <section ref={sectionRefs.intro} className="py-10 sm:py-14 lg:py-16 overflow-hidden" style={{ backgroundColor: '#f0f4f8' }}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            {/* Title */}
-            <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-900 mb-6 ${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              IELTS and TOEFL<br />
-              Preparation Courses
-            </h1>
-            
-            {/* First Paragraph */}
-            <p className={`text-gray-700 text-sm sm:text-base leading-relaxed mb-6 ${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
-              Our IELTS And TOEFL Preparation Programs Are Strategically Developed To Help Learners Succeed In The World&apos;s Most Recognized English Proficiency Exams. Both Programs Focus On Building Test-Specific Skills, Academic Communication Strategies, And Confidence Through Comprehensive Lessons And Simulated Testing Experiences.
+      <section ref={sectionRefs.intro} className="py-8 sm:py-12 bg-white overflow-hidden">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="space-y-6 text-gray-800 leading-relaxed text-base sm:text-lg">
+            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+              Our IELTS and TOEFL Preparation Programs are strategically developed to help learners succeed in the world&apos;s most recognized English proficiency exams. Both programs focus on building test-specific skills, academic communication strategies, and confidence through comprehensive lessons and simulated testing experiences.
             </p>
             
-            {/* Second Paragraph */}
-            <p className={`text-gray-700 text-sm sm:text-base leading-relaxed ${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
-              Under Our Mentorship Each Learner Receives Individualized Attention, Continuous Feedback, And Practice Opportunities That Replicate Real Test Conditions.
+            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
+              Under our mentorship each learner receives individualized attention, continuous feedback, and practice opportunities that replicate real test conditions.
             </p>
           </div>
         </div>
@@ -141,10 +143,10 @@ export default function IELTSTOEFLProgram() {
 
       {/* Table Section */}
       <section ref={sectionRefs.table} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             {/* Section Title */}
-            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-8 ${visibleSections.table ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-center text-gray-900 mb-8 ${visibleSections.table ? 'animate-fade-in-up' : 'opacity-0'}`}>
               Introduction to IELTS and TOEFL Exams
             </h2>
             
@@ -190,11 +192,11 @@ export default function IELTSTOEFLProgram() {
 
       {/* IELTS vs TOEFL Comparison Section */}
       <section ref={sectionRefs.comparison} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             {/* Section Title */}
-            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-8 ${visibleSections.comparison ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              IELTS vs TOEFL - A side-byside comparison
+            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-center text-gray-900 mb-8 ${visibleSections.comparison ? 'animate-fade-in-up' : 'opacity-0'}`}>
+              IELTS vs TOEFL - A side-by-side comparison
             </h2>
             
             {/* Comparison Table */}
@@ -244,14 +246,14 @@ export default function IELTSTOEFLProgram() {
       </section>
 
       {/* Program Outcome Section */}
-      <section ref={sectionRefs.outcome} className="py-10 sm:py-14 lg:py-16 overflow-hidden" style={{ backgroundColor: '#e8eef3' }}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
+      <section ref={sectionRefs.outcome} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto text-center">
             <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 mb-6 ${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`}>
               Program Outcome
             </h2>
             
-            <p className={`text-blue-800 text-sm sm:text-base leading-relaxed ${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+            <p className={`text-gray-900 text-sm sm:text-base leading-relaxed ${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               Graduates of BEA&apos;s IELTS and TOEFL preparation programs emerge ready to meet global English proficiency standards. Beyond achieving their target scores, students gain lasting confidence in academic and professional communication. With BEA&apos;s expert guidance, strategic training, and supportive learning environment, success in IELTS or TOEFL becomes the foundation for international opportunity and lifelong achievement.
             </p>
           </div>

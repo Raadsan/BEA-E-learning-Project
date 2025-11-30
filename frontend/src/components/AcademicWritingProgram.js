@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 export default function AcademicWritingProgram() {
-  const [visibleSections, setVisibleSections] = useState({});
+  const [visibleSections, setVisibleSections] = useState({ table: true });
   const sectionRefs = {
     hero: useRef(null),
     intro: useRef(null),
@@ -71,16 +71,14 @@ export default function AcademicWritingProgram() {
       >
         {/* Background Image */}
         <div className="absolute inset-0">
-          <Image
+          <img
             src="/images/Advanced Academic Writing Program.jpg"
             alt="BEA Academic Writing Program"
-            fill
-            className="object-cover object-center lg:object-right"
-            priority
+            className="w-full h-full object-cover scale-110"
           />
         </div>
         
-        {/* Left Shadow/Gradient Overlay - Footer Blue Color */}
+        {/* Left Shadow/Gradient Overlay */}
         <div 
           className="absolute inset-0"
           style={{
@@ -90,7 +88,7 @@ export default function AcademicWritingProgram() {
         
         {/* Title Content */}
         <div className="relative h-full flex items-center">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
             <div className={`max-w-md ${visibleSections.hero ? 'animate-fade-in-left' : 'opacity-0'}`}>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-white leading-tight">
                 BEA Academic Writing<br />
@@ -102,9 +100,9 @@ export default function AcademicWritingProgram() {
       </section>
 
       {/* Introduction Section */}
-      <section ref={sectionRefs.intro} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto space-y-5 text-gray-700 leading-relaxed text-sm sm:text-base">
+      <section ref={sectionRefs.intro} className="py-8 sm:py-12 bg-white overflow-hidden">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="space-y-6 text-gray-800 leading-relaxed text-base sm:text-lg">
             <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               Our BEA Academic writing is designed for students, researchers, and professionals who are eager to refine their written communication for success. This program helps you gain the essential skills you need to produce high-quality essays, research papers, and reports that meet international academic standards.
             </p>
@@ -126,11 +124,11 @@ export default function AcademicWritingProgram() {
 
       {/* Table Section */}
       <section ref={sectionRefs.table} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             {/* Section Title */}
-            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-8 ${visibleSections.table ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              IELTS vs TOEFL - A side-byside comparison
+            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-center text-gray-900 mb-8 ${visibleSections.table ? 'animate-fade-in-up' : 'opacity-0'}`}>
+              Academic Writing Program Levels
             </h2>
             
             {/* Table */}
@@ -187,13 +185,13 @@ export default function AcademicWritingProgram() {
 
       {/* Registration Section */}
       <section ref={sectionRefs.register} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <p className={`text-gray-700 text-sm sm:text-base leading-relaxed mb-8 ${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`}>
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className={`text-gray-900 text-sm sm:text-base leading-relaxed mb-8 ${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`}>
               To learn more about the admission requirements for this program, course duration, weekly hours, learning method—in class or online, etc. Click the &quot;Register Now&quot; button below.
             </p>
             
-            <div className={`text-center ${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+            <div className={`${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               <button className="bg-blue-800 text-white px-8 py-3 rounded-full font-semibold text-sm sm:text-base hover:bg-blue-900 transition-all duration-300 hover:scale-105">
                 Register Now
               </button>
