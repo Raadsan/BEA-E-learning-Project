@@ -14,11 +14,11 @@ export default function Footer() {
           <div className="flex flex-col items-center sm:items-start">
             <div className="mb-4 sm:mb-0">
               <Image
-                src="/images/footerlogo.png"
+                src="/images/footerlogo-removebg-preview.png"
                 alt="BEA THE BLUEPRINT ENGLISH ACADEMY"
-                width={250}
-                height={80}
-                className="h-auto w-[180px] sm:w-[200px] md:w-[250px]"
+                width={320}
+                height={100}
+                className="h-auto w-[220px] sm:w-[260px] md:w-[320px]"
                 priority
               />
             </div>

@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function WhyChooseUs() {
+  const { isDarkMode } = useTheme();
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
 
@@ -70,10 +72,10 @@ export default function WhyChooseUs() {
   ];
 
   return (
-    <section ref={sectionRef} className="bg-white py-12 sm:py-16 lg:py-20 overflow-hidden">
+    <section ref={sectionRef} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`text-center mb-12 sm:mb-16 max-w-5xl mx-auto ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-          <h2 className="text-blue-900 text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+          <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-blue-900'}`}>
             Why Students Are Choosing Us?
           </h2>
         </div>
@@ -82,7 +84,7 @@ export default function WhyChooseUs() {
           {reasons.map((reason, index) => (
             <div
               key={reason.id}
-              className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 h-[450px] flex flex-col ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
+              className={`rounded-xl shadow-lg overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 h-[450px] flex flex-col ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
               style={{ animationDelay: `${0.1 + index * 0.1}s` }}
             >
               {/* Image */}
@@ -98,13 +100,13 @@ export default function WhyChooseUs() {
               
               {/* Content */}
               <div className="p-5 flex-1 flex flex-col">
-                <h3 className="text-base font-bold text-gray-800 mb-3">
+                <h3 className={`text-base font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                   {reason.title}
                 </h3>
-                <p className="text-gray-600 text-xs leading-relaxed flex-1 mb-4">
+                <p className={`text-xs leading-relaxed flex-1 mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                   {reason.description}
                 </p>
-                <button className="bg-blue-800 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-900 transition-colors mt-auto">
+                <button className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors mt-auto header-keep-white ${isDarkMode ? 'bg-white text-[#010080] hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}>
                   Enroll now
                 </button>
               </div>

@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function GeneralEnglishCourse() {
+  const { isDarkMode } = useTheme();
   const [visibleSections, setVisibleSections] = useState({ levels: true });
   const sectionRefs = {
     hero: useRef(null),
@@ -104,7 +106,7 @@ export default function GeneralEnglishCourse() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       {/* Hero Section - Background Image with Left Shadow */}
       <section
         ref={sectionRefs.hero}
@@ -141,14 +143,14 @@ export default function GeneralEnglishCourse() {
       </section>
 
       {/* Introductory Text Section */}
-      <section ref={sectionRefs.intro} className="py-8 sm:py-12 bg-white overflow-hidden">
+      <section ref={sectionRefs.intro} className={`py-8 sm:py-12 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="space-y-6 text-gray-800 leading-relaxed text-base sm:text-lg">
-            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+          <div className="space-y-6 leading-relaxed text-base sm:text-lg">
+            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s', color: isDarkMode ? '#ffffff' : '#010080' }}>
               The BBC Learning English File 4th Edition is a highly successful General English course that combines proven methodology with fresh, motivating content. It provides a comprehensive approach to language learning, focusing on real-world communication skills and building confidence in using English effectively.
             </p>
 
-            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
+            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s', color: isDarkMode ? '#ffffff' : '#010080' }}>
               The program is designed with students and teachers in mind, offering flexible learning paths that adapt to different learning styles and needs. Each level is carefully structured to build upon previous knowledge while introducing new concepts and skills, ensuring a smooth and progressive learning experience from beginner to advanced levels.
             </p>
           </div>
@@ -156,13 +158,13 @@ export default function GeneralEnglishCourse() {
       </section>
 
       {/* English File 4th Edition Language Series */}
-      <section ref={sectionRefs.levels} id="levels" className="py-12 sm:py-16 lg:py-20 bg-white overflow-hidden">
+      <section ref={sectionRefs.levels} id="levels" className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div>
-            <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-center text-gray-900 mb-3 ${visibleSections.levels ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-center mb-3 ${visibleSections.levels ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               English File 4th Edition Language Series
             </h2>
-            <p className={`text-center text-gray-600 text-lg sm:text-xl mb-12 ${visibleSections.levels ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+            <p className={`text-center text-lg sm:text-xl mb-12 ${visibleSections.levels ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s', color: isDarkMode ? '#ffffff' : '#010080' }}>
               8 LEVELS, 8 OPPORTUNITIES
             </p>
 
@@ -171,7 +173,7 @@ export default function GeneralEnglishCourse() {
                 return (
                   <div
                     key={level.level}
-                    className={`bg-white rounded-xl shadow-md overflow-hidden relative hover:shadow-xl transition-shadow duration-300 ${visibleSections.levels ? 'animate-fade-in-up' : 'opacity-0'}`}
+                    className={`rounded-xl shadow-md overflow-hidden relative hover:shadow-xl transition-shadow duration-300 ${visibleSections.levels ? 'animate-fade-in-up' : 'opacity-0'} ${isDarkMode ? 'bg-[#050040]' : 'bg-white'}`}
                     style={{ animationDelay: `${0.2 + index * 0.1}s` }}
                   >
                     {/* Book Image at Top */}
@@ -189,37 +191,37 @@ export default function GeneralEnglishCourse() {
                       {/* Content Section */}
                       <div className="space-y-4 text-left mb-6">
                         <div>
-                          <h3 className="text-gray-900 font-bold text-base sm:text-lg mb-2">Overview:</h3>
-                          <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+                          <h3 className="font-bold text-base sm:text-lg mb-2" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>Overview:</h3>
+                          <p className="text-sm sm:text-base leading-relaxed" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                             {level.overview || level.description?.split('.')[0]}
                           </p>
                         </div>
 
                         <div>
-                          <h3 className="text-gray-900 font-bold text-base sm:text-lg mb-2">Learning Objectives:</h3>
-                          <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+                          <h3 className="font-bold text-base sm:text-lg mb-2" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>Learning Objectives:</h3>
+                          <p className="text-sm sm:text-base leading-relaxed" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                             {level.learningObjectives || "Develop core language skills and build confidence in English communication."}
                           </p>
                         </div>
 
                         <div>
-                          <h3 className="text-gray-900 font-bold text-base sm:text-lg mb-2">Skills Developed:</h3>
-                          <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+                          <h3 className="font-bold text-base sm:text-lg mb-2" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>Skills Developed:</h3>
+                          <p className="text-sm sm:text-base leading-relaxed" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                             {level.skillsDeveloped || "Develop essential grammar structures, expand vocabulary, improve pronunciation, and enhance listening and reading comprehension skills."}
                           </p>
                         </div>
 
                         <div>
-                          <h3 className="text-gray-900 font-bold text-base sm:text-lg mb-2">Outcomes:</h3>
-                          <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+                          <h3 className="font-bold text-base sm:text-lg mb-2" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>Outcomes:</h3>
+                          <p className="text-sm sm:text-base leading-relaxed" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                             {level.outcomes || "Students will be able to communicate effectively in everyday situations, understand and produce simple texts, and build confidence in using English."}
                           </p>
                         </div>
                       </div>
 
                       {/* Register Now Button */}
-                      <div className="mt-6">
-                        <button className="bg-blue-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-800 transition-colors text-sm sm:text-base">
+                      <div className="mt-6 text-center">
+                        <button className={`px-6 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base ${isDarkMode ? 'bg-white header-keep-white text-[#010080] hover:bg-gray-100' : 'bg-blue-900 text-white hover:bg-blue-800'}`}>
                           Register now
                         </button>
                       </div>

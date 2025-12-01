@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "@/context/ThemeContext";
 import WhyChooseUs from "./WhyChooseUs";
 
 export default function AboutUs() {
+  const { isDarkMode } = useTheme();
   const [visibleSections, setVisibleSections] = useState({});
   const sectionRefs = {
     hero: useRef(null),
@@ -30,13 +32,15 @@ export default function AboutUs() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       {/* Header Section with Gradient */}
       <section 
         ref={sectionRefs.hero}
         className="relative flex items-center justify-center overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)',
+          background: isDarkMode 
+            ? 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)'
+            : 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)',
           height: '170px'
         }}
       >
@@ -53,7 +57,7 @@ export default function AboutUs() {
           <div className="max-w-5xl mx-auto">
           <div 
             className={`rounded-xl p-6 sm:p-8 mb-8 sm:mb-12 ${visibleSections.slogan ? 'animate-scale-in' : 'opacity-0'}`}
-            style={{ backgroundColor: 'rgba(209, 213, 220, 0.3)' }}
+            style={{ backgroundColor: isDarkMode ? '#050040' : 'rgba(209, 213, 220, 0.3)' }}
           >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* Left Side */}
@@ -61,14 +65,14 @@ export default function AboutUs() {
               <p className="text-base sm:text-lg md:text-xl font-bold italic">
                 <span className="text-red-600">The world speaks English.</span>
                 <br />
-                <span className="text-blue-800">Be a part of the conversation.</span>
+                <span className={isDarkMode ? 'text-white' : 'text-blue-800'}>Be a part of the conversation.</span>
               </p>
             </div>
             
             {/* Right Side */}
             <div className={`space-y-1 ${visibleSections.slogan ? 'animate-fade-in-right' : 'opacity-0'}`} style={{ animationDelay: '0.3s' }}>
               <p className="text-base sm:text-lg md:text-xl font-bold italic">
-                <span className="text-blue-800">From here to anywhere.</span>
+                <span className={isDarkMode ? 'text-white' : 'text-blue-800'}>From here to anywhere.</span>
                 <br />
                 <span className="text-red-600">And your future becomes global.</span>
               </p>
@@ -82,7 +86,7 @@ export default function AboutUs() {
       {/* Main Body Text */}
       <section ref={sectionRefs.body} className="pt-4 sm:pt-6 pb-8 sm:pb-12 overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="space-y-6 text-gray-800 leading-relaxed text-base sm:text-lg max-w-5xl mx-auto">
+          <div className={`space-y-6 leading-relaxed text-base sm:text-lg max-w-5xl mx-auto ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
             <p className={`${visibleSections.body ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               The Blueprint English Academy (BEA) stands as Somalia&apos;s premier institution for English language education, 
               setting the standard for excellence and innovation. BEA is more than a language school—it is a gateway to 
@@ -112,11 +116,11 @@ export default function AboutUs() {
       </section>
 
       {/* Vision and Mission Sections */}
-      <section ref={sectionRefs.vision} className="py-8 sm:py-12 pb-16 sm:pb-20 bg-gray-50 overflow-hidden">
+      <section ref={sectionRefs.vision} className={`py-8 sm:py-12 pb-16 sm:pb-20 overflow-hidden ${isDarkMode ? 'bg-[#04003a]' : 'bg-gray-50'}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-6 max-w-5xl mx-auto">
             {/* Our Vision */}
-            <div className={`bg-white rounded-xl p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer ${visibleSections.vision ? 'animate-fade-in-left' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+            <div className={`rounded-xl p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.vision ? 'animate-fade-in-left' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 flex items-center justify-center transition-transform duration-300 hover:scale-110">
@@ -128,8 +132,8 @@ export default function AboutUs() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 transition-colors duration-300 hover:text-red-600">Our Vision</h2>
-                  <p className="text-gray-800 leading-relaxed">
+                  <h2 className={`text-xl sm:text-2xl font-bold mb-3 transition-colors duration-300 hover:text-red-600 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Our Vision</h2>
+                  <p className={isDarkMode ? 'text-white leading-relaxed' : 'text-gray-800 leading-relaxed'}>
                     To be Somalia&apos;s leading English language academy, equipping learners with the confidence, skills, 
                     and global mindset to thrive in education, careers, and future leadership roles.
                   </p>
@@ -138,18 +142,18 @@ export default function AboutUs() {
             </div>
 
             {/* Our Mission */}
-            <div className={`bg-white rounded-xl p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer ${visibleSections.vision ? 'animate-fade-in-right' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
+            <div className={`rounded-xl p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.vision ? 'animate-fade-in-right' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 flex items-center justify-center transition-transform duration-300 hover:scale-110">
-                    <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <svg className={`w-10 h-10 ${isDarkMode ? 'text-white' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 transition-colors duration-300 hover:text-blue-600">Our Mission</h2>
-                  <p className="text-gray-800 leading-relaxed">
+                  <h2 className={`text-xl sm:text-2xl font-bold mb-3 transition-colors duration-300 ${isDarkMode ? 'text-white hover:text-blue-400' : 'text-gray-900 hover:text-blue-600'}`}>Our Mission</h2>
+                  <p className={isDarkMode ? 'text-white leading-relaxed' : 'text-gray-800 leading-relaxed'}>
                     The Blueprint English Academy exists to empower learners with English language skills, confidence, 
                     and global competence by providing innovative, high-quality, and student-centered education that 
                     transforms learning into real-world opportunities.
@@ -166,4 +170,3 @@ export default function AboutUs() {
     </div>
   );
 }
-

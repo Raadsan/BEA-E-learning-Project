@@ -13,37 +13,37 @@ export default function Header() {
 
   const programsMenu = [
     {
-      title: "8- Level General English Course for Adults",
+      title: "General English Program For Adults",
       description: "Comprehensive program from beginner to advanced",
       icon: "chart",
       href: "/programs/8-level-general-english"
     },
     {
-      title: "English for Specific Purposes (ESP)",
+      title: "English for Specific Purposes (ESP) Program",
       description: "Tailored English for professional fields",
       icon: "grid",
       href: "/programs/esp"
     },
     {
-      title: "IELTS & TOFEL Preparation Course",
+      title: "IELTS and TOEFL Exam Preparation Courses",
       description: "Prepare for international English exams",
       icon: "user",
       href: "/programs/ielts-toefl"
     },
     {
-      title: "Professional Skills and Training Programs",
+      title: "Soft Skills and Workplace Training Programs",
       description: "Develop essential workplace competencies",
       icon: "wave",
       href: "/programs/professional-skills"
     },
     {
-      title: "Advanced Academic Writing Program",
+      title: "BEA Academic Writing Program",
       description: "Master academic and professional writing",
       icon: "pie",
       href: "/programs/academic-writing"
     },
     {
-      title: "Digital Literacy and Virtual Communication",
+      title: "Digital Literacy and Virtual Communication Skills Program",
       description: "Build digital skills for modern communication",
       icon: "network",
       href: "/programs/digital-literacy"
@@ -79,11 +79,11 @@ export default function Header() {
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
             <Image
-              src={isDarkMode ? "/images/footerlogo.png" : "/images/headerlogo.png"}
+              src={isDarkMode ? "/images/footerlogo-removebg-preview.png" : "/images/headerlogo.png"}
               alt="BEA Logo"
-              width={200}
-              height={100}
-              className="h-12 sm:h-14 md:h-16 lg:h-20 xl:h-24 w-auto object-contain"
+              width={280}
+              height={140}
+              className="h-16 sm:h-20 md:h-24 lg:h-28 xl:h-32 w-auto object-contain"
               priority
             />
           </div>
@@ -196,45 +196,45 @@ export default function Header() {
                 </button>
               </div>
               {programsOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-[calc(100vw-2rem)] sm:w-[90vw] max-w-[480px] sm:max-w-[520px] md:max-w-[560px] rounded-lg shadow-lg border border-gray-200 p-2 sm:p-3 z-50" style={{ backgroundColor: '#010080' }}>
+                <div className={`absolute top-full left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-[calc(100vw-2rem)] sm:w-[90vw] max-w-[480px] sm:max-w-[520px] md:max-w-[560px] rounded-lg shadow-lg border p-2 sm:p-3 z-50 ${isDarkMode ? 'border-[#1a1a3e] bg-[#050040]' : 'border-gray-200'}`} style={{ backgroundColor: isDarkMode ? '#050040' : '#010080' }}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 grid-rows-6 sm:grid-rows-3 gap-2 sm:gap-3">
                     {programsMenu.map((item, index) => (
                       <Link
                         key={index}
                         href={item.href}
-                        className="flex items-start gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-lg hover:bg-blue-900 transition-colors group"
+                        className={`flex items-start gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-lg transition-colors group ${isDarkMode ? 'hover:bg-[#03002e]' : 'hover:bg-blue-900'}`}
                         onClick={() => setProgramsOpen(false)}
                       >
                         {/* Icon */}
                         <div className="flex-shrink-0 mt-0.5">
                           {item.icon === "chart" && (
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
                               <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                             </svg>
                           )}
                           {item.icon === "grid" && (
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
                               <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                             </svg>
                           )}
                           {item.icon === "user" && (
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                             </svg>
                           )}
                           {item.icon === "wave" && (
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
                           )}
                           {item.icon === "pie" && (
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
                               <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
                               <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
                             </svg>
                           )}
                           {item.icon === "network" && (
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
                               <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
                             </svg>
                           )}
@@ -242,10 +242,10 @@ export default function Header() {
                         
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-white mb-0.5 sm:mb-1 text-xs sm:text-sm group-hover:text-blue-200 leading-tight">
+                          <div className={`font-bold text-white mb-0.5 sm:mb-1 text-xs sm:text-sm leading-tight ${isDarkMode ? 'group-hover:text-blue-300' : 'group-hover:text-blue-200'}`}>
                             {item.title}
                           </div>
-                          <div className="text-[10px] sm:text-xs text-gray-300 leading-tight">
+                          <div className={`text-[10px] sm:text-xs leading-tight ${isDarkMode ? 'text-gray-400' : 'text-gray-300'}`}>
                             {item.description}
                           </div>
                         </div>
@@ -285,29 +285,29 @@ export default function Header() {
                 </button>
               </div>
               {beaValuesOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-[calc(100vw-2rem)] sm:w-[90vw] max-w-[480px] sm:max-w-[520px] md:max-w-[560px] rounded-lg shadow-lg border border-gray-200 p-2 sm:p-3 z-50" style={{ backgroundColor: '#010080' }}>
+                <div className={`absolute top-full left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-[calc(100vw-2rem)] sm:w-[90vw] max-w-[480px] sm:max-w-[520px] md:max-w-[560px] rounded-lg shadow-lg border p-2 sm:p-3 z-50 ${isDarkMode ? 'border-[#1a1a3e] bg-[#050040]' : 'border-gray-200'}`} style={{ backgroundColor: isDarkMode ? '#050040' : '#010080' }}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 grid-rows-3 gap-2 sm:gap-3">
                     {beaValuesMenu.map((item, index) => (
                       <Link
                         key={index}
                         href={item.href}
-                        className="flex items-start gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-lg hover:bg-blue-900 transition-colors group"
+                        className={`flex items-start gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-lg transition-colors group ${isDarkMode ? 'hover:bg-[#03002e]' : 'hover:bg-blue-900'}`}
                         onClick={() => setBeaValuesOpen(false)}
                       >
                         {/* Icon */}
                         <div className="flex-shrink-0 mt-0.5">
                           {item.icon === "lightbulb" && (
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
                               <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.477.859h4z" />
                             </svg>
                           )}
                           {item.icon === "book" && (
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
                               <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
                             </svg>
                           )}
                           {item.icon === "users" && (
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
                               <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                             </svg>
                           )}
@@ -315,10 +315,10 @@ export default function Header() {
                         
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-white mb-0.5 sm:mb-1 text-xs sm:text-sm group-hover:text-blue-200 leading-tight">
+                          <div className={`font-bold text-white mb-0.5 sm:mb-1 text-xs sm:text-sm leading-tight ${isDarkMode ? 'group-hover:text-blue-300' : 'group-hover:text-blue-200'}`}>
                             {item.title}
                           </div>
-                          <div className="text-[10px] sm:text-xs text-gray-300 leading-tight">
+                          <div className={`text-[10px] sm:text-xs leading-tight ${isDarkMode ? 'text-gray-400' : 'text-gray-300'}`}>
                             {item.description}
                           </div>
                         </div>
@@ -433,12 +433,12 @@ export default function Header() {
                     </button>
                   </div>
                   {beaValuesOpen && (
-                    <div className="mt-2 ml-4 space-y-1" style={{ backgroundColor: '#010080' }}>
+                    <div className="mt-2 ml-4 space-y-1 rounded-lg" style={{ backgroundColor: isDarkMode ? '#050040' : '#010080' }}>
                       {beaValuesMenu.map((item, index) => (
                         <Link
                           key={index}
                           href={item.href}
-                          className="flex items-start gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-lg hover:bg-blue-900 transition-colors group text-sm"
+                          className={`flex items-start gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-lg transition-colors group text-sm ${isDarkMode ? 'hover:bg-[#03002e]' : 'hover:bg-blue-900'}`}
                           onClick={() => {
                             setBeaValuesOpen(false);
                             setMobileMenuOpen(false);
@@ -447,17 +447,17 @@ export default function Header() {
                           {/* Icon */}
                           <div className="flex-shrink-0 mt-0.5">
                             {item.icon === "lightbulb" && (
-                              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.477.859h4z" />
                               </svg>
                             )}
                             {item.icon === "book" && (
-                              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
                               </svg>
                             )}
                             {item.icon === "users" && (
-                              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                               </svg>
                             )}
@@ -465,10 +465,10 @@ export default function Header() {
                           
                           {/* Content */}
                           <div className="flex-1 min-w-0">
-                            <div className="font-bold text-white mb-0.5 sm:mb-1 text-xs sm:text-sm group-hover:text-blue-200 leading-tight">
+                            <div className={`font-bold text-white mb-0.5 sm:mb-1 text-xs sm:text-sm leading-tight ${isDarkMode ? 'group-hover:text-blue-300' : 'group-hover:text-blue-200'}`}>
                               {item.title}
                             </div>
-                            <div className="text-[10px] sm:text-xs text-gray-300 leading-tight">
+                            <div className={`text-[10px] sm:text-xs leading-tight ${isDarkMode ? 'text-gray-400' : 'text-gray-300'}`}>
                               {item.description}
                             </div>
                           </div>
