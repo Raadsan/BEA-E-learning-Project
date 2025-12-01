@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function ESPProgram() {
+  const { isDarkMode } = useTheme();
   const [visibleSections, setVisibleSections] = useState({ courses: true });
   const sectionRefs = {
     hero: useRef(null),
@@ -61,7 +63,7 @@ export default function ESPProgram() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       {/* Hero Section - Background Image with Left Shadow */}
       <section
         ref={sectionRefs.hero}
@@ -98,14 +100,14 @@ export default function ESPProgram() {
       </section>
 
       {/* Introduction Section */}
-      <section ref={sectionRefs.intro} className="py-8 sm:py-12 bg-white overflow-hidden">
+      <section ref={sectionRefs.intro} className={`py-8 sm:py-12 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="space-y-6 text-gray-800 leading-relaxed text-base sm:text-lg">
-            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+          <div className="space-y-6 leading-relaxed text-base sm:text-lg">
+            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s', color: isDarkMode ? '#ffffff' : '#010080' }}>
               Our English for Specific Purposes (ESP) program is designed to equip learners with the precise language skills they need to excel in their chosen professions. Whether communicating in the boardroom, writing for publication, or engaging with global clients, our ESP courses merge linguistic accuracy with real-world professional relevance.
             </p>
             
-            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
+            <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s', color: isDarkMode ? '#ffffff' : '#010080' }}>
               With our expert instructors, dynamic course materials, and practical communication approach, BEA ensures that learners achieve fluency, precision, and professionalization. Our ESP Program is more than language training—it&apos;s a gateway to success in global industries.
             </p>
           </div>
@@ -113,15 +115,15 @@ export default function ESPProgram() {
       </section>
 
       {/* ESP Courses Table Section */}
-      <section ref={sectionRefs.courses} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
+      <section ref={sectionRefs.courses} className={`py-10 sm:py-14 lg:py-16 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
-            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-center text-gray-900 mb-8 ${visibleSections.courses ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-center mb-8 ${visibleSections.courses ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Our ESP Courses Are Designed for these Professional Fields
             </h2>
             
             {/* Table */}
-            <div className={`overflow-hidden border border-gray-200 ${visibleSections.courses ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+            <div className={`overflow-hidden border ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'} ${visibleSections.courses ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -138,16 +140,18 @@ export default function ESPProgram() {
                     {espCourses.map((course, index) => (
                       <tr 
                         key={index} 
-                        className={`border-b border-gray-200 ${
-                          index % 2 === 0 ? "bg-white" : "bg-blue-50/30"
+                        className={`transition-colors ${isDarkMode ? 'border-b border-[#1a1a3e]' : 'border-b border-gray-200'} ${
+                          isDarkMode 
+                            ? (index % 2 === 0 ? "bg-[#050040]" : "bg-[#03002e]/50")
+                            : (index % 2 === 0 ? "bg-white" : "bg-blue-50/30")
                         }`}
                       >
-                        <td className="px-4 sm:px-6 py-4 align-top border-r border-gray-200">
-                          <span className="text-blue-900 font-semibold text-xs sm:text-sm">
+                        <td className={`px-4 sm:px-6 py-4 align-top border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
+                          <span className="font-semibold text-xs sm:text-sm" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                             {course.field}
                           </span>
                         </td>
-                        <td className="px-4 sm:px-6 py-4 text-gray-600 text-xs sm:text-sm leading-relaxed">
+                        <td className="px-4 sm:px-6 py-4 text-xs sm:text-sm leading-relaxed" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                           {course.features}
                         </td>
                       </tr>
@@ -161,16 +165,22 @@ export default function ESPProgram() {
       </section>
 
       {/* Program Outcome Section */}
-      <section ref={sectionRefs.outcome} className="py-10 sm:py-14 lg:py-16 bg-white overflow-hidden">
+      <section ref={sectionRefs.outcome} className={`py-10 sm:py-14 lg:py-16 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 mb-6 ${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-serif font-bold mb-6 ${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Program Outcome
             </h2>
             
-            <p className={`text-gray-900 text-sm sm:text-base leading-relaxed ${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+            <p className={`text-sm sm:text-base leading-relaxed mb-8 ${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s', color: isDarkMode ? '#ffffff' : '#010080' }}>
               Graduates of BEA&apos;s ESP program will emerge as confident, articulate professionals ready to navigate the linguistic challenges of their fields. By mastering both general fluency and sector-specific elements, learners gain a competitive edge in the global market. The BEA approach ensures every professional not only speaks English—but speaks the language of their career success.
             </p>
+            
+            <div className={`${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
+              <button className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 ${isDarkMode ? 'bg-white header-keep-white text-[#010080] hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}>
+                Register Now
+              </button>
+            </div>
           </div>
         </div>
       </section>

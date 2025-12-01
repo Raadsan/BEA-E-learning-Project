@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function BEAValues() {
+  const { isDarkMode } = useTheme();
   const [visibleSections, setVisibleSections] = useState({});
   const sectionRefs = {
     hero: useRef(null),
@@ -33,6 +36,7 @@ export default function BEAValues() {
       id: 1,
       title: "Rational Values",
       slug: "rational-values",
+      link: "/rational-values",
       description: "Our Rational Values represent the guiding principles that uphold our mission and shape our learners into thoughtful, confident, and ethical individuals.",
       image: "/images/A Path to Global Opportunities.jpg",
       alt: "Rational Values"
@@ -41,6 +45,7 @@ export default function BEAValues() {
       id: 2,
       title: "Pedagogical Values",
       slug: "pedagogical-values",
+      link: "/pedagogical-values",
       description: "Our Pedagogical Values define the principles that shape how we teach, inspire, and support our learners. These values reflect our belief that education should be student-centered, purposeful, and transformative. We focus on creating a learning environment that promotes curiosity, critical thinking, creativity, and meaningful engagement.",
       image: "/images/Innovative Learning Environment.jpg",
       alt: "Pedagogical Values"
@@ -49,6 +54,7 @@ export default function BEAValues() {
       id: 3,
       title: "Civic Values",
       slug: "civic-values",
+      link: "/civic-values",
       description: "Our Civic Values emphasize the importance of responsibility, participation, and respect within the community. We believe that education extends beyond the classroom—it prepares individuals to become active, ethical, and compassionate members of society.",
       image: "/images/A Path to Global Opportunities.jpg",
       alt: "Civic Values"
@@ -56,13 +62,15 @@ export default function BEAValues() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       {/* Hero Section */}
       <section 
         ref={sectionRefs.hero}
         className="relative flex items-center justify-center overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)',
+          background: isDarkMode 
+            ? 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)'
+            : 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)',
           height: '170px'
         }}
       >
@@ -74,9 +82,9 @@ export default function BEAValues() {
       </section>
 
       {/* Main Content Area */}
-      <section ref={sectionRefs.content} className="py-12 sm:py-16 lg:py-20 bg-white overflow-hidden">
+      <section ref={sectionRefs.content} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto space-y-6 text-gray-800 leading-relaxed text-base sm:text-lg">
+          <div className={`max-w-5xl mx-auto space-y-6 leading-relaxed text-base sm:text-lg ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
             <p className={`${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               Our values form the foundation of everything we do — guiding our teaching philosophy, our community, and our vision for empowering learners through the English language. We believe that language is more than a skill; it is a bridge to opportunity, connection, and transformation.
             </p>
@@ -97,14 +105,14 @@ export default function BEAValues() {
       </section>
 
       {/* Video Section */}
-      <section ref={sectionRefs.videos} className="py-12 sm:py-16 lg:py-20 bg-gray-100 overflow-hidden">
+      <section ref={sectionRefs.videos} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#04003a]' : 'bg-gray-100'}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             <div className={`mb-10 sm:mb-12 text-center ${visibleSections.videos ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              <h2 className="text-gray-900 text-xl sm:text-2xl lg:text-3xl font-serif font-bold mb-3">
+              <h2 className={`text-xl sm:text-2xl lg:text-3xl font-serif font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 Watch these 3 Videos to learn more about our BEA Values
               </h2>
-              <p className="text-gray-700 text-base sm:text-lg">
+              <p className={`text-base sm:text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
@@ -114,7 +122,7 @@ export default function BEAValues() {
                 <div
                   key={video.id}
                   id={video.slug}
-                  className={`bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-mt-20 ${visibleSections.videos ? 'animate-fade-in-up' : 'opacity-0'}`}
+                  className={`rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-mt-20 ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.videos ? 'animate-fade-in-up' : 'opacity-0'}`}
                   style={{ animationDelay: `${0.2 + index * 0.15}s` }}
                 >
                   {/* Video Thumbnail */}
@@ -138,14 +146,14 @@ export default function BEAValues() {
                   
                   {/* Content */}
                   <div className="p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">
+                    <h3 className={`text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                       {video.title}
                     </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                    <p className={`text-sm leading-relaxed mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                       {video.description}
                     </p>
-                    <a
-                      href="#"
+                    <Link
+                      href={video.link}
                       className="text-red-600 font-semibold inline-flex items-center gap-1 hover:text-red-700 transition-colors text-sm"
                     >
                       <span>Explore more</span>
@@ -157,7 +165,7 @@ export default function BEAValues() {
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                    </a>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -168,4 +176,3 @@ export default function BEAValues() {
     </div>
   );
 }
-
