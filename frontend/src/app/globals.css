@@ -18,15 +18,15 @@
 .dark {
   --background: #03002e;
   --foreground: #ffffff;
-  --card-bg: #050040;
-  --card-border: #1a1a3e;
+  --card-bg: #03002e;
+  --card-border: #1e1b4b;
   --text-primary: #ffffff;
-  --text-secondary: #c7d2fe;
+  --text-secondary: #e0e7ff;
   --text-muted: #a5b4fc;
-  --section-bg: #04003a;
+  --section-bg: #03002e;
   --section-bg-alt: #050040;
-  --input-bg: #050040;
-  --input-border: #2a2a5e;
+  --input-bg: #0c0a3e;
+  --input-border: #312e81;
 }
 
 @theme inline {
@@ -132,15 +132,23 @@ html.dark body {
 
 /* Dark mode inputs - exclude header search */
 .dark input:not(.header-search-input),
-.dark textarea {
+.dark textarea,
+.dark select {
   background-color: var(--input-bg) !important;
   border-color: var(--input-border) !important;
-  color: var(--text-primary) !important;
+  color: #ffffff !important;
 }
 
 .dark input:not(.header-search-input)::placeholder,
-.dark textarea::placeholder {
-  color: var(--text-muted) !important;
+.dark textarea::placeholder,
+.dark select::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Make select option text white in dark mode */
+.dark select option {
+  background-color: #0c0a3e !important;
+  color: #ffffff !important;
 }
 
 /* Custom scrollbar for tables */

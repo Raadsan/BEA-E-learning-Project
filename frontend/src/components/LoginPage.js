@@ -207,6 +207,18 @@ export default function LoginPage() {
             >
               Sign In
             </button>
+
+            {/* Sign Up Link */}
+            <p className="text-center text-gray-600 text-sm">
+              Don&apos;t have an account?{" "}
+              <Link 
+                href="/registration" 
+                className="font-semibold hover:underline"
+                style={{ color: '#010080' }}
+              >
+                Sign up
+              </Link>
+            </p>
           </form>
 
           {/* Back to Home */}

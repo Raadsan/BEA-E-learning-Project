@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 
 export default function Hero() {
@@ -83,10 +84,13 @@ export default function Hero() {
             <p className="text-white text-sm sm:text-base md:text-lg mb-4 sm:mb-5 md:mb-6 leading-relaxed">
               Structured learning from A1 to C2, powered by CEFR framework and GSE scoring. Join thousands of learners across Somalia achieving their English language goals.
             </p>
-            <button className="bg-red-600 text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors text-sm sm:text-base flex items-center gap-2">
+            <Link 
+              href="/registration"
+              className="bg-red-600 text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors text-sm sm:text-base inline-flex items-center gap-2"
+            >
               <span>→</span>
               <span>Start Learning Today</span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>
