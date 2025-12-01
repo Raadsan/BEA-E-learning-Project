@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
-
+  
 export default function AcademicWritingProgram() {
   const { isDarkMode } = useTheme();
   const [visibleSections, setVisibleSections] = useState({ table: true });
@@ -196,9 +197,9 @@ export default function AcademicWritingProgram() {
             </p>
             
             <div className={`${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
-              <button className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 ${isDarkMode ? 'bg-white header-keep-white text-[#010080] hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}>
+              <Link href="/registration" className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block ${isDarkMode ? 'bg-white header-keep-white text-[#010080] hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}>
                 Register Now
-              </button>
+              </Link>
             </div>
           </div>
         </div>

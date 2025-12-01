@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function LoginPage() {
+  const { isDarkMode } = useTheme();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -105,7 +107,7 @@ export default function LoginPage() {
 
           {/* Form Header */}
           <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-2" style={{ color: '#010080' }}>
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-2" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Sign In
             </h2>
             <p className="text-gray-600 text-sm sm:text-base">
@@ -193,7 +195,7 @@ export default function LoginPage() {
               <Link 
                 href="/forgot-password" 
                 className="text-sm font-semibold hover:underline transition-colors"
-                style={{ color: '#010080' }}
+                style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
               >
                 Forgot Password?
               </Link>
@@ -214,7 +216,7 @@ export default function LoginPage() {
               <Link 
                 href="/registration" 
                 className="font-semibold hover:underline"
-                style={{ color: '#010080' }}
+                style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
               >
                 Sign up
               </Link>
