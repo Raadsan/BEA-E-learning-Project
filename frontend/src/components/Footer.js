@@ -76,15 +76,15 @@ export default function Footer() {
           <div className="text-center sm:text-left">
             <h3 className="text-sm font-semibold mb-3 sm:mb-4" style={{ color: '#87CEEB', fontFamily: 'var(--font-playfair)' }}>Quick Links</h3>
             <ul className="space-y-2 text-sm text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">Our Programs</a></li>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">BEA Values</a></li>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">BEA Exams</a></li>
+              <li><a href="/about-us" className="hover:text-gray-300 transition-colors">About Us</a></li>
+              <li><a href="/programs" className="hover:text-gray-300 transition-colors">Our Programs</a></li>
+              <li><a href="/bea-values" className="hover:text-gray-300 transition-colors">BEA Values</a></li>
+              <li><a href="/exams" className="hover:text-gray-300 transition-colors">BEA Exams</a></li>
               <li><a href="#" className="hover:text-gray-300 transition-colors">Student E-Learning Portal</a></li>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">Student Support Centre</a></li>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">FAQs</a></li>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">Blogs</a></li>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">Events and News</a></li>
+              <li><a href="/student-support-centre" className="hover:text-gray-300 transition-colors">Student Support Centre</a></li>
+              <li><a href="/#faq" className="hover:text-gray-300 transition-colors">FAQs</a></li>
+              <li><a href="/blogs" className="hover:text-gray-300 transition-colors">Blogs</a></li>
+              <li><a href="/events-news" className="hover:text-gray-300 transition-colors">Events and News</a></li>
             </ul>
           </div>
 
@@ -92,10 +92,10 @@ export default function Footer() {
           <div className="text-center sm:text-left">
             <h3 className="text-sm font-semibold mb-3 sm:mb-4" style={{ color: '#87CEEB', fontFamily: 'var(--font-playfair)' }}>Our Policies</h3>
             <ul className="space-y-2 text-sm text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">Data Policy</a></li>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">Copyright Policy</a></li>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">BEA Student Code of Conduct</a></li>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">Payment and Refund Policy</a></li>
+              <li><a href="/data-policy" className="hover:text-gray-300 transition-colors">Data Policy</a></li>
+              <li><a href="/copyright-policy" className="hover:text-gray-300 transition-colors">Copyright Policy</a></li>
+              <li><a href="/student-code-of-conduct" className="hover:text-gray-300 transition-colors">BEA Student Code of Conduct</a></li>
+              <li><a href="/payment-refund-policy" className="hover:text-gray-300 transition-colors">Payment and Refund Policy</a></li>
               <li><a href="#" className="hover:text-gray-300 transition-colors">Student Engagement Policy</a></li>
             </ul>
           </div>
@@ -115,7 +115,7 @@ export default function Footer() {
 
         {/* Bottom Bar - aligned with Events and News */}
         <div className="border-t border-white/20 pt-4 sm:pt-6 mt-6 sm:mt-8 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-xs sm:text-sm text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
-          <div>© Copyright 2024, All Rights Reserved</div>
+          <div>© Copyright 2025, All Rights Reserved</div>
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
             <a href="#" className="hover:text-gray-300 transition-colors">Theme</a>
             <a href="#" className="hover:text-gray-300 transition-colors">Privacy Policy</a>

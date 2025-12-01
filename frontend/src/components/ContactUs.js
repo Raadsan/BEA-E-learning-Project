@@ -260,9 +260,9 @@ export default function ContactUs() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className={`header-search-input w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#010080] focus:border-transparent ${isDarkMode ? 'border-[#1a1a3e] text-gray-800' : 'border-gray-300 text-gray-800'}`}
+                    className={`header-search-input w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#010080] focus:border-transparent ${isDarkMode ? 'border-[#1a1a3e] text-gray-800 placeholder-[#010080]' : 'border-gray-300 text-gray-800 placeholder-gray-400'}`}
                     style={isDarkMode ? { backgroundColor: 'white' } : {}}
-                    placeholder="Your name"
+                    placeholder="Enter your name"
                   />
                 </div>
                 
@@ -277,9 +277,9 @@ export default function ContactUs() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className={`header-search-input w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#010080] focus:border-transparent ${isDarkMode ? 'border-[#1a1a3e] text-gray-800' : 'border-gray-300 text-gray-800'}`}
+                    className={`header-search-input w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#010080] focus:border-transparent ${isDarkMode ? 'border-[#1a1a3e] text-gray-800 placeholder-[#010080]' : 'border-gray-300 text-gray-800 placeholder-gray-400'}`}
                     style={isDarkMode ? { backgroundColor: 'white' } : {}}
-                    placeholder="Your email"
+                    placeholder="Enter your email"
                   />
                 </div>
               </div>
@@ -295,9 +295,9 @@ export default function ContactUs() {
                   value={formData.phone}
                   onChange={handleChange}
                   required
-                  className={`header-search-input w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#010080] focus:border-transparent ${isDarkMode ? 'border-[#1a1a3e] text-gray-800' : 'border-gray-300 text-gray-800'}`}
+                  className={`header-search-input w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#010080] focus:border-transparent ${isDarkMode ? 'border-[#1a1a3e] text-gray-800 placeholder-[#010080]' : 'border-gray-300 text-gray-800 placeholder-gray-400'}`}
                   style={isDarkMode ? { backgroundColor: 'white' } : {}}
-                  placeholder="Your phone number"
+                  placeholder="Enter your phone"
                 />
               </div>
               
@@ -312,9 +312,9 @@ export default function ContactUs() {
                   onChange={handleChange}
                   required
                   rows={6}
-                  className={`header-search-input w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#010080] focus:border-transparent resize-none ${isDarkMode ? 'border-[#1a1a3e] text-gray-800' : 'border-gray-300 text-gray-800'}`}
+                  className={`header-search-input w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#010080] focus:border-transparent resize-none ${isDarkMode ? 'border-[#1a1a3e] text-gray-800 placeholder-[#010080]' : 'border-gray-300 text-gray-800 placeholder-gray-400'}`}
                   style={isDarkMode ? { backgroundColor: 'white' } : {}}
-                  placeholder="Your message"
+                  placeholder="Enter your message"
                 />
               </div>
               
