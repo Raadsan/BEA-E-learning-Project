@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useTheme } from "@/context/ThemeContext";
+import GeneralEnglishRegistration from "./GeneralEnglishRegistration";
 
 export default function GeneralEnglishCourse() {
   const { isDarkMode } = useTheme();
@@ -14,53 +17,6 @@ export default function GeneralEnglishCourse() {
     intro: useRef(null),
     levels: useRef(null),
   };
-
-  // Registration form state
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    age: "",
-    gender: "",
-    country: "",
-    city: "",
-    courseLevel: "",
-    bookingDate: "",
-    bookingTime: "",
-    termsAccepted: false,
-  });
-
-  const [cities, setCities] = useState([]);
-
-  const countriesData = {
-    somalia: { name: "Somalia", cities: ["Mogadishu", "Hargeisa", "Kismayo", "Baidoa", "Bosaso", "Beledweyne", "Galkayo", "Burao", "Merca", "Jowhar"] },
-    kenya: { name: "Kenya", cities: ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Thika", "Malindi", "Kitale", "Garissa", "Nyeri"] },
-    ethiopia: { name: "Ethiopia", cities: ["Addis Ababa", "Dire Dawa", "Mekelle", "Gondar", "Hawassa", "Bahir Dar", "Adama", "Jimma", "Dessie", "Jijiga"] },
-    djibouti: { name: "Djibouti", cities: ["Djibouti City", "Ali Sabieh", "Tadjoura", "Obock", "Dikhil", "Arta"] },
-    uganda: { name: "Uganda", cities: ["Kampala", "Entebbe", "Jinja", "Gulu", "Mbarara", "Mbale", "Mukono", "Masaka", "Lira", "Arua"] },
-    tanzania: { name: "Tanzania", cities: ["Dar es Salaam", "Dodoma", "Mwanza", "Arusha", "Mbeya", "Zanzibar City", "Tanga", "Morogoro", "Kigoma", "Tabora"] },
-  };
-
-  const courseLevels = [
-    { value: "a1", label: "A1 - Beginner" },
-    { value: "a2", label: "A2 - Elementary" },
-    { value: "a2plus", label: "A2+ - Pre-Intermediate" },
-    { value: "b1", label: "B1 - Intermediate" },
-    { value: "b1plus", label: "B1+ - Intermediate Plus" },
-    { value: "b2", label: "B2 - Upper-Intermediate" },
-    { value: "c1", label: "C1 - Advanced" },
-    { value: "c2", label: "C2 - Advanced Plus" },
-  ];
-
-  useEffect(() => {
-    if (formData.country && countriesData[formData.country]) {
-      setCities(countriesData[formData.country].cities);
-      setFormData(prev => ({ ...prev, city: "" }));
-    } else {
-      setCities([]);
-    }
-  }, [formData.country]);
 
   useEffect(() => {
     const observers = [];
@@ -79,41 +35,9 @@ export default function GeneralEnglishCourse() {
     return () => observers.forEach(obs => obs.disconnect());
   }, []);
 
-  // Close modal on escape key
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') setShowModal(false);
-    };
-    if (showModal) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [showModal]);
-
   const handleRegisterClick = (levelValue) => {
     setSelectedLevel(levelValue);
-    setFormData(prev => ({ ...prev, courseLevel: levelValue }));
     setShowModal(true);
-  };
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Registration submitted:", { ...formData, program: "8-Level General English Course" });
-    alert("Registration submitted successfully!");
-    setShowModal(false);
-    setFormData({
-      firstName: "", lastName: "", email: "", phone: "", age: "", gender: "",
-      country: "", city: "", courseLevel: "", bookingDate: "", bookingTime: "", termsAccepted: false,
-    });
   };
 
   const levels = [
@@ -228,8 +152,11 @@ export default function GeneralEnglishCourse() {
                       </div>
 
                       {/* Register Now Button */}
-                      <div className="mt-6">
-                        <button className="bg-blue-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-800 transition-colors text-sm sm:text-base">
+                      <div className="mt-6 text-center">
+                        <button 
+                          onClick={() => handleRegisterClick(level.value)}
+                          className="bg-blue-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-800 transition-colors text-sm sm:text-base"
+                        >
                           Register now
                         </button>
                       </div>
@@ -243,204 +170,11 @@ export default function GeneralEnglishCourse() {
       </section>
 
       {/* Registration Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          
-          {/* Modal Content */}
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            {/* Close Button */}
-            <button 
-              onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <div className="p-6 sm:p-8 lg:p-10">
-              {/* Header */}
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                </div>
-                <h2 className="text-2xl font-serif font-bold" style={{ color: '#010080' }}>
-                  Register for 8-Level General English
-                </h2>
-                <p className="text-gray-600 text-sm mt-1">Fill in your details to enroll</p>
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Name Row */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">First Name</label>
-                    <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First name" className="w-full px-5 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 text-base" required />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Last Name</label>
-                    <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last name" className="w-full px-5 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 text-base" required />
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                  <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="email@example.com" className="w-full px-5 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 text-base" required />
-                </div>
-
-                {/* Phone */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
-                  <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+252 61-*******" className="w-full px-5 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 text-base" required />
-                </div>
-
-                {/* Age & Gender */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Age</label>
-                    <input type="number" name="age" value={formData.age} onChange={handleChange} placeholder="Age" min="5" max="100" className="w-full px-5 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 text-base" required />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Gender</label>
-                    <select name="gender" value={formData.gender} onChange={handleChange} className="w-full px-5 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 text-base bg-white" required>
-                      <option value="">Select</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Country & City */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Country</label>
-                    <select name="country" value={formData.country} onChange={handleChange} className="w-full px-5 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 text-base bg-white" required>
-                      <option value="">Select country</option>
-                      {Object.entries(countriesData).map(([key, data]) => (
-                        <option key={key} value={key}>{data.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">City</label>
-                    <select name="city" value={formData.city} onChange={handleChange} className="w-full px-5 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 text-base bg-white" required disabled={!formData.country}>
-                      <option value="">Select city</option>
-                      {cities.map((city) => (
-                        <option key={city} value={city.toLowerCase()}>{city}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Course Level */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Course Level</label>
-                  <select name="courseLevel" value={formData.courseLevel} onChange={handleChange} className="w-full px-5 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 text-base bg-white" required>
-                    <option value="">Select level</option>
-                    {courseLevels.map((level) => (
-                      <option key={level.value} value={level.value}>{level.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Booking Date & Time */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      <span className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        Booking Date
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input 
-                        type="date" 
-                        name="bookingDate" 
-                        value={formData.bookingDate} 
-                        onChange={handleChange} 
-                        min={new Date().toISOString().split('T')[0]}
-                        className="w-full px-5 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 text-base bg-white" 
-                        required 
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      <span className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Booking Time
-                      </span>
-                    </label>
-                    <select 
-                      name="bookingTime" 
-                      value={formData.bookingTime} 
-                      onChange={handleChange} 
-                      className="w-full px-5 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 text-base bg-white" 
-                      required
-                    >
-                      <option value="">Select time</option>
-                      <option value="08:00">08:00 AM</option>
-                      <option value="09:00">09:00 AM</option>
-                      <option value="10:00">10:00 AM</option>
-                      <option value="11:00">11:00 AM</option>
-                      <option value="12:00">12:00 PM</option>
-                      <option value="13:00">01:00 PM</option>
-                      <option value="14:00">02:00 PM</option>
-                      <option value="15:00">03:00 PM</option>
-                      <option value="16:00">04:00 PM</option>
-                      <option value="17:00">05:00 PM</option>
-                      <option value="18:00">06:00 PM</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Important Notes */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0">
-                      <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-blue-800 mb-1">Important Notes:</h4>
-                      <ul className="text-sm text-blue-700 space-y-1">
-                        <li>• Classes are held Monday to Saturday</li>
-                        <li>• Each session is 2 hours long</li>
-                        <li>• Payment is required before the first class</li>
-                        <li>• Books and materials will be provided</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Terms */}
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" name="termsAccepted" checked={formData.termsAccepted} onChange={handleChange} className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" required />
-                  <span className="text-sm text-gray-600">
-                    I accept the <Link href="/terms" className="text-blue-600 hover:underline">Terms</Link> and <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>
-                  </span>
-                </div>
-
-                {/* Submit Button */}
-                <button type="submit" className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg" style={{ backgroundColor: '#010080' }}>
-                  Submit Registration
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <GeneralEnglishRegistration 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)} 
+        selectedLevel={selectedLevel}
+      />
     </div>
   );
 }

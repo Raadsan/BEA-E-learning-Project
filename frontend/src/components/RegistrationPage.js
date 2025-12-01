@@ -3,8 +3,12 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function RegistrationPage() {
+  const { isDarkMode } = useTheme();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -156,8 +160,19 @@ export default function RegistrationPage() {
       </div>
 
       {/* Right Side - Registration Form (Scrollable) */}
-      <div className="w-full md:w-1/2 md:ml-[50%] min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 bg-gray-50 overflow-y-auto">
-        <div className="w-full max-w-xl py-6">
+      <div className="w-full md:w-1/2 md:ml-[50%] min-h-screen flex flex-col p-4 sm:p-6 md:p-8 lg:p-12 bg-gray-50 overflow-y-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4 self-start"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span className="text-sm font-medium">Go Back</span>
+        </button>
+
+        <div className="w-full max-w-xl py-6 mx-auto flex-grow flex flex-col justify-center">
           {/* Mobile Logo */}
           <div className="md:hidden text-center mb-6 sm:mb-8">
             <Image
@@ -171,7 +186,7 @@ export default function RegistrationPage() {
 
           {/* Form Header */}
           <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-2" style={{ color: '#010080' }}>
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-2" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Create Account
             </h2>
             <p className="text-gray-600 text-sm sm:text-base">
@@ -483,7 +498,7 @@ export default function RegistrationPage() {
                 required
               />
               <span className="text-sm text-gray-600">
-                I accept the <Link href="/terms" className="font-semibold hover:underline" style={{ color: '#010080' }}>Terms</Link> and <Link href="/privacy" className="font-semibold hover:underline" style={{ color: '#010080' }}>Privacy Policy</Link>
+                I accept the <Link href="/terms" className="font-semibold hover:underline" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>Terms</Link> and <Link href="/privacy" className="font-semibold hover:underline" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>Privacy Policy</Link>
               </span>
             </div>
 
@@ -499,21 +514,14 @@ export default function RegistrationPage() {
             {/* Login Link */}
             <p className="text-center text-gray-600 text-sm">
               Already have an account?{" "}
-              <Link href="/login" className="font-semibold hover:underline" style={{ color: '#010080' }}>
+              <Link href="/login" className="font-semibold hover:underline" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                 Sign in
               </Link>
             </p>
           </form>
 
           {/* Back to Home */}
-          <div className="text-center mt-6">
-            <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1 transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to Home
-            </Link>
-          </div>
+         
         </div>
       </div>
     </div>
