@@ -32,14 +32,14 @@ export default function ProgramCards() {
       title: "General English Program For Adults",
       description: "Our 8-Level General English Course is a comprehensive program designed to take learners from beginner to advanced proficiency.",
       color: "blue",
-      image: "/images/A Path to Global Opportunities.jpg",
+      image: "/images/8- Level General English Course for Adults.jpg",
     },
     {
       id: 2,
       title: "English for Specific Purposes (ESP) Program",
       description: "English for Specific Purposes (ESP) Program is tailored to meet the unique communication needs of professionals and learners across various fields.",
       color: "red",
-      image: "/images/English for Specific Purposes (ESP).webp",
+      image: "/images/English for Specific Purposes (ESP).jpg",
     },
     {
       id: 3,
@@ -53,7 +53,7 @@ export default function ProgramCards() {
       title: "Soft Skills and Workplace Training Programs",
       description: "Perfect your fluency with advanced vocabulary, idioms, and expressions.",
       color: "red",
-      image: "/images/A Path to Global Opportunities.jpg",
+      image: "/images/Soft Skills and Workplace Training Programs.jpg",
     },
     {
       id: 5,

@@ -165,13 +165,17 @@ export default function DigitalLiteracyProgram() {
       {/* Registration Section */}
       <section ref={sectionRefs.register} className={`py-10 sm:py-14 lg:py-16 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-          <div>
-            <p className={`text-sm sm:text-base leading-relaxed mb-8 text-center ${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
+          <div className="max-w-3xl mx-auto text-center">
+            <p className={`text-sm sm:text-base leading-relaxed mb-8 ${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               To learn more about the admission requirements for this program, course duration, weekly hours, learning method—in class or online, etc. Click the &quot;Register Now&quot; button below.
             </p>
             
-            <div className={`text-center ${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
-              <Link href="/registration" className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block ${isDarkMode ? 'bg-white header-keep-white text-[#010080] hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}>
+            <div className={`${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+              <Link href="/registration" className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block header-keep-white ${
+                isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'
+              }`}
+              style={isDarkMode ? { color: '#010080' } : {}}
+              >
                 Register Now
               </Link>
             </div>

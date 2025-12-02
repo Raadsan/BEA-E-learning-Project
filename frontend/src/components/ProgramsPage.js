@@ -35,7 +35,7 @@ export default function ProgramsPage() {
       id: 1,
       title: "General English Program For Adults",
       description: "We teach the internationally acclaimed English File 4th Edition published by the Oxford University Press—one of the world's most trusted and research-driven English language programs.",
-      image: "/images/book1.jpg",
+      image: "/images/8- Level General English Course for Adults.jpg",
       alt: "General English Program For Adults",
       buttonText: "Read more",
       link: "/programs/8-level-general-english"
@@ -44,7 +44,7 @@ export default function ProgramsPage() {
       id: 2,
       title: "English for Specific Purposes (ESP) Program",
       description: "Our English for Specific Purposes (ESP) program is designed to equip learners with the precise language skills they need to excel in their chosen professions. Whether communicating in the boardroom, writing for publication, or engaging with global clients, our ESP courses merge linguistic accuracy with real-world professional relevance.",
-      image: "/images/English for Specific Purposes (ESP).webp",
+      image: "/images/English for Specific Purposes (ESP).jpg",
       alt: "English for Specific Purposes (ESP) Program",
       buttonText: "Read more",
       link: "/programs/esp"
@@ -62,9 +62,10 @@ export default function ProgramsPage() {
       id: 4,
       title: "Soft Skills and Workplace Training Programs",
       description: "As an institution we go beyond language learning to empower individuals with the professional and 21st century skills essential for success in today's global workplace. Our Professional Skills & Training Programs are carefully designed to develop the communication, critical thinking, leadership, and digital capabilities demanded by modern employers and international industries.",
-      image: "/images/Professional Skills and Training Programs.jpg",
+      image: "/images/Soft Skills and Workplace Training Programs.jpg",
       alt: "Soft Skills and Workplace Training Programs",
-      buttonText: "Read more"
+      buttonText: "Read more",
+      link: "/programs/professional-skills"
     },
     {
       id: 5,

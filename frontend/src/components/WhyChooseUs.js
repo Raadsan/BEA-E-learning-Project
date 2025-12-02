@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { useTheme } from "@/context/ThemeContext";
 
 export default function WhyChooseUs() {
@@ -38,7 +37,7 @@ export default function WhyChooseUs() {
       id: 2,
       title: "World-Class Resources",
       description: "We teach Oxford University's English File 4th Edition—an internationally recognized English language learning series that builds real-world communication skills step by step.",
-      image: "/images/book1.jpg",
+      image: "/images/8- Level General English Course for Adults.jpg",
       alt: "World-Class Resources"
     },
     {
@@ -88,13 +87,14 @@ export default function WhyChooseUs() {
               style={{ animationDelay: `${0.1 + index * 0.1}s` }}
             >
               {/* Image */}
-              <div className="relative w-full h-60 flex-shrink-0">
-                <Image
+              <div className="relative w-full h-60 flex-shrink-0 overflow-hidden">
+                <img
                   src={reason.image}
                   alt={reason.alt}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = '/images/book1.jpg'; // Fallback image
+                  }}
                 />
               </div>
               
@@ -106,9 +106,9 @@ export default function WhyChooseUs() {
                 <p className={`text-xs leading-relaxed flex-1 mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                   {reason.description}
                 </p>
-                <button className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors mt-auto header-keep-white ${isDarkMode ? 'bg-white text-[#010080] hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}>
+                {/* <button className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors mt-auto header-keep-white ${isDarkMode ? 'bg-white text-[#010080] hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}>
                   Enroll now
-                </button>
+                </button> */}
               </div>
             </div>
           ))}

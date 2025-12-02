@@ -30,21 +30,21 @@ export default function Testimonials() {
       id: 1,
       quote: "EnglishMaster transformed my career! I went from struggling with presentations to confidently leading international meetings. The business English course was exactly what I needed.",
       name: "Mohamed",
-      role: "Marketing Manager",
+      role: "IELTS Exam preparation student",
       initials: "MO"
     },
     {
       id: 2,
       quote: "EnglishMaster transformed my career! I went from struggling with presentations to confidently leading international meetings. The business English course was exactly what I needed.",
       name: "MOhamed",
-      role: "Marketing Manager",
+      role: "Student for general english course",
       initials: "MO"
     },
     {
       id: 3,
       quote: "EnglishMaster transformed my career! I went from struggling with presentations to confidently leading international meetings. The business English course was exactly what I needed.",
       name: "Ruweyda",
-      role: "Marketing Manager",
+      role: "ESP student",
       initials: "RU"
     },
   ];
