@@ -96,16 +96,16 @@ export default function IELTSTOEFLRegistration({ isOpen, onClose }) {
 
           {/* Admission Requirement Notice */}
           <div className="mx-6 mt-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className={`rounded-xl p-4 ${isDarkMode ? 'bg-blue-50 border border-blue-200' : 'bg-amber-50 border border-amber-200'}`}>
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
-                  <svg className="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#010080' }}>
+                  <svg className={`w-5 h-5 mt-0.5 ${isDarkMode ? 'text-blue-400' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold mb-1" style={{ color: '#010080' }}>Admission Requirement</h4>
-                  <p className="text-xs leading-relaxed" style={{ color: isDarkMode ? '#000000' : '#010080' }}>
+                  <h4 className={`text-sm font-semibold mb-1 ${isDarkMode ? '' : 'text-amber-800'}`} style={isDarkMode ? { color: '#010080' } : {}}>Admission Requirement</h4>
+                  <p className={`text-xs leading-relaxed space-y-1 ${isDarkMode ? '' : 'text-amber-700'}`} style={isDarkMode ? { color: '#000000' } : {}}>
                     To be admitted in our IELTS and TOEFL preparation course, all students should provide an <strong>advanced level English proficiency certificate</strong> or an <strong>English diploma</strong> from a highly respected educational institution. If you don&apos;t have one, you will need to take our proficiency exam.
                   </p>
                 </div>

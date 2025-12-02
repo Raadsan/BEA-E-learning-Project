@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
 
 export default function LoginPage() {
+  const router = useRouter();
   const { isDarkMode } = useTheme();
   const [formData, setFormData] = useState({
     email: "",
@@ -93,6 +95,16 @@ export default function LoginPage() {
 
       {/* Right Side - Login Form */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 bg-gray-50">
+        {/* Go Back Button */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4 self-start"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span className="text-sm font-medium">Go Back</span>
+        </button>
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="md:hidden text-center mb-6 sm:mb-8">

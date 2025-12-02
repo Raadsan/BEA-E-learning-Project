@@ -197,7 +197,11 @@ export default function AcademicWritingProgram() {
             </p>
             
             <div className={`${visibleSections.register ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
-              <Link href="/registration" className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block ${isDarkMode ? 'bg-white header-keep-white text-[#010080] hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}>
+              <Link href="/registration" className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block header-keep-white ${
+                isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'
+              }`}
+              style={isDarkMode ? { color: '#010080' } : {}}
+              >
                 Register Now
               </Link>
             </div>

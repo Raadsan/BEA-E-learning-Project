@@ -60,7 +60,7 @@ export default function GeneralEnglishCourse() {
       >
         {/* Background Image - slightly zoomed to hide edges */}
         <div className="absolute inset-0">
-          <img src="/images/8-Level general.jpg" alt="8-Level General English Course for Adults" className="w-full h-full object-cover scale-110" />
+          <img src="/images/8- Level General English Course for Adults.jpg" alt="8-Level General English Course for Adults" className="w-full h-full object-cover scale-110" />
         </div>
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(1, 0, 128, 0.95) 0%, rgba(1, 0, 128, 0.8) 20%, rgba(1, 0, 128, 0.4) 40%, rgba(1, 0, 128, 0.1) 55%, transparent 65%)' }} />
         <div className="relative h-full flex items-center">
@@ -155,7 +155,10 @@ export default function GeneralEnglishCourse() {
                       <div className="mt-6 text-center">
                         <button 
                           onClick={() => handleRegisterClick(level.value)}
-                          className="bg-blue-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-800 transition-colors text-sm sm:text-base"
+                          className={`px-6 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base header-keep-white ${
+                            isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-900 text-white hover:bg-blue-800'
+                          }`}
+                          style={isDarkMode ? { color: '#010080' } : {}}
                         >
                           Register now
                         </button>

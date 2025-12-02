@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useTheme } from "@/context/ThemeContext";
 
 // Countries data for dynamic city selection
 const countriesData = {
@@ -14,6 +15,7 @@ const countriesData = {
 };
 
 export default function BEAExamRegistration({ isOpen, onClose, examType = "proficiency" }) {
+  const { isDarkMode } = useTheme();
   const [cities, setCities] = useState([]);
   
   // Form state
@@ -92,16 +94,16 @@ export default function BEAExamRegistration({ isOpen, onClose, examType = "profi
 
         {/* Exam Information Notice */}
         <div className="mx-6 mt-6">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div className={`rounded-xl p-4 ${isDarkMode ? 'bg-blue-50 border border-blue-200' : 'bg-amber-50 border border-amber-200'}`}>
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0">
-                <svg className="w-5 h-5 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-5 h-5 mt-0.5 ${isDarkMode ? 'text-blue-400' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-amber-800 mb-1">Important Information</h4>
-                <ul className="text-xs text-amber-700 leading-relaxed space-y-1">
+                <h4 className={`text-sm font-semibold mb-1 ${isDarkMode ? '' : 'text-amber-800'}`} style={isDarkMode ? { color: '#010080' } : {}}>Important Information</h4>
+                <ul className={`text-xs leading-relaxed space-y-1 ${isDarkMode ? 'text-black' : 'text-amber-700'}`}>
                   <li>• The exam includes <strong>written and oral</strong> components</li>
                   <li>• Please arrive <strong>15 minutes</strong> before your scheduled time</li>
                   <li>• Bring a valid <strong>ID card</strong> for verification</li>
