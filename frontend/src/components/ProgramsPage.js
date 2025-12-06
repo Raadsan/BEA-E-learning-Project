@@ -2,16 +2,139 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
+import { useGetProgramsQuery } from "@/redux/api/programApi";
+import { getProgramRoute } from "@/utils/programRoutes";
+
+// Program Card Component with Video Support
+function ProgramCard({ program, index, isDarkMode, isVisible, playingVideos, setPlayingVideos }) {
+  const videoRef = useRef(null);
+  const isPlaying = playingVideos[program.id] || false;
+
+  const handlePlayClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (videoRef.current) {
+      videoRef.current.play();
+      setPlayingVideos(prev => ({ ...prev, [program.id]: true }));
+    }
+  };
+
+  const handleVideoPlay = () => {
+    setPlayingVideos(prev => ({ ...prev, [program.id]: true }));
+  };
+
+  const handleVideoPause = () => {
+    setPlayingVideos(prev => ({ ...prev, [program.id]: false }));
+  };
+
+  return (
+    <Link
+      href={program.link || "#"}
+      className={`rounded-xl shadow-lg overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
+      style={{ animationDelay: `${0.1 + index * 0.1}s` }}
+    >
+      {/* Video/Image with Play Icon - Matching Home Section Style */}
+      <div className="relative w-full h-48 sm:h-56 overflow-hidden rounded-tl-xl rounded-tr-xl group bg-black">
+        {program.video ? (
+          <>
+            <video
+              ref={videoRef}
+              src={program.video}
+              className="w-full h-full object-cover rounded-tl-xl rounded-tr-xl transition-transform duration-300 group-hover:scale-110"
+              width="100%"
+              height="100%"
+              controls
+              controlsList="nodownload"
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              poster={program.image}
+              onPlay={handleVideoPlay}
+              onPause={handleVideoPause}
+              onClick={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+              style={{ display: 'block' }}
+            >
+              Your browser does not support the video tag.
+            </video>
+            {/* Play Icon Overlay - Only show when video is paused */}
+            {!isPlaying && (
+              <div 
+                className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors cursor-pointer rounded-tl-xl rounded-tr-xl"
+                onClick={handlePlayClick}
+                style={{ pointerEvents: 'auto' }}
+              >
+                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg pointer-events-none">
+                  <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                  </svg>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <Image
+              src={program.image}
+              alt={program.alt}
+              fill
+              className="object-cover rounded-tl-xl rounded-tr-xl transition-transform duration-300 group-hover:scale-110"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              unoptimized
+              onError={(e) => {
+                // Fallback to default image if backend image fails to load
+                e.target.src = "/images/book1.jpg";
+              }}
+            />
+            {/* Play Icon Overlay for images */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors rounded-tl-xl rounded-tr-xl">
+              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                </svg>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-6 flex-1 flex flex-col">
+        <h3 className={`text-base sm:text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          {program.title}
+        </h3>
+        
+        <p className={`text-xs sm:text-sm leading-relaxed mb-4 flex-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+          {program.description}
+        </p>
+        
+        {/* Read More Button */}
+        <div 
+          className={`px-6 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base w-full text-center block header-keep-white ${isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}
+          style={isDarkMode ? { color: '#010080' } : {}}
+        >
+          {program.buttonText || "Read more"}
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function ProgramsPage() {
   const { isDarkMode } = useTheme();
   const [visibleSections, setVisibleSections] = useState({});
+  const [playingVideos, setPlayingVideos] = useState({});
   const sectionRefs = {
     hero: useRef(null),
     intro: useRef(null),
     portfolio: useRef(null),
   };
+
+  // Fetch programs from backend
+  const { data: backendPrograms, isLoading, isError, error } = useGetProgramsQuery();
 
   useEffect(() => {
     const observers = [];
@@ -30,62 +153,41 @@ export default function ProgramsPage() {
     return () => observers.forEach(obs => obs.disconnect());
   }, []);
 
-  const programs = [
-    {
-      id: 1,
-      title: "General English Program For Adults",
-      description: "We teach the internationally acclaimed English File 4th Edition published by the Oxford University Press—one of the world's most trusted and research-driven English language programs.",
-      image: "/images/8- Level General English Course for Adults.jpg",
-      alt: "General English Program For Adults",
+  // Map backend data to frontend format
+  const programs = backendPrograms?.map((program) => {
+    // Ensure image URL is properly formatted from backend
+    let imageUrl = "/images/book1.jpg"; // Default fallback
+    if (program.image) {
+      // If image path starts with /, use it directly with backend URL
+      if (program.image.startsWith('/')) {
+        imageUrl = `http://localhost:5000${program.image}`;
+      } else {
+        // If image path doesn't start with /, add it
+        imageUrl = `http://localhost:5000/${program.image}`;
+      }
+    }
+    
+    // Ensure video URL is properly formatted from backend
+    let videoUrl = null;
+    if (program.video) {
+      if (program.video.startsWith('/')) {
+        videoUrl = `http://localhost:5000${program.video}`;
+      } else {
+        videoUrl = `http://localhost:5000/${program.video}`;
+      }
+    }
+    
+    return {
+      id: program.id,
+      title: program.title,
+      description: program.description || "",
+      video: videoUrl,
+      image: imageUrl, // Image from backend
+      alt: program.title || "Program image",
       buttonText: "Read more",
-      link: "/programs/8-level-general-english"
-    },
-    {
-      id: 2,
-      title: "English for Specific Purposes (ESP) Program",
-      description: "Our English for Specific Purposes (ESP) program is designed to equip learners with the precise language skills they need to excel in their chosen professions. Whether communicating in the boardroom, writing for publication, or engaging with global clients, our ESP courses merge linguistic accuracy with real-world professional relevance.",
-      image: "/images/English for Specific Purposes (ESP).jpg",
-      alt: "English for Specific Purposes (ESP) Program",
-      buttonText: "Read more",
-      link: "/programs/esp"
-    },
-    {
-      id: 3,
-      title: "IELTS and TOEFL Exam Preparation Courses",
-      description: "Our IELTS and TOEFL Preparation Programs are strategically developed to help learners succeed in the world's most recognized English proficiency exams. Both programs focus on building test-specific skills, academic communication strategies, and confidence through comprehensive lessons and simulated testing experiences.",
-      image: "/images/IELTS & TOEFL Preparation Courses1.jpg",
-      alt: "IELTS and TOEFL Exam Preparation Courses",
-      buttonText: "Read more",
-      link: "/programs/ielts-toefl"
-    },
-    {
-      id: 4,
-      title: "Soft Skills and Workplace Training Programs",
-      description: "As an institution we go beyond language learning to empower individuals with the professional and 21st century skills essential for success in today's global workplace. Our Professional Skills & Training Programs are carefully designed to develop the communication, critical thinking, leadership, and digital capabilities demanded by modern employers and international industries.",
-      image: "/images/Soft Skills and Workplace Training Programs.jpg",
-      alt: "Soft Skills and Workplace Training Programs",
-      buttonText: "Read more",
-      link: "/programs/professional-skills"
-    },
-    {
-      id: 5,
-      title: "BEA Academic Writing Program",
-      description: "The Advanced Academic Writing Program at The Blueprint English Academy (BEA) is designed for students, researchers, and professionals who wish to refine their written communication for academic success.",
-      image: "/images/Advanced Academic Writing Program.jpg",
-      alt: "BEA Academic Writing Program",
-      buttonText: "Read more",
-      link: "/programs/academic-writing"
-    },
-    {
-      id: 6,
-      title: "Digital Literacy and Virtual Communication Skills Program",
-      description: "In today's fast-changing, technology-driven world, the ability to use digital tools and communicate effectively online has become essential. Our Digital Literacy and Virtual Communication Skills Programs equip learners with the technical and communication skills needed to thrive in academic, professional, and global digital environments.",
-      image: "/images/Digital Literacy & Virtual Communication Skills Program1.jpg",
-      alt: "Digital Literacy and Virtual Communication Skills Program",
-      buttonText: "Enroll now",
-      link: "/programs/digital-literacy"
-    },
-  ];
+      link: getProgramRoute(program.title) // Map to correct route based on title
+    };
+  }) || [];
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
@@ -139,46 +241,73 @@ export default function ProgramsPage() {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {programs.map((program, index) => (
-                <div
-                  key={program.id}
-                  className={`rounded-xl shadow-lg overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col cursor-pointer ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.portfolio ? 'animate-fade-in-up' : 'opacity-0'}`}
-                  style={{ animationDelay: `${0.1 + index * 0.1}s` }}
-                >
-                  {/* Image */}
-                  <div className="relative w-full h-48 sm:h-56 overflow-hidden rounded-tl-xl rounded-tr-xl group">
-                    <Image
-                      src={program.image}
-                      alt={program.alt}
-                      fill
-                      className="object-cover rounded-tl-xl rounded-tr-xl transition-transform duration-300 group-hover:scale-110"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="p-6 flex-1 flex flex-col">
-                    <h3 className={`text-base sm:text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {program.title}
-                    </h3>
-                    
-                    <p className={`text-xs sm:text-sm leading-relaxed mb-4 flex-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                      {program.description}
-                    </p>
-                    
-                    {/* Read More Button */}
-                    <a 
-                      href={program.link || "#"} 
-                      className={`px-6 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base w-full text-center block header-keep-white ${isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}
-                      style={isDarkMode ? { color: '#010080' } : {}}
-                    >
-                      {program.buttonText || "Read more"}
-                    </a>
-                  </div>
+            {/* Loading State */}
+            {isLoading && (
+              <div className="text-center py-12">
+                <div className={`text-lg ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
+                  Loading programs...
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
+
+            {/* Error State */}
+            {isError && (
+              <div className="text-center py-12">
+                <div className={`text-lg ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+                  Error loading programs: {
+                    error?.data?.error || 
+                    error?.error || 
+                    (error?.status === 'FETCH_ERROR' ? 'Cannot connect to server' : null) ||
+                    (error?.status === 'PARSING_ERROR' ? 'Invalid response from server' : null) ||
+                    error?.message || 
+                    `Error ${error?.status || 'Unknown'}`
+                  }
+                </div>
+                <div className={`text-sm mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {error?.status === 'FETCH_ERROR' ? (
+                    <>
+                      Cannot connect to backend server.<br />
+                      Please make sure the backend server is running on http://localhost:5000
+                    </>
+                  ) : (
+                    <>
+                      Please make sure the backend server is running on http://localhost:5000
+                    </>
+                  )}
+                </div>
+                {process.env.NODE_ENV === 'development' && error && (
+                  <div className={`text-xs mt-4 p-4 bg-gray-100 rounded max-w-2xl mx-auto text-left ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'text-gray-700'}`}>
+                    <strong>Debug Info:</strong><br />
+                    Status: {error?.status || 'N/A'}<br />
+                    {error?.data && <span>Data: {JSON.stringify(error.data, null, 2)}<br /></span>}
+                    {error?.error && <span>Error: {error.error}<br /></span>}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Programs Grid */}
+            {!isLoading && !isError && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                {programs.length === 0 ? (
+                  <div className={`col-span-full text-center py-12 ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
+                    No programs available.
+                  </div>
+                ) : (
+                  programs.map((program, index) => (
+                    <ProgramCard
+                      key={program.id}
+                      program={program}
+                      index={index}
+                      isDarkMode={isDarkMode}
+                      isVisible={visibleSections.portfolio}
+                      playingVideos={playingVideos}
+                      setPlayingVideos={setPlayingVideos}
+                    />
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>

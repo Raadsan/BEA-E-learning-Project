@@ -85,7 +85,7 @@ export default function Hero() {
               Structured learning from A1 to C2, powered by CEFR framework and GSE scoring. Join thousands of learners across Somalia achieving their English language goals.
             </p>
             <Link 
-              href="/registration"
+              href="/auth/registration"
               className="bg-red-600 text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors text-sm sm:text-base inline-flex items-center gap-2"
             >
               <span>→</span>

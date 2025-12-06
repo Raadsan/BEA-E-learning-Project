@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 
 export default function Footer() {
@@ -105,15 +106,15 @@ export default function Footer() {
           <div className="text-center sm:text-left">
             <h3 className="text-sm font-semibold mb-3 sm:mb-4" style={{ color: '#87CEEB', fontFamily: 'var(--font-playfair)' }}>Quick Links</h3>
             <ul className="space-y-2 text-sm text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
-              <li><a href="/about-us" className="hover:text-gray-300 transition-colors">About Us</a></li>
-              <li><a href="/programs" className="hover:text-gray-300 transition-colors">Our Programs</a></li>
-              <li><a href="/bea-values" className="hover:text-gray-300 transition-colors">BEA Values</a></li>
-              <li><a href="/exams" className="hover:text-gray-300 transition-colors">BEA Exams</a></li>
+              <li><Link href="/website/about-us" className="hover:text-gray-300 transition-colors">About Us</Link></li>
+              <li><Link href="/website/programs" className="hover:text-gray-300 transition-colors">Our Programs</Link></li>
+              <li><Link href="/website/bea-values" className="hover:text-gray-300 transition-colors">BEA Values</Link></li>
+              <li><Link href="/website/exams" className="hover:text-gray-300 transition-colors">BEA Exams</Link></li>
               <li><a href="#" className="hover:text-gray-300 transition-colors">Student E-Learning Portal</a></li>
-              <li><a href="/student-support-centre" className="hover:text-gray-300 transition-colors">Student Support Centre</a></li>
-              <li><a href="/#faq" className="hover:text-gray-300 transition-colors">FAQs</a></li>
-              <li><a href="/blogs" className="hover:text-gray-300 transition-colors">Blogs</a></li>
-              <li><a href="/events-news" className="hover:text-gray-300 transition-colors">Events and News</a></li>
+              <li><Link href="/website/student-support-centre" className="hover:text-gray-300 transition-colors">Student Support Centre</Link></li>
+              <li><Link href="/#faq" className="hover:text-gray-300 transition-colors">FAQs</Link></li>
+              <li><Link href="/website/blogs" className="hover:text-gray-300 transition-colors">Blogs</Link></li>
+              <li><Link href="/website/events-news" className="hover:text-gray-300 transition-colors">Events and News</Link></li>
             </ul>
           </div>
 
@@ -125,7 +126,7 @@ export default function Footer() {
               <li><a href="/copyright-policy" className="hover:text-gray-300 transition-colors">Copyright Policy</a></li>
               <li><a href="/student-code-of-conduct" className="hover:text-gray-300 transition-colors">BEA Student Code of Conduct</a></li>
               <li><a href="/payment-refund-policy" className="hover:text-gray-300 transition-colors">Payment and Refund Policy</a></li>
-              <li><a href="/student-engagement-policy" className="hover:text-gray-300 transition-colors">Student Engagement Policy</a></li>
+              <li><a href="#" className="hover:text-gray-300 transition-colors">Student Engagement Policy</a></li>
             </ul>
           </div>
 

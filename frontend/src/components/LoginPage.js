@@ -205,7 +205,7 @@ export default function LoginPage() {
                 <span className="text-sm text-gray-600">Remember me</span>
               </label>
               <Link 
-                href="/forgot-password" 
+                href="/auth/forgot-password" 
                 className="text-sm font-semibold hover:underline transition-colors"
                 style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
               >
@@ -226,7 +226,7 @@ export default function LoginPage() {
             <p className="text-center text-gray-600 text-sm">
               Don&apos;t have an account?{" "}
               <Link 
-                href="/registration" 
+                href="/auth/registration" 
                 className="font-semibold hover:underline"
                 style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
               >

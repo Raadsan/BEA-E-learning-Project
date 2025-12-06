@@ -2,13 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
+import { useGetProgramsQuery } from "@/redux/api/programApi";
+import { getProgramRoute } from "@/utils/programRoutes";
 
 export default function ProgramCards() {
   const [isVisible, setIsVisible] = useState(false);
   const [playingVideo, setPlayingVideo] = useState(null);
   const sectionRef = useRef(null);
   const { isDarkMode } = useTheme();
+
+  // Fetch programs from backend
+  const { data: backendPrograms, isLoading, isError } = useGetProgramsQuery();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -34,7 +40,6 @@ export default function ProgramCards() {
       description: "Our 8-Level General English Course is a comprehensive program designed to take learners from beginner to advanced proficiency.",
       color: "blue",
       image: "/images/8- Level General English Course for Adults.jpg",
-      video: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Replace with actual video URL
     },
     {
       id: 2,
@@ -42,7 +47,6 @@ export default function ProgramCards() {
       description: "English for Specific Purposes (ESP) Program is tailored to meet the unique communication needs of professionals and learners across various fields.",
       color: "red",
       image: "/images/English for Specific Purposes (ESP).jpg",
-      video: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Replace with actual video URL
     },
     {
       id: 3,
@@ -50,7 +54,6 @@ export default function ProgramCards() {
       description: "Our IELTS and TOEFL Preparation Course is designed to enrich our students with the strategies, skills, and confidence needed to excel in international English proficiency exams.",
       color: "blue",
       image: "/images/IELTS & TOEFL Preparation Courses1.jpg",
-      video: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Replace with actual video URL
     },
     {
       id: 4,
@@ -88,7 +91,7 @@ export default function ProgramCards() {
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
-            <a href="/programs" className={`font-semibold text-xs sm:text-sm md:text-base whitespace-nowrap border rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 hover:text-white transition-all duration-300 self-start sm:self-auto ${isDarkMode ? 'text-white border-white hover:bg-white hover:text-[#010080]' : ''}`} style={{ color: isDarkMode ? 'white' : '#010080', borderColor: isDarkMode ? 'white' : '#010080' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = isDarkMode ? 'white' : '#010080'; e.currentTarget.style.color = isDarkMode ? '#010080' : 'white'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = isDarkMode ? 'white' : '#010080'; }}>
+            <a href="/website/programs" className={`font-semibold text-xs sm:text-sm md:text-base whitespace-nowrap border rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 hover:text-white transition-all duration-300 self-start sm:self-auto ${isDarkMode ? 'text-white border-white hover:bg-white hover:text-[#010080]' : ''}`} style={{ color: isDarkMode ? 'white' : '#010080', borderColor: isDarkMode ? 'white' : '#010080' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = isDarkMode ? 'white' : '#010080'; e.currentTarget.style.color = isDarkMode ? '#010080' : 'white'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = isDarkMode ? 'white' : '#010080'; }}>
               → View all programs
             </a>
           </div>
@@ -102,67 +105,36 @@ export default function ProgramCards() {
                 } ${isDarkMode ? 'bg-[#050040] border-[#1a1a3e]' : 'bg-white border-gray-200'}`}
                 style={{ animationDelay: `${0.1 + index * 0.1}s` }}
               >
-                {/* Video/Image with Play Icon */}
+                {/* Image with Play Icon */}
                 <div className="relative h-40 sm:h-44 md:h-48 bg-gray-200 overflow-hidden">
-                  {playingVideo === program.id ? (
-                    // Video Player
-                    <div className="w-full h-full relative">
-                      <iframe
-                        className="w-full h-full"
-                        src={program.video}
-                        title={program.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                      {/* Close Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPlayingVideo(null);
-                        }}
-                        className="absolute top-2 right-2 w-8 h-8 bg-black/70 hover:bg-black/90 rounded-full flex items-center justify-center transition-colors z-10"
-                        aria-label="Close video"
-                      >
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
+                  <Image
+                    src={program.image}
+                    alt={program.title}
+                    fill
+                    className="object-cover"
+                  />
+                  {/* Play Icon Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+                    <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
+                      <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                      </svg>
                     </div>
-                  ) : (
-                    // Image Thumbnail with Play Icon
-                    <>
-                      <Image
-                        src={program.image}
-                        alt={program.title}
-                        fill
-                        className="object-cover"
-                      />
-                      {/* Play Icon Overlay */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPlayingVideo(program.id);
-                        }}
-                        className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors"
-                        aria-label="Play video"
-                      >
-                        <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                          <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                          </svg>
-                        </div>
-                      </button>
-                    </>
-                  )}
+                  </div>
                 </div>
 
                 {/* Content */}
                 <div className="p-4 sm:p-5">
-                  {/* Title */}
-                  <div className="mb-2">
-                    <h3 className="text-sm sm:text-base md:text-lg font-bold" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
+                  {/* Title with Heart Icon */}
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold flex-1" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                       {program.title}
                     </h3>
+                    <button className={`transition-colors ml-2 ${isDarkMode ? 'text-white hover:text-red-500' : 'text-gray-400 hover:text-red-500'}`}>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </button>
                   </div>
                   
                   {/* Description */}
