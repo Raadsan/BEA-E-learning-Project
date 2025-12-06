@@ -51,7 +51,7 @@ export default function PaymentRefundPolicy() {
         },
         {
           subtitle: "1.2 Monthly Term Billing",
-          items: [
+          numberedItems: [
             "All Tuition Fees are billed monthly by term based on the program in which the student is enrolled.",
             "Each new term begins a new billing cycle.",
             "Invoices or payment reminders are shared through official BEA communication channels."
@@ -94,9 +94,9 @@ export default function PaymentRefundPolicy() {
         {
           subtitle: "2.3 Payment Deadlines",
           items: [
-            "Monthly tuition must be paid on or before the stated due date."
+            "Monthly tuition must be paid on or before the stated due date.",
+            "Late payments may result in:"
           ],
-          description: "Late payments may result in:",
           subItems: [
             "Missing out on class seats",
             "Withheld certificates, results, or academic records"
@@ -127,7 +127,7 @@ export default function PaymentRefundPolicy() {
         },
         {
           subtitle: "3.3 No Refunds for:",
-          items: [
+          numberedItems: [
             "Missed classes",
             "Student withdrawal or dropout",
             "Personal scheduling conflicts",
@@ -145,7 +145,7 @@ export default function PaymentRefundPolicy() {
         {
           subtitle: "4.1 Student-Initiated Withdrawal",
           description: "If a student chooses to withdraw:",
-          items: [
+          numberedItems: [
             "No portion of the one-time Tuition Fee will be refunded.",
             "No refunds for current or previous months of instruction."
           ]
@@ -153,7 +153,7 @@ export default function PaymentRefundPolicy() {
         {
           subtitle: "4.2 BEA-Initiated Changes",
           description: "If BEA reschedules or reorganizes classes:",
-          items: [
+          numberedItems: [
             "Students will be offered an alternative schedule.",
             "This does not qualify for a fee refund."
           ]
@@ -161,7 +161,7 @@ export default function PaymentRefundPolicy() {
         {
           subtitle: "4.3 Program Changes",
           description: "If a student changes programs:",
-          items: [
+          numberedItems: [
             "Previously paid tuition fees cannot be transferred or refunded.",
             "New program fees apply as per the updated pricing."
           ]
@@ -176,7 +176,7 @@ export default function PaymentRefundPolicy() {
         {
           subtitle: "Contact the BEA Finance Office",
           description: "Students may contact the BEA Finance Office for:",
-          items: [
+          numberedItems: [
             "Payment disputes",
             "Receipt verification",
             "Account corrections",
@@ -347,6 +347,21 @@ export default function PaymentRefundPolicy() {
                               {subsection.items.map((item, itemIndex) => (
                                 <li key={itemIndex} className="flex items-start gap-3">
                                   <span className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${isDarkMode ? 'bg-blue-400' : 'bg-blue-600'}`}></span>
+                                  <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    {item}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          
+                          {subsection.numberedItems && (
+                            <ul className="space-y-2 mb-3">
+                              {subsection.numberedItems.map((item, itemIndex) => (
+                                <li key={itemIndex} className="flex items-start gap-3">
+                                  <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isDarkMode ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                                    {itemIndex + 1}
+                                  </span>
                                   <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                     {item}
                                   </span>

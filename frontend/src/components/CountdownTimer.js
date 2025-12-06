@@ -2,14 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "@/context/ThemeContext";
+import { getCurrentTerm, parseDate, isCurrentlyInTerm } from "@/data/timelineData";
 
 export default function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState({
-    days: 3,
-    hours: 20,
-    minutes: 59,
-    seconds: 45,
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
   });
+  const [currentTerm, setCurrentTerm] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
   const { isDarkMode } = useTheme();
@@ -31,33 +33,47 @@ export default function CountdownTimer() {
     return () => observer.disconnect();
   }, []);
 
+  // Calculate countdown to current term's end date - ONLY when currently in a term
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        let { days, hours, minutes, seconds } = prev;
+    const calculateTimeLeft = () => {
+      // Get the current active term
+      const activeTerm = getCurrentTerm();
+      
+      if (!activeTerm) {
+        // Not in any term, show zeros
+        setCurrentTerm(null);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
 
-        if (seconds > 0) {
-          seconds--;
-        } else {
-          seconds = 59;
-          if (minutes > 0) {
-            minutes--;
-          } else {
-            minutes = 59;
-            if (hours > 0) {
-              hours--;
-            } else {
-              hours = 23;
-              if (days > 0) {
-                days--;
-              }
-            }
-          }
-        }
+      // We're in a term, countdown to the end date of this term
+      setCurrentTerm(activeTerm);
+      
+      const now = new Date();
+      const endDate = parseDate(activeTerm.endDate);
+      endDate.setHours(23, 59, 59, 999); // Set to end of the end date
+      
+      const difference = endDate - now;
 
-        return { days, hours, minutes, seconds };
-      });
-    }, 1000);
+      if (difference <= 0) {
+        // Term has ended, show zeros
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setTimeLeft({ days, hours, minutes, seconds });
+    };
+
+    // Calculate immediately
+    calculateTimeLeft();
+
+    // Update every second
+    const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
   }, []);
@@ -136,9 +152,15 @@ export default function CountdownTimer() {
           <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2 sm:mb-3">
             Next Time Stream Start in
           </h2>
-          <p className="text-white text-sm sm:text-base md:text-lg px-4 sm:px-0">
-            Get ready! Something exciting is about to drop.
-          </p>
+          {currentTerm ? (
+            <p className="text-white text-sm sm:text-base md:text-lg px-4 sm:px-0">
+              {currentTerm.termSerial} ends on {currentTerm.endDate}
+            </p>
+          ) : (
+            <p className="text-white text-sm sm:text-base md:text-lg px-4 sm:px-0">
+              No active term
+            </p>
+          )}
         </div>
         
         {/* White Card with Countdown Timers */}

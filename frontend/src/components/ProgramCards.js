@@ -7,6 +7,139 @@ import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { getProgramRoute } from "@/utils/programRoutes";
 
+// Video Card Component
+function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handlePlayClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (videoRef.current) {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const handleVideoPlay = () => {
+    setIsPlaying(true);
+  };
+
+  const handleVideoPause = () => {
+    setIsPlaying(false);
+  };
+
+  return (
+    <Link
+      key={program.id}
+      href={program.link || "#"}
+      className={`rounded-lg border overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${
+        isVisible ? 'animate-fade-in-up' : 'opacity-0'
+      } ${isDarkMode ? 'bg-[#050040] border-[#1a1a3e]' : 'bg-white border-gray-200'}`}
+      style={{ animationDelay: `${0.1 + index * 0.1}s` }}
+    >
+      {/* Video/Image with Play Icon */}
+      <div className="relative h-40 sm:h-44 md:h-48 bg-black overflow-hidden">
+        {program.video ? (
+          <>
+            <video
+              ref={videoRef}
+              src={program.video}
+              className="w-full h-full object-cover"
+              width="100%"
+              height="100%"
+              controls
+              controlsList="nodownload"
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              poster={program.image}
+              onPlay={handleVideoPlay}
+              onPause={handleVideoPause}
+              onClick={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+              style={{ display: 'block' }}
+            >
+              Your browser does not support the video tag.
+            </video>
+            {/* Play Icon Overlay - Only show when video is paused */}
+            {!isPlaying && (
+              <div 
+                className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors cursor-pointer"
+                onClick={handlePlayClick}
+                style={{ pointerEvents: 'auto' }}
+              >
+                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg pointer-events-none">
+                  <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                  </svg>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <Image
+              src={program.image}
+              alt={program.title}
+              fill
+              className="object-cover"
+            />
+            {/* Play Icon Overlay for images */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                </svg>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-4 sm:p-5">
+        {/* Title with Heart Icon */}
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm sm:text-base md:text-lg font-bold flex-1" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
+            {program.title}
+          </h3>
+          <button className={`transition-colors ml-2 ${isDarkMode ? 'text-white hover:text-red-500' : 'text-gray-400 hover:text-red-500'}`}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
+        </div>
+        
+        {/* Description */}
+        <p className={`text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4 ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
+          {program.description}
+        </p>
+        
+        {/* Explore more */}
+        <div
+          className={`text-sm font-semibold inline-flex items-center gap-1 ${
+            program.color === "red" 
+              ? "text-red-600 hover:text-red-700" 
+              : "text-blue-600 hover:text-blue-700"
+          }`}
+        >
+          <span>Explore more</span>
+          <svg 
+            className="w-4 h-4" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function ProgramCards() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
@@ -87,19 +220,8 @@ export default function ProgramCards() {
           {/* Error State */}
           {isError && (
             <div className="text-center py-12">
-              <div className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
-                {error?.status === 'FETCH_ERROR' 
-                  ? 'Cannot connect to backend server' 
-                  : 'Error loading programs'}
-              </div>
-              <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                {error?.status === 'FETCH_ERROR' ? (
-                  <>
-                    Please make sure the backend server is running on <code className="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">http://localhost:5000</code>
-                  </>
-                ) : (
-                  'Please check your connection and try again later.'
-                )}
+              <div className={`text-lg ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+                Error loading programs. Please try again later.
               </div>
             </div>
           )}
@@ -107,141 +229,15 @@ export default function ProgramCards() {
           {/* Programs Grid */}
           {!isLoading && !isError && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-              {sortedPrograms.slice(0, 3).map((program, index) => {
-                const VideoCard = ({ program, index }) => {
-                  const videoRef = useRef(null);
-                  const [isPlaying, setIsPlaying] = useState(false);
-
-                  const handlePlayClick = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (videoRef.current) {
-                      videoRef.current.play();
-                      setIsPlaying(true);
-                    }
-                  };
-
-                  const handleVideoPlay = () => {
-                    setIsPlaying(true);
-                  };
-
-                  const handleVideoPause = () => {
-                    setIsPlaying(false);
-                  };
-
-                  return (
-                    <Link
-                      href={program.link || "#"}
-                      key={program.id}
-                      className={`rounded-lg border overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${
-                        isVisible ? 'animate-fade-in-up' : 'opacity-0'
-                      } ${isDarkMode ? 'bg-[#050040] border-[#1a1a3e]' : 'bg-white border-gray-200'}`}
-                      style={{ animationDelay: `${0.1 + index * 0.1}s` }}
-                    >
-                      {/* Video/Image with Play Icon */}
-                      <div className="relative h-40 sm:h-44 md:h-48 bg-black overflow-hidden">
-                        {program.video ? (
-                          <>
-                            <video
-                              ref={videoRef}
-                              src={program.video}
-                              className="w-full h-full object-cover"
-                              width="100%"
-                              height="100%"
-                              controls
-                              controlsList="nodownload"
-                              muted
-                              loop
-                              playsInline
-                              preload="metadata"
-                              poster={program.image}
-                              onPlay={handleVideoPlay}
-                              onPause={handleVideoPause}
-                              onClick={(e) => e.stopPropagation()}
-                              onDoubleClick={(e) => e.stopPropagation()}
-                              style={{ display: 'block' }}
-                            >
-                              Your browser does not support the video tag.
-                            </video>
-                            {/* Play Icon Overlay - Only show when video is paused */}
-                            {!isPlaying && (
-                              <div 
-                                className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors cursor-pointer"
-                                onClick={handlePlayClick}
-                                style={{ pointerEvents: 'auto' }}
-                              >
-                                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg pointer-events-none">
-                                  <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                                  </svg>
-                                </div>
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <Image
-                              src={program.image}
-                              alt={program.title}
-                              fill
-                              className="object-cover"
-                            />
-                            {/* Play Icon Overlay for images */}
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
-                              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
-                                <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                                </svg>
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-4 sm:p-5">
-                        {/* Title with Heart Icon */}
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-sm sm:text-base md:text-lg font-bold flex-1" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
-                            {program.title}
-                          </h3>
-                          <button className={`transition-colors ml-2 ${isDarkMode ? 'text-white hover:text-red-500' : 'text-gray-400 hover:text-red-500'}`}>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                          </button>
-                        </div>
-                        
-                        {/* Description */}
-                        <p className={`text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4 ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
-                          {program.description}
-                        </p>
-                        
-                        {/* Explore more */}
-                        <div
-                          className={`text-sm font-semibold inline-flex items-center gap-1 ${
-                            program.color === "red" 
-                              ? "text-red-600 hover:text-red-700" 
-                              : "text-blue-600 hover:text-blue-700"
-                          }`}
-                        >
-                          <span>Explore more</span>
-                          <svg 
-                            className="w-4 h-4" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                };
-
-                return <VideoCard key={program.id} program={program} index={index} />;
-              })}
+              {sortedPrograms.slice(0, 3).map((program, index) => (
+                <VideoProgramCard
+                  key={program.id}
+                  program={program}
+                  index={index}
+                  isDarkMode={isDarkMode}
+                  isVisible={isVisible}
+                />
+              ))}
             </div>
           )}
         </div>

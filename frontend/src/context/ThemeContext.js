@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 const ThemeContext = createContext({
   isDarkMode: false,
   toggleTheme: () => {},
+  setDarkMode: () => {},
 });
 
 export function ThemeProvider({ children }) {
@@ -50,8 +51,12 @@ export function ThemeProvider({ children }) {
     setIsDarkMode((prev) => !prev);
   };
 
+  const setDarkMode = (dark) => {
+    setIsDarkMode(dark);
+  };
+
   return (
-    <ThemeContext.Provider value={{ isDarkMode: mounted ? isDarkMode : false, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDarkMode: mounted ? isDarkMode : false, toggleTheme, setDarkMode }}>
       {children}
     </ThemeContext.Provider>
   );
