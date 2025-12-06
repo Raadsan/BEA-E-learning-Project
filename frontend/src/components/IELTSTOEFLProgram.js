@@ -4,12 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
-import IELTSTOEFLRegistration from "./IELTSTOEFLRegistration";
 
 export default function IELTSTOEFLProgram() {
   const { isDarkMode } = useTheme();
   const [visibleSections, setVisibleSections] = useState({ table: true, comparison: true });
-  const [showRegistration, setShowRegistration] = useState(false);
 
   const sectionRefs = {
     hero: useRef(null),
@@ -268,22 +266,17 @@ export default function IELTSTOEFLProgram() {
             </p>
             
             <div className={`${visibleSections.outcome ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
-              <button 
-                onClick={() => setShowRegistration(true)}
-                className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 ${isDarkMode ? 'bg-white header-keep-white text-[#010080] hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}
+              <Link 
+                href="/auth/ielts-toefl-registration"
+                className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block header-keep-white ${isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}
+                style={isDarkMode ? { color: '#010080' } : {}}
               >
                 Register Now
-              </button>
+              </Link>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Registration Modal */}
-      <IELTSTOEFLRegistration 
-        isOpen={showRegistration} 
-        onClose={() => setShowRegistration(false)} 
-      />
     </div>
   );
 }
