@@ -93,10 +93,10 @@ export default function Footer() {
           <div className="text-center sm:text-left">
             <h3 className="text-sm font-semibold mb-3 sm:mb-4" style={{ color: '#87CEEB', fontFamily: 'var(--font-playfair)' }}>Our Policies</h3>
             <ul className="space-y-2 text-sm text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
-              <li><Link href="/website/data-policy" className="hover:text-gray-300 transition-colors">Data Policy</Link></li>
-              <li><Link href="/website/copyright-policy" className="hover:text-gray-300 transition-colors">Copyright Policy</Link></li>
-              <li><Link href="/website/student-code-of-conduct" className="hover:text-gray-300 transition-colors">BEA Student Code of Conduct</Link></li>
-              <li><Link href="/website/payment-refund-policy" className="hover:text-gray-300 transition-colors">Payment and Refund Policy</Link></li>
+              <li><a href="/data-policy" className="hover:text-gray-300 transition-colors">Data Policy</a></li>
+              <li><a href="/copyright-policy" className="hover:text-gray-300 transition-colors">Copyright Policy</a></li>
+              <li><a href="/student-code-of-conduct" className="hover:text-gray-300 transition-colors">BEA Student Code of Conduct</a></li>
+              <li><a href="/payment-refund-policy" className="hover:text-gray-300 transition-colors">Payment and Refund Policy</a></li>
               <li><a href="#" className="hover:text-gray-300 transition-colors">Student Engagement Policy</a></li>
             </ul>
           </div>
