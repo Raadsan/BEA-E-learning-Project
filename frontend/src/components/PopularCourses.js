@@ -67,7 +67,7 @@ export default function PopularCourses() {
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
-            <a href="/programs" className="text-gray-800 font-semibold hover:underline text-xs sm:text-sm md:text-base border border-purple-300 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap hover:bg-purple-50 transition-colors self-start sm:self-auto">
+            <a href="/website/programs" className="text-gray-800 font-semibold hover:underline text-xs sm:text-sm md:text-base border border-purple-300 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap hover:bg-purple-50 transition-colors self-start sm:self-auto">
               → View all courses
             </a>
           </div>

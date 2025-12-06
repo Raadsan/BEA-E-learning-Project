@@ -68,7 +68,7 @@ export default function Introduction() {
             <strong>Common European Framework of Reference (CEFR)</strong>—the world&apos;s benchmark for language 
             proficiency assessments from beginner (A1) to advanced plus (C2). This helps us place every learner precisely 
             where they belong for optimal engagement.{" "}
-            <a href="/about-us" className="text-red-600 font-bold hover:underline inline-block">
+            <a href="/website/about-us" className="text-red-600 font-bold hover:underline inline-block">
               Read more!
             </a>
           </p>

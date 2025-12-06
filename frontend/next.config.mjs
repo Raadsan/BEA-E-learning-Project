@@ -5,7 +5,14 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     unoptimized: false,
-    remotePatterns: [],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '5000',
+        pathname: '/uploads/**',
+      },
+    ],
   },
 };
 

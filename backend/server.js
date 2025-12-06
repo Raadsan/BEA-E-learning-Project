@@ -3,12 +3,14 @@ dotenv.config(); // MUST be first
 
 import express from "express";
 import path from "path";
+import cors from "cors";
 import db from "./database/dbconfig.js";
-import programRoutes from "./routes/programRoutes.js"; // <-- ADD THIS
+import programRoutes from "./routes/programRoutes.js";
 
 const app = express();
 
 // Middleware
+app.use(cors()); // Enable CORS for all routes
 app.use(express.json());
 
 // Serve uploaded images

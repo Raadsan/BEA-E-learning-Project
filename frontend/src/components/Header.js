@@ -16,37 +16,37 @@ export default function Header() {
       title: "General English Program For Adults",
       description: "Comprehensive program from beginner to advanced",
       icon: "chart",
-      href: "/programs/8-level-general-english"
+      href: "/website/programs/8-level-general-english"
     },
     {
       title: "English for Specific Purposes (ESP) Program",
       description: "Tailored English for professional fields",
       icon: "grid",
-      href: "/programs/esp"
+      href: "/website/programs/esp"
     },
     {
       title: "IELTS and TOEFL Exam Preparation Courses",
       description: "Prepare for international English exams",
       icon: "user",
-      href: "/programs/ielts-toefl"
+      href: "/website/programs/ielts-toefl"
     },
     {
       title: "Soft Skills and Workplace Training Programs",
       description: "Develop essential workplace competencies",
       icon: "wave",
-      href: "/programs/professional-skills"
+      href: "/website/programs/professional-skills"
     },
     {
       title: "BEA Academic Writing Program",
       description: "Master academic and professional writing",
       icon: "pie",
-      href: "/programs/academic-writing"
+      href: "/website/programs/academic-writing"
     },
     {
       title: "Digital Literacy and Virtual Communication Skills Program",
       description: "Build digital skills for modern communication",
       icon: "network",
-      href: "/programs/digital-literacy"
+      href: "/website/programs/digital-literacy"
     },
   ];
 
@@ -54,19 +54,19 @@ export default function Header() {
     {
       title: "Rational Values",
       description: "Guiding principles for thoughtful learners",
-      href: "/rational-values",
+      href: "/website/rational-values",
       icon: "lightbulb"
     },
     {
       title: "Pedagogical Values",
       description: "Student-centered teaching principles",
-      href: "/pedagogical-values",
+      href: "/website/pedagogical-values",
       icon: "book"
     },
     {
       title: "Civic Values",
       description: "Community responsibility and respect",
-      href: "/civic-values",
+      href: "/website/civic-values",
       icon: "users"
     },
   ];
@@ -130,7 +130,7 @@ export default function Header() {
 
             {/* Login Button */}
             <Link
-              href="/login"
+              href="/auth/login"
               className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 hover:opacity-90 ${isDarkMode ? 'bg-white header-keep-white' : 'bg-[#010080] text-white'}`}
               style={isDarkMode ? { color: '#010080' } : {}}
             >
@@ -170,7 +170,7 @@ export default function Header() {
             <div className="relative">
               <div className="flex items-center gap-1">
                 <Link
-                  href="/programs"
+                  href="/website/programs"
                   className="text-sm xl:text-base hover:opacity-80 transition-colors"
                   style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
                 >
@@ -260,7 +260,7 @@ export default function Header() {
             <div className="relative">
               <div className="flex items-center gap-1">
                 <Link
-                  href="/bea-values"
+                  href="/website/bea-values"
                   className="text-sm xl:text-base hover:opacity-80 transition-colors"
                   style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
                 >
@@ -329,10 +329,10 @@ export default function Header() {
               )}
             </div>
 
-            <Link href="/exams" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
+            <Link href="/website/exams" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Exams
             </Link>
-            <Link href="/contact-us" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
+            <Link href="/website/contact-us" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Contact us
             </Link>
           </nav>
@@ -371,7 +371,7 @@ export default function Header() {
                 <div>
                   <div className="w-full flex items-center justify-between px-4 py-2">
                     <Link
-                      href="/programs"
+                      href="/website/programs"
                       className="text-gray-700 hover:text-red-600 transition-colors"
                     >
                       Programs
@@ -413,7 +413,7 @@ export default function Header() {
                 <div>
                   <div className="w-full flex items-center justify-between px-4 py-2">
                     <Link
-                      href="/bea-values"
+                      href="/website/bea-values"
                       className="text-gray-700 hover:text-red-600 transition-colors"
                     >
                       BEA Values
@@ -513,7 +513,7 @@ export default function Header() {
               {/* Mobile Login Button */}
               <div className="pt-4">
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-semibold text-sm transition-all duration-300 hover:opacity-90"
                   style={{ backgroundColor: '#010080' }}
                   onClick={() => setMobileMenuOpen(false)}

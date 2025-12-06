@@ -1,16 +1,6 @@
-import Header from "@/components/Header";
-import ProgramsPage from "@/components/ProgramsPage";
-import Footer from "@/components/Footer";
+import { redirect } from 'next/navigation';
 
-export default function Programs() {
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-grow">
-        <ProgramsPage />
-      </main>
-      <Footer />
-    </div>
-  );
+export default function ProgramsRedirect() {
+  redirect('/website/programs');
 }
 
