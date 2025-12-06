@@ -189,6 +189,18 @@ export default function ProgramsPage() {
     };
   }) || [];
 
+  // Sort programs: id 3 first, id 9 last, others in between
+  const sortedPrograms = [...programs].sort((a, b) => {
+    // Program 3 should be first
+    if (a.id === 3) return -1;
+    if (b.id === 3) return 1;
+    // Program 9 should be last
+    if (a.id === 9) return 1;
+    if (b.id === 9) return -1;
+    // Others sorted by id ascending
+    return a.id - b.id;
+  });
+
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       {/* Hero Section */}
@@ -253,48 +265,52 @@ export default function ProgramsPage() {
             {/* Error State */}
             {isError && (
               <div className="text-center py-12">
-                <div className={`text-lg ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
-                  Error loading programs: {
-                    error?.data?.error || 
-                    error?.error || 
-                    (error?.status === 'FETCH_ERROR' ? 'Cannot connect to server' : null) ||
-                    (error?.status === 'PARSING_ERROR' ? 'Invalid response from server' : null) ||
-                    error?.message || 
-                    `Error ${error?.status || 'Unknown'}`
-                  }
+                <div className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+                  {error?.status === 'FETCH_ERROR' 
+                    ? 'Cannot connect to backend server' 
+                    : error?.status === 'PARSING_ERROR'
+                    ? 'Invalid response from server'
+                    : error?.status
+                    ? `Error ${error.status}`
+                    : 'Error loading programs'}
                 </div>
-                <div className={`text-sm mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <div className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                   {error?.status === 'FETCH_ERROR' ? (
                     <>
-                      Cannot connect to backend server.<br />
-                      Please make sure the backend server is running on http://localhost:5000
+                      The backend server is not responding.<br />
+                      Please make sure the backend server is running on <code className="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">http://localhost:5000</code>
                     </>
+                  ) : error?.data?.error ? (
+                    error.data.error
+                  ) : error?.error ? (
+                    error.error
+                  ) : error?.message ? (
+                    error.message
                   ) : (
-                    <>
-                      Please make sure the backend server is running on http://localhost:5000
-                    </>
+                    'Please check your connection and try again.'
                   )}
                 </div>
-                {process.env.NODE_ENV === 'development' && error && (
-                  <div className={`text-xs mt-4 p-4 bg-gray-100 rounded max-w-2xl mx-auto text-left ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'text-gray-700'}`}>
-                    <strong>Debug Info:</strong><br />
-                    Status: {error?.status || 'N/A'}<br />
-                    {error?.data && <span>Data: {JSON.stringify(error.data, null, 2)}<br /></span>}
-                    {error?.error && <span>Error: {error.error}<br /></span>}
+                <div className={`text-xs mt-4 p-4 rounded max-w-2xl mx-auto text-left ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
+                  <strong>Debug Info:</strong><br />
+                  <div className="mt-2 space-y-1">
+                    <div>Status: <code>{error?.status || 'N/A'}</code></div>
+                    {error?.data && <div>Response: <code className="text-xs break-all">{JSON.stringify(error.data, null, 2)}</code></div>}
+                    {error?.error && <div>Error: <code>{error.error}</code></div>}
+                    {error?.message && <div>Message: <code>{error.message}</code></div>}
                   </div>
-                )}
+                </div>
               </div>
             )}
 
             {/* Programs Grid */}
             {!isLoading && !isError && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                {programs.length === 0 ? (
+                {sortedPrograms.length === 0 ? (
                   <div className={`col-span-full text-center py-12 ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
                     No programs available.
                   </div>
                 ) : (
-                  programs.map((program, index) => (
+                  sortedPrograms.map((program, index) => (
                     <ProgramCard
                       key={program.id}
                       program={program}

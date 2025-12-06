@@ -13,7 +13,7 @@ export default function ProgramCards() {
   const { isDarkMode } = useTheme();
 
   // Fetch programs from backend
-  const { data: backendPrograms, isLoading, isError } = useGetProgramsQuery();
+  const { data: backendPrograms, isLoading, isError, error } = useGetProgramsQuery();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -33,15 +33,29 @@ export default function ProgramCards() {
   }, []);
 
   // Map backend data to frontend format
-  const programs = backendPrograms?.map((program, index) => ({
+  const programs = backendPrograms?.map((program) => ({
     id: program.id,
     title: program.title,
     description: program.description || "",
     video: program.video ? `http://localhost:5000${program.video}` : null,
     image: program.image ? `http://localhost:5000${program.image}` : "/images/book1.jpg",
-    color: index % 2 === 0 ? "blue" : "red", // Alternate colors
     link: getProgramRoute(program.title), // Map to correct route based on title
   })) || [];
+
+  // Sort programs: id 3 first, id 9 last, others in between
+  const sortedPrograms = [...programs].sort((a, b) => {
+    // Program 3 should be first
+    if (a.id === 3) return -1;
+    if (b.id === 3) return 1;
+    // Program 9 should be last
+    if (a.id === 9) return 1;
+    if (b.id === 9) return -1;
+    // Others sorted by id ascending
+    return a.id - b.id;
+  }).map((program, index) => ({
+    ...program,
+    color: index % 2 === 0 ? "blue" : "red", // Alternate colors based on sorted position
+  }));
 
   return (
     <section ref={sectionRef} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
@@ -73,8 +87,19 @@ export default function ProgramCards() {
           {/* Error State */}
           {isError && (
             <div className="text-center py-12">
-              <div className={`text-lg ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
-                Error loading programs. Please try again later.
+              <div className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+                {error?.status === 'FETCH_ERROR' 
+                  ? 'Cannot connect to backend server' 
+                  : 'Error loading programs'}
+              </div>
+              <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                {error?.status === 'FETCH_ERROR' ? (
+                  <>
+                    Please make sure the backend server is running on <code className="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">http://localhost:5000</code>
+                  </>
+                ) : (
+                  'Please check your connection and try again later.'
+                )}
               </div>
             </div>
           )}
@@ -82,7 +107,7 @@ export default function ProgramCards() {
           {/* Programs Grid */}
           {!isLoading && !isError && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-              {programs.slice(0, 3).map((program, index) => {
+              {sortedPrograms.slice(0, 3).map((program, index) => {
                 const VideoCard = ({ program, index }) => {
                   const videoRef = useRef(null);
                   const [isPlaying, setIsPlaying] = useState(false);
