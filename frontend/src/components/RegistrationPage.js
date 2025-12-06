@@ -19,6 +19,7 @@ export default function RegistrationPage() {
     country: "",
     city: "",
     program: "",
+    courseLevel: "",
     parentName: "",
     parentEmail: "",
     parentPhone: "",
@@ -42,13 +43,27 @@ export default function RegistrationPage() {
   };
 
   const programs = [
-    { value: "general-english", label: "8-Level General English Course" },
-    { value: "esp", label: "English for Specific Purposes (ESP)" },
-    { value: "ielts-toefl", label: "IELTS & TOEFL Preparation" },
-    { value: "academic-writing", label: "Academic Writing Program" },
-    { value: "digital-literacy", label: "Digital Literacy Program" },
-    { value: "professional-skills", label: "Professional Skills Training" },
+    { value: "general-english", label: "8-Level General English Course", hasSubLevels: true },
+    { value: "esp", label: "English for Specific Purposes (ESP)", hasSubLevels: false },
+    { value: "ielts-toefl", label: "IELTS & TOEFL Preparation", hasSubLevels: false },
+    { value: "academic-writing", label: "Academic Writing Program", hasSubLevels: false },
+    { value: "digital-literacy", label: "Digital Literacy Program", hasSubLevels: false },
+    { value: "professional-skills", label: "Professional Skills Training", hasSubLevels: false },
   ];
+
+  const courseLevels = [
+    { value: "a1", label: "A1 - Beginner" },
+    { value: "a2", label: "A2 - Elementary" },
+    { value: "a2plus", label: "A2+ - Pre-Intermediate" },
+    { value: "b1", label: "B1 - Intermediate" },
+    { value: "b1plus", label: "B1+ - Intermediate Plus" },
+    { value: "b2", label: "B2 - Upper-Intermediate" },
+    { value: "c1", label: "C1 - Advanced" },
+    { value: "c2", label: "C2 - Advanced Plus" },
+  ];
+
+  const selectedProgram = programs.find(p => p.value === formData.program);
+  const showLevelSelection = selectedProgram && selectedProgram.hasSubLevels;
 
   useEffect(() => {
     if (formData.country && countriesData[formData.country]) {
@@ -75,7 +90,14 @@ export default function RegistrationPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setFormData(prev => {
+      const newData = { ...prev, [name]: type === "checkbox" ? checked : value };
+      // If program changes and it's not "general-english", clear the course level
+      if (name === "program" && value !== "general-english") {
+        newData.courseLevel = "";
+      }
+      return newData;
+    });
   };
 
   const handleSubmit = (e) => {
@@ -360,6 +382,32 @@ export default function RegistrationPage() {
                 </span>
               </div>
             </div>
+
+            {/* Course Level Selection - Only shows for 8-Level General English Course */}
+            {showLevelSelection && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Select Course Level</label>
+                <div className="relative">
+                  <select
+                    name="courseLevel"
+                    value={formData.courseLevel}
+                    onChange={handleChange}
+                    className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
+                    required
+                  >
+                    <option value="">Select course level</option>
+                    {courseLevels.map((level) => (
+                      <option key={level.value} value={level.value}>{level.label}</option>
+                    ))}
+                  </select>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Parent/Guardian Section */}
             {showParentSection && (

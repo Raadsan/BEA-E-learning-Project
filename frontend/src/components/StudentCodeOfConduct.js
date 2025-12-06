@@ -129,11 +129,7 @@ export default function StudentCodeOfConduct() {
       items: [
         {
           subtitle: "Cultural and Religious Respect",
-          content: "Students are encouraged to dress modestly and respectfully. Islamic attire such as hijab or niqab is required."
-        },
-        {
-          subtitle: "Professional Standards",
-          content: "Non-Somali students are also expected to maintain appropriate and professional dress standards."
+          content: "Students are encouraged to dress modestly and respectfully. Islamic attire such as hijab or niqab is required. Non-Somali students are also expected to maintain appropriate and professional dress standards."
         }
       ]
     }

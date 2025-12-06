@@ -77,38 +77,37 @@ export default function StudentEngagementPolicy() {
       title: "Student Responsibilities",
       icon: "responsibilities",
       content: {
-        description: "Students are expected to fulfill the following responsibilities:",
         subsections: [
           {
             subtitle: "3.1 Attendance & Punctuality",
-            items: [
-              { label: "Attend all scheduled classes", desc: "Consistently." },
-              { label: "Arrive on time", desc: "For every session." },
-              { label: "Notify in advance", desc: "The Administration or teacher if they will be absent or late." }
+            listItems: [
+              "Attend all scheduled classes consistently.",
+              "Arrive on time for every session.",
+              "Notify the Administration or teacher in advance if they will be absent or late."
             ]
           },
           {
             subtitle: "3.2 Class Participation",
-            items: [
-              { label: "Actively contribute", desc: "To discussions and activities." },
-              { label: "Engage respectfully", desc: "With teachers and classmates." },
-              { label: "Complete assignments", desc: "Assigned classwork, assessments, and projects on time." }
+            listItems: [
+              "Actively contribute to discussions and activities.",
+              "Engage respectfully with teachers and classmates.",
+              "Complete assigned classwork, assessments, and projects on time."
             ]
           },
           {
             subtitle: "3.3 Communication with BEA Staff",
-            items: [
-              { label: "Communicate challenges", desc: "Any academic or personal challenges that may affect participation." },
-              { label: "Respond promptly", desc: "To messages from BEA administration or instructors." },
-              { label: "Maintain professionalism", desc: "Respectful and professional communication at all times." }
+            listItems: [
+              "Communicate any academic or personal challenges that may affect participation.",
+              "Respond promptly to messages from BEA administration or instructors.",
+              "Maintain respectful and professional communication at all times."
             ]
           },
           {
             subtitle: "3.4 Technology Use (For Remote Learning)",
-            items: [
-              { label: "Ensure stable internet", desc: "Access and functioning devices." },
-              { label: "Manage equipment", desc: "Keep microphones, cameras, and learning platforms properly managed as instructed by the teacher." },
-              { label: "Use responsibly", desc: "BEA digital platforms responsibly and respectfully." }
+            listItems: [
+              "Ensure stable internet access and functioning devices.",
+              "Keep microphones, cameras, and learning platforms properly managed as instructed by the teacher.",
+              "Use BEA digital platforms responsibly and respectfully."
             ]
           }
         ]
@@ -403,6 +402,19 @@ export default function StudentEngagementPolicy() {
                                   </div>
                                 ))}
                               </div>
+                            )}
+                            
+                            {subsection.listItems && (
+                              <ul className="space-y-2">
+                                {subsection.listItems.map((listItem, listIdx) => (
+                                  <li key={listIdx} className="flex items-start gap-3">
+                                    <span className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${isDarkMode ? 'bg-green-400' : 'bg-green-600'}`}></span>
+                                    <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                      {listItem}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
                             )}
                           </div>
                         ))}

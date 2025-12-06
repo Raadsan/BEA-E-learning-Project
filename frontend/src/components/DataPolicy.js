@@ -29,162 +29,6 @@ export default function DataPolicy() {
     return () => observers.forEach(obs => obs.disconnect());
   }, []);
 
-  const policySections = [
-    {
-      id: 1,
-      title: "What is BEA Data Policy?",
-      icon: "document",
-      content: {
-        description: "The BEA Data Policy is a formal document outlining how we collect, manage, protect, and dispose of all personal and institutional data. Its purpose is to:",
-        items: [
-          "Ensure ethical and secure handling of all data.",
-          "Protect the rights and privacy of learners, parents/guardians, staff, and stakeholders.",
-          "Establish standards for responsible data governance and compliance with applicable legal frameworks.",
-          "Promote transparency in how BEA manages information throughout its lifecycle."
-        ],
-        footer: "This policy applies to all BEA employees, contractors, partners, and users who interact with BEA systems or provide data through our website, E-learning platforms, or administrative processes."
-      }
-    },
-    {
-      id: 2,
-      title: "How Do We Manage Data?",
-      icon: "settings",
-      content: {
-        description: "We follow strict data governance principles to ensure data is accurate, secure, and used responsibly.",
-        subsections: [
-          {
-            subtitle: "2.1 Roles and Responsibilities",
-            items: [
-              { label: "Data Protection Officer (DPO)", desc: "Oversees data compliance, reporting, and auditing." },
-              { label: "IT & Security Team", desc: "Ensures technical safeguards, system monitoring, and access control." },
-              { label: "Administrative Departments", desc: "Responsible for accurate collection, secure handling, and lawful use of data." },
-              { label: "Staff", desc: "All BEA Employees must follow this policy by signing confidentiality agreements." }
-            ]
-          },
-          {
-            subtitle: "2.2 Data Categorization",
-            description: "At the BEA, we categorize data into the following four categories:",
-            items: [
-              { label: "Public Data", desc: "Information published on our website." },
-              { label: "Internal Data", desc: "Operational information not intended for public distribution." },
-              { label: "Confidential Data", desc: "Personal information of learners, employees, and stakeholders." },
-              { label: "Highly Sensitive Data", desc: "Financial, legal, or identification documents (collected only when necessary)." }
-            ]
-          },
-          {
-            subtitle: "2.3 Data Accessibility Control",
-            description: "Data accessibility is only granted on a need-to-know basis while sensitive data is restricted to authorized personnel only. All access is logged and monitored by our IT & Security Team to ensure accountability and addressing misuses of access privileges."
-          }
-        ]
-      }
-    },
-    {
-      id: 3,
-      title: "Data Acquisition",
-      icon: "collection",
-      content: {
-        description: "BEA collects only the information necessary for operational, educational, and administrative purposes.",
-        subsections: [
-          {
-            subtitle: "3.1 What Type of Data Do We Collect?",
-            items: [
-              { label: "Personal Information", desc: "Name, email, phone number, address, date of birth." },
-              { label: "Academic Information", desc: "Placement test results, progress records, attendance, assessments, etc." },
-              { label: "Website Data", desc: "Cookies, analytics (non-identifiable), browsing behaviour." },
-              { label: "Payment Information", desc: "Receipts or transaction details (handled securely by the Finance and Auditing Officials)." },
-              { label: "Supporting Documents", desc: "Identification documents (only when required for registration or certification)." }
-            ]
-          },
-          {
-            subtitle: "3.2 How Do We Collect Data?",
-            description: "We collect data via these channels only:",
-            listItems: [
-              "BEA website forms",
-              "Registration processes",
-              "Payment or billing systems",
-              "E-Learning portal system",
-              "Student support interactions",
-              "Cookies and analytics tools"
-            ]
-          },
-          {
-            subtitle: "3.3 Legal Legitimacy for Our Data Collection",
-            description: "BEA collects data based on:",
-            listItems: [
-              "User consent",
-              "Contractual necessity (e.g., enrolment, certification)",
-              "Legitimate educational interests",
-              "Legal obligations, when applicable"
-            ]
-          }
-        ]
-      }
-    },
-    {
-      id: 4,
-      title: "How Do We Use The Collected Data?",
-      icon: "usage",
-      content: {
-        description: "All collected data is used solely for legitimate educational, operational, and administrative purposes.",
-        subsections: [
-          {
-            subtitle: "4.1 Primary Uses",
-            description: "The primary uses for the data we collect include:",
-            listItems: [
-              "Student registration and program enrolment",
-              "Delivering educational services and assessments",
-              "Communication regarding courses, updates, or support",
-              "Improving our website, curriculum, and services",
-              "Issuing certificates, transcripts, or progress reports"
-            ]
-          },
-          {
-            subtitle: "4.2 For Internal Use Only",
-            description: "The BEA does not sell, trade, or share any personal data with third parties.",
-            isHighlight: true
-          },
-          {
-            subtitle: "4.3 Exception for Legal Purposes",
-            description: "Data may only be shared with external parties when:",
-            listItems: [
-              "Required by law",
-              "Responding to lawful requests (court orders, law enforcement, government inquiries)",
-              "Necessary to protect BEA's rights, safety, or property"
-            ],
-            note: "Outside of legal obligations, we will never disclose data to third parties."
-          }
-        ]
-      }
-    },
-    {
-      id: 5,
-      title: "Data Disposal",
-      icon: "disposal",
-      content: {
-        description: "BEA retains data only as long as necessary for its intended purpose, operational needs, or legal requirements.",
-        subsections: [
-          {
-            subtitle: "5.1 Data Retention Periods",
-            items: [
-              { label: "Student Records", desc: "Retained for the duration of study + a defined archival period." },
-              { label: "Financial Records", desc: "Retained according to accounting and tax regulations." },
-              { label: "Website Login Activity", desc: "Automatically deleted after a limited period." }
-            ]
-          },
-          {
-            subtitle: "5.2 Secure Disposal Methods",
-            listItems: [
-              "Permanent deletion from digital systems",
-              "Overwriting or anonymizing digital files",
-              "Shredding or incineration of paper documents",
-              "Revoking system access when employees or contractors exit"
-            ]
-          }
-        ]
-      }
-    }
-  ];
-
   const getIcon = (iconType) => {
     switch (iconType) {
       case "document":
@@ -248,7 +92,7 @@ export default function DataPolicy() {
             BEA Data Policy
           </h1>
           <p className={`text-base sm:text-lg text-white/90 max-w-2xl mx-auto ${visibleSections.hero ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
-            Protecting your privacy and data with transparency
+            Effective Date: 30/11/2025
           </p>
         </div>
       </section>
@@ -257,13 +101,6 @@ export default function DataPolicy() {
       <section ref={sectionRefs.intro} className={`py-10 sm:py-14 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            {/* Effective Date */}
-            <div className={`text-center mb-6 ${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${isDarkMode ? 'bg-[#050040] text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
-                Effective Date: 30/11/2025
-              </span>
-            </div>
-
             <div 
               className={`rounded-2xl p-6 sm:p-8 md:p-10 shadow-lg border-l-4 border-green-600 ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.intro ? 'animate-scale-in' : 'opacity-0'}`}
             >
@@ -295,44 +132,128 @@ export default function DataPolicy() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             <div className="space-y-8 sm:space-y-10">
-              {policySections.map((section, sectionIndex) => (
+              
+              {/* Section 1: What is BEA Data Policy? */}
+              <div 
+                className={`rounded-2xl overflow-hidden shadow-lg ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.sections ? 'animate-fade-in-up' : 'opacity-0'}`}
+                style={{ animationDelay: '0s' }}
+              >
                 <div 
-                  key={section.id} 
-                  className={`rounded-2xl overflow-hidden shadow-lg ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.sections ? 'animate-fade-in-up' : 'opacity-0'}`}
-                  style={{ animationDelay: `${sectionIndex * 0.1}s` }}
+                  className="px-6 sm:px-8 py-5 sm:py-6 flex items-center gap-4"
+                  style={{
+                    background: isDarkMode 
+                      ? 'linear-gradient(90deg, #03002e 0%, #050040 100%)'
+                      : 'linear-gradient(90deg, #010080 0%, #3949ab 100%)'
+                  }}
                 >
-                  {/* Section Header */}
-                  <div 
-                    className="px-6 sm:px-8 py-5 sm:py-6 flex items-center gap-4"
-                    style={{
-                      background: isDarkMode 
-                        ? 'linear-gradient(90deg, #03002e 0%, #050040 100%)'
-                        : 'linear-gradient(90deg, #010080 0%, #3949ab 100%)'
-                    }}
-                  >
-                    <div className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-white/10' : 'bg-white/20'}`}>
-                      <span className="text-white">
-                        {getIcon(section.icon)}
-                      </span>
-                    </div>
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-bold text-white">
-                        {section.title}
-                      </h2>
-                    </div>
+                  <div className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-white/10' : 'bg-white/20'}`}>
+                    <span className="text-white">
+                      {getIcon("document")}
+                    </span>
                   </div>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">
+                      1. What is BEA Data Policy?
+                    </h2>
+                  </div>
+                </div>
+                
+                <div className="p-6 sm:p-8">
+                  <p className={`text-base sm:text-lg mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    The BEA Data Policy is a formal document outlining how we collect, manage, protect, and dispose of all personal and institutional data. Its purpose is to:
+                  </p>
+                  <ul className="space-y-2 mb-4">
+                    {[
+                      'Ensure ethical and secure handling of all data.',
+                      'Protect the rights and privacy of learners, parents/guardians, staff, and stakeholders.',
+                      'Establish standards for responsible data governance and compliance with applicable legal frameworks.',
+                      'Promote transparency in how BEA manages information throughout its lifecycle.'
+                    ].map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-3">
+                        <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isDarkMode ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
+                          {idx + 1}
+                        </span>
+                        <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {item}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className={`text-sm sm:text-base mt-4 p-4 rounded-lg ${isDarkMode ? 'bg-[#03002e]/50 text-gray-400' : 'bg-gray-50 text-gray-600'}`}>
+                    This policy applies to all BEA employees, contractors, partners, and users who interact with BEA systems or provide data through our website, E-learning platforms, or administrative processes.
+                  </p>
+                </div>
+              </div>
+
+              {/* Section 2: How do we manage data? */}
+              <div 
+                className={`rounded-2xl overflow-hidden shadow-lg ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.sections ? 'animate-fade-in-up' : 'opacity-0'}`}
+                style={{ animationDelay: '0.1s' }}
+              >
+                <div 
+                  className="px-6 sm:px-8 py-5 sm:py-6 flex items-center gap-4"
+                  style={{
+                    background: isDarkMode 
+                      ? 'linear-gradient(90deg, #03002e 0%, #050040 100%)'
+                      : 'linear-gradient(90deg, #010080 0%, #3949ab 100%)'
+                  }}
+                >
+                  <div className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-white/10' : 'bg-white/20'}`}>
+                    <span className="text-white">
+                      {getIcon("settings")}
+                    </span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">
+                      2. How do we manage data?
+                    </h2>
+                  </div>
+                </div>
+                
+                <div className="p-6 sm:p-8">
+                  <p className={`text-base sm:text-lg mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    We follow strict data governance principles to ensure data is accurate, secure, and used responsibly.
+                  </p>
                   
-                  {/* Section Content */}
-                  <div className="p-6 sm:p-8">
-                    {section.content.description && (
-                      <p className={`text-base sm:text-lg mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {section.content.description}
+                  <div className="space-y-6">
+                    {/* 2.1 Roles and Responsibilities */}
+                    <div className={`p-4 sm:p-5 rounded-xl ${isDarkMode ? 'bg-[#03002e]/50' : 'bg-gray-50'}`}>
+                      <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        2.1 Roles and Responsibilities
+                      </h3>
+                      <ul className="space-y-3">
+                        {[
+                          { label: 'Data Protection Officer (DPO)', desc: 'Oversees data compliance, reporting, and auditing.' },
+                          { label: 'IT & Security Team', desc: 'Ensures technical safeguards, system monitoring, and access control.' },
+                          { label: 'Administrative Departments', desc: 'Responsible for accurate collection, secure handling, and lawful use of data.' },
+                          { label: 'Staff', desc: 'All BEA Employees must follow this policy by signing confidentiality agreements.' }
+                        ].map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <span className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${isDarkMode ? 'bg-green-400' : 'bg-green-600'}`}></span>
+                            <div>
+                              <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.label}:</span>
+                              <span className={`ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}> {item.desc}</span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* 2.2 Data Categorization */}
+                    <div className={`p-4 sm:p-5 rounded-xl ${isDarkMode ? 'bg-[#03002e]/50' : 'bg-gray-50'}`}>
+                      <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        2.2 Data Categorization
+                      </h3>
+                      <p className={`text-sm sm:text-base mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        At the BEA, we categorize data into the following four categories;
                       </p>
-                    )}
-                    
-                    {section.content.items && (
-                      <ul className="space-y-2 mb-4">
-                        {section.content.items.map((item, idx) => (
+                      <ul className="space-y-2">
+                        {[
+                          'Public Data: Information published on our website.',
+                          'Internal Data: Operational information not intended for public distribution.',
+                          'Confidential Data: Personal information of learners, employees, and stakeholders.',
+                          'Highly Sensitive Data: Financial, legal, or identification documents (collected only when necessary).'
+                        ].map((item, idx) => (
                           <li key={idx} className="flex items-start gap-3">
                             <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isDarkMode ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
                               {idx + 1}
@@ -343,80 +264,318 @@ export default function DataPolicy() {
                           </li>
                         ))}
                       </ul>
-                    )}
-                    
-                    {section.content.footer && (
-                      <p className={`text-sm sm:text-base mt-4 p-4 rounded-lg ${isDarkMode ? 'bg-[#03002e]/50 text-gray-400' : 'bg-gray-50 text-gray-600'}`}>
-                        {section.content.footer}
+                    </div>
+
+                    {/* 2.3 Data Accessibility Control */}
+                    <div className={`p-4 sm:p-5 rounded-xl ${isDarkMode ? 'bg-[#03002e]/50' : 'bg-gray-50'}`}>
+                      <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        2.3 Data Accessibility Control
+                      </h3>
+                      <p className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Data accessibility is only granted on a need-to-know basis while sensitive data is restricted to authorized personnel only. All access is logged and monitored by our IT & Security Team to ensure accountability and addressing misuses of access privileges.
                       </p>
-                    )}
-                    
-                    {section.content.subsections && (
-                      <div className="space-y-6">
-                        {section.content.subsections.map((subsection, subIdx) => (
-                          <div 
-                            key={subIdx} 
-                            className={`p-4 sm:p-5 rounded-xl ${subsection.isHighlight ? (isDarkMode ? 'bg-green-900/20 border border-green-700' : 'bg-green-50 border border-green-200') : (isDarkMode ? 'bg-[#03002e]/50' : 'bg-gray-50')}`}
-                          >
-                            <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                              {subsection.subtitle}
-                            </h3>
-                            
-                            {subsection.description && (
-                              <p className={`text-sm sm:text-base mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                {subsection.description}
-                              </p>
-                            )}
-                            
-                            {subsection.items && (
-                              <div className="space-y-3">
-                                {subsection.items.map((item, itemIdx) => (
-                                  <div key={itemIdx} className="flex items-start gap-3">
-                                    <span className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${isDarkMode ? 'bg-green-400' : 'bg-green-600'}`}></span>
-                                    <div>
-                                      <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.label}:</span>
-                                      <span className={`ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{item.desc}</span>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                            
-                            {subsection.listItems && (
-                              <ul className="space-y-2">
-                                {subsection.listItems.map((listItem, listIdx) => (
-                                  <li key={listIdx} className="flex items-start gap-3">
-                                    <span className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${isDarkMode ? 'bg-green-400' : 'bg-green-600'}`}></span>
-                                    <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-         Your Data is Safe With Us                             {listItem}
-                                    </span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                            
-                            {subsection.note && (
-                              <div className={`mt-4 p-3 rounded-lg border-l-4 ${isDarkMode ? 'bg-yellow-900/20 border-yellow-500' : 'bg-yellow-50 border-yellow-400'}`}>
-                                <p className={`text-sm font-medium ${isDarkMode ? 'text-yellow-300' : 'text-yellow-800'}`}>
-                                  <span className="font-bold">N.B.</span> {subsection.note}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
 
-            {/* Footer Note */}
-            
+              {/* Section 3: Data Acquisition */}
+              <div 
+                className={`rounded-2xl overflow-hidden shadow-lg ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.sections ? 'animate-fade-in-up' : 'opacity-0'}`}
+                style={{ animationDelay: '0.2s' }}
+              >
+                <div 
+                  className="px-6 sm:px-8 py-5 sm:py-6 flex items-center gap-4"
+                  style={{
+                    background: isDarkMode 
+                      ? 'linear-gradient(90deg, #03002e 0%, #050040 100%)'
+                      : 'linear-gradient(90deg, #010080 0%, #3949ab 100%)'
+                  }}
+                >
+                  <div className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-white/10' : 'bg-white/20'}`}>
+                    <span className="text-white">
+                      {getIcon("collection")}
+                    </span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">
+                      3. Data Acquisition
+                    </h2>
+                  </div>
+                </div>
+                
+                <div className="p-6 sm:p-8">
+                  <p className={`text-base sm:text-lg mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    BEA collects only the information necessary for operational, educational, and administrative purposes.
+                  </p>
+                  
+                  <div className="space-y-6">
+                    {/* 3.1 What Type of Data Do We Collect? */}
+                    <div className={`p-4 sm:p-5 rounded-xl ${isDarkMode ? 'bg-[#03002e]/50' : 'bg-gray-50'}`}>
+                      <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        3.1 What Type of Data Do We Collect?
+                      </h3>
+                      <ul className="space-y-2">
+                        {[
+                          'Personal Information: Name, email, phone number, address, date of birth.',
+                          'Academic Information: Placement test results, progress records, attendance, assessments, etc.',
+                          'Website Data: Cookies, analytics (non-identifiable), browsing behaviour.',
+                          'Payment Information: Receipts or transaction details (handled securely by the Finance and Auditing Officials).',
+                          'Supporting Documents: Identification documents (only when required for registration or certification).'
+                        ].map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isDarkMode ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
+                              {idx + 1}
+                            </span>
+                            <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {item}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* 3.2 How Do We Collect Data? */}
+                    <div className={`p-4 sm:p-5 rounded-xl ${isDarkMode ? 'bg-[#03002e]/50' : 'bg-gray-50'}`}>
+                      <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        3.2 How Do We Collect Data?
+                      </h3>
+                      <p className={`text-sm sm:text-base mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        We collect data via these channels only;
+                      </p>
+                      <ul className="space-y-2">
+                        {[
+                          'BEA website forms',
+                          'Registration processes',
+                          'Payment or billing systems',
+                          'E-Learning portal system',
+                          'Student support interactions',
+                          'Cookies and analytics tools'
+                        ].map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <span className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${isDarkMode ? 'bg-green-400' : 'bg-green-600'}`}></span>
+                            <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {item}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* 3.3 Legal Legitimacy for Our Data Collection */}
+                    <div className={`p-4 sm:p-5 rounded-xl ${isDarkMode ? 'bg-[#03002e]/50' : 'bg-gray-50'}`}>
+                      <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        3.3 Legal Legitimacy for Our Data Collection
+                      </h3>
+                      <p className={`text-sm sm:text-base mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        BEA collects data based on:
+                      </p>
+                      <ul className="space-y-2">
+                        {[
+                          'User consent',
+                          'Contractual necessity (e.g., enrolment, certification)',
+                          'Legitimate educational interests',
+                          'Legal obligations, when applicable'
+                        ].map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <span className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${isDarkMode ? 'bg-green-400' : 'bg-green-600'}`}></span>
+                            <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {item}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: How Do We Use The Collected Data? */}
+              <div 
+                className={`rounded-2xl overflow-hidden shadow-lg ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.sections ? 'animate-fade-in-up' : 'opacity-0'}`}
+                style={{ animationDelay: '0.3s' }}
+              >
+                <div 
+                  className="px-6 sm:px-8 py-5 sm:py-6 flex items-center gap-4"
+                  style={{
+                    background: isDarkMode 
+                      ? 'linear-gradient(90deg, #03002e 0%, #050040 100%)'
+                      : 'linear-gradient(90deg, #010080 0%, #3949ab 100%)'
+                  }}
+                >
+                  <div className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-white/10' : 'bg-white/20'}`}>
+                    <span className="text-white">
+                      {getIcon("usage")}
+                    </span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">
+                      4. How Do We Use The Collected Data?
+                    </h2>
+                  </div>
+                </div>
+                
+                <div className="p-6 sm:p-8">
+                  <p className={`text-base sm:text-lg mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    All collected data is used solely for legitimate educational, operational, and administrative purposes.
+                  </p>
+                  
+                  <div className="space-y-6">
+                    {/* 4.1 Primary Uses */}
+                    <div className={`p-4 sm:p-5 rounded-xl ${isDarkMode ? 'bg-[#03002e]/50' : 'bg-gray-50'}`}>
+                      <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        4.1 Primary Uses
+                      </h3>
+                      <p className={`text-sm sm:text-base mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        The primary uses for the data we collect include;
+                      </p>
+                      <ul className="space-y-2">
+                        {[
+                          'Student registration and program enrolment',
+                          'Delivering educational services and assessments',
+                          'Communication regarding courses, updates, or support',
+                          'Improving our website, curriculum, and services',
+                          'Issuing certificates, transcripts, or progress reports'
+                        ].map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isDarkMode ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
+                              {idx + 1}
+                            </span>
+                            <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {item}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* 4.2 For Internal Use Only */}
+                    <div className={`p-4 sm:p-5 rounded-xl ${isDarkMode ? 'bg-green-900/20 border border-green-700' : 'bg-green-50 border border-green-200'}`}>
+                      <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        4.2 For Internal Use Only
+                      </h3>
+                      <p className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        The BEA does not sell, trade, or share any personal data with third parties.
+                      </p>
+                    </div>
+
+                    {/* 4.3 Exception for Legal Purposes */}
+                    <div className={`p-4 sm:p-5 rounded-xl ${isDarkMode ? 'bg-[#03002e]/50' : 'bg-gray-50'}`}>
+                      <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        4.3 Exception for Legal Purposes
+                      </h3>
+                      <p className={`text-sm sm:text-base mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Data may only be shared with external parties when:
+                      </p>
+                      <ul className="space-y-2 mb-4">
+                        {[
+                          'Required by law',
+                          'Responding to lawful requests (court orders, law enforcement, government inquiries)',
+                          'Necessary to protect BEA\'s rights, safety, or property'
+                        ].map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <span className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${isDarkMode ? 'bg-green-400' : 'bg-green-600'}`}></span>
+                            <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {item}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className={`mt-4 p-3 rounded-lg border-l-4 ${isDarkMode ? 'bg-yellow-900/20 border-yellow-500' : 'bg-yellow-50 border-yellow-400'}`}>
+                        <p className={`text-sm font-medium ${isDarkMode ? 'text-yellow-300' : 'text-yellow-800'}`}>
+                          <span className="font-bold">N.B.</span> Outside of legal obligations, we will never disclose data to third parties.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 5: Data Disposal */}
+              <div 
+                className={`rounded-2xl overflow-hidden shadow-lg ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.sections ? 'animate-fade-in-up' : 'opacity-0'}`}
+                style={{ animationDelay: '0.4s' }}
+              >
+                <div 
+                  className="px-6 sm:px-8 py-5 sm:py-6 flex items-center gap-4"
+                  style={{
+                    background: isDarkMode 
+                      ? 'linear-gradient(90deg, #03002e 0%, #050040 100%)'
+                      : 'linear-gradient(90deg, #010080 0%, #3949ab 100%)'
+                  }}
+                >
+                  <div className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-white/10' : 'bg-white/20'}`}>
+                    <span className="text-white">
+                      {getIcon("disposal")}
+                    </span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">
+                      5. Data Disposal
+                    </h2>
+                  </div>
+                </div>
+                
+                <div className="p-6 sm:p-8">
+                  <p className={`text-base sm:text-lg mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    BEA retains data only as long as necessary for its intended purpose, operational needs, or legal requirements.
+                  </p>
+                  
+                  <div className="space-y-6">
+                    {/* 5.1 Data Retention Periods */}
+                    <div className={`p-4 sm:p-5 rounded-xl ${isDarkMode ? 'bg-[#03002e]/50' : 'bg-gray-50'}`}>
+                      <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        5.1 Data Retention Periods
+                      </h3>
+                      <ul className="space-y-2">
+                        {[
+                          'Student Records: Retained for the duration of study + a defined archival period.',
+                          'Financial Records: Retained according to accounting and tax regulations.',
+                          'Website Log in Activity: Automatically deleted after a limited period.'
+                        ].map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isDarkMode ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
+                              {idx + 1}
+                            </span>
+                            <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {item}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* 5.2 Secure Disposal Methods */}
+                    <div className={`p-4 sm:p-5 rounded-xl ${isDarkMode ? 'bg-[#03002e]/50' : 'bg-gray-50'}`}>
+                      <h3 className={`text-lg sm:text-xl font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        5.2 Secure Disposal Methods
+                      </h3>
+                      <ul className="space-y-2">
+                        {[
+                          'Permanent deletion from digital systems',
+                          'Overwriting or anonymizing digital files',
+                          'Shredding or incineration of paper documents',
+                          'Revoking system access when employees or contractors exit'
+                        ].map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isDarkMode ? 'bg-green-600/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
+                              {idx + 1}
+                            </span>
+                            <span className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {item}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       </section>
     </div>
   );
 }
-

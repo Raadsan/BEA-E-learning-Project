@@ -4,13 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
-import GeneralEnglishRegistration from "./GeneralEnglishRegistration";
 
 export default function GeneralEnglishCourse() {
   const { isDarkMode } = useTheme();
   const [visibleSections, setVisibleSections] = useState({ levels: true });
-  const [showModal, setShowModal] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState("");
   
   const sectionRefs = {
     hero: useRef(null),
@@ -34,11 +31,6 @@ export default function GeneralEnglishCourse() {
     });
     return () => observers.forEach(obs => obs.disconnect());
   }, []);
-
-  const handleRegisterClick = (levelValue) => {
-    setSelectedLevel(levelValue);
-    setShowModal(true);
-  };
 
   const levels = [
     { level: "A1", value: "a1", title: "A1 - Beginner", bookImage: "/images/book1.jpg", overview: "Introduces learners to the basics of English for everyday communication and familiar contexts.", learningObjectives: "Use simple phrases, greet people, introduce oneself, and respond to basic questions.", skillsDeveloped: "Basic grammar, present simple, vocabulary for everyday life, and listening for gist.", outcomes: "Can communicate in predictable, routine situations with simple sentences." },
@@ -153,15 +145,15 @@ export default function GeneralEnglishCourse() {
 
                       {/* Register Now Button */}
                       <div className="mt-6 text-center">
-                        <button 
-                          onClick={() => handleRegisterClick(level.value)}
-                          className={`px-6 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base header-keep-white ${
+                        <Link 
+                          href="/registration"
+                          className={`inline-block px-6 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base header-keep-white ${
                             isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-900 text-white hover:bg-blue-800'
                           }`}
                           style={isDarkMode ? { color: '#010080' } : {}}
                         >
                           Register now
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -171,13 +163,6 @@ export default function GeneralEnglishCourse() {
           </div>
         </div>
       </section>
-
-      {/* Registration Modal */}
-      <GeneralEnglishRegistration 
-        isOpen={showModal} 
-        onClose={() => setShowModal(false)} 
-        selectedLevel={selectedLevel}
-      />
     </div>
   );
 }
