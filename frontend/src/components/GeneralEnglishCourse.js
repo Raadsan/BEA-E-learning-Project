@@ -146,7 +146,7 @@ export default function GeneralEnglishCourse() {
                       {/* Register Now Button */}
                       <div className="mt-6 text-center">
                         <Link 
-                          href="/registration"
+                          href="/auth/registration"
                           className={`inline-block px-6 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base header-keep-white ${
                             isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-900 text-white hover:bg-blue-800'
                           }`}

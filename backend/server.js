@@ -6,6 +6,8 @@ import path from "path";
 import cors from "cors";
 import db from "./database/dbconfig.js";
 import programRoutes from "./routes/programRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
 
 const app = express();
 
@@ -31,6 +33,12 @@ app.get("/users", (req, res) => {
 
 // ⬇️ Register Programs Routes
 app.use("/api/programs", programRoutes);
+
+// ⬇️ Register Contact Routes (Save to DB + Send Email)
+app.use("/api/contact", contactRoutes);
+
+// ⬇️ Register Student Routes (Registration + Management)
+app.use("/api/students", studentRoutes);
 
 // Server start
 const PORT = process.env.PORT || 5000;

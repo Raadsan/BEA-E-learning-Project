@@ -112,6 +112,7 @@ export default function Footer() {
               <li><Link href="/website/exams" className="hover:text-gray-300 transition-colors">BEA Exams</Link></li>
               <li><a href="#" className="hover:text-gray-300 transition-colors">Student E-Learning Portal</a></li>
               <li><Link href="/website/student-support-centre" className="hover:text-gray-300 transition-colors">Student Support Centre</Link></li>
+              <li><Link href="/website/contact-us" className="hover:text-gray-300 transition-colors">Contact Us</Link></li>
               <li><Link href="/#faq" className="hover:text-gray-300 transition-colors">FAQs</Link></li>
               <li><Link href="/website/blogs" className="hover:text-gray-300 transition-colors">Blogs</Link></li>
               <li><Link href="/website/events-news" className="hover:text-gray-300 transition-colors">Events and News</Link></li>
@@ -122,11 +123,11 @@ export default function Footer() {
           <div className="text-center sm:text-left">
             <h3 className="text-sm font-semibold mb-3 sm:mb-4" style={{ color: '#87CEEB', fontFamily: 'var(--font-playfair)' }}>Our Policies</h3>
             <ul className="space-y-2 text-sm text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
-              <li><a href="/data-policy" className="hover:text-gray-300 transition-colors">Data Policy</a></li>
-              <li><a href="/copyright-policy" className="hover:text-gray-300 transition-colors">Copyright Policy</a></li>
-              <li><a href="/student-code-of-conduct" className="hover:text-gray-300 transition-colors">BEA Student Code of Conduct</a></li>
-              <li><a href="/payment-refund-policy" className="hover:text-gray-300 transition-colors">Payment and Refund Policy</a></li>
-              <li><a href="#" className="hover:text-gray-300 transition-colors">Student Engagement Policy</a></li>
+              <li><Link href="/website/data-policy" className="hover:text-gray-300 transition-colors">Data Policy</Link></li>
+              <li><Link href="/website/copyright-policy" className="hover:text-gray-300 transition-colors">Copyright Policy</Link></li>
+              <li><Link href="/website/student-code-of-conduct" className="hover:text-gray-300 transition-colors">BEA Student Code of Conduct</Link></li>
+              <li><Link href="/website/payment-refund-policy" className="hover:text-gray-300 transition-colors">Payment and Refund Policy</Link></li>
+              <li><Link href="/student-engagement-policy" className="hover:text-gray-300 transition-colors">Student Engagement Policy</Link></li>
             </ul>
           </div>
 
@@ -210,8 +211,8 @@ export default function Footer() {
                 </div>
               )}
             </div>
-            <a href="/data-policy" className="hover:text-gray-300 transition-colors">Privacy Policy</a>
-            <a href="/terms-and-conditions" className="hover:text-gray-300 transition-colors">Terms & Conditions</a>
+            <Link href="/website/data-policy" className="hover:text-gray-300 transition-colors">Privacy Policy</Link>
+            <Link href="/terms-and-conditions" className="hover:text-gray-300 transition-colors">Terms & Conditions</Link>
           </div>
         </div>
       </div>
