@@ -48,23 +48,17 @@ const upload = multer({
 router.get("/", getPrograms);
 router.get("/:id", getProgram);
 
-// CREATE program (image + video)
+// CREATE program (image + video + sub-program images)
 router.post(
   "/",
-  upload.fields([
-    { name: "image", maxCount: 1 },
-    { name: "video", maxCount: 1 },
-  ]),
+  upload.any(), // Accept any number of files with any field names
   createProgram
 );
 
-// UPDATE program (image + video)
+// UPDATE program (image + video + sub-program images)
 router.put(
   "/:id",
-  upload.fields([
-    { name: "image", maxCount: 1 },
-    { name: "video", maxCount: 1 },
-  ]),
+  upload.any(), // Accept any number of files with any field names
   updateProgram
 );
 

@@ -16,6 +16,7 @@ export const registerStudent = async (req, res) => {
       city,
       program_id,
       sub_program_id,
+      sub_program_name, // Can use name instead of id
       password,
       terms_accepted,
       // Parent info (required if age < 18)
@@ -62,10 +63,25 @@ export const registerStudent = async (req, res) => {
       });
     }
 
-    // Validate sub_program if provided (must be a program with parent_program_id = program_id)
-    if (sub_program_id) {
+    // Validate sub_program if provided (must exist in program's sub_programs JSON array)
+    if (sub_program_id || sub_program_name) {
       const subPrograms = await Student.getSubProgramsByProgramId(program_id);
-      const subProgram = subPrograms.find(sp => sp.id === parseInt(sub_program_id));
+      
+      // sub_program_id can be index or name
+      let subProgram = null;
+      if (sub_program_id) {
+        // Try to find by index
+        const index = parseInt(sub_program_id);
+        if (!isNaN(index) && index >= 0 && index < subPrograms.length) {
+          subProgram = subPrograms[index];
+        }
+      }
+      
+      // If not found by index, try by name
+      if (!subProgram && sub_program_name) {
+        subProgram = subPrograms.find(sp => sp.name === sub_program_name);
+      }
+      
       if (!subProgram) {
         return res.status(400).json({ 
           success: false,
@@ -275,13 +291,13 @@ export const getSubPrograms = async (req, res) => {
   }
 };
 
-// GET ALL SUB-PROGRAMS
+// GET ALL SUB-PROGRAMS (returns all programs with their sub-programs)
 export const getAllSubPrograms = async (req, res) => {
   try {
-    const subPrograms = await Student.getAllSubPrograms();
+    const programs = await Student.getAllProgramsWithSubPrograms();
     res.json({ 
       success: true,
-      sub_programs: subPrograms 
+      programs 
     });
   } catch (err) {
     console.error(err);

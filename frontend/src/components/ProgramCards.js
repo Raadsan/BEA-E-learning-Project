@@ -102,7 +102,7 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
       <div className="p-4 sm:p-5">
         {/* Title with Heart Icon */}
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm sm:text-base md:text-lg font-bold flex-1" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
+          <h3 className="text-xs sm:text-sm md:text-base font-bold flex-1" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
             {program.title}
           </h3>
           <button className={`transition-colors ml-2 ${isDarkMode ? 'text-white hover:text-red-500' : 'text-gray-400 hover:text-red-500'}`}>
@@ -113,13 +113,13 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
         </div>
         
         {/* Description */}
-        <p className={`text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4 ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
+        <p className={`text-[11px] sm:text-xs leading-relaxed mb-3 sm:mb-4 ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
           {program.description}
         </p>
         
         {/* Explore more */}
         <div
-          className={`text-sm font-semibold inline-flex items-center gap-1 ${
+          className={`text-xs font-semibold inline-flex items-center gap-1 ${
             program.color === "red" 
               ? "text-red-600 hover:text-red-700" 
               : "text-blue-600 hover:text-blue-700"
@@ -196,10 +196,10 @@ export default function ProgramCards() {
         <div className="max-w-5xl mx-auto">
           <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 sm:mb-10 lg:mb-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                 BEA Programs Portfolio
               </h2>
-              <p className={`text-sm sm:text-base lg:text-lg ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
+              <p className={`text-xs sm:text-sm lg:text-base ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
@@ -211,7 +211,7 @@ export default function ProgramCards() {
           {/* Loading State */}
           {isLoading && (
             <div className="text-center py-12">
-              <div className={`text-lg ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
+              <div className={`text-base ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
                 Loading programs...
               </div>
             </div>
@@ -220,7 +220,7 @@ export default function ProgramCards() {
           {/* Error State */}
           {isError && (
             <div className="text-center py-12">
-              <div className={`text-lg ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+              <div className={`text-base ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
                 Error loading programs. Please try again later.
               </div>
             </div>

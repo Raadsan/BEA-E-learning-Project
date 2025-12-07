@@ -4,62 +4,54 @@ import { useState } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
 
-export default function ClassesPage() {
+export default function CoursesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
     coursename: "",
     description: "",
-    zoom_link: "",
+    program: "",
+    teachername: "",
     status: "Active",
   });
 
-  const [classes, setClasses] = useState([
+  const [courses, setCourses] = useState([
     {
       id: 1,
-      name: "General English Level 1",
       coursename: "Level 1 - Beginner",
-      description: "Beginner level English course covering basic grammar and vocabulary",
-      zoom_link: "https://zoom.us/j/123456789",
+      description: "Introduction to English basics",
+      program: "General English",
+      teachername: "Ahmed Hassan",
       status: "Active"
     },
     {
       id: 2,
-      name: "IELTS Preparation Advanced",
-      coursename: "IELTS Preparation Course",
-      description: "Advanced preparation course for IELTS exam covering all four sections",
-      zoom_link: "https://zoom.us/j/987654321",
+      coursename: "Level 2 - Elementary",
+      description: "Building foundational English skills",
+      program: "General English",
+      teachername: "Ahmed Hassan",
       status: "Active"
     },
     {
       id: 3,
-      name: "Academic Writing 101",
-      coursename: "Academic Writing Basics",
-      description: "Introduction to academic writing techniques and formal essay structure",
-      zoom_link: "https://zoom.us/j/456789123",
-      status: "Inactive"
-    },
-    {
-      id: 4,
-      name: "Business English Communication",
-      coursename: "Business Communication",
-      description: "Professional communication skills for business environments",
-      zoom_link: "https://zoom.us/j/789123456",
+      coursename: "IELTS Preparation Course",
+      description: "Comprehensive IELTS exam preparation",
+      program: "IELTS/TOEFL",
+      teachername: "Amina Mohamed",
       status: "Active"
     },
   ]);
 
-  const handleAddClass = () => {
+  const handleAddCourse = () => {
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setFormData({
-      name: "",
       coursename: "",
       description: "",
-      zoom_link: "",
+      program: "",
+      teachername: "",
       status: "Active",
     });
   };
@@ -82,25 +74,21 @@ export default function ClassesPage() {
     e.preventDefault();
     e.stopPropagation();
     
-    const newClass = {
-      id: classes.length > 0 ? Math.max(...classes.map((c) => c.id)) + 1 : 1,
+    const newCourse = {
+      id: courses.length > 0 ? Math.max(...courses.map((c) => c.id)) + 1 : 1,
       ...formData,
     };
-    setClasses([...classes, newClass]);
+    setCourses([...courses, newCourse]);
     handleCloseModal();
     
     return false;
   };
 
-  const handleEdit = (classItem) => {
-    console.log("Edit class:", classItem);
+  const handleEdit = (course) => {
+    console.log("Edit course:", course);
   };
 
   const columns = [
-    {
-      key: "name",
-      label: "Class Name",
-    },
     {
       key: "coursename",
       label: "Course Name",
@@ -110,23 +98,12 @@ export default function ClassesPage() {
       label: "Description",
     },
     {
-      key: "zoom_link",
-      label: "Zoom Link",
-      render: (row) => (
-        row.zoom_link ? (
-          <a
-            href={row.zoom_link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 underline truncate max-w-xs block"
-            title={row.zoom_link}
-          >
-            {row.zoom_link}
-          </a>
-        ) : (
-          <span className="text-gray-400">No link</span>
-        )
-      ),
+      key: "program",
+      label: "Program",
+    },
+    {
+      key: "teachername",
+      label: "Teacher Name",
     },
     {
       key: "status",
@@ -165,16 +142,16 @@ export default function ClassesPage() {
       <main className="flex-1 overflow-y-auto p-6 bg-gray-100 dark:bg-gray-900 transition-colors">
         <div className="max-w-7xl mx-auto">
           <DataTable
-            title="Class Management"
+            title="Course Management"
             columns={columns}
-            data={classes}
-            onAddClick={handleAddClass}
+            data={courses}
+            onAddClick={handleAddCourse}
             showAddButton={true}
           />
         </div>
       </main>
 
-      {/* Add Class Modal */}
+      {/* Add Course Modal */}
       {isModalOpen && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center"
@@ -189,15 +166,15 @@ export default function ClassesPage() {
           
           {/* Modal content */}
           <div 
-            className="relative bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
+            className="relative bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4 transition-colors"
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: 'auto' }}
           >
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-800">Add New Class</h2>
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Add New Course</h2>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -207,24 +184,8 @@ export default function ClassesPage() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Class Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter class name"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="coursename" className="block text-sm font-medium text-gray-700 mb-1">
-                  Course Name
+                <label htmlFor="coursename" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Course Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -232,13 +193,14 @@ export default function ClassesPage() {
                   name="coursename"
                   value={formData.coursename}
                   onChange={handleInputChange}
+                  required
                   placeholder="Enter course name"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -248,28 +210,48 @@ export default function ClassesPage() {
                   onChange={handleInputChange}
                   required
                   rows={4}
-                  placeholder="Enter class description"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  placeholder="Enter course description"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                 />
               </div>
 
               <div>
-                <label htmlFor="zoom_link" className="block text-sm font-medium text-gray-700 mb-1">
-                  Zoom Link
+                <label htmlFor="program" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Program <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="program"
+                  name="program"
+                  value={formData.program}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="">Select Program</option>
+                  <option value="General English">General English</option>
+                  <option value="IELTS/TOEFL">IELTS/TOEFL</option>
+                  <option value="Academic Writing">Academic Writing</option>
+                  <option value="ESP Programs">ESP Programs</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="teachername" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Teacher Name
                 </label>
                 <input
-                  type="url"
-                  id="zoom_link"
-                  name="zoom_link"
-                  value={formData.zoom_link}
+                  type="text"
+                  id="teachername"
+                  name="teachername"
+                  value={formData.teachername}
                   onChange={handleInputChange}
-                  placeholder="https://zoom.us/j/123456789"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter teacher name"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Status <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -278,26 +260,26 @@ export default function ClassesPage() {
                   value={formData.status}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </select>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
                 >
-                  Add Class
+                  Add Course
                 </button>
               </div>
             </form>

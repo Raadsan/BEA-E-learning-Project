@@ -103,11 +103,11 @@ function ProgramCard({ program, index, isDarkMode, isVisible, playingVideos, set
 
       {/* Content */}
       <div className="p-6 flex-1 flex flex-col">
-        <h3 className={`text-base sm:text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+        <h3 className={`text-sm sm:text-base font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {program.title}
         </h3>
         
-        <p className={`text-xs sm:text-sm leading-relaxed mb-4 flex-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+        <p className={`text-[12px] sm:text-xs leading-relaxed mb-4 flex-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           {program.description}
         </p>
         
@@ -215,7 +215,7 @@ export default function ProgramsPage() {
         }}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className={`text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-4 ${visibleSections.hero ? 'animate-fade-in-down' : 'opacity-0'}`}>
+          <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 ${visibleSections.hero ? 'animate-fade-in-down' : 'opacity-0'}`}>
             Programs
           </h1>
         </div>
@@ -245,10 +245,10 @@ export default function ProgramsPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             <div className={`mb-10 sm:mb-12 ${visibleSections.portfolio ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 BEA Programs Portfolio
               </h2>
-              <p className={`text-base sm:text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              <p className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 Learn more about BEA&apos;s unique program portfolio.
               </p>
             </div>

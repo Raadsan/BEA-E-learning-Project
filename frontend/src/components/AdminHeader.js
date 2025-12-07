@@ -1,6 +1,6 @@
 "use client";
 
-import { useDarkMode } from "@/contexts/DarkModeContext";
+import { useDarkMode } from "@/context/ThemeContext";
 
 export default function AdminHeader() {
   const { isDark, toggleDarkMode } = useDarkMode();

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useDarkMode } from "@/contexts/DarkModeContext";
+import { useDarkMode } from "@/context/ThemeContext";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
@@ -12,34 +12,51 @@ export default function AdminSidebar() {
   
   // Check if any management sub-item is active
   const isManagementActive = pathname?.startsWith("/portal/admin/teachers") ||
-                             pathname?.startsWith("/portal/admin/students") ||
-                             pathname?.startsWith("/portal/admin/classes") ||
-                             pathname?.startsWith("/portal/admin/programs");
+                             pathname?.startsWith("/portal/admin/students");
+  
+  // Check if any program/course management sub-item is active
+  const isProgramCourseActive = pathname?.startsWith("/portal/admin/programs") ||
+                                pathname?.startsWith("/portal/admin/courses") ||
+                                pathname?.startsWith("/portal/admin/classes");
   
   // Check if any configurations sub-item is active
   const isConfigurationsActive = pathname?.startsWith("/portal/admin/configurations");
   
   const [isManagementOpen, setIsManagementOpen] = useState(isManagementActive);
+  const [isProgramCourseOpen, setIsProgramCourseOpen] = useState(isProgramCourseActive);
   const [isConfigurationsOpen, setIsConfigurationsOpen] = useState(isConfigurationsActive);
   
-  // Auto-expand management if any sub-item is active
+  // Auto-expand management if any sub-item is active (close others)
   useEffect(() => {
     if (isManagementActive) {
       setIsManagementOpen(true);
+      setIsProgramCourseOpen(false);
+      setIsConfigurationsOpen(false);
     }
   }, [isManagementActive]);
 
-  // Auto-expand configurations if any sub-item is active
+  // Auto-expand program/course management if any sub-item is active (close others)
+  useEffect(() => {
+    if (isProgramCourseActive) {
+      setIsProgramCourseOpen(true);
+      setIsManagementOpen(false);
+      setIsConfigurationsOpen(false);
+    }
+  }, [isProgramCourseActive]);
+
+  // Auto-expand configurations if any sub-item is active (close others)
   useEffect(() => {
     if (isConfigurationsActive) {
       setIsConfigurationsOpen(true);
+      setIsManagementOpen(false);
+      setIsProgramCourseOpen(false);
     }
   }, [isConfigurationsActive]);
 
   const managementSubItems = [
     {
       id: "teacher-management",
-      label: "Teacher Management",
+      label: "Teachers",
       href: "/portal/admin/teachers",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,11 +66,34 @@ export default function AdminSidebar() {
     },
     {
       id: "student-management",
-      label: "Student Management",
+      label: "Students",
       href: "/portal/admin/students",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      ),
+    },
+  ];
+
+  const programCourseSubItems = [
+    {
+      id: "programs",
+      label: "Programs",
+      href: "/portal/admin/programs",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ),
+    },
+    {
+      id: "courses",
+      label: "Course",
+      href: "/portal/admin/courses",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
       ),
     },
@@ -64,16 +104,6 @@ export default function AdminSidebar() {
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-        </svg>
-      ),
-    },
-    {
-      id: "programs",
-      label: "Programs",
-      href: "/portal/admin/programs",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       ),
     },
@@ -129,11 +159,7 @@ export default function AdminSidebar() {
               href="/portal/admin"
               className={`
                 flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
-                ${
-                  pathname === "/portal/admin"
-                    ? `bg-red-600 ${isDark ? 'bg-red-700' : ''} text-white shadow-md`
-                    : `text-white ${isDark ? 'text-gray-200' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white`
-                }
+                text-white ${isDark ? 'text-gray-200' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white
               `}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,21 +172,21 @@ export default function AdminSidebar() {
           {/* Management Menu Item */}
           <li>
             <button
-              onClick={() => setIsManagementOpen(!isManagementOpen)}
+              onClick={() => {
+                setIsManagementOpen(!isManagementOpen);
+                setIsProgramCourseOpen(false);
+                setIsConfigurationsOpen(false);
+              }}
               className={`
                 w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-200
-                ${
-                  isManagementActive
-                    ? `bg-black/20 ${isDark ? 'bg-gray-800' : ''} text-white`
-                    : `text-white ${isDark ? 'text-gray-200' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white`
-                }
+                text-white ${isDark ? 'text-gray-200' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white
               `}
             >
               <div className="flex items-center gap-3">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
-                <span className="font-medium text-white">Management</span>
+                <span className="font-medium text-white text-sm whitespace-nowrap">Members Management</span>
               </div>
               <svg 
                 className={`w-4 h-4 transition-transform duration-200 ${isManagementOpen ? 'rotate-180' : ''}`} 
@@ -183,11 +209,7 @@ export default function AdminSidebar() {
                         href={item.href}
                         className={`
                           flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm
-                          ${
-                            active
-                              ? `bg-red-600 ${isDark ? 'bg-red-700' : ''} text-white shadow-md`
-                              : `text-white/80 ${isDark ? 'text-gray-300' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white`
-                          }
+                          text-white/80 ${isDark ? 'text-gray-300' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white
                         `}
                       >
                         <span className="text-white">
@@ -202,37 +224,72 @@ export default function AdminSidebar() {
             )}
           </li>
 
-          {/* Resources */}
+          {/* Program / Course Management Menu Item */}
           <li>
-            <Link
-              href="/portal/admin/resources"
+            <button
+              onClick={() => {
+                setIsProgramCourseOpen(!isProgramCourseOpen);
+                setIsManagementOpen(false);
+                setIsConfigurationsOpen(false);
+              }}
               className={`
-                flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
-                ${
-                  isActive("/portal/admin/resources")
-                    ? `bg-red-600 ${isDark ? 'bg-red-700' : ''} text-white shadow-md`
-                    : `text-white ${isDark ? 'text-gray-200' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white`
-                }
+                w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-200
+                text-white ${isDark ? 'text-gray-200' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white
               `}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="font-medium text-white text-sm whitespace-nowrap">Learning Management</span>
+              </div>
+              <svg 
+                className={`w-4 h-4 transition-transform duration-200 ${isProgramCourseOpen ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
-              <span className="font-medium text-white">Resources</span>
-            </Link>
+            </button>
+
+            {/* Program / Course Management Sub-items */}
+            {isProgramCourseOpen && (
+              <ul className={`mt-1 ml-4 space-y-1 border-l-2 ${isDark ? 'border-gray-700' : 'border-white/20'} pl-2`}>
+                {programCourseSubItems.map((item) => {
+                  const active = isActive(item.href);
+                  return (
+                    <li key={item.id}>
+                      <Link
+                        href={item.href}
+                        className={`
+                          flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm
+                          text-white/80 ${isDark ? 'text-gray-300' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white
+                        `}
+                      >
+                        <span className="text-white">
+                          {item.icon}
+                        </span>
+                        <span className="font-medium">{item.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </li>
 
           {/* Configurations Menu Item */}
           <li>
             <button
-              onClick={() => setIsConfigurationsOpen(!isConfigurationsOpen)}
+              onClick={() => {
+                setIsConfigurationsOpen(!isConfigurationsOpen);
+                setIsManagementOpen(false);
+                setIsProgramCourseOpen(false);
+              }}
               className={`
                 w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-200
-                ${
-                  isConfigurationsActive
-                    ? `bg-black/20 ${isDark ? 'bg-gray-800' : ''} text-white`
-                    : `text-white ${isDark ? 'text-gray-200' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white`
-                }
+                text-white ${isDark ? 'text-gray-200' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white
               `}
             >
               <div className="flex items-center gap-3">
@@ -263,11 +320,7 @@ export default function AdminSidebar() {
                         href={item.href}
                         className={`
                           flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm
-                          ${
-                            active
-                              ? `bg-red-600 ${isDark ? 'bg-red-700' : ''} text-white shadow-md`
-                              : `text-white/80 ${isDark ? 'text-gray-300' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white`
-                          }
+                          text-white/80 ${isDark ? 'text-gray-300' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white
                         `}
                       >
                         <span className="text-white">
@@ -280,6 +333,22 @@ export default function AdminSidebar() {
                 })}
               </ul>
             )}
+          </li>
+
+          {/* Resources */}
+          <li>
+            <Link
+              href="/portal/admin/resources"
+              className={`
+                flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
+                text-white ${isDark ? 'text-gray-200' : ''} hover:bg-black/20 ${isDark ? 'hover:bg-gray-800' : ''} hover:text-white
+              `}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="font-medium text-white">Resources</span>
+            </Link>
           </li>
         </ul>
       </nav>

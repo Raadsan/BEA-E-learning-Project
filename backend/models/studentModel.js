@@ -186,54 +186,40 @@ export const deleteStudentById = async (id) => {
   return result.affectedRows;
 };
 
-// CREATE sub-program (as a program with parent_program_id)
-export const createSubProgram = async ({ program_id, title, description }) => {
-  const [result] = await dbp.query(
-    "INSERT INTO programs (parent_program_id, program_type, title, description) VALUES (?, 'sub', ?, ?)",
-    [program_id, title, description || null]
-  );
-  return {
-    id: result.insertId,
-    parent_program_id: program_id,
-    program_type: 'sub',
-    title,
-    description
-  };
-};
-
-// GET sub-programs by program_id (from unified programs table)
+// GET sub-programs by program_id (from JSON column)
 export const getSubProgramsByProgramId = async (program_id) => {
   const [rows] = await dbp.query(
-    "SELECT * FROM programs WHERE parent_program_id = ? AND program_type = 'sub' ORDER BY title",
+    "SELECT sub_programs FROM programs WHERE id = ?",
     [program_id]
   );
-  return rows;
+  
+  if (rows.length === 0 || !rows[0].sub_programs) {
+    return [];
+  }
+
+  // Parse JSON and return sub-programs array
+  try {
+    const subPrograms = typeof rows[0].sub_programs === 'string' 
+      ? JSON.parse(rows[0].sub_programs) 
+      : rows[0].sub_programs;
+    return Array.isArray(subPrograms) ? subPrograms : [];
+  } catch (e) {
+    console.error("Error parsing sub_programs JSON:", e);
+    return [];
+  }
 };
 
-// GET all sub-programs (from unified programs table)
-export const getAllSubPrograms = async () => {
-  const [rows] = await dbp.query(`
-    SELECT 
-      sp.id,
-      sp.title,
-      sp.description,
-      sp.parent_program_id,
-      sp.program_type,
-      sp.created_at,
-      p.title as program_title
-    FROM programs sp
-    LEFT JOIN programs p ON sp.parent_program_id = p.id
-    WHERE sp.program_type = 'sub'
-    ORDER BY sp.created_at DESC
-  `);
-  return rows;
-};
-
-// GET main programs only
-export const getMainPrograms = async () => {
+// GET all programs with their sub-programs
+export const getAllProgramsWithSubPrograms = async () => {
   const [rows] = await dbp.query(
-    "SELECT * FROM programs WHERE program_type = 'main' OR parent_program_id IS NULL ORDER BY title"
+    "SELECT id, title, description, sub_programs FROM programs ORDER BY title"
   );
-  return rows;
+  
+  return rows.map(row => ({
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    sub_programs: row.sub_programs ? (typeof row.sub_programs === 'string' ? JSON.parse(row.sub_programs) : row.sub_programs) : []
+  }));
 };
 

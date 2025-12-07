@@ -1,7 +1,7 @@
 "use client";
 
 import AdminSidebar from "./AdminSidebar";
-import { DarkModeProvider } from "@/contexts/DarkModeContext";
+import { DarkModeProvider } from "@/context/ThemeContext";
 
 export default function AdminLayout({ children }) {
   return (

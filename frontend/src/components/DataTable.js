@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useDarkMode } from "@/contexts/DarkModeContext";
+import { useDarkMode } from "@/context/ThemeContext";
 
 const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true }) => {
   const { isDark } = useDarkMode();

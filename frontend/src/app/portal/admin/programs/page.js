@@ -8,6 +8,7 @@ export default function ProgramsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     programname: "",
+    subprogram: "",
     description: "",
     status: "Active",
   });
@@ -16,24 +17,28 @@ export default function ProgramsPage() {
     {
       id: 1,
       programname: "General English Program For Adults",
+      subprogram: "A1, A1+, B1, B2, C1, C2",
       description: "Comprehensive 8-level English program from beginner to advanced levels",
       status: "Active"
     },
     {
       id: 2,
       programname: "IELTS and TOEFL Exam Preparation",
+      subprogram: "IELTS Academic, IELTS General, TOEFL iBT",
       description: "Intensive preparation courses for international English proficiency exams",
       status: "Active"
     },
     {
       id: 3,
       programname: "Academic Writing Program",
+      subprogram: "Essay Writing, Research Writing, Thesis Writing",
       description: "Master academic and professional writing skills for higher education",
       status: "Inactive"
     },
     {
       id: 4,
       programname: "English for Specific Purposes (ESP)",
+      subprogram: "Business English, Medical English, Legal English",
       description: "Tailored English courses for professional fields and industries",
       status: "Active"
     },
@@ -47,6 +52,7 @@ export default function ProgramsPage() {
     setIsModalOpen(false);
     setFormData({
       programname: "",
+      subprogram: "",
       description: "",
       status: "Active",
     });
@@ -88,6 +94,15 @@ export default function ProgramsPage() {
     {
       key: "programname",
       label: "Program Name",
+    },
+    {
+      key: "subprogram",
+      label: "Subprogram",
+      render: (row) => (
+        <span className="text-gray-700">
+          {row.subprogram || <span className="text-gray-400">No subprograms</span>}
+        </span>
+      ),
     },
     {
       key: "description",
@@ -185,6 +200,24 @@ export default function ProgramsPage() {
                   placeholder="Enter program name"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+
+              <div>
+                <label htmlFor="subprogram" className="block text-sm font-medium text-gray-700 mb-1">
+                  Subprogram
+                </label>
+                <input
+                  type="text"
+                  id="subprogram"
+                  name="subprogram"
+                  value={formData.subprogram}
+                  onChange={handleInputChange}
+                  placeholder="A1, A1+, B1, B2, C1, C2 (comma-separated)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter multiple subprograms separated by commas (e.g., A1, A1+, B1, B2)
+                </p>
               </div>
 
               <div>

@@ -67,3 +67,14 @@ export function useTheme() {
   return context;
 }
 
+// Backward compatibility exports for old DarkModeContext API
+export const DarkModeProvider = ThemeProvider;
+
+export function useDarkMode() {
+  const { isDarkMode, toggleTheme } = useTheme();
+  return {
+    isDark: isDarkMode,
+    toggleDarkMode: toggleTheme,
+  };
+}
+

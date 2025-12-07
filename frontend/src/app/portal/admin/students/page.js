@@ -14,6 +14,7 @@ export default function StudentsPage() {
     country: "",
     city: "",
     program: "",
+    subprogram: "",
     status: "Active",
   });
 
@@ -27,6 +28,7 @@ export default function StudentsPage() {
       country: "Somalia",
       city: "Mogadishu",
       program: "General English",
+      subprogram: "B1",
       status: "Active"
     },
     {
@@ -38,6 +40,7 @@ export default function StudentsPage() {
       country: "Somalia",
       city: "Hargeisa",
       program: "IELTS/TOEFL",
+      subprogram: "IELTS Academic",
       status: "Active"
     },
     {
@@ -49,6 +52,7 @@ export default function StudentsPage() {
       country: "Somalia",
       city: "Bosaso",
       program: "Academic Writing",
+      subprogram: "Essay Writing",
       status: "Inactive"
     },
     {
@@ -60,6 +64,7 @@ export default function StudentsPage() {
       country: "Somalia",
       city: "Kismayo",
       program: "ESP Programs",
+      subprogram: "Business English",
       status: "Active"
     },
   ]);
@@ -78,6 +83,7 @@ export default function StudentsPage() {
       country: "",
       city: "",
       program: "",
+      subprogram: "",
       status: "Active",
     });
   };
@@ -144,6 +150,10 @@ export default function StudentsPage() {
       label: "Program",
     },
     {
+      key: "subprogram",
+      label: "Subprogram",
+    },
+    {
       key: "status",
       label: "Status",
       render: (row) => (
@@ -180,11 +190,10 @@ export default function StudentsPage() {
       <main className="flex-1 overflow-y-auto p-6 bg-gray-100 dark:bg-gray-900 transition-colors">
         <div className="max-w-7xl mx-auto">
           <DataTable
-            title="Student Management"
+            title="Students"
             columns={columns}
             data={students}
-            onAddClick={handleAddStudent}
-            showAddButton={true}
+            showAddButton={false}
           />
         </div>
       </main>
@@ -333,6 +342,24 @@ export default function StudentsPage() {
                     <option value="Academic Writing">Academic Writing</option>
                     <option value="ESP Programs">ESP Programs</option>
                   </select>
+                </div>
+
+                <div>
+                  <label htmlFor="subprogram" className="block text-sm font-medium text-gray-700 mb-1">
+                    Subprogram
+                  </label>
+                  <input
+                    type="text"
+                    id="subprogram"
+                    name="subprogram"
+                    value={formData.subprogram}
+                    onChange={handleInputChange}
+                    placeholder="A1, A1+, B1, B2, C1, C2 (comma-separated)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Enter subprogram(s) separated by commas (e.g., A1, B1, B2)
+                  </p>
                 </div>
 
                 <div>
