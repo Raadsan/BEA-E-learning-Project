@@ -1,156 +1,132 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
-import { useGetProgramsQuery } from "@/redux/api/programApi";
-import { createTeacher, validateTeacher, getTeacherFullName, getTeacherDisplayName } from "@/models/teacherModel";
+import { useGetTeachersQuery, useCreateTeacherMutation, useUpdateTeacherMutation, useDeleteTeacherMutation } from "@/redux/api/teacherApi";
+import { useGetClassesQuery } from "@/redux/api/classApi";
+import { useDarkMode } from "@/context/ThemeContext";
 
 export default function TeachersPage() {
+  const { isDark } = useDarkMode();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
-  const [selectedTeacherForAssign, setSelectedTeacherForAssign] = useState(null);
-  const [assignedCourses, setAssignedCourses] = useState({});
-  const [formErrors, setFormErrors] = useState([]);
+  const [viewingTeacher, setViewingTeacher] = useState(null);
+
+  const { data: backendTeachers, isLoading, isError, error } = useGetTeachersQuery();
+  const { data: classes = [] } = useGetClassesQuery();
+  const [createTeacher, { isLoading: isCreating }] = useCreateTeacherMutation();
+  const [updateTeacher, { isLoading: isUpdating }] = useUpdateTeacherMutation();
+  const [deleteTeacher, { isLoading: isDeleting }] = useDeleteTeacherMutation();
+
+  const teachers = backendTeachers || [];
   
-  const { data: programsData, isLoading: programsLoading } = useGetProgramsQuery();
-  const programs = Array.isArray(programsData) ? programsData : [];
+  // Get classes assigned to the viewing teacher
+  const getAssignedClasses = (teacherId) => {
+    return classes.filter(c => c.teacher_id === teacherId);
+  };
 
   const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
+    full_name: "",
     email: "",
     phone: "",
-    subject: "",
+    country: "",
+    city: "",
     specialization: "",
-    status: "Active",
-    joinDate: "",
-    portfolio: "",
+    highest_qualification: "",
+    years_experience: "",
     bio: "",
-    qualifications: "",
-    experience_years: 0,
+    portfolio_link: "",
+    skills: "",
+    hire_date: "",
+    password: "",
   });
-
-  const [assignmentData, setAssignmentData] = useState({
-    selectedCourses: [],
-  });
-
-  const [teachers, setTeachers] = useState([
-    {
-      id: 1,
-      first_name: "Ahmed",
-      last_name: "Hassan",
-      email: "ahmed.hassan@bea.academy",
-      phone: "+252 61 123 4567",
-      subject: "General English",
-      specialization: "ESL Teaching",
-      status: "Active",
-      joinDate: "2023-01-15",
-      portfolio: "https://portfolio.example.com/ahmed",
-      bio: "Experienced ESL teacher with 10+ years of experience",
-      qualifications: "MA in TESOL, CELTA Certified",
-      experience_years: 10,
-      assignedCourses: [1, 2],
-      created_at: "2023-01-15T00:00:00Z",
-      updated_at: "2023-01-15T00:00:00Z"
-    },
-    {
-      id: 2,
-      first_name: "Amina",
-      last_name: "Mohamed",
-      email: "amina.mohamed@bea.academy",
-      phone: "+252 61 234 5678",
-      subject: "IELTS/TOEFL",
-      specialization: "Exam Preparation",
-      status: "Active",
-      joinDate: "2023-02-20",
-      portfolio: "https://portfolio.example.com/amina",
-      bio: "IELTS and TOEFL specialist",
-      qualifications: "MA in Applied Linguistics, IELTS Examiner",
-      experience_years: 8,
-      assignedCourses: [2],
-      created_at: "2023-02-20T00:00:00Z",
-      updated_at: "2023-02-20T00:00:00Z"
-    },
-    {
-      id: 3,
-      first_name: "Omar",
-      last_name: "Abdullahi",
-      email: "omar.abdullahi@bea.academy",
-      phone: "+252 61 345 6789",
-      subject: "Academic Writing",
-      specialization: "Academic English",
-      status: "Active",
-      joinDate: "2023-03-10",
-      portfolio: "https://portfolio.example.com/omar",
-      bio: "Academic writing expert",
-      qualifications: "PhD in English Literature, TESOL Certified",
-      experience_years: 12,
-      assignedCourses: [3],
-      created_at: "2023-03-10T00:00:00Z",
-      updated_at: "2023-03-10T00:00:00Z"
-    },
-    {
-      id: 4,
-      first_name: "Khadija",
-      last_name: "Ali",
-      email: "khadija.ali@bea.academy",
-      phone: "+252 61 456 7890",
-      subject: "ESP Programs",
-      specialization: "Business English",
-      status: "Active",
-      joinDate: "2023-04-05",
-      portfolio: "https://portfolio.example.com/khadija",
-      bio: "ESP and Business English specialist",
-      qualifications: "MBA, TEFL Certified",
-      experience_years: 7,
-      assignedCourses: [],
-      created_at: "2023-04-05T00:00:00Z",
-      updated_at: "2023-04-05T00:00:00Z"
-    },
-  ]);
-
-  // Don't prevent body scroll - let content stay visible
-  // useEffect(() => {
-  //   if (isModalOpen) {
-  //     document.body.style.overflow = "hidden";
-  //   } else {
-  //     document.body.style.overflow = "unset";
-  //   }
-  //   return () => {
-  //     document.body.style.overflow = "unset";
-  //   };
-  // }, [isModalOpen]);
 
   const handleAddTeacher = () => {
     setEditingTeacher(null);
-    setFormData(createTeacher());
-    setFormErrors([]);
+    setFormData({
+      full_name: "",
+      email: "",
+      phone: "",
+      country: "",
+      city: "",
+      specialization: "",
+      highest_qualification: "",
+      years_experience: "",
+      bio: "",
+      portfolio_link: "",
+      skills: "",
+      hire_date: "",
+      password: "",
+    });
     setIsModalOpen(true);
+  };
+
+  const handleEdit = (teacher) => {
+    setEditingTeacher(teacher);
+    setFormData({
+      full_name: teacher.full_name || "",
+      email: teacher.email || "",
+      phone: teacher.phone || "",
+      country: teacher.country || "",
+      city: teacher.city || "",
+      specialization: teacher.specialization || "",
+      highest_qualification: teacher.highest_qualification || "",
+      years_experience: teacher.years_experience || "",
+      bio: teacher.bio || "",
+      portfolio_link: teacher.portfolio_link || "",
+      skills: teacher.skills || "",
+      hire_date: teacher.hire_date || "",
+      password: "", // Don't pre-fill password
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this teacher?")) {
+      try {
+        await deleteTeacher(id).unwrap();
+      } catch (error) {
+        console.error("Failed to delete teacher:", error);
+        alert("Failed to delete teacher. Please try again.");
+      }
+    }
+  };
+
+  const handleView = (teacher) => {
+    setViewingTeacher(teacher);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+    setViewingTeacher(null);
+  };
+
+  const handleAssign = (teacher) => {
+    // Note: Teacher assignment to classes has been removed
+    // This functionality is no longer available
+    alert("Teacher assignment to classes has been removed. Teachers are no longer directly assigned to classes.");
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingTeacher(null);
-    setFormData(createTeacher());
-    setFormErrors([]);
-  };
-
-  const handleOpenAssignModal = (teacher) => {
-    setSelectedTeacherForAssign(teacher);
-    const currentAssigned = teacher.assignedCourses || [];
-    setAssignmentData({
-      selectedCourses: currentAssigned,
-    });
-    setIsAssignModalOpen(true);
-  };
-
-  const handleCloseAssignModal = () => {
-    setIsAssignModalOpen(false);
-    setSelectedTeacherForAssign(null);
-    setAssignmentData({
-      selectedCourses: [],
+    setFormData({
+      full_name: "",
+      email: "",
+      phone: "",
+      country: "",
+      city: "",
+      specialization: "",
+      highest_qualification: "",
+      years_experience: "",
+      bio: "",
+      portfolio_link: "",
+      skills: "",
+      hire_date: "",
+      password: "",
     });
   };
 
@@ -168,102 +144,47 @@ export default function TeachersPage() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Validate form data
-    const validation = validateTeacher(formData);
-    if (!validation.isValid) {
-      setFormErrors(validation.errors);
-      return false;
+
+    try {
+      const submitData = { ...formData };
+      
+      // Convert years_experience to number
+      if (submitData.years_experience) {
+        submitData.years_experience = parseInt(submitData.years_experience);
+      }
+
+      // Only include password if it's provided (for updates)
+      if (!submitData.password || submitData.password.trim() === "") {
+        delete submitData.password;
+      }
+
+      if (editingTeacher) {
+        await updateTeacher({ id: editingTeacher.id, ...submitData }).unwrap();
+      } else {
+        // Password is required for new teachers
+        if (!submitData.password || submitData.password.trim() === "") {
+          alert("Password is required for new teachers");
+          return;
+        }
+        await createTeacher(submitData).unwrap();
+      }
+
+      handleCloseModal();
+    } catch (error) {
+      console.error("Failed to save teacher:", error);
+      alert(error?.data?.error || "Failed to save teacher. Please try again.");
     }
-    
-    setFormErrors([]);
-    
-    if (editingTeacher) {
-      // Update existing teacher
-      setTeachers(teachers.map(t => 
-        t.id === editingTeacher.id 
-          ? { 
-              ...t, 
-              ...formData, 
-              joinDate: formData.joinDate || t.joinDate,
-              updated_at: new Date().toISOString()
-            }
-          : t
-      ));
-    } else {
-      // Add new teacher
-      const newTeacher = createTeacher({
-        id: teachers.length > 0 ? Math.max(...teachers.map((t) => t.id)) + 1 : 1,
-        ...formData,
-        joinDate: formData.joinDate || new Date().toISOString().split("T")[0],
-        assignedCourses: [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-      setTeachers([...teachers, newTeacher]);
-    }
-    
-    handleCloseModal();
+
     return false;
   };
-
-  const handleEdit = (teacher) => {
-    setEditingTeacher(teacher);
-    setFormData({
-      first_name: teacher.first_name || teacher.name?.split(' ')[0] || "",
-      last_name: teacher.last_name || teacher.name?.split(' ').slice(1).join(' ') || "",
-      email: teacher.email || "",
-      phone: teacher.phone || "",
-      subject: teacher.subject || "",
-      specialization: teacher.specialization || "",
-      status: teacher.status || "Active",
-      joinDate: teacher.joinDate || "",
-      portfolio: teacher.portfolio || "",
-      bio: teacher.bio || "",
-      qualifications: teacher.qualifications || "",
-      experience_years: teacher.experience_years || 0,
-    });
-    setFormErrors([]);
-    setIsModalOpen(true);
-  };
-
-  const handleAssignCourses = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (selectedTeacherForAssign) {
-      setTeachers(teachers.map(t => 
-        t.id === selectedTeacherForAssign.id 
-          ? { ...t, assignedCourses: assignmentData.selectedCourses }
-          : t
-      ));
-    }
-    
-    handleCloseAssignModal();
-    return false;
-  };
-
-  const handleCourseToggle = (courseId) => {
-    setAssignmentData(prev => {
-      const current = prev.selectedCourses || [];
-      const isSelected = current.includes(courseId);
-      return {
-        selectedCourses: isSelected
-          ? current.filter(id => id !== courseId)
-          : [...current, courseId]
-      };
-    });
-  };
-
 
   const columns = [
     {
-      key: "name",
-      label: "Name",
-      render: (row) => getTeacherDisplayName(row),
+      key: "full_name",
+      label: "Full Name",
     },
     {
       key: "email",
@@ -274,71 +195,44 @@ export default function TeachersPage() {
       label: "Phone",
     },
     {
-      key: "subject",
-      label: "Subject",
+      key: "country",
+      label: "Country",
     },
     {
-      key: "status",
-      label: "Status",
-      render: (row) => (
-        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-          {row.status}
-        </span>
-      ),
+      key: "city",
+      label: "City",
     },
     {
-      key: "joinDate",
-      label: "Join Date",
+      key: "specialization",
+      label: "Specialization",
     },
     {
-      key: "portfolio",
-      label: "Portfolio",
-      render: (row) => (
-        row.portfolio ? (
-          <a
-            href={row.portfolio}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors"
-          >
-            View Portfolio
-          </a>
-        ) : (
-          <span className="text-gray-400">-</span>
-        )
-      ),
+      key: "highest_qualification",
+      label: "Qualification",
     },
     {
-      key: "assignedCourses",
-      label: "Assigned Courses",
-      render: (row) => {
-        const assigned = row.assignedCourses || [];
-        if (assigned.length === 0) {
-          return <span className="text-gray-400">No courses assigned</span>;
-        }
-        const courseNames = assigned.map(courseId => {
-          const course = programs.find(p => p.id === courseId);
-          return course ? course.title : `Course ${courseId}`;
-        });
-        return (
-          <div className="flex flex-wrap gap-1">
-            {courseNames.map((name, idx) => (
-              <span key={idx} className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                {name}
-              </span>
-            ))}
-          </div>
-        );
-      },
+      key: "years_experience",
+      label: "Experience",
+      render: (row) => `${row.years_experience || 0} years`,
     },
     {
       key: "actions",
       label: "Actions",
       render: (row) => (
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleView(row)}
+            className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+            title="View"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
           <button
             onClick={() => handleEdit(row)}
-            className="text-blue-600 hover:text-blue-900 transition-colors p-1 rounded hover:bg-blue-50"
+            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
             title="Edit"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -346,12 +240,13 @@ export default function TeachersPage() {
             </svg>
           </button>
           <button
-            onClick={() => handleOpenAssignModal(row)}
-            className="text-green-600 hover:text-green-900 transition-colors p-1 rounded hover:bg-green-50"
-            title="Assign Courses"
+            onClick={() => handleDelete(row.id)}
+            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+            title="Delete"
+            disabled={isDeleting}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>
         </div>
@@ -359,11 +254,41 @@ export default function TeachersPage() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <>
+        <AdminHeader />
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center py-12">
+              <p className="text-gray-600 dark:text-gray-400">Loading teachers...</p>
+            </div>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  if (isError) {
+    return (
+      <>
+        <AdminHeader />
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center py-12">
+              <p className="text-red-600 dark:text-red-400">Error loading teachers: {error?.data?.error || "Unknown error"}</p>
+            </div>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <AdminHeader />
       
-      <main className="flex-1 overflow-y-auto p-6 bg-gray-100 dark:bg-gray-900 transition-colors">
+      <main className="flex-1 overflow-y-auto p-6">
         <div className="max-w-7xl mx-auto">
           <DataTable
             title="Teachers"
@@ -375,32 +300,38 @@ export default function TeachersPage() {
         </div>
       </main>
 
-      {/* Add Teacher Modal */}
+      {/* Add/Edit Teacher Modal */}
       {isModalOpen && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center"
           style={{ pointerEvents: 'none' }}
         >
-          {/* Light backdrop overlay */}
           <div 
-            className="absolute inset-0 bg-black bg-opacity-20 dark:bg-opacity-50"
+            className="absolute inset-0 bg-transparent"
             onClick={handleBackdropClick}
             style={{ pointerEvents: 'auto' }}
           />
           
-          {/* Modal content */}
           <div 
-            className="relative bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4 transition-colors"
+            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${
+              isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+            }`}
             onClick={(e) => e.stopPropagation()}
-            style={{ pointerEvents: 'auto' }}
+            style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
           >
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
+              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}>
+              <h2 className={`text-2xl font-bold ${
+                isDark ? 'text-white' : 'text-gray-800'
+              }`}>
                 {editingTeacher ? "Edit Teacher" : "Add New Teacher"}
               </h2>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                className={`transition-colors ${
+                  isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+                }`}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -409,50 +340,30 @@ export default function TeachersPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {formErrors.length > 0 && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                  <h3 className="text-sm font-medium text-red-800 dark:text-red-200 mb-2">Please fix the following errors:</h3>
-                  <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-300 space-y-1">
-                    {formErrors.map((error, idx) => (
-                      <li key={idx}>{error}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    First Name <span className="text-red-500">*</span>
+                  <label htmlFor="full_name" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Full Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    id="first_name"
-                    name="first_name"
-                    value={formData.first_name}
+                    id="full_name"
+                    name="full_name"
+                    value={formData.full_name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Last Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="last_name"
-                    name="last_name"
-                    value={formData.last_name}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label htmlFor="email" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Email <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -462,13 +373,17 @@ export default function TeachersPage() {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Phone <span className="text-red-500">*</span>
+                  <label htmlFor="phone" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Phone
                   </label>
                   <input
                     type="tel"
@@ -476,33 +391,52 @@ export default function TeachersPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Subject <span className="text-red-500">*</span>
+                  <label htmlFor="country" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Country
                   </label>
-                  <select
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
+                  <input
+                    type="text"
+                    id="country"
+                    name="country"
+                    value={formData.country}
                     onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="">Select Subject</option>
-                    <option value="General English">General English</option>
-                    <option value="IELTS/TOEFL">IELTS/TOEFL</option>
-                    <option value="Academic Writing">Academic Writing</option>
-                    <option value="ESP Programs">ESP Programs</option>
-                  </select>
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                  />
                 </div>
 
                 <div>
-                  <label htmlFor="specialization" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label htmlFor="city" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    id="city"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="specialization" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Specialization
                   </label>
                   <input
@@ -511,116 +445,181 @@ export default function TeachersPage() {
                     name="specialization"
                     value={formData.specialization}
                     onChange={handleInputChange}
-                    placeholder="e.g., ESL Teaching, Exam Preparation"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Status <span className="text-red-500">*</span>
+                  <label htmlFor="highest_qualification" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Highest Qualification
                   </label>
-                  <select
-                    id="status"
-                    name="status"
-                    value={formData.status}
+                  <input
+                    type="text"
+                    id="highest_qualification"
+                    name="highest_qualification"
+                    value={formData.highest_qualification}
                     onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                  />
                 </div>
 
                 <div>
-                  <label htmlFor="joinDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Join Date
+                  <label htmlFor="years_experience" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Years of Experience
+                  </label>
+                  <input
+                    type="number"
+                    id="years_experience"
+                    name="years_experience"
+                    value={formData.years_experience}
+                    onChange={handleInputChange}
+                    min="0"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="hire_date" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Hire Date
                   </label>
                   <input
                     type="date"
-                    id="joinDate"
-                    name="joinDate"
-                    value={formData.joinDate}
+                    id="hire_date"
+                    name="hire_date"
+                    value={formData.hire_date}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
                   />
                 </div>
-              </div>
 
-              <div>
-                <label htmlFor="bio" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Bio
-                </label>
-                <textarea
-                  id="bio"
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleInputChange}
-                  rows={3}
-                  placeholder="Brief biography about the teacher"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400"
-                />
-              </div>
+                {!editingTeacher && (
+                  <div>
+                    <label htmlFor="password" className={`block text-sm font-medium mb-1 ${
+                      isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      Password <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required={!editingTeacher}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      }`}
+                    />
+                  </div>
+                )}
 
-              <div>
-                <label htmlFor="qualifications" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Qualifications
-                </label>
-                <input
-                  type="text"
-                  id="qualifications"
-                  name="qualifications"
-                  value={formData.qualifications}
-                  onChange={handleInputChange}
-                  placeholder="e.g., MA in TESOL, CELTA Certified"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
+                {editingTeacher && (
+                  <div>
+                    <label htmlFor="password" className={`block text-sm font-medium mb-1 ${
+                      isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      New Password (leave blank to keep current)
+                    </label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      }`}
+                    />
+                  </div>
+                )}
 
-              <div>
-                <label htmlFor="experience_years" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Years of Experience
-                </label>
-                <input
-                  type="number"
-                  id="experience_years"
-                  name="experience_years"
-                  value={formData.experience_years}
-                  onChange={handleInputChange}
-                  min="0"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
+                <div className="md:col-span-2">
+                  <label htmlFor="portfolio_link" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Portfolio Link
+                  </label>
+                  <input
+                    type="url"
+                    id="portfolio_link"
+                    name="portfolio_link"
+                    value={formData.portfolio_link}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="portfolio" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Portfolio URL
-                </label>
-                <input
-                  type="url"
-                  id="portfolio"
-                  name="portfolio"
-                  value={formData.portfolio}
-                  onChange={handleInputChange}
-                  placeholder="https://portfolio.example.com"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400"
-                />
+                <div className="md:col-span-2">
+                  <label htmlFor="skills" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Skills
+                  </label>
+                  <textarea
+                    id="skills"
+                    name="skills"
+                    value={formData.skills}
+                    onChange={handleInputChange}
+                    rows={2}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label htmlFor="bio" className={`block text-sm font-medium mb-1 ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Bio
+                  </label>
+                  <textarea
+                    id="bio"
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className={`px-4 py-2 border rounded-lg transition-colors ${
+                    isDark
+                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+                  disabled={isCreating || isUpdating}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {editingTeacher ? "Update Teacher" : "Add Teacher"}
+                  {isCreating || isUpdating ? "Saving..." : editingTeacher ? "Update Teacher" : "Add Teacher"}
                 </button>
               </div>
             </form>
@@ -628,35 +627,38 @@ export default function TeachersPage() {
         </div>
       )}
 
-      {/* Assign Courses Modal */}
-      {isAssignModalOpen && selectedTeacherForAssign && (
+      {/* View Teacher Modal */}
+      {isViewModalOpen && viewingTeacher && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center"
           style={{ pointerEvents: 'none' }}
         >
-          {/* Light backdrop overlay */}
           <div 
-            className="absolute inset-0 bg-black bg-opacity-20 dark:bg-opacity-50"
-            onClick={handleCloseAssignModal}
+            className="absolute inset-0 bg-transparent"
+            onClick={handleCloseViewModal}
             style={{ pointerEvents: 'auto' }}
           />
           
-          {/* Modal content */}
           <div 
-            className="relative bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4 transition-colors"
+            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${
+              isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+            }`}
             onClick={(e) => e.stopPropagation()}
-            style={{ pointerEvents: 'auto' }}
+            style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
           >
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Assign Courses</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Assign courses to {getTeacherDisplayName(selectedTeacherForAssign)}
-                </p>
-              </div>
+            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
+              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}>
+              <h2 className={`text-2xl font-bold ${
+                isDark ? 'text-white' : 'text-gray-800'
+              }`}>
+                Teacher Profile: {viewingTeacher.full_name}
+              </h2>
               <button
-                onClick={handleCloseAssignModal}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                onClick={handleCloseViewModal}
+                className={`transition-colors ${
+                  isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+                }`}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -664,70 +666,274 @@ export default function TeachersPage() {
               </button>
             </div>
 
-            <form onSubmit={handleAssignCourses} className="p-6 space-y-4">
-              {programsLoading ? (
-                <div className="text-center py-8 text-gray-500">Loading courses...</div>
-              ) : programs.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">No courses available</div>
-              ) : (
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    Select Courses <span className="text-red-500">*</span>
-                  </label>
-                  <div className="max-h-96 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                    {programs.map((program) => {
-                      const isSelected = assignmentData.selectedCourses.includes(program.id);
-                      return (
-                        <label
-                          key={program.id}
-                          className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                            isSelected
-                              ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500"
-                              : "bg-gray-50 dark:bg-gray-700/50 border-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => handleCourseToggle(program.id)}
-                            className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900 dark:text-white">
-                              {program.title}
-                            </div>
-                            {program.description && (
-                              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                                {program.description}
-                              </div>
-                            )}
-                          </div>
-                        </label>
-                      );
-                    })}
+            <div className="p-6 space-y-6">
+              {/* Personal Information Section */}
+              <div className={`p-5 rounded-lg border ${
+                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
+              }`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
+                  isDark ? 'text-white' : 'text-gray-800'
+                }`}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Personal Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Full Name</label>
+                    <p className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {viewingTeacher.full_name || 'N/A'}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Email</label>
+                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                      {viewingTeacher.email || 'N/A'}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Phone</label>
+                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                      {viewingTeacher.phone || 'N/A'}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Country</label>
+                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                      {viewingTeacher.country || 'N/A'}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>City</label>
+                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                      {viewingTeacher.city || 'N/A'}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Hire Date</label>
+                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                      {viewingTeacher.hire_date ? new Date(viewingTeacher.hire_date).toLocaleDateString() : 'N/A'}
+                    </p>
                   </div>
                 </div>
-              )}
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  type="button"
-                  onClick={handleCloseAssignModal}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
-                >
-                  Assign Courses
-                </button>
               </div>
-            </form>
+
+              {/* Professional Information Section */}
+              <div className={`p-5 rounded-lg border ${
+                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
+              }`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
+                  isDark ? 'text-white' : 'text-gray-800'
+                }`}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Professional Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Specialization</label>
+                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                      {viewingTeacher.specialization || 'N/A'}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Highest Qualification</label>
+                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                      {viewingTeacher.highest_qualification || 'N/A'}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Years of Experience</label>
+                    <p className={`text-base font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                      {viewingTeacher.years_experience || 0} years
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Portfolio Link</label>
+                    {viewingTeacher.portfolio_link ? (
+                      <a 
+                        href={viewingTeacher.portfolio_link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline break-all flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        {viewingTeacher.portfolio_link}
+                      </a>
+                    ) : (
+                      <p className={`text-base ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>N/A</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bio and Skills Section */}
+              <div className={`p-5 rounded-lg border ${
+                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-green-50/50 border-green-200'
+              }`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
+                  isDark ? 'text-white' : 'text-gray-800'
+                }`}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Additional Information
+                </h3>
+                <div className="space-y-4">
+                  <div className={`p-4 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Bio</label>
+                    <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {viewingTeacher.bio || 'No bio available'}
+                    </p>
+                  </div>
+                  <div className={`p-4 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Skills</label>
+                    <div className="flex flex-wrap gap-2">
+                      {viewingTeacher.skills ? (
+                        viewingTeacher.skills.split(',').map((skill, index) => (
+                          <span 
+                            key={index}
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              isDark 
+                                ? 'bg-purple-600/30 text-purple-300 border border-purple-500/50' 
+                                : 'bg-purple-100 text-purple-700 border border-purple-200'
+                            }`}
+                          >
+                            {skill.trim()}
+                          </span>
+                        ))
+                      ) : (
+                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>No skills listed</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Assigned Classes Section */}
+              <div className={`p-5 rounded-lg border ${
+                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-orange-50/50 border-orange-200'
+              }`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
+                  isDark ? 'text-white' : 'text-gray-800'
+                }`}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  Assigned Classes
+                  <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                    isDark ? 'bg-blue-600/30 text-blue-300' : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {getAssignedClasses(viewingTeacher.id).length}
+                  </span>
+                </h3>
+                {getAssignedClasses(viewingTeacher.id).length === 0 ? (
+                  <div className={`p-6 text-center rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <svg className="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      No classes assigned to this teacher.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {getAssignedClasses(viewingTeacher.id).map((classItem) => (
+                      <div 
+                        key={classItem.id}
+                        className={`p-4 rounded-lg border transition-all hover:shadow-lg ${
+                          isDark 
+                            ? 'bg-gradient-to-br from-gray-800/80 to-gray-700/80 border-gray-600 hover:border-gray-500' 
+                            : 'bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {classItem.class_name || 'N/A'}
+                          </h4>
+                          <div className={`w-2 h-2 rounded-full ${
+                            classItem.course_title ? 'bg-green-500' : 'bg-gray-400'
+                          }`}></div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <svg className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            <div className="flex-1">
+                              <label className={`block text-xs font-semibold mb-0.5 uppercase tracking-wide ${
+                                isDark ? 'text-gray-400' : 'text-gray-500'
+                              }`}>Course</label>
+                              <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                                {classItem.course_title || 'Not assigned'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <svg className={`w-4 h-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <div className="flex-1">
+                              <label className={`block text-xs font-semibold mb-0.5 uppercase tracking-wide ${
+                                isDark ? 'text-gray-400' : 'text-gray-500'
+                              }`}>Subprogram</label>
+                              <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                                {classItem.subprogram_name || 'Not assigned'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <svg className={`w-4 h-4 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                            <div className="flex-1">
+                              <label className={`block text-xs font-semibold mb-0.5 uppercase tracking-wide ${
+                                isDark ? 'text-gray-400' : 'text-gray-500'
+                              }`}>Program</label>
+                              <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                                {classItem.program_name || 'Not assigned'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
+
     </>
   );
 }

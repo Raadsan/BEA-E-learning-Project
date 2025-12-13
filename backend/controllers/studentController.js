@@ -1,38 +1,31 @@
 // controllers/studentController.js
 import * as Student from "../models/studentModel.js";
-import * as Program from "../models/programModel.js";
 
-// REGISTER STUDENT
-export const registerStudent = async (req, res) => {
+// CREATE STUDENT
+export const createStudent = async (req, res) => {
   try {
     const {
-      first_name,
-      last_name,
+      full_name,
       email,
       phone,
       age,
-      gender,
-      country,
-      city,
-      program_id,
-      sub_program_id,
-      sub_program_name, // Can use name instead of id
+      residency_country,
+      residency_city,
+      chosen_program,
       password,
-      terms_accepted,
-      // Parent info (required if age < 18)
-      parent_first_name,
-      parent_last_name,
+      parent_name,
       parent_email,
       parent_phone,
-      relationship
+      parent_relation,
+      parent_res_county,
+      parent_res_city
     } = req.body;
 
     // Validate required fields
-    if (!first_name || !last_name || !email || !phone || !age || !gender || 
-        !country || !city || !program_id || !password || terms_accepted === undefined) {
+    if (!full_name || !email || !password) {
       return res.status(400).json({ 
         success: false,
-        message: "All required fields must be provided" 
+        error: "Full name, email, and password are required" 
       });
     }
 
@@ -41,7 +34,7 @@ export const registerStudent = async (req, res) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({ 
         success: false,
-        message: "Invalid email format" 
+        error: "Invalid email format" 
       });
     }
 
@@ -50,130 +43,37 @@ export const registerStudent = async (req, res) => {
     if (existingStudent) {
       return res.status(400).json({ 
         success: false,
-        message: "Email already registered" 
+        error: "Email already exists" 
       });
     }
 
-    // Validate program exists
-    const program = await Program.getProgramById(program_id);
-    if (!program) {
-      return res.status(400).json({ 
-        success: false,
-        message: "Invalid program selected" 
-      });
-    }
-
-    // Validate sub_program if provided (must exist in program's sub_programs JSON array)
-    if (sub_program_id || sub_program_name) {
-      const subPrograms = await Student.getSubProgramsByProgramId(program_id);
-      
-      // sub_program_id can be index or name
-      let subProgram = null;
-      if (sub_program_id) {
-        // Try to find by index
-        const index = parseInt(sub_program_id);
-        if (!isNaN(index) && index >= 0 && index < subPrograms.length) {
-          subProgram = subPrograms[index];
-        }
-      }
-      
-      // If not found by index, try by name
-      if (!subProgram && sub_program_name) {
-        subProgram = subPrograms.find(sp => sp.name === sub_program_name);
-      }
-      
-      if (!subProgram) {
-        return res.status(400).json({ 
-          success: false,
-          message: "Invalid sub-program selected. The sub-program must belong to the selected main program." 
-        });
-      }
-    }
-
-    // Validate age
-    const ageNum = parseInt(age);
-    if (isNaN(ageNum) || ageNum < 1 || ageNum > 120) {
-      return res.status(400).json({ 
-        success: false,
-        message: "Invalid age" 
-      });
-    }
-
-    // If student is under 18, require parent information
-    if (ageNum < 18) {
-      if (!parent_first_name || !parent_last_name || !parent_email || 
-          !parent_phone || !relationship) {
-        return res.status(400).json({ 
-          success: false,
-          message: "Parent/Guardian information is required for students under 18" 
-        });
-      }
-
-      // Validate parent email format
-      if (!emailRegex.test(parent_email)) {
-        return res.status(400).json({ 
-          success: false,
-          message: "Invalid parent email format" 
-        });
-      }
-    }
-
-    // Create student
     const student = await Student.createStudent({
-      first_name,
-      last_name,
+      full_name,
       email,
       phone,
-      age: ageNum,
-      gender,
-      country,
-      city,
-      program_id: parseInt(program_id),
-      sub_program_id: sub_program_id ? parseInt(sub_program_id) : null,
+      age,
+      residency_country,
+      residency_city,
+      chosen_program,
       password,
-      terms_accepted: terms_accepted === true || terms_accepted === 'true'
+      parent_name,
+      parent_email,
+      parent_phone,
+      parent_relation,
+      parent_res_county,
+      parent_res_city
     });
-
-    // Create parent record if student is under 18
-    let parent = null;
-    if (ageNum < 18) {
-      parent = await Student.createParent({
-        student_id: student.id,
-        parent_first_name,
-        parent_last_name,
-        parent_email,
-        parent_phone,
-        relationship
-      });
-    }
 
     res.status(201).json({ 
       success: true,
-      message: "Student registered successfully",
-      student: {
-        id: student.id,
-        first_name: student.first_name,
-        last_name: student.last_name,
-        email: student.email,
-        age: student.age,
-        program_id: student.program_id,
-        sub_program_id: student.sub_program_id,
-        is_minor: student.is_minor
-      },
-      parent: parent ? {
-        id: parent.id,
-        parent_first_name: parent.parent_first_name,
-        parent_last_name: parent.parent_last_name,
-        relationship: parent.relationship
-      } : null
+      message: "Student created successfully",
+      student 
     });
-
   } catch (err) {
-    console.error("❌ Student Registration Error:", err);
+    console.error("❌ Create student error:", err);
     res.status(500).json({ 
       success: false,
-      message: "Failed to register student",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      error: "Server error: " + err.message 
     });
   }
 };
@@ -187,7 +87,7 @@ export const getStudents = async (req, res) => {
       students 
     });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Get students error:", err);
     res.status(500).json({ 
       success: false,
       error: "Server error" 
@@ -213,7 +113,7 @@ export const getStudent = async (req, res) => {
       student 
     });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Get student error:", err);
     res.status(500).json({ 
       success: false,
       error: "Server error" 
@@ -225,24 +125,39 @@ export const getStudent = async (req, res) => {
 export const updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const updated = await Student.updateStudentById(id, req.body);
+    const existing = await Student.getStudentById(id);
 
-    if (!updated) {
+    if (!existing) {
       return res.status(404).json({ 
         success: false,
-        error: "Student not found or no changes made" 
+        error: "Student not found" 
       });
     }
 
+    // Check if email is being updated and if it already exists
+    if (req.body.email && req.body.email !== existing.email) {
+      const emailExists = await Student.getStudentByEmail(req.body.email);
+      if (emailExists) {
+        return res.status(400).json({ 
+          success: false,
+          error: "Email already exists" 
+        });
+      }
+    }
+
+    await Student.updateStudentById(id, req.body);
+    const updated = await Student.getStudentById(id);
+
     res.json({ 
       success: true,
-      message: "Student updated successfully" 
+      message: "Student updated successfully",
+      student: updated 
     });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Update student error:", err);
     res.status(500).json({ 
       success: false,
-      error: "Server error" 
+      error: "Server error: " + err.message 
     });
   }
 };
@@ -251,56 +166,22 @@ export const updateStudent = async (req, res) => {
 export const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Student.deleteStudentById(id);
+    const existing = await Student.getStudentById(id);
 
-    if (!deleted) {
+    if (!existing) {
       return res.status(404).json({ 
         success: false,
         error: "Student not found" 
       });
     }
 
+    await Student.deleteStudentById(id);
     res.json({ 
       success: true,
       message: "Student deleted successfully" 
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ 
-      success: false,
-      error: "Server error" 
-    });
-  }
-};
-
-// GET SUB-PROGRAMS BY PROGRAM ID
-export const getSubPrograms = async (req, res) => {
-  try {
-    const { program_id } = req.params;
-    const subPrograms = await Student.getSubProgramsByProgramId(program_id);
-    res.json({ 
-      success: true,
-      sub_programs: subPrograms 
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ 
-      success: false,
-      error: "Server error" 
-    });
-  }
-};
-
-// GET ALL SUB-PROGRAMS (returns all programs with their sub-programs)
-export const getAllSubPrograms = async (req, res) => {
-  try {
-    const programs = await Student.getAllProgramsWithSubPrograms();
-    res.json({ 
-      success: true,
-      programs 
-    });
-  } catch (err) {
-    console.error(err);
+    console.error("❌ Delete student error:", err);
     res.status(500).json({ 
       success: false,
       error: "Server error" 

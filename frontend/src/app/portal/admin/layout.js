@@ -1,20 +1,33 @@
 "use client";
 
 import AdminSidebar from "./AdminSidebar";
-import { DarkModeProvider } from "@/context/ThemeContext";
+import { DarkModeProvider, useDarkMode } from "@/context/ThemeContext";
+
+function AdminLayoutContent({ children }) {
+  const { isDark } = useDarkMode();
+  
+  return (
+    <div 
+      className="flex h-screen transition-colors"
+      style={isDark ? { background: 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)' } : { backgroundColor: '#f3f4f6' }}
+    >
+      {/* Sidebar */}
+      <AdminSidebar />
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col ml-64">
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function AdminLayout({ children }) {
   return (
     <DarkModeProvider>
-      <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
-        {/* Sidebar */}
-        <AdminSidebar />
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col ml-64">
-          {children}
-        </div>
-      </div>
+      <AdminLayoutContent>
+        {children}
+      </AdminLayoutContent>
     </DarkModeProvider>
   );
 }

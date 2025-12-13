@@ -15,12 +15,53 @@ export const studentApi = createApi({
     getStudents: builder.query({
       query: () => "/",
       providesTags: ["Students"],
+      transformResponse: (response) => {
+        if (response.success) {
+          return response.students;
+        }
+        return response;
+      },
     }),
 
     // GET SINGLE student
     getStudent: builder.query({
       query: (id) => `/${id}`,
       providesTags: (id) => [{ type: "Students", id }],
+      transformResponse: (response) => {
+        if (response.success) {
+          return response.student;
+        }
+        return response;
+      },
+    }),
+
+    // CREATE student
+    createStudent: builder.mutation({
+      query: (body) => ({
+        url: "/",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Students"],
+    }),
+
+    // UPDATE student
+    updateStudent: builder.mutation({
+      query: ({ id, ...body }) => ({
+        url: `/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Students"],
+    }),
+
+    // DELETE student
+    deleteStudent: builder.mutation({
+      query: (id) => ({
+        url: `/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Students"],
     }),
   }),
 });
@@ -28,5 +69,8 @@ export const studentApi = createApi({
 export const {
   useGetStudentsQuery,
   useGetStudentQuery,
+  useCreateStudentMutation,
+  useUpdateStudentMutation,
+  useDeleteStudentMutation,
 } = studentApi;
 

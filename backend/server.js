@@ -8,6 +8,10 @@ import db from "./database/dbconfig.js";
 import programRoutes from "./routes/programRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
+import teacherRoutes from "./routes/teacherRoutes.js";
+import subprogramRoutes from "./routes/subprogramRoutes.js";
+import courseRoutes from "./routes/courseRoutes.js";
+import classRoutes from "./routes/classRoutes.js";
 
 const app = express();
 
@@ -39,6 +43,18 @@ app.use("/api/contact", contactRoutes);
 
 // ⬇️ Register Student Routes (Registration + Management)
 app.use("/api/students", studentRoutes);
+
+// ⬇️ Register Teacher Routes
+app.use("/api/teachers", teacherRoutes);
+
+// ⬇️ Register Subprogram Routes
+app.use("/api/subprograms", subprogramRoutes);
+
+// ⬇️ Register Course Routes
+app.use("/api/courses", courseRoutes);
+
+// ⬇️ Register Class Routes
+app.use("/api/classes", classRoutes);
 
 // Server start
 const PORT = process.env.PORT || 5000;
