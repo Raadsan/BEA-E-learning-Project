@@ -182,8 +182,8 @@ export default function ResourcesPage() {
     <>
       <AdminHeader />
       
-      <main className="flex-1 overflow-y-auto p-6 bg-gray-100 dark:bg-gray-900 transition-colors">
-        <div className="max-w-7xl mx-auto">
+      <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
+        <div className="w-full px-8 py-6">
           <DataTable
             title="Resources Management"
             columns={columns}

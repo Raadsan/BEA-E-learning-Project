@@ -29,7 +29,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
   const totalPages = Math.ceil(filteredData.length / entriesPerPage);
 
   return (
-    <div className="p-4 bg-white dark:bg-[#1a2035] text-gray-900 dark:text-white rounded-xl shadow-md">
+    <div className="p-4 bg-white dark:bg-[#1a2035] text-gray-900 dark:text-white rounded-xl shadow-md max-w-full mx-auto">
       <div className="flex justify-between items-center mb-4">
         <div className="header">
           <h2 className="text-xl font-semibold">{title}</h2>

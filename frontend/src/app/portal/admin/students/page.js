@@ -275,8 +275,8 @@ export default function StudentsPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+          <div className="w-full px-6 py-6">
             <div className="text-center py-12">
               <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading students...</p>
             </div>
@@ -290,8 +290,8 @@ export default function StudentsPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+          <div className="w-full px-6 py-6">
             <div className="text-center py-12">
               <p className="text-red-600 dark:text-red-400">Error loading students: {error?.data?.error || "Unknown error"}</p>
             </div>
@@ -305,15 +305,15 @@ export default function StudentsPage() {
     <>
       <AdminHeader />
       
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-7xl mx-auto">
-          <DataTable
-            title="Student Management"
-            columns={columns}
-            data={students}
-            onAddClick={handleAddStudent}
-            showAddButton={true}
-          />
+      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+          <div className="w-full px-8 py-6">
+            <DataTable
+              title="Student Management"
+              columns={columns}
+              data={students}
+              onAddClick={handleAddStudent}
+              showAddButton={true}
+            />
         </div>
       </main>
 
@@ -773,7 +773,7 @@ function SubprogramsModal({ program, onClose, isDark }) {
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 bg-gray-50">
           {isLoading ? (
             <div className="text-center py-8">
               <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Loading subprograms...</p>
