@@ -13,6 +13,7 @@ export const createStudent = async ({
   residency_country,
   residency_city,
   chosen_program,
+  chosen_subprogram,
   password,
   parent_name,
   parent_email,
@@ -27,9 +28,9 @@ export const createStudent = async ({
   const [result] = await dbp.query(
     `INSERT INTO students (
       full_name, email, phone, age, residency_country, residency_city,
-      chosen_program, password, parent_name, parent_email, parent_phone,
+      chosen_program, chosen_subprogram, password, parent_name, parent_email, parent_phone,
       parent_relation, parent_res_county, parent_res_city
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       full_name,
       email,
@@ -38,6 +39,7 @@ export const createStudent = async ({
       residency_country || null,
       residency_city || null,
       chosen_program || null,
+      chosen_subprogram || null,
       hashedPassword,
       parent_name || null,
       parent_email || null,
@@ -54,16 +56,21 @@ export const createStudent = async ({
 
 // GET all students
 export const getAllStudents = async () => {
-  const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students ORDER BY created_at DESC"
-  );
-  return rows;
+  try {
+    const [rows] = await dbp.query(
+      "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students ORDER BY created_at DESC"
+    );
+    return rows;
+  } catch (error) {
+    console.error("❌ Error in getAllStudents:", error);
+    throw error;
+  }
 };
 
 // GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students WHERE id = ?",
+    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students WHERE id = ?",
     [id]
   );
   return rows[0] || null;
@@ -87,6 +94,7 @@ export const updateStudentById = async (id, {
   residency_country,
   residency_city,
   chosen_program,
+  chosen_subprogram,
   password,
   parent_name,
   parent_email,
@@ -125,6 +133,10 @@ export const updateStudentById = async (id, {
   if (chosen_program !== undefined) {
     updates.push("chosen_program = ?");
     values.push(chosen_program);
+  }
+  if (chosen_subprogram !== undefined) {
+    updates.push("chosen_subprogram = ?");
+    values.push(chosen_subprogram);
   }
   if (password !== undefined && password.trim() !== "") {
     const hashedPassword = await bcrypt.hash(password, 10);
