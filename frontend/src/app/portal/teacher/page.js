@@ -1,10 +1,41 @@
 "use client";
 
 import TeacherHeader from "./TeacherHeader";
+import React from 'react';
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
 import { useGetCoursesQuery } from "@/redux/api/courseApi";
 import { useDarkMode } from "@/context/ThemeContext";
+
+// Small inline Circular Progress component (declared above default export)
+function ProgressCircle({ percent = 0, size = 56, strokeWidth = 6, colors = ['#3b82f6'], isDark = false }) {
+  const radius = 50 - strokeWidth / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference * (1 - Math.min(Math.max(percent, 0), 100) / 100);
+  const trackColor = isDark ? '#2d3748' : '#e5e7eb';
+  const color = colors[0] || '#3b82f6';
+
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" className="transform rotate-0">
+      <circle cx="50" cy="50" r={radius} stroke={trackColor} strokeWidth={strokeWidth} fill="none" />
+      <circle
+        cx="50"
+        cy="50"
+        r={radius}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        fill="none"
+        strokeDasharray={`${circumference} ${circumference}`}
+        strokeDashoffset={dashOffset}
+        transform="rotate(-90 50 50)"
+      />
+      <text x="50" y="50" dominantBaseline="central" textAnchor="middle" className={`text-xs ${isDark ? 'text-gray-100' : 'text-gray-800'}`} style={{ fontSize: 13, fontWeight: 600 }}>
+        {percent}%
+      </text>
+    </svg>
+  );
+}
 
 export default function TeacherDashboard() {
   const { isDark } = useDarkMode();
@@ -59,52 +90,62 @@ export default function TeacherDashboard() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* Total Course Card */}
-            <div className="rounded-lg shadow-sm p-6 transition-colors" style={{ backgroundColor: '#010080' }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/90 text-sm font-medium mb-1">Total Course</p>
-                  <p className="text-3xl font-bold text-white">
-                    {coursesLoading ? "..." : totalCourses}
-                  </p>
+            <div className={`rounded-lg shadow-sm p-4 transition-colors hover:shadow-md ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border border-gray-200'}`}>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Total Course</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{coursesLoading ? '...' : totalCourses}</p>
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>&nbsp;</span>
+                  </div>
+                  <div className="mt-2 text-sm flex items-center gap-2">
+                    <span className="text-green-600 text-xs flex items-center gap-1">▲ 32.40%</span>
+                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>last month</span>
+                  </div>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+                <div className="flex-shrink-0">
+                  <ProgressCircle percent={32} size={56} strokeWidth={6} colors={['#3b82f6']} isDark={isDark} />
                 </div>
               </div>
             </div>
 
             {/* Active Students Card */}
-            <div className="rounded-lg shadow-sm p-6 transition-colors" style={{ backgroundColor: '#f95150' }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/90 text-sm font-medium mb-1">Active Students</p>
-                  <p className="text-3xl font-bold text-white">
-                    {studentsLoading ? "..." : activeStudents}
-                  </p>
+            <div className={`rounded-lg shadow-sm p-4 transition-colors hover:shadow-md ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border border-gray-200'}`}>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Active Students</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{studentsLoading ? '...' : activeStudents}</p>
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>{totalStudents ? `/ ${totalStudents}` : ''}</span>
+                  </div>
+                  <div className="mt-2 text-sm flex items-center gap-2">
+                    <span className="text-red-600 text-xs flex items-center gap-1">▼ 18.45%</span>
+                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>last month</span>
+                  </div>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
+                <div className="flex-shrink-0">
+                  {/* compute percentage: active / totalStudents */}
+                  <ProgressCircle percent={totalStudents ? Math.round((activeStudents / totalStudents) * 100) : 48} size={56} strokeWidth={6} colors={['#3b82f6']} isDark={isDark} />
                 </div>
               </div>
             </div>
 
             {/* Total Courses Card */}
-            <div className="rounded-lg shadow-sm p-6 text-white transition-colors" style={{ backgroundColor: '#4b47a4' }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/90 text-sm font-medium mb-1">Total Courses</p>
-                  <p className="text-3xl font-bold">
-                    {coursesLoading ? "..." : totalCourses}
-                  </p>
+            <div className={`rounded-lg shadow-sm p-4 transition-colors hover:shadow-md ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border border-gray-200'}`}>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Total Courses</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{coursesLoading ? '...' : totalCourses}</p>
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'}`}></span>
+                  </div>
+                  <div className="mt-2 text-sm flex items-center gap-2">
+                    <span className="text-green-600 text-xs flex items-center gap-1">▲ 20.34%</span>
+                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>last month</span>
+                  </div>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                <div className="flex-shrink-0">
+                  <ProgressCircle percent={89} size={56} strokeWidth={6} colors={['#ef4444']} isDark={isDark} />
                 </div>
               </div>
             </div>
@@ -135,7 +176,7 @@ export default function TeacherDashboard() {
               </div>
 
               {/* Chart */}
-              <div className="relative h-64">
+              <div className="relative h-64 pl-6">
                 <div className="absolute inset-0 flex items-end justify-between gap-2">
                   {weeklyAttendance.map((data, index) => {
                     const thisWeekHeight = (data.thisWeek / maxAttendance) * 100;
@@ -144,21 +185,13 @@ export default function TeacherDashboard() {
                     
                     return (
                       <div key={index} className="flex-1 flex flex-col items-center gap-1 group">
-                        <div className="relative w-full h-full flex items-end justify-center gap-1">
-                          {/* Last Week Bar */}
-                          <div
-                            className="w-full bg-red-500 rounded-t transition-all hover:opacity-80"
-                            style={{ height: `${lastWeekHeight}%` }}
-                            title={`Last Week: ${data.lastWeek}`}
-                          />
-                          {/* This Week Bar */}
-                          <div
-                            className={`w-full bg-blue-500 rounded-t transition-all hover:opacity-80 ${
-                              isHighlighted ? 'ring-2 ring-blue-300' : ''
-                            }`}
-                            style={{ height: `${thisWeekHeight}%` }}
-                            title={`This Week: ${data.thisWeek}`}
-                          />
+                        <div className="relative w-full h-full flex items-end justify-center gap-2">
+                          <div className="flex items-end justify-between w-full gap-2 px-1">
+                            {/* Last Week Bar (left) */}
+                            <div className="w-1/2 bg-red-400 rounded-t transition-all hover:opacity-90" style={{ height: `${lastWeekHeight}%` }} title={`Last Week: ${data.lastWeek}`} />
+                            {/* This Week Bar (right) */}
+                            <div className={`w-1/2 bg-blue-500 rounded-t transition-all hover:opacity-90 ${isHighlighted ? 'ring-2 ring-blue-300' : ''}`} style={{ height: `${thisWeekHeight}%` }} title={`This Week: ${data.thisWeek}`} />
+                          </div>
                         </div>
                         {isHighlighted && (
                           <div className={`absolute -top-8 px-2 py-1 rounded text-xs font-medium ${
@@ -178,7 +211,7 @@ export default function TeacherDashboard() {
                 </div>
                 
                 {/* Y-axis labels */}
-                <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between pr-2">
+                <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between pr-2 text-right w-8">
                   {[0, 100, 200, 300, 400].map((value) => (
                     <span key={value} className={`text-xs ${
                       isDark ? 'text-gray-500' : 'text-gray-400'
@@ -277,3 +310,5 @@ export default function TeacherDashboard() {
     </>
   );
 }
+
+ 
