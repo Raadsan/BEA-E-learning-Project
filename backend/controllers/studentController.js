@@ -12,6 +12,7 @@ export const createStudent = async (req, res) => {
       residency_country,
       residency_city,
       chosen_program,
+      chosen_subprogram,
       password,
       parent_name,
       parent_email,
@@ -55,6 +56,7 @@ export const createStudent = async (req, res) => {
       residency_country,
       residency_city,
       chosen_program,
+      chosen_subprogram,
       password,
       parent_name,
       parent_email,
@@ -90,7 +92,7 @@ export const getStudents = async (req, res) => {
     console.error("❌ Get students error:", err);
     res.status(500).json({ 
       success: false,
-      error: "Server error" 
+      error: err.message || "Server error" 
     });
   }
 };
