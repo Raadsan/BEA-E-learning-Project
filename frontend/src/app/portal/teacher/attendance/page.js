@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import TeacherHeader from "../TeacherHeader";
-import { useGetClassesQuery } from "@/redux/api/classApi";
+import { useGetTeacherClassesQuery, useGetAttendanceQuery, useSaveAttendanceMutation } from "@/redux/api/teacherApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function AttendancePage() {
   const { isDark } = useDarkMode();
-  const { data: classesData = [], isLoading: classesLoading } = useGetClassesQuery();
+  const { data: classesData = [], isLoading: classesLoading } = useGetTeacherClassesQuery();
   const { data: studentsData = [], isLoading: studentsLoading } = useGetStudentsQuery();
 
   const [selectedClass, setSelectedClass] = useState(null);
@@ -20,12 +20,20 @@ export default function AttendancePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [timePeriod, setTimePeriod] = useState('week'); // 'week' or 'month'
 
+  // API Hooks
+  const { data: attendanceData, refetch: refetchAttendance } = useGetAttendanceQuery(
+    { classId: selectedClass?.id, date },
+    { skip: !selectedClass?.id || !date }
+  );
+  const [saveAttendance] = useSaveAttendanceMutation();
+
   const classes = classesData || [];
   const students = Array.isArray(studentsData) ? studentsData : (studentsData?.students || []);
 
   // If we have a class selected, optionally filter students based on some heuristics.
   // For now, show all students if no direct relation can be determined.
-  let filteredStudents = students;
+  // Only show students if a class is selected
+  let filteredStudents = [];
   if (selectedClass) {
     // Prefer to filter by program/subprogram name if present on class
     const classSubprogram = selectedClass.subprogram_name || selectedClass.program_name || null;
@@ -69,8 +77,8 @@ export default function AttendancePage() {
           const parsed = JSON.parse(saved);
           setAttendance(parsed);
           // Check if all students have both hours marked
-          const allMarked = searchFilteredStudents.length > 0 && 
-            searchFilteredStudents.every((s) => 
+          const allMarked = searchFilteredStudents.length > 0 &&
+            searchFilteredStudents.every((s) =>
               parsed[s.id]?.hour1 && parsed[s.id]?.hour2
             );
           setMarkAll(allMarked);
@@ -112,14 +120,31 @@ export default function AttendancePage() {
     setMarkAll(value);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedClass) {
       alert("Please select a class before saving attendance.");
       return;
     }
-    const key = `attendance:${selectedClass.id}:${date}`;
-    localStorage.setItem(key, JSON.stringify(attendance));
-    alert("Attendance saved locally.");
+
+    const today = new Date().toISOString().slice(0, 10);
+    if (date > today) {
+      alert("Cannot save attendance for future dates.");
+      return;
+    }
+
+    try {
+      await saveAttendance({
+        class_id: selectedClass.id,
+        date,
+        attendanceData: attendance
+      }).unwrap();
+      alert("Attendance saved to database.");
+      refetchAttendance();
+    } catch (err) {
+      console.error("Failed to save:", err);
+      const errorMessage = err?.data?.error || err?.error || "Failed to save attendance.";
+      alert(`Error: ${errorMessage}`);
+    }
   };
 
   // Calculate statistics
@@ -137,7 +162,7 @@ export default function AttendancePage() {
 
   useEffect(() => {
     // Update markAll when attendance changes
-    const allMarked = searchFilteredStudents.length > 0 && 
+    const allMarked = searchFilteredStudents.length > 0 &&
       searchFilteredStudents.every((s) => {
         const studentAttendance = attendance[s.id] || { hour1: false, hour2: false };
         return studentAttendance.hour1 && studentAttendance.hour2;
@@ -175,9 +200,9 @@ export default function AttendancePage() {
             />
 
             <label className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              <input 
-                type="checkbox" 
-                checked={markAll} 
+              <input
+                type="checkbox"
+                checked={markAll}
                 onChange={(e) => handleMarkAll(e.target.checked)}
                 className="w-4 h-4 rounded border-gray-300 text-[#010080] focus:ring-2 focus:ring-[#010080] cursor-pointer"
               />
@@ -380,89 +405,7 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          {/* Dashboard Overview - Statistics Section */}
-          <div className={`mt-4 p-4 rounded-lg ${isDark ? 'bg-[#06102b] border border-[#07203c]' : 'bg-white border border-gray-200'} shadow-md`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Statistics Week</h3>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>This Week</span>
-                </div>
-                <button 
-                  onClick={() => setTimePeriod(timePeriod === 'week' ? 'month' : 'week')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    timePeriod === 'month'
-                      ? isDark 
-                        ? 'bg-[#010080] text-white' 
-                        : 'bg-[#010080] text-white'
-                      : isDark 
-                        ? 'bg-[#07203c] text-white hover:bg-[#0a2d4f]' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  M
-                </button>
-              </div>
-            </div>
 
-            {/* Chart Container */}
-            <div className="relative">
-              {/* Y-axis labels */}
-              <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between pr-2">
-                <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>400</span>
-                <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>300</span>
-                <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>200</span>
-                <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>100</span>
-                <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>0</span>
-              </div>
-
-              {/* Chart Area */}
-              <div className="ml-8 h-56 relative">
-                {/* Grid lines */}
-                <div className="absolute inset-0 flex flex-col justify-between">
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <div 
-                      key={i} 
-                      className={`border-t ${isDark ? 'border-[#07203c]' : 'border-gray-200'}`}
-                    ></div>
-                  ))}
-                </div>
-
-                {/* Bar Chart */}
-                <div className="absolute inset-0 flex items-end justify-between gap-2 px-4 pb-8">
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => {
-                    // Calculate attendance data based on current attendance
-                    // For demo: use a combination of present count and hours
-                    const baseValue = timePeriod === 'week' 
-                      ? (presentCount * 20) + (attendedHours * 10) + (index * 30)
-                      : (presentCount * 15) + (attendedHours * 8) + (index * 25);
-                    const value = Math.min(400, Math.max(50, baseValue));
-                    const percentage = (value / 400) * 100;
-                    
-                    return (
-                      <div key={day} className="flex-1 flex flex-col items-center gap-2">
-                        <div className="relative w-full flex items-end justify-center" style={{ height: '100%' }}>
-                          <div 
-                            className="w-full rounded-t transition-all duration-500 hover:opacity-80 cursor-pointer"
-                            style={{
-                              height: `${percentage}%`,
-                              background: isDark 
-                                ? 'linear-gradient(to top, #3b82f6, #60a5fa)' 
-                                : 'linear-gradient(to top, #3b82f6, #93c5fd)',
-                              minHeight: '10px'
-                            }}
-                            title={`${day}: ${Math.round(value)}`}
-                          ></div>
-                        </div>
-                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{day}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Custom Table Container */}
           <div className={`rounded-xl ${isDark ? 'bg-[#06102b] border border-[#07203c]' : 'bg-white border border-gray-200'} shadow-lg overflow-hidden`}>
@@ -511,7 +454,15 @@ export default function AttendancePage() {
                   </tr>
                 </thead>
                 <tbody className={`${isDark ? 'divide-[#07203c]' : 'divide-gray-200'}`}>
-                  {paginatedStudents.length === 0 ? (
+                  {!selectedClass ? (
+                    <tr>
+                      <td className="px-6 py-12 text-center" colSpan={6}>
+                        <div className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Please select a class to view students.
+                        </div>
+                      </td>
+                    </tr>
+                  ) : paginatedStudents.length === 0 ? (
                     <tr>
                       <td className="px-6 py-12 text-center" colSpan={6}>
                         <div className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -526,8 +477,8 @@ export default function AttendancePage() {
                         <tr
                           key={s.id}
                           className={`
-                            ${idx % 2 === 0 
-                              ? isDark ? 'bg-[#06102b]' : 'bg-white' 
+                            ${idx % 2 === 0
+                              ? isDark ? 'bg-[#06102b]' : 'bg-white'
                               : isDark ? 'bg-[#0a1525]' : 'bg-gray-50'
                             }
                             ${isDark ? 'hover:bg-[#0d1a2e]' : 'hover:bg-gray-100'}
@@ -553,13 +504,12 @@ export default function AttendancePage() {
                                 type="checkbox"
                                 checked={studentAttendance.hour1}
                                 onChange={() => handleToggleHour(s.id, 'hour1')}
-                                className={`w-5 h-5 rounded border-2 transition-colors ${
-                                  studentAttendance.hour1
-                                    ? 'bg-[#010080] border-[#010080] text-white'
-                                    : isDark 
-                                      ? 'border-gray-500 bg-transparent'
-                                      : 'border-gray-300 bg-white'
-                                } focus:ring-2 focus:ring-[#010080] focus:ring-offset-0 cursor-pointer`}
+                                className={`w-5 h-5 rounded border-2 transition-colors ${studentAttendance.hour1
+                                  ? 'bg-[#010080] border-[#010080] text-white'
+                                  : isDark
+                                    ? 'border-gray-500 bg-transparent'
+                                    : 'border-gray-300 bg-white'
+                                  } focus:ring-2 focus:ring-[#010080] focus:ring-offset-0 cursor-pointer`}
                               />
                             </label>
                           </td>
@@ -569,13 +519,12 @@ export default function AttendancePage() {
                                 type="checkbox"
                                 checked={studentAttendance.hour2}
                                 onChange={() => handleToggleHour(s.id, 'hour2')}
-                                className={`w-5 h-5 rounded border-2 transition-colors ${
-                                  studentAttendance.hour2
-                                    ? 'bg-[#010080] border-[#010080] text-white'
-                                    : isDark 
-                                      ? 'border-gray-500 bg-transparent'
-                                      : 'border-gray-300 bg-white'
-                                } focus:ring-2 focus:ring-[#010080] focus:ring-offset-0 cursor-pointer`}
+                                className={`w-5 h-5 rounded border-2 transition-colors ${studentAttendance.hour2
+                                  ? 'bg-[#010080] border-[#010080] text-white'
+                                  : isDark
+                                    ? 'border-gray-500 bg-transparent'
+                                    : 'border-gray-300 bg-white'
+                                  } focus:ring-2 focus:ring-[#010080] focus:ring-offset-0 cursor-pointer`}
                               />
                             </label>
                           </td>
@@ -595,11 +544,10 @@ export default function AttendancePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    className={`px-3 py-1.5 rounded-lg transition-colors ${
-                      currentPage === 1
-                        ? isDark ? 'bg-[#07203c] text-gray-600 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : isDark ? 'bg-[#07203c] text-white hover:bg-[#0a2d4f]' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                    }`}
+                    className={`px-3 py-1.5 rounded-lg transition-colors ${currentPage === 1
+                      ? isDark ? 'bg-[#07203c] text-gray-600 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : isDark ? 'bg-[#07203c] text-white hover:bg-[#0a2d4f]' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      }`}
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((prev) => prev - 1)}
                   >
@@ -609,11 +557,10 @@ export default function AttendancePage() {
                     Page {currentPage} of {totalPages || 1}
                   </div>
                   <button
-                    className={`px-3 py-1.5 rounded-lg transition-colors ${
-                      currentPage === totalPages || totalPages === 0
-                        ? isDark ? 'bg-[#07203c] text-gray-600 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : isDark ? 'bg-[#07203c] text-white hover:bg-[#0a2d4f]' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                    }`}
+                    className={`px-3 py-1.5 rounded-lg transition-colors ${currentPage === totalPages || totalPages === 0
+                      ? isDark ? 'bg-[#07203c] text-gray-600 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : isDark ? 'bg-[#07203c] text-white hover:bg-[#0a2d4f]' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      }`}
                     disabled={currentPage === totalPages || totalPages === 0}
                     onClick={() => setCurrentPage((prev) => prev + 1)}
                   >

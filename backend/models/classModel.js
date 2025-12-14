@@ -60,7 +60,23 @@ export const getClassesByCourseId = async (course_id) => {
   return rows;
 };
 
-// Note: getClassesByTeacherId removed - teacher_id no longer exists in classes table
+// GET classes by teacher_id
+export const getClassesByTeacherId = async (teacher_id) => {
+  const [rows] = await dbp.query(
+    `SELECT cl.*, 
+            c.course_title, 
+            s.subprogram_name,
+            p.title as program_name
+     FROM classes cl 
+     LEFT JOIN courses c ON cl.course_id = c.id 
+     LEFT JOIN subprograms s ON c.subprogram_id = s.id 
+     LEFT JOIN programs p ON s.program_id = p.id 
+     WHERE cl.teacher_id = ?
+     ORDER BY cl.created_at DESC`,
+    [teacher_id]
+  );
+  return rows;
+};
 
 // UPDATE class
 export const updateClassById = async (id, { class_name, course_id, schedule, description, teacher_id }) => {

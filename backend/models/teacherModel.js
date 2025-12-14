@@ -160,3 +160,35 @@ export const deleteTeacherById = async (id) => {
   return result.affectedRows;
 };
 
+// GET teacher stats
+export const getTeacherStatsById = async (id) => {
+  // Total Classes
+  const [classesCount] = await dbp.query(
+    "SELECT COUNT(*) as count FROM classes WHERE teacher_id = ?",
+    [id]
+  );
+
+  // Total Courses (distinct courses teacher is assigned to)
+  const [coursesCount] = await dbp.query(
+    "SELECT COUNT(DISTINCT course_id) as count FROM classes WHERE teacher_id = ?",
+    [id]
+  );
+
+  // Active Students (students in subprograms where teacher has classes)
+  // Assuming students in those subprograms are relevant to the teacher
+  const [studentsCount] = await dbp.query(
+    `SELECT COUNT(DISTINCT s.id) as count
+     FROM students s
+     JOIN courses c ON c.subprogram_id = s.chosen_subprogram
+     JOIN classes cl ON cl.course_id = c.id
+     WHERE cl.teacher_id = ?`,
+    [id]
+  );
+
+  return {
+    totalClasses: classesCount[0].count,
+    totalCourses: coursesCount[0].count,
+    activeStudents: studentsCount[0].count
+  };
+};
+

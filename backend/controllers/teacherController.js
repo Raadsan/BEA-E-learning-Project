@@ -1,5 +1,6 @@
 // controllers/teacherController.js
 import * as Teacher from "../models/teacherModel.js";
+import * as Class from "../models/classModel.js";
 import bcrypt from "bcryptjs";
 
 // CREATE TEACHER
@@ -120,6 +121,42 @@ export const deleteTeacher = async (req, res) => {
 
     await Teacher.deleteTeacherById(id);
     res.json({ message: "Deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// GET TEACHER DASHBOARD STATS
+export const getTeacherDashboardStats = async (req, res) => {
+  try {
+    // req.user is populated by verifyToken middleware
+    const teacherId = req.user.userId;
+
+    // Ensure the user is actually a teacher if needed, or just trust the ID from token
+    if (req.user.role !== 'teacher') {
+      return res.status(403).json({ error: "Access denied. Teachers only." });
+    }
+
+    const stats = await Teacher.getTeacherStatsById(teacherId);
+    res.json(stats);
+  } catch (err) {
+    console.error("❌ Get teacher stats error:", err);
+    res.status(500).json({ error: "Server error: " + err.message });
+  }
+};
+
+// GET TEACHER CLASSES
+export const getTeacherClasses = async (req, res) => {
+  try {
+    const teacherId = req.user.userId;
+
+    if (req.user.role !== 'teacher') {
+      return res.status(403).json({ error: "Access denied. Teachers only." });
+    }
+
+    const classes = await Class.getClassesByTeacherId(teacherId);
+    res.json(classes);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });

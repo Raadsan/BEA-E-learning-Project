@@ -13,6 +13,7 @@ import subprogramRoutes from "./routes/subprogramRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import classRoutes from "./routes/classRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import attendanceRoutes from "./routes/attendanceRoutes.js";
 
 const app = express();
 
@@ -59,6 +60,9 @@ app.use("/api/classes", classRoutes);
 
 // ⬇️ Register Auth Routes (Login, etc.)
 app.use("/api/auth", authRoutes);
+
+// ⬇️ Register Attendance Routes (NEW)
+app.use("/api/attendance", attendanceRoutes);
 
 // Server start
 const PORT = process.env.PORT || 5000;

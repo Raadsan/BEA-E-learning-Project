@@ -6,11 +6,16 @@ import {
   getTeacher,
   updateTeacher,
   deleteTeacher,
+  getTeacherDashboardStats,
+  getTeacherClasses
 } from "../controllers/teacherController.js";
+import { verifyToken } from "../controllers/authController.js";
 
 const router = express.Router();
 
 // ---------- ROUTES ----------
+router.get("/dashboard/stats", verifyToken, getTeacherDashboardStats);
+router.get("/classes", verifyToken, getTeacherClasses);
 router.get("/", getTeachers);
 router.get("/:id", getTeacher);
 router.post("/", createTeacher);

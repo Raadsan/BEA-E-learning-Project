@@ -2,73 +2,62 @@
 
 import TeacherHeader from "./TeacherHeader";
 import React from 'react';
-import { useGetClassesQuery } from "@/redux/api/classApi";
-import { useGetStudentsQuery } from "@/redux/api/studentApi";
-import { useGetCoursesQuery } from "@/redux/api/courseApi";
+import { useGetTeacherDashboardStatsQuery } from "@/redux/api/teacherApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
-  // Circular Progress Component
-  const CircularProgress = ({ percentage, size = 80, strokeWidth = 8, color = "#3b82f6" }) => {
-    const radius = (size - strokeWidth) / 2;
-    const circumference = radius * 2 * Math.PI;
-    const offset = circumference - (percentage / 100) * circumference;
+// Circular Progress Component
+const CircularProgress = ({ percentage, size = 80, strokeWidth = 8, color = "#3b82f6" }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (percentage / 100) * circumference;
 
-    return (
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg className="transform -rotate-90" width={size} height={size}>
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke="#e5e7eb"
-            strokeWidth={strokeWidth}
-            fill="none"
-          />
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke={color}
-            strokeWidth={strokeWidth}
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            className="transition-all duration-500"
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-bold text-gray-900">{percentage}%</span>
-        </div>
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90" width={size} height={size}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#e5e7eb"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className="transition-all duration-500"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-lg font-bold text-gray-900">{percentage}%</span>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 export default function TeacherDashboard() {
   const { isDark } = useDarkMode();
-  
-  // Fetch data from APIs
-  const { data: classesData, isLoading: classesLoading } = useGetClassesQuery();
-  const { data: studentsData, isLoading: studentsLoading } = useGetStudentsQuery();
-  const { data: coursesData, isLoading: coursesLoading } = useGetCoursesQuery();
 
-  // Extract counts
-  const classes = Array.isArray(classesData) ? classesData : [];
-  const totalClasses = classes.length;
-  
-  const studentsArray = studentsData?.students || (Array.isArray(studentsData) ? studentsData : []);
-  const totalStudents = studentsArray.length;
-  const activeStudents = studentsArray.filter(
-    (student) => student.status === "Active" || !student.status
-  ).length;
-  
-  const courses = Array.isArray(coursesData) ? coursesData : [];
-  const totalCourses = courses.length;
+  // Fetch data from API
+  const { data: stats, isLoading } = useGetTeacherDashboardStatsQuery();
 
-  // Calculate percentages for circular progress
-  const coursesPercentage = totalCourses > 0 ? Math.min(Math.round((totalCourses / 10) * 100), 100) : 0;
-  const activeStudentsPercentage = totalStudents > 0 ? Math.min(Math.round((activeStudents / totalStudents) * 100), 100) : 0;
-  const classesPercentage = totalClasses > 0 ? Math.min(Math.round((totalClasses / 20) * 100), 100) : 0;
+  // Extract counts from stats object
+  const totalClasses = stats?.totalClasses || 0;
+  const totalCourses = stats?.totalCourses || 0;
+  const activeStudents = stats?.activeStudents || 0;
+
+  // Calculate percentages for circular progress (mock calculation based on meaningful targets)
+  // Assuming targets: 10 courses, 50 students, 20 classes
+  const coursesPercentage = Math.min(Math.round((totalCourses / 10) * 100), 100);
+  const activeStudentsPercentage = Math.min(Math.round((activeStudents / 50) * 100), 100);
+  const classesPercentage = Math.min(Math.round((totalClasses / 20) * 100), 100);
 
   return (
     <>
@@ -78,7 +67,7 @@ export default function TeacherDashboard() {
       <main className="flex-1 overflow-y-auto">
         <div className="w-full px-8 pt-6 pb-6">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Dashboard Overview</h1>
-          
+
           {/* Summary Cards with Circular Progress */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 max-w-full">
             {/* Total Course Card */}
@@ -87,7 +76,7 @@ export default function TeacherDashboard() {
                 <div>
                   <p className="text-gray-600 text-sm font-medium mb-2">Total Course</p>
                   <p className="text-4xl font-bold text-gray-900">
-                    {coursesLoading ? "..." : totalCourses}
+                    {isLoading ? "..." : totalCourses}
                   </p>
                   <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +97,7 @@ export default function TeacherDashboard() {
                 <div className="flex-1">
                   <p className="text-gray-600 text-sm font-medium mb-2">Active Students</p>
                   <p className="text-4xl font-bold text-gray-900">
-                    {studentsLoading ? "..." : activeStudents}
+                    {isLoading ? "..." : activeStudents}
                   </p>
                   <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,7 +118,7 @@ export default function TeacherDashboard() {
                 <div className="flex-1">
                   <p className="text-gray-600 text-sm font-medium mb-2">Total Courses</p>
                   <p className="text-4xl font-bold text-gray-900">
-                    {coursesLoading ? "..." : totalCourses}
+                    {isLoading ? "..." : totalCourses}
                   </p>
                   <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,7 +139,7 @@ export default function TeacherDashboard() {
                 <div className="flex-1">
                   <p className="text-gray-600 text-sm font-medium mb-2">Total Classes</p>
                   <p className="text-4xl font-bold text-gray-900">
-                    {classesLoading ? "..." : totalClasses}
+                    {isLoading ? "..." : totalClasses}
                   </p>
                   <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,4 +185,4 @@ export default function TeacherDashboard() {
   );
 }
 
- 
+
