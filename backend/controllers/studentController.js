@@ -191,3 +191,79 @@ export const deleteStudent = async (req, res) => {
   }
 };
 
+// APPROVE STUDENT
+export const approveStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("📝 Approve request received for student ID:", id);
+    
+    const existing = await Student.getStudentById(id);
+    console.log("📝 Existing student:", existing ? "Found" : "Not found");
+
+    if (!existing) {
+      return res.status(404).json({ 
+        success: false,
+        error: "Student not found" 
+      });
+    }
+
+    console.log("📝 Current approval_status:", existing.approval_status);
+    const updateResult = await Student.updateApprovalStatus(id, 'approved');
+    console.log("📝 Update result:", updateResult);
+    
+    const updated = await Student.getStudentById(id);
+    console.log("📝 Updated student approval_status:", updated?.approval_status);
+
+    res.json({ 
+      success: true,
+      message: "Student approved successfully",
+      student: updated 
+    });
+  } catch (err) {
+    console.error("❌ Approve student error:", err);
+    console.error("❌ Error stack:", err.stack);
+    res.status(500).json({ 
+      success: false,
+      error: "Server error: " + err.message 
+    });
+  }
+};
+
+// REJECT STUDENT
+export const rejectStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("📝 Reject request received for student ID:", id);
+    
+    const existing = await Student.getStudentById(id);
+    console.log("📝 Existing student:", existing ? "Found" : "Not found");
+
+    if (!existing) {
+      return res.status(404).json({ 
+        success: false,
+        error: "Student not found" 
+      });
+    }
+
+    console.log("📝 Current approval_status:", existing.approval_status);
+    const updateResult = await Student.updateApprovalStatus(id, 'rejected');
+    console.log("📝 Update result:", updateResult);
+    
+    const updated = await Student.getStudentById(id);
+    console.log("📝 Updated student approval_status:", updated?.approval_status);
+
+    res.json({ 
+      success: true,
+      message: "Student rejected successfully",
+      student: updated 
+    });
+  } catch (err) {
+    console.error("❌ Reject student error:", err);
+    console.error("❌ Error stack:", err.stack);
+    res.status(500).json({ 
+      success: false,
+      error: "Server error: " + err.message 
+    });
+  }
+};
+

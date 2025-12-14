@@ -14,7 +14,8 @@ async function createAdminsTable() {
     await dbp.query(`
       CREATE TABLE IF NOT EXISTS admins (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        full_name VARCHAR(255) NOT NULL,
+        first_name VARCHAR(255) NOT NULL,
+        last_name VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         role VARCHAR(50) DEFAULT 'admin',
@@ -37,8 +38,8 @@ async function createAdminsTable() {
       const hashedPassword = await bcrypt.hash(defaultAdminPassword, 10);
       
       await dbp.query(
-        "INSERT INTO admins (full_name, email, password, role) VALUES (?, ?, ?, ?)",
-        ['System Admin', defaultAdminEmail, hashedPassword, 'admin']
+        "INSERT INTO admins (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)",
+        ['System', 'Admin', defaultAdminEmail, hashedPassword, 'admin']
       );
       console.log(`✅ Created default admin account: ${defaultAdminEmail} / ${defaultAdminPassword}`);
       console.log("⚠️  Please change the default admin password after first login!");
