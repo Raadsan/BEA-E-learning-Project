@@ -429,19 +429,23 @@ export default function AdminSidebar() {
                   {openSubSection === 'placementTests' && (
                     <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
                       <li>
-                        <Link href="/portal/admin/assessments/placement-tests" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-600 hover:bg-gray-100">
-                          <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <Link
+                          href="/portal/admin/assessments/placement-tests"
+                          className={getSubMenuItemClasses("/portal/admin/assessments/placement-tests").replace(isActive("/portal/admin/assessments/placement-tests") ? "bg-[#010080] text-white" : "", "") + ` ${isActive("/portal/admin/assessments/placement-tests") && !pathname?.includes('/results') ? 'bg-[#010080] text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}
+                          style={isActive("/portal/admin/assessments/placement-tests") && !pathname?.includes('/results') ? { backgroundColor: '#010080' } : {}}
+                        >
+                          <svg className={`w-3.5 h-3.5 ${isActive("/portal/admin/assessments/placement-tests") && !pathname?.includes('/results') ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                           </svg>
-                          <span className="text-gray-700">Placement Tests View</span>
+                          <span className={isActive("/portal/admin/assessments/placement-tests") && !pathname?.includes('/results') ? 'text-white' : 'text-gray-700'}>Placement Tests View</span>
                         </Link>
                       </li>
                       <li>
-                        <Link href="/portal/admin/assessments/placement-tests/results" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-600 hover:bg-gray-100">
-                          <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <Link href="/portal/admin/assessments/placement-tests/results" className={getSubMenuItemClasses("/portal/admin/assessments/placement-tests/results")} style={getSubActiveStyle("/portal/admin/assessments/placement-tests/results")}>
+                          <svg className={`w-3.5 h-3.5 ${isActive("/portal/admin/assessments/placement-tests/results") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                           </svg>
-                          <span className="text-gray-700">Placement Results</span>
+                          <span className={isActive("/portal/admin/assessments/placement-tests/results") ? 'text-white' : 'text-gray-700'}>Placement Results</span>
                         </Link>
                       </li>
                     </ul>
