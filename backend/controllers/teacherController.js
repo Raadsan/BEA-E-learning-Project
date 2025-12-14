@@ -31,8 +31,9 @@ export const createTeacher = async (req, res) => {
       return res.status(400).json({ error: "Email already exists" });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password (REMOVED: Using plain text for now)
+    // const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password;
 
     const teacher = await Teacher.createTeacher({
       full_name,
@@ -95,10 +96,12 @@ export const updateTeacher = async (req, res) => {
 
     const updateData = { ...req.body };
 
-    // Hash password if provided
+    // Hashing removed for plain text compatibility
+    /*
     if (updateData.password) {
       updateData.password = await bcrypt.hash(updateData.password, 10);
     }
+    */
 
     await Teacher.updateTeacherById(id, updateData);
 

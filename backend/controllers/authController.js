@@ -33,7 +33,6 @@ export const login = async (req, res) => {
 
     // Check all tables to find the user (priority: admin > teacher > student)
     // Check admin first
-<<<<<<< HEAD
     user = await Admin.getAdminByEmail(email);
     if (user) {
       detectedRole = 'admin';
@@ -46,25 +45,6 @@ export const login = async (req, res) => {
         role: user.role || 'admin'
       };
     } else {
-=======
-    try {
-      user = await Admin.getAdminByEmail(email);
-      if (user) {
-        detectedRole = 'admin';
-        userData = {
-          id: user.id,
-          full_name: user.full_name,
-          email: user.email,
-          role: user.role || 'admin'
-        };
-      }
-    } catch (adminError) {
-      console.error("❌ Error fetching admin:", adminError);
-      // Continue to check other roles
-    }
-    
-    if (!user) {
->>>>>>> 264c997f296322ec81499e01cc49e66f3b5ae4fb
       // Check teacher
       user = await Teacher.getTeacherByEmail(email);
       if (user) {
@@ -103,21 +83,8 @@ export const login = async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
     // Verify password (plain text comparison - no encryption/decryption)
     const isPasswordValid = password === user.password;
-=======
-    // Verify password
-    if (!user.password) {
-      console.log(`❌ Login failed: No password hash found for user: ${email}`);
-      return res.status(401).json({
-        success: false,
-        error: "Invalid email or password"
-      });
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
->>>>>>> 264c997f296322ec81499e01cc49e66f3b5ae4fb
     if (!isPasswordValid) {
       console.log(`❌ Login failed: Invalid password for email: ${email}`);
       return res.status(401).json({
@@ -189,7 +156,6 @@ export const getCurrentUser = async (req, res) => {
     // Get user data based on role
     switch (role) {
       case 'admin':
-<<<<<<< HEAD
         user = await Admin.getAdminById(userId);
         if (user) {
           user = {
@@ -200,30 +166,8 @@ export const getCurrentUser = async (req, res) => {
             email: user.email,
             role: user.role || 'admin'
           };
-=======
-        try {
-          user = await Admin.getAdminById(userId);
-          if (user) {
-            user = {
-              id: user.id,
-              full_name: user.full_name,
-              email: user.email,
-              role: user.role || 'admin'
-            };
-          } else {
-            console.error(`Admin with ID ${userId} not found`);
-          }
-        } catch (adminError) {
-          console.error("Error fetching admin:", adminError);
-          console.error("Admin Error Details:", {
-            message: adminError.message,
-            stack: adminError.stack,
-            userId,
-            role
-          });
-          // Don't throw, let it continue to return 404
->>>>>>> 264c997f296322ec81499e01cc49e66f3b5ae4fb
         }
+
         break;
 
       case 'student':
