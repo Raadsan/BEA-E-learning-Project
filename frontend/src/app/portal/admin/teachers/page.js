@@ -5,24 +5,19 @@ import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
 import { Toast, useToast } from "@/components/Toast";
 import { useGetTeachersQuery, useCreateTeacherMutation, useUpdateTeacherMutation, useDeleteTeacherMutation } from "@/redux/api/teacherApi";
-import { useGetClassesQuery, useUpdateClassMutation } from "@/redux/api/classApi";
+import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function TeachersPage() {
   const { isDark } = useDarkMode();
   const { toast, showToast, hideToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [viewingTeacher, setViewingTeacher] = useState(null);
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [assigningTeacher, setAssigningTeacher] = useState(null);
-  const [selectedClassId, setSelectedClassId] = useState("");
 
   const { data: backendTeachers, isLoading, isError, error } = useGetTeachersQuery();
   const { data: classes = [] } = useGetClassesQuery();
-  const [updateClass, { isLoading: isAssigning }] = useUpdateClassMutation();
   const [createTeacher, { isLoading: isCreating }] = useCreateTeacherMutation();
   const [updateTeacher, { isLoading: isUpdating }] = useUpdateTeacherMutation();
   const [deleteTeacher, { isLoading: isDeleting }] = useDeleteTeacherMutation();
@@ -65,7 +60,7 @@ export default function TeachersPage() {
       portfolio_link: "",
       skills: "",
       hire_date: "",
-      password: "123",
+      password: "",
     });
     setIsModalOpen(true);
   };
@@ -130,36 +125,9 @@ export default function TeachersPage() {
   };
 
   const handleAssign = (teacher) => {
-    setAssigningTeacher(teacher);
-    setSelectedClassId(""); // Reset selection
-    setIsAssignModalOpen(true);
-  };
-
-  const handleCloseAssignModal = () => {
-    setIsAssignModalOpen(false);
-    setAssigningTeacher(null);
-    setSelectedClassId("");
-  };
-
-  const handleAssignSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedClassId) {
-      showToast("Please select a class", "error");
-      return;
-    }
-
-    try {
-      await updateClass({
-        id: selectedClassId,
-        teacher_id: assigningTeacher.id
-      }).unwrap();
-
-      showToast(`Assigned ${assigningTeacher.full_name} to class successfully!`, "success");
-      handleCloseAssignModal();
-    } catch (error) {
-      console.error("Failed to assign teacher:", error);
-      showToast("Failed to assign teacher. Please try again.", "error");
-    }
+    // Note: Teacher assignment to classes has been removed
+    // This functionality is no longer available
+    alert("Teacher assignment to classes has been removed. Teachers are no longer directly assigned to classes.");
   };
 
   const handleCloseModal = () => {
@@ -282,15 +250,6 @@ export default function TeachersPage() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => handleAssign(row)}
-            className="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 transition-colors p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
-            title="Assign to Class"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </button>
           <button
@@ -553,34 +512,16 @@ export default function TeachersPage() {
                       }`}>
                       Password <span className="text-red-500">*</span>
                     </label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        required={!editingTeacher}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                          }`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className={`absolute inset-y-0 right-0 px-3 flex items-center text-sm leading-5 ${isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
-                      >
-                        {showPassword ? (
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        ) : (
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.575-3.133m3.15-2.738A10.05 10.05 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-2.924 4.41M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required={!editingTeacher}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
+                    />
                   </div>
                 )}
 
@@ -640,8 +581,8 @@ export default function TeachersPage() {
                   type="button"
                   onClick={handleCloseModal}
                   className={`px-4 py-2 border rounded-lg transition-colors ${isDark
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                     }`}
                 >
                   Cancel
@@ -832,8 +773,8 @@ export default function TeachersPage() {
                           <span
                             key={index}
                             className={`px-3 py-1 rounded-full text-xs font-medium ${isDark
-                              ? 'bg-purple-600/30 text-purple-300 border border-purple-500/50'
-                              : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                ? 'bg-purple-600/30 text-purple-300 border border-purple-500/50'
+                                : 'bg-purple-100 text-purple-700 border border-purple-200'
                               }`}
                           >
                             {skill.trim()}
@@ -876,8 +817,8 @@ export default function TeachersPage() {
                       <div
                         key={classItem.id}
                         className={`p-4 rounded-lg border transition-all hover:shadow-lg ${isDark
-                          ? 'bg-gradient-to-br from-gray-800/80 to-gray-700/80 border-gray-600 hover:border-gray-500'
-                          : 'bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:border-blue-300'
+                            ? 'bg-gradient-to-br from-gray-800/80 to-gray-700/80 border-gray-600 hover:border-gray-500'
+                            : 'bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:border-blue-300'
                           }`}
                       >
                         <div className="flex items-start justify-between mb-3">
@@ -931,91 +872,6 @@ export default function TeachersPage() {
                 )}
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Assign Teacher Modal */}
-      {isAssignModalOpen && assigningTeacher && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
-          style={{ pointerEvents: 'none' }}
-        >
-          <div
-            className="absolute inset-0"
-            onClick={handleCloseAssignModal}
-            style={{ pointerEvents: 'auto' }}
-          />
-
-          <div
-            className={`relative rounded-lg shadow-2xl w-full max-w-md mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-              }`}
-            onClick={(e) => e.stopPropagation()}
-            style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
-          >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-              }`}>
-              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
-                }`}>
-                Assign Class
-              </h2>
-              <button
-                onClick={handleCloseAssignModal}
-                className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-                  }`}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <form onSubmit={handleAssignSubmit} className="p-6 space-y-4">
-              <div>
-                <p className={`mb-4 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Assign <strong>{assigningTeacher.full_name}</strong> to a class.
-                </p>
-                <label htmlFor="classSelect" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                  Select Class <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="classSelect"
-                  value={selectedClassId}
-                  onChange={(e) => setSelectedClassId(e.target.value)}
-                  required
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
-                >
-                  <option value="">-- Select a Class --</option>
-                  {classes.map((cls) => (
-                    <option key={cls.id} value={cls.id}>
-                      {cls.class_name} {cls.program_name ? `(${cls.program_name})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  type="button"
-                  onClick={handleCloseAssignModal}
-                  className={`px-4 py-2 border rounded-lg transition-colors ${isDark
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isAssigning}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isAssigning ? "Assigning..." : "Assign"}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

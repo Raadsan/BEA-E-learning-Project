@@ -69,8 +69,6 @@ export const updateAdminById = async (id, {
   phone,
   password,
   role,
-  reset_password_token,
-  reset_password_expires,
   status
 }) => {
   const updates = [];
@@ -83,7 +81,7 @@ export const updateAdminById = async (id, {
   if (last_name !== undefined) {
     updates.push("last_name = ?");
     values.push(last_name);
-  } 
+  }
   if (email !== undefined) {
     updates.push("email = ?");
     values.push(email);
@@ -105,14 +103,6 @@ export const updateAdminById = async (id, {
     updates.push("status = ?");
     values.push(status);
   }
-  if (reset_password_token !== undefined) {
-    updates.push("reset_password_token = ?");
-    values.push(reset_password_token);
-  }
-  if (reset_password_expires !== undefined) {
-    updates.push("reset_password_expires = ?");
-    values.push(reset_password_expires);
-  }
 
   if (updates.length === 0) {
     return 0;
@@ -131,17 +121,5 @@ export const updateAdminById = async (id, {
 export const deleteAdminById = async (id) => {
   const [result] = await dbp.query("DELETE FROM admins WHERE id = ?", [id]);
   return result.affectedRows;
-};
-
-// GET admin by reset token
-export const getAdminByResetToken = async (token) => {
-  const [rows] = await dbp.query(
-    "SELECT * FROM admins WHERE reset_password_token = ? AND reset_password_expires > NOW()",
-    [token]
-  );
-  if (rows[0]) {
-    rows[0].full_name = `${rows[0].first_name || ''} ${rows[0].last_name || ''}`.trim();
-  }
-  return rows[0] || null;
 };
 

@@ -3,23 +3,14 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
-import { Toast, useToast } from "@/components/Toast";
-import {
-  useGetStudentsQuery,
-  useCreateStudentMutation,
-  useUpdateStudentMutation,
-  useDeleteStudentMutation,
-  useApproveStudentMutation,
-  useRejectStudentMutation
-} from "@/redux/api/studentApi";
+import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation } from "@/redux/api/studentApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
-import { useGetSubprogramsQuery, useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
+import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function StudentsPage() {
   const { isDark } = useDarkMode();
   const { toast, showToast, hideToast } = useToast();
-  const [activeTab, setActiveTab] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isSubprogramsModalOpen, setIsSubprogramsModalOpen] = useState(false);
@@ -35,29 +26,46 @@ export default function StudentsPage() {
   const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
   const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
   const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentMutation();
-  const [approveStudent, { isLoading: isApproving }] = useApproveStudentMutation();
-  const [rejectStudent, { isLoading: isRejecting }] = useRejectStudentMutation();
 
   const students = backendStudents || [];
 
-  const filteredStudents = students.filter(student => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'general') return student.chosen_program?.toLowerCase().includes('general');
-    if (activeTab === 'ielts') {
-      const program = student.chosen_program?.toLowerCase();
-      return program?.includes('ielts') || program?.includes('toefl');
-    }
-    return true;
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    age: "",
+    residency_country: "",
+    residency_city: "",
+    chosen_program: "",
+    chosen_subprogram: "",
+    password: "",
+    parent_name: "",
+    parent_email: "",
+    parent_phone: "",
+    parent_relation: "",
+    parent_res_county: "",
+    parent_res_city: "",
   });
 
-  const [formData, setFormData] = useState({
-    full_name: "", "email": "", "phone": "", "age": "", "residency_country": "", "residency_city": "", "chosen_program": "", "chosen_subprogram": "", "password": "", "parent_name": "", "parent_email": "", "parent_phone": "", "parent_relation": "", "parent_res_county": "", "parent_res_city": ""
-  });
 
   const handleAddStudent = () => {
     setEditingStudent(null);
     setFormData({
-      full_name: "", "email": "", "phone": "", "age": "", "residency_country": "", "residency_city": "", "chosen_program": "", "chosen_subprogram": "", "password": "", "parent_name": "", "parent_email": "", "parent_phone": "", "parent_relation": "", "parent_res_county": "", "parent_res_city": ""
+      full_name: "",
+      email: "",
+      phone: "",
+      age: "",
+      residency_country: "",
+      residency_city: "",
+      chosen_program: "",
+      chosen_subprogram: "",
+      password: "",
+      parent_name: "",
+      parent_email: "",
+      parent_phone: "",
+      parent_relation: "",
+      parent_res_county: "",
+      parent_res_city: "",
     });
     setIsModalOpen(true);
   };
@@ -65,16 +73,45 @@ export default function StudentsPage() {
   const handleEdit = (student) => {
     setEditingStudent(student);
     setFormData({
-      full_name: student.full_name || "", email: student.email || "", phone: student.phone || "", age: student.age || "", residency_country: student.residency_country || "", residency_city: student.residency_city || "", chosen_program: student.chosen_program || "", chosen_subprogram: student.chosen_subprogram || "", password: "",
-      parent_name: student.parent_name || "", parent_email: student.parent_email || "", parent_phone: student.parent_phone || "", parent_relation: student.parent_relation || "", parent_res_county: student.parent_res_county || "", parent_res_city: student.parent_res_city || ""
+      full_name: student.full_name || "",
+      email: student.email || "",
+      phone: student.phone || "",
+      age: student.age || "",
+      residency_country: student.residency_country || "",
+      residency_city: student.residency_city || "",
+      chosen_program: student.chosen_program || "",
+      chosen_subprogram: student.chosen_subprogram || "",
+      password: "", // Don't pre-fill password
+      parent_name: student.parent_name || "",
+      parent_email: student.parent_email || "",
+      parent_phone: student.parent_phone || "",
+      parent_relation: student.parent_relation || "",
+      parent_res_county: student.parent_res_county || "",
+      parent_res_city: student.parent_res_city || "",
     });
     setIsModalOpen(true);
   };
 
-  const handleView = (student) => { setViewingStudent(student); setIsViewModalOpen(true); };
-  const handleCloseViewModal = () => { setIsViewModalOpen(false); setViewingStudent(null); };
-  const handleAssignSubprogram = (student) => { setAssigningStudent(student); setIsAssignSubprogramModalOpen(true); };
-  const handleCloseAssignSubprogramModal = () => { setIsAssignSubprogramModalOpen(false); setAssigningStudent(null); };
+  const handleView = (student) => {
+    setViewingStudent(student);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+    setViewingStudent(null);
+  };
+
+  const handleAssignSubprogram = (student) => {
+    setAssigningStudent(student);
+    setIsAssignSubprogramModalOpen(true);
+  };
+
+  const handleCloseAssignSubprogramModal = () => {
+    setIsAssignSubprogramModalOpen(false);
+    setAssigningStudent(null);
+  };
+
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this student?")) {
@@ -82,12 +119,14 @@ export default function StudentsPage() {
         await deleteStudent(id).unwrap();
         showToast("Student deleted successfully!", "success");
       } catch (error) {
-        showToast("Failed to delete student.", "error");
+        console.error("Failed to delete student:", error);
+        showToast("Failed to delete student. Please try again.", "error");
       }
     }
   };
 
   const handleViewProgramSubprograms = (programName) => {
+    // Find the program by name to get its ID
     const program = programs.find(p => p.title === programName);
     if (program) {
       setSelectedProgramForSubprograms({ name: programName, id: program.id });
@@ -97,100 +136,333 @@ export default function StudentsPage() {
     }
   };
 
-  const handleCloseSubprogramsModal = () => { setIsSubprogramsModalOpen(false); setSelectedProgramForSubprograms(null); };
+  const handleCloseSubprogramsModal = () => {
+    setIsSubprogramsModalOpen(false);
+    setSelectedProgramForSubprograms(null);
+  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingStudent(null);
+    setFormData({
+      full_name: "",
+      email: "",
+      phone: "",
+      age: "",
+      residency_country: "",
+      residency_city: "",
+      chosen_program: "",
+      chosen_subprogram: "",
+      password: "",
+      parent_name: "",
+      parent_email: "",
+      parent_phone: "",
+      parent_relation: "",
+      parent_res_county: "",
+      parent_res_city: "",
+    });
   };
 
-  const handleBackdropClick = (e) => { if (e.target === e.currentTarget) handleCloseModal(); };
-  const handleInputChange = (e) => { const { name, value } = e.target; setFormData((prev) => ({ ...prev, [name]: value })); };
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      handleCloseModal();
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Show parent information if age is less than 18
   const showParentInfo = formData.age && parseInt(formData.age) < 18;
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
+
     try {
-      const submitData = { ...formData, age: formData.age ? parseInt(formData.age) : null };
-      if (!submitData.password || submitData.password.trim() === "") delete submitData.password;
-      if (submitData.chosen_subprogram === "") submitData.chosen_subprogram = null;
+      const submitData = {
+        ...formData,
+        age: formData.age ? parseInt(formData.age) : null,
+      };
+
+      // Only include password if it's provided (for updates)
+      if (!submitData.password || submitData.password.trim() === "") {
+        delete submitData.password;
+      }
+
+      // Ensure chosen_subprogram is included (even if empty string, convert to null)
+      if (submitData.chosen_subprogram === "") {
+        submitData.chosen_subprogram = null;
+      }
+
+      console.log("Submitting student data:", submitData); // Debug log
 
       if (editingStudent) {
         await updateStudent({ id: editingStudent.id, ...submitData }).unwrap();
         showToast("Student updated successfully!", "success");
       } else {
-        if (!submitData.password || submitData.password.trim() === "") { showToast("Password is required.", "error"); return; }
+        // Password is required for new students
+        if (!submitData.password || submitData.password.trim() === "") {
+          showToast("Password is required for new students", "error");
+          return;
+        }
         await createStudent(submitData).unwrap();
         showToast("Student registered successfully!", "success");
       }
+
       handleCloseModal();
     } catch (error) {
-      showToast(error?.data?.error || "Failed to save student.", "error");
+      console.error("Failed to save student:", error);
+      showToast(error?.data?.error || "Failed to save student. Please try again.", "error");
     }
+
+    return false;
   };
+
+  // Approval handlers
+  const [approveStudent, { isLoading: isApproving }] = useApproveStudentMutation();
+  const [rejectStudent, { isLoading: isRejecting }] = useRejectStudentMutation();
 
   const handleApprove = async (id) => {
     if (!confirm("Are you sure you want to approve this student?")) return;
-    try { const result = await approveStudent(id).unwrap(); if (result.success) { refetch(); } else { alert(result.error); } } catch (e) { alert(e?.data?.error || "Error"); }
+    try {
+      console.log("Approving student with ID:", id);
+      const result = await approveStudent(id).unwrap();
+      console.log("Approve result:", result);
+      if (result.success) {
+        alert("Student approved successfully!");
+        refetch(); // Refresh the student list
+      } else {
+        alert(result.error || "Failed to approve student");
+      }
+    } catch (error) {
+      console.error("Approve error details:", error);
+      console.error("Error data:", error?.data);
+      console.error("Error status:", error?.status);
+      const errorMessage = error?.data?.error || error?.data?.message || error?.message || "Failed to approve student. Please check the console for details.";
+      alert(errorMessage);
+    }
   };
 
   const handleReject = async (id) => {
-    if (!confirm("Are you sure you want to reject?")) return;
-    try { const result = await rejectStudent(id).unwrap(); if (result.success) { refetch(); } else { alert(result.error); } } catch (e) { alert(e?.data?.error || "Error"); }
+    if (!confirm("Are you sure you want to reject this student? They will not be deleted but will lose access to student portal pages.")) return;
+    try {
+      console.log("Rejecting student with ID:", id);
+      const result = await rejectStudent(id).unwrap();
+      console.log("Reject result:", result);
+      if (result.success) {
+        alert("Student rejected successfully!");
+        refetch(); // Refresh the student list
+      } else {
+        alert(result.error || "Failed to reject student");
+      }
+    } catch (error) {
+      console.error("Reject error details:", error);
+      console.error("Error data:", error?.data);
+      console.error("Error status:", error?.status);
+      const errorMessage = error?.data?.error || error?.data?.message || error?.message || "Failed to reject student. Please check the console for details.";
+      alert(errorMessage);
+    }
   };
 
   const columns = [
-    { key: "full_name", label: "Full Name" },
-    { key: "email", label: "Email" },
-    { key: "phone", label: "Phone", render: (row) => row.phone || "N/A" },
-    { key: "age", label: "Age", render: (row) => row.age || "N/A" },
-    { key: "residency_country", label: "Country", render: (row) => row.residency_country || "N/A" },
-    { key: "residency_city", label: "City", render: (row) => row.residency_city || "N/A" },
-    { key: "chosen_program", label: "Program", render: (row) => (!row.chosen_program || row.chosen_program === "Not assigned") ? <span className="text-gray-500">Not assigned</span> : row.chosen_program },
-    { key: "chosen_subprogram", label: "Subprogram", render: (row) => (row.chosen_subprogram && row.chosen_subprogram.trim() !== "" && row.chosen_subprogram !== "null") ? <span className="text-black dark:text-white">{row.chosen_subprogram}</span> : <span className="text-gray-500">Not assigned</span> },
     {
-      key: "approval_status", label: "Status", render: (row) => {
-        const s = row.approval_status || 'pending';
-        const colors = { pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400', approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400', rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' };
-        return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${colors[s] || colors.pending}`}>{s.charAt(0).toUpperCase() + s.slice(1)}</span>;
-      }
+      key: "full_name",
+      label: "Full Name",
     },
     {
-      key: "actions", label: "Actions", render: (row) => {
-        const isPending = (row.approval_status || 'pending') === 'pending';
-        const isApproved = row.approval_status === 'approved';
-        const isRejected = row.approval_status === 'rejected';
+      key: "email",
+      label: "Email",
+    },
+    {
+      key: "phone",
+      label: "Phone",
+      render: (row) => row.phone || "N/A",
+    },
+    {
+      key: "age",
+      label: "Age",
+      render: (row) => row.age || "N/A",
+    },
+    {
+      key: "residency_country",
+      label: "Country",
+      render: (row) => row.residency_country || "N/A",
+    },
+    {
+      key: "residency_city",
+      label: "City",
+      render: (row) => row.residency_city || "N/A",
+    },
+    {
+      key: "chosen_program",
+      label: "Program",
+      render: (row) => {
+        if (!row.chosen_program || row.chosen_program === "Not assigned") {
+          return <span className="text-gray-500">Not assigned</span>;
+        }
+        return row.chosen_program;
+      },
+    },
+    {
+      key: "chosen_subprogram",
+      label: "Subprogram",
+      render: (row) => {
+        const subprogram = row.chosen_subprogram;
+        // Only show the student's assigned subprogram
+        if (subprogram && subprogram.trim() !== "" && subprogram !== "null") {
+          return <span className="text-black dark:text-white">{subprogram}</span>;
+        }
+
+        return <span className="text-gray-500">Not assigned</span>;
+      },
+    },
+    {
+      key: "approval_status",
+      label: "Status",
+      render: (row) => {
+        const status = row.approval_status || 'pending';
+        const statusColors = {
+          pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+          approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+          rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+        };
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[status] || statusColors.pending}`}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      render: (row) => {
+        const status = row.approval_status || 'pending';
+        const isPending = status === 'pending';
+        const isApproved = status === 'approved';
+        const isRejected = status === 'rejected';
+
         return (
           <div className="flex gap-2">
-            {(isPending || isRejected) && <button onClick={() => handleApprove(row.id)} disabled={isApproving || isRejecting} className="text-green-600 hover:text-green-900 dark:text-green-400 p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>}
-            {(isPending || isApproved) && <button onClick={() => handleReject(row.id)} disabled={isApproving || isRejecting} className="text-red-600 hover:text-red-900 dark:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>}
-            <button onClick={() => handleView(row)} className="text-green-600 hover:text-green-900 dark:text-green-400 p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
-            <button onClick={() => handleAssignSubprogram(row)} className="text-purple-600 hover:text-purple-900 dark:text-purple-400 p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
-            <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-            <button onClick={() => handleDelete(row.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+            {/* Show approve button if pending or rejected */}
+            {(isPending || isRejected) && (
+              <button
+                onClick={() => handleApprove(row.id)}
+                disabled={isApproving || isRejecting}
+                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Approve"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            )}
+            {/* Show reject button if pending or approved */}
+            {(isPending || isApproved) && (
+              <button
+                onClick={() => handleReject(row.id)}
+                disabled={isApproving || isRejecting}
+                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Reject"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+            <button
+              onClick={() => handleView(row)}
+              className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+              title="View"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => handleAssignSubprogram(row)}
+              className="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 transition-colors p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
+              title="Assign Subprogram"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => handleEdit(row)}
+              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              title="Edit"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => handleDelete(row.id)}
+              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+              title="Delete"
+              disabled={isDeleting}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
           </div>
         );
-      }
-    }
+      },
+    },
   ];
 
-  if (isLoading) return <><AdminHeader /><main className="mt-20 text-center py-12">Loading students...</main></>;
-  if (isError) return <><AdminHeader /><main className="mt-20 text-center py-12 text-red-600">Error loading students: {error?.data?.error || "Unknown error"}</main></>;
+  if (isLoading) {
+    return (
+      <>
+        <AdminHeader />
+        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+          <div className="w-full px-6 py-6">
+            <div className="text-center py-12">
+              <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading students...</p>
+            </div>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  if (isError) {
+    return (
+      <>
+        <AdminHeader />
+        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+          <div className="w-full px-6 py-6">
+            <div className="text-center py-12">
+              <p className="text-red-600 dark:text-red-400">Error loading students: {error?.data?.error || "Unknown error"}</p>
+            </div>
+          </div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>
       <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
+
+      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
         <div className="w-full px-8 py-6">
-          <div className="mb-6 flex gap-4 border-b border-gray-200 dark:border-gray-700">
-            {['all', 'general', 'ielts'].map(tab => (
-              <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-2 px-4 font-medium transition-colors relative ${activeTab === tab ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}>
-                {tab === 'all' ? 'All Students' : tab === 'general' ? 'General English' : 'IELTS & TOEFL'}
-                {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full" />}
-              </button>
-            ))}
-          </div>
-          <DataTable title={activeTab === 'all' ? "Student Management - All Students" : activeTab === 'general' ? "Student Management - General English" : "Student Management - IELTS & TOEFL"} columns={columns} data={filteredStudents} onAddClick={handleAddStudent} showAddButton={true} />
+          <DataTable
+            title="Student Management"
+            columns={columns}
+            data={students}
+            onAddClick={handleAddStudent}
+            showAddButton={true}
+          />
         </div>
       </main>
 
@@ -532,14 +804,23 @@ export default function StudentsPage() {
         </div>
       )}
 
+      {/* View Subprograms Modal */}
+      {isSubprogramsModalOpen && selectedProgramForSubprograms && (
+        <SubprogramsModal
+          program={selectedProgramForSubprograms}
+          onClose={handleCloseSubprogramsModal}
+          isDark={isDark}
+        />
+      )}
+
       {/* Assign Subprogram Modal */}
       {isAssignSubprogramModalOpen && assigningStudent && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center"
           style={{ pointerEvents: 'none' }}
         >
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 bg-transparent"
             onClick={handleCloseAssignSubprogramModal}
             style={{ pointerEvents: 'auto' }}
           />
@@ -590,10 +871,11 @@ export default function StudentsPage() {
                     parent_res_city: assigningStudent.parent_res_city || null,
                   };
 
-                  console.log("Updating student with:", updateData);
+                  console.log("Updating student with:", updateData); // Debug log
                   const result = await updateStudent(updateData).unwrap();
-                  console.log("Update result:", result);
+                  console.log("Update result:", result); // Debug log
 
+                  // Force refetch to ensure table updates immediately
                   await refetch();
                   handleCloseAssignSubprogramModal();
                 } catch (error) {
@@ -612,13 +894,13 @@ export default function StudentsPage() {
                   {(() => {
                     const program = programs.find(p => p.title === assigningStudent.chosen_program);
                     const programSubprograms = program
-                      ? allSubprograms.filter(sp => sp.program_id === program.id && sp.status === 'active')
+                      ? allSubprograms.filter(sp => sp.program_id === program.id)
                       : [];
 
                     if (programSubprograms.length === 0) {
                       return (
                         <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                          No active subprograms available for this program.
+                          No subprograms available for this program.
                         </p>
                       );
                     }
@@ -677,11 +959,11 @@ export default function StudentsPage() {
       {/* View Student Modal */}
       {isViewModalOpen && viewingStudent && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center"
           style={{ pointerEvents: 'none' }}
         >
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 bg-transparent"
             onClick={handleCloseViewModal}
             style={{ pointerEvents: 'auto' }}
           />
@@ -873,29 +1155,101 @@ export default function StudentsPage() {
         </div>
       )}
 
-      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} duration={toast.duration} />}
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          duration={toast.duration}
+        />
+      )}
     </>
   );
 }
 
+// Subprograms Modal Component
 function SubprogramsModal({ program, onClose, isDark }) {
   const { data: subprograms, isLoading, isError } = useGetSubprogramsByProgramIdQuery(program.id);
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm" style={{ pointerEvents: 'none' }}>
-      <div className="absolute inset-0" onClick={onClose} style={{ pointerEvents: 'auto' }} />
-      <div className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'}`} onClick={e => e.stopPropagation()} style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}>
-        <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Subprograms for {program.name}</h2>
-          <button onClick={onClose} className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center"
+      style={{ pointerEvents: 'none' }}
+    >
+      <div
+        className="absolute inset-0 bg-transparent"
+        onClick={onClose}
+        style={{ pointerEvents: 'auto' }}
+      />
+
+      <div
+        className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+          }`}
+        onClick={(e) => e.stopPropagation()}
+        style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
+      >
+        <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          }`}>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
+            }`}>
+            Subprograms for {program.name}
+          </h2>
+          <button
+            onClick={onClose}
+            className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+              }`}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
+
         <div className="p-4 bg-gray-50">
-          {isLoading ? <div className="text-center py-8">Loading...</div> : isError ? <div className="text-center py-8 text-red-600">Error</div> : (!subprograms || subprograms.length === 0) ? <div className="text-center py-8">No subprograms found.</div> : (
+          {isLoading ? (
+            <div className="text-center py-8">
+              <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Loading subprograms...</p>
+            </div>
+          ) : isError ? (
+            <div className="text-center py-8">
+              <p className="text-red-600 dark:text-red-400">Error loading subprograms</p>
+            </div>
+          ) : !subprograms || subprograms.length === 0 ? (
+            <div className="text-center py-8">
+              <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>No subprograms found for this program.</p>
+            </div>
+          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {subprograms.map(sp => (
-                <div key={sp.id} className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                  <h3 className={`font-semibold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{sp.subprogram_name}</h3>
-                  <p className={`text-sm mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{sp.description || 'No description'}</p>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${sp.status === 'active' ? (isDark ? 'bg-green-900/30 text-green-300 border border-green-700' : 'bg-green-100 text-green-800') : (isDark ? 'bg-gray-700 text-gray-400 border border-gray-600' : 'bg-gray-200 text-gray-600')}`}>{sp.status === 'active' ? 'Active' : 'Inactive'}</span>
+              {subprograms.map((subprogram) => (
+                <div
+                  key={subprogram.id}
+                  className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                    }`}
+                >
+                  <h3 className={`font-semibold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'
+                    }`}>
+                    {subprogram.subprogram_name}
+                  </h3>
+                  <p className={`text-sm mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                    {subprogram.description || 'No description'}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${subprogram.status === 'active'
+                      ? isDark
+                        ? 'bg-green-900/30 text-green-300 border border-green-700'
+                        : 'bg-green-100 text-green-800'
+                      : isDark
+                        ? 'bg-gray-700 text-gray-400 border border-gray-600'
+                        : 'bg-gray-200 text-gray-600'
+                      }`}>
+                      {subprogram.status === 'active' ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

@@ -15,6 +15,7 @@ import classRoutes from "./routes/classRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import announcementRoutes from "./routes/announcementRoutes.js";
 
 const app = express();
 
@@ -57,12 +58,19 @@ app.use("/api/auth", authRoutes);
 // ⬇️ Register Admin Routes
 app.use("/api/admins", adminRoutes);
 
+// ⬇️ Register Announcement Routes
+// ⬇️ Register Announcement Routes
+app.use("/api/announcements", announcementRoutes);
+
+// 🚨 EMERGENCY FIX: Direct route for updates because router is acting up
+import * as annController from "./controllers/announcementController.js";
+app.post("/api/announcements/emergency-update/:id", (req, res, next) => {
+  console.log(`🚨 DIRECT ROUTE HIT: /api/announcements/emergency-update/${req.params.id}`);
+  next();
+}, annController.updateAnnouncement);
+
 // ⬇️ Register User Routes (All users: admins, teachers, students)
 app.use("/api/users", userRoutes);
-
-// ⬇️ Register Placement Test Routes
-import placementTestRoutes from "./routes/placementTestRoutes.js";
-app.use("/api/placement-tests", placementTestRoutes);
 
 // Server start
 const PORT = process.env.PORT || 5000;

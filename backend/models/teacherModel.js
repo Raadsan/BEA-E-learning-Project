@@ -85,9 +85,7 @@ export const updateTeacherById = async (id, {
   portfolio_link,
   skills,
   hire_date,
-  password,
-  reset_password_token,
-  reset_password_expires
+  password
 }) => {
   const updates = [];
   const values = [];
@@ -145,14 +143,6 @@ export const updateTeacherById = async (id, {
     updates.push("password = ?");
     values.push(password);
   }
-  if (reset_password_token !== undefined) {
-    updates.push("reset_password_token = ?");
-    values.push(reset_password_token);
-  }
-  if (reset_password_expires !== undefined) {
-    updates.push("reset_password_expires = ?");
-    values.push(reset_password_expires);
-  }
 
   if (updates.length === 0) {
     return 0;
@@ -171,14 +161,5 @@ export const updateTeacherById = async (id, {
 export const deleteTeacherById = async (id) => {
   const [result] = await dbp.query("DELETE FROM teachers WHERE id = ?", [id]);
   return result.affectedRows;
-};
-
-// GET teacher by reset token
-export const getTeacherByResetToken = async (token) => {
-  const [rows] = await dbp.query(
-    "SELECT * FROM teachers WHERE reset_password_token = ? AND reset_password_expires > NOW()",
-    [token]
-  );
-  return rows[0] || null;
 };
 
