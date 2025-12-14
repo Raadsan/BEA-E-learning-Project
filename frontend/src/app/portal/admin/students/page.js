@@ -19,6 +19,7 @@ export default function StudentsPage() {
   const [editingStudent, setEditingStudent] = useState(null);
   const [viewingStudent, setViewingStudent] = useState(null);
   const [assigningStudent, setAssigningStudent] = useState(null);
+  const [activeTab, setActiveTab] = useState('all');
 
   const { data: backendStudents, isLoading, isError, error, refetch } = useGetStudentsQuery();
   const { data: programs = [] } = useGetProgramsQuery();
@@ -46,6 +47,7 @@ export default function StudentsPage() {
     parent_res_county: "",
     parent_res_city: "",
   });
+
 
 
   const handleAddStudent = () => {

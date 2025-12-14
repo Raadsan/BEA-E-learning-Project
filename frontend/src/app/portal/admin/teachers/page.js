@@ -280,7 +280,7 @@ export default function TeachersPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
           <div className="w-full px-6 py-6">
             <div className="text-center py-12">
               <p className="text-gray-600 dark:text-gray-400">Loading teachers...</p>
@@ -295,7 +295,7 @@ export default function TeachersPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
           <div className="w-full px-6 py-6">
             <div className="text-center py-12">
               <p className="text-red-600 dark:text-red-400">Error loading teachers: {error?.data?.error || "Unknown error"}</p>

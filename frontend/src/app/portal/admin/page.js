@@ -15,10 +15,10 @@ export default function AdminDashboard() {
 
   // Extract counts
   const totalPrograms = Array.isArray(programsData) ? programsData.length : 0;
-  
+
   const studentsArray = studentsData?.students || (Array.isArray(studentsData) ? studentsData : []);
   const totalStudents = studentsArray.length;
-  
+
   const teachersArray = Array.isArray(teachersData) ? teachersData : [];
   const totalTeachers = teachersArray.length;
 
@@ -73,14 +73,14 @@ export default function AdminDashboard() {
       <AdminHeader />
 
       {/* Dashboard Content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+      <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
         <div className="w-full px-8 py-6">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Dashboard Overview</h1>
-          
+
           {/* Summary Cards with Circular Progress */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 max-w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 max-w-full">
             {/* Total Students Card */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-xl shadow-md p-4 border border-gray-100 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-gray-600 text-sm font-medium mb-2">Total Students</p>
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Total Teachers Card */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow w-full">
+            <div className="bg-white rounded-xl shadow-md p-4 border border-gray-100 hover:shadow-lg transition-shadow w-full">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex-1">
                   <p className="text-gray-600 text-sm font-medium mb-2">Total Teachers</p>
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Total Programs Card */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow w-full">
+            <div className="bg-white rounded-xl shadow-md p-4 border border-gray-100 hover:shadow-lg transition-shadow w-full">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex-1">
                   <p className="text-gray-600 text-sm font-medium mb-2">Total Programs</p>
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Total Classes Card */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow w-full">
+            <div className="bg-white rounded-xl shadow-md p-4 border border-gray-100 hover:shadow-lg transition-shadow w-full">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex-1">
                   <p className="text-gray-600 text-sm font-medium mb-2">Total Classes</p>
