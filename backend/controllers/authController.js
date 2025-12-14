@@ -33,16 +33,23 @@ export const login = async (req, res) => {
 
     // Check all tables to find the user (priority: admin > teacher > student)
     // Check admin first
-    user = await Admin.getAdminByEmail(email);
-    if (user) {
-      detectedRole = 'admin';
-      userData = {
-        id: user.id,
-        full_name: user.full_name,
-        email: user.email,
-        role: user.role || 'admin'
-      };
-    } else {
+    try {
+      user = await Admin.getAdminByEmail(email);
+      if (user) {
+        detectedRole = 'admin';
+        userData = {
+          id: user.id,
+          full_name: user.full_name,
+          email: user.email,
+          role: user.role || 'admin'
+        };
+      }
+    } catch (adminError) {
+      console.error("❌ Error fetching admin:", adminError);
+      // Continue to check other roles
+    }
+    
+    if (!user) {
       // Check teacher
       user = await Teacher.getTeacherByEmail(email);
       if (user) {
@@ -74,6 +81,7 @@ export const login = async (req, res) => {
 
     // Check if user exists
     if (!user) {
+      console.log(`❌ Login failed: User not found for email: ${email}`);
       return res.status(401).json({
         success: false,
         error: "Invalid email or password"
@@ -81,8 +89,17 @@ export const login = async (req, res) => {
     }
 
     // Verify password
+    if (!user.password) {
+      console.log(`❌ Login failed: No password hash found for user: ${email}`);
+      return res.status(401).json({
+        success: false,
+        error: "Invalid email or password"
+      });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      console.log(`❌ Login failed: Invalid password for email: ${email}`);
       return res.status(401).json({
         success: false,
         error: "Invalid email or password"

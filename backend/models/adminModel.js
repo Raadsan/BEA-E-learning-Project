@@ -14,9 +14,14 @@ export const createAdmin = async ({
   // Hash password
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  // Split full_name into first_name and last_name
+  const nameParts = (full_name || '').trim().split(' ');
+  const first_name = nameParts[0] || '';
+  const last_name = nameParts.slice(1).join(' ') || '';
+
   const [result] = await dbp.query(
-    `INSERT INTO admins (full_name, email, password, role) VALUES (?, ?, ?, ?)`,
-    [full_name, email, hashedPassword, role]
+    `INSERT INTO admins (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)`,
+    [first_name, last_name, email, hashedPassword, role]
   );
 
   const [newAdmin] = await dbp.query("SELECT id, first_name, last_name, email, role, created_at, updated_at FROM admins WHERE id = ?", [result.insertId]);
@@ -80,8 +85,12 @@ export const updateAdminById = async (id, {
   const values = [];
 
   if (full_name !== undefined) {
-    updates.push("full_name = ?");
-    values.push(full_name);
+    // Split full_name into first_name and last_name
+    const nameParts = (full_name || '').trim().split(' ');
+    const first_name = nameParts[0] || '';
+    const last_name = nameParts.slice(1).join(' ') || '';
+    updates.push("first_name = ?, last_name = ?");
+    values.push(first_name, last_name);
   }
   if (email !== undefined) {
     updates.push("email = ?");
