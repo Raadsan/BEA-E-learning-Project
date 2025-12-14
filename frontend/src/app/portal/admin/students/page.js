@@ -466,7 +466,7 @@ export default function StudentsPage() {
     <>
       <AdminHeader />
 
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+      <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
         <div className="w-full px-8 py-6">
           <DataTable
             title="Student Management"

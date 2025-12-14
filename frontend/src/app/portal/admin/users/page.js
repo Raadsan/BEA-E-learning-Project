@@ -74,15 +74,14 @@ export default function UsersPage() {
       render: (row) => {
         const isVisible = visiblePasswords.has(row.id);
         const password = row.password || "";
-        
+
         return (
           <div className="max-w-[200px]">
-            <span 
-              className={`font-mono text-sm ${
-                isVisible 
-                  ? "text-gray-900 dark:text-gray-100 font-semibold" 
-                  : "text-gray-500 dark:text-gray-400"
-              }`}
+            <span
+              className={`font-mono text-sm ${isVisible
+                ? "text-gray-900 dark:text-gray-100 font-semibold"
+                : "text-gray-500 dark:text-gray-400"
+                }`}
               title={password || "No password"}
             >
               {isVisible ? (password || "N/A") : "••••••••"}
@@ -103,9 +102,8 @@ export default function UsersPage() {
         const roleDisplay = row.role || row.user_type || "N/A";
         const roleKey = (roleDisplay.toLowerCase() || row.user_type || "").split(" ")[0];
         return (
-          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-            roleColors[roleKey] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-          }`}>
+          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${roleColors[roleKey] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+            }`}>
             {roleDisplay.charAt(0).toUpperCase() + roleDisplay.slice(1)}
           </span>
         );
@@ -117,11 +115,10 @@ export default function UsersPage() {
       render: (row) => {
         const status = row.status || "active";
         return (
-          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-            status.toLowerCase() === "active" 
-              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" 
-              : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-          }`}>
+          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${status.toLowerCase() === "active"
+            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+            }`}>
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </span>
         );
@@ -169,7 +166,7 @@ export default function UsersPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#03002e] mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#03002e] mt-6">
           <div className="w-full px-6 py-6">
             <div className="flex items-center justify-center h-64">
               <div className="text-gray-600 dark:text-gray-400">Loading users...</div>
@@ -184,7 +181,7 @@ export default function UsersPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#03002e] mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#03002e] mt-6">
           <div className="w-full px-6 py-6">
             <div className="flex items-center justify-center h-64">
               <div className="text-red-600 dark:text-red-400">
