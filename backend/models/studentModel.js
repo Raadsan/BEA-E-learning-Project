@@ -1,6 +1,5 @@
 // models/studentModel.js
 import db from "../database/dbconfig.js";
-import bcrypt from "bcryptjs";
 
 const dbp = db.promise();
 
@@ -22,8 +21,7 @@ export const createStudent = async ({
   parent_res_county,
   parent_res_city
 }) => {
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10);
+  // Store password as plain text (no encryption)
 
   const [result] = await dbp.query(
     `INSERT INTO students (
@@ -40,7 +38,7 @@ export const createStudent = async ({
       residency_city || null,
       chosen_program || null,
       chosen_subprogram || null,
-      hashedPassword,
+      password,
       parent_name || null,
       parent_email || null,
       parent_phone || null,
@@ -143,9 +141,9 @@ export const updateStudentById = async (id, {
     values.push(chosen_subprogram);
   }
   if (password !== undefined && password.trim() !== "") {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Store password as plain text (no encryption)
     updates.push("password = ?");
-    values.push(hashedPassword);
+    values.push(password);
   }
   if (parent_name !== undefined) {
     updates.push("parent_name = ?");

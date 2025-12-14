@@ -39,14 +39,15 @@ export const login = async (req, res) => {
         detectedRole = 'admin';
         userData = {
           id: user.id,
-          full_name: user.full_name,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
           email: user.email,
           role: user.role || 'admin'
         };
       }
     } catch (adminError) {
       console.error("❌ Error fetching admin:", adminError);
-      // Continue to check other roles
     }
 
     if (!user) {
@@ -88,16 +89,8 @@ export const login = async (req, res) => {
       });
     }
 
-    // Verify password
-    if (!user.password) {
-      console.log(`❌ Login failed: No password hash found for user: ${email}`);
-      return res.status(401).json({
-        success: false,
-        error: "Invalid email or password"
-      });
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Verify password (plain text comparison - no encryption/decryption)
+    const isPasswordValid = password === user.password;
     if (!isPasswordValid) {
       console.log(`❌ Login failed: Invalid password for email: ${email}`);
       return res.status(401).json({
@@ -169,28 +162,18 @@ export const getCurrentUser = async (req, res) => {
     // Get user data based on role
     switch (role) {
       case 'admin':
-        try {
-          user = await Admin.getAdminById(userId);
-          if (user) {
-            user = {
-              id: user.id,
-              full_name: user.full_name,
-              email: user.email,
-              role: user.role || 'admin'
-            };
-          } else {
-            console.error(`Admin with ID ${userId} not found`);
-          }
-        } catch (adminError) {
-          console.error("Error fetching admin:", adminError);
-          console.error("Admin Error Details:", {
-            message: adminError.message,
-            stack: adminError.stack,
-            userId,
-            role
-          });
-          // Don't throw, let it continue to return 404
+        user = await Admin.getAdminById(userId);
+        if (user) {
+          user = {
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+            email: user.email,
+            role: user.role || 'admin'
+          };
         }
+
         break;
 
       case 'student':

@@ -13,6 +13,8 @@ import subprogramRoutes from "./routes/subprogramRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import classRoutes from "./routes/classRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 
@@ -26,14 +28,6 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 // Home route
 app.get("/", (req, res) => {
   res.send("Backend is Running...");
-});
-
-// Example users route
-app.get("/users", (req, res) => {
-  db.query("SELECT * FROM users", (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(result);
-  });
 });
 
 // ⬇️ Register Programs Routes
@@ -59,6 +53,12 @@ app.use("/api/classes", classRoutes);
 
 // ⬇️ Register Auth Routes (Login, etc.)
 app.use("/api/auth", authRoutes);
+
+// ⬇️ Register Admin Routes
+app.use("/api/admins", adminRoutes);
+
+// ⬇️ Register User Routes (All users: admins, teachers, students)
+app.use("/api/users", userRoutes);
 
 // Server start
 const PORT = process.env.PORT || 5000;

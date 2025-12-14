@@ -19,6 +19,8 @@ export const createTeacher = async ({
   hire_date,
   password
 }) => {
+  // Store password as plain text (no encryption)
+  
   const [result] = await dbp.query(
     `INSERT INTO teachers (
       full_name, email, phone, country, city, specialization,
@@ -138,7 +140,8 @@ export const updateTeacherById = async (id, {
     updates.push("hire_date = ?");
     values.push(hire_date);
   }
-  if (password !== undefined) {
+  if (password !== undefined && password.trim() !== "") {
+    // Store password as plain text (no encryption)
     updates.push("password = ?");
     values.push(password);
   }

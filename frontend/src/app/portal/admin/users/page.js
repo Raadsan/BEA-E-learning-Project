@@ -9,21 +9,30 @@ import { useDarkMode } from "@/context/ThemeContext";
 export default function UsersPage() {
   const { isDark } = useDarkMode();
   const { data: usersData, isLoading, error, refetch } = useGetUsersQuery();
+  const [visiblePasswords, setVisiblePasswords] = useState(new Set());
 
   const users = usersData || [];
 
+  const togglePasswordVisibility = (userId) => {
+    setVisiblePasswords((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
   const handleEdit = (user) => {
     console.log("Edit user:", user);
-    // TODO: Implement edit functionality based on user_type
-    // Navigate to appropriate edit page (admin, teacher, or student)
+    // Navigate to appropriate edit page based on user type
     if (user.user_type === 'admin') {
-      // Navigate to admin edit page
       window.location.href = `/portal/admin/admins`;
     } else if (user.user_type === 'teacher') {
-      // Navigate to teacher edit page
       window.location.href = `/portal/admin/teachers`;
     } else if (user.user_type === 'student') {
-      // Navigate to student edit page
       window.location.href = `/portal/admin/students`;
     }
   };
@@ -34,6 +43,12 @@ export default function UsersPage() {
       // TODO: Implement delete functionality based on user_type
       alert("Delete functionality will be implemented based on user type");
     }
+  };
+
+  const handleView = (user) => {
+    // Show user details in a modal or navigate to detail page
+    console.log("View user:", user);
+    alert(`User Details:\n\nName: ${user.full_name}\nEmail: ${user.email}\nRole: ${user.role || user.user_type}\nStatus: ${user.status}\nType: ${user.user_type}`);
   };
 
   const columns = [
@@ -56,9 +71,25 @@ export default function UsersPage() {
     {
       key: "password",
       label: "Password",
-      render: (row) => (
-        <span className="font-mono text-gray-600 dark:text-gray-400">••••••••</span>
-      ),
+      render: (row) => {
+        const isVisible = visiblePasswords.has(row.id);
+        const password = row.password || "";
+        
+        return (
+          <div className="max-w-[200px]">
+            <span 
+              className={`font-mono text-sm ${
+                isVisible 
+                  ? "text-gray-900 dark:text-gray-100 font-semibold" 
+                  : "text-gray-500 dark:text-gray-400"
+              }`}
+              title={password || "No password"}
+            >
+              {isVisible ? (password || "N/A") : "••••••••"}
+            </span>
+          </div>
+        );
+      },
     },
     {
       key: "role",
@@ -100,7 +131,17 @@ export default function UsersPage() {
       key: "actions",
       label: "Actions",
       render: (row) => (
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleView(row)}
+            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            title="View"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
           <button
             onClick={() => handleEdit(row)}
             className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20"
@@ -128,8 +169,8 @@ export default function UsersPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors">
-          <div className="w-full px-8 py-6">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#03002e] mt-20">
+          <div className="w-full px-6 py-6">
             <div className="flex items-center justify-center h-64">
               <div className="text-gray-600 dark:text-gray-400">Loading users...</div>
             </div>
@@ -143,8 +184,8 @@ export default function UsersPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors">
-          <div className="w-full px-8 py-6">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#03002e] mt-20">
+          <div className="w-full px-6 py-6">
             <div className="flex items-center justify-center h-64">
               <div className="text-red-600 dark:text-red-400">
                 Error loading users: {error?.data?.error || error?.message || "Unknown error"}
@@ -159,17 +200,19 @@ export default function UsersPage() {
   return (
     <>
       <AdminHeader />
-      
-      <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors">
-        <div className="w-full px-8 py-6">
+      <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#03002e] mt-20">
+        <div className="w-full px-6 py-6">
           <DataTable
             title="Users Management"
             columns={columns}
             data={users}
             showAddButton={false}
+            onRowClick={togglePasswordVisibility}
+            getRowId={(row) => row.id}
           />
         </div>
       </main>
     </>
   );
 }
+

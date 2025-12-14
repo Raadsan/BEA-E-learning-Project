@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
-import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation, useApproveStudentMutation, useRejectStudentMutation } from "@/redux/api/studentApi";
+import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation } from "@/redux/api/studentApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function StudentsPage() {
   const { isDark } = useDarkMode();
+  const { toast, showToast, hideToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isSubprogramsModalOpen, setIsSubprogramsModalOpen] = useState(false);
@@ -116,9 +117,10 @@ export default function StudentsPage() {
     if (window.confirm("Are you sure you want to delete this student?")) {
       try {
         await deleteStudent(id).unwrap();
+        showToast("Student deleted successfully!", "success");
       } catch (error) {
         console.error("Failed to delete student:", error);
-        alert("Failed to delete student. Please try again.");
+        showToast("Failed to delete student. Please try again.", "error");
       }
     }
   };
@@ -202,19 +204,21 @@ export default function StudentsPage() {
 
       if (editingStudent) {
         await updateStudent({ id: editingStudent.id, ...submitData }).unwrap();
+        showToast("Student updated successfully!", "success");
       } else {
         // Password is required for new students
         if (!submitData.password || submitData.password.trim() === "") {
-          alert("Password is required for new students");
+          showToast("Password is required for new students", "error");
           return;
         }
         await createStudent(submitData).unwrap();
+        showToast("Student registered successfully!", "success");
       }
 
       handleCloseModal();
     } catch (error) {
       console.error("Failed to save student:", error);
-      alert(error?.data?.error || "Failed to save student. Please try again.");
+      showToast(error?.data?.error || "Failed to save student. Please try again.", "error");
     }
 
     return false;
@@ -465,11 +469,11 @@ export default function StudentsPage() {
       {/* Add/Edit Student Modal */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
           style={{ pointerEvents: 'none' }}
         >
           <div 
-            className="absolute inset-0 bg-transparent"
+            className="absolute inset-0"
             onClick={handleBackdropClick}
             style={{ pointerEvents: 'auto' }}
           />
@@ -1222,6 +1226,16 @@ export default function StudentsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          duration={toast.duration}
+        />
       )}
     </>
   );
