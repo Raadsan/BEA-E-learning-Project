@@ -79,7 +79,9 @@ export const updateAdminById = async (id, {
   full_name,
   email,
   password,
-  role
+  role,
+  reset_password_token,
+  reset_password_expires
 }) => {
   const updates = [];
   const values = [];
@@ -105,6 +107,14 @@ export const updateAdminById = async (id, {
     updates.push("password = ?");
     values.push(hashedPassword);
   }
+  if (reset_password_token !== undefined) {
+    updates.push("reset_password_token = ?");
+    values.push(reset_password_token);
+  }
+  if (reset_password_expires !== undefined) {
+    updates.push("reset_password_expires = ?");
+    values.push(reset_password_expires);
+  }
 
   if (updates.length === 0) {
     return 0;
@@ -123,5 +133,17 @@ export const updateAdminById = async (id, {
 export const deleteAdminById = async (id) => {
   const [result] = await dbp.query("DELETE FROM admins WHERE id = ?", [id]);
   return result.affectedRows;
+};
+
+// GET admin by reset token
+export const getAdminByResetToken = async (token) => {
+  const [rows] = await dbp.query(
+    "SELECT * FROM admins WHERE reset_password_token = ? AND reset_password_expires > NOW()",
+    [token]
+  );
+  if (rows[0]) {
+    rows[0].full_name = `${rows[0].first_name || ''} ${rows[0].last_name || ''}`.trim();
+  }
+  return rows[0] || null;
 };
 
