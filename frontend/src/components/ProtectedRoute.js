@@ -39,19 +39,26 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
       : null;
 
     // If we have cached user and allowedRoles, check immediately
-    if (cachedUser && allowedRoles.length > 0 && !allowedRoles.includes(cachedUser.role)) {
-      // User doesn't have required role, redirect immediately using cached data
-      if (cachedUser.role === "admin") {
-        router.replace("/portal/admin");
-      } else if (cachedUser.role === "teacher") {
-        router.replace("/portal/teacher");
-      } else if (cachedUser.role === "student") {
-        router.replace("/portal/student");
+    if (cachedUser && allowedRoles.length > 0) {
+      if (!allowedRoles.includes(cachedUser.role)) {
+        // User doesn't have required role, redirect immediately using cached data
+        if (cachedUser.role === "admin") {
+          router.replace("/portal/admin");
+        } else if (cachedUser.role === "teacher") {
+          router.replace("/portal/teacher");
+        } else if (cachedUser.role === "student") {
+          router.replace("/portal/student");
+        } else {
+          router.replace("/");
+        }
+        setIsLoading(false);
+        return;
       } else {
-        router.replace("/");
+        // User has correct role, allow access (don't wait for API call)
+        setIsAuthorized(true);
+        setIsLoading(false);
+        return;
       }
-      setIsLoading(false);
-      return;
     }
 
     if (userLoading) {
@@ -60,7 +67,17 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
     }
 
     if (error || !user) {
-      // Invalid token or user not found
+      // If API call failed but we have valid cached user, allow access
+      if (cachedUser && cachedUser.role && allowedRoles.length > 0) {
+        if (allowedRoles.includes(cachedUser.role)) {
+          // Valid cached user with correct role, allow access
+          setIsAuthorized(true);
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // No valid cached user or wrong role, redirect to login
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
         localStorage.removeItem("user");

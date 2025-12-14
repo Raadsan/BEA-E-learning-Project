@@ -139,19 +139,39 @@ export const getCurrentUser = async (req, res) => {
   try {
     const { userId, role } = req.user;
 
+    if (!userId || !role) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid token data"
+      });
+    }
+
     let user = null;
 
     // Get user data based on role
     switch (role) {
       case 'admin':
-        user = await Admin.getAdminById(userId);
-        if (user) {
-          user = {
-            id: user.id,
-            full_name: user.full_name,
-            email: user.email,
-            role: user.role || 'admin'
-          };
+        try {
+          user = await Admin.getAdminById(userId);
+          if (user) {
+            user = {
+              id: user.id,
+              full_name: user.full_name,
+              email: user.email,
+              role: user.role || 'admin'
+            };
+          } else {
+            console.error(`Admin with ID ${userId} not found`);
+          }
+        } catch (adminError) {
+          console.error("Error fetching admin:", adminError);
+          console.error("Admin Error Details:", {
+            message: adminError.message,
+            stack: adminError.stack,
+            userId,
+            role
+          });
+          // Don't throw, let it continue to return 404
         }
         break;
 

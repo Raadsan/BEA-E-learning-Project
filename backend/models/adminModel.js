@@ -19,7 +19,10 @@ export const createAdmin = async ({
     [full_name, email, hashedPassword, role]
   );
 
-  const [newAdmin] = await dbp.query("SELECT id, full_name, email, role, created_at, updated_at FROM admins WHERE id = ?", [result.insertId]);
+  const [newAdmin] = await dbp.query("SELECT id, first_name, last_name, email, role, created_at, updated_at FROM admins WHERE id = ?", [result.insertId]);
+  if (newAdmin[0]) {
+    newAdmin[0].full_name = `${newAdmin[0].first_name || ''} ${newAdmin[0].last_name || ''}`.trim();
+  }
   return newAdmin[0];
 };
 
@@ -27,9 +30,13 @@ export const createAdmin = async ({
 export const getAllAdmins = async () => {
   try {
     const [rows] = await dbp.query(
-      "SELECT id, full_name, email, role, created_at, updated_at FROM admins ORDER BY created_at DESC"
+      "SELECT id, first_name, last_name, email, role, created_at, updated_at FROM admins ORDER BY created_at DESC"
     );
-    return rows;
+    // Combine first_name and last_name into full_name for each admin
+    return rows.map(admin => ({
+      ...admin,
+      full_name: `${admin.first_name || ''} ${admin.last_name || ''}`.trim()
+    }));
   } catch (error) {
     console.error("❌ Error in getAllAdmins:", error);
     throw error;
@@ -39,9 +46,13 @@ export const getAllAdmins = async () => {
 // GET admin by ID
 export const getAdminById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, role, created_at, updated_at FROM admins WHERE id = ?",
+    "SELECT id, first_name, last_name, email, role, created_at, updated_at FROM admins WHERE id = ?",
     [id]
   );
+  if (rows[0]) {
+    // Combine first_name and last_name into full_name
+    rows[0].full_name = `${rows[0].first_name || ''} ${rows[0].last_name || ''}`.trim();
+  }
   return rows[0] || null;
 };
 
@@ -51,6 +62,10 @@ export const getAdminByEmail = async (email) => {
     "SELECT * FROM admins WHERE email = ?",
     [email]
   );
+  if (rows[0]) {
+    // Combine first_name and last_name into full_name
+    rows[0].full_name = `${rows[0].first_name || ''} ${rows[0].last_name || ''}`.trim();
+  }
   return rows[0] || null;
 };
 
