@@ -5,7 +5,9 @@ import {
   getStudents,
   getStudent,
   updateStudent,
-  deleteStudent
+  deleteStudent,
+  approveStudent,
+  rejectStudent
 } from "../controllers/studentController.js";
 
 const router = express.Router();
@@ -16,6 +18,8 @@ router.get("/", getStudents);
 router.get("/:id", getStudent);
 router.put("/:id", updateStudent);
 router.delete("/:id", deleteStudent);
+router.patch("/:id/approve", approveStudent);
+router.patch("/:id/reject", rejectStudent);
 
 export default router;
 

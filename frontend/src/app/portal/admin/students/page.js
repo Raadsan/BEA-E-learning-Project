@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
-import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation } from "@/redux/api/studentApi";
+import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation, useApproveStudentMutation, useRejectStudentMutation } from "@/redux/api/studentApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useDarkMode } from "@/context/ThemeContext";
@@ -220,6 +220,30 @@ export default function StudentsPage() {
     return false;
   };
 
+  // Approval handlers
+  const [approveStudent] = useApproveStudentMutation();
+  const [rejectStudent] = useRejectStudentMutation();
+
+  const handleApprove = async (id) => {
+    if (!confirm("Are you sure you want to approve this student?")) return;
+    try {
+      await approveStudent(id).unwrap();
+      alert("Student approved successfully!");
+    } catch (error) {
+      alert(error?.data?.error || "Failed to approve student");
+    }
+  };
+
+  const handleReject = async (id) => {
+    if (!confirm("Are you sure you want to reject this student? They will not be deleted but will lose access to student portal pages.")) return;
+    try {
+      await rejectStudent(id).unwrap();
+      alert("Student rejected successfully!");
+    } catch (error) {
+      alert(error?.data?.error || "Failed to reject student");
+    }
+  };
+
   const columns = [
     {
       key: "full_name",
@@ -273,10 +297,49 @@ export default function StudentsPage() {
       },
     },
     {
+      key: "approval_status",
+      label: "Status",
+      render: (row) => {
+        const status = row.approval_status || 'pending';
+        const statusColors = {
+          pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+          approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+          rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+        };
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[status] || statusColors.pending}`}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </span>
+        );
+      },
+    },
+    {
       key: "actions",
       label: "Actions",
       render: (row) => (
         <div className="flex gap-2">
+          {row.approval_status === 'pending' && (
+            <>
+              <button
+                onClick={() => handleApprove(row.id)}
+                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+                title="Approve"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => handleReject(row.id)}
+                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                title="Reject"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </>
+          )}
           <button
             onClick={() => handleView(row)}
             className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"

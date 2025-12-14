@@ -29,8 +29,8 @@ export const createStudent = async ({
     `INSERT INTO students (
       full_name, email, phone, age, residency_country, residency_city,
       chosen_program, chosen_subprogram, password, parent_name, parent_email, parent_phone,
-      parent_relation, parent_res_county, parent_res_city
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      parent_relation, parent_res_county, parent_res_city, approval_status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       full_name,
       email,
@@ -46,7 +46,8 @@ export const createStudent = async ({
       parent_phone || null,
       parent_relation || null,
       parent_res_county || null,
-      parent_res_city || null
+      parent_res_city || null,
+      'pending' // Default approval status
     ]
   );
 
@@ -58,7 +59,7 @@ export const createStudent = async ({
 export const getAllStudents = async () => {
   try {
     const [rows] = await dbp.query(
-      "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students ORDER BY created_at DESC"
+      "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, approval_status, created_at, updated_at FROM students ORDER BY created_at DESC"
     );
     return rows;
   } catch (error) {
@@ -70,7 +71,7 @@ export const getAllStudents = async () => {
 // GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students WHERE id = ?",
+    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, approval_status, created_at, updated_at FROM students WHERE id = ?",
     [id]
   );
   return rows[0] || null;
@@ -101,7 +102,8 @@ export const updateStudentById = async (id, {
   parent_phone,
   parent_relation,
   parent_res_county,
-  parent_res_city
+  parent_res_city,
+  approval_status
 }) => {
   const updates = [];
   const values = [];
@@ -167,6 +169,10 @@ export const updateStudentById = async (id, {
     updates.push("parent_res_city = ?");
     values.push(parent_res_city);
   }
+  if (approval_status !== undefined) {
+    updates.push("approval_status = ?");
+    values.push(approval_status);
+  }
 
   if (updates.length === 0) {
     return 0;
@@ -184,5 +190,14 @@ export const updateStudentById = async (id, {
 // DELETE student
 export const deleteStudentById = async (id) => {
   const [result] = await dbp.query("DELETE FROM students WHERE id = ?", [id]);
+  return result.affectedRows;
+};
+
+// UPDATE approval status
+export const updateApprovalStatus = async (id, status) => {
+  const [result] = await dbp.query(
+    "UPDATE students SET approval_status = ? WHERE id = ?",
+    [status, id]
+  );
   return result.affectedRows;
 };

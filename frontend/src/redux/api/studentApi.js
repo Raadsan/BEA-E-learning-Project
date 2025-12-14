@@ -63,6 +63,24 @@ export const studentApi = createApi({
       }),
       invalidatesTags: ["Students"],
     }),
+
+    // APPROVE student
+    approveStudent: builder.mutation({
+      query: (id) => ({
+        url: `/${id}/approve`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Students"],
+    }),
+
+    // REJECT student
+    rejectStudent: builder.mutation({
+      query: (id) => ({
+        url: `/${id}/reject`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Students"],
+    }),
   }),
 });
 
@@ -72,5 +90,7 @@ export const {
   useCreateStudentMutation,
   useUpdateStudentMutation,
   useDeleteStudentMutation,
+  useApproveStudentMutation,
+  useRejectStudentMutation,
 } = studentApi;
 

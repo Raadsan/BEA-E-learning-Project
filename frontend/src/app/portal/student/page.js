@@ -1,10 +1,69 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
+import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import Link from "next/link";
 
 export default function StudentDashboard() {
   const { isDark } = useDarkMode();
+  const { data: user, isLoading } = useGetCurrentUserQuery();
+  const [approvalStatus, setApprovalStatus] = useState('pending');
+
+  useEffect(() => {
+    if (user && user.approval_status) {
+      setApprovalStatus(user.approval_status);
+    }
+  }, [user]);
+
+  // If not approved, show only welcome message
+  if (!isLoading && approvalStatus !== 'approved') {
+    return (
+      <div className={`min-h-screen transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
+        <div className="flex items-center justify-center min-h-screen p-6">
+          <div className={`max-w-2xl w-full rounded-xl p-8 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+            <div className="text-center">
+              <h1 className={`text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Welcome, {user?.full_name || 'Student'}!
+              </h1>
+              <div className="mt-6">
+                {approvalStatus === 'pending' ? (
+                  <div className={`p-6 rounded-lg ${isDark ? 'bg-blue-900/30 border border-blue-700' : 'bg-blue-50 border border-blue-200'}`}>
+                    <div className="flex items-center justify-center mb-4">
+                      <svg className="w-16 h-16 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h2 className={`text-2xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Your Registration is Pending Approval
+                    </h2>
+                    <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                      Thank you for registering! Your account is currently under review by our administrators. 
+                      You will be notified once your account has been approved and you can access all features.
+                    </p>
+                  </div>
+                ) : approvalStatus === 'rejected' ? (
+                  <div className={`p-6 rounded-lg ${isDark ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'}`}>
+                    <div className="flex items-center justify-center mb-4">
+                      <svg className="w-16 h-16 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                    <h2 className={`text-2xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Account Access Restricted
+                    </h2>
+                    <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                      Your registration has been reviewed. Please contact the administration for more information.
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Mock data - replace with API calls later
   const stats = {
@@ -35,6 +94,15 @@ export default function StudentDashboard() {
     <div className={`min-h-screen transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
       <div className="p-6">
       <div className="max-w-7xl mx-auto">
+          {/* Welcome Message */}
+          <div className={`mb-6 p-6 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+            <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Welcome, {user?.full_name || 'Student'}!
+            </h1>
+            <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              Dashboard Overview
+            </p>
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Content Area */}
             <div className="lg:col-span-2 space-y-6">

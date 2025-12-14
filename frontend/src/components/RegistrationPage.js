@@ -7,12 +7,14 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useCreateStudentMutation } from "@/redux/api/studentApi";
+import { useLoginMutation } from "@/redux/api/authApi";
 
 export default function RegistrationPage() {
   const { isDarkMode } = useTheme();
   const router = useRouter();
   const { data: programs = [] } = useGetProgramsQuery();
   const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
+  const [login] = useLoginMutation();
   
   const [formData, setFormData] = useState({
     full_name: "",
@@ -125,9 +127,27 @@ export default function RegistrationPage() {
       
       // Check if registration was successful
       if (response.success || response.student) {
-        // Success - redirect to student dashboard
-        alert("Account created successfully! Redirecting to your dashboard...");
-        router.push("/portal/student");
+        // Auto-login the student after registration
+        try {
+          const loginResponse = await login({
+            email: formData.email,
+            password: formData.password
+          }).unwrap();
+          
+          if (loginResponse.success) {
+            // Success - redirect to student dashboard
+            alert("Account created successfully! Redirecting to your dashboard...");
+            router.push("/portal/student");
+          } else {
+            // If auto-login fails, redirect to login page
+            alert("Account created successfully! Please login to continue.");
+            router.push("/auth/login");
+          }
+        } catch (loginError) {
+          // If auto-login fails, redirect to login page
+          alert("Account created successfully! Please login to continue.");
+          router.push("/auth/login");
+        }
       } else {
         alert(response.error || "Failed to create account. Please try again.");
       }

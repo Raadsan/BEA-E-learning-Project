@@ -65,7 +65,8 @@ export const login = async (req, res) => {
             email: user.email,
             role: 'student',
             chosen_program: user.chosen_program,
-            chosen_subprogram: user.chosen_subprogram
+            chosen_subprogram: user.chosen_subprogram,
+            approval_status: user.approval_status || 'pending'
           };
         }
       }
@@ -164,7 +165,8 @@ export const getCurrentUser = async (req, res) => {
             email: user.email,
             role: 'student',
             chosen_program: user.chosen_program,
-            chosen_subprogram: user.chosen_subprogram
+            chosen_subprogram: user.chosen_subprogram,
+            approval_status: user.approval_status || 'pending'
           };
         }
         break;
