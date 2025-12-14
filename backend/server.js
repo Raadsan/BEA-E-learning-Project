@@ -60,6 +60,10 @@ app.use("/api/admins", adminRoutes);
 // ⬇️ Register User Routes (All users: admins, teachers, students)
 app.use("/api/users", userRoutes);
 
+// ⬇️ Register Placement Test Routes
+import placementTestRoutes from "./routes/placementTestRoutes.js";
+app.use("/api/placement-tests", placementTestRoutes);
+
 // Server start
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}`));
