@@ -48,13 +48,8 @@ function StudentLayoutContent({ children }) {
       {isApproved && <StudentSidebar />}
 
       {/* Main Content Area */}
-<<<<<<< HEAD
-      <div className={`flex-1 flex flex-col ${isApproved ? 'ml-64' : ''}`}>
+      <div className={`flex-1 flex flex-col ${isApproved ? 'ml-80' : ''}`}>
         {isApproved && <StudentHeader />}
-=======
-      <div className="flex-1 flex flex-col ml-80">
-        <StudentHeader />
->>>>>>> 95511f9e1de13423ced4db06a8193edbf9df3c4b
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>
