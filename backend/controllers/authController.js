@@ -38,7 +38,9 @@ export const login = async (req, res) => {
       detectedRole = 'admin';
       userData = {
         id: user.id,
-        full_name: user.full_name,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
         email: user.email,
         role: user.role || 'admin'
       };
@@ -79,8 +81,8 @@ export const login = async (req, res) => {
       });
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Verify password (plain text comparison - no encryption/decryption)
+    const isPasswordValid = password === user.password;
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -148,7 +150,9 @@ export const getCurrentUser = async (req, res) => {
         if (user) {
           user = {
             id: user.id,
-            full_name: user.full_name,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
             email: user.email,
             role: user.role || 'admin'
           };

@@ -1,25 +1,27 @@
 // models/adminModel.js
 import db from "../database/dbconfig.js";
-import bcrypt from "bcryptjs";
 
 const dbp = db.promise();
 
 // CREATE admin
 export const createAdmin = async ({
-  full_name,
+  first_name,
+  last_name,
   email,
+  phone,
   password,
-  role = 'admin'
+  role = 'admin',
+  status = 'active'
 }) => {
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10);
+  // Store password as plain text (no encryption)
+  const adminPassword = password || (email.split('@')[0] + '@123'); // Use provided password or default
 
   const [result] = await dbp.query(
-    `INSERT INTO admins (full_name, email, password, role) VALUES (?, ?, ?, ?)`,
-    [full_name, email, hashedPassword, role]
+    `INSERT INTO admins (first_name, last_name, email, phone, password, role, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [first_name, last_name, email, phone || null, adminPassword, role, status]
   );
 
-  const [newAdmin] = await dbp.query("SELECT id, full_name, email, role, created_at, updated_at FROM admins WHERE id = ?", [result.insertId]);
+  const [newAdmin] = await dbp.query("SELECT id, first_name, last_name, email, phone, role, status, created_at, updated_at FROM admins WHERE id = ?", [result.insertId]);
   return newAdmin[0];
 };
 
@@ -27,8 +29,9 @@ export const createAdmin = async ({
 export const getAllAdmins = async () => {
   try {
     const [rows] = await dbp.query(
-      "SELECT id, full_name, email, role, created_at, updated_at FROM admins ORDER BY created_at DESC"
+      "SELECT id, first_name, last_name, email, phone, password, role, status, created_at, updated_at FROM admins ORDER BY created_at DESC"
     );
+    // Return passwords as plain text (no decryption needed)
     return rows;
   } catch (error) {
     console.error("❌ Error in getAllAdmins:", error);
@@ -39,47 +42,64 @@ export const getAllAdmins = async () => {
 // GET admin by ID
 export const getAdminById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, role, created_at, updated_at FROM admins WHERE id = ?",
+    "SELECT id, first_name, last_name, email, phone, password, role, status, created_at, updated_at FROM admins WHERE id = ?",
     [id]
   );
+  // Return password as plain text (no decryption needed)
   return rows[0] || null;
 };
 
-// GET admin by email
+// GET admin by email (for login - returns encrypted password for comparison)
 export const getAdminByEmail = async (email) => {
   const [rows] = await dbp.query(
-    "SELECT * FROM admins WHERE email = ?",
+    "SELECT id, first_name, last_name, email, phone, password, role, status, created_at, updated_at FROM admins WHERE email = ?",
     [email]
   );
+  // Don't decrypt here - we need encrypted password for login comparison
   return rows[0] || null;
 };
 
 // UPDATE admin
 export const updateAdminById = async (id, {
-  full_name,
+  first_name,
+  last_name,
   email,
+  phone,
   password,
-  role
+  role,
+  status
 }) => {
   const updates = [];
   const values = [];
 
-  if (full_name !== undefined) {
-    updates.push("full_name = ?");
-    values.push(full_name);
+  if (first_name !== undefined) {
+    updates.push("first_name = ?");
+    values.push(first_name);
+  }
+  if (last_name !== undefined) {
+    updates.push("last_name = ?");
+    values.push(last_name);
   }
   if (email !== undefined) {
     updates.push("email = ?");
     values.push(email);
   }
+  if (phone !== undefined) {
+    updates.push("phone = ?");
+    values.push(phone || null);
+  }
+  if (password !== undefined && password.trim() !== "") {
+    // Store password as plain text (no encryption)
+    updates.push("password = ?");
+    values.push(password);
+  }
   if (role !== undefined) {
     updates.push("role = ?");
     values.push(role);
   }
-  if (password !== undefined && password.trim() !== "") {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    updates.push("password = ?");
-    values.push(hashedPassword);
+  if (status !== undefined) {
+    updates.push("status = ?");
+    values.push(status);
   }
 
   if (updates.length === 0) {

@@ -3,12 +3,14 @@
 import { useState } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
+import { Toast, useToast } from "@/components/Toast";
 import { useGetTeachersQuery, useCreateTeacherMutation, useUpdateTeacherMutation, useDeleteTeacherMutation } from "@/redux/api/teacherApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function TeachersPage() {
   const { isDark } = useDarkMode();
+  const { toast, showToast, hideToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
@@ -65,6 +67,23 @@ export default function TeachersPage() {
 
   const handleEdit = (teacher) => {
     setEditingTeacher(teacher);
+    
+    // Format hire_date for date input (YYYY-MM-DD)
+    let formattedHireDate = "";
+    if (teacher.hire_date) {
+      const date = new Date(teacher.hire_date);
+      if (!isNaN(date.getTime())) {
+        // Format as YYYY-MM-DD
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        formattedHireDate = `${year}-${month}-${day}`;
+      } else {
+        // If it's already in YYYY-MM-DD format, use it directly
+        formattedHireDate = teacher.hire_date;
+      }
+    }
+    
     setFormData({
       full_name: teacher.full_name || "",
       email: teacher.email || "",
@@ -77,7 +96,7 @@ export default function TeachersPage() {
       bio: teacher.bio || "",
       portfolio_link: teacher.portfolio_link || "",
       skills: teacher.skills || "",
-      hire_date: teacher.hire_date || "",
+      hire_date: formattedHireDate,
       password: "", // Don't pre-fill password
     });
     setIsModalOpen(true);
@@ -87,9 +106,10 @@ export default function TeachersPage() {
     if (window.confirm("Are you sure you want to delete this teacher?")) {
       try {
         await deleteTeacher(id).unwrap();
+        showToast("Teacher deleted successfully!", "success");
       } catch (error) {
         console.error("Failed to delete teacher:", error);
-        alert("Failed to delete teacher. Please try again.");
+        showToast("Failed to delete teacher. Please try again.", "error");
       }
     }
   };
@@ -163,19 +183,21 @@ export default function TeachersPage() {
 
       if (editingTeacher) {
         await updateTeacher({ id: editingTeacher.id, ...submitData }).unwrap();
+        showToast("Teacher updated successfully!", "success");
       } else {
         // Password is required for new teachers
         if (!submitData.password || submitData.password.trim() === "") {
-          alert("Password is required for new teachers");
+          showToast("Password is required for new teachers", "error");
           return;
         }
         await createTeacher(submitData).unwrap();
+        showToast("Teacher registered successfully!", "success");
       }
 
       handleCloseModal();
     } catch (error) {
       console.error("Failed to save teacher:", error);
-      alert(error?.data?.error || "Failed to save teacher. Please try again.");
+      showToast(error?.data?.error || "Failed to save teacher. Please try again.", "error");
     }
 
     return false;
@@ -303,11 +325,11 @@ export default function TeachersPage() {
       {/* Add/Edit Teacher Modal */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
           style={{ pointerEvents: 'none' }}
         >
           <div 
-            className="absolute inset-0 bg-transparent"
+            className="absolute inset-0"
             onClick={handleBackdropClick}
             style={{ pointerEvents: 'auto' }}
           />
@@ -934,6 +956,15 @@ export default function TeachersPage() {
         </div>
       )}
 
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          duration={toast.duration}
+        />
+      )}
     </>
   );
 }
