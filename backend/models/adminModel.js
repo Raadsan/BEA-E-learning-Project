@@ -83,7 +83,7 @@ export const updateAdminById = async (id, {
   if (last_name !== undefined) {
     updates.push("last_name = ?");
     values.push(last_name);
-  }
+  } 
   if (email !== undefined) {
     updates.push("email = ?");
     values.push(email);
