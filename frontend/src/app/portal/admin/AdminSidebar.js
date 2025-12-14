@@ -18,7 +18,13 @@ export default function AdminSidebar() {
   useEffect(() => {
     if (pathname?.startsWith("/portal/admin/students")) {
       setOpenSection('studentManagement');
-      setOpenSubSection(null);
+      if (pathname?.includes('/general')) {
+        setOpenSubSection('generalStudents');
+      } else if (pathname?.includes('/ielts')) {
+        setOpenSubSection('ieltsStudents');
+      } else {
+        setOpenSubSection(null);
+      }
     } else if (pathname?.startsWith("/portal/admin/teachers")) {
       setOpenSection('teacherManagement');
       setOpenSubSection(null);
@@ -84,6 +90,10 @@ export default function AdminSidebar() {
   const isActive = (href) => {
     if (href === "/portal/admin") {
       return pathname === href;
+    }
+    // For /portal/admin/students, only active if exact match (not /general or /ielts-toefl)
+    if (href === "/portal/admin/students") {
+      return pathname === href || pathname === href + "/";
     }
     return pathname?.startsWith(href);
   };
@@ -195,21 +205,37 @@ export default function AdminSidebar() {
             {openSection === 'studentManagement' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
                 <li>
-                  <Link href="/portal/admin/students" className={getSubMenuItemClasses("/portal/admin/students")} style={getSubActiveStyle("/portal/admin/students")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/students") && !pathname?.includes('/ielts') ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <Link 
+                    href="/portal/admin/students" 
+                    className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm ${
+                      (pathname === "/portal/admin/students" || pathname === "/portal/admin/students/") 
+                        ? 'text-white font-semibold' 
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                    style={(pathname === "/portal/admin/students" || pathname === "/portal/admin/students/") ? getSubActiveStyle("/portal/admin/students") : {}}
+                  >
+                    <svg className={`w-4 h-4 ${(pathname === "/portal/admin/students" || pathname === "/portal/admin/students/") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
-                    <span className={isActive("/portal/admin/students") && !pathname?.includes('/ielts') ? 'text-white' : 'text-gray-900'}>General Student List</span>
+                    <span className={(pathname === "/portal/admin/students" || pathname === "/portal/admin/students/") ? 'text-white' : 'text-gray-900'}>All Students</span>
                   </Link>
                 </li>
                 <li>
-                  <Link href="/portal/admin/students/ielts" className={getSubMenuItemClasses("/portal/admin/students/ielts")} style={getSubActiveStyle("/portal/admin/students/ielts")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/students/ielts") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <Link href="/portal/admin/students/general" className={getSubMenuItemClasses("/portal/admin/students/general")} style={getSubActiveStyle("/portal/admin/students/general")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/students/general") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/students/general") ? 'text-white' : 'text-gray-900'}>General Program Students</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/students/ielts-toefl" className={getSubMenuItemClasses("/portal/admin/students/ielts-toefl")} style={getSubActiveStyle("/portal/admin/students/ielts-toefl")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/students/ielts-toefl") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span className={isActive("/portal/admin/students/ielts") ? 'text-white' : 'text-gray-900'}>IELTS Students List</span>
-                      </Link>
-                    </li>
+                    <span className={isActive("/portal/admin/students/ielts-toefl") ? 'text-white' : 'text-gray-900'}>IELTS / TOEFL Students</span>
+                  </Link>
+                </li>
               </ul>
             )}
           </li>

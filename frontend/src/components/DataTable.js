@@ -80,7 +80,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
           <thead className={`${isDark ? 'bg-white text-gray-900' : 'bg-[#010080] text-white'}`}>
             <tr>
               {columns.map((col, i) => (
-                <th key={col.key || i} className="px-4 py-3 uppercase text-xs font-medium">
+                <th key={col.key || i} className="px-5 py-4 uppercase text-xs font-medium tracking-wide">
                   {col.label ?? ""}
                 </th>
               ))}
@@ -119,7 +119,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                   }
 
                   return (
-                    <td key={col.key || i} className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                    <td key={col.key || i} className="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
                       {cellContent}
                     </td>
                   );
