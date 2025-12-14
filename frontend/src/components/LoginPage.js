@@ -36,18 +36,34 @@ export default function LoginPage() {
         password: formData.password,
       }).unwrap();
 
-      if (result.success) {
-        // Redirect based on role
-        const role = result.user.role;
-        if (role === "admin") {
-          router.push("/portal/admin");
-        } else if (role === "teacher") {
-          router.push("/portal/teacher");
-        } else if (role === "student") {
-          router.push("/portal/student");
-        } else {
-          router.push("/");
+      if (result.success && result.user) {
+        // Ensure token and user are saved before redirect
+        if (typeof window !== "undefined") {
+          if (result.token) {
+            localStorage.setItem("token", result.token);
+          }
+          if (result.user) {
+            localStorage.setItem("user", JSON.stringify(result.user));
+          }
         }
+        
+        // Redirect based on role - use window.location for full page reload
+        const role = result.user.role;
+        console.log("Login successful! Role:", role, "Redirecting...");
+        
+        // Use window.location for immediate redirect
+        if (role === "admin") {
+          window.location.href = "/portal/admin";
+        } else if (role === "teacher") {
+          window.location.href = "/portal/teacher";
+        } else if (role === "student") {
+          window.location.href = "/portal/student";
+        } else {
+          console.warn("Unknown role, redirecting to home");
+          window.location.href = "/";
+        }
+      } else {
+        console.error("Login failed - no user data:", result);
       }
     } catch (err) {
       setLoginError(
