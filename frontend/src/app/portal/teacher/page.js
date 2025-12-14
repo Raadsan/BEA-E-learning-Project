@@ -75,8 +75,8 @@ export default function TeacherDashboard() {
       <TeacherHeader />
 
       {/* Dashboard Content */}
-      <main className="flex-1 overflow-y-auto mt-20">
-        <div className="w-full px-8 py-6">
+      <main className="flex-1 overflow-y-auto">
+        <div className="w-full px-8 pt-6 pb-6">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Dashboard Overview</h1>
           
           {/* Summary Cards with Circular Progress */}
