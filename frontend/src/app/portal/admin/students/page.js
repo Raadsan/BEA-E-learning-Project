@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
-<<<<<<< HEAD
 import { Toast, useToast } from "@/components/Toast";
 import {
   useGetStudentsQuery,
@@ -13,13 +12,10 @@ import {
   useApproveStudentMutation,
   useRejectStudentMutation
 } from "@/redux/api/studentApi";
-=======
-import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation, useApproveStudentMutation, useRejectStudentMutation } from "@/redux/api/studentApi";
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery, useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useToast } from "@/components/Toast";
+
 
 export default function StudentsPage() {
   const { isDark } = useDarkMode();
@@ -161,86 +157,7 @@ export default function StudentsPage() {
       }
     },
     {
-<<<<<<< HEAD
-      key: "actions", label: "Actions", render: (row) => {
-        const isPending = (row.approval_status || 'pending') === 'pending';
-        const isApproved = row.approval_status === 'approved';
-        const isRejected = row.approval_status === 'rejected';
-=======
-      key: "email",
-      label: "Email",
-    },
-    {
-      key: "phone",
-      label: "Phone",
-      render: (row) => row.phone || "N/A",
-    },
-    {
-      key: "age",
-      label: "Age",
-      render: (row) => row.age || "N/A",
-    },
-    {
-      key: "residency_country",
-      label: "Country",
-      render: (row) => row.residency_country || "N/A",
-    },
-    {
-      key: "residency_city",
-      label: "City",
-      render: (row) => row.residency_city || "N/A",
-    },
-    {
-      key: "chosen_program",
-      label: "Program",
-      render: (row) => {
-        if (!row.chosen_program || row.chosen_program === "Not assigned") {
-          return <span className="text-gray-500">Not assigned</span>;
-        }
-        return row.chosen_program;
-      },
-    },
-    {
-      key: "chosen_subprogram",
-      label: "Subprogram",
-      render: (row) => {
-        const subprogram = row.chosen_subprogram;
-        // Only show the student's assigned subprogram
-        if (subprogram && subprogram.trim() !== "" && subprogram !== "null") {
-          return <span className="text-black dark:text-white">{subprogram}</span>;
-        }
 
-        return <span className="text-gray-500">Not assigned</span>;
-      },
-    },
-    {
-      key: "approval_status",
-      label: "Status",
-      render: (row) => {
-        const status = row.approval_status || 'pending';
-        const statusColors = {
-          pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-          approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-          rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-        };
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
-        return (
-          <div className="flex gap-2">
-            {(isPending || isRejected) && <button onClick={() => handleApprove(row.id)} disabled={isApproving || isRejecting} className="text-green-600 hover:text-green-900 dark:text-green-400 p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>}
-            {(isPending || isApproved) && <button onClick={() => handleReject(row.id)} disabled={isApproving || isRejecting} className="text-red-600 hover:text-red-900 dark:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>}
-            <button onClick={() => handleView(row)} className="text-green-600 hover:text-green-900 dark:text-green-400 p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
-            <button onClick={() => handleAssignSubprogram(row)} className="text-purple-600 hover:text-purple-900 dark:text-purple-400 p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
-            <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-            <button onClick={() => handleDelete(row.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-          </div>
-        );
-<<<<<<< HEAD
-      }
-    }
-=======
-      },
-    },
-    {
       key: "actions",
       label: "Actions",
       render: (row) => {
@@ -256,8 +173,8 @@ export default function StudentsPage() {
               onClick={() => handleApprove(row.id)}
               disabled={isApproving || isRejecting || isApproved}
               className={`transition-colors p-1 rounded ${isApproved
-                  ? 'text-gray-400 cursor-not-allowed opacity-50'
-                  : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20'
+                ? 'text-gray-400 cursor-not-allowed opacity-50'
+                : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20'
                 }`}
               title={isApproved ? "Already Approved" : "Approve"}
             >
@@ -271,8 +188,8 @@ export default function StudentsPage() {
               onClick={() => handleReject(row.id)}
               disabled={isApproving || isRejecting || isRejected}
               className={`transition-colors p-1 rounded ${isRejected
-                  ? 'text-gray-400 cursor-not-allowed opacity-50'
-                  : 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20'
+                ? 'text-gray-400 cursor-not-allowed opacity-50'
+                : 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20'
                 }`}
               title={isRejected ? "Already Rejected" : "Reject"}
             >
@@ -322,7 +239,6 @@ export default function StudentsPage() {
         );
       },
     },
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
   ];
 
   if (isLoading) return <><AdminHeader /><main className="mt-20 text-center py-12">Loading students...</main></>;
@@ -331,7 +247,6 @@ export default function StudentsPage() {
   return (
     <>
       <AdminHeader />
-<<<<<<< HEAD
       <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
         <div className="w-full px-8 py-6">
           <div className="mb-6 flex gap-4 border-b border-gray-200 dark:border-gray-700">
@@ -343,18 +258,6 @@ export default function StudentsPage() {
             ))}
           </div>
           <DataTable title={activeTab === 'all' ? "Student Management - All Students" : activeTab === 'general' ? "Student Management - General English" : "Student Management - IELTS & TOEFL"} columns={columns} data={filteredStudents} onAddClick={handleAddStudent} showAddButton={true} />
-=======
-
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-        <div className="w-full px-8 py-6">
-          <DataTable
-            title="Student Management"
-            columns={columns}
-            data={students}
-            onAddClick={handleAddStudent}
-            showAddButton={true}
-          />
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
         </div>
       </main>
 
@@ -677,13 +580,8 @@ export default function StudentsPage() {
                   type="button"
                   onClick={handleCloseModal}
                   className={`px-4 py-2 border rounded-lg transition-colors ${isDark
-<<<<<<< HEAD
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-=======
                     ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
                     }`}
                 >
                   Cancel
@@ -701,391 +599,350 @@ export default function StudentsPage() {
         </div>
       )}
 
-<<<<<<< HEAD
       {/* Assign Subprogram Modal */}
-      {isAssignSubprogramModalOpen && assigningStudent && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
-          style={{ pointerEvents: 'none' }}
-        >
+      {
+        isAssignSubprogramModalOpen && assigningStudent && (
           <div
-            className="absolute inset-0"
-=======
-      {/* View Subprograms Modal */}
-      {isSubprogramsModalOpen && selectedProgramForSubprograms && (
-        <SubprogramsModal
-          program={selectedProgramForSubprograms}
-          onClose={handleCloseSubprogramsModal}
-          isDark={isDark}
-        />
-      )}
-
-      {/* Assign Subprogram Modal */}
-      {isAssignSubprogramModalOpen && assigningStudent && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ pointerEvents: 'none' }}
-        >
-          <div
-            className="absolute inset-0 bg-transparent"
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
-            onClick={handleCloseAssignSubprogramModal}
-            style={{ pointerEvents: 'auto' }}
-          />
-
-          <div
-            className={`relative rounded-lg shadow-2xl w-full max-w-4xl mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-              }`}
-            onClick={(e) => e.stopPropagation()}
-            style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+            style={{ pointerEvents: 'none' }}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-              }`}>
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
-                }`}>
-                Assign Subprogram to {assigningStudent.full_name}
-              </h2>
-              <button
-                onClick={handleCloseAssignSubprogramModal}
-                className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-                  }`}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+            <div
+              className="absolute inset-0"
+              onClick={handleCloseAssignSubprogramModal}
+              style={{ pointerEvents: 'auto' }}
+            />
 
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                try {
-                  const subprogramName = e.target.subprogram_name.value;
-                  const updateData = {
-                    id: assigningStudent.id,
-                    full_name: assigningStudent.full_name,
-                    email: assigningStudent.email,
-                    phone: assigningStudent.phone,
-                    age: assigningStudent.age,
-                    residency_country: assigningStudent.residency_country,
-                    residency_city: assigningStudent.residency_city,
-                    chosen_program: assigningStudent.chosen_program,
-                    chosen_subprogram: subprogramName || null,
-                    parent_name: assigningStudent.parent_name || null,
-                    parent_email: assigningStudent.parent_email || null,
-                    parent_phone: assigningStudent.parent_phone || null,
-                    parent_relation: assigningStudent.parent_relation || null,
-                    parent_res_county: assigningStudent.parent_res_county || null,
-                    parent_res_city: assigningStudent.parent_res_city || null,
-                  };
-
-<<<<<<< HEAD
-                  console.log("Updating student with:", updateData);
-                  const result = await updateStudent(updateData).unwrap();
-                  console.log("Update result:", result);
-
-=======
-                  console.log("Updating student with:", updateData); // Debug log
-                  const result = await updateStudent(updateData).unwrap();
-                  console.log("Update result:", result); // Debug log
-
-                  // Force refetch to ensure table updates immediately
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
-                  await refetch();
-                  handleCloseAssignSubprogramModal();
-                } catch (error) {
-                  console.error("Failed to assign subprogram:", error);
-                  alert(error?.data?.error || "Failed to assign subprogram. Please try again.");
-                }
-              }}
-              className="p-6 space-y-4"
+            <div
+              className={`relative rounded-lg shadow-2xl w-full max-w-4xl mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+                }`}
+              onClick={(e) => e.stopPropagation()}
+              style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
             >
-              {assigningStudent.chosen_program ? (
-                <div>
-                  <label htmlFor="subprogram_name" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    Select Subprogram
-                  </label>
-                  {(() => {
-                    const program = programs.find(p => p.title === assigningStudent.chosen_program);
-                    const programSubprograms = program
-<<<<<<< HEAD
-                      ? allSubprograms.filter(sp => sp.program_id === program.id && sp.status === 'active')
-=======
-                      ? allSubprograms.filter(sp => sp.program_id === program.id)
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
-                      : [];
-
-                    if (programSubprograms.length === 0) {
-                      return (
-                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                          No active subprograms available for this program.
-                        </p>
-                      );
-                    }
-
-                    return (
-                      <select
-                        id="subprogram_name"
-                        name="subprogram_name"
-                        defaultValue={assigningStudent.chosen_subprogram || ""}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                          }`}
-                      >
-                        <option value="">Select Subprogram (Optional)</option>
-                        {programSubprograms.map((sp) => (
-                          <option key={sp.id} value={sp.subprogram_name}>
-                            {sp.subprogram_name}
-                          </option>
-                        ))}
-                      </select>
-                    );
-                  })()}
-                </div>
-              ) : (
-                <div className={`p-4 rounded-lg ${isDark ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-yellow-50 border border-yellow-200'
+              <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                }`}>
+                <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
                   }`}>
-                  <p className={`text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
-                    Please assign a program to this student first before assigning a subprogram.
-                  </p>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  Assign Subprogram to {assigningStudent.full_name}
+                </h2>
                 <button
-                  type="button"
                   onClick={handleCloseAssignSubprogramModal}
-                  className={`px-4 py-2 border rounded-lg transition-colors ${isDark
-<<<<<<< HEAD
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-=======
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
+                  className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
                     }`}
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUpdating || !assigningStudent.chosen_program}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isUpdating ? "Assigning..." : "Save Assignment"}
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
-            </form>
+
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    const subprogramName = e.target.subprogram_name.value;
+                    const updateData = {
+                      id: assigningStudent.id,
+                      full_name: assigningStudent.full_name,
+                      email: assigningStudent.email,
+                      phone: assigningStudent.phone,
+                      age: assigningStudent.age,
+                      residency_country: assigningStudent.residency_country,
+                      residency_city: assigningStudent.residency_city,
+                      chosen_program: assigningStudent.chosen_program,
+                      chosen_subprogram: subprogramName || null,
+                      parent_name: assigningStudent.parent_name || null,
+                      parent_email: assigningStudent.parent_email || null,
+                      parent_phone: assigningStudent.parent_phone || null,
+                      parent_relation: assigningStudent.parent_relation || null,
+                      parent_res_county: assigningStudent.parent_res_county || null,
+                      parent_res_city: assigningStudent.parent_res_city || null,
+                    };
+
+                    console.log("Updating student with:", updateData);
+                    const result = await updateStudent(updateData).unwrap();
+                    console.log("Update result:", result);
+
+                    await refetch();
+                    handleCloseAssignSubprogramModal();
+                  } catch (error) {
+                    console.error("Failed to assign subprogram:", error);
+                    alert(error?.data?.error || "Failed to assign subprogram. Please try again.");
+                  }
+                }}
+                className="p-6 space-y-4"
+              >
+                {assigningStudent.chosen_program ? (
+                  <div>
+                    <label htmlFor="subprogram_name" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                      Select Subprogram
+                    </label>
+                    {(() => {
+                      const program = programs.find(p => p.title === assigningStudent.chosen_program);
+                      const programSubprograms = program
+                        ? allSubprograms.filter(sp => sp.program_id === program.id && sp.status === 'active')
+                        : [];
+
+                      if (programSubprograms.length === 0) {
+                        return (
+                          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                            No active subprograms available for this program.
+                          </p>
+                        );
+                      }
+
+                      return (
+                        <select
+                          id="subprogram_name"
+                          name="subprogram_name"
+                          defaultValue={assigningStudent.chosen_subprogram || ""}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                            }`}
+                        >
+                          <option value="">Select Subprogram (Optional)</option>
+                          {programSubprograms.map((sp) => (
+                            <option key={sp.id} value={sp.subprogram_name}>
+                              {sp.subprogram_name}
+                            </option>
+                          ))}
+                        </select>
+                      );
+                    })()}
+                  </div>
+                ) : (
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-yellow-50 border border-yellow-200'
+                    }`}>
+                    <p className={`text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
+                      Please assign a program to this student first before assigning a subprogram.
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    type="button"
+                    onClick={handleCloseAssignSubprogramModal}
+                    className={`px-4 py-2 border rounded-lg transition-colors ${isDark
+                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUpdating || !assigningStudent.chosen_program}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdating ? "Assigning..." : "Save Assignment"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* View Student Modal */}
-      {isViewModalOpen && viewingStudent && (
-        <div
-<<<<<<< HEAD
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
-          style={{ pointerEvents: 'none' }}
-        >
+      {
+        isViewModalOpen && viewingStudent && (
           <div
-            className="absolute inset-0"
-=======
-          className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ pointerEvents: 'none' }}
-        >
-          <div
-            className="absolute inset-0 bg-transparent"
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
-            onClick={handleCloseViewModal}
-            style={{ pointerEvents: 'auto' }}
-          />
-
-          <div
-            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-              }`}
-            onClick={(e) => e.stopPropagation()}
-            style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+            style={{ pointerEvents: 'none' }}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-              }`}>
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
-                }`}>
-                Student Profile: {viewingStudent.full_name}
-              </h2>
-              <button
-                onClick={handleCloseViewModal}
-                className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-                  }`}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+            <div
+              className="absolute inset-0"
+              onClick={handleCloseViewModal}
+              style={{ pointerEvents: 'auto' }}
+            />
 
-            <div className="p-6 space-y-6">
-              {/* Personal Information Section */}
-              <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
+            <div
+              className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+                }`}
+              onClick={(e) => e.stopPropagation()}
+              style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
+            >
+              <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
                 }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
                   }`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  Student Profile: {viewingStudent.full_name}
+                </h2>
+                <button
+                  onClick={handleCloseViewModal}
+                  className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  Personal Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Full Name</label>
-                    <p className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {viewingStudent.full_name || 'N/A'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Email</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingStudent.email || 'N/A'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Phone</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingStudent.phone || 'N/A'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Age</label>
-                    <p className={`text-base font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                      {viewingStudent.age || 'N/A'} {viewingStudent.age ? 'years' : ''}
-                    </p>
-                  </div>
-                </div>
+                </button>
               </div>
 
-              {/* Location Information Section */}
-              <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
-                }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
-                  }`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Location Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Country</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingStudent.residency_country || 'N/A'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>City</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingStudent.residency_city || 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Academic Information Section */}
-              <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-green-50/50 border-green-200'
-                }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
-                  }`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  Academic Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Program</label>
-                    <p className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {viewingStudent.chosen_program || 'Not assigned'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Subprogram</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingStudent.chosen_subprogram && viewingStudent.chosen_subprogram.trim() !== "" && viewingStudent.chosen_subprogram !== "null"
-                        ? viewingStudent.chosen_subprogram
-                        : 'Not assigned'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Parent/Guardian Information Section - Only show if age < 18 */}
-              {viewingStudent.age && parseInt(viewingStudent.age) < 18 && (
-                <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-orange-50/50 border-orange-200'
+              <div className="p-6 space-y-6">
+                {/* Personal Information Section */}
+                <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
                   }`}>
                   <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
                     }`}>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    Parent/Guardian Information
+                    Personal Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
                       <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}>Parent Name</label>
-                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                        {viewingStudent.parent_name || 'N/A'}
+                        }`}>Full Name</label>
+                      <p className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {viewingStudent.full_name || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
                       <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}>Parent Email</label>
+                        }`}>Email</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                        {viewingStudent.parent_email || 'N/A'}
+                        {viewingStudent.email || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
                       <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}>Parent Phone</label>
+                        }`}>Phone</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                        {viewingStudent.parent_phone || 'N/A'}
+                        {viewingStudent.phone || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
                       <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}>Relation</label>
-                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                        {viewingStudent.parent_relation || 'N/A'}
-                      </p>
-                    </div>
-                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}>Parent Country</label>
-                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                        {viewingStudent.parent_res_county || 'N/A'}
-                      </p>
-                    </div>
-                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}>Parent City</label>
-                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                        {viewingStudent.parent_res_city || 'N/A'}
+                        }`}>Age</label>
+                      <p className={`text-base font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                        {viewingStudent.age || 'N/A'} {viewingStudent.age ? 'years' : ''}
                       </p>
                     </div>
                   </div>
                 </div>
-              )}
+
+                {/* Location Information Section */}
+                <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
+                  }`}>
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                    }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Location Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Country</label>
+                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {viewingStudent.residency_country || 'N/A'}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>City</label>
+                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {viewingStudent.residency_city || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Academic Information Section */}
+                <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-green-50/50 border-green-200'
+                  }`}>
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                    }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Academic Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Program</label>
+                      <p className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {viewingStudent.chosen_program || 'Not assigned'}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Subprogram</label>
+                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {viewingStudent.chosen_subprogram && viewingStudent.chosen_subprogram.trim() !== "" && viewingStudent.chosen_subprogram !== "null"
+                          ? viewingStudent.chosen_subprogram
+                          : 'Not assigned'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Parent/Guardian Information Section - Only show if age < 18 */}
+                {viewingStudent.age && parseInt(viewingStudent.age) < 18 && (
+                  <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-orange-50/50 border-orange-200'
+                    }`}>
+                    <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                      }`}>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                      Parent/Guardian Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                        <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                          }`}>Parent Name</label>
+                        <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                          {viewingStudent.parent_name || 'N/A'}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                        <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                          }`}>Parent Email</label>
+                        <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                          {viewingStudent.parent_email || 'N/A'}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                        <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                          }`}>Parent Phone</label>
+                        <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                          {viewingStudent.parent_phone || 'N/A'}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                        <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                          }`}>Relation</label>
+                        <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                          {viewingStudent.parent_relation || 'N/A'}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                        <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                          }`}>Parent Country</label>
+                        <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                          {viewingStudent.parent_res_county || 'N/A'}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                        <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                          }`}>Parent City</label>
+                        <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                          {viewingStudent.parent_res_city || 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} duration={toast.duration} />}
     </>
@@ -1095,14 +952,6 @@ export default function StudentsPage() {
 function SubprogramsModal({ program, onClose, isDark }) {
   const { data: subprograms, isLoading, isError } = useGetSubprogramsByProgramIdQuery(program.id);
   return (
-<<<<<<< HEAD
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm" style={{ pointerEvents: 'none' }}>
-      <div className="absolute inset-0" onClick={onClose} style={{ pointerEvents: 'auto' }} />
-      <div className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'}`} onClick={e => e.stopPropagation()} style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}>
-        <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Subprograms for {program.name}</h2>
-          <button onClick={onClose} className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
-=======
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center"
       style={{ pointerEvents: 'none' }}
@@ -1134,18 +983,10 @@ function SubprogramsModal({ program, onClose, isDark }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
         </div>
         <div className="p-4 bg-gray-50">
           {isLoading ? <div className="text-center py-8">Loading...</div> : isError ? <div className="text-center py-8 text-red-600">Error</div> : (!subprograms || subprograms.length === 0) ? <div className="text-center py-8">No subprograms found.</div> : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-<<<<<<< HEAD
-              {subprograms.map(sp => (
-                <div key={sp.id} className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                  <h3 className={`font-semibold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{sp.subprogram_name}</h3>
-                  <p className={`text-sm mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{sp.description || 'No description'}</p>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${sp.status === 'active' ? (isDark ? 'bg-green-900/30 text-green-300 border border-green-700' : 'bg-green-100 text-green-800') : (isDark ? 'bg-gray-700 text-gray-400 border border-gray-600' : 'bg-gray-200 text-gray-600')}`}>{sp.status === 'active' ? 'Active' : 'Inactive'}</span>
-=======
               {subprograms.map((subprogram) => (
                 <div
                   key={subprogram.id}
@@ -1172,7 +1013,6 @@ function SubprogramsModal({ program, onClose, isDark }) {
                       {subprogram.status === 'active' ? 'Active' : 'Inactive'}
                     </span>
                   </div>
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
                 </div>
               ))}
             </div>
