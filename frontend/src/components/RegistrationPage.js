@@ -5,27 +5,30 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
+import { useGetProgramsQuery } from "@/redux/api/programApi";
+import { useCreateStudentMutation } from "@/redux/api/studentApi";
 
 export default function RegistrationPage() {
   const { isDarkMode } = useTheme();
   const router = useRouter();
+  const { data: programs = [] } = useGetProgramsQuery();
+  const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
+  
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    full_name: "",
     email: "",
     phone: "",
     age: "",
-    gender: "",
-    country: "",
-    city: "",
-    program: "",
-    courseLevel: "",
-    parentName: "",
-    parentEmail: "",
-    parentPhone: "",
-    relationship: "",
-    parentCountry: "",
-    parentCity: "",
+    residency_country: "",
+    residency_city: "",
+    chosen_program: "",
+    password: "",
+    parent_name: "",
+    parent_email: "",
+    parent_phone: "",
+    parent_relation: "",
+    parent_res_county: "",
+    parent_res_city: "",
     termsAccepted: false,
   });
 
@@ -42,67 +45,102 @@ export default function RegistrationPage() {
     tanzania: { name: "Tanzania", cities: ["Dar es Salaam", "Dodoma", "Mwanza", "Arusha", "Mbeya", "Zanzibar City", "Tanga", "Morogoro", "Kigoma", "Tabora"] },
   };
 
-  const programs = [
-    { value: "general-english", label: "8-Level General English Course", hasSubLevels: true },
-    { value: "esp", label: "English for Specific Purposes (ESP)", hasSubLevels: false },
-    { value: "ielts-toefl", label: "IELTS & TOEFL Preparation", hasSubLevels: false },
-    { value: "academic-writing", label: "Academic Writing Program", hasSubLevels: false },
-    { value: "digital-literacy", label: "Digital Literacy Program", hasSubLevels: false },
-    { value: "professional-skills", label: "Professional Skills Training", hasSubLevels: false },
-  ];
-
-  const courseLevels = [
-    { value: "a1", label: "A1 - Beginner" },
-    { value: "a2", label: "A2 - Elementary" },
-    { value: "a2plus", label: "A2+ - Pre-Intermediate" },
-    { value: "b1", label: "B1 - Intermediate" },
-    { value: "b1plus", label: "B1+ - Intermediate Plus" },
-    { value: "b2", label: "B2 - Upper-Intermediate" },
-    { value: "c1", label: "C1 - Advanced" },
-    { value: "c2", label: "C2 - Advanced Plus" },
-  ];
-
-  const selectedProgram = programs.find(p => p.value === formData.program);
-  const showLevelSelection = selectedProgram && selectedProgram.hasSubLevels;
-
   useEffect(() => {
-    if (formData.country && countriesData[formData.country]) {
-      setCities(countriesData[formData.country].cities);
-      setFormData(prev => ({ ...prev, city: "" }));
+    if (formData.residency_country) {
+      // Find the country data by matching the name
+      const countryEntry = Object.entries(countriesData).find(
+        ([key, data]) => data.name === formData.residency_country
+      );
+      if (countryEntry) {
+        setCities(countryEntry[1].cities);
+        setFormData(prev => ({ ...prev, residency_city: "" }));
+      } else {
+        setCities([]);
+      }
     } else {
       setCities([]);
     }
-  }, [formData.country]);
+  }, [formData.residency_country]);
 
   useEffect(() => {
-    if (formData.parentCountry && countriesData[formData.parentCountry]) {
-      setParentCities(countriesData[formData.parentCountry].cities);
-      setFormData(prev => ({ ...prev, parentCity: "" }));
+    if (formData.parent_res_county) {
+      // Find the country data by matching the name
+      const countryEntry = Object.entries(countriesData).find(
+        ([key, data]) => data.name === formData.parent_res_county
+      );
+      if (countryEntry) {
+        setParentCities(countryEntry[1].cities);
+        setFormData(prev => ({ ...prev, parent_res_city: "" }));
+      } else {
+        setParentCities([]);
+      }
     } else {
       setParentCities([]);
     }
-  }, [formData.parentCountry]);
+  }, [formData.parent_res_county]);
 
   useEffect(() => {
     const age = parseInt(formData.age);
-    setShowParentSection(!isNaN(age) && age <= 18);
+    setShowParentSection(!isNaN(age) && age < 18);
   }, [formData.age]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => {
-      const newData = { ...prev, [name]: type === "checkbox" ? checked : value };
-      // If program changes and it's not "general-english", clear the course level
-      if (name === "program" && value !== "general-english") {
-        newData.courseLevel = "";
-      }
-      return newData;
-    });
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    
+    if (!formData.termsAccepted) {
+      alert("Please accept the terms and conditions to continue.");
+      return;
+    }
+
+    try {
+      // Prepare student data
+      const studentData = {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone || null,
+        age: formData.age ? parseInt(formData.age) : null,
+        residency_country: formData.residency_country || null,
+        residency_city: formData.residency_city || null,
+        chosen_program: formData.chosen_program || null,
+        password: formData.password,
+        // Parent information (only if age < 18)
+        parent_name: formData.parent_name || null,
+        parent_email: formData.parent_email || null,
+        parent_phone: formData.parent_phone || null,
+        parent_relation: formData.parent_relation || null,
+        parent_res_county: formData.parent_res_county || null,
+        parent_res_city: formData.parent_res_city || null,
+      };
+
+      // Create student account
+      const response = await createStudent(studentData).unwrap();
+      
+      // Check if registration was successful
+      if (response.success || response.student) {
+        // Success - redirect to student dashboard
+        alert("Account created successfully! Redirecting to your dashboard...");
+        router.push("/portal/student");
+      } else {
+        alert(response.error || "Failed to create account. Please try again.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      // Handle different error formats
+      const errorMessage = 
+        error?.data?.error || 
+        error?.data?.message || 
+        error?.message || 
+        "Failed to create account. Please try again.";
+      alert(errorMessage);
+    }
   };
 
   return (
@@ -218,37 +256,23 @@ export default function RegistrationPage() {
 
           {/* Registration Form */}
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-            {/* Name Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">First Name</label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  placeholder="Enter first name"
-                  className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name</label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  placeholder="Enter last name"
-                  className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
-                  required
-                />
-              </div>
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                name="full_name"
+                value={formData.full_name}
+                onChange={handleChange}
+                placeholder="Enter full name"
+                className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
+                required
+              />
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Email <span className="text-red-500">*</span></label>
               <input
                 type="email"
                 name="email"
@@ -262,7 +286,7 @@ export default function RegistrationPage() {
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
               <input
                 type="tel"
                 name="phone"
@@ -270,109 +294,36 @@ export default function RegistrationPage() {
                 onChange={handleChange}
                 placeholder="+252 61-*******"
                 className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
-                required
               />
             </div>
 
-            {/* Age and Gender */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Age</label>
-                <input
-                  type="number"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  placeholder="Enter age"
-                  min="5"
-                  max="100"
-                  className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
-                <div className="relative">
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleChange}
-                    className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
-                    required
-                  >
-                    <option value="">Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                  </select>
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </div>
-              </div>
+            {/* Age */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Age</label>
+              <input
+                type="number"
+                name="age"
+                value={formData.age}
+                onChange={handleChange}
+                placeholder="Enter age"
+                min="1"
+                className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
+              />
             </div>
 
-            {/* Residency */}
+            {/* Residency Country */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Residency</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="relative">
-                  <select
-                    name="country"
-                    value={formData.country}
-                    onChange={handleChange}
-                    className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
-                    required
-                  >
-                    <option value="">Select country</option>
-                    {Object.entries(countriesData).map(([key, data]) => (
-                      <option key={key} value={key}>{data.name}</option>
-                    ))}
-                  </select>
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </div>
-                <div className="relative">
-                  <select
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
-                    required
-                    disabled={!formData.country}
-                  >
-                    <option value="">Select city</option>
-                    {cities.map((city) => (
-                      <option key={city} value={city.toLowerCase()}>{city}</option>
-                    ))}
-                  </select>
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Program */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Choose Program</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Residency Country</label>
               <div className="relative">
                 <select
-                  name="program"
-                  value={formData.program}
+                  name="residency_country"
+                  value={formData.residency_country}
                   onChange={handleChange}
                   className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
-                  required
                 >
-                  <option value="">Select a program</option>
-                  {programs.map((program) => (
-                    <option key={program.value} value={program.value}>{program.label}</option>
+                  <option value="">Select country</option>
+                  {Object.entries(countriesData).map(([key, data]) => (
+                    <option key={key} value={data.name}>{data.name}</option>
                   ))}
                 </select>
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
@@ -383,31 +334,66 @@ export default function RegistrationPage() {
               </div>
             </div>
 
-            {/* Course Level Selection - Only shows for 8-Level General English Course */}
-            {showLevelSelection && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Select Course Level</label>
-                <div className="relative">
-                  <select
-                    name="courseLevel"
-                    value={formData.courseLevel}
-                    onChange={handleChange}
-                    className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
-                    required
-                  >
-                    <option value="">Select course level</option>
-                    {courseLevels.map((level) => (
-                      <option key={level.value} value={level.value}>{level.label}</option>
-                    ))}
-                  </select>
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </div>
+            {/* Residency City */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Residency City</label>
+              <div className="relative">
+                <select
+                  name="residency_city"
+                  value={formData.residency_city}
+                  onChange={handleChange}
+                  className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
+                  disabled={!formData.residency_country}
+                >
+                  <option value="">Select city</option>
+                  {cities.map((city) => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </select>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
               </div>
-            )}
+            </div>
+
+            {/* Chosen Program */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Chosen Program</label>
+              <div className="relative">
+                <select
+                  name="chosen_program"
+                  value={formData.chosen_program}
+                  onChange={handleChange}
+                  className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
+                >
+                  <option value="">Select Program</option>
+                  {programs.map((program) => (
+                    <option key={program.id} value={program.title}>{program.title}</option>
+                  ))}
+                </select>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Password <span className="text-red-500">*</span></label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter password"
+                className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
+                required
+              />
+            </div>
 
             {/* Parent/Guardian Section */}
             {showParentSection && (
@@ -420,115 +406,106 @@ export default function RegistrationPage() {
                 </h3>
 
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-                      <input
-                        type="text"
-                        name="parentName"
-                        value={formData.parentName}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Name</label>
+                    <input
+                      type="text"
+                      name="parent_name"
+                      value={formData.parent_name}
+                      onChange={handleChange}
+                      placeholder="Enter parent/guardian name"
+                      className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Email</label>
+                    <input
+                      type="email"
+                      name="parent_email"
+                      value={formData.parent_email}
+                      onChange={handleChange}
+                      placeholder="parent@example.com"
+                      className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Phone</label>
+                    <input
+                      type="tel"
+                      name="parent_phone"
+                      value={formData.parent_phone}
+                      onChange={handleChange}
+                      placeholder="+252 61-*******"
+                      className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Relationship</label>
+                    <div className="relative">
+                      <select
+                        name="parent_relation"
+                        value={formData.parent_relation}
                         onChange={handleChange}
-                        placeholder="Enter full name"
-                        className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
-                        required={showParentSection}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Relationship</label>
-                      <div className="relative">
-                        <select
-                          name="relationship"
-                          value={formData.relationship}
-                          onChange={handleChange}
-                          className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
-                          required={showParentSection}
-                        >
-                          <option value="">Select</option>
-                          <option value="father">Father</option>
-                          <option value="mother">Mother</option>
-                          <option value="guardian">Guardian</option>
-                        </select>
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </span>
-                      </div>
+                        className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
+                      >
+                        <option value="">Select relationship</option>
+                        <option value="Father">Father</option>
+                        <option value="Mother">Mother</option>
+                        <option value="Guardian">Guardian</option>
+                      </select>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                      <input
-                        type="email"
-                        name="parentEmail"
-                        value={formData.parentEmail}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Residency Country</label>
+                    <div className="relative">
+                      <select
+                        name="parent_res_county"
+                        value={formData.parent_res_county}
                         onChange={handleChange}
-                        placeholder="parent@example.com"
-                        className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
-                        required={showParentSection}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
-                      <input
-                        type="tel"
-                        name="parentPhone"
-                        value={formData.parentPhone}
-                        onChange={handleChange}
-                        placeholder="+252 61-*******"
-                        className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
-                        required={showParentSection}
-                      />
+                        className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
+                      >
+                        <option value="">Select country</option>
+                        {Object.entries(countriesData).map(([key, data]) => (
+                          <option key={key} value={data.name}>{data.name}</option>
+                        ))}
+                      </select>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
-                      <div className="relative">
-                        <select
-                          name="parentCountry"
-                          value={formData.parentCountry}
-                          onChange={handleChange}
-                          className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
-                          required={showParentSection}
-                        >
-                          <option value="">Select country</option>
-                          {Object.entries(countriesData).map(([key, data]) => (
-                            <option key={key} value={key}>{data.name}</option>
-                          ))}
-                        </select>
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
-                      <div className="relative">
-                        <select
-                          name="parentCity"
-                          value={formData.parentCity}
-                          onChange={handleChange}
-                          className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
-                          required={showParentSection}
-                          disabled={!formData.parentCountry}
-                        >
-                          <option value="">Select city</option>
-                          {parentCities.map((city) => (
-                            <option key={city} value={city.toLowerCase()}>{city}</option>
-                          ))}
-                        </select>
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </span>
-                      </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Residency City</label>
+                    <div className="relative">
+                      <select
+                        name="parent_res_city"
+                        value={formData.parent_res_city}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
+                        disabled={!formData.parent_res_county}
+                      >
+                        <option value="">Select city</option>
+                        {parentCities.map((city) => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -553,10 +530,11 @@ export default function RegistrationPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg transform hover:-translate-y-0.5"
+              disabled={isCreating}
+              className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ backgroundColor: '#010080' }}
             >
-              Create Account
+              {isCreating ? "Creating Account..." : "Create Account"}
             </button>
 
             {/* Login Link */}

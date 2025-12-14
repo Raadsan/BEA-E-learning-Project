@@ -2,6 +2,7 @@
 
 import AdminSidebar from "./AdminSidebar";
 import { DarkModeProvider, useDarkMode } from "@/context/ThemeContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 function AdminLayoutContent({ children }) {
   const { isDark } = useDarkMode();
@@ -21,11 +22,13 @@ function AdminLayoutContent({ children }) {
 
 export default function AdminLayout({ children }) {
   return (
-    <DarkModeProvider>
-      <AdminLayoutContent>
-        {children}
-      </AdminLayoutContent>
-    </DarkModeProvider>
+    <ProtectedRoute allowedRoles={['admin']}>
+      <DarkModeProvider>
+        <AdminLayoutContent>
+          {children}
+        </AdminLayoutContent>
+      </DarkModeProvider>
+    </ProtectedRoute>
   );
 }
 

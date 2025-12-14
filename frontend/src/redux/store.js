@@ -5,6 +5,7 @@ import { teacherApi } from "../redux/api/teacherApi.js";
 import { subprogramApi } from "../redux/api/subprogramApi.js";
 import { courseApi } from "../redux/api/courseApi.js";
 import { classApi } from "../redux/api/classApi.js";
+import { authApi } from "../redux/api/authApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     [subprogramApi.reducerPath]: subprogramApi.reducer,
     [courseApi.reducerPath]: courseApi.reducer,
     [classApi.reducerPath]: classApi.reducer,
+    [authApi.reducerPath]: authApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -22,6 +24,7 @@ export const store = configureStore({
       teacherApi.middleware,
       subprogramApi.middleware,
       courseApi.middleware,
-      classApi.middleware
+      classApi.middleware,
+      authApi.middleware
     ),
 });

@@ -3,12 +3,29 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
+import { useLogoutMutation } from "@/redux/api/authApi";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isDark } = useDarkMode();
+  const [logout] = useLogoutMutation();
+
+  const handleLogout = async () => {
+    try {
+      await logout().unwrap();
+      router.push("/auth/login");
+    } catch (error) {
+      // Even if logout fails, clear local storage and redirect
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+      router.push("/auth/login");
+    }
+  };
   
   // State for all collapsible sections - only one can be open at a time
   const [openSection, setOpenSection] = useState(null);
@@ -694,9 +711,9 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-gray-200 flex-shrink-0">
-        <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200">
-          <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className={`p-4 border-t ${isDark ? 'border-gray-700' : 'border-white/20'}`}>
+        <button className={`flex items-center gap-3 w-full px-4 py-3 text-white ${isDark ? 'text-gray-200' : ''} hover:bg-[#f95150] rounded-lg transition-all duration-200`}>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
           <span className="font-medium text-gray-900">Logout</span>

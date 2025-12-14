@@ -5,26 +5,55 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
+import { useLoginMutation } from "@/redux/api/authApi";
 
 export default function LoginPage() {
   const router = useRouter();
   const { isDarkMode } = useTheme();
+  const [login, { isLoading, error }] = useLoginMutation();
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setLoginError(""); // Clear error when user types
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login submitted:", formData);
+    setLoginError("");
+
+    try {
+      const result = await login({
+        email: formData.email,
+        password: formData.password,
+      }).unwrap();
+
+      if (result.success) {
+        // Redirect based on role
+        const role = result.user.role;
+        if (role === "admin") {
+          router.push("/portal/admin");
+        } else if (role === "teacher") {
+          router.push("/portal/teacher");
+        } else if (role === "student") {
+          router.push("/portal/student");
+        } else {
+          router.push("/");
+        }
+      }
+    } catch (err) {
+      setLoginError(
+        err?.data?.error || err?.error || "Login failed. Please try again."
+      );
+    }
   };
 
   return (
@@ -193,6 +222,13 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Error Message */}
+            {(loginError || error) && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {loginError || (error?.data?.error || "An error occurred")}
+              </div>
+            )}
+
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -216,10 +252,11 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg transform hover:-translate-y-0.5"
+              disabled={isLoading}
+              className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ backgroundColor: '#010080' }}
             >
-              Sign In
+              {isLoading ? "Signing In..." : "Sign In"}
             </button>
 
             {/* Sign Up Link */}
