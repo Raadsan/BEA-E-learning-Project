@@ -13,13 +13,14 @@ import {
 const router = express.Router();
 
 // ---------- STUDENT ROUTES ----------
+// IMPORTANT: More specific routes must come before generic :id routes
 router.post("/", createStudent);
 router.get("/", getStudents);
+router.patch("/:id/approve", approveStudent);
+router.patch("/:id/reject", rejectStudent);
 router.get("/:id", getStudent);
 router.put("/:id", updateStudent);
 router.delete("/:id", deleteStudent);
-router.patch("/:id/approve", approveStudent);
-router.patch("/:id/reject", rejectStudent);
 
 export default router;
 

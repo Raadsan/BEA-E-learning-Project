@@ -221,26 +221,48 @@ export default function StudentsPage() {
   };
 
   // Approval handlers
-  const [approveStudent] = useApproveStudentMutation();
-  const [rejectStudent] = useRejectStudentMutation();
+  const [approveStudent, { isLoading: isApproving }] = useApproveStudentMutation();
+  const [rejectStudent, { isLoading: isRejecting }] = useRejectStudentMutation();
 
   const handleApprove = async (id) => {
     if (!confirm("Are you sure you want to approve this student?")) return;
     try {
-      await approveStudent(id).unwrap();
-      alert("Student approved successfully!");
+      console.log("Approving student with ID:", id);
+      const result = await approveStudent(id).unwrap();
+      console.log("Approve result:", result);
+      if (result.success) {
+        alert("Student approved successfully!");
+        refetch(); // Refresh the student list
+      } else {
+        alert(result.error || "Failed to approve student");
+      }
     } catch (error) {
-      alert(error?.data?.error || "Failed to approve student");
+      console.error("Approve error details:", error);
+      console.error("Error data:", error?.data);
+      console.error("Error status:", error?.status);
+      const errorMessage = error?.data?.error || error?.data?.message || error?.message || "Failed to approve student. Please check the console for details.";
+      alert(errorMessage);
     }
   };
 
   const handleReject = async (id) => {
     if (!confirm("Are you sure you want to reject this student? They will not be deleted but will lose access to student portal pages.")) return;
     try {
-      await rejectStudent(id).unwrap();
-      alert("Student rejected successfully!");
+      console.log("Rejecting student with ID:", id);
+      const result = await rejectStudent(id).unwrap();
+      console.log("Reject result:", result);
+      if (result.success) {
+        alert("Student rejected successfully!");
+        refetch(); // Refresh the student list
+      } else {
+        alert(result.error || "Failed to reject student");
+      }
     } catch (error) {
-      alert(error?.data?.error || "Failed to reject student");
+      console.error("Reject error details:", error);
+      console.error("Error data:", error?.data);
+      console.error("Error status:", error?.status);
+      const errorMessage = error?.data?.error || error?.data?.message || error?.message || "Failed to reject student. Please check the console for details.";
+      alert(errorMessage);
     }
   };
 
@@ -316,29 +338,39 @@ export default function StudentsPage() {
     {
       key: "actions",
       label: "Actions",
-      render: (row) => (
+      render: (row) => {
+        const status = row.approval_status || 'pending';
+        const isPending = status === 'pending';
+        const isApproved = status === 'approved';
+        const isRejected = status === 'rejected';
+        
+        return (
         <div className="flex gap-2">
-          {row.approval_status === 'pending' && (
-            <>
-              <button
-                onClick={() => handleApprove(row.id)}
-                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
-                title="Approve"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
-              <button
-                onClick={() => handleReject(row.id)}
-                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                title="Reject"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </>
+          {/* Show approve button if pending or rejected */}
+          {(isPending || isRejected) && (
+            <button
+              onClick={() => handleApprove(row.id)}
+              disabled={isApproving || isRejecting}
+              className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Approve"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          )}
+          {/* Show reject button if pending or approved */}
+          {(isPending || isApproved) && (
+            <button
+              onClick={() => handleReject(row.id)}
+              disabled={isApproving || isRejecting}
+              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Reject"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           )}
           <button
             onClick={() => handleView(row)}
@@ -379,7 +411,8 @@ export default function StudentsPage() {
             </svg>
           </button>
         </div>
-      ),
+        );
+      },
     },
   ];
 

@@ -5,10 +5,24 @@ const dbp = db.promise();
 
 async function addApprovalStatus() {
   try {
-    // Add approval_status column if it doesn't exist
+    // Check if column already exists
+    const [columns] = await dbp.query(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = DATABASE() 
+      AND TABLE_NAME = 'students' 
+      AND COLUMN_NAME = 'approval_status'
+    `);
+    
+    if (columns.length > 0) {
+      console.log("ℹ️ approval_status column already exists");
+      return;
+    }
+    
+    // Add approval_status column
     await dbp.query(`
       ALTER TABLE students 
-      ADD COLUMN IF NOT EXISTS approval_status ENUM('pending', 'approved', 'rejected') 
+      ADD COLUMN approval_status ENUM('pending', 'approved', 'rejected') 
       DEFAULT 'pending'
     `);
     
