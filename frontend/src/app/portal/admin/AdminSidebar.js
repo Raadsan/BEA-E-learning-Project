@@ -16,14 +16,14 @@ export default function AdminSidebar() {
   const handleLogout = async () => {
     try {
       await logout().unwrap();
-      router.push("/auth/login");
+      router.replace("/auth/login");
     } catch (error) {
       // Even if logout fails, clear local storage and redirect
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
-      router.push("/auth/login");
+      router.replace("/auth/login");
     }
   };
   
@@ -685,12 +685,15 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Logout Button */}
-      <div className={`p-4 border-t ${isDark ? 'border-gray-700' : 'border-white/20'}`}>
-        <button className={`flex items-center gap-3 w-full px-4 py-3 text-white ${isDark ? 'text-gray-200' : ''} hover:bg-[#f95150] rounded-lg transition-all duration-200`}>
+      <div className="p-4 border-t border-gray-200 mt-auto">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all duration-200 font-medium"
+        >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          <span className="font-medium text-gray-900">Logout</span>
+          <span>Logout</span>
         </button>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import StudentSidebar from "./StudentSidebar";
 import StudentHeader from "./StudentHeader";
 import { DarkModeProvider, useDarkMode } from "@/context/ThemeContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 function StudentLayoutContent({ children }) {
   const { isDark } = useDarkMode();
@@ -28,11 +29,13 @@ function StudentLayoutContent({ children }) {
 
 export default function StudentLayout({ children }) {
   return (
-    <DarkModeProvider>
-      <StudentLayoutContent>
-        {children}
-      </StudentLayoutContent>
-    </DarkModeProvider>
+    <ProtectedRoute allowedRoles={['student']}>
+      <DarkModeProvider>
+        <StudentLayoutContent>
+          {children}
+        </StudentLayoutContent>
+      </DarkModeProvider>
+    </ProtectedRoute>
   );
 }
 

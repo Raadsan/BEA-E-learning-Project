@@ -3,14 +3,31 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
+import { useLogoutMutation } from "@/redux/api/authApi";
 
 export default function StudentSidebar() {
   const { isDark } = useDarkMode();
   const pathname = usePathname();
+  const router = useRouter();
+  const [logout] = useLogoutMutation();
 
   const isActive = (path) => pathname === path;
+
+  const handleLogout = async () => {
+    try {
+      await logout().unwrap();
+      router.replace("/auth/login");
+    } catch (error) {
+      // Even if logout fails, clear local storage and redirect
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+      router.replace("/auth/login");
+    }
+  };
 
   return (
     <div className={`fixed left-0 top-0 h-screen w-64 ${isDark ? 'bg-[#000060]' : 'bg-[#010080]'} admin-sidebar text-white flex flex-col shadow-lg transition-colors`}>
@@ -139,15 +156,15 @@ export default function StudentSidebar() {
           </Link>
 
           {/* Logout */}
-          <Link
-            href="/login"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-300 hover:bg-[#f95150] hover:text-white"
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-300 hover:bg-[#f95150] hover:text-white w-full text-left"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             <span className="text-sm font-medium">Logout</span>
-          </Link>
+          </button>
         </div>
       </div>
     </div>

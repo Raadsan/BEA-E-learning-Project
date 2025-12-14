@@ -2,6 +2,7 @@
 
 import TeacherSidebar from "./TeacherSidebar";
 import { DarkModeProvider, useDarkMode } from "@/context/ThemeContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 function TeacherLayoutContent({ children }) {
   const { isDark } = useDarkMode();
@@ -24,11 +25,13 @@ function TeacherLayoutContent({ children }) {
 
 export default function TeacherLayout({ children }) {
   return (
-    <DarkModeProvider>
-      <TeacherLayoutContent>
-        {children}
-      </TeacherLayoutContent>
-    </DarkModeProvider>
+    <ProtectedRoute allowedRoles={['teacher']}>
+      <DarkModeProvider>
+        <TeacherLayoutContent>
+          {children}
+        </TeacherLayoutContent>
+      </DarkModeProvider>
+    </ProtectedRoute>
   );
 }
 

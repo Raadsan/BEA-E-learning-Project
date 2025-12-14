@@ -28,7 +28,28 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
   useEffect(() => {
     if (!token) {
       // No token, redirect to login
-      router.push("/auth/login");
+      router.replace("/auth/login");
+      setIsLoading(false);
+      return;
+    }
+
+    // Quick check: Use cached user data from localStorage for immediate redirect
+    const cachedUser = typeof window !== "undefined" 
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null;
+
+    // If we have cached user and allowedRoles, check immediately
+    if (cachedUser && allowedRoles.length > 0 && !allowedRoles.includes(cachedUser.role)) {
+      // User doesn't have required role, redirect immediately using cached data
+      if (cachedUser.role === "admin") {
+        router.replace("/portal/admin");
+      } else if (cachedUser.role === "teacher") {
+        router.replace("/portal/teacher");
+      } else if (cachedUser.role === "student") {
+        router.replace("/portal/student");
+      } else {
+        router.replace("/");
+      }
       setIsLoading(false);
       return;
     }
@@ -44,22 +65,22 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
-      router.push("/auth/login");
+      router.replace("/auth/login");
       setIsLoading(false);
       return;
     }
 
-    // Check if user role is allowed
+    // Final check: Verify with API response
     if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-      // User doesn't have required role, redirect to appropriate portal
+      // User doesn't have required role, redirect to appropriate portal immediately
       if (user.role === "admin") {
-        router.push("/portal/admin");
+        router.replace("/portal/admin");
       } else if (user.role === "teacher") {
-        router.push("/portal/teacher");
+        router.replace("/portal/teacher");
       } else if (user.role === "student") {
-        router.push("/portal/student");
+        router.replace("/portal/student");
       } else {
-        router.push("/");
+        router.replace("/");
       }
       setIsLoading(false);
       return;

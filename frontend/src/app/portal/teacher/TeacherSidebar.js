@@ -3,13 +3,30 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
+import { useLogoutMutation } from "@/redux/api/authApi";
 
 export default function TeacherSidebar() {
   const { isDark } = useDarkMode();
   const pathname = usePathname();
+  const router = useRouter();
+  const [logout] = useLogoutMutation();
   const [isMyClassesOpen, setIsMyClassesOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout().unwrap();
+      router.replace("/auth/login");
+    } catch (error) {
+      // Even if logout fails, clear local storage and redirect
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+      router.replace("/auth/login");
+    }
+  };
 
   // Auto-expand dropdowns based on current route
   useEffect(() => {
@@ -194,9 +211,9 @@ export default function TeacherSidebar() {
           </Link>
 
           {/* Logout */}
-          <Link
-            href="/auth/login"
-            className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+          <button
+            onClick={handleLogout}
+            className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full text-left ${
               isDark
                 ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
                 : 'text-gray-700 hover:bg-[#010080] hover:text-white'
@@ -206,7 +223,7 @@ export default function TeacherSidebar() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             <span>Logout</span>
-          </Link>
+          </button>
         </nav>
       </div>
     </div>
