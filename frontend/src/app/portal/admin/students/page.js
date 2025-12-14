@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
-<<<<<<< HEAD
 import { Toast, useToast } from "@/components/Toast";
 import {
   useGetStudentsQuery,
@@ -13,13 +12,9 @@ import {
   useApproveStudentMutation,
   useRejectStudentMutation
 } from "@/redux/api/studentApi";
-=======
-import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation, useApproveStudentMutation, useRejectStudentMutation } from "@/redux/api/studentApi";
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery, useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useToast } from "@/components/Toast";
 
 export default function StudentsPage() {
   const { isDark } = useDarkMode();
@@ -161,69 +156,10 @@ export default function StudentsPage() {
       }
     },
     {
-<<<<<<< HEAD
       key: "actions", label: "Actions", render: (row) => {
         const isPending = (row.approval_status || 'pending') === 'pending';
         const isApproved = row.approval_status === 'approved';
         const isRejected = row.approval_status === 'rejected';
-=======
-      key: "email",
-      label: "Email",
-    },
-    {
-      key: "phone",
-      label: "Phone",
-      render: (row) => row.phone || "N/A",
-    },
-    {
-      key: "age",
-      label: "Age",
-      render: (row) => row.age || "N/A",
-    },
-    {
-      key: "residency_country",
-      label: "Country",
-      render: (row) => row.residency_country || "N/A",
-    },
-    {
-      key: "residency_city",
-      label: "City",
-      render: (row) => row.residency_city || "N/A",
-    },
-    {
-      key: "chosen_program",
-      label: "Program",
-      render: (row) => {
-        if (!row.chosen_program || row.chosen_program === "Not assigned") {
-          return <span className="text-gray-500">Not assigned</span>;
-        }
-        return row.chosen_program;
-      },
-    },
-    {
-      key: "chosen_subprogram",
-      label: "Subprogram",
-      render: (row) => {
-        const subprogram = row.chosen_subprogram;
-        // Only show the student's assigned subprogram
-        if (subprogram && subprogram.trim() !== "" && subprogram !== "null") {
-          return <span className="text-black dark:text-white">{subprogram}</span>;
-        }
-
-        return <span className="text-gray-500">Not assigned</span>;
-      },
-    },
-    {
-      key: "approval_status",
-      label: "Status",
-      render: (row) => {
-        const status = row.approval_status || 'pending';
-        const statusColors = {
-          pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-          approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-          rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-        };
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
         return (
           <div className="flex gap-2">
             {(isPending || isRejected) && <button onClick={() => handleApprove(row.id)} disabled={isApproving || isRejecting} className="text-green-600 hover:text-green-900 dark:text-green-400 p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>}
@@ -234,95 +170,8 @@ export default function StudentsPage() {
             <button onClick={() => handleDelete(row.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
           </div>
         );
-<<<<<<< HEAD
       }
     }
-=======
-      },
-    },
-    {
-      key: "actions",
-      label: "Actions",
-      render: (row) => {
-        const status = row.approval_status || 'pending';
-        const isPending = status === 'pending';
-        const isApproved = status === 'approved';
-        const isRejected = status === 'rejected';
-
-        return (
-          <div className="flex gap-2">
-            {/* Approve button */}
-            <button
-              onClick={() => handleApprove(row.id)}
-              disabled={isApproving || isRejecting || isApproved}
-              className={`transition-colors p-1 rounded ${isApproved
-                  ? 'text-gray-400 cursor-not-allowed opacity-50'
-                  : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20'
-                }`}
-              title={isApproved ? "Already Approved" : "Approve"}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
-
-            {/* Reject button */}
-            <button
-              onClick={() => handleReject(row.id)}
-              disabled={isApproving || isRejecting || isRejected}
-              className={`transition-colors p-1 rounded ${isRejected
-                  ? 'text-gray-400 cursor-not-allowed opacity-50'
-                  : 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20'
-                }`}
-              title={isRejected ? "Already Rejected" : "Reject"}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <button
-              onClick={() => handleView(row)}
-              className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
-              title="View"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </button>
-            <button
-              onClick={() => handleAssignSubprogram(row)}
-              className="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 transition-colors p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
-              title="Assign Subprogram"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
-            <button
-              onClick={() => handleEdit(row)}
-              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
-              title="Edit"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </button>
-            <button
-              onClick={() => handleDelete(row.id)}
-              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-              title="Delete"
-              disabled={isDeleting}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          </div>
-        );
-      },
-    },
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
   ];
 
   if (isLoading) return <><AdminHeader /><main className="mt-20 text-center py-12">Loading students...</main></>;
@@ -331,7 +180,6 @@ export default function StudentsPage() {
   return (
     <>
       <AdminHeader />
-<<<<<<< HEAD
       <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
         <div className="w-full px-8 py-6">
           <div className="mb-6 flex gap-4 border-b border-gray-200 dark:border-gray-700">
@@ -343,18 +191,6 @@ export default function StudentsPage() {
             ))}
           </div>
           <DataTable title={activeTab === 'all' ? "Student Management - All Students" : activeTab === 'general' ? "Student Management - General English" : "Student Management - IELTS & TOEFL"} columns={columns} data={filteredStudents} onAddClick={handleAddStudent} showAddButton={true} />
-=======
-
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-        <div className="w-full px-8 py-6">
-          <DataTable
-            title="Student Management"
-            columns={columns}
-            data={students}
-            onAddClick={handleAddStudent}
-            showAddButton={true}
-          />
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
         </div>
       </main>
 
@@ -677,13 +513,8 @@ export default function StudentsPage() {
                   type="button"
                   onClick={handleCloseModal}
                   className={`px-4 py-2 border rounded-lg transition-colors ${isDark
-<<<<<<< HEAD
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-=======
                     ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
                     }`}
                 >
                   Cancel
@@ -701,7 +532,6 @@ export default function StudentsPage() {
         </div>
       )}
 
-<<<<<<< HEAD
       {/* Assign Subprogram Modal */}
       {isAssignSubprogramModalOpen && assigningStudent && (
         <div
@@ -710,25 +540,6 @@ export default function StudentsPage() {
         >
           <div
             className="absolute inset-0"
-=======
-      {/* View Subprograms Modal */}
-      {isSubprogramsModalOpen && selectedProgramForSubprograms && (
-        <SubprogramsModal
-          program={selectedProgramForSubprograms}
-          onClose={handleCloseSubprogramsModal}
-          isDark={isDark}
-        />
-      )}
-
-      {/* Assign Subprogram Modal */}
-      {isAssignSubprogramModalOpen && assigningStudent && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ pointerEvents: 'none' }}
-        >
-          <div
-            className="absolute inset-0 bg-transparent"
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
             onClick={handleCloseAssignSubprogramModal}
             style={{ pointerEvents: 'auto' }}
           />
@@ -779,18 +590,10 @@ export default function StudentsPage() {
                     parent_res_city: assigningStudent.parent_res_city || null,
                   };
 
-<<<<<<< HEAD
                   console.log("Updating student with:", updateData);
                   const result = await updateStudent(updateData).unwrap();
                   console.log("Update result:", result);
 
-=======
-                  console.log("Updating student with:", updateData); // Debug log
-                  const result = await updateStudent(updateData).unwrap();
-                  console.log("Update result:", result); // Debug log
-
-                  // Force refetch to ensure table updates immediately
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
                   await refetch();
                   handleCloseAssignSubprogramModal();
                 } catch (error) {
@@ -809,11 +612,7 @@ export default function StudentsPage() {
                   {(() => {
                     const program = programs.find(p => p.title === assigningStudent.chosen_program);
                     const programSubprograms = program
-<<<<<<< HEAD
                       ? allSubprograms.filter(sp => sp.program_id === program.id && sp.status === 'active')
-=======
-                      ? allSubprograms.filter(sp => sp.program_id === program.id)
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
                       : [];
 
                     if (programSubprograms.length === 0) {
@@ -856,13 +655,8 @@ export default function StudentsPage() {
                   type="button"
                   onClick={handleCloseAssignSubprogramModal}
                   className={`px-4 py-2 border rounded-lg transition-colors ${isDark
-<<<<<<< HEAD
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-=======
                     ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
                     }`}
                 >
                   Cancel
@@ -883,19 +677,11 @@ export default function StudentsPage() {
       {/* View Student Modal */}
       {isViewModalOpen && viewingStudent && (
         <div
-<<<<<<< HEAD
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
           style={{ pointerEvents: 'none' }}
         >
           <div
             className="absolute inset-0"
-=======
-          className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ pointerEvents: 'none' }}
-        >
-          <div
-            className="absolute inset-0 bg-transparent"
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
             onClick={handleCloseViewModal}
             style={{ pointerEvents: 'auto' }}
           />
@@ -1095,84 +881,21 @@ export default function StudentsPage() {
 function SubprogramsModal({ program, onClose, isDark }) {
   const { data: subprograms, isLoading, isError } = useGetSubprogramsByProgramIdQuery(program.id);
   return (
-<<<<<<< HEAD
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm" style={{ pointerEvents: 'none' }}>
       <div className="absolute inset-0" onClick={onClose} style={{ pointerEvents: 'auto' }} />
       <div className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'}`} onClick={e => e.stopPropagation()} style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}>
         <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Subprograms for {program.name}</h2>
           <button onClick={onClose} className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
-=======
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center"
-      style={{ pointerEvents: 'none' }}
-    >
-      <div
-        className="absolute inset-0 bg-transparent"
-        onClick={onClose}
-        style={{ pointerEvents: 'auto' }}
-      />
-
-      <div
-        className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-          }`}
-        onClick={(e) => e.stopPropagation()}
-        style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
-      >
-        <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
-            }`}>
-            Subprograms for {program.name}
-          </h2>
-          <button
-            onClick={onClose}
-            className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-              }`}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
         </div>
         <div className="p-4 bg-gray-50">
           {isLoading ? <div className="text-center py-8">Loading...</div> : isError ? <div className="text-center py-8 text-red-600">Error</div> : (!subprograms || subprograms.length === 0) ? <div className="text-center py-8">No subprograms found.</div> : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-<<<<<<< HEAD
               {subprograms.map(sp => (
                 <div key={sp.id} className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                   <h3 className={`font-semibold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{sp.subprogram_name}</h3>
                   <p className={`text-sm mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{sp.description || 'No description'}</p>
                   <span className={`px-2 py-1 rounded text-xs font-medium ${sp.status === 'active' ? (isDark ? 'bg-green-900/30 text-green-300 border border-green-700' : 'bg-green-100 text-green-800') : (isDark ? 'bg-gray-700 text-gray-400 border border-gray-600' : 'bg-gray-200 text-gray-600')}`}>{sp.status === 'active' ? 'Active' : 'Inactive'}</span>
-=======
-              {subprograms.map((subprogram) => (
-                <div
-                  key={subprogram.id}
-                  className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
-                    }`}
-                >
-                  <h3 className={`font-semibold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'
-                    }`}>
-                    {subprogram.subprogram_name}
-                  </h3>
-                  <p className={`text-sm mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    {subprogram.description || 'No description'}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${subprogram.status === 'active'
-                      ? isDark
-                        ? 'bg-green-900/30 text-green-300 border border-green-700'
-                        : 'bg-green-100 text-green-800'
-                      : isDark
-                        ? 'bg-gray-700 text-gray-400 border border-gray-600'
-                        : 'bg-gray-200 text-gray-600'
-                      }`}>
-                      {subprogram.status === 'active' ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
->>>>>>> 7f724dfca10db9a1d18614a265a3a3a5fb8a4f3b
                 </div>
               ))}
             </div>
