@@ -16,7 +16,7 @@ function TeacherLayoutContent({ children }) {
       <TeacherSidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col ml-64">
+      <div className="flex-1 flex flex-col ml-80">
         {children}
       </div>
     </div>
