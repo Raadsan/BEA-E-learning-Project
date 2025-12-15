@@ -4,7 +4,8 @@ import * as Class from "../models/classModel.js";
 // CREATE CLASS
 export const createClass = async (req, res) => {
   try {
-    const { class_name, description } = req.body;
+    console.log("Create Class Body:", req.body);
+    const { class_name, description, subprogram_id, teacher_id } = req.body;
 
     if (!class_name) {
       return res.status(400).json({ error: "Class name is required" });
@@ -12,7 +13,9 @@ export const createClass = async (req, res) => {
 
     const classItem = await Class.createClass({
       class_name,
-      description
+      description,
+      subprogram_id,
+      teacher_id
     });
 
     res.status(201).json({ message: "Class created", class: classItem });

@@ -10,7 +10,6 @@ import contactRoutes from "./routes/contactRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import teacherRoutes from "./routes/teacherRoutes.js";
 import subprogramRoutes from "./routes/subprogramRoutes.js";
-import courseRoutes from "./routes/courseRoutes.js";
 import classRoutes from "./routes/classRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
@@ -46,9 +45,6 @@ app.use("/api/teachers", teacherRoutes);
 
 // ⬇️ Register Subprogram Routes
 app.use("/api/subprograms", subprogramRoutes);
-
-// ⬇️ Register Course Routes
-app.use("/api/courses", courseRoutes);
 
 // ⬇️ Register Class Routes
 app.use("/api/classes", classRoutes);
