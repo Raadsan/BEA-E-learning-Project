@@ -16,6 +16,7 @@ import attendanceRoutes from "./routes/attendanceRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
+import placementTestRoutes from "./routes/placementTestRoutes.js";
 
 const app = express();
 
@@ -60,6 +61,9 @@ app.use("/api/admins", adminRoutes);
 // ⬇️ Register Announcement Routes
 // ⬇️ Register Announcement Routes
 app.use("/api/announcements", announcementRoutes);
+
+// ⬇️ Register Placement Test Routes
+app.use("/api/placement-tests", placementTestRoutes);
 
 // 🚨 EMERGENCY FIX: Direct route for updates because router is acting up
 import * as annController from "./controllers/announcementController.js";

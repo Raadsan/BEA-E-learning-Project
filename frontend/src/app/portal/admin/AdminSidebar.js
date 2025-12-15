@@ -232,8 +232,8 @@ export default function AdminSidebar() {
                   <Link
                     href="/portal/admin/students"
                     className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm ${(pathname === "/portal/admin/students" || pathname === "/portal/admin/students/")
-                        ? 'text-white font-semibold'
-                        : 'text-gray-700 hover:bg-gray-100'
+                      ? 'text-white font-semibold'
+                      : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     style={(pathname === "/portal/admin/students" || pathname === "/portal/admin/students/") ? getSubActiveStyle("/portal/admin/students") : {}}
                   >
@@ -422,11 +422,11 @@ export default function AdminSidebar() {
                   {openSubSection === 'placementTests' && (
                     <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
                       <li>
-                        <Link href="/portal/admin/assessments/placement-tests/create" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-600 hover:bg-gray-100">
+                        <Link href="/portal/admin/assessments/placement-tests" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-600 hover:bg-gray-100">
                           <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                           </svg>
-                          <span className="text-gray-700">Create Placement Test</span>
+                          <span className="text-gray-700">Placement Tests</span>
                         </Link>
                       </li>
                       <li>
