@@ -68,8 +68,13 @@ app.post("/api/announcements/emergency-update/:id", (req, res, next) => {
   next();
 }, annController.updateAnnouncement);
 
+import ieltsToeflRoutes from "./routes/ieltsToeflRoutes.js";
+
 // ⬇️ Register User Routes (All users: admins, teachers, students)
 app.use("/api/users", userRoutes);
+
+// ⬇️ Register IELTS/TOEFL Routes
+app.use("/api/ielts-toefl", ieltsToeflRoutes);
 
 // Server start
 const PORT = process.env.PORT || 5000;

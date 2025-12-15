@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import { useRouter } from "next/navigation";
+import { useCreateIeltsToeflStudentMutation } from "@/redux/api/ieltsToeflApi";
+import { useToast, Toast } from "@/components/Toast"; // Import Toast component and hook
 
 // Countries data for dynamic city selection
 const countriesData = {
@@ -19,7 +21,9 @@ export default function IELTSTOEFLRegistrationPage() {
   const { isDarkMode } = useTheme();
   const router = useRouter();
   const [cities, setCities] = useState([]);
-  
+  const [createIeltsStudent, { isLoading }] = useCreateIeltsToeflStudentMutation();
+  const { toast, showToast, hideToast } = useToast();
+
   // Form state
   const [formData, setFormData] = useState({
     firstName: '',
@@ -34,6 +38,7 @@ export default function IELTSTOEFLRegistrationPage() {
     hasCertificate: '',
     certificateInstitution: '',
     certificateDate: '',
+    certificateDocument: '', // To store filename
     examBookingDate: '',
     examBookingTime: '',
     termsAccepted: false
@@ -50,29 +55,87 @@ export default function IELTSTOEFLRegistrationPage() {
   }, [formData.country]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    const { name, value, type, checked, files } = e.target;
+
+    if (type === 'file') {
+      // Handle file input - just store filename for now as backend doesn't support upload yet
+      const fileName = files[0]?.name || '';
+      setFormData(prev => ({
+        ...prev,
+        certificateDocument: fileName
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('IELTS/TOEFL Registration:', formData);
-    alert('Registration submitted successfully!');
-    router.push('/website/programs/ielts-toefl');
+
+    // Basic validation
+    if (!formData.examType) {
+      showToast("Please select an exam type", "error");
+      return;
+    }
+    if (!formData.hasCertificate && !formData.examBookingDate) {
+      // If no certificate, must book exam (unless logic allows otherwise, but form implies one or other)
+      // Actually the UI forces selection via accordion
+    }
+
+    try {
+      const payload = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        age: parseInt(formData.age),
+        gender: formData.gender.charAt(0).toUpperCase() + formData.gender.slice(1), // Capitalize
+        residency_country: countriesData[formData.country]?.name || formData.country,
+        residency_city: formData.city.charAt(0).toUpperCase() + formData.city.slice(1), // Capitalize city if needed
+        exam_type: formData.examType.toUpperCase(),
+        verification_method: formData.hasCertificate === 'yes' ? 'Certificate' : 'Exam Booking',
+        certificate_institution: formData.certificateInstitution || null,
+        certificate_date: formData.certificateDate || null,
+        certificate_document: formData.certificateDocument || null,
+        exam_booking_date: formData.examBookingDate || null,
+        exam_booking_time: formData.examBookingTime || null,
+      };
+
+      await createIeltsStudent(payload).unwrap();
+      showToast("Registration submitted successfully!", "success");
+
+      // Wait a bit before redirecting
+      setTimeout(() => {
+        router.push('/website/programs/ielts-toefl');
+      }, 2000);
+
+    } catch (err) {
+      console.error("Registration Error:", err);
+      showToast(err?.data?.message || "Registration failed. Please try again.", "error");
+    }
   };
 
   return (
     <div className={`min-h-screen py-12 ${isDarkMode ? 'bg-[#03002e]' : 'bg-gray-50'}`}>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          duration={toast.duration}
+        />
+      )}
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="p-6 text-center rounded-t-2xl mb-6" style={{ background: 'linear-gradient(to right, #010080, #0000b3)' }}>
             <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
               </svg>
             </div>
             <h1 className="text-2xl font-serif font-bold text-white">
@@ -104,14 +167,14 @@ export default function IELTSTOEFLRegistrationPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              
+
               {/* Section 1: Personal Information */}
               <div className="border-b border-gray-200 pb-5">
                 <h3 className={`text-sm font-bold mb-4 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                   <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#010080' }}>1</span>
                   Personal Information
                 </h3>
-                
+
                 {/* Name Row */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
@@ -200,30 +263,28 @@ export default function IELTSTOEFLRegistrationPage() {
                 {/* Stacked Row Options */}
                 <div className="space-y-3">
                   {/* Option 1: I Have Certificate */}
-                  <div 
+                  <div
                     className="rounded-xl overflow-hidden"
                     style={{ border: formData.hasCertificate === 'yes' ? '2px solid #010080' : '1px solid #e5e7eb' }}
                   >
                     {/* Clickable Header */}
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({ 
-                        ...prev, 
+                      onClick={() => setFormData(prev => ({
+                        ...prev,
                         hasCertificate: prev.hasCertificate === 'yes' ? '' : 'yes',
                         examBookingDate: '',
                         examBookingTime: ''
                       }))}
-                      className={`w-full py-4 px-4 flex items-center justify-between transition-all duration-200 ${
-                        formData.hasCertificate === 'yes'
+                      className={`w-full py-4 px-4 flex items-center justify-between transition-all duration-200 ${formData.hasCertificate === 'yes'
                           ? 'text-white'
                           : isDarkMode ? 'bg-[#040030] text-gray-200 hover:bg-[#050040]' : 'bg-white text-gray-700 hover:bg-gray-50'
-                      }`}
+                        }`}
                       style={formData.hasCertificate === 'yes' ? { backgroundColor: '#010080' } : {}}
                     >
                       <span className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          formData.hasCertificate === 'yes' ? 'bg-white/20' : isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                        }`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${formData.hasCertificate === 'yes' ? 'bg-white/20' : isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                          }`}>
                           <svg className={`w-5 h-5 ${formData.hasCertificate === 'yes' ? 'text-white' : isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -241,9 +302,8 @@ export default function IELTSTOEFLRegistrationPage() {
                     </button>
 
                     {/* Expandable Content */}
-                    <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                      formData.hasCertificate === 'yes' ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'
-                    }`}>
+                    <div className={`transition-all duration-300 ease-in-out overflow-hidden ${formData.hasCertificate === 'yes' ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'
+                      }`}>
                       <div className={`p-4 border-t space-y-4 ${isDarkMode ? 'bg-[#040030] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                         {/* Document Upload */}
                         <div>
@@ -253,35 +313,43 @@ export default function IELTSTOEFLRegistrationPage() {
                               <svg className={`w-6 h-6 mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                               </svg>
-                              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><span className={`font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Click to upload</span> (PDF, JPG, PNG)</p>
+                              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {formData.certificateDocument ? (
+                                  <span className={`font-semibold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{formData.certificateDocument}</span>
+                                ) : (
+                                  <>
+                                    <span className={`font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Click to upload</span> (PDF, JPG, PNG)
+                                  </>
+                                )}
+                              </p>
                             </div>
                             <input type="file" name="certificateDocument" accept=".pdf,.jpg,.jpeg,.png" onChange={handleChange} className="hidden" />
                           </label>
                         </div>
-                        
+
                         {/* College Name & Date - Parallel */}
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className={`block text-sm font-semibold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>College/Institution</label>
-                            <input 
-                              type="text" 
-                              name="certificateInstitution" 
-                              value={formData.certificateInstitution} 
-                              onChange={handleChange} 
-                              placeholder="e.g. British Council" 
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm ${isDarkMode ? 'bg-[#030020] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} 
+                            <input
+                              type="text"
+                              name="certificateInstitution"
+                              value={formData.certificateInstitution}
+                              onChange={handleChange}
+                              placeholder="e.g. British Council"
+                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm ${isDarkMode ? 'bg-[#030020] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
                               required={formData.hasCertificate === 'yes'}
                             />
                           </div>
                           <div>
                             <label className={`block text-sm font-semibold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Date Obtained</label>
-                            <input 
-                              type="date" 
-                              name="certificateDate" 
-                              value={formData.certificateDate} 
-                              onChange={handleChange} 
+                            <input
+                              type="date"
+                              name="certificateDate"
+                              value={formData.certificateDate}
+                              onChange={handleChange}
                               max={new Date().toISOString().split('T')[0]}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm ${isDarkMode ? 'bg-[#030020] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} 
+                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm ${isDarkMode ? 'bg-[#030020] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
                               required={formData.hasCertificate === 'yes'}
                             />
                           </div>
@@ -291,30 +359,28 @@ export default function IELTSTOEFLRegistrationPage() {
                   </div>
 
                   {/* Option 2: Take Proficiency Exam */}
-                  <div 
+                  <div
                     className="rounded-xl overflow-hidden"
                     style={{ border: formData.hasCertificate === 'no' ? '2px solid #010080' : '1px solid #e5e7eb' }}
                   >
                     {/* Clickable Header */}
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({ 
-                        ...prev, 
+                      onClick={() => setFormData(prev => ({
+                        ...prev,
                         hasCertificate: prev.hasCertificate === 'no' ? '' : 'no',
                         certificateInstitution: '',
                         certificateDate: ''
                       }))}
-                      className={`w-full py-4 px-4 flex items-center justify-between transition-all duration-200 ${
-                        formData.hasCertificate === 'no'
+                      className={`w-full py-4 px-4 flex items-center justify-between transition-all duration-200 ${formData.hasCertificate === 'no'
                           ? 'text-white'
                           : isDarkMode ? 'bg-[#040030] text-gray-200 hover:bg-[#050040]' : 'bg-white text-gray-700 hover:bg-gray-50'
-                      }`}
+                        }`}
                       style={formData.hasCertificate === 'no' ? { backgroundColor: '#010080' } : {}}
                     >
                       <span className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          formData.hasCertificate === 'no' ? 'bg-white/20' : isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                        }`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${formData.hasCertificate === 'no' ? 'bg-white/20' : isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                          }`}>
                           <svg className={`w-5 h-5 ${formData.hasCertificate === 'no' ? 'text-white' : isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
@@ -332,34 +398,33 @@ export default function IELTSTOEFLRegistrationPage() {
                     </button>
 
                     {/* Expandable Content */}
-                    <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                      formData.hasCertificate === 'no' ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0'
-                    }`}>
+                    <div className={`transition-all duration-300 ease-in-out overflow-hidden ${formData.hasCertificate === 'no' ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0'
+                      }`}>
                       <div className={`p-4 border-t space-y-4 ${isDarkMode ? 'bg-[#040030] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                         <p className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Please select a date and time for your English proficiency assessment exam.</p>
-                        
+
                         {/* Exam Date & Time - Parallel */}
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className={`block text-sm font-semibold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Exam Date</label>
-                            <input 
-                              type="date" 
-                              name="examBookingDate" 
-                              value={formData.examBookingDate} 
-                              onChange={handleChange} 
+                            <input
+                              type="date"
+                              name="examBookingDate"
+                              value={formData.examBookingDate}
+                              onChange={handleChange}
                               min={new Date().toISOString().split('T')[0]}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm ${isDarkMode ? 'bg-[#030020] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} 
+                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm ${isDarkMode ? 'bg-[#030020] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
                               required={formData.hasCertificate === 'no'}
                             />
                           </div>
                           <div>
                             <label className={`block text-sm font-semibold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Exam Time</label>
                             <div className="relative">
-                              <select 
-                                name="examBookingTime" 
-                                value={formData.examBookingTime} 
-                                onChange={handleChange} 
-                                className={`w-full px-4 py-3 pr-10 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm appearance-none cursor-pointer ${isDarkMode ? 'bg-[#030020] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} 
+                              <select
+                                name="examBookingTime"
+                                value={formData.examBookingTime}
+                                onChange={handleChange}
+                                className={`w-full px-4 py-3 pr-10 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm appearance-none cursor-pointer ${isDarkMode ? 'bg-[#030020] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
                                 required={formData.hasCertificate === 'no'}
                               >
                                 <option value="">Select time</option>
@@ -402,12 +467,23 @@ export default function IELTSTOEFLRegistrationPage() {
               </div>
 
               {/* Submit Button */}
-              <button 
-                type="submit" 
-                className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg"
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full py-4 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg flex items-center justify-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                 style={{ backgroundColor: '#010080' }}
               >
-                Submit Registration
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  'Submit Registration'
+                )}
               </button>
             </form>
           </div>
@@ -416,4 +492,3 @@ export default function IELTSTOEFLRegistrationPage() {
     </div>
   );
 }
-
