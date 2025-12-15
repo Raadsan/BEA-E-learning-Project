@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
-import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation } from "@/redux/api/studentApi";
+import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation, useApproveStudentMutation, useRejectStudentMutation } from "@/redux/api/studentApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useDarkMode } from "@/context/ThemeContext";
+import { useToast } from "@/components/Toast";
 
 export default function StudentsPage() {
   const { isDark } = useDarkMode();
