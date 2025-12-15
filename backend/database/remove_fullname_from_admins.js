@@ -37,3 +37,4 @@ async function removeFullNameColumn() {
 
 removeFullNameColumn();
 
+

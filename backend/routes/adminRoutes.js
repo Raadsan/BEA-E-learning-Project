@@ -19,3 +19,4 @@ router.delete("/:id", deleteAdmin);
 
 export default router;
 
+
