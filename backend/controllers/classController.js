@@ -25,10 +25,19 @@ export const createClass = async (req, res) => {
   }
 };
 
-// GET ALL CLASSES
+// GET ALL CLASSES (Filtered for Teachers)
 export const getClasses = async (req, res) => {
   try {
-    const classes = await Class.getAllClasses();
+    const { role, userId } = req.user; // Populated by verifyToken middleware
+
+    let classes;
+    if (role === 'teacher') {
+      classes = await Class.getClassesByTeacherId(userId);
+    } else {
+      // Admin (or others) see all classes
+      classes = await Class.getAllClasses();
+    }
+
     res.json(classes);
   } catch (err) {
     console.error(err);

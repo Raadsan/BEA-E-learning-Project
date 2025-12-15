@@ -5,6 +5,10 @@ export const classApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5000/api/classes",
     prepareHeaders: (headers) => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
       headers.set("Content-Type", "application/json");
       return headers;
     },

@@ -4,7 +4,7 @@ import TeacherHeader from "./TeacherHeader";
 import React from 'react';
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
-import { useGetCoursesQuery } from "@/redux/api/courseApi";
+
 import { useDarkMode } from "@/context/ThemeContext";
 
 // Small inline Circular Progress component (declared above default export)
@@ -43,7 +43,7 @@ export default function TeacherDashboard() {
   // Fetch data from APIs
   const { data: classesData, isLoading: classesLoading } = useGetClassesQuery();
   const { data: studentsData, isLoading: studentsLoading } = useGetStudentsQuery();
-  const { data: coursesData, isLoading: coursesLoading } = useGetCoursesQuery();
+
 
   // Extract counts
   const classes = Array.isArray(classesData) ? classesData : [];
@@ -55,8 +55,7 @@ export default function TeacherDashboard() {
     (student) => student.status === "Active" || !student.status
   ).length;
 
-  const courses = Array.isArray(coursesData) ? coursesData : [];
-  const totalCourses = courses.length;
+
 
   // Mock data for charts (replace with real data later)
   const weeklyAttendance = [
@@ -71,12 +70,7 @@ export default function TeacherDashboard() {
 
   const maxAttendance = Math.max(...weeklyAttendance.map(d => Math.max(d.thisWeek, d.lastWeek)));
 
-  const courseCompletion = [
-    { course: "Course A", percentage: 40, change: 5.88 },
-    { course: "Course B", percentage: 25, change: -1.25 },
-    { course: "Course C", percentage: 20, change: 0.23 },
-    { course: "Course D", percentage: 15, change: -2.5 },
-  ];
+
 
   return (
     <>
@@ -183,7 +177,7 @@ export default function TeacherDashboard() {
           </div>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {/* Weekly Attendance Bar Chart */}
             <div className={`rounded-xl shadow-md p-6 border transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
               }`}>
@@ -231,81 +225,7 @@ export default function TeacherDashboard() {
               </div>
             </div>
 
-            {/* Course Completion Rate Pie Chart */}
-            <div className={`rounded-xl shadow-md p-6 border transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
-              }`}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-800'
-                  }`}>
-                  Statistics Course Completion Rate
-                </h2>
-                <select className={`px-3 py-1 border rounded-lg text-sm transition-colors ${isDark
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                  }`}>
-                  <option>Weekly</option>
-                  <option>Monthly</option>
-                </select>
-              </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-6 justify-center">
-                {/* Pie Chart Placeholder */}
-                <div className="relative w-48 h-48 flex-shrink-0">
-                  <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                    {courseCompletion.map((course, index) => {
-                      const total = courseCompletion.reduce((sum, c) => sum + c.percentage, 0);
-                      const startAngle = courseCompletion.slice(0, index).reduce((sum, c) => sum + (c.percentage / total) * 360, 0);
-                      const angle = (course.percentage / total) * 360;
-                      const largeArcFlag = angle > 180 ? 1 : 0;
-
-                      const x1 = 50 + 50 * Math.cos((startAngle * Math.PI) / 180);
-                      const y1 = 50 + 50 * Math.sin((startAngle * Math.PI) / 180);
-                      const x2 = 50 + 50 * Math.cos(((startAngle + angle) * Math.PI) / 180);
-                      const y2 = 50 + 50 * Math.sin(((startAngle + angle) * Math.PI) / 180);
-
-                      return (
-                        <path
-                          key={index}
-                          d={`M 50 50 L ${x1} ${y1} A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2} Z`}
-                          fill={index % 2 === 0 ? '#3b82f6' : '#ef4444'}
-                          className="transition-opacity hover:opacity-80"
-                        />
-                      );
-                    })}
-                  </svg>
-                </div>
-
-                {/* Data List */}
-                <div className="flex-1 space-y-3 w-full">
-                  {courseCompletion.map((course, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: index % 2 === 0 ? '#3b82f6' : '#ef4444' }}
-                        ></div>
-                        <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'
-                          }`}>
-                          {course.course}:
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'
-                          }`}>
-                          {course.percentage}%
-                        </span>
-                        <span className={`text-xs ${course.change >= 0
-                            ? 'text-green-600'
-                            : 'text-red-600'
-                          }`}>
-                          ({course.change >= 0 ? '+' : ''}{course.change.toFixed(2)}%)
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </main>
