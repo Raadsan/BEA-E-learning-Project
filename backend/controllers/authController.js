@@ -33,24 +33,18 @@ export const login = async (req, res) => {
 
     // Check all tables to find the user (priority: admin > teacher > student)
     // Check admin first
-    try {
-      user = await Admin.getAdminByEmail(email);
-      if (user) {
-        detectedRole = 'admin';
-        userData = {
-          id: user.id,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-          email: user.email,
-          role: user.role || 'admin'
-        };
-      }
-    } catch (adminError) {
-      console.error("❌ Error fetching admin:", adminError);
-    }
-
-    if (!user) {
+    user = await Admin.getAdminByEmail(email);
+    if (user) {
+      detectedRole = 'admin';
+      userData = {
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+        email: user.email,
+        role: user.role || 'admin'
+      };
+    } else {
       // Check teacher
       user = await Teacher.getTeacherByEmail(email);
       if (user) {
@@ -222,170 +216,6 @@ export const getCurrentUser = async (req, res) => {
       success: false,
       error: "Server error: " + err.message
     });
-  }
-};
-
-// FORGOT PASSWORD
-export const forgotPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ success: false, error: "Email is required" });
-    }
-
-    let user = null;
-    let role = null;
-
-    // Check all tables
-    user = await Admin.getAdminByEmail(email);
-    if (user) role = 'admin';
-
-    if (!user) {
-      user = await Teacher.getTeacherByEmail(email);
-      if (user) role = 'teacher';
-    }
-
-    if (!user) {
-      user = await Student.getStudentByEmail(email);
-      if (user) role = 'student';
-    }
-
-    if (!user) {
-      return res.status(404).json({ success: false, error: "User not found" });
-    }
-
-    // Generate token
-    const crypto = await import("crypto");
-    const resetToken = crypto.default.randomBytes(20).toString("hex");
-    const resetExpires = new Date(Date.now() + 3600000); // 1 hour
-
-    // Save token to DB
-    if (role === 'admin') {
-      await Admin.updateAdminById(user.id, {
-        reset_password_token: resetToken,
-        reset_password_expires: resetExpires
-      });
-    } else if (role === 'teacher') {
-      await Teacher.updateTeacherById(user.id, {
-        reset_password_token: resetToken,
-        reset_password_expires: resetExpires
-      });
-    } else if (role === 'student') {
-      await Student.updateStudentById(user.id, {
-        reset_password_token: resetToken,
-        reset_password_expires: resetExpires
-      });
-    }
-
-    // Send email
-    const nodemailer = await import("nodemailer");
-
-    // Check if credentials exist
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.error("❌ Email credentials missing in .env file");
-      return res.status(500).json({
-        success: false,
-        error: "Server configuration error: Email credentials missing"
-      });
-    }
-
-    // Clean email password (remove spaces that might be in .env file)
-    const emailPass = String(process.env.EMAIL_PASS).trim().replace(/\s+/g, '');
-    const emailUser = String(process.env.EMAIL_USER).trim();
-
-    const transporter = nodemailer.default.createTransport({
-      service: "gmail",
-      auth: {
-        user: emailUser,
-        pass: emailPass,
-      },
-    });
-
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/reset-password/${resetToken}`;
-
-    const mailOptions = {
-      from: `"BEA E-Learning" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Password Reset Request",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #010080;">Password Reset Request</h2>
-          <p>You requested a password reset. Please click the link below to reset your password:</p>
-          <a href="${resetUrl}" style="display: inline-block; background-color: #010080; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 20px 0;">Reset Password</a>
-          <p>This link will expire in 1 hour.</p>
-          <p>If you didn't request this, please ignore this email.</p>
-        </div>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    res.json({ success: true, message: "Email sent" });
-
-  } catch (err) {
-    console.error("❌ Forgot password error:", err);
-    res.status(500).json({ success: false, error: "Server error" });
-  }
-};
-
-// RESET PASSWORD
-export const resetPassword = async (req, res) => {
-  try {
-    const { token } = req.params;
-    const { password } = req.body;
-
-    if (!password) {
-      return res.status(400).json({ success: false, error: "Password is required" });
-    }
-
-    let user = null;
-    let role = null;
-
-    // Find user by token
-    user = await Admin.getAdminByResetToken(token);
-    if (user) role = 'admin';
-
-    if (!user) {
-      user = await Teacher.getTeacherByResetToken(token);
-      if (user) role = 'teacher';
-    }
-
-    if (!user) {
-      user = await Student.getStudentByResetToken(token);
-      if (user) role = 'student';
-    }
-
-    if (!user) {
-      return res.status(400).json({ success: false, error: "Invalid or expired token" });
-    }
-
-    // Update password and clear token
-    // Note: Models handle hashing if password is provided
-    if (role === 'admin') {
-      await Admin.updateAdminById(user.id, {
-        password,
-        reset_password_token: null,
-        reset_password_expires: null
-      });
-    } else if (role === 'teacher') {
-      await Teacher.updateTeacherById(user.id, {
-        password,
-        reset_password_token: null,
-        reset_password_expires: null
-      });
-    } else if (role === 'student') {
-      await Student.updateStudentById(user.id, {
-        password,
-        reset_password_token: null,
-        reset_password_expires: null
-      });
-    }
-
-    res.json({ success: true, message: "Password updated successfully" });
-
-  } catch (err) {
-    console.error("❌ Reset password error:", err);
-    res.status(500).json({ success: false, error: "Server error" });
   }
 };
 

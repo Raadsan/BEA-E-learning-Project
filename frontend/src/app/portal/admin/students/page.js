@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
-import { Toast, useToast } from "@/components/Toast";
-import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation, useApproveStudentMutation, useRejectStudentMutation } from "@/redux/api/studentApi";
+import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation } from "@/redux/api/studentApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
-import { useGetSubprogramsQuery, useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
+import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function StudentsPage() {
@@ -31,16 +30,6 @@ export default function StudentsPage() {
 
   const students = backendStudents || [];
 
-  const filteredStudents = students.filter(student => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'general') return student.chosen_program?.toLowerCase().includes('general');
-    if (activeTab === 'ielts') {
-      const program = student.chosen_program?.toLowerCase();
-      return program?.includes('ielts') || program?.includes('toefl');
-    }
-    return true;
-  });
-
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -58,6 +47,7 @@ export default function StudentsPage() {
     parent_res_county: "",
     parent_res_city: "",
   });
+
 
 
   const handleAddStudent = () => {
@@ -466,12 +456,12 @@ export default function StudentsPage() {
     <>
       <AdminHeader />
 
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
+      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
         <div className="w-full px-8 py-6">
           <DataTable
             title="Student Management"
             columns={columns}
-            data={filteredStudents}
+            data={students}
             onAddClick={handleAddStudent}
             showAddButton={true}
           />

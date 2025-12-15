@@ -85,9 +85,7 @@ export const updateTeacherById = async (id, {
   portfolio_link,
   skills,
   hire_date,
-  password,
-  reset_password_token,
-  reset_password_expires
+  password
 }) => {
   const updates = [];
   const values = [];
@@ -145,14 +143,6 @@ export const updateTeacherById = async (id, {
     updates.push("password = ?");
     values.push(password);
   }
-  if (reset_password_token !== undefined) {
-    updates.push("reset_password_token = ?");
-    values.push(reset_password_token);
-  }
-  if (reset_password_expires !== undefined) {
-    updates.push("reset_password_expires = ?");
-    values.push(reset_password_expires);
-  }
 
   if (updates.length === 0) {
     return 0;
@@ -173,6 +163,7 @@ export const deleteTeacherById = async (id) => {
   return result.affectedRows;
 };
 
+<<<<<<< HEAD
 // GET teacher stats
 export const getTeacherStatsById = async (id) => {
   // Total Classes
@@ -213,3 +204,5 @@ export const getTeacherByResetToken = async (token) => {
   );
   return rows[0] || null;
 };
+=======
+>>>>>>> 16f30a9a53a49ac0672d5f5af3de53d7ef5142b9

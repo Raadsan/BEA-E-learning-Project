@@ -101,9 +101,7 @@ export const updateStudentById = async (id, {
   parent_relation,
   parent_res_county,
   parent_res_city,
-  approval_status,
-  reset_password_token,
-  reset_password_expires
+  approval_status
 }) => {
   const updates = [];
   const values = [];
@@ -173,14 +171,6 @@ export const updateStudentById = async (id, {
     updates.push("approval_status = ?");
     values.push(approval_status);
   }
-  if (reset_password_token !== undefined) {
-    updates.push("reset_password_token = ?");
-    values.push(reset_password_token);
-  }
-  if (reset_password_expires !== undefined) {
-    updates.push("reset_password_expires = ?");
-    values.push(reset_password_expires);
-  }
 
   if (updates.length === 0) {
     return 0;
@@ -208,13 +198,4 @@ export const updateApprovalStatus = async (id, status) => {
     [status, id]
   );
   return result.affectedRows;
-};
-
-// GET student by reset token
-export const getStudentByResetToken = async (token) => {
-  const [rows] = await dbp.query(
-    "SELECT * FROM students WHERE reset_password_token = ? AND reset_password_expires > NOW()",
-    [token]
-  );
-  return rows[0] || null;
 };

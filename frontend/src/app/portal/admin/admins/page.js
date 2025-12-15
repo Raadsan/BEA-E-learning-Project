@@ -5,20 +5,19 @@ import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { Toast, useToast } from "@/components/Toast";
-import {
-  useGetAdminsQuery,
-  useCreateAdminMutation,
-  useUpdateAdminMutation,
-  useDeleteAdminMutation
+import { 
+  useGetAdminsQuery, 
+  useCreateAdminMutation, 
+  useUpdateAdminMutation, 
+  useDeleteAdminMutation 
 } from "@/redux/api/adminApi";
 
 export default function AdminsPage() {
   const { isDark } = useDarkMode();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState(null);
   const { toast, showToast, hideToast } = useToast();
-
+  
   // Fetch admins from backend
   const { data: backendAdmins, isLoading, isError, error, refetch } = useGetAdminsQuery();
   const [createAdmin, { isLoading: isCreating }] = useCreateAdminMutation();
@@ -52,7 +51,7 @@ export default function AdminsPage() {
       last_name: "",
       email: "",
       phone: "",
-      password: "123",
+      password: "",
       role: "admin",
       status: "active",
     });
@@ -201,10 +200,11 @@ export default function AdminsPage() {
       render: (row) => {
         const status = row.status?.toLowerCase() || "active";
         return (
-          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${status === "active"
-            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-            }`}>
+          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            status === "active" 
+              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" 
+              : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+          }`}>
             {row.status || "active"}
           </span>
         );
@@ -286,11 +286,11 @@ export default function AdminsPage() {
 
       {/* Add/Edit Admin Modal */}
       {isModalOpen && (
-        <div
+        <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
           onClick={handleBackdropClick}
         >
-          <div
+          <div 
             className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden mx-4"
             onClick={(e) => e.stopPropagation()}
           >
@@ -379,34 +379,16 @@ export default function AdminsPage() {
                   Password {!editingAdmin && <span className="text-red-500">*</span>}
                   {editingAdmin && <span className="text-gray-500 text-xs ml-2">(Leave empty to keep current password)</span>}
                 </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required={!editingAdmin}
-                    placeholder={editingAdmin ? "Enter new password (optional)" : "Enter password"}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 px-3 flex items-center text-sm leading-5 text-gray-500 hover:text-gray-700"
-                  >
-                    {showPassword ? (
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    ) : (
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.575-3.133m3.15-2.738A10.05 10.05 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-2.924 4.41M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required={!editingAdmin}
+                  placeholder={editingAdmin ? "Enter new password (optional)" : "Enter password"}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
