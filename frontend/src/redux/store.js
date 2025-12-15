@@ -8,6 +8,7 @@ import { classApi } from "../redux/api/classApi.js";
 import { authApi } from "../redux/api/authApi.js";
 import { adminApi } from "../redux/api/adminApi.js";
 import { userApi } from "../redux/api/userApi.js";
+import { attendanceApi } from "../redux/api/attendanceApi.js";
 import { ieltsToeflApi } from "../redux/api/ieltsToeflApi.js";
 import { placementTestApi } from "../redux/api/placementTestApi.js";
 
@@ -22,6 +23,7 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [adminApi.reducerPath]: adminApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
+    [attendanceApi.reducerPath]: attendanceApi.reducer,
     [ieltsToeflApi.reducerPath]: ieltsToeflApi.reducer,
     [placementTestApi.reducerPath]: placementTestApi.reducer,
   },
@@ -38,5 +40,8 @@ export const store = configureStore({
       userApi.middleware,
       ieltsToeflApi.middleware,
       placementTestApi.middleware
+      attendanceApi.middleware,
+      ieltsToeflApi.middleware
     ),
 });
+

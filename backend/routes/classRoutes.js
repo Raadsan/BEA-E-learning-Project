@@ -8,11 +8,12 @@ import {
   updateClass,
   deleteClass,
 } from "../controllers/classController.js";
+import { verifyToken } from "../controllers/authController.js";
 
 const router = express.Router();
 
 // ---------- ROUTES ----------
-router.get("/", getClasses);
+router.get("/", verifyToken, getClasses);
 router.get("/course/:course_id", getClassesByCourseId);
 router.get("/:id", getClass);
 router.post("/", createClass);
