@@ -8,6 +8,7 @@ import { classApi } from "../redux/api/classApi.js";
 import { authApi } from "../redux/api/authApi.js";
 import { adminApi } from "../redux/api/adminApi.js";
 import { userApi } from "../redux/api/userApi.js";
+import { ieltsToeflApi } from "../redux/api/ieltsToeflApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [adminApi.reducerPath]: adminApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
+    [ieltsToeflApi.reducerPath]: ieltsToeflApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -31,6 +33,7 @@ export const store = configureStore({
       classApi.middleware,
       authApi.middleware,
       adminApi.middleware,
-      userApi.middleware
+      userApi.middleware,
+      ieltsToeflApi.middleware
     ),
 });
