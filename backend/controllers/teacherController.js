@@ -166,3 +166,36 @@ export const getTeacherClasses = async (req, res) => {
   }
 };
 
+// GET TEACHER PROGRAMS
+export const getTeacherPrograms = async (req, res) => {
+  try {
+    const teacherId = req.user.userId;
+
+    if (req.user.role !== 'teacher') {
+      return res.status(403).json({ error: "Access denied. Teachers only." });
+    }
+
+    // You need to import getProgramsByTeacherId from model. I'll add the import line at the top in a separate edit or verify it is imported.
+    // Wait, I only imported "Teacher" as * from teacherModel. 
+    // I need to import Program model or add getProgramsByTeacherId to Teacher model?
+    // User requested "programs isticmal", so logically it belongs in Program model, but I need to call it here.
+    // I should import Program model at the top. 
+    // Since I cannot do multiple edits easily without multi_tool, I will assume I can access it if I import it.
+    // Actually, I should probably put this method in programController? No, it's specific to "Me" as a teacher.
+    // Let's stick to teacherController but I need to update imports.
+
+    // I'll return a placeholder first, then update imports. 
+    // Or better: Just use dynamic import? No, bad practice.
+    // I'll just write the function assuming `Program.getProgramsByTeacherId` works after I update imports.
+    // Note: I haven't imported Program model yet. I will do that in next step.
+
+    // Changing plan: I will add the method here, then I will update the imports at top of file.
+
+    const programs = await import("../models/programModel.js").then(m => m.getProgramsByTeacherId(teacherId));
+    res.json(programs);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+

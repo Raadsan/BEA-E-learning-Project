@@ -78,3 +78,20 @@ export const deleteProgramById = async (id) => {
   const [result] = await dbp.query("DELETE FROM programs WHERE id = ?", [id]);
   return result.affectedRows;
 };
+
+// GET programs by teacher ID
+export const getProgramsByTeacherId = async (teacher_id) => {
+  const [rows] = await dbp.query(
+    `SELECT DISTINCT p.*, s.subprogram_name, s.id as subprogram_id
+     FROM programs p
+     JOIN subprograms s ON s.program_id = p.id
+     JOIN courses c ON c.subprogram_id = s.id
+     JOIN classes cl ON cl.course_id = c.id
+     WHERE cl.teacher_id = ?
+     ORDER BY p.title`,
+    [teacher_id]
+  );
+  // Group by program if needed, or return flat list of subprograms with program info. 
+  // Returning flat list is easier for now, frontend can group if needed.
+  return rows;
+};
