@@ -163,7 +163,6 @@ export const deleteTeacherById = async (id) => {
   return result.affectedRows;
 };
 
-<<<<<<< HEAD
 // GET teacher stats
 export const getTeacherStatsById = async (id) => {
   // Total Classes
@@ -204,5 +203,3 @@ export const getTeacherByResetToken = async (token) => {
   );
   return rows[0] || null;
 };
-=======
->>>>>>> 16f30a9a53a49ac0672d5f5af3de53d7ef5142b9
