@@ -4,10 +4,10 @@ import db from "../database/dbconfig.js";
 const dbp = db.promise();
 
 // CREATE class
-export const createClass = async ({ class_name, description }) => {
+export const createClass = async ({ class_name, description, subprogram_id, teacher_id }) => {
   const [result] = await dbp.query(
-    "INSERT INTO classes (class_name, description) VALUES (?, ?)",
-    [class_name, description || null]
+    "INSERT INTO classes (class_name, description, subprogram_id, teacher_id) VALUES (?, ?, ?, ?)",
+    [class_name, description || null, subprogram_id || null, teacher_id || null]
   );
 
   const [newClass] = await dbp.query("SELECT * FROM classes WHERE id = ?", [result.insertId]);
@@ -18,14 +18,12 @@ export const createClass = async ({ class_name, description }) => {
 export const getAllClasses = async () => {
   const [rows] = await dbp.query(
     `SELECT cl.*, 
-            c.course_title, 
             t.full_name as teacher_name,
             s.subprogram_name,
             p.title as program_name
      FROM classes cl 
-     LEFT JOIN courses c ON cl.course_id = c.id 
      LEFT JOIN teachers t ON cl.teacher_id = t.id 
-     LEFT JOIN subprograms s ON c.subprogram_id = s.id 
+     LEFT JOIN subprograms s ON cl.subprogram_id = s.id 
      LEFT JOIN programs p ON s.program_id = p.id 
      ORDER BY cl.created_at DESC`
   );
@@ -36,14 +34,12 @@ export const getAllClasses = async () => {
 export const getClassById = async (id) => {
   const [rows] = await dbp.query(
     `SELECT cl.*, 
-            c.course_title, 
             t.full_name as teacher_name,
             s.subprogram_name,
             p.title as program_name
      FROM classes cl 
-     LEFT JOIN courses c ON cl.course_id = c.id 
      LEFT JOIN teachers t ON cl.teacher_id = t.id 
-     LEFT JOIN subprograms s ON c.subprogram_id = s.id 
+     LEFT JOIN subprograms s ON cl.subprogram_id = s.id 
      LEFT JOIN programs p ON s.program_id = p.id 
      WHERE cl.id = ?`,
     [id]
@@ -51,25 +47,23 @@ export const getClassById = async (id) => {
   return rows[0] || null;
 };
 
-// GET classes by course_id
+// GET classes by course_id - REMOVED or DEPRECATED?
+// Since we are removing courses, this function might be irrelevant, but keeping it empty or throwing error might be safer if called.
+// For now, I'll remove it or if it's used somewhere I should find out.
+// Assuming it's not used if we remove routes calling it.
 export const getClassesByCourseId = async (course_id) => {
-  const [rows] = await dbp.query(
-    "SELECT * FROM classes WHERE course_id = ? ORDER BY class_name",
-    [course_id]
-  );
-  return rows;
+  // Returning empty array as course concept is removed
+  return [];
 };
 
 // GET classes by teacher_id
 export const getClassesByTeacherId = async (teacher_id) => {
   const [rows] = await dbp.query(
     `SELECT cl.*, 
-            c.course_title, 
             s.subprogram_name,
             p.title as program_name
      FROM classes cl 
-     LEFT JOIN courses c ON cl.course_id = c.id 
-     LEFT JOIN subprograms s ON c.subprogram_id = s.id 
+     LEFT JOIN subprograms s ON cl.subprogram_id = s.id 
      LEFT JOIN programs p ON s.program_id = p.id 
      WHERE cl.teacher_id = ?
      ORDER BY cl.created_at DESC`,
@@ -79,7 +73,7 @@ export const getClassesByTeacherId = async (teacher_id) => {
 };
 
 // UPDATE class
-export const updateClassById = async (id, { class_name, course_id, schedule, description, teacher_id }) => {
+export const updateClassById = async (id, { class_name, subprogram_id, schedule, description, teacher_id }) => {
   const updates = [];
   const values = [];
 
@@ -87,9 +81,9 @@ export const updateClassById = async (id, { class_name, course_id, schedule, des
     updates.push("class_name = ?");
     values.push(class_name);
   }
-  if (course_id !== undefined) {
-    updates.push("course_id = ?");
-    values.push(course_id);
+  if (subprogram_id !== undefined) {
+    updates.push("subprogram_id = ?");
+    values.push(subprogram_id || null);
   }
   if (schedule !== undefined) {
     updates.push("schedule = ?");

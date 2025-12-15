@@ -19,7 +19,8 @@ export const createStudent = async ({
   parent_phone,
   parent_relation,
   parent_res_county,
-  parent_res_city
+  parent_res_city,
+  class_id
 }) => {
   // Store password as plain text (no encryption)
 
@@ -27,8 +28,8 @@ export const createStudent = async ({
     `INSERT INTO students (
       full_name, email, phone, age, residency_country, residency_city,
       chosen_program, chosen_subprogram, password, parent_name, parent_email, parent_phone,
-      parent_relation, parent_res_county, parent_res_city, approval_status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      parent_relation, parent_res_county, parent_res_city, approval_status, class_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       full_name,
       email,
@@ -45,7 +46,8 @@ export const createStudent = async ({
       parent_relation || null,
       parent_res_county || null,
       parent_res_city || null,
-      'pending' // Default approval status
+      'pending', // Default approval status
+      class_id || null
     ]
   );
 
@@ -57,7 +59,10 @@ export const createStudent = async ({
 export const getAllStudents = async () => {
   try {
     const [rows] = await dbp.query(
-      "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, approval_status, created_at, updated_at FROM students ORDER BY created_at DESC"
+      `SELECT s.*, c.class_name 
+       FROM students s 
+       LEFT JOIN classes c ON s.class_id = c.id 
+       ORDER BY s.created_at DESC`
     );
     return rows;
   } catch (error) {
@@ -67,9 +72,13 @@ export const getAllStudents = async () => {
 };
 
 // GET student by ID
+// GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, approval_status, created_at, updated_at FROM students WHERE id = ?",
+    `SELECT s.*, c.class_name 
+     FROM students s 
+     LEFT JOIN classes c ON s.class_id = c.id 
+     WHERE s.id = ?`,
     [id]
   );
   return rows[0] || null;
@@ -101,7 +110,8 @@ export const updateStudentById = async (id, {
   parent_relation,
   parent_res_county,
   parent_res_city,
-  approval_status
+  approval_status,
+  class_id
 }) => {
   const updates = [];
   const values = [];
@@ -171,6 +181,10 @@ export const updateStudentById = async (id, {
     updates.push("approval_status = ?");
     values.push(approval_status);
   }
+  if (class_id !== undefined) {
+    updates.push("class_id = ?");
+    values.push(class_id);
+  }
 
   if (updates.length === 0) {
     return 0;
@@ -196,6 +210,15 @@ export const updateApprovalStatus = async (id, status) => {
   const [result] = await dbp.query(
     "UPDATE students SET approval_status = ? WHERE id = ?",
     [status, id]
+  );
+  return result.affectedRows;
+};
+
+// REJECT student (sets status to rejected and clears class_id)
+export const rejectStudentById = async (id) => {
+  const [result] = await dbp.query(
+    "UPDATE students SET approval_status = 'rejected', class_id = NULL WHERE id = ?",
+    [id]
   );
   return result.affectedRows;
 };

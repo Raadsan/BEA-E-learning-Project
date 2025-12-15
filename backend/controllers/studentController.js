@@ -19,32 +19,33 @@ export const createStudent = async (req, res) => {
       parent_phone,
       parent_relation,
       parent_res_county,
-      parent_res_city
+      parent_res_city,
+      class_id
     } = req.body;
 
     // Validate required fields
     if (!full_name || !email || !password) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: "Full name, email, and password are required" 
+        error: "Full name, email, and password are required"
       });
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: "Invalid email format" 
+        error: "Invalid email format"
       });
     }
 
     // Check if email already exists
     const existingStudent = await Student.getStudentByEmail(email);
     if (existingStudent) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: "Email already exists" 
+        error: "Email already exists"
       });
     }
 
@@ -63,19 +64,20 @@ export const createStudent = async (req, res) => {
       parent_phone,
       parent_relation,
       parent_res_county,
-      parent_res_city
+      parent_res_city,
+      class_id
     });
 
-    res.status(201).json({ 
+    res.status(201).json({
       success: true,
       message: "Student created successfully",
-      student 
+      student
     });
   } catch (err) {
     console.error("❌ Create student error:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: "Server error: " + err.message 
+      error: "Server error: " + err.message
     });
   }
 };
@@ -84,15 +86,15 @@ export const createStudent = async (req, res) => {
 export const getStudents = async (req, res) => {
   try {
     const students = await Student.getAllStudents();
-    res.json({ 
+    res.json({
       success: true,
-      students 
+      students
     });
   } catch (err) {
     console.error("❌ Get students error:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: err.message || "Server error" 
+      error: err.message || "Server error"
     });
   }
 };
@@ -104,21 +106,21 @@ export const getStudent = async (req, res) => {
     const student = await Student.getStudentById(id);
 
     if (!student) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: "Student not found" 
+        error: "Student not found"
       });
     }
 
-    res.json({ 
+    res.json({
       success: true,
-      student 
+      student
     });
   } catch (err) {
     console.error("❌ Get student error:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: "Server error" 
+      error: "Server error"
     });
   }
 };
@@ -130,9 +132,9 @@ export const updateStudent = async (req, res) => {
     const existing = await Student.getStudentById(id);
 
     if (!existing) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: "Student not found" 
+        error: "Student not found"
       });
     }
 
@@ -140,9 +142,9 @@ export const updateStudent = async (req, res) => {
     if (req.body.email && req.body.email !== existing.email) {
       const emailExists = await Student.getStudentByEmail(req.body.email);
       if (emailExists) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          error: "Email already exists" 
+          error: "Email already exists"
         });
       }
     }
@@ -150,16 +152,16 @@ export const updateStudent = async (req, res) => {
     await Student.updateStudentById(id, req.body);
     const updated = await Student.getStudentById(id);
 
-    res.json({ 
+    res.json({
       success: true,
       message: "Student updated successfully",
-      student: updated 
+      student: updated
     });
   } catch (err) {
     console.error("❌ Update student error:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: "Server error: " + err.message 
+      error: "Server error: " + err.message
     });
   }
 };
@@ -171,22 +173,22 @@ export const deleteStudent = async (req, res) => {
     const existing = await Student.getStudentById(id);
 
     if (!existing) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: "Student not found" 
+        error: "Student not found"
       });
     }
 
     await Student.deleteStudentById(id);
-    res.json({ 
+    res.json({
       success: true,
-      message: "Student deleted successfully" 
+      message: "Student deleted successfully"
     });
   } catch (err) {
     console.error("❌ Delete student error:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: "Server error" 
+      error: "Server error"
     });
   }
 };
@@ -196,35 +198,35 @@ export const approveStudent = async (req, res) => {
   try {
     const { id } = req.params;
     console.log("📝 Approve request received for student ID:", id);
-    
+
     const existing = await Student.getStudentById(id);
     console.log("📝 Existing student:", existing ? "Found" : "Not found");
 
     if (!existing) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: "Student not found" 
+        error: "Student not found"
       });
     }
 
     console.log("📝 Current approval_status:", existing.approval_status);
     const updateResult = await Student.updateApprovalStatus(id, 'approved');
     console.log("📝 Update result:", updateResult);
-    
+
     const updated = await Student.getStudentById(id);
     console.log("📝 Updated student approval_status:", updated?.approval_status);
 
-    res.json({ 
+    res.json({
       success: true,
       message: "Student approved successfully",
-      student: updated 
+      student: updated
     });
   } catch (err) {
     console.error("❌ Approve student error:", err);
     console.error("❌ Error stack:", err.stack);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: "Server error: " + err.message 
+      error: "Server error: " + err.message
     });
   }
 };
@@ -234,35 +236,36 @@ export const rejectStudent = async (req, res) => {
   try {
     const { id } = req.params;
     console.log("📝 Reject request received for student ID:", id);
-    
+
     const existing = await Student.getStudentById(id);
     console.log("📝 Existing student:", existing ? "Found" : "Not found");
 
     if (!existing) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: "Student not found" 
+        error: "Student not found"
       });
     }
 
     console.log("📝 Current approval_status:", existing.approval_status);
-    const updateResult = await Student.updateApprovalStatus(id, 'rejected');
+    // Use rejectStudentById to set status to 'rejected' and class_id to NULL
+    const updateResult = await Student.rejectStudentById(id);
     console.log("📝 Update result:", updateResult);
-    
+
     const updated = await Student.getStudentById(id);
     console.log("📝 Updated student approval_status:", updated?.approval_status);
 
-    res.json({ 
+    res.json({
       success: true,
       message: "Student rejected successfully",
-      student: updated 
+      student: updated
     });
   } catch (err) {
     console.error("❌ Reject student error:", err);
     console.error("❌ Error stack:", err.stack);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: "Server error: " + err.message 
+      error: "Server error: " + err.message
     });
   }
 };
