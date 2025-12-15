@@ -19,6 +19,8 @@ export const createTeacher = async ({
   hire_date,
   password
 }) => {
+  // Store password as plain text (no encryption)
+
   const [result] = await dbp.query(
     `INSERT INTO teachers (
       full_name, email, phone, country, city, specialization,
@@ -83,7 +85,9 @@ export const updateTeacherById = async (id, {
   portfolio_link,
   skills,
   hire_date,
-  password
+  password,
+  reset_password_token,
+  reset_password_expires
 }) => {
   const updates = [];
   const values = [];
@@ -136,9 +140,18 @@ export const updateTeacherById = async (id, {
     updates.push("hire_date = ?");
     values.push(hire_date);
   }
-  if (password !== undefined) {
+  if (password !== undefined && password.trim() !== "") {
+    // Store password as plain text (no encryption)
     updates.push("password = ?");
     values.push(password);
+  }
+  if (reset_password_token !== undefined) {
+    updates.push("reset_password_token = ?");
+    values.push(reset_password_token);
+  }
+  if (reset_password_expires !== undefined) {
+    updates.push("reset_password_expires = ?");
+    values.push(reset_password_expires);
   }
 
   if (updates.length === 0) {
@@ -192,3 +205,11 @@ export const getTeacherStatsById = async (id) => {
   };
 };
 
+// GET teacher by reset token
+export const getTeacherByResetToken = async (token) => {
+  const [rows] = await dbp.query(
+    "SELECT * FROM teachers WHERE reset_password_token = ? AND reset_password_expires > NOW()",
+    [token]
+  );
+  return rows[0] || null;
+};

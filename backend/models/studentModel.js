@@ -1,6 +1,5 @@
 // models/studentModel.js
 import db from "../database/dbconfig.js";
-import bcrypt from "bcryptjs";
 
 const dbp = db.promise();
 
@@ -22,8 +21,7 @@ export const createStudent = async ({
   parent_res_county,
   parent_res_city
 }) => {
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10);
+  // Store password as plain text (no encryption)
 
   const [result] = await dbp.query(
     `INSERT INTO students (
@@ -40,7 +38,7 @@ export const createStudent = async ({
       residency_city || null,
       chosen_program || null,
       chosen_subprogram || null,
-      hashedPassword,
+      password,
       parent_name || null,
       parent_email || null,
       parent_phone || null,
@@ -103,7 +101,9 @@ export const updateStudentById = async (id, {
   parent_relation,
   parent_res_county,
   parent_res_city,
-  approval_status
+  approval_status,
+  reset_password_token,
+  reset_password_expires
 }) => {
   const updates = [];
   const values = [];
@@ -141,9 +141,9 @@ export const updateStudentById = async (id, {
     values.push(chosen_subprogram);
   }
   if (password !== undefined && password.trim() !== "") {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Store password as plain text (no encryption)
     updates.push("password = ?");
-    values.push(hashedPassword);
+    values.push(password);
   }
   if (parent_name !== undefined) {
     updates.push("parent_name = ?");
@@ -173,6 +173,14 @@ export const updateStudentById = async (id, {
     updates.push("approval_status = ?");
     values.push(approval_status);
   }
+  if (reset_password_token !== undefined) {
+    updates.push("reset_password_token = ?");
+    values.push(reset_password_token);
+  }
+  if (reset_password_expires !== undefined) {
+    updates.push("reset_password_expires = ?");
+    values.push(reset_password_expires);
+  }
 
   if (updates.length === 0) {
     return 0;
@@ -200,4 +208,13 @@ export const updateApprovalStatus = async (id, status) => {
     [status, id]
   );
   return result.affectedRows;
+};
+
+// GET student by reset token
+export const getStudentByResetToken = async (token) => {
+  const [rows] = await dbp.query(
+    "SELECT * FROM students WHERE reset_password_token = ? AND reset_password_expires > NOW()",
+    [token]
+  );
+  return rows[0] || null;
 };

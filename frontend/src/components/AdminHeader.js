@@ -6,7 +6,7 @@ export default function AdminHeader() {
   const { isDark, toggleDarkMode } = useDarkMode();
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4 transition-colors fixed top-0 right-0" style={{ left: '320px' }}>
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4 transition-colors sticky top-0 z-40 w-full">
       <div className="flex items-center justify-between">
         {/* Search Bar - Left Side */}
         <div className="relative flex-1 max-w-md">
@@ -28,7 +28,7 @@ export default function AdminHeader() {
         {/* Right Side Controls */}
         <div className="flex items-center gap-4">
           {/* Theme Toggle */}
-          <button 
+          <button
             onClick={toggleDarkMode}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}

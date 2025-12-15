@@ -6,6 +6,9 @@ import { subprogramApi } from "../redux/api/subprogramApi.js";
 import { courseApi } from "../redux/api/courseApi.js";
 import { classApi } from "../redux/api/classApi.js";
 import { authApi } from "../redux/api/authApi.js";
+import { adminApi } from "../redux/api/adminApi.js";
+import { userApi } from "../redux/api/userApi.js";
+import { placementTestApi } from "../redux/api/placementTestApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +19,9 @@ export const store = configureStore({
     [courseApi.reducerPath]: courseApi.reducer,
     [classApi.reducerPath]: classApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
+    [adminApi.reducerPath]: adminApi.reducer,
+    [userApi.reducerPath]: userApi.reducer,
+    [placementTestApi.reducerPath]: placementTestApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -25,6 +31,10 @@ export const store = configureStore({
       subprogramApi.middleware,
       courseApi.middleware,
       classApi.middleware,
-      authApi.middleware
+      authApi.middleware,
+      adminApi.middleware,
+      userApi.middleware,
+      placementTestApi.middleware
     ),
 });
+

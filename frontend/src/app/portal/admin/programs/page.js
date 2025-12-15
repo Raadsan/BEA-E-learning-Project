@@ -142,7 +142,7 @@ export default function ProgramsPage() {
       submitFormData.append("title", formData.title);
       submitFormData.append("description", formData.description);
       submitFormData.append("status", formData.status);
-      
+
       if (formData.image) {
         submitFormData.append("image", formData.image);
       }
@@ -183,11 +183,10 @@ export default function ProgramsPage() {
       key: "status",
       label: "Status",
       render: (row) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          row.status === "active" 
-            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" 
-            : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-        }`}>
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === "active"
+          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+          : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+          }`}>
           {row.status === "active" ? "Active" : "Inactive"}
         </span>
       ),
@@ -234,7 +233,7 @@ export default function ProgramsPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
           <div className="w-full px-6 py-6">
             <div className="text-center py-12">
               <p className="text-gray-600 dark:text-gray-400">Loading programs...</p>
@@ -249,7 +248,7 @@ export default function ProgramsPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
           <div className="w-full px-6 py-6">
             <div className="text-center py-12">
               <p className="text-red-600 dark:text-red-400">Error loading programs: {error?.data?.message || "Unknown error"}</p>
@@ -263,8 +262,8 @@ export default function ProgramsPage() {
   return (
     <>
       <AdminHeader />
-      
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+
+      <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
         <div className="w-full px-8 py-6">
           <DataTable
             title="Program Management"
@@ -278,39 +277,34 @@ export default function ProgramsPage() {
 
       {/* Add/Edit Program Modal */}
       {isModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
           style={{ pointerEvents: 'none' }}
         >
           {/* Backdrop overlay */}
-          <div 
+          <div
             className="absolute inset-0 bg-transparent"
             onClick={handleBackdropClick}
             style={{ pointerEvents: 'auto' }}
           />
-          
+
           {/* Modal content */}
-          <div 
-            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${
-              isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-            }`}
-            style={{ backdropFilter: 'blur(2px)' }}
+          <div
+            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+              }`}
+            style={{ backdropFilter: 'blur(2px)', pointerEvents: 'auto' }}
             onClick={(e) => e.stopPropagation()}
-            style={{ pointerEvents: 'auto' }}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-2xl font-bold ${
-                isDark ? 'text-white' : 'text-gray-800'
+            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
+                }`}>
                 {editingProgram ? "Edit Program" : "Add New Program"}
               </h2>
               <button
                 onClick={handleCloseModal}
-                className={`transition-colors ${
-                  isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-                }`}
+                className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+                  }`}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -320,9 +314,8 @@ export default function ProgramsPage() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label htmlFor="title" className={`block text-sm font-medium mb-1 ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
+                <label htmlFor="title" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                   Title <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -333,18 +326,16 @@ export default function ProgramsPage() {
                   onChange={handleInputChange}
                   required
                   placeholder="Enter program title"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    isDark 
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                      : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'border-gray-300'
+                    }`}
                 />
               </div>
 
               <div>
-                <label htmlFor="description" className={`block text-sm font-medium mb-1 ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
+                <label htmlFor="description" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                   Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -355,18 +346,16 @@ export default function ProgramsPage() {
                   required
                   rows={4}
                   placeholder="Enter program description"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                    isDark 
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                      : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${isDark
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'border-gray-300'
+                    }`}
                 />
               </div>
 
               <div>
-                <label htmlFor="image" className={`block text-sm font-medium mb-1 ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
+                <label htmlFor="image" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                   Image
                 </label>
                 <input
@@ -375,11 +364,10 @@ export default function ProgramsPage() {
                   name="image"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    isDark 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'border-gray-300'
+                    }`}
                 />
                 {imagePreview && (
                   <div className="mt-2 w-32 h-32 relative">
@@ -394,9 +382,8 @@ export default function ProgramsPage() {
               </div>
 
               <div>
-                <label htmlFor="video" className={`block text-sm font-medium mb-1 ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
+                <label htmlFor="video" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                   Video
                 </label>
                 <input
@@ -405,11 +392,10 @@ export default function ProgramsPage() {
                   name="video"
                   accept="video/*"
                   onChange={handleFileChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    isDark 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'border-gray-300'
+                    }`}
                 />
                 {videoPreview && (
                   <div className="mt-2 w-full max-w-md">
@@ -424,9 +410,8 @@ export default function ProgramsPage() {
               </div>
 
               <div>
-                <label htmlFor="status" className={`block text-sm font-medium mb-1 ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
+                <label htmlFor="status" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                   Status <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -435,11 +420,10 @@ export default function ProgramsPage() {
                   value={formData.status}
                   onChange={handleInputChange}
                   required
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    isDark 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'border-gray-300'
+                    }`}
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -450,11 +434,10 @@ export default function ProgramsPage() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className={`px-4 py-2 border rounded-lg transition-colors ${
-                    isDark
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`px-4 py-2 border rounded-lg transition-colors ${isDark
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   Cancel
                 </button>
@@ -473,7 +456,7 @@ export default function ProgramsPage() {
 
       {/* View Subprograms Modal */}
       {isSubprogramsModalOpen && selectedProgram && (
-        <SubprogramsModal 
+        <SubprogramsModal
           program={selectedProgram}
           onClose={handleCloseSubprogramsModal}
           isDark={isDark}
@@ -488,36 +471,32 @@ function SubprogramsModal({ program, onClose, isDark }) {
   const { data: subprograms, isLoading, isError } = useGetSubprogramsByProgramIdQuery(program.id);
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[100] flex items-center justify-center"
       style={{ pointerEvents: 'none' }}
     >
-      <div 
+      <div
         className="absolute inset-0 bg-transparent"
         onClick={onClose}
         style={{ pointerEvents: 'auto' }}
       />
-      
-      <div 
-        className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${
-          isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-        }`}
+
+      <div
+        className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+          }`}
         onClick={(e) => e.stopPropagation()}
         style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
       >
-        <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
-          isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-        }`}>
-          <h2 className={`text-2xl font-bold ${
-            isDark ? 'text-white' : 'text-gray-800'
+        <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
           }`}>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
+            }`}>
             Subprograms for {program.title}
           </h2>
           <button
             onClick={onClose}
-            className={`transition-colors ${
-              isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-            }`}
+            className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+              }`}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -544,32 +523,28 @@ function SubprogramsModal({ program, onClose, isDark }) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {subprograms.map((subprogram) => (
-                <div 
+                <div
                   key={subprogram.id}
-                  className={`p-4 rounded-lg border ${
-                    isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
-                  }`}
+                  className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                    }`}
                 >
-                  <h3 className={`font-semibold text-lg mb-2 ${
-                    isDark ? 'text-white' : 'text-gray-900'
-                  }`}>
+                  <h3 className={`font-semibold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'
+                    }`}>
                     {subprogram.subprogram_name}
                   </h3>
-                  <p className={`text-sm mb-3 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <p className={`text-sm mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     {subprogram.description || 'No description'}
                   </p>
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      subprogram.status === 'active'
-                        ? isDark 
-                          ? 'bg-green-900/30 text-green-300 border border-green-700'
-                          : 'bg-green-100 text-green-800'
-                        : isDark
-                          ? 'bg-gray-700 text-gray-400 border border-gray-600'
-                          : 'bg-gray-200 text-gray-600'
-                    }`}>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${subprogram.status === 'active'
+                      ? isDark
+                        ? 'bg-green-900/30 text-green-300 border border-green-700'
+                        : 'bg-green-100 text-green-800'
+                      : isDark
+                        ? 'bg-gray-700 text-gray-400 border border-gray-600'
+                        : 'bg-gray-200 text-gray-600'
+                      }`}>
                       {subprogram.status === 'active' ? 'Active' : 'Inactive'}
                     </span>
                   </div>

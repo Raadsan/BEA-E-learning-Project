@@ -56,3 +56,19 @@ export const getAttendance = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
+// GET ATTENDANCE REPORT
+export const getAttendanceReport = async (req, res) => {
+    try {
+        const teacherId = req.user.userId;
+        if (req.user.role !== 'teacher') {
+            return res.status(403).json({ error: "Access denied" });
+        }
+
+        const report = await Attendance.getAttendanceReportByTeacherId(teacherId);
+        res.json(report);
+    } catch (err) {
+        console.error("Get report error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+};

@@ -34,6 +34,9 @@ export const teacherApi = createApi({
       }),
       invalidatesTags: ["Attendance"],
     }),
+    getAttendanceReport: builder.query({
+      query: () => "http://localhost:5000/api/attendance/report",
+    }),
     getTeachers: builder.query({
       query: () => "/",
       providesTags: ["Teachers"],
@@ -78,5 +81,6 @@ export const {
   useGetTeacherClassesQuery,
   useGetAttendanceQuery,
   useSaveAttendanceMutation,
+  useGetAttendanceReportQuery,
 } = teacherApi;
 

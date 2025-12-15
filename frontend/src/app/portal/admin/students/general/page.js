@@ -12,10 +12,14 @@ export default function GeneralStudentsPage() {
   const { data: allStudents, isLoading, isError, error } = useGetStudentsQuery();
   const { data: subprograms = [] } = useGetSubprogramsQuery();
 
-  // Filter students who have chosen_subprogram (General Program students)
+  // Filter students who have chosen_subprogram (General Program students) AND are approved
   const generalStudents = useMemo(() => {
     if (!allStudents) return [];
-    return allStudents.filter(student => student.chosen_subprogram && student.chosen_subprogram.trim() !== "");
+    return allStudents.filter(student =>
+      student.chosen_subprogram &&
+      student.chosen_subprogram.trim() !== "" &&
+      student.approval_status === 'approved'
+    );
   }, [allStudents]);
 
   // Get subprogram name for display
@@ -74,10 +78,10 @@ export default function GeneralStudentsPage() {
       render: (row) => {
         if (!row.created_at) return <span className="text-gray-400">-</span>;
         const date = new Date(row.created_at);
-        return date.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'short', 
-          day: 'numeric' 
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
         });
       },
     },

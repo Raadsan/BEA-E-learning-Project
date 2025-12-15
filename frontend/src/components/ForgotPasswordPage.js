@@ -8,17 +8,31 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle forgot password logic here
-    console.log("Reset password for:", email);
-    setSubmitted(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setSubmitted(true);
+      } else {
+        alert(data.error || "Failed to send reset link");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Something went wrong. Please try again.");
+    }
   };
 
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Image/Brand Section */}
-      <div 
+      <div
         className="hidden md:flex md:w-1/2 relative items-center justify-center"
         style={{ backgroundColor: '#010080' }}
       >
@@ -42,7 +56,7 @@ export default function ForgotPasswordPage() {
               className="mx-auto"
             />
           </div>
-          
+
           {/* Welcome Text */}
           <h1 className="text-4xl font-serif font-bold text-white mb-4">
             Forgot Your Password?
@@ -173,7 +187,7 @@ export default function ForgotPasswordPage() {
               </p>
               <p className="text-gray-500 text-sm mb-8">
                 Didn&apos;t receive the email? Check your spam folder or{" "}
-                <button 
+                <button
                   onClick={() => setSubmitted(false)}
                   className="font-semibold hover:underline"
                   style={{ color: '#010080' }}
@@ -186,8 +200,8 @@ export default function ForgotPasswordPage() {
 
           {/* Back to Login Link */}
           <div className="text-center mt-8">
-            <Link 
-              href="/login" 
+            <Link
+              href="/login"
               className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,8 +213,8 @@ export default function ForgotPasswordPage() {
 
           {/* Back to Home */}
           <div className="text-center mt-4">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

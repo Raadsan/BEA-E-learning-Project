@@ -3,13 +3,15 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
+import { Toast, useToast } from "@/components/Toast";
 import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation, useApproveStudentMutation, useRejectStudentMutation } from "@/redux/api/studentApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
-import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
+import { useGetSubprogramsQuery, useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function StudentsPage() {
   const { isDark } = useDarkMode();
+  const { toast, showToast, hideToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isSubprogramsModalOpen, setIsSubprogramsModalOpen] = useState(false);
@@ -18,6 +20,7 @@ export default function StudentsPage() {
   const [editingStudent, setEditingStudent] = useState(null);
   const [viewingStudent, setViewingStudent] = useState(null);
   const [assigningStudent, setAssigningStudent] = useState(null);
+  const [activeTab, setActiveTab] = useState('all');
 
   const { data: backendStudents, isLoading, isError, error, refetch } = useGetStudentsQuery();
   const { data: programs = [] } = useGetProgramsQuery();
@@ -27,6 +30,16 @@ export default function StudentsPage() {
   const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentMutation();
 
   const students = backendStudents || [];
+
+  const filteredStudents = students.filter(student => {
+    if (activeTab === 'all') return true;
+    if (activeTab === 'general') return student.chosen_program?.toLowerCase().includes('general');
+    if (activeTab === 'ielts') {
+      const program = student.chosen_program?.toLowerCase();
+      return program?.includes('ielts') || program?.includes('toefl');
+    }
+    return true;
+  });
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -116,9 +129,10 @@ export default function StudentsPage() {
     if (window.confirm("Are you sure you want to delete this student?")) {
       try {
         await deleteStudent(id).unwrap();
+        showToast("Student deleted successfully!", "success");
       } catch (error) {
         console.error("Failed to delete student:", error);
-        alert("Failed to delete student. Please try again.");
+        showToast("Failed to delete student. Please try again.", "error");
       }
     }
   };
@@ -202,19 +216,21 @@ export default function StudentsPage() {
 
       if (editingStudent) {
         await updateStudent({ id: editingStudent.id, ...submitData }).unwrap();
+        showToast("Student updated successfully!", "success");
       } else {
         // Password is required for new students
         if (!submitData.password || submitData.password.trim() === "") {
-          alert("Password is required for new students");
+          showToast("Password is required for new students", "error");
           return;
         }
         await createStudent(submitData).unwrap();
+        showToast("Student registered successfully!", "success");
       }
 
       handleCloseModal();
     } catch (error) {
       console.error("Failed to save student:", error);
-      alert(error?.data?.error || "Failed to save student. Please try again.");
+      showToast(error?.data?.error || "Failed to save student. Please try again.", "error");
     }
 
     return false;
@@ -314,7 +330,7 @@ export default function StudentsPage() {
         if (subprogram && subprogram.trim() !== "" && subprogram !== "null") {
           return <span className="text-black dark:text-white">{subprogram}</span>;
         }
-        
+
         return <span className="text-gray-500">Not assigned</span>;
       },
     },
@@ -343,74 +359,74 @@ export default function StudentsPage() {
         const isPending = status === 'pending';
         const isApproved = status === 'approved';
         const isRejected = status === 'rejected';
-        
+
         return (
-        <div className="flex gap-2">
-          {/* Show approve button if pending or rejected */}
-          {(isPending || isRejected) && (
+          <div className="flex gap-2">
+            {/* Show approve button if pending or rejected */}
+            {(isPending || isRejected) && (
+              <button
+                onClick={() => handleApprove(row.id)}
+                disabled={isApproving || isRejecting}
+                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Approve"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            )}
+            {/* Show reject button if pending or approved */}
+            {(isPending || isApproved) && (
+              <button
+                onClick={() => handleReject(row.id)}
+                disabled={isApproving || isRejecting}
+                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Reject"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
             <button
-              onClick={() => handleApprove(row.id)}
-              disabled={isApproving || isRejecting}
-              className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Approve"
+              onClick={() => handleView(row)}
+              className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+              title="View"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => handleAssignSubprogram(row)}
+              className="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 transition-colors p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
+              title="Assign Subprogram"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </button>
-          )}
-          {/* Show reject button if pending or approved */}
-          {(isPending || isApproved) && (
             <button
-              onClick={() => handleReject(row.id)}
-              disabled={isApproving || isRejecting}
-              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Reject"
+              onClick={() => handleEdit(row)}
+              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              title="Edit"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </button>
-          )}
-          <button
-            onClick={() => handleView(row)}
-            className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
-            title="View"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => handleAssignSubprogram(row)}
-            className="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 transition-colors p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
-            title="Assign Subprogram"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => handleEdit(row)}
-            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
-            title="Edit"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => handleDelete(row.id)}
-            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-            title="Delete"
-            disabled={isDeleting}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
+            <button
+              onClick={() => handleDelete(row.id)}
+              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+              title="Delete"
+              disabled={isDeleting}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
         );
       },
     },
@@ -449,51 +465,47 @@ export default function StudentsPage() {
   return (
     <>
       <AdminHeader />
-      
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-8 py-6">
-            <DataTable
-              title="Student Management"
-              columns={columns}
-              data={students}
-              onAddClick={handleAddStudent}
-              showAddButton={true}
-            />
+
+      <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
+        <div className="w-full px-8 py-6">
+          <DataTable
+            title="Student Management"
+            columns={columns}
+            data={filteredStudents}
+            onAddClick={handleAddStudent}
+            showAddButton={true}
+          />
         </div>
       </main>
 
       {/* Add/Edit Student Modal */}
       {isModalOpen && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center"
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
           style={{ pointerEvents: 'none' }}
         >
-          <div 
-            className="absolute inset-0 bg-transparent"
+          <div
+            className="absolute inset-0"
             onClick={handleBackdropClick}
             style={{ pointerEvents: 'auto' }}
           />
-          
-          <div 
-            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${
-              isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-            }`}
+
+          <div
+            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+              }`}
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-2xl font-bold ${
-                isDark ? 'text-white' : 'text-gray-800'
+            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
+                }`}>
                 {editingStudent ? "Edit Student" : "Add New Student"}
               </h2>
               <button
                 onClick={handleCloseModal}
-                className={`transition-colors ${
-                  isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-                }`}
+                className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+                  }`}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -503,19 +515,16 @@ export default function StudentsPage() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Student Information Section */}
-              <div className={`p-4 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 ${
-                  isDark ? 'text-white' : 'text-gray-800'
+              <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
                 }`}>
+                <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                   Student Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="full_name" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <label htmlFor="full_name" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       Full Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -525,16 +534,14 @@ export default function StudentsPage() {
                       value={formData.full_name}
                       onChange={handleInputChange}
                       required
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="email" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <label htmlFor="email" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       Email <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -544,16 +551,14 @@ export default function StudentsPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="phone" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <label htmlFor="phone" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       Phone
                     </label>
                     <input
@@ -562,16 +567,14 @@ export default function StudentsPage() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="age" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <label htmlFor="age" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       Age
                     </label>
                     <input
@@ -581,16 +584,14 @@ export default function StudentsPage() {
                       value={formData.age}
                       onChange={handleInputChange}
                       min="1"
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="residency_country" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <label htmlFor="residency_country" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       Residency Country
                     </label>
                     <input
@@ -599,16 +600,14 @@ export default function StudentsPage() {
                       name="residency_country"
                       value={formData.residency_country}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="residency_city" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <label htmlFor="residency_city" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       Residency City
                     </label>
                     <input
@@ -617,16 +616,14 @@ export default function StudentsPage() {
                       name="residency_city"
                       value={formData.residency_city}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="chosen_program" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <label htmlFor="chosen_program" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       Chosen Program
                     </label>
                     <select
@@ -634,9 +631,8 @@ export default function StudentsPage() {
                       name="chosen_program"
                       value={formData.chosen_program}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
                     >
                       <option value="">Select Program</option>
                       {programs.map((program) => (
@@ -650,9 +646,8 @@ export default function StudentsPage() {
 
                   {!editingStudent && (
                     <div>
-                      <label htmlFor="password" className={`block text-sm font-medium mb-1 ${
-                        isDark ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
+                      <label htmlFor="password" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
                         Password <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -662,18 +657,16 @@ export default function StudentsPage() {
                         value={formData.password}
                         onChange={handleInputChange}
                         required={!editingStudent}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
                       />
                     </div>
                   )}
 
                   {editingStudent && (
                     <div>
-                      <label htmlFor="password" className={`block text-sm font-medium mb-1 ${
-                        isDark ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
+                      <label htmlFor="password" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
                         New Password (leave blank to keep current)
                       </label>
                       <input
@@ -682,9 +675,8 @@ export default function StudentsPage() {
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
                       />
                     </div>
                   )}
@@ -693,136 +685,121 @@ export default function StudentsPage() {
 
               {/* Parent Information Section - Only show if age < 18 */}
               {showParentInfo && (
-                <div className={`p-4 rounded-lg border ${
-                  isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
-                }`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${
-                    isDark ? 'text-white' : 'text-gray-800'
+                <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
                   }`}>
+                  <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'
+                    }`}>
                     Parent/Guardian Information <span className="text-sm font-normal text-gray-500">(Required for students under 18)</span>
                   </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="parent_name" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Name
-                    </label>
-                    <input
-                      type="text"
-                      id="parent_name"
-                      name="parent_name"
-                      value={formData.parent_name}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
-                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="parent_name" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Name
+                      </label>
+                      <input
+                        type="text"
+                        id="parent_name"
+                        name="parent_name"
+                        value={formData.parent_name}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="parent_email" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Email
-                    </label>
-                    <input
-                      type="email"
-                      id="parent_email"
-                      name="parent_email"
-                      value={formData.parent_email}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="parent_email" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Email
+                      </label>
+                      <input
+                        type="email"
+                        id="parent_email"
+                        name="parent_email"
+                        value={formData.parent_email}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="parent_phone" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Phone
-                    </label>
-                    <input
-                      type="tel"
-                      id="parent_phone"
-                      name="parent_phone"
-                      value={formData.parent_phone}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="parent_phone" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Phone
+                      </label>
+                      <input
+                        type="tel"
+                        id="parent_phone"
+                        name="parent_phone"
+                        value={formData.parent_phone}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="parent_relation" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Relation
-                    </label>
-                    <input
-                      type="text"
-                      id="parent_relation"
-                      name="parent_relation"
-                      value={formData.parent_relation}
-                      onChange={handleInputChange}
-                      placeholder="e.g., Father, Mother, Guardian"
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="parent_relation" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Relation
+                      </label>
+                      <input
+                        type="text"
+                        id="parent_relation"
+                        name="parent_relation"
+                        value={formData.parent_relation}
+                        onChange={handleInputChange}
+                        placeholder="e.g., Father, Mother, Guardian"
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="parent_res_county" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Residency Country
-                    </label>
-                    <input
-                      type="text"
-                      id="parent_res_county"
-                      name="parent_res_county"
-                      value={formData.parent_res_county}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="parent_res_county" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Residency Country
+                      </label>
+                      <input
+                        type="text"
+                        id="parent_res_county"
+                        name="parent_res_county"
+                        value={formData.parent_res_county}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="parent_res_city" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Residency City
-                    </label>
-                    <input
-                      type="text"
-                      id="parent_res_city"
-                      name="parent_res_city"
-                      value={formData.parent_res_city}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
+                    <div>
+                      <label htmlFor="parent_res_city" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Residency City
+                      </label>
+                      <input
+                        type="text"
+                        id="parent_res_city"
+                        name="parent_res_city"
+                        value={formData.parent_res_city}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
               )}
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className={`px-4 py-2 border rounded-lg transition-colors ${
-                    isDark
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`px-4 py-2 border rounded-lg transition-colors ${isDark
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   Cancel
                 </button>
@@ -841,7 +818,7 @@ export default function StudentsPage() {
 
       {/* View Subprograms Modal */}
       {isSubprogramsModalOpen && selectedProgramForSubprograms && (
-        <SubprogramsModal 
+        <SubprogramsModal
           program={selectedProgramForSubprograms}
           onClose={handleCloseSubprogramsModal}
           isDark={isDark}
@@ -850,36 +827,32 @@ export default function StudentsPage() {
 
       {/* Assign Subprogram Modal */}
       {isAssignSubprogramModalOpen && assigningStudent && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
           style={{ pointerEvents: 'none' }}
         >
-          <div 
+          <div
             className="absolute inset-0 bg-transparent"
             onClick={handleCloseAssignSubprogramModal}
             style={{ pointerEvents: 'auto' }}
           />
-          
-          <div 
-            className={`relative rounded-lg shadow-2xl w-full max-w-4xl mx-4 border-2 ${
-              isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-            }`}
+
+          <div
+            className={`relative rounded-lg shadow-2xl w-full max-w-4xl mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+              }`}
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-2xl font-bold ${
-                isDark ? 'text-white' : 'text-gray-800'
+            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
+                }`}>
                 Assign Subprogram to {assigningStudent.full_name}
               </h2>
               <button
                 onClick={handleCloseAssignSubprogramModal}
-                className={`transition-colors ${
-                  isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-                }`}
+                className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+                  }`}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -887,7 +860,7 @@ export default function StudentsPage() {
               </button>
             </div>
 
-            <form 
+            <form
               onSubmit={async (e) => {
                 e.preventDefault();
                 try {
@@ -909,11 +882,11 @@ export default function StudentsPage() {
                     parent_res_county: assigningStudent.parent_res_county || null,
                     parent_res_city: assigningStudent.parent_res_city || null,
                   };
-                  
+
                   console.log("Updating student with:", updateData); // Debug log
                   const result = await updateStudent(updateData).unwrap();
                   console.log("Update result:", result); // Debug log
-                  
+
                   // Force refetch to ensure table updates immediately
                   await refetch();
                   handleCloseAssignSubprogramModal();
@@ -926,17 +899,16 @@ export default function StudentsPage() {
             >
               {assigningStudent.chosen_program ? (
                 <div>
-                  <label htmlFor="subprogram_name" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <label htmlFor="subprogram_name" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Select Subprogram
                   </label>
                   {(() => {
                     const program = programs.find(p => p.title === assigningStudent.chosen_program);
-                    const programSubprograms = program 
+                    const programSubprograms = program
                       ? allSubprograms.filter(sp => sp.program_id === program.id)
                       : [];
-                    
+
                     if (programSubprograms.length === 0) {
                       return (
                         <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -950,9 +922,8 @@ export default function StudentsPage() {
                         id="subprogram_name"
                         name="subprogram_name"
                         defaultValue={assigningStudent.chosen_subprogram || ""}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
                       >
                         <option value="">Select Subprogram (Optional)</option>
                         {programSubprograms.map((sp) => (
@@ -965,9 +936,8 @@ export default function StudentsPage() {
                   })()}
                 </div>
               ) : (
-                <div className={`p-4 rounded-lg ${
-                  isDark ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-yellow-50 border border-yellow-200'
-                }`}>
+                <div className={`p-4 rounded-lg ${isDark ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-yellow-50 border border-yellow-200'
+                  }`}>
                   <p className={`text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
                     Please assign a program to this student first before assigning a subprogram.
                   </p>
@@ -978,11 +948,10 @@ export default function StudentsPage() {
                 <button
                   type="button"
                   onClick={handleCloseAssignSubprogramModal}
-                  className={`px-4 py-2 border rounded-lg transition-colors ${
-                    isDark
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`px-4 py-2 border rounded-lg transition-colors ${isDark
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   Cancel
                 </button>
@@ -1001,36 +970,32 @@ export default function StudentsPage() {
 
       {/* View Student Modal */}
       {isViewModalOpen && viewingStudent && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
           style={{ pointerEvents: 'none' }}
         >
-          <div 
+          <div
             className="absolute inset-0 bg-transparent"
             onClick={handleCloseViewModal}
             style={{ pointerEvents: 'auto' }}
           />
-          
-          <div 
-            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${
-              isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-            }`}
+
+          <div
+            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+              }`}
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-2xl font-bold ${
-                isDark ? 'text-white' : 'text-gray-800'
+            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
+                }`}>
                 Student Profile: {viewingStudent.full_name}
               </h2>
               <button
                 onClick={handleCloseViewModal}
-                className={`transition-colors ${
-                  isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-                }`}
+                className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+                  }`}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1040,12 +1005,10 @@ export default function StudentsPage() {
 
             <div className="p-6 space-y-6">
               {/* Personal Information Section */}
-              <div className={`p-5 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
+              <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
                 }`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -1053,33 +1016,29 @@ export default function StudentsPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Full Name</label>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Full Name</label>
                     <p className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                       {viewingStudent.full_name || 'N/A'}
                     </p>
                   </div>
                   <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Email</label>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Email</label>
                     <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                       {viewingStudent.email || 'N/A'}
                     </p>
                   </div>
                   <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Phone</label>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Phone</label>
                     <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                       {viewingStudent.phone || 'N/A'}
                     </p>
                   </div>
                   <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Age</label>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Age</label>
                     <p className={`text-base font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                       {viewingStudent.age || 'N/A'} {viewingStudent.age ? 'years' : ''}
                     </p>
@@ -1088,12 +1047,10 @@ export default function StudentsPage() {
               </div>
 
               {/* Location Information Section */}
-              <div className={`p-5 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
+              <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
                 }`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1102,17 +1059,15 @@ export default function StudentsPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Country</label>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Country</label>
                     <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                       {viewingStudent.residency_country || 'N/A'}
                     </p>
                   </div>
                   <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>City</label>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>City</label>
                     <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                       {viewingStudent.residency_city || 'N/A'}
                     </p>
@@ -1121,12 +1076,10 @@ export default function StudentsPage() {
               </div>
 
               {/* Academic Information Section */}
-              <div className={`p-5 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-green-50/50 border-green-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
+              <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-green-50/50 border-green-200'
                 }`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
@@ -1134,17 +1087,15 @@ export default function StudentsPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Program</label>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Program</label>
                     <p className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                       {viewingStudent.chosen_program || 'Not assigned'}
                     </p>
                   </div>
                   <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Subprogram</label>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Subprogram</label>
                     <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                       {viewingStudent.chosen_subprogram && viewingStudent.chosen_subprogram.trim() !== "" && viewingStudent.chosen_subprogram !== "null"
                         ? viewingStudent.chosen_subprogram
@@ -1156,12 +1107,10 @@ export default function StudentsPage() {
 
               {/* Parent/Guardian Information Section - Only show if age < 18 */}
               {viewingStudent.age && parseInt(viewingStudent.age) < 18 && (
-                <div className={`p-5 rounded-lg border ${
-                  isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-orange-50/50 border-orange-200'
-                }`}>
-                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                    isDark ? 'text-white' : 'text-gray-800'
+                <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-orange-50/50 border-orange-200'
                   }`}>
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                    }`}>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
@@ -1169,49 +1118,43 @@ export default function StudentsPage() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Parent Name</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Parent Name</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_name || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Parent Email</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Parent Email</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_email || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Parent Phone</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Parent Phone</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_phone || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Relation</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Relation</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_relation || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Parent Country</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Parent Country</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_res_county || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Parent City</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Parent City</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_res_city || 'N/A'}
                       </p>
@@ -1223,6 +1166,16 @@ export default function StudentsPage() {
           </div>
         </div>
       )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          duration={toast.duration}
+        />
+      )}
     </>
   );
 }
@@ -1232,36 +1185,32 @@ function SubprogramsModal({ program, onClose, isDark }) {
   const { data: subprograms, isLoading, isError } = useGetSubprogramsByProgramIdQuery(program.id);
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[100] flex items-center justify-center"
       style={{ pointerEvents: 'none' }}
     >
-      <div 
+      <div
         className="absolute inset-0 bg-transparent"
         onClick={onClose}
         style={{ pointerEvents: 'auto' }}
       />
-      
-      <div 
-        className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${
-          isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-        }`}
+
+      <div
+        className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+          }`}
         onClick={(e) => e.stopPropagation()}
         style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
       >
-        <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
-          isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-        }`}>
-          <h2 className={`text-2xl font-bold ${
-            isDark ? 'text-white' : 'text-gray-800'
+        <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
           }`}>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
+            }`}>
             Subprograms for {program.name}
           </h2>
           <button
             onClick={onClose}
-            className={`transition-colors ${
-              isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-            }`}
+            className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+              }`}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1288,32 +1237,28 @@ function SubprogramsModal({ program, onClose, isDark }) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {subprograms.map((subprogram) => (
-                <div 
+                <div
                   key={subprogram.id}
-                  className={`p-4 rounded-lg border ${
-                    isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
-                  }`}
+                  className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                    }`}
                 >
-                  <h3 className={`font-semibold text-lg mb-2 ${
-                    isDark ? 'text-white' : 'text-gray-900'
-                  }`}>
+                  <h3 className={`font-semibold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'
+                    }`}>
                     {subprogram.subprogram_name}
                   </h3>
-                  <p className={`text-sm mb-3 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <p className={`text-sm mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     {subprogram.description || 'No description'}
                   </p>
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      subprogram.status === 'active'
-                        ? isDark 
-                          ? 'bg-green-900/30 text-green-300 border border-green-700'
-                          : 'bg-green-100 text-green-800'
-                        : isDark
-                          ? 'bg-gray-700 text-gray-400 border border-gray-600'
-                          : 'bg-gray-200 text-gray-600'
-                    }`}>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${subprogram.status === 'active'
+                      ? isDark
+                        ? 'bg-green-900/30 text-green-300 border border-green-700'
+                        : 'bg-green-100 text-green-800'
+                      : isDark
+                        ? 'bg-gray-700 text-gray-400 border border-gray-600'
+                        : 'bg-gray-200 text-gray-600'
+                      }`}>
                       {subprogram.status === 'active' ? 'Active' : 'Inactive'}
                     </span>
                   </div>
