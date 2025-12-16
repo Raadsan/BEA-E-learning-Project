@@ -5,7 +5,7 @@ const dbp = db.promise();
 // Create Student
 export const createStudent = async (data) => {
     const {
-        first_name, last_name, email, phone, age, gender,
+        first_name, last_name, email, phone, password, chosen_program, age, gender,
         residency_country, residency_city, exam_type, verification_method,
         certificate_institution, certificate_date, certificate_document,
         exam_booking_date, exam_booking_time, status
@@ -13,15 +13,15 @@ export const createStudent = async (data) => {
 
     const query = `
     INSERT INTO IELTSTOEFL (
-      first_name, last_name, email, phone, age, gender,
+      first_name, last_name, email, phone, password, chosen_program, age, gender,
       residency_country, residency_city, exam_type, verification_method,
       certificate_institution, certificate_date, certificate_document,
       exam_booking_date, exam_booking_time, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
     const values = [
-        first_name, last_name, email, phone, age, gender,
+        first_name, last_name, email, phone, password, chosen_program, age, gender,
         residency_country, residency_city, exam_type, verification_method,
         certificate_institution || null, certificate_date || null, certificate_document || null,
         exam_booking_date || null, exam_booking_time || null, status || 'Pending'
@@ -54,6 +54,15 @@ export const updateStudent = async (id, data) => {
     if (keys.length === 0) return 0;
 
     const [result] = await dbp.query(`UPDATE IELTSTOEFL SET ${updates} WHERE id = ?`, values);
+    return result.affectedRows;
+};
+
+// Reject Student (set status to rejected and clear class_id)
+export const rejectStudent = async (id) => {
+    const [result] = await dbp.query(
+        "UPDATE IELTSTOEFL SET status = 'rejected', class_id = NULL WHERE id = ?",
+        [id]
+    );
     return result.affectedRows;
 };
 

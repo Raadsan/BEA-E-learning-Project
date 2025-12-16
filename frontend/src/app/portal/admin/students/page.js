@@ -6,6 +6,7 @@ import DataTable from "@/components/DataTable";
 import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation } from "@/redux/api/studentApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
+import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function StudentsPage() {
@@ -20,13 +21,29 @@ export default function StudentsPage() {
   const [assigningStudent, setAssigningStudent] = useState(null);
 
   const { data: backendStudents, isLoading, isError, error, refetch } = useGetStudentsQuery();
+  const { data: ieltsStudents = [], isLoading: isIeltsLoading } = useGetIeltsToeflStudentsQuery();
   const { data: programs = [] } = useGetProgramsQuery();
   const { data: allSubprograms = [] } = useGetSubprogramsQuery();
   const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
   const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
   const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentMutation();
+  const [deleteIeltsStudent, { isLoading: isDeletingIelts }] = useDeleteIeltsToeflStudentMutation();
+  const [updateIeltsStudent, { isLoading: isUpdatingIelts }] = useUpdateIeltsToeflStudentMutation();
+  const [rejectIeltsStudent, { isLoading: isRejectingIelts }] = useRejectIeltsToeflStudentMutation();
 
-  const students = backendStudents || [];
+  const students = [
+    ...(backendStudents || []).map(s => ({ ...s, type: 'regular' })),
+    ...ieltsStudents.map(s => ({
+      ...s,
+      full_name: `${s.first_name} ${s.last_name}`,
+      chosen_program: s.exam_type,
+      approval_status: s.status?.toLowerCase() || 'pending',
+      id: `ielts_${s.id}`,
+      original_id: s.id,
+      type: 'ielts',
+      class_name: s.class_id ? classes.find(c => c.id == s.class_id)?.class_name : null
+    }))
+  ];
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -109,6 +126,22 @@ export default function StudentsPage() {
   const handleCloseAssignSubprogramModal = () => {
     setIsAssignSubprogramModalOpen(false);
     setAssigningStudent(null);
+    setSelectedClassId("");
+  };
+
+  const submitAssignClass = async () => {
+    if (!assigningStudent) return;
+    try {
+      await updateStudent({
+        id: assigningStudent.id,
+        class_id: selectedClassId || null
+      }).unwrap();
+      showToast("Class assigned successfully!", "success");
+      handleCloseAssignClassModal();
+    } catch (error) {
+      console.error("Failed to assign class:", error);
+      showToast("Failed to assign class.", "error");
+    }
   };
 
 
@@ -116,6 +149,7 @@ export default function StudentsPage() {
     if (window.confirm("Are you sure you want to delete this student?")) {
       try {
         await deleteStudent(id).unwrap();
+        showToast("Student deleted successfully!", "success");
       } catch (error) {
         console.error("Failed to delete student:", error);
         alert("Failed to delete student. Please try again.");
@@ -202,6 +236,7 @@ export default function StudentsPage() {
 
       if (editingStudent) {
         await updateStudent({ id: editingStudent.id, ...submitData }).unwrap();
+        showToast("Student updated successfully!", "success");
       } else {
         // Password is required for new students
         if (!submitData.password || submitData.password.trim() === "") {
@@ -218,6 +253,30 @@ export default function StudentsPage() {
     }
 
     return false;
+  };
+
+  const [approveStudent, { isLoading: isApproving }] = useApproveStudentMutation();
+  const [rejectStudent, { isLoading: isRejecting }] = useRejectStudentMutation();
+
+  const handleApprove = async (student) => {
+    if (!confirm("Are you sure you want to approve this student?")) return;
+    try {
+      await approveStudent(student.id).unwrap();
+      showToast("Student approved successfully! Please assign a class.", "success");
+      handleAssignClass(student);
+    } catch (error) {
+      showToast(error?.data?.error || "Failed to approve student.", "error");
+    }
+  };
+
+  const handleReject = async (id) => {
+    if (!confirm("Are you sure you want to reject this student?")) return;
+    try {
+      await rejectStudent(id).unwrap();
+      showToast("Student rejected successfully!", "success");
+    } catch (error) {
+      showToast(error?.data?.error || "Failed to reject student.", "error");
+    }
   };
 
   const columns = [
@@ -275,48 +334,71 @@ export default function StudentsPage() {
     {
       key: "actions",
       label: "Actions",
-      render: (row) => (
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleView(row)}
-            className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
-            title="View"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => handleAssignSubprogram(row)}
-            className="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 transition-colors p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
-            title="Assign Subprogram"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => handleEdit(row)}
-            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
-            title="Edit"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => handleDelete(row.id)}
-            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-            title="Delete"
-            disabled={isDeleting}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
-      ),
+      render: (row) => {
+        const status = row.approval_status || 'pending';
+        const isPending = status === 'pending';
+        const isApproved = status === 'approved';
+        const isRejected = status === 'rejected';
+
+        return (
+          <div className="flex gap-2">
+            {(isPending || isRejected) && (
+              <button
+                onClick={() => handleApprove(row)}
+                disabled={isApproving || isRejecting}
+                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Approve"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            )}
+            {(isPending || isApproved) && (
+              <button
+                onClick={() => handleReject(row.id)}
+                disabled={isApproving || isRejecting}
+                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Reject"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+            <button
+              onClick={() => handleView(row)}
+              className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+              title="View"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => handleEdit(row)}
+              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              title="Edit"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => handleDelete(row.id)}
+              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+              title="Delete"
+              disabled={isDeleting}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        );
+      },
     },
   ];
 

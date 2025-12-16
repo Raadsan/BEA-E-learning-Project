@@ -5,6 +5,8 @@ import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
 import { useGetTeachersQuery } from "@/redux/api/teacherApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
+import WeeklyAttendanceChart from "@/components/WeeklyAttendanceChart";
+import ProgramPieChart from "@/components/ProgramPieChart";
 
 export default function AdminDashboard() {
   // Fetch data from APIs
@@ -30,6 +32,35 @@ export default function AdminDashboard() {
   const teachersPercentage = totalTeachers > 0 ? Math.min(Math.round((totalTeachers / 50) * 100), 100) : 0;
   const programsPercentage = totalPrograms > 0 ? Math.min(Math.round((totalPrograms / 10) * 100), 100) : 0;
   const classesPercentage = totalClasses > 0 ? Math.min(Math.round((totalClasses / 20) * 100), 100) : 0;
+
+  // Calculate Program Stats (Students per Program)
+  let programStats = (programsData || []).map(program => {
+    // Count students directly in this program
+    // OR linked via class -> program
+    const count = studentsArray.reduce((acc, student) => {
+      let inProgram = false;
+
+      // Check direct program link
+      if (student.chosen_program == program.id) {
+        inProgram = true;
+      }
+      // fallback to class link if direct link missing (safeguard)
+      else if (student.class_id) {
+        const cls = classesArray.find(c => c.id === student.class_id);
+        // cls.program_id is now available from backend
+        if (cls && cls.program_id == program.id) {
+          inProgram = true;
+        }
+      }
+
+      return inProgram ? acc + 1 : acc;
+    }, 0);
+
+    return { name: program.title, value: 1, studentCount: count };
+  });
+
+  // Calculate total students just for reference if needed, though we use studentCount now
+  const totalStudentsInPrograms = programStats.reduce((acc, item) => acc + item.studentCount, 0);
 
   // Circular Progress Component
   const CircularProgress = ({ percentage, size = 80, strokeWidth = 8, color = "#3b82f6" }) => {
@@ -75,7 +106,7 @@ export default function AdminDashboard() {
       {/* Dashboard Content */}
       <main className="flex-1 overflow-y-auto bg-gray-50 pt-20">
         <div className="w-full px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Dashboard Overview</h1>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white  mb-2">Dashboard Overview</h1>
 
           {/* Summary Cards with Circular Progress */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 max-w-full">
@@ -125,7 +156,7 @@ export default function AdminDashboard() {
             <div className="bg-white rounded-xl shadow-md p-4 border border-gray-100 hover:shadow-lg transition-shadow w-full">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex-1">
-                  <p className="text-gray-600 text-sm font-medium mb-2">Total Programs</p>
+                  <p className="text-gray-600 text-sm font-medium mb-2">All Programs</p>
                   <p className="text-4xl font-bold text-gray-900">
                     {programsLoading ? "..." : totalPrograms}
                   </p>
@@ -166,23 +197,18 @@ export default function AdminDashboard() {
 
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">Statistics Weekly Attendance</h2>
-              <div className="h-64 flex items-center justify-center text-gray-400 dark:text-gray-500 bg-gray-50 rounded-lg">
-                Chart placeholder - Weekly Attendance
-              </div>
-            </div>
+            <WeeklyAttendanceChart programs={programsData} classes={classesData} />
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 flex flex-col">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Statistics Course Completion Rate</h2>
-                <select className="px-4 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>Weekly</option>
-                  <option>Monthly</option>
-                </select>
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">All Programs</h2>
               </div>
-              <div className="h-64 flex items-center justify-center text-gray-400 dark:text-gray-500 bg-gray-50 rounded-lg">
-                Chart placeholder - Course Completion Rate
+              <div className="h-96 flex-1">
+                {/* Replaced placeholder with ProgramPieChart */}
+                <ProgramPieChart
+                  data={programStats}
+                  unit="Programs"
+                />
               </div>
             </div>
           </div>

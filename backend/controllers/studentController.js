@@ -270,3 +270,31 @@ export const rejectStudent = async (req, res) => {
   }
 };
 
+// GET STUDENT PROGRESS
+export const getStudentProgress = async (req, res) => {
+  try {
+    // Get teacher ID from authenticated user
+    const teacherId = req.user.userId;
+
+    if (req.user.role !== 'teacher') {
+      return res.status(403).json({
+        success: false,
+        error: "Access denied. Teachers only."
+      });
+    }
+
+    const students = await Student.getStudentProgressByTeacher(teacherId);
+
+    res.json({
+      success: true,
+      students
+    });
+  } catch (err) {
+    console.error("❌ Get student progress error:", err);
+    res.status(500).json({
+      success: false,
+      error: "Server error: " + err.message
+    });
+  }
+};
+

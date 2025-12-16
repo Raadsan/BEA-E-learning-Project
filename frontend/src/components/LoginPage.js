@@ -11,7 +11,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { isDarkMode } = useTheme();
   const [login, { isLoading, error }] = useLoginMutation();
-  
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -44,13 +44,16 @@ export default function LoginPage() {
           }
           if (result.user) {
             localStorage.setItem("user", JSON.stringify(result.user));
+            // Store userId separately for easy access
+            localStorage.setItem("userId", result.user.id);
+            localStorage.setItem("userRole", result.user.role);
           }
         }
-        
+
         // Redirect based on role - use window.location for full page reload
         const role = result.user.role;
         console.log("Login successful! Role:", role, "Redirecting...");
-        
+
         // Use window.location for immediate redirect
         if (role === "admin") {
           window.location.href = "/portal/admin";
@@ -75,7 +78,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Image/Brand Section */}
-      <div 
+      <div
         className="hidden md:flex md:w-1/2 relative items-center justify-center"
         style={{ backgroundColor: '#010080' }}
       >
@@ -99,7 +102,7 @@ export default function LoginPage() {
               className="mx-auto"
             />
           </div>
-          
+
           {/* Welcome Text */}
           <h1 className="text-4xl font-serif font-bold text-white mb-4">
             Welcome Back!
@@ -256,8 +259,8 @@ export default function LoginPage() {
                 />
                 <span className="text-sm text-gray-600">Remember me</span>
               </label>
-              <Link 
-                href="/auth/forgot-password" 
+              <Link
+                href="/auth/forgot-password"
                 className="text-sm font-semibold hover:underline transition-colors"
                 style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
               >
@@ -278,8 +281,8 @@ export default function LoginPage() {
             {/* Sign Up Link */}
             <p className="text-center text-gray-600 text-sm">
               Don&apos;t have an account?{" "}
-              <Link 
-                href="/auth/registration" 
+              <Link
+                href="/auth/registration"
                 className="font-semibold hover:underline"
                 style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
               >
@@ -290,8 +293,8 @@ export default function LoginPage() {
 
           {/* Back to Home */}
           <div className="text-center mt-6">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

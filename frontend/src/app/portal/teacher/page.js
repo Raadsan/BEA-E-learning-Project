@@ -4,6 +4,7 @@ import TeacherHeader from "./TeacherHeader";
 import React from 'react';
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
+import { useGetTeacherDashboardStatsQuery } from "@/redux/api/teacherApi";
 
 import { useDarkMode } from "@/context/ThemeContext";
 
@@ -37,12 +38,82 @@ function ProgressCircle({ percent = 0, size = 56, strokeWidth = 6, colors = ['#3
   );
 }
 
+// SVG Pie Chart Component
+function PieChart({ data, size = 200, isDark = false }) {
+  // data: [{ label, value, color }]
+  const total = data.reduce((acc, cur) => acc + cur.value, 0);
+
+  if (total === 0) {
+    return (
+      <div className="flex items-center justify-center" style={{ width: size, height: size }}>
+        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>No data</p>
+      </div>
+    );
+  }
+
+  let cumulativePercent = 0;
+
+  function getCoordinatesForPercent(percent) {
+    const x = Math.cos(2 * Math.PI * percent);
+    const y = Math.sin(2 * Math.PI * percent);
+    return [x, y];
+  }
+
+  return (
+    <svg viewBox="-1 -1 2 2" width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      {data.map((slice, index) => {
+        if (slice.value === 0) return null;
+
+        const percent = slice.value / total;
+        const start = getCoordinatesForPercent(cumulativePercent);
+        cumulativePercent += percent;
+        const end = getCoordinatesForPercent(cumulativePercent);
+
+        // Large arc flag: determine if the slice is > 50%
+        const largeArcFlag = percent > 0.5 ? 1 : 0;
+
+        const pathData = [
+          `M 0 0`,
+          `L ${start[0]} ${start[1]}`,
+          `A 1 1 0 ${largeArcFlag} 1 ${end[0]} ${end[1]}`,
+          `Z`
+        ].join(' ');
+
+        return (
+          <path key={index} d={pathData} fill={slice.color} />
+        );
+      })}
+    </svg>
+  );
+}
+
 export default function TeacherDashboard() {
   const { isDark } = useDarkMode();
 
-  // Fetch data from APIs
+  const { data: stats, isLoading: statsLoading } = useGetTeacherDashboardStatsQuery();
   const { data: classesData, isLoading: classesLoading } = useGetClassesQuery();
   const { data: studentsData, isLoading: studentsLoading } = useGetStudentsQuery();
+
+  // Stats from backend
+  const totalAttended = stats?.totalAttended || 0;
+  const totalPossible = stats?.totalPossible || 0;
+  const absentCount = Math.max(0, totalPossible - totalAttended);
+  const hasAttendanceData = totalPossible > 0;
+
+  // Attendance Pie Data
+  const attendancePieData = [
+    { label: "Present", value: totalAttended, color: "#10b981" },
+    { label: "Absent", value: absentCount, color: "#ef4444" }
+  ];
+
+  // Classes Distribution Pie Data
+  const classAttendanceData = stats?.classAttendanceData || [];
+  const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4'];
+  const classesPieData = classAttendanceData.map((cls, idx) => ({
+    label: cls.className,
+    value: cls.attended,
+    color: colors[idx % colors.length]
+  }));
 
 
   // Extract counts
@@ -55,20 +126,17 @@ export default function TeacherDashboard() {
     (student) => student.status === "Active" || !student.status
   ).length;
 
-
-
-  // Mock data for charts (replace with real data later)
-  const weeklyAttendance = [
-    { day: "Sun", thisWeek: 280, lastWeek: 220 },
-    { day: "Mon", thisWeek: 400, lastWeek: 120 },
-    { day: "Tue", thisWeek: 320, lastWeek: 120 },
-    { day: "Wed", thisWeek: 220, lastWeek: 180 },
-    { day: "Thur", thisWeek: 380, lastWeek: 60 },
-    { day: "Fri", thisWeek: 300, lastWeek: 160 },
-    { day: "Sat", thisWeek: 100, lastWeek: 40 },
+  const weeklyAttendance = stats?.weeklyAttendance || [
+    { day: "Sun", thisWeek: 0, lastWeek: 0 },
+    { day: "Mon", thisWeek: 0, lastWeek: 0 },
+    { day: "Tue", thisWeek: 0, lastWeek: 0 },
+    { day: "Wed", thisWeek: 0, lastWeek: 0 },
+    { day: "Thur", thisWeek: 0, lastWeek: 0 },
+    { day: "Fri", thisWeek: 0, lastWeek: 0 },
+    { day: "Sat", thisWeek: 0, lastWeek: 0 },
   ];
 
-  const maxAttendance = Math.max(...weeklyAttendance.map(d => Math.max(d.thisWeek, d.lastWeek)));
+  const maxAttendance = Math.max(...weeklyAttendance.map(d => Math.max(d.thisWeek, d.lastWeek, 1)));
 
 
 
@@ -129,13 +197,13 @@ export default function TeacherDashboard() {
               </div>
             </div>
 
-            {/* 3. Avg. Attendance Card (Replaced Total Courses) */}
+            {/* 3. Avg. Attendance Card */}
             <div className={`rounded-xl shadow-md p-4 transition-colors hover:shadow-lg border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border text-gray-100'}`}>
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1">
                   <p className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Avg. Attendance</p>
                   <p className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    92%
+                    {stats?.avgAttendance || 0}%
                   </p>
                   <div className="mt-2 text-sm flex items-center gap-2">
                     <span className="text-green-600 text-sm flex items-center gap-1">
@@ -147,18 +215,18 @@ export default function TeacherDashboard() {
                   </div>
                 </div>
                 <div className="flex-shrink-0">
-                  <ProgressCircle percent={92} size={80} strokeWidth={8} colors={['#10b981']} isDark={isDark} />
+                  <ProgressCircle percent={stats?.avgAttendance || 0} size={80} strokeWidth={8} colors={['#10b981']} isDark={isDark} />
                 </div>
               </div>
             </div>
 
-            {/* 4. Assignments Card (New) */}
+            {/* 4. Assignments Card */}
             <div className={`rounded-xl shadow-md p-4 transition-colors hover:shadow-lg border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border text-gray-100'}`}>
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1">
                   <p className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Assignments</p>
                   <p className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    12
+                    {stats?.assignmentsCount || 0}
                   </p>
                   <div className="mt-2 text-sm flex items-center gap-2">
                     <span className="text-blue-600 text-sm flex items-center gap-1">
@@ -170,54 +238,42 @@ export default function TeacherDashboard() {
                   </div>
                 </div>
                 <div className="flex-shrink-0">
-                  <ProgressCircle percent={65} size={80} strokeWidth={8} colors={['#8b5cf6']} isDark={isDark} />
+                  <ProgressCircle percent={0} size={80} strokeWidth={8} colors={['#8b5cf6']} isDark={isDark} />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Charts Section */}
-          <div className="grid grid-cols-1 gap-6">
-            {/* Weekly Attendance Bar Chart */}
-            <div className={`rounded-xl shadow-md p-6 border transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
-              }`}>
-              <h2 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-800'
-                }`}>
-                Statistics Weekly Attendance
-              </h2>
+          {/* Charts Section - 3 Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6">
 
-              {/* Legend */}
+            {/* Weekly Attendance Bar Chart */}
+            <div className={`rounded-xl shadow-md p-6 border transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+              <h2 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>Weekly Attendance (Hours)</h2>
+
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                   <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>This Week</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
                   <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Last Week</span>
                 </div>
               </div>
 
-              {/* Chart */}
               <div className="relative h-64 pl-6 bg-gray-50 dark:bg-gray-700/50 rounded-lg pt-4">
                 <div className="absolute inset-0 flex items-end justify-between gap-2 px-2 pb-2">
                   {weeklyAttendance.map((data, index) => {
                     const thisWeekHeight = (data.thisWeek / maxAttendance) * 100;
                     const lastWeekHeight = (data.lastWeek / maxAttendance) * 100;
-                    const isHighlighted = data.day === "Mon";
-
                     return (
                       <div key={index} className="flex-1 flex flex-col items-center gap-1 group">
                         <div className="relative w-full h-full flex items-end justify-center gap-1">
-                          {/* Last Week Bar (left) */}
-                          <div className="w-2 md:w-4 bg-red-400 rounded-t transition-all hover:opacity-90" style={{ height: `${lastWeekHeight}%` }} title={`Last Week: ${data.lastWeek}`} />
-                          {/* This Week Bar (right) */}
-                          <div className={`w-2 md:w-4 bg-blue-500 rounded-t transition-all hover:opacity-90 ${isHighlighted ? 'ring-2 ring-blue-300' : ''}`} style={{ height: `${thisWeekHeight}%` }} title={`This Week: ${data.thisWeek}`} />
+                          <div className="w-2 md:w-4 bg-red-400 rounded-t hover:opacity-90" style={{ height: `${lastWeekHeight}%` }} title={`Last Week: ${data.lastWeek}`} />
+                          <div className="w-2 md:w-4 bg-blue-500 rounded-t hover:opacity-90" style={{ height: `${thisWeekHeight}%` }} title={`This Week: ${data.thisWeek}`} />
                         </div>
-                        <span className={`text-xs font-medium mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'
-                          }`}>
-                          {data.day}
-                        </span>
+                        <span className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{data.day}</span>
                       </div>
                     );
                   })}
@@ -225,6 +281,65 @@ export default function TeacherDashboard() {
               </div>
             </div>
 
+            {/* Overall Attendance Pie Chart */}
+            <div className={`rounded-xl shadow-md p-6 border transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+              <h2 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>Overall Attendance</h2>
+
+              <div className="flex flex-col items-center justify-center h-64">
+                {hasAttendanceData ? (
+                  <div className="relative">
+                    <PieChart data={attendancePieData} size={180} isDark={isDark} />
+                  </div>
+                ) : (
+                  <div className={`text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <p>No attendance data available yet.</p>
+                  </div>
+                )}
+
+                {hasAttendanceData && (
+                  <div className="flex items-center gap-6 mt-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Present ({totalAttended})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                      <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Absent ({absentCount})</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Classes Distribution Pie Chart */}
+            <div className={`rounded-xl shadow-md p-6 border transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+              <h2 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>Classes Attendance</h2>
+
+              <div className="flex flex-col items-center justify-center h-64">
+                {classesPieData.length > 0 ? (
+                  <div className="relative">
+                    <PieChart data={classesPieData} size={180} isDark={isDark} />
+                  </div>
+                ) : (
+                  <div className={`text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <p>No class data available yet.</p>
+                  </div>
+                )}
+
+                {classesPieData.length > 0 && (
+                  <div className="flex flex-wrap items-center justify-center gap-3 mt-6 max-w-full">
+                    {classesPieData.slice(0, 6).map((cls, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cls.color }}></div>
+                        <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'} truncate max-w-[80px]`} title={cls.label}>
+                          {cls.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
 
           </div>
         </div>

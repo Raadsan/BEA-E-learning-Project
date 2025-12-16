@@ -47,6 +47,19 @@ export const updateIeltsStudent = async (req, res) => {
     }
 };
 
+export const rejectIeltsStudent = async (req, res) => {
+    try {
+        const affectedRows = await ieltsToeflModel.rejectStudent(req.params.id);
+        if (affectedRows === 0) {
+            return res.status(404).json({ success: false, error: "Student not found" });
+        }
+        res.status(200).json({ success: true, message: "Student rejected and class unassigned successfully" });
+    } catch (error) {
+        console.error("Error rejecting IELTS/TOEFL student:", error);
+        res.status(500).json({ success: false, error: "Failed to reject student" });
+    }
+};
+
 export const deleteIeltsStudent = async (req, res) => {
     try {
         const affectedRows = await ieltsToeflModel.deleteStudent(req.params.id);

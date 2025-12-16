@@ -4,94 +4,22 @@ import { useState } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
+import { useGetIeltsToeflStudentsQuery } from "@/redux/api/ieltsToeflApi";
+import { useGetClassesQuery } from "@/redux/api/classApi";
 
 export default function IELTSTOEFLStudentsPage() {
   const { isDark } = useDarkMode();
+  const { data: ieltsStudents, isLoading, isError, error } = useGetIeltsToeflStudentsQuery();
+  const { data: classes = [] } = useGetClassesQuery();
 
-  // Sample data - Replace with actual API call when backend is ready
-  // This should come from a separate IELTS/TOEFL registrations table
-  const [ieltsStudents] = useState([
-    {
-      id: 1,
-      firstName: "Ahmed",
-      lastName: "Hassan",
-      email: "ahmed.hassan@example.com",
-      phone: "+252 61 1234567",
-      age: 25,
-      gender: "Male",
-      country: "Somalia",
-      city: "Mogadishu",
-      examType: "IELTS",
-      verificationMethod: "Certificate",
-      certificateInstitution: "British Council",
-      certificateDate: "2023-06-15",
-      certificateDocument: "certificate_ahmed.pdf",
-      examBookingDate: null,
-      examBookingTime: null,
-      registrationDate: "2024-02-10",
-      status: "Verified"
-    },
-    {
-      id: 2,
-      firstName: "Fatima",
-      lastName: "Ali",
-      email: "fatima.ali@example.com",
-      phone: "+252 61 2345678",
-      age: 22,
-      gender: "Female",
-      country: "Somalia",
-      city: "Hargeisa",
-      examType: "TOEFL",
-      verificationMethod: "Exam Booking",
-      certificateInstitution: null,
-      certificateDate: null,
-      certificateDocument: null,
-      examBookingDate: "2024-03-15",
-      examBookingTime: "10:00 AM",
-      registrationDate: "2024-02-12",
-      status: "Pending Exam"
-    },
-    {
-      id: 3,
-      firstName: "Mohamed",
-      lastName: "Ibrahim",
-      email: "mohamed.ibrahim@example.com",
-      phone: "+252 61 3456789",
-      age: 28,
-      gender: "Male",
-      country: "Somalia",
-      city: "Kismayo",
-      examType: "IELTS",
-      verificationMethod: "Certificate",
-      certificateInstitution: "IDP Education",
-      certificateDate: "2023-12-20",
-      certificateDocument: "certificate_mohamed.pdf",
-      examBookingDate: null,
-      examBookingTime: null,
-      registrationDate: "2024-02-15",
-      status: "Verified"
-    },
-    {
-      id: 4,
-      firstName: "Aisha",
-      lastName: "Mohamed",
-      email: "aisha.mohamed@example.com",
-      phone: "+252 61 4567890",
-      age: 24,
-      gender: "Female",
-      country: "Somalia",
-      city: "Bosaso",
-      examType: "IELTS",
-      verificationMethod: "Exam Booking",
-      certificateInstitution: null,
-      certificateDate: null,
-      certificateDocument: null,
-      examBookingDate: "2024-03-20",
-      examBookingTime: "02:00 PM",
-      registrationDate: "2024-02-18",
-      status: "Pending Exam"
-    },
-  ]);
+  const filteredStudents = (ieltsStudents || []).filter(student =>
+    student.status?.toLowerCase() === 'approved' && student.class_id
+  );
+
+  const getClassName = (classId) => {
+    const cls = classes.find(c => c.id == classId);
+    return cls ? cls.class_name : 'Unknown';
+  };
 
   const columns = [
     {
@@ -154,7 +82,16 @@ export default function IELTSTOEFLStudentsPage() {
       ),
     },
     {
-      key: "verificationMethod",
+      key: "class_name",
+      label: "Class",
+      render: (row) => (
+        <span className="font-medium text-gray-900 dark:text-white">
+          {getClassName(row.class_id)}
+        </span>
+      ),
+    },
+    {
+      key: "verification_method",
       label: "Verification Method",
       render: (row) => (
         <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.verificationMethod === "Certificate"
@@ -280,16 +217,24 @@ export default function IELTSTOEFLStudentsPage() {
       <AdminHeader />
       <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
         <div className="w-full px-8 py-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">IELTS / TOEFL Students</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage students registered for IELTS and TOEFL exam preparation programs</p>
-          </div>
-          <DataTable
-            title=""
-            columns={columns}
-            data={ieltsStudents}
-            showAddButton={false}
-          />
+          {(isLoading) ? (
+            <div className="text-center py-10">Loading...</div>
+          ) : isError ? (
+            <div className="text-center py-10 text-red-500">Error loading data</div>
+          ) : (
+            !filteredStudents || filteredStudents.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-gray-600 dark:text-gray-400 text-lg">No active IELTS/TOEFL students assigned to classes</p>
+              </div>
+            ) : (
+              <DataTable
+                title="IELTS / TOEFL Students"
+                columns={columns}
+                data={filteredStudents}
+                showAddButton={false}
+              />
+            )
+          )}
         </div>
       </main>
     </>
