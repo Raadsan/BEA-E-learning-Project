@@ -139,7 +139,7 @@ export default function GeneralStudentsPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
+          <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading students...</p>
             </div>
@@ -154,7 +154,7 @@ export default function GeneralStudentsPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
+          <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-red-600 dark:text-red-400">Error loading students: {error?.data?.error || "Unknown error"}</p>
             </div>
@@ -167,7 +167,7 @@ export default function GeneralStudentsPage() {
   return (
     <>
       <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
+      <main className="flex-1 overflow-y-auto bg-gray-50 pt-20 transition-colors">
         <div className="w-full px-8 py-6">
           <DataTable
             title="General Program Students"

@@ -6,7 +6,7 @@ export default function AdminHeader() {
   const { isDark, toggleDarkMode } = useDarkMode();
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4 transition-colors sticky top-0 z-40 w-full">
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-8 py-4 transition-colors fixed top-0 left-80 right-0 z-40">
       <div className="flex items-center justify-between">
         {/* Search Bar - Left Side */}
         <div className="relative flex-1 max-w-md">

@@ -216,12 +216,8 @@ export default function IELTSTOEFLStudentsPage() {
   return (
     <>
       <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
+      <main className="flex-1 overflow-y-auto bg-gray-50 pt-20 transition-colors">
         <div className="w-full px-8 py-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">IELTS / TOEFL Students</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage students registered for IELTS and TOEFL exam preparation programs</p>
-          </div>
           {(isLoading) ? (
             <div className="text-center py-10">Loading...</div>
           ) : isError ? (
@@ -233,7 +229,7 @@ export default function IELTSTOEFLStudentsPage() {
               </div>
             ) : (
               <DataTable
-                title=""
+                title="IELTS / TOEFL Students"
                 columns={columns}
                 data={filteredStudents}
                 showAddButton={false}
