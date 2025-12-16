@@ -165,20 +165,13 @@ export const deleteTeacherById = async (id) => {
 
 // GET teacher stats
 export const getTeacherStatsById = async (id) => {
-  // Total Classes
+  // 1. Total Classes
   const [classesCount] = await dbp.query(
     "SELECT COUNT(*) as count FROM classes WHERE teacher_id = ?",
     [id]
   );
 
-  // Total Courses (distinct courses teacher is assigned to)
-  const [coursesCount] = await dbp.query(
-    "SELECT COUNT(DISTINCT course_id) as count FROM classes WHERE teacher_id = ?",
-    [id]
-  );
-
-  // Active Students (students in subprograms where teacher has classes)
-  // Assuming students in those subprograms are relevant to the teacher
+  // 2. Active Students
   const [studentsCount] = await dbp.query(
     `SELECT COUNT(DISTINCT s.id) as count
      FROM students s
@@ -188,10 +181,83 @@ export const getTeacherStatsById = async (id) => {
     [id]
   );
 
+  // 3. Avg Attendance & Totals
+  const [attendanceAvg] = await dbp.query(
+    `SELECT SUM(a.hour1 + a.hour2) as attended, COUNT(*) * 2 as possible
+     FROM attendance a
+     JOIN classes cl ON a.class_id = cl.id
+     WHERE cl.teacher_id = ?`,
+    [id]
+  );
+
+  const totalAttended = Number(attendanceAvg[0].attended) || 0;
+  const totalPossible = Number(attendanceAvg[0].possible) || 0;
+
+  const avgAttendance = totalPossible > 0
+    ? Math.round((totalAttended / totalPossible) * 100)
+    : 0;
+
+  // 4. Assignments (Placeholder)
+  const assignmentsCount = 0;
+
+  // 5. Weekly Attendance (Last 14 days)
+  const [weeklyStats] = await dbp.query(
+    `SELECT DATE(a.date) as date, SUM(a.hour1 + a.hour2) as attended
+     FROM attendance a
+     JOIN classes cl ON a.class_id = cl.id
+     WHERE cl.teacher_id = ? AND a.date >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+     GROUP BY DATE(a.date)
+     ORDER BY date ASC`,
+    [id]
+  );
+
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat"];
+  const today = new Date();
+  const startOfThisWeek = new Date(today);
+  startOfThisWeek.setDate(today.getDate() - today.getDay());
+  startOfThisWeek.setHours(0, 0, 0, 0);
+
+  const startOfLastWeek = new Date(startOfThisWeek);
+  startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+  const formatData = days.map(day => ({ day, thisWeek: 0, lastWeek: 0 }));
+
+  weeklyStats.forEach(row => {
+    const d = new Date(row.date);
+    const dayIndex = d.getDay();
+
+    if (d >= startOfThisWeek) {
+      formatData[dayIndex].thisWeek += Number(row.attended);
+    } else if (d >= startOfLastWeek) {
+      formatData[dayIndex].lastWeek += Number(row.attended);
+    }
+  });
+
+  // 6. Per-Class Attendance for Pie Chart
+  const [classAttendanceData] = await dbp.query(
+    `SELECT cl.class_name,
+            SUM(a.hour1 + a.hour2) as attended,
+            COUNT(*) * 2 as possible
+     FROM attendance a
+     JOIN classes cl ON a.class_id = cl.id
+     WHERE cl.teacher_id = ?
+     GROUP BY cl.id, cl.class_name`,
+    [id]
+  );
+
   return {
     totalClasses: classesCount[0].count,
-    totalCourses: coursesCount[0].count,
-    activeStudents: studentsCount[0].count
+    activeStudents: studentsCount[0].count,
+    avgAttendance,
+    totalAttended,
+    totalPossible,
+    assignmentsCount,
+    weeklyAttendance: formatData,
+    classAttendanceData: classAttendanceData.map(row => ({
+      className: row.class_name,
+      attended: Number(row.attended),
+      absent: Number(row.possible) - Number(row.attended)
+    }))
   };
 };
 

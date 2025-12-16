@@ -222,3 +222,46 @@ export const rejectStudentById = async (id) => {
   );
   return result.affectedRows;
 };
+
+// GET STUDENT PROGRESS BY TEACHER
+export const getStudentProgressByTeacher = async (teacherId) => {
+  const [students] = await dbp.query(
+    `SELECT 
+      s.id,
+      s.full_name,
+      s.email,
+      s.phone,
+      s.chosen_program,
+      s.chosen_subprogram,
+      s.class_id,
+      c.class_name,
+      COALESCE(SUM(a.hour1 + a.hour2), 0) as total_attended,
+      COALESCE(COUNT(a.id) * 2, 0) as total_possible,
+      COALESCE(ROUND((SUM(a.hour1 + a.hour2) / (COUNT(a.id) * 2)) * 100, 2), 0) as progress_percentage,
+      MAX(a.date) as last_active
+    FROM students s
+    LEFT JOIN classes c ON s.class_id = c.id
+    LEFT JOIN attendance a ON s.id = a.student_id AND c.id = a.class_id
+    WHERE c.teacher_id = ?
+    GROUP BY s.id, s.full_name, s.email, s.phone, s.chosen_program, s.chosen_subprogram, s.class_id, c.class_name
+    ORDER BY s.full_name ASC`,
+    [teacherId]
+  );
+
+  // Add status based on progress percentage
+  return students.map(student => {
+    let status = 'Inactive';
+    if (student.progress_percentage >= 75) {
+      status = 'On Track';
+    } else if (student.progress_percentage >= 50) {
+      status = 'At Risk';
+    }
+
+    return {
+      ...student,
+      status,
+      progress_percentage: student.progress_percentage || 0,
+      last_active: student.last_active || null
+    };
+  });
+};

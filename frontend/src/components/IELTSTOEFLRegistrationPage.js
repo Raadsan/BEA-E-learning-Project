@@ -30,10 +30,13 @@ export default function IELTSTOEFLRegistrationPage() {
     lastName: '',
     email: '',
     phone: '',
+    password: '',
+    confirmPassword: '',
     age: '',
     gender: '',
     country: '',
     city: '',
+    chosen_program: 'IELTS & TOEFL', // Default value
     examType: '',
     hasCertificate: '',
     certificateInstitution: '',
@@ -80,6 +83,14 @@ export default function IELTSTOEFLRegistrationPage() {
       showToast("Please select an exam type", "error");
       return;
     }
+    if (formData.password !== formData.confirmPassword) {
+      showToast("Passwords do not match", "error");
+      return;
+    }
+    if (formData.password.length < 6) {
+      showToast("Password must be at least 6 characters", "error");
+      return;
+    }
     if (!formData.hasCertificate && !formData.examBookingDate) {
       // If no certificate, must book exam (unless logic allows otherwise, but form implies one or other)
       // Actually the UI forces selection via accordion
@@ -91,6 +102,8 @@ export default function IELTSTOEFLRegistrationPage() {
         last_name: formData.lastName,
         email: formData.email,
         phone: formData.phone,
+        password: formData.password,
+        chosen_program: formData.chosen_program,
         age: parseInt(formData.age),
         gender: formData.gender.charAt(0).toUpperCase() + formData.gender.slice(1), // Capitalize
         residency_country: countriesData[formData.country]?.name || formData.country,
@@ -199,6 +212,19 @@ export default function IELTSTOEFLRegistrationPage() {
                   <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+252 61-*******" className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm ${isDarkMode ? 'bg-[#040030] border-gray-600 text-white' : 'border-gray-300 text-gray-800'}`} required />
                 </div>
 
+                {/* Password */}
+                <div className="mb-4">
+                  <label className={`block text-sm font-semibold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Password</label>
+                  <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Create a password" className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm ${isDarkMode ? 'bg-[#040030] border-gray-600 text-white' : 'border-gray-300 text-gray-800'}`} required minLength="6" />
+                  <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Minimum 6 characters</p>
+                </div>
+
+                {/* Confirm Password */}
+                <div className="mb-4">
+                  <label className={`block text-sm font-semibold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Confirm Password</label>
+                  <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm your password" className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm ${isDarkMode ? 'bg-[#040030] border-gray-600 text-white' : 'border-gray-300 text-gray-800'}`} required />
+                </div>
+
                 {/* Age & Gender */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
@@ -251,6 +277,22 @@ export default function IELTSTOEFLRegistrationPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Program Selection */}
+                <div>
+                  <label className={`block text-sm font-semibold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Select Program</label>
+                  <div className="relative">
+                    <select name="chosen_program" value={formData.chosen_program} onChange={handleChange} className={`w-full px-4 py-3 pr-10 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm appearance-none cursor-pointer ${isDarkMode ? 'bg-[#040030] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} required>
+                      <option value="IELTS & TOEFL">IELTS & TOEFL</option>
+                      <option value="General English">General English</option>
+                      <option value="Business English">Business English</option>
+                      <option value="Academic English">Academic English</option>
+                    </select>
+                    <span className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* Section 2: Certificate Question */}
@@ -277,8 +319,8 @@ export default function IELTSTOEFLRegistrationPage() {
                         examBookingTime: ''
                       }))}
                       className={`w-full py-4 px-4 flex items-center justify-between transition-all duration-200 ${formData.hasCertificate === 'yes'
-                          ? 'text-white'
-                          : isDarkMode ? 'bg-[#040030] text-gray-200 hover:bg-[#050040]' : 'bg-white text-gray-700 hover:bg-gray-50'
+                        ? 'text-white'
+                        : isDarkMode ? 'bg-[#040030] text-gray-200 hover:bg-[#050040]' : 'bg-white text-gray-700 hover:bg-gray-50'
                         }`}
                       style={formData.hasCertificate === 'yes' ? { backgroundColor: '#010080' } : {}}
                     >
@@ -373,8 +415,8 @@ export default function IELTSTOEFLRegistrationPage() {
                         certificateDate: ''
                       }))}
                       className={`w-full py-4 px-4 flex items-center justify-between transition-all duration-200 ${formData.hasCertificate === 'no'
-                          ? 'text-white'
-                          : isDarkMode ? 'bg-[#040030] text-gray-200 hover:bg-[#050040]' : 'bg-white text-gray-700 hover:bg-gray-50'
+                        ? 'text-white'
+                        : isDarkMode ? 'bg-[#040030] text-gray-200 hover:bg-[#050040]' : 'bg-white text-gray-700 hover:bg-gray-50'
                         }`}
                       style={formData.hasCertificate === 'no' ? { backgroundColor: '#010080' } : {}}
                     >

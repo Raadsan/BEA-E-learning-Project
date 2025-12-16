@@ -3,7 +3,9 @@
 import React, { useState } from "react";
 import TeacherHeader from "../TeacherHeader";
 import { useGetTeacherClassesQuery, useGetTeacherProgramsQuery } from "@/redux/api/teacherApi";
+import { useGetStudentsQuery } from "@/redux/api/studentApi"; // Import students query
 import { useDarkMode } from "@/context/ThemeContext";
+import DataTable from "@/components/DataTable"; // Import DataTable
 
 // Reusable Card Component specifically for this page
 const InfoCard = ({ title, subtitle, details, footer, isDark, type }) => (
@@ -47,13 +49,75 @@ const InfoCard = ({ title, subtitle, details, footer, isDark, type }) => (
 export default function MyClassesPage() {
     const { isDark } = useDarkMode();
     const [activeTab, setActiveTab] = useState('classes'); // 'classes' or 'programs'
+    const [selectedClass, setSelectedClass] = useState(null); // State for selected class details
 
     // Fetch Data
     const { data: classesData, isLoading: classesLoading } = useGetTeacherClassesQuery();
     const { data: programsData, isLoading: programsLoading } = useGetTeacherProgramsQuery();
+    const { data: studentsData } = useGetStudentsQuery(); // Fetch all students
 
     const classes = Array.isArray(classesData) ? classesData : [];
     const programs = Array.isArray(programsData) ? programsData : [];
+    const allStudents = studentsData?.students || (Array.isArray(studentsData) ? studentsData : []);
+
+    // Helper to get students for a specific class
+    const getClassStudents = (classId) => {
+        return allStudents.filter(student => String(student.class_id) === String(classId));
+    };
+
+    // Columns for the student table
+    const studentColumns = [
+        { label: "Full Name", key: "full_name" },
+        { label: "Email", key: "email" },
+        { label: "Phone", key: "phone" },
+        {
+            label: "Status",
+            key: "status",
+            render: (row) => (
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${row.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                    {row.status || 'Active'}
+                </span>
+            )
+        }
+    ];
+
+    if (selectedClass) {
+        const classStudents = getClassStudents(selectedClass.id);
+
+        return (
+            <>
+                <TeacherHeader />
+                <main className="flex-1 overflow-y-auto mt-6 bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
+                    <div className="container mx-auto px-4 md:px-8 py-8">
+                        <button
+                            onClick={() => setSelectedClass(null)}
+                            className="mb-6 flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                        >
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                            Back to Classes
+                        </button>
+
+                        <div className="mb-8">
+                            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{selectedClass.class_name}</h1>
+                            <p className="text-gray-500 dark:text-gray-400 mt-1">
+                                {selectedClass.course_title} • {selectedClass.program_name}
+                            </p>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                            <DataTable
+                                title={`Students (${classStudents.length})`}
+                                columns={studentColumns}
+                                data={classStudents}
+                                showAddButton={false} // Read-only view for now
+                            />
+                        </div>
+                    </div>
+                </main>
+            </>
+        );
+    }
 
     return (
         <>
@@ -67,28 +131,6 @@ export default function MyClassesPage() {
                             <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                                 View and manage all your assigned classes and programs.
                             </p>
-                        </div>
-
-                        {/* Tabs */}
-                        <div className={`flex p-1 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white shadow-sm border border-gray-200'}`}>
-                            <button
-                                onClick={() => setActiveTab('classes')}
-                                className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === 'classes'
-                                    ? 'bg-blue-600 text-white shadow-md'
-                                    : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                            >
-                                Assigned Classes
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('programs')}
-                                className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === 'programs'
-                                    ? 'bg-purple-600 text-white shadow-md'
-                                    : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                            >
-                                My Programs
-                            </button>
                         </div>
                     </div>
 
@@ -127,10 +169,12 @@ export default function MyClassesPage() {
                                                 }] : [])
                                             ]}
                                             footer={
-                                                <button className={`w-full py-2 rounded-lg text-sm font-medium border transition-colors ${isDark
-                                                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                                                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                                                    }`}>
+                                                <button
+                                                    onClick={() => setSelectedClass(cls)}
+                                                    className={`w-full py-2 rounded-lg text-sm font-medium border transition-colors ${isDark
+                                                        ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                                                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                                                        }`}>
                                                     View Class Details
                                                 </button>
                                             }

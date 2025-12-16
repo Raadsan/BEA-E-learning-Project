@@ -93,6 +93,18 @@ export const studentApi = createApi({
       }),
       invalidatesTags: ["Students"],
     }),
+
+    // GET STUDENT PROGRESS
+    getStudentProgress: builder.query({
+      query: () => "/progress",
+      providesTags: ["Students"],
+      transformResponse: (response) => {
+        if (response.success) {
+          return response.students;
+        }
+        return response;
+      },
+    }),
   }),
 });
 
@@ -104,5 +116,6 @@ export const {
   useDeleteStudentMutation,
   useApproveStudentMutation,
   useRejectStudentMutation,
+  useGetStudentProgressQuery,
 } = studentApi;
 
