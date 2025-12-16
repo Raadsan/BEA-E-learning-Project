@@ -38,10 +38,9 @@ export const store = configureStore({
       authApi.middleware,
       adminApi.middleware,
       userApi.middleware,
+      attendanceApi.middleware,
       ieltsToeflApi.middleware,
       placementTestApi.middleware
-      attendanceApi.middleware,
-      ieltsToeflApi.middleware
     ),
 });
 
