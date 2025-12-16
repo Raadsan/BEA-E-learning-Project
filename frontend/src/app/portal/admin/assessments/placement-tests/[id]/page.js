@@ -21,7 +21,7 @@ export default function PlacementTestDetailsPage() {
                 <main className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-8 pt-8 pb-12 animate-in fade-in duration-300">
 
                     {/* Back Button */}
-                    <div className="mb-8">
+                    <div className="mb-8 pt-20">
                         <button
                             onClick={() => router.back()}
                             className="text-gray-500 hover:text-gray-900 flex items-center gap-2 transition-colors font-medium hover:-translate-x-1 transform duration-200"

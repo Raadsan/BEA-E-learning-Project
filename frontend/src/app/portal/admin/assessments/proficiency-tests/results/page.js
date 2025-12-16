@@ -84,7 +84,7 @@ export default function ProficiencyTestResultsPage() {
             <main className="flex-1 overflow-y-auto mt-6">
                 <div className="w-full px-8 py-6">
                     {/* Header */}
-                    <div className="mb-8">
+                    <div className="mb-8 pt-20">
                         <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                             Proficiency Test Results
                         </h1>

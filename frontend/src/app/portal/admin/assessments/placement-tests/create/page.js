@@ -78,7 +78,7 @@ export default function CreatePlacementTestPage() {
     <div className="flex-1 min-h-screen bg-gray-50 flex flex-col">
       <AdminHeader />
       <main className="flex-1 p-6 md:p-8 max-w-5xl mx-auto w-full">
-        <div className="mb-6">
+        <div className="mb-6 pt-20">
           <button
             onClick={() => router.back()}
             className="text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-2"

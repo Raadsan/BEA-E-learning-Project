@@ -187,7 +187,7 @@ export default function CreateProficiencyTestPage() {
             <main className="flex-1 overflow-y-auto mt-6">
                 <div className="w-full px-8 py-6">
                     {/* Header */}
-                    <div className="mb-8 flex flex-col gap-2 max-w-4xl mx-auto">
+                    <div className="mb-8 flex flex-col gap-2 max-w-4xl mx-auto pt-20">
                         <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Create Proficiency Test</h1>
                         <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                             Create a new English proficiency test with multiple question types.

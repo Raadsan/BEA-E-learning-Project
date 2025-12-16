@@ -1,9 +1,20 @@
 "use client";
 
 import { useDarkMode } from "@/context/ThemeContext";
+import { useGetCurrentUserQuery } from "@/redux/api/authApi";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Image from "next/image";
 
 export default function AdminHeader() {
   const { isDark, toggleDarkMode } = useDarkMode();
+  const router = useRouter();
+  const { data: currentAdmin } = useGetCurrentUserQuery();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleProfileClick = () => {
+    router.push("/portal/admin/profile");
+  };
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-8 py-4 transition-colors fixed top-0 left-80 right-0 z-40">
@@ -44,13 +55,84 @@ export default function AdminHeader() {
             )}
           </button>
 
-          {/* User Profile */}
-          <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors">
-            <div className="w-8 h-8 bg-green-500 rounded-full"></div>
-            <span className="font-medium text-gray-800 dark:text-white">Admin</span>
-            <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+          {/* User Profile - Clickable with Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors group focus:outline-none"
+            >
+              {currentAdmin?.profile_image ? (
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors">
+                  <Image
+                    src={`http://localhost:5000${currentAdmin.profile_image}`}
+                    alt={currentAdmin.first_name || currentAdmin.username || "Admin"}
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+              <div className="flex flex-col items-start">
+                <span className="font-semibold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">
+                  {currentAdmin?.full_name?.split(' ')[0] || currentAdmin?.username || "Admin"}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {currentAdmin?.role === 'superadmin' ? 'Super Admin' : 'Administrator'}
+                </span>
+              </div>
+              <svg className={`w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Dropdown Menu */}
+            {isOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 py-1 z-50 animate-in fade-in zoom-in duration-200">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Signed in as</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                    {currentAdmin?.full_name || "Admin"}
+                  </p>
+                </div>
+
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      router.push("/portal/admin/profile");
+                      setIsOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    My Profile
+                  </button>
+                </div>
+
+                <div className="border-t border-gray-100 dark:border-gray-700 py-1">
+                  <button
+                    onClick={() => {
+                      // Implement logout logic here
+                      console.log("Logout clicked");
+                      setIsOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

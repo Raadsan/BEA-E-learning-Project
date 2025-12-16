@@ -4,11 +4,94 @@ import { useState } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useGetIeltsToeflStudentsQuery } from "@/redux/api/ieltsToeflApi";
 
 export default function IELTSTOEFLStudentsPage() {
   const { isDark } = useDarkMode();
-  const { data: ieltsStudents, isLoading, isError, error } = useGetIeltsToeflStudentsQuery();
+
+  // Sample data - Replace with actual API call when backend is ready
+  // This should come from a separate IELTS/TOEFL registrations table
+  const [ieltsStudents] = useState([
+    {
+      id: 1,
+      firstName: "Ahmed",
+      lastName: "Hassan",
+      email: "ahmed.hassan@example.com",
+      phone: "+252 61 1234567",
+      age: 25,
+      gender: "Male",
+      country: "Somalia",
+      city: "Mogadishu",
+      examType: "IELTS",
+      verificationMethod: "Certificate",
+      certificateInstitution: "British Council",
+      certificateDate: "2023-06-15",
+      certificateDocument: "certificate_ahmed.pdf",
+      examBookingDate: null,
+      examBookingTime: null,
+      registrationDate: "2024-02-10",
+      status: "Verified"
+    },
+    {
+      id: 2,
+      firstName: "Fatima",
+      lastName: "Ali",
+      email: "fatima.ali@example.com",
+      phone: "+252 61 2345678",
+      age: 22,
+      gender: "Female",
+      country: "Somalia",
+      city: "Hargeisa",
+      examType: "TOEFL",
+      verificationMethod: "Exam Booking",
+      certificateInstitution: null,
+      certificateDate: null,
+      certificateDocument: null,
+      examBookingDate: "2024-03-15",
+      examBookingTime: "10:00 AM",
+      registrationDate: "2024-02-12",
+      status: "Pending Exam"
+    },
+    {
+      id: 3,
+      firstName: "Mohamed",
+      lastName: "Ibrahim",
+      email: "mohamed.ibrahim@example.com",
+      phone: "+252 61 3456789",
+      age: 28,
+      gender: "Male",
+      country: "Somalia",
+      city: "Kismayo",
+      examType: "IELTS",
+      verificationMethod: "Certificate",
+      certificateInstitution: "IDP Education",
+      certificateDate: "2023-12-20",
+      certificateDocument: "certificate_mohamed.pdf",
+      examBookingDate: null,
+      examBookingTime: null,
+      registrationDate: "2024-02-15",
+      status: "Verified"
+    },
+    {
+      id: 4,
+      firstName: "Aisha",
+      lastName: "Mohamed",
+      email: "aisha.mohamed@example.com",
+      phone: "+252 61 4567890",
+      age: 24,
+      gender: "Female",
+      country: "Somalia",
+      city: "Bosaso",
+      examType: "IELTS",
+      verificationMethod: "Exam Booking",
+      certificateInstitution: null,
+      certificateDate: null,
+      certificateDocument: null,
+      examBookingDate: "2024-03-20",
+      examBookingTime: "02:00 PM",
+      registrationDate: "2024-02-18",
+      status: "Pending Exam"
+    },
+  ]);
 
   const columns = [
     {
@@ -16,7 +99,7 @@ export default function IELTSTOEFLStudentsPage() {
       label: "Full Name",
       render: (row) => (
         <span className="font-medium text-gray-900 dark:text-white">
-          {`${row.first_name} ${row.last_name}`}
+          {`${row.firstName} ${row.lastName}`}
         </span>
       ),
     },
@@ -53,32 +136,32 @@ export default function IELTSTOEFLStudentsPage() {
       label: "Location",
       render: (row) => (
         <div className="text-sm">
-          <div className="font-medium text-gray-900 dark:text-white">{row.residency_city}</div>
-          <div className="text-gray-500 dark:text-gray-400 text-xs">{row.residency_country}</div>
+          <div className="font-medium text-gray-900 dark:text-white">{row.city}</div>
+          <div className="text-gray-500 dark:text-gray-400 text-xs">{row.country}</div>
         </div>
       ),
     },
     {
-      key: "exam_type",
+      key: "examType",
       label: "Exam Type",
       render: (row) => (
-        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.exam_type === "IELTS"
-          ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-          : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.examType === "IELTS"
+            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+            : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
           }`}>
-          {row.exam_type}
+          {row.examType}
         </span>
       ),
     },
     {
-      key: "verification_method",
+      key: "verificationMethod",
       label: "Verification Method",
       render: (row) => (
-        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.verification_method === "Certificate"
-          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.verificationMethod === "Certificate"
+            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
           }`}>
-          {row.verification_method}
+          {row.verificationMethod === "Certificate" ? "Certificate" : "Exam Booking"}
         </span>
       ),
     },
@@ -86,11 +169,11 @@ export default function IELTSTOEFLStudentsPage() {
       key: "certificateInfo",
       label: "Certificate Details",
       render: (row) => {
-        if (row.verification_method === "Certificate") {
+        if (row.verificationMethod === "Certificate") {
           return (
             <div className="text-sm space-y-1">
-              <div className="font-semibold text-gray-900 dark:text-white">{row.certificate_institution || "-"}</div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs">{row.certificate_date || "-"}</div>
+              <div className="font-semibold text-gray-900 dark:text-white">{row.certificateInstitution || "-"}</div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs">{row.certificateDate || "-"}</div>
             </div>
           );
         }
@@ -101,11 +184,11 @@ export default function IELTSTOEFLStudentsPage() {
       key: "examBooking",
       label: "Exam Booking",
       render: (row) => {
-        if (row.verification_method === "Exam Booking") {
+        if (row.verificationMethod === "Exam Booking") {
           return (
             <div className="text-sm space-y-1">
-              <div className="font-semibold text-gray-900 dark:text-white">{row.exam_booking_date || "-"}</div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs">{row.exam_booking_time || "-"}</div>
+              <div className="font-semibold text-gray-900 dark:text-white">{row.examBookingDate || "-"}</div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs">{row.examBookingTime || "-"}</div>
             </div>
           );
         }
@@ -120,7 +203,6 @@ export default function IELTSTOEFLStudentsPage() {
           "Verified": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
           "Pending Exam": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
           "Pending Review": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-          "Pending": "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
         };
         return (
           <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[row.status] || "bg-gray-100 text-gray-800"}`}>
@@ -130,11 +212,11 @@ export default function IELTSTOEFLStudentsPage() {
       },
     },
     {
-      key: "registration_date",
+      key: "registrationDate",
       label: "Registration Date",
       render: (row) => {
-        if (!row.registration_date) return <span className="text-gray-400 dark:text-gray-500">-</span>;
-        const date = new Date(row.registration_date);
+        if (!row.registrationDate) return <span className="text-gray-400 dark:text-gray-500">-</span>;
+        const date = new Date(row.registrationDate);
         return (
           <span className="text-gray-700 dark:text-gray-300">
             {date.toLocaleDateString('en-US', {
@@ -160,7 +242,7 @@ export default function IELTSTOEFLStudentsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
           </button>
-          {row.verification_method === "Certificate" && row.certificate_document && (
+          {row.verificationMethod === "Certificate" && row.certificateDocument && (
             <button
               className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20"
               title="View Certificate"
@@ -170,7 +252,7 @@ export default function IELTSTOEFLStudentsPage() {
               </svg>
             </button>
           )}
-          {row.verification_method === "Exam Booking" && (
+          {row.verificationMethod === "Exam Booking" && (
             <button
               className="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 transition-colors p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20"
               title="View Exam Details"
@@ -196,29 +278,20 @@ export default function IELTSTOEFLStudentsPage() {
   return (
     <>
       <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 pt-20 transition-colors">
+      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
         <div className="w-full px-8 py-6">
-          {(isLoading) ? (
-            <div className="text-center py-10">Loading...</div>
-          ) : isError ? (
-            <div className="text-center py-10 text-red-500">Error loading data</div>
-          ) : (
-            !ieltsStudents || ieltsStudents.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-gray-600 dark:text-gray-400 text-lg">IELTS/TOEFL students not registered</p>
-              </div>
-            ) : (
-              <DataTable
-                title="IELTS / TOEFL Students"
-                columns={columns}
-                data={ieltsStudents}
-                showAddButton={false}
-              />
-            )
-          )}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">IELTS / TOEFL Students</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage students registered for IELTS and TOEFL exam preparation programs</p>
+          </div>
+          <DataTable
+            title=""
+            columns={columns}
+            data={ieltsStudents}
+            showAddButton={false}
+          />
         </div>
       </main>
     </>
   );
 }
-

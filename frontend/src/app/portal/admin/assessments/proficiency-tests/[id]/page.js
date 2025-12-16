@@ -74,7 +74,7 @@ export default function ViewProficiencyTestPage() {
     return (
         <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <AdminHeader />
-            <main className="flex-1 overflow-y-auto mt-6">
+            <main className="flex-1 overflow-y-auto mt-6 pt-20">
                 <div className="w-full px-8 py-6 max-w-6xl mx-auto">
                     {/* Header Section */}
                     <div className="mb-6">

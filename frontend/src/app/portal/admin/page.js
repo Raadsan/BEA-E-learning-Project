@@ -73,7 +73,7 @@ export default function AdminDashboard() {
       <AdminHeader />
 
       {/* Dashboard Content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
+      <main className="flex-1 overflow-y-auto bg-gray-50 pt-20">
         <div className="w-full px-8 py-6">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Dashboard Overview</h1>
 
