@@ -167,7 +167,7 @@ export default function UsersPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#03002e] mt-6">
-          <div className="w-full px-6 py-6">
+          <div className="w-full px-8 py-6">
             <div className="flex items-center justify-center h-64">
               <div className="text-gray-600 dark:text-gray-400">Loading users...</div>
             </div>
@@ -182,7 +182,7 @@ export default function UsersPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#03002e] mt-6">
-          <div className="w-full px-6 py-6">
+          <div className="w-full px-8 py-6">
             <div className="flex items-center justify-center h-64">
               <div className="text-red-600 dark:text-red-400">
                 Error loading users: {error?.data?.error || error?.message || "Unknown error"}
@@ -198,7 +198,7 @@ export default function UsersPage() {
     <>
       <AdminHeader />
       <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#03002e] mt-20">
-        <div className="w-full px-6 py-6">
+        <div className="w-full px-8 py-6">
           <DataTable
             title="Users Management"
             columns={columns}

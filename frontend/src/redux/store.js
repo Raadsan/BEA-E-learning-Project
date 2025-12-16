@@ -11,6 +11,7 @@ import { userApi } from "../redux/api/userApi.js";
 import { attendanceApi } from "../redux/api/attendanceApi.js";
 import { ieltsToeflApi } from "../redux/api/ieltsToeflApi.js";
 import { placementTestApi } from "../redux/api/placementTestApi.js";
+import { proficiencyTestApi } from "../redux/api/proficiencyTestApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ export const store = configureStore({
     [attendanceApi.reducerPath]: attendanceApi.reducer,
     [ieltsToeflApi.reducerPath]: ieltsToeflApi.reducer,
     [placementTestApi.reducerPath]: placementTestApi.reducer,
+    [proficiencyTestApi.reducerPath]: proficiencyTestApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -40,7 +42,8 @@ export const store = configureStore({
       userApi.middleware,
       attendanceApi.middleware,
       ieltsToeflApi.middleware,
-      placementTestApi.middleware
+      placementTestApi.middleware,
+      proficiencyTestApi.middleware
     ),
 });
 

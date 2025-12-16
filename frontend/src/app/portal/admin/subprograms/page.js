@@ -188,7 +188,7 @@ export default function SubprogramsPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
+          <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-gray-600 dark:text-gray-400">Loading subprograms...</p>
             </div>
@@ -203,7 +203,7 @@ export default function SubprogramsPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
+          <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-red-600 dark:text-red-400">Error loading subprograms: {error?.data?.error || "Unknown error"}</p>
             </div>
