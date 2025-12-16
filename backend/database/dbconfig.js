@@ -15,6 +15,11 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
+// Disable ONLY_FULL_GROUP_BY to prevent strict mode errors
+db.on('connection', function (connection) {
+  connection.query('SET sql_mode=(SELECT REPLACE(@@sql_mode,"ONLY_FULL_GROUP_BY",""))');
+});
+
 // Test the connection
 db.getConnection((err, connection) => {
   if (err) {

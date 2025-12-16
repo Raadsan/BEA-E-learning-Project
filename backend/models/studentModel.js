@@ -222,3 +222,14 @@ export const rejectStudentById = async (id) => {
   );
   return result.affectedRows;
 };
+
+// UPDATE student program name (Sync function)
+export const updateStudentProgramName = async (oldName, newName) => {
+  if (!oldName || !newName) return 0;
+
+  const [result] = await dbp.query(
+    "UPDATE students SET chosen_program = ? WHERE chosen_program = ?",
+    [newName, oldName]
+  );
+  return result.affectedRows;
+};

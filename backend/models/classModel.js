@@ -20,6 +20,7 @@ export const getAllClasses = async () => {
     `SELECT cl.*, 
             t.full_name as teacher_name,
             s.subprogram_name,
+            s.program_id,
             p.title as program_name
      FROM classes cl 
      LEFT JOIN teachers t ON cl.teacher_id = t.id 

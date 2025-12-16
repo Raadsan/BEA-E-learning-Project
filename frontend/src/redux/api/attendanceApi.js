@@ -21,6 +21,13 @@ export const attendanceApi = createApi({
                 { type: "Attendance", id: `${classId}-${date}` },
             ],
         }),
+        getAttendanceStats: builder.query({
+            query: (params) => ({
+                url: "/stats",
+                params, // { class_id, program_id, timeFrame }
+            }),
+            providesTags: ["Attendance"],
+        }),
         saveAttendance: builder.mutation({
             query: (body) => ({
                 url: "/",
@@ -34,4 +41,4 @@ export const attendanceApi = createApi({
     }),
 });
 
-export const { useGetAttendanceQuery, useSaveAttendanceMutation } = attendanceApi;
+export const { useGetAttendanceQuery, useSaveAttendanceMutation, useGetAttendanceStatsQuery } = attendanceApi;

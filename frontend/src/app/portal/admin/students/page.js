@@ -7,6 +7,7 @@ import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
+import { useGetIeltsToeflStudentsQuery, useDeleteIeltsToeflStudentMutation, useUpdateIeltsToeflStudentMutation, useRejectIeltsToeflStudentMutation } from "@/redux/api/ieltsToeflApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 
@@ -22,14 +23,30 @@ export default function StudentsPage() {
   const [selectedClassId, setSelectedClassId] = useState("");
 
   const { data: backendStudents, isLoading, isError, error, refetch } = useGetStudentsQuery();
+  const { data: ieltsStudents = [], isLoading: isIeltsLoading } = useGetIeltsToeflStudentsQuery();
   const { data: programs = [] } = useGetProgramsQuery();
   const { data: classes = [] } = useGetClassesQuery();
 
   const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
   const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
   const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentMutation();
+  const [deleteIeltsStudent, { isLoading: isDeletingIelts }] = useDeleteIeltsToeflStudentMutation();
+  const [updateIeltsStudent, { isLoading: isUpdatingIelts }] = useUpdateIeltsToeflStudentMutation();
+  const [rejectIeltsStudent, { isLoading: isRejectingIelts }] = useRejectIeltsToeflStudentMutation();
 
-  const students = backendStudents || [];
+  const students = [
+    ...(backendStudents || []).map(s => ({ ...s, type: 'regular' })),
+    ...ieltsStudents.map(s => ({
+      ...s,
+      full_name: `${s.first_name} ${s.last_name}`,
+      chosen_program: s.exam_type,
+      approval_status: s.status?.toLowerCase() || 'pending',
+      id: `ielts_${s.id}`,
+      original_id: s.id,
+      type: 'ielts',
+      class_name: s.class_id ? classes.find(c => c.id == s.class_id)?.class_name : null
+    }))
+  ];
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -113,10 +130,20 @@ export default function StudentsPage() {
   const submitAssignClass = async () => {
     if (!assigningStudent) return;
     try {
-      await updateStudent({
-        id: assigningStudent.id,
-        class_id: selectedClassId || null
-      }).unwrap();
+      if (String(assigningStudent.id).startsWith("ielts_")) {
+        // Handle IELTS Class Assignment
+        const originalId = assigningStudent.original_id || assigningStudent.id.replace("ielts_", "");
+        await updateIeltsStudent({
+          id: originalId,
+          class_id: selectedClassId || null
+        }).unwrap();
+      } else {
+        // Handle Regular Class Assignment
+        await updateStudent({
+          id: assigningStudent.id,
+          class_id: selectedClassId || null
+        }).unwrap();
+      }
       showToast("Class assigned successfully!", "success");
       handleCloseAssignClassModal();
     } catch (error) {
@@ -129,7 +156,12 @@ export default function StudentsPage() {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this student?")) {
       try {
-        await deleteStudent(id).unwrap();
+        if (String(id).startsWith("ielts_")) {
+          const originalId = id.replace("ielts_", "");
+          await deleteIeltsStudent(originalId).unwrap();
+        } else {
+          await deleteStudent(id).unwrap();
+        }
         showToast("Student deleted successfully!", "success");
       } catch (error) {
         console.error("Failed to delete student:", error);
@@ -196,7 +228,28 @@ export default function StudentsPage() {
       }
 
       if (editingStudent) {
-        await updateStudent({ id: editingStudent.id, ...submitData }).unwrap();
+        if (String(editingStudent.id).startsWith("ielts_")) {
+          // Handle IELTS Student Update
+          const nameParts = formData.full_name.trim().split(" ");
+          const lastName = nameParts.length > 1 ? nameParts.pop() : "";
+          const firstName = nameParts.join(" ");
+
+          await updateIeltsStudent({
+            id: editingStudent.original_id,
+            first_name: firstName,
+            last_name: lastName,
+            email: formData.email,
+            phone: formData.phone,
+            age: submitData.age,
+            residency_country: formData.residency_country,
+            residency_city: formData.residency_city,
+            exam_type: formData.chosen_program, // Map back to exam_type
+            // Parent info if needed, but keeping it simple for now as per schema knowledge
+          }).unwrap();
+        } else {
+          // Regular Student Update
+          await updateStudent({ id: editingStudent.id, ...submitData }).unwrap();
+        }
         showToast("Student updated successfully!", "success");
       } else {
         if (!submitData.password || submitData.password.trim() === "") {
@@ -222,18 +275,33 @@ export default function StudentsPage() {
   const handleApprove = async (student) => {
     if (!confirm("Are you sure you want to approve this student?")) return;
     try {
-      await approveStudent(student.id).unwrap();
-      showToast("Student approved successfully! Please assign a class.", "success");
-      handleAssignClass(student);
+      if (student.type === 'ielts') {
+        await updateIeltsStudent({ id: student.original_id, status: 'approved' }).unwrap();
+        showToast("IELTS Student approved successfully! Please assign a class.", "success");
+        handleAssignClass(student);
+      } else {
+        await approveStudent(student.id).unwrap();
+        showToast("Student approved successfully! Please assign a class.", "success");
+        handleAssignClass(student);
+      }
     } catch (error) {
       showToast(error?.data?.error || "Failed to approve student.", "error");
     }
   };
 
   const handleReject = async (id) => {
+    // For regular students 'id' is passed directly. For generic handler, we might need the row object if ID is prefixed.
+    // However, looking at usage: handleReject(row.id).
+    // If row.id is 'ielts_123', we need to handle it.
+
     if (!confirm("Are you sure you want to reject this student?")) return;
     try {
-      await rejectStudent(id).unwrap();
+      if (String(id).startsWith("ielts_")) {
+        const originalId = id.replace("ielts_", "");
+        await rejectIeltsStudent(originalId).unwrap();
+      } else {
+        await rejectStudent(id).unwrap();
+      }
       showToast("Student rejected successfully!", "success");
     } catch (error) {
       showToast(error?.data?.error || "Failed to reject student.", "error");
@@ -346,11 +414,12 @@ export default function StudentsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </button>
+
             <button
               onClick={() => handleDelete(row.id)}
               className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
               title="Delete"
-              disabled={isDeleting}
+              disabled={isDeleting || isDeletingIelts}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

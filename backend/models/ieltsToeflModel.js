@@ -57,6 +57,15 @@ export const updateStudent = async (id, data) => {
     return result.affectedRows;
 };
 
+// Reject Student (set status to rejected and clear class_id)
+export const rejectStudent = async (id) => {
+    const [result] = await dbp.query(
+        "UPDATE IELTSTOEFL SET status = 'rejected', class_id = NULL WHERE id = ?",
+        [id]
+    );
+    return result.affectedRows;
+};
+
 // Delete Student
 export const deleteStudent = async (id) => {
     const [result] = await dbp.query("DELETE FROM IELTSTOEFL WHERE id = ?", [id]);
