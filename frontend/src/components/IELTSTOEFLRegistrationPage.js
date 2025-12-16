@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import { useRouter } from "next/navigation";
 import { useCreateIeltsToeflStudentMutation } from "@/redux/api/ieltsToeflApi";
+import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useToast, Toast } from "@/components/Toast"; // Import Toast component and hook
 
 // Countries data for dynamic city selection
@@ -22,6 +23,7 @@ export default function IELTSTOEFLRegistrationPage() {
   const router = useRouter();
   const [cities, setCities] = useState([]);
   const [createIeltsStudent, { isLoading }] = useCreateIeltsToeflStudentMutation();
+  const { data: programsData, isLoading: programsLoading } = useGetProgramsQuery();
   const { toast, showToast, hideToast } = useToast();
 
   // Form state
@@ -36,7 +38,7 @@ export default function IELTSTOEFLRegistrationPage() {
     gender: '',
     country: '',
     city: '',
-    chosen_program: 'IELTS & TOEFL', // Default value
+    chosen_program: '', // Will be set to first program from database
     examType: '',
     hasCertificate: '',
     certificateInstitution: '',
@@ -56,6 +58,16 @@ export default function IELTSTOEFLRegistrationPage() {
       setCities([]);
     }
   }, [formData.country]);
+
+  // Set default program when programs are loaded
+  useEffect(() => {
+    if (programsData?.programs && programsData.programs.length > 0 && !formData.chosen_program) {
+      // Find IELTS & TOEFL program or use first program
+      const ieltsProgram = programsData.programs.find(p => p.title === 'IELTS & TOEFL');
+      const defaultProgram = ieltsProgram || programsData.programs[0];
+      setFormData(prev => ({ ...prev, chosen_program: defaultProgram.title }));
+    }
+  }, [programsData, formData.chosen_program]);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
