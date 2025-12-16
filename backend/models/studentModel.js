@@ -1,5 +1,6 @@
 // models/studentModel.js
 import db from "../database/dbconfig.js";
+import bcrypt from "bcryptjs";
 
 const dbp = db.promise();
 
@@ -19,17 +20,17 @@ export const createStudent = async ({
   parent_phone,
   parent_relation,
   parent_res_county,
-  parent_res_city,
-  class_id
+  parent_res_city
 }) => {
-  // Store password as plain text (no encryption)
+  // Hash password
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const [result] = await dbp.query(
     `INSERT INTO students (
       full_name, email, phone, age, residency_country, residency_city,
       chosen_program, chosen_subprogram, password, parent_name, parent_email, parent_phone,
-      parent_relation, parent_res_county, parent_res_city, approval_status, class_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      parent_relation, parent_res_county, parent_res_city
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       full_name,
       email,
@@ -39,15 +40,13 @@ export const createStudent = async ({
       residency_city || null,
       chosen_program || null,
       chosen_subprogram || null,
-      password,
+      hashedPassword,
       parent_name || null,
       parent_email || null,
       parent_phone || null,
       parent_relation || null,
       parent_res_county || null,
-      parent_res_city || null,
-      'pending', // Default approval status
-      class_id || null
+      parent_res_city || null
     ]
   );
 
@@ -59,10 +58,7 @@ export const createStudent = async ({
 export const getAllStudents = async () => {
   try {
     const [rows] = await dbp.query(
-      `SELECT s.*, c.class_name 
-       FROM students s 
-       LEFT JOIN classes c ON s.class_id = c.id 
-       ORDER BY s.created_at DESC`
+      "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students ORDER BY created_at DESC"
     );
     return rows;
   } catch (error) {
@@ -72,13 +68,9 @@ export const getAllStudents = async () => {
 };
 
 // GET student by ID
-// GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    `SELECT s.*, c.class_name 
-     FROM students s 
-     LEFT JOIN classes c ON s.class_id = c.id 
-     WHERE s.id = ?`,
+    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students WHERE id = ?",
     [id]
   );
   return rows[0] || null;
@@ -109,9 +101,7 @@ export const updateStudentById = async (id, {
   parent_phone,
   parent_relation,
   parent_res_county,
-  parent_res_city,
-  approval_status,
-  class_id
+  parent_res_city
 }) => {
   const updates = [];
   const values = [];
@@ -149,9 +139,9 @@ export const updateStudentById = async (id, {
     values.push(chosen_subprogram);
   }
   if (password !== undefined && password.trim() !== "") {
-    // Store password as plain text (no encryption)
+    const hashedPassword = await bcrypt.hash(password, 10);
     updates.push("password = ?");
-    values.push(password);
+    values.push(hashedPassword);
   }
   if (parent_name !== undefined) {
     updates.push("parent_name = ?");
@@ -177,14 +167,6 @@ export const updateStudentById = async (id, {
     updates.push("parent_res_city = ?");
     values.push(parent_res_city);
   }
-  if (approval_status !== undefined) {
-    updates.push("approval_status = ?");
-    values.push(approval_status);
-  }
-  if (class_id !== undefined) {
-    updates.push("class_id = ?");
-    values.push(class_id);
-  }
 
   if (updates.length === 0) {
     return 0;
@@ -202,23 +184,5 @@ export const updateStudentById = async (id, {
 // DELETE student
 export const deleteStudentById = async (id) => {
   const [result] = await dbp.query("DELETE FROM students WHERE id = ?", [id]);
-  return result.affectedRows;
-};
-
-// UPDATE approval status
-export const updateApprovalStatus = async (id, status) => {
-  const [result] = await dbp.query(
-    "UPDATE students SET approval_status = ? WHERE id = ?",
-    [status, id]
-  );
-  return result.affectedRows;
-};
-
-// REJECT student (sets status to rejected and clears class_id)
-export const rejectStudentById = async (id) => {
-  const [result] = await dbp.query(
-    "UPDATE students SET approval_status = 'rejected', class_id = NULL WHERE id = ?",
-    [id]
-  );
   return result.affectedRows;
 };

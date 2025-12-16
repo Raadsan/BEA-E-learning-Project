@@ -1,125 +1,94 @@
-// models/adminModel.js
 import db from "../database/dbconfig.js";
 
-const dbp = db.promise();
-
-// CREATE admin
-export const createAdmin = async ({
-  first_name,
-  last_name,
-  email,
-  phone,
-  password,
-  role = 'admin',
-  status = 'active'
-}) => {
-  // Store password as plain text (no encryption)
-  const adminPassword = password || (email.split('@')[0] + '@123'); // Use provided password or default
-
-
-
-  const [result] = await dbp.query(
-    `INSERT INTO admins (first_name, last_name, email, phone, password, role, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [first_name, last_name, email, phone || null, adminPassword, role, status]
-  );
-
-  const [newAdmin] = await dbp.query("SELECT id, first_name, last_name, email, phone, role, status, created_at, updated_at FROM admins WHERE id = ?", [result.insertId]);
-  return newAdmin[0];
+// Get admin by email
+export const getAdminByEmail = (email) => {
+    return new Promise((resolve, reject) => {
+        const query = "SELECT * FROM admins WHERE email = ?";
+        db.query(query, [email], (err, results) => {
+            if (err) return reject(err);
+            if (results.length === 0) return resolve(null);
+            resolve(results[0]);
+        });
+    });
 };
 
-// GET all admins
-export const getAllAdmins = async () => {
-  try {
-    const [rows] = await dbp.query(
-      "SELECT id, first_name, last_name, email, phone, password, role, status, created_at, updated_at FROM admins ORDER BY created_at DESC"
-    );
-    // Return passwords as plain text (no decryption needed)
-    return rows;
-  } catch (error) {
-    console.error("❌ Error in getAllAdmins:", error);
-    throw error;
-  }
+// Get admin by ID
+export const getAdminById = (id) => {
+    return new Promise((resolve, reject) => {
+        const query = "SELECT * FROM admins WHERE id = ?";
+        db.query(query, [id], (err, results) => {
+            if (err) return reject(err);
+            if (results.length === 0) return resolve(null);
+            resolve(results[0]);
+        });
+    });
 };
 
-// GET admin by ID
-export const getAdminById = async (id) => {
-  const [rows] = await dbp.query(
-    "SELECT id, first_name, last_name, email, phone, password, role, status, created_at, updated_at FROM admins WHERE id = ?",
-    [id]
-  );
-  // Return password as plain text (no decryption needed)
-  return rows[0] || null;
+// Get all admins
+export const getAllAdmins = () => {
+    return new Promise((resolve, reject) => {
+        const query = "SELECT id, first_name, last_name, username, email, phone, role, created_at FROM admins";
+        db.query(query, (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
 };
 
-// GET admin by email (for login - returns encrypted password for comparison)
-export const getAdminByEmail = async (email) => {
-  const [rows] = await dbp.query(
-    "SELECT id, first_name, last_name, email, phone, password, role, status, created_at, updated_at FROM admins WHERE email = ?",
-    [email]
-  );
-  // Don't decrypt here - we need encrypted password for login comparison
-  return rows[0] || null;
+// Create new admin
+export const createAdmin = (adminData) => {
+    return new Promise((resolve, reject) => {
+        const { first_name, last_name, username, email, password, phone, role } = adminData;
+        const query = "INSERT INTO admins (first_name, last_name, username, email, password, phone, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        db.query(query, [first_name, last_name, username, email, password, phone, role || 'admin'], (err, result) => {
+            if (err) return reject(err);
+            resolve({ id: result.insertId, ...adminData });
+        });
+    });
 };
 
-// UPDATE admin
-export const updateAdminById = async (id, {
-  first_name,
-  last_name,
-  email,
-  phone,
-  password,
-  role,
-  status
-}) => {
-  const updates = [];
-  const values = [];
+// Update admin
+export const updateAdminById = (id, adminData) => {
+    return new Promise((resolve, reject) => {
+        const { first_name, last_name, username, email, phone, bio } = adminData;
 
-  if (first_name !== undefined) {
-    updates.push("first_name = ?");
-    values.push(first_name);
-  }
-  if (last_name !== undefined) {
-    updates.push("last_name = ?");
-    values.push(last_name);
-  }
-  if (email !== undefined) {
-    updates.push("email = ?");
-    values.push(email);
-  }
-  if (phone !== undefined) {
-    updates.push("phone = ?");
-    values.push(phone || null);
-  }
-  if (password !== undefined && password.trim() !== "") {
-    // Store password as plain text (no encryption)
-    updates.push("password = ?");
-    values.push(password);
-  }
-  if (role !== undefined) {
-    updates.push("role = ?");
-    values.push(role);
-  }
-  if (status !== undefined) {
-    updates.push("status = ?");
-    values.push(status);
-  }
+        let query = "UPDATE admins SET first_name = ?, last_name = ?, username = ?, email = ?, phone = ?, bio = ?";
+        const params = [first_name, last_name, username, email, phone, bio];
 
-  if (updates.length === 0) {
-    return 0;
-  }
+        if (adminData.password) {
+            query += ", password = ?";
+            params.push(adminData.password);
+        }
 
-  values.push(id);
-  const [result] = await dbp.query(
-    `UPDATE admins SET ${updates.join(", ")} WHERE id = ?`,
-    values
-  );
+        if (adminData.profile_image) {
+            query += ", profile_image = ?";
+            params.push(adminData.profile_image);
+        }
 
-  return result.affectedRows;
+        query += " WHERE id = ?";
+        params.push(id);
+
+        console.log("[Admin Debug] Executing Update Query:", query);
+        console.log("[Admin Debug] Query Params:", params);
+
+        db.query(query, params, (err, result) => {
+            if (err) {
+                console.error("[Admin Debug] Update Error:", err);
+                return reject(err);
+            }
+            console.log("[Admin Debug] Update Result:", result);
+            resolve(result);
+        });
+    });
 };
 
-// DELETE admin
-export const deleteAdminById = async (id) => {
-  const [result] = await dbp.query("DELETE FROM admins WHERE id = ?", [id]);
-  return result.affectedRows;
+// Delete admin
+export const deleteAdminById = (id) => {
+    return new Promise((resolve, reject) => {
+        const query = "DELETE FROM admins WHERE id = ?";
+        db.query(query, [id], (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+        });
+    });
 };
-
