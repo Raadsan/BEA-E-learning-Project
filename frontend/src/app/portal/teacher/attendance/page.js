@@ -33,13 +33,9 @@ export default function AttendancePage() {
   const classes = classesData || [];
   const students = Array.isArray(studentsData) ? studentsData : (studentsData?.students || []);
 
-  // If we have a class selected, optionally filter students based on some heuristics.
-  // For now, show all students if no direct relation can be determined.
   // Only show students if a class is selected
   let filteredStudents = [];
   if (selectedClass) {
-    // Start with all students (or filter by class_id if you have that relation)
-    // currently using heuristic matching as per previous logic
     filteredStudents = students.filter((s) => {
       // If the student records actually have class_id, we should use that:
       if (s.class_id && selectedClass.id) {
@@ -49,7 +45,7 @@ export default function AttendancePage() {
       // Fallback to existing heuristic if class_id not reliable yet
       if (!s.chosen_subprogram && !s.chosen_program) return true;
       const classSubprogram = selectedClass.subprogram_name || selectedClass.program_name || null;
-      if (!classSubprogram) return true; // Show all if class has no subprogram?? Or maybe restrictive?
+      if (!classSubprogram) return true;
 
       const chosen = s.chosen_subprogram || s.chosen_program;
       if (!chosen) return true;
@@ -65,7 +61,6 @@ export default function AttendancePage() {
   useEffect(() => {
     if (attendanceData) {
       setAttendance(attendanceData);
-      // Check if all filtered students marked? (Might need to wait for filteredStudents calculation)
     } else {
       setAttendance({});
     }
@@ -83,7 +78,7 @@ export default function AttendancePage() {
 
   const handleMarkAll = (value) => {
     const updated = {};
-    filteredStudents.forEach((s) => (updated[s.id] = { hr1: value, hr2: value }));
+    filteredStudents.forEach((s) => (updated[s.id] = { hour1: value, hour2: value }));
     setAttendance(updated);
     setMarkAll(value);
   };
@@ -108,13 +103,21 @@ export default function AttendancePage() {
   };
 
 
-  // Calculate statistics based on at least one hour present? 
-  // Or maybe we treat "Present" as fully present (both hours) or partially?
-  // Let's count "Present" if at least one hour is marked for now, or maybe separate counts.
-  // User asked for checkboxes like hr1 and hr2.
-  const presentCount = Object.values(attendance).filter(s => s?.hr1 || s?.hr2).length;
-  const totalCount = filteredStudents.length;
-  const absentCount = totalCount - presentCount;
+  // Calculate statistics based on checked status (1 = present, 0 = absent)
+  // If either hour1 or hour2 is checked, we count as present? 
+  // Or should we count individual hours? 
+  // User says "absents = 0 present = 1". 
+  // Let's assume Student is Present if *any* hour is marked, for the card summary.
+  const presentCount = Object.values(attendance).filter(s => s?.hour1 || s?.hour2).length;
+  // Note: presentCount might include students not in filtered list if attendance has stale keys?
+  // Better to filter by filteredStudents list.
+
+  const actualPresentCount = filteredStudents.filter(s => {
+    const record = attendance[s.id];
+    return record?.hour1 || record?.hour2;
+  }).length;
+
+  const absentCount = filteredStudents.length - actualPresentCount;
 
   const columns = [
     {
@@ -136,30 +139,30 @@ export default function AttendancePage() {
       render: (row) => row.phone || 'N/A',
     },
     {
-      key: "hr1",
+      key: "hour1",
       label: "Hr 1",
       render: (row) => (
         <input
           type="checkbox"
-          checked={!!attendance[row.id]?.hr1}
+          checked={!!attendance[row.id]?.hour1}
           onChange={(e) => {
             e.stopPropagation();
-            handleToggle(row.id, "hr1");
+            handleToggle(row.id, "hour1");
           }}
           className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
         />
       ),
     },
     {
-      key: "hr2",
+      key: "hour2",
       label: "Hr 2",
       render: (row) => (
         <input
           type="checkbox"
-          checked={!!attendance[row.id]?.hr2}
+          checked={!!attendance[row.id]?.hour2}
           onChange={(e) => {
             e.stopPropagation();
-            handleToggle(row.id, "hr2");
+            handleToggle(row.id, "hour2");
           }}
           className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
         />
@@ -169,7 +172,7 @@ export default function AttendancePage() {
 
   useEffect(() => {
     // Update markAll when attendance changes (if all students have both hours marked)
-    const allPresent = filteredStudents.length > 0 && filteredStudents.every((s) => attendance[s.id]?.hr1 && attendance[s.id]?.hr2);
+    const allPresent = filteredStudents.length > 0 && filteredStudents.every((s) => attendance[s.id]?.hour1 && attendance[s.id]?.hour2);
     setMarkAll(allPresent);
   }, [attendance, filteredStudents]);
 
@@ -210,8 +213,9 @@ export default function AttendancePage() {
             <button
               className="px-4 py-2 rounded-lg bg-[#010080] text-white"
               onClick={handleSave}
+              disabled={isSaving}
             >
-              Save
+              {isSaving ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
@@ -233,7 +237,7 @@ export default function AttendancePage() {
             </div>
             <div className={`p-4 rounded-lg ${isDark ? 'bg-[#06102b] text-white' : 'bg-white text-gray-900'} shadow-sm`}>
               <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Present</div>
-              <div className="font-semibold text-green-600">{presentCount}</div>
+              <div className="font-semibold text-green-600">{actualPresentCount}</div>
             </div>
             <div className={`p-4 rounded-lg ${isDark ? 'bg-[#06102b] text-white' : 'bg-white text-gray-900'} shadow-sm`}>
               <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Absent</div>
