@@ -222,7 +222,7 @@ export default function ClassesPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
+          <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-gray-600 dark:text-gray-400">Loading classes...</p>
             </div>
@@ -237,7 +237,7 @@ export default function ClassesPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
+          <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-red-600 dark:text-red-400">Error loading classes: {error?.data?.error || "Unknown error"}</p>
             </div>

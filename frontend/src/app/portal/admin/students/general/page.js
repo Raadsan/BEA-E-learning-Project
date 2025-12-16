@@ -5,20 +5,22 @@ import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
+import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function GeneralStudentsPage() {
   const { isDark } = useDarkMode();
   const { data: allStudents, isLoading, isError, error } = useGetStudentsQuery();
   const { data: subprograms = [] } = useGetSubprogramsQuery();
+  const { data: classes = [] } = useGetClassesQuery();
 
   // Filter students who have chosen_subprogram (General Program students) AND are approved
+  // Filter students: Approved + NOT IELTS/TOEFL
   const generalStudents = useMemo(() => {
     if (!allStudents) return [];
     return allStudents.filter(student =>
-      student.chosen_subprogram &&
-      student.chosen_subprogram.trim() !== "" &&
-      student.approval_status === 'approved'
+      student.approval_status === 'approved' &&
+      student.chosen_program !== "IELTS & TOFEL Preparation"
     );
   }, [allStudents]);
 
@@ -66,9 +68,29 @@ export default function GeneralStudentsPage() {
     {
       key: "chosen_subprogram",
       label: "Subprogram",
+      render: (row) => {
+        // Try to get subprogram from student record first
+        let subId = row.chosen_subprogram;
+
+        // If not found, try to find it via assigned class
+        if (!subId && row.class_id) {
+          const cls = classes.find(c => c.id == row.class_id);
+          if (cls) subId = cls.subprogram_id;
+        }
+
+        return (
+          <span className="font-semibold text-blue-600 dark:text-blue-400">
+            {getSubprogramName(subId)}
+          </span>
+        );
+      },
+    },
+    {
+      key: "class_name",
+      label: "Class",
       render: (row) => (
         <span className="font-semibold text-blue-600 dark:text-blue-400">
-          {getSubprogramName(row.chosen_subprogram)}
+          {row.class_name || "Not assigned"}
         </span>
       ),
     },
@@ -117,7 +139,7 @@ export default function GeneralStudentsPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
+          <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading students...</p>
             </div>
@@ -132,7 +154,7 @@ export default function GeneralStudentsPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
+          <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-red-600 dark:text-red-400">Error loading students: {error?.data?.error || "Unknown error"}</p>
             </div>
@@ -145,7 +167,7 @@ export default function GeneralStudentsPage() {
   return (
     <>
       <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
+      <main className="flex-1 overflow-y-auto bg-gray-50 pt-20 transition-colors">
         <div className="w-full px-8 py-6">
           <DataTable
             title="General Program Students"

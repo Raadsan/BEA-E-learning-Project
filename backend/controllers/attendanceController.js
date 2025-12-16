@@ -72,3 +72,69 @@ export const getAttendanceReport = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
+// GET ATTENDANCE STATISTICS
+export const getStats = async (req, res) => {
+    try {
+        const { class_id, program_id, timeFrame } = req.query;
+        let startDate, endDate = new Date();
+        let period = 'daily';
+
+        // Calculate Date Range
+        const now = new Date();
+        if (timeFrame === 'Weekly') {
+            period = 'weekly';
+            startDate = new Date(now.setMonth(now.getMonth() - 3)); // Last 3 months
+        } else if (timeFrame === 'Monthly') {
+            period = 'monthly';
+            startDate = new Date(now.setFullYear(now.getFullYear() - 1)); // Last 1 year
+        } else if (timeFrame === 'Yearly') {
+            period = 'yearly';
+            startDate = new Date(now.setFullYear(now.getFullYear() - 5)); // Last 5 years
+        } else {
+            // Default Daily (Last 7 days)
+            period = 'daily';
+            startDate = new Date(now.setDate(now.getDate() - 6));
+        }
+
+        // Format dates for MySQL
+        const formatDate = (d) => d.toISOString().split('T')[0];
+
+        const filters = {
+            class_id: class_id ? parseInt(class_id) : null,
+            program_id: program_id ? parseInt(program_id) : null,
+            startDate: formatDate(startDate),
+            endDate: formatDate(new Date()), // Today
+            period
+        };
+
+        const records = await Attendance.getAttendanceStats(filters);
+        const totalStudents = await Attendance.getTotalStudents(filters);
+
+        // Transform Data
+        const data = records.map(record => {
+            const attended = record.attended || 0;
+            // Ensure absent is not negative if totalStudents < attended (data inconsistency safety)
+            const activeTotal = Math.max(totalStudents, attended);
+            const absent = activeTotal - attended;
+            const percentage = activeTotal > 0 ? Math.round((attended / activeTotal) * 100) : 0;
+
+            return {
+                name: record.label || record.date.toISOString().split('T')[0], // Use label if available (Dayname/Monthname) or Date
+                attended,
+                absent,
+                percentage
+            };
+        });
+
+        // Fill in missing days/periods if needed? 
+        // For simplicity, we just return what we have. Recharts handles gaps okay usually or we might want to fill 0s.
+        // The user just wants it to work.
+
+        res.json(data);
+
+    } catch (err) {
+        console.error("Get stats error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+};

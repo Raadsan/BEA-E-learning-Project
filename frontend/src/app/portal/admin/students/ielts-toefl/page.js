@@ -5,10 +5,21 @@ import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetIeltsToeflStudentsQuery } from "@/redux/api/ieltsToeflApi";
+import { useGetClassesQuery } from "@/redux/api/classApi";
 
 export default function IELTSTOEFLStudentsPage() {
   const { isDark } = useDarkMode();
   const { data: ieltsStudents, isLoading, isError, error } = useGetIeltsToeflStudentsQuery();
+  const { data: classes = [] } = useGetClassesQuery();
+
+  const filteredStudents = (ieltsStudents || []).filter(student =>
+    student.status?.toLowerCase() === 'approved' && student.class_id
+  );
+
+  const getClassName = (classId) => {
+    const cls = classes.find(c => c.id == classId);
+    return cls ? cls.class_name : 'Unknown';
+  };
 
   const columns = [
     {
@@ -67,6 +78,15 @@ export default function IELTSTOEFLStudentsPage() {
           : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
           }`}>
           {row.exam_type}
+        </span>
+      ),
+    },
+    {
+      key: "class_name",
+      label: "Class",
+      render: (row) => (
+        <span className="font-medium text-gray-900 dark:text-white">
+          {getClassName(row.class_id)}
         </span>
       ),
     },
@@ -196,26 +216,22 @@ export default function IELTSTOEFLStudentsPage() {
   return (
     <>
       <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
+      <main className="flex-1 overflow-y-auto bg-gray-50 pt-20 transition-colors">
         <div className="w-full px-8 py-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">IELTS / TOEFL Students</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage students registered for IELTS and TOEFL exam preparation programs</p>
-          </div>
           {(isLoading) ? (
             <div className="text-center py-10">Loading...</div>
           ) : isError ? (
             <div className="text-center py-10 text-red-500">Error loading data</div>
           ) : (
-            !ieltsStudents || ieltsStudents.length === 0 ? (
+            !filteredStudents || filteredStudents.length === 0 ? (
               <div className="text-center py-10">
-                <p className="text-gray-600 dark:text-gray-400 text-lg">IELTSTOEFL students not registered</p>
+                <p className="text-gray-600 dark:text-gray-400 text-lg">No active IELTS/TOEFL students assigned to classes</p>
               </div>
             ) : (
               <DataTable
-                title=""
+                title="IELTS / TOEFL Students"
                 columns={columns}
-                data={ieltsStudents}
+                data={filteredStudents}
                 showAddButton={false}
               />
             )

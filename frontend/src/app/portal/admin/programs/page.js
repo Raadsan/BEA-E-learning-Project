@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
 import { useGetProgramsQuery, useCreateProgramMutation, useUpdateProgramMutation, useDeleteProgramMutation } from "@/redux/api/programApi";
 import { useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
+import { studentApi } from "@/redux/api/studentApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import Image from "next/image";
 
 export default function ProgramsPage() {
   const { isDark } = useDarkMode();
+  const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubprogramsModalOpen, setIsSubprogramsModalOpen] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState(null);
@@ -152,6 +155,8 @@ export default function ProgramsPage() {
 
       if (editingProgram) {
         await updateProgram({ id: editingProgram.id, formData: submitFormData }).unwrap();
+        // Invalidate Students cache so the student table updates immediately without refresh
+        dispatch(studentApi.util.invalidateTags(["Students"]));
       } else {
         await createProgram(submitFormData).unwrap();
       }
@@ -233,8 +238,8 @@ export default function ProgramsPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
-          <div className="w-full px-6 py-6">
+        <main className="flex-1 overflow-y-auto bg-gray-50 pt-20">
+          <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-gray-600 dark:text-gray-400">Loading programs...</p>
             </div>
@@ -248,8 +253,8 @@ export default function ProgramsPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
-          <div className="w-full px-6 py-6">
+        <main className="flex-1 overflow-y-auto bg-gray-50 pt-20">
+          <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-red-600 dark:text-red-400">Error loading programs: {error?.data?.message || "Unknown error"}</p>
             </div>
@@ -263,7 +268,7 @@ export default function ProgramsPage() {
     <>
       <AdminHeader />
 
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-6">
+      <main className="flex-1 overflow-y-auto bg-gray-50 pt-20">
         <div className="w-full px-8 py-6">
           <DataTable
             title="Program Management"

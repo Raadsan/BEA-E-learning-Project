@@ -1,5 +1,6 @@
 // controllers/programController.js
 import * as Program from "../models/programModel.js";
+import * as Student from "../models/studentModel.js";
 import fs from "fs";
 import path from "path";
 
@@ -8,7 +9,7 @@ export const createProgram = async (req, res) => {
   try {
     // Process uploaded files
     const files = req.files || [];
-    
+
     // Main program image and video
     const imageFile = files.find(f => f.fieldname === 'image');
     const videoFile = files.find(f => f.fieldname === 'video');
@@ -17,7 +18,7 @@ export const createProgram = async (req, res) => {
 
     // Handle both JSON and multipart/form-data
     let title, description, status;
-    
+
     if (req.headers['content-type']?.includes('application/json')) {
       // JSON request
       ({ title, description, status } = req.body);
@@ -86,11 +87,11 @@ export const updateProgram = async (req, res) => {
 
     // Process uploaded files
     const files = req.files || [];
-    
+
     // Main program image and video
     const imageFile = files.find(f => f.fieldname === 'image');
     const videoFile = files.find(f => f.fieldname === 'video');
-    
+
     // DELETE OLD IMAGE IF NEW ONE COMES
     if (imageFile && existing.image) {
       const rel = existing.image.replace(/^[/\\]+/, "");
@@ -110,7 +111,7 @@ export const updateProgram = async (req, res) => {
 
     // Handle both JSON and multipart/form-data
     let title, description, status;
-    
+
     if (req.headers['content-type']?.includes('application/json')) {
       ({ title, description, status } = req.body);
     } else {
@@ -131,6 +132,11 @@ export const updateProgram = async (req, res) => {
       description,
       status
     });
+
+    // SYNC: If title changed, update all students who have this program chosen
+    if (title && title !== existing.title) {
+      await Student.updateStudentProgramName(existing.title, title);
+    }
 
     const updated = await Program.getProgramById(id);
     res.json({ message: "Updated", program: updated });

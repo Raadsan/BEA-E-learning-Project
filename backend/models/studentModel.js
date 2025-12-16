@@ -72,7 +72,6 @@ export const getAllStudents = async () => {
 };
 
 // GET student by ID
-// GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
     `SELECT s.*, c.class_name 
@@ -264,4 +263,15 @@ export const getStudentProgressByTeacher = async (teacherId) => {
       last_active: student.last_active || null
     };
   });
+};
+
+// UPDATE student program name (Sync function)
+export const updateStudentProgramName = async (oldName, newName) => {
+  if (!oldName || !newName) return 0;
+
+  const [result] = await dbp.query(
+    "UPDATE students SET chosen_program = ? WHERE chosen_program = ?",
+    [newName, oldName]
+  );
+  return result.affectedRows;
 };
