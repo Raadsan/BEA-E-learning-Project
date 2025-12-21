@@ -14,12 +14,10 @@ export default function GeneralStudentsPage() {
   const { data: subprograms = [] } = useGetSubprogramsQuery();
   const { data: classes = [] } = useGetClassesQuery();
 
-<<<<<<< HEAD
   // Filter students who have chosen_subprogram (General Program students)
   const generalStudents = useMemo(() => {
     if (!allStudents) return [];
     return allStudents.filter(student => student.chosen_subprogram && student.chosen_subprogram.trim() !== "");
-=======
   // Filter students who have chosen_subprogram (General Program students) AND are approved
   // Filter students: Approved + NOT IELTS/TOEFL
   const generalStudents = useMemo(() => {
@@ -28,7 +26,6 @@ export default function GeneralStudentsPage() {
       student.approval_status === 'approved' &&
       student.chosen_program !== "IELTS & TOFEL Preparation"
     );
->>>>>>> 0698b6e4dc03bf90092c002852d8be77b88e0a64
   }, [allStudents]);
 
   // Get subprogram name for display

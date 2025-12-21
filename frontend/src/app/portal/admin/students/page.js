@@ -18,6 +18,7 @@ export default function StudentsPage() {
   const [selectedProgramForSubprograms, setSelectedProgramForSubprograms] = useState(null);
   const [editingStudent, setEditingStudent] = useState(null);
   const [viewingStudent, setViewingStudent] = useState(null);
+  const [viewingPayments, setViewingPayments] = useState([]);
   const [assigningStudent, setAssigningStudent] = useState(null);
 
   const { data: backendStudents, isLoading, isError, error, refetch } = useGetStudentsQuery();
@@ -108,14 +109,30 @@ export default function StudentsPage() {
     setIsModalOpen(true);
   };
 
-  const handleView = (student) => {
+  const handleView = async (student) => {
     setViewingStudent(student);
     setIsViewModalOpen(true);
+
+    // Fetch payments for this student
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
+      const res = await fetch(`${baseUrl}/api/payments/student/${student.id}`);
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.success) {
+        setViewingPayments(json.payments || []);
+      } else {
+        setViewingPayments([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch payments for student', err);
+      setViewingPayments([]);
+    }
   };
 
   const handleCloseViewModal = () => {
     setIsViewModalOpen(false);
     setViewingStudent(null);
+    setViewingPayments([]);
   };
 
   const handleAssignSubprogram = (student) => {

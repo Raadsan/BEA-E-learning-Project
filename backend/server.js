@@ -17,6 +17,7 @@ import placementTestRoutes from "./routes/placementTestRoutes.js";
 import proficiencyTestRoutes from "./routes/proficiencyTestRoutes.js";
 import ieltsToeflRoutes from "./routes/ieltsToeflRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 const app = express();
 
@@ -75,6 +76,9 @@ app.use("/api/ielts-toefl", ieltsToeflRoutes);
 
 // ⬇️ Register Admin Routes
 app.use("/api/admins", adminRoutes);
+
+// ⬇️ Register Payment Routes (EVC / Bank - simple stub integration)
+app.use("/api/payments", paymentRoutes);
 
 // Server start
 const PORT = process.env.PORT || 5000;

@@ -2,177 +2,95 @@
 
 import { useState, useEffect } from "react";
 import TeacherHeader from "../TeacherHeader";
-import DataTable from "@/components/DataTable";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
-import { useGetAttendanceQuery, useSaveAttendanceMutation } from "@/redux/api/attendanceApi";
 import { useDarkMode } from "@/context/ThemeContext";
-import { Toast, useToast } from "@/components/Toast";
 
 export default function AttendancePage() {
   const { isDark } = useDarkMode();
-  const { toast, showToast, hideToast } = useToast();
-
   const { data: classesData = [], isLoading: classesLoading } = useGetClassesQuery();
   const { data: studentsData = [], isLoading: studentsLoading } = useGetStudentsQuery();
 
   const [selectedClass, setSelectedClass] = useState(null);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10)); // YYYY-MM-DD
-
-  // API Query for attendance
-  const { data: attendanceData, isLoading: attendanceLoading, refetch } = useGetAttendanceQuery(
-    { classId: selectedClass?.id, date },
-    { skip: !selectedClass?.id }
-  );
-
-  const [saveAttendance, { isLoading: isSaving }] = useSaveAttendanceMutation();
-
   const [attendance, setAttendance] = useState({});
   const [markAll, setMarkAll] = useState(false);
 
   const classes = classesData || [];
   const students = Array.isArray(studentsData) ? studentsData : (studentsData?.students || []);
 
-  // Only show students if a class is selected
-  let filteredStudents = [];
+  // If we have a class selected, optionally filter students based on some heuristics.
+  // For now, show all students if no direct relation can be determined.
+  let filteredStudents = students;
   if (selectedClass) {
-    filteredStudents = students.filter((s) => {
-      // If the student records actually have class_id, we should use that:
-      if (s.class_id && selectedClass.id) {
-        return String(s.class_id) === String(selectedClass.id);
-      }
-
-      // Fallback to existing heuristic if class_id not reliable yet
-      if (!s.chosen_subprogram && !s.chosen_program) return true;
-      const classSubprogram = selectedClass.subprogram_name || selectedClass.program_name || null;
-      if (!classSubprogram) return true;
-
-      const chosen = s.chosen_subprogram || s.chosen_program;
-      if (!chosen) return true;
-      if (typeof chosen === 'string') {
-        return chosen.toLowerCase().includes(String(classSubprogram).toLowerCase());
-      }
-      return true;
-    });
+    // Prefer to filter by program/subprogram name if present on class
+    const classSubprogram = selectedClass.subprogram_name || selectedClass.program_name || null;
+    if (classSubprogram) {
+      filteredStudents = students.filter((s) => {
+        if (!s.chosen_subprogram && !s.chosen_program) return true;
+        const chosen = s.chosen_subprogram || s.chosen_program;
+        if (!chosen) return true;
+        if (typeof chosen === 'string') {
+          // compare names
+          return chosen.toLowerCase().includes(String(classSubprogram).toLowerCase());
+        }
+        return true;
+      });
+    }
   }
 
-
-  // Sync local state with API data when it loads
   useEffect(() => {
-    if (attendanceData) {
-      setAttendance(attendanceData);
-    } else {
-      setAttendance({});
+    if (selectedClass) {
+      const key = `attendance:${selectedClass.id}:${date}`;
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setAttendance(parsed);
+          setMarkAll(Object.values(parsed).every(Boolean));
+          return;
+        } catch (e) {
+          // invalid json - ignore
+        }
+      }
     }
-  }, [attendanceData, selectedClass, date]);
+    // reset when class or date changes
+    setAttendance({});
+    setMarkAll(false);
+  }, [selectedClass, date]);
 
-  const handleToggle = (studentId, hour) => {
+  const handleToggle = (studentId) => {
     setAttendance((prev) => ({
       ...prev,
-      [studentId]: {
-        ...prev[studentId],
-        [hour]: !prev[studentId]?.[hour],
-      },
+      [studentId]: !prev[studentId],
     }));
   };
 
   const handleMarkAll = (value) => {
     const updated = {};
-    filteredStudents.forEach((s) => (updated[s.id] = { hour1: value, hour2: value }));
+    filteredStudents.forEach((s) => (updated[s.id] = value));
     setAttendance(updated);
     setMarkAll(value);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!selectedClass) {
       alert("Please select a class before saving attendance.");
       return;
     }
-
-    try {
-      await saveAttendance({
-        class_id: selectedClass.id,
-        date,
-        attendanceData: attendance
-      }).unwrap();
-      showToast("Attendance saved successfully!", "success");
-    } catch (error) {
-      console.error("Failed to save attendance:", error);
-      showToast("Failed to save attendance.", "error");
-    }
+    const key = `attendance:${selectedClass.id}:${date}`;
+    localStorage.setItem(key, JSON.stringify(attendance));
+    alert("Attendance saved locally.");
   };
 
 
-  // Calculate statistics based on checked status (1 = present, 0 = absent)
-  // If either hour1 or hour2 is checked, we count as present? 
-  // Or should we count individual hours? 
-  // User says "absents = 0 present = 1". 
-  // Let's assume Student is Present if *any* hour is marked, for the card summary.
-  const presentCount = Object.values(attendance).filter(s => s?.hour1 || s?.hour2).length;
-  // Note: presentCount might include students not in filtered list if attendance has stale keys?
-  // Better to filter by filteredStudents list.
-
-  const actualPresentCount = filteredStudents.filter(s => {
-    const record = attendance[s.id];
-    return record?.hour1 || record?.hour2;
-  }).length;
-
-  const absentCount = filteredStudents.length - actualPresentCount;
-
-  const columns = [
-    {
-      key: "id",
-      label: "#",
-      render: (_, index) => index + 1,
-    },
-    {
-      key: "full_name",
-      label: "Name",
-    },
-    {
-      key: "email",
-      label: "Email",
-    },
-    {
-      key: "phone",
-      label: "Phone",
-      render: (row) => row.phone || 'N/A',
-    },
-    {
-      key: "hour1",
-      label: "Hr 1",
-      render: (row) => (
-        <input
-          type="checkbox"
-          checked={!!attendance[row.id]?.hour1}
-          onChange={(e) => {
-            e.stopPropagation();
-            handleToggle(row.id, "hour1");
-          }}
-          className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-        />
-      ),
-    },
-    {
-      key: "hour2",
-      label: "Hr 2",
-      render: (row) => (
-        <input
-          type="checkbox"
-          checked={!!attendance[row.id]?.hour2}
-          onChange={(e) => {
-            e.stopPropagation();
-            handleToggle(row.id, "hour2");
-          }}
-          className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-        />
-      ),
-    },
-  ];
+  const presentCount = Object.values(attendance).filter(Boolean).length;
+  const totalCount = filteredStudents.length;
+  const absentCount = totalCount - presentCount;
 
   useEffect(() => {
-    // Update markAll when attendance changes (if all students have both hours marked)
-    const allPresent = filteredStudents.length > 0 && filteredStudents.every((s) => attendance[s.id]?.hour1 && attendance[s.id]?.hour2);
+    // Update markAll when attendance changes
+    const allPresent = filteredStudents.length > 0 && filteredStudents.every((s) => attendance[s.id]);
     setMarkAll(allPresent);
   }, [attendance, filteredStudents]);
 
@@ -213,21 +131,11 @@ export default function AttendancePage() {
             <button
               className="px-4 py-2 rounded-lg bg-[#010080] text-white"
               onClick={handleSave}
-              disabled={isSaving}
             >
-              {isSaving ? "Saving..." : "Save"}
+              Save
             </button>
           </div>
         </div>
-
-        {toast && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            onClose={hideToast}
-            duration={toast.duration}
-          />
-        )}
 
         <div className="mt-6">
           <div className="grid grid-cols-3 gap-4 mb-4">
@@ -237,7 +145,7 @@ export default function AttendancePage() {
             </div>
             <div className={`p-4 rounded-lg ${isDark ? 'bg-[#06102b] text-white' : 'bg-white text-gray-900'} shadow-sm`}>
               <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Present</div>
-              <div className="font-semibold text-green-600">{actualPresentCount}</div>
+              <div className="font-semibold text-green-600">{presentCount}</div>
             </div>
             <div className={`p-4 rounded-lg ${isDark ? 'bg-[#06102b] text-white' : 'bg-white text-gray-900'} shadow-sm`}>
               <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Absent</div>
@@ -245,12 +153,41 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          <DataTable
-            title="Student Attendance"
-            columns={columns}
-            data={filteredStudents}
-            showAddButton={false}
-          />
+          <div className={`rounded-lg ${isDark ? 'bg-[#06102b] text-white' : 'bg-white text-gray-900'} shadow overflow-hidden`}>
+            <table className="w-full table-auto">
+              <thead className={`${isDark ? 'bg-[#07203c]' : 'bg-gray-100'}`}>
+                <tr>
+                  <th className="px-4 py-2 text-left">#</th>
+                  <th className="px-4 py-2 text-left">Name</th>
+                  <th className="px-4 py-2 text-left">Email</th>
+                  <th className="px-4 py-2 text-left">Phone</th>
+                  <th className="px-4 py-2 text-left">Present</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredStudents.length === 0 && (
+                  <tr>
+                    <td className="px-4 py-6 text-center" colSpan={5}>No students found.</td>
+                  </tr>
+                )}
+                {filteredStudents.map((s, idx) => (
+                  <tr key={s.id} className="border-t">
+                    <td className="px-4 py-3">{idx + 1}</td>
+                    <td className="px-4 py-3">{s.full_name}</td>
+                    <td className="px-4 py-3">{s.email}</td>
+                    <td className="px-4 py-3">{s.phone || 'N/A'}</td>
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={!!attendance[s.id]}
+                        onChange={() => handleToggle(s.id)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

@@ -1,0 +1,208 @@
+[
+  {
+    "id": "WAAFI-1766316816304",
+    "method": "waafi",
+    "payerPhone": "614388477",
+    "programId": 26,
+    "amount": 50,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 14:33:35.89",
+      "responseId": "1766316812283",
+      "responseCode": "5206",
+      "errorCode": "E10205",
+      "responseMsg": "Payment Failed (Haraaga xisaabtaadu kuguma filna, mobile No: 252614388477)",
+      "params": {
+        "orderId": "63778164",
+        "description": "Haraaga xisaabtaadu kuguma filna, mobile No: 252614388477"
+      }
+    },
+    "createdAt": "2025-12-21T11:33:36.304Z"
+  },
+  {
+    "id": "WAAFI-1766317047734",
+    "method": "waafi",
+    "payerPhone": "614388477",
+    "programId": 26,
+    "amount": 50,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 14:37:27.342",
+      "responseId": "1766317043900",
+      "responseCode": "5206",
+      "errorCode": "E10205",
+      "responseMsg": "Payment Failed (Haraaga xisaabtaadu kuguma filna, mobile No: 252614388477)",
+      "params": {
+        "orderId": "63778363",
+        "description": "Haraaga xisaabtaadu kuguma filna, mobile No: 252614388477"
+      }
+    },
+    "createdAt": "2025-12-21T11:37:27.734Z"
+  },
+  {
+    "id": "WAAFI-1766317257510",
+    "method": "waafi",
+    "payerPhone": "0614388477",
+    "programId": 26,
+    "amount": 50,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 14:40:57.211",
+      "responseId": "1766317253552",
+      "responseCode": "5206",
+      "errorCode": "E10205",
+      "responseMsg": "Payment Failed (Haraaga xisaabtaadu kuguma filna, mobile No: 252614388477)",
+      "params": {
+        "orderId": "63778555",
+        "description": "Haraaga xisaabtaadu kuguma filna, mobile No: 252614388477"
+      }
+    },
+    "createdAt": "2025-12-21T11:40:57.510Z"
+  },
+  {
+    "id": "WAAFI-1766318035888",
+    "method": "waafi",
+    "payerPhone": "0614388477",
+    "programId": 26,
+    "amount": 0.1,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 14:53:55.478",
+      "responseId": "1766318031967",
+      "responseCode": "5206",
+      "errorCode": "E10205",
+      "responseMsg": "Payment Failed (Haraaga xisaabtaadu kuguma filna, mobile No: 252614388477)",
+      "params": {
+        "orderId": "63779147",
+        "description": "Haraaga xisaabtaadu kuguma filna, mobile No: 252614388477"
+      }
+    },
+    "createdAt": "2025-12-21T11:53:55.888Z"
+  },
+  {
+    "id": "WAAFI-1766318101728",
+    "method": "waafi",
+    "payerPhone": "0612112932",
+    "programId": 26,
+    "amount": 0.1,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 14:55:01.34",
+      "responseId": "1766318082423",
+      "responseCode": "5310",
+      "errorCode": "5310",
+      "responseMsg": "RCS_USER_REJECTED",
+      "params": {
+        "orderId": "63779174",
+        "description": "Customer rejected payment"
+      }
+    },
+    "createdAt": "2025-12-21T11:55:01.728Z"
+  },
+  {
+    "id": "WAAFI-1766318139105",
+    "method": "waafi",
+    "payerPhone": "0612112932",
+    "programId": 26,
+    "amount": 0.1,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 14:55:38.78",
+      "responseId": "1766318130725",
+      "responseCode": "5310",
+      "errorCode": "5310",
+      "responseMsg": "RCS_USER_REJECTED",
+      "params": {
+        "orderId": "63779190",
+        "description": "Customer rejected payment"
+      }
+    },
+    "createdAt": "2025-12-21T11:55:39.105Z"
+  },
+  {
+    "id": "WAAFI-1766318221639",
+    "method": "waafi",
+    "payerPhone": "0612112932",
+    "programId": 26,
+    "amount": 0.1,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 14:57:01.25",
+      "responseId": "1766318157847",
+      "responseCode": "5310",
+      "errorCode": "5310",
+      "responseMsg": "RCS_USER_REJECTED",
+      "params": {
+        "orderId": "63779206",
+        "description": "Customer rejected payment"
+      }
+    },
+    "createdAt": "2025-12-21T11:57:01.639Z"
+  },
+  {
+    "id": "WAAFI-1766318330386",
+    "method": "waafi",
+    "payerPhone": "0612112932",
+    "programId": 27,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 14:58:50.017",
+      "responseId": "1766318306602",
+      "responseCode": "5206",
+      "errorCode": "E10205",
+      "responseMsg": "Payment Failed (Nambarka Sirta ah waa Khalad)",
+      "params": {
+        "orderId": "63779331",
+        "description": "Nambarka Sirta ah waa Khalad"
+      }
+    },
+    "createdAt": "2025-12-21T11:58:50.386Z"
+  },
+  {
+    "id": "WAAFI-1766318398470",
+    "method": "waafi",
+    "payerPhone": "0612112932",
+    "programId": 27,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 14:59:58.152",
+      "responseId": "1766318383487",
+      "responseCode": "2001",
+      "errorCode": "0",
+      "responseMsg": "RCS_SUCCESS",
+      "params": {
+        "orderId": "21361355",
+        "accountNo": "061211****2932",
+        "accountType": "mwallet_account",
+        "state": "APPROVED",
+        "referenceId": "REF-1766318383487",
+        "transactionId": "63779404",
+        "issuerTransactionId": "28745796290",
+        "txAmount": "0.01"
+      }
+    },
+    "createdAt": "2025-12-21T11:59:58.470Z"
+  },
+  {
+    "id": "WAAFI-1766318475171",
+    "method": "waafi",
+    "payerPhone": "0612112932",
+    "programId": 27,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 15:01:14.843",
+      "responseId": "1766318411348",
+      "responseCode": "5310",
+      "errorCode": "5310",
+      "responseMsg": "RCS_USER_REJECTED",
+      "params": {
+        "orderId": "63779427",
+        "description": "Customer rejected payment"
+      }
+    },
+    "createdAt": "2025-12-21T12:01:15.171Z"
+  }
+]
