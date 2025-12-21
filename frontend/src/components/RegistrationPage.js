@@ -321,12 +321,12 @@ export default function RegistrationPage() {
 
           // Clear draft and redirect to welcome page
           localStorage.removeItem('registrationDraft');
-          router.push('/welcome');
+          router.push('/portal/student');
         } catch (loginError) {
           console.error('Auto-login failed:', loginError);
           // Still proceed to welcome page even if auto-login fails
           localStorage.removeItem('registrationDraft');
-          router.push('/welcome');
+          router.push('/portal/student');
         }
       } else {
         throw new Error(response.error || 'Failed to create student account');
