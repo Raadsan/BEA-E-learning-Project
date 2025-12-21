@@ -174,7 +174,7 @@ export default function CourseMaterialsPage() {
       <AdminHeader />
 
       <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
-        <div className="w-full px-8 py-6">
+        <div className="w-full px-8 py-20">
           <DataTable
             title="Course Materials (A1–C2)"
             columns={columns}

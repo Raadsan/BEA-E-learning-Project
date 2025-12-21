@@ -522,7 +522,7 @@ export default function AdminSidebar() {
                 </li>
 
                 {/* Assignments */}
-                <li>
+                {/* <li>
                   <button
                     onClick={() => toggleSubSection('assignments')}
                     className={`w-full flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm text-gray-700 hover:bg-gray-100 ${openSubSection === 'assignments' ? 'bg-gray-50' : ''}`}
@@ -563,10 +563,10 @@ export default function AdminSidebar() {
                       </li>
                     </ul>
                   )}
-                </li>
+                </li> */}
 
                 {/* Tests & Exams */}
-                <li>
+                {/* <li>
                   <button
                     onClick={() => toggleSubSection('exams')}
                     className={`w-full flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm text-gray-700 hover:bg-gray-100 ${openSubSection === 'exams' ? 'bg-gray-50' : ''}`}
@@ -591,7 +591,7 @@ export default function AdminSidebar() {
                       </li>
                     </ul>
                   )}
-                </li>
+                </li> */}
               </ul>
             )}
           </li>

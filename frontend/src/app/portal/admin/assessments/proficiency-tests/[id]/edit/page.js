@@ -171,7 +171,7 @@ export default function EditProficiencyTestPage() {
         <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <AdminHeader />
             <main className="flex-1 overflow-y-auto mt-6">
-                <div className="w-full px-8 py-6">
+                <div className="w-full px-8 py-6 pt-20">
                     {/* Header */}
                     <div className="mb-8 max-w-4xl mx-auto">
                         <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Edit Proficiency Test</h1>

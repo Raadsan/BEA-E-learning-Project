@@ -61,11 +61,14 @@ export default function IELTSTOEFLRegistrationPage() {
 
   // Set default program when programs are loaded
   useEffect(() => {
-    if (programsData?.programs && programsData.programs.length > 0 && !formData.chosen_program) {
-      // Find IELTS & TOEFL program or use first program
-      const ieltsProgram = programsData.programs.find(p => p.title === 'IELTS & TOEFL');
-      const defaultProgram = ieltsProgram || programsData.programs[0];
-      setFormData(prev => ({ ...prev, chosen_program: defaultProgram.title }));
+    if (programsData && Array.isArray(programsData) && programsData.length > 0) {
+      // Robustly find the IELTS program (case-insensitive)
+      const ieltsProgram = programsData.find(p => p.title.toLowerCase().includes('ielts'));
+
+      // If found and not currently set, or set to something else, force it
+      if (ieltsProgram && formData.chosen_program !== ieltsProgram.title) {
+        setFormData(prev => ({ ...prev, chosen_program: ieltsProgram.title }));
+      }
     }
   }, [programsData, formData.chosen_program]);
 
@@ -294,11 +297,24 @@ export default function IELTSTOEFLRegistrationPage() {
                 <div>
                   <label className={`block text-sm font-semibold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Select Program</label>
                   <div className="relative">
-                    <select name="chosen_program" value={formData.chosen_program} onChange={handleChange} className={`w-full px-4 py-3 pr-10 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm appearance-none cursor-pointer ${isDarkMode ? 'bg-[#040030] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} required>
-                      <option value="IELTS & TOEFL">IELTS & TOEFL</option>
-                      <option value="General English">General English</option>
-                      <option value="Business English">Business English</option>
-                      <option value="Academic English">Academic English</option>
+                    <select
+                      name="chosen_program"
+                      value={formData.chosen_program}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 pr-10 border rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-sm appearance-none cursor-not-allowed bg-gray-100 dark:bg-gray-800 ${isDarkMode ? 'border-gray-600 text-gray-400' : 'border-gray-300 text-gray-500'}`}
+                      required
+                      disabled
+                    >
+                      <option value="">Select a program</option>
+                      {programsLoading ? (
+                        <option disabled>Loading programs...</option>
+                      ) : (
+                        Array.isArray(programsData) && programsData.map((program) => (
+                          <option key={program.id} value={program.title}>
+                            {program.title}
+                          </option>
+                        ))
+                      )}
                     </select>
                     <span className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>

@@ -33,38 +33,38 @@ export default function StudentProgressPage() {
         {
             key: "full_name",
             label: "Student Name",
-            render: (value) => (
-                <div className="font-medium">{value}</div>
+            render: (row) => (
+                <div className="font-medium">{row.full_name}</div>
             ),
         },
         {
             key: "email",
             label: "Email / ID",
-            render: (value) => (
-                <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{value}</div>
+            render: (row) => (
+                <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.email}</div>
             ),
         },
         {
             key: "class_name",
             label: "Class",
-            render: (value) => (
-                <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{value || 'Not Assigned'}</div>
+            render: (row) => (
+                <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{row.class_name || 'Not Assigned'}</div>
             ),
         },
         {
             key: "progress_percentage",
             label: "Progress",
-            render: (value) => (
+            render: (row) => (
                 <div className="flex items-center gap-2">
                     <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 max-w-[100px]">
                         <div
-                            className={`h-2 rounded-full ${value >= 75 ? 'bg-green-500' : value >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                            className={`h-2 rounded-full ${row.progress_percentage >= 75 ? 'bg-green-500' : row.progress_percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
                                 }`}
-                            style={{ width: `${Math.min(value, 100)}%` }}
+                            style={{ width: `${Math.min(row.progress_percentage || 0, 100)}%` }}
                         />
                     </div>
                     <span className={`text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {value}%
+                        {row.progress_percentage || 0}%
                     </span>
                 </div>
             ),
@@ -72,14 +72,14 @@ export default function StudentProgressPage() {
         {
             key: "status",
             label: "Status",
-            render: (value) => getStatusBadge(value),
+            render: (row) => getStatusBadge(row.status),
         },
         {
             key: "last_active",
             label: "Last Active",
-            render: (value) => (
+            render: (row) => (
                 <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {value ? new Date(value).toLocaleDateString() : 'Never'}
+                    {row.last_active ? new Date(row.last_active).toLocaleDateString() : 'Never'}
                 </div>
             ),
         },
@@ -127,8 +127,8 @@ export default function StudentProgressPage() {
                         <button
                             onClick={() => setSelectedStudent(null)}
                             className={`mb-6 flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isDark
-                                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                                 }`}
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
