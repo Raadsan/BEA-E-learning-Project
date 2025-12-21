@@ -14,6 +14,10 @@ export default function GeneralStudentsPage() {
   const { data: subprograms = [] } = useGetSubprogramsQuery();
   const { data: classes = [] } = useGetClassesQuery();
 
+  // Filter students who have chosen_subprogram (General Program students)
+  const generalStudents = useMemo(() => {
+    if (!allStudents) return [];
+    return allStudents.filter(student => student.chosen_subprogram && student.chosen_subprogram.trim() !== "");
   // Filter students who have chosen_subprogram (General Program students) AND are approved
   // Filter students: Approved + NOT IELTS/TOEFL
   const generalStudents = useMemo(() => {
@@ -100,10 +104,10 @@ export default function GeneralStudentsPage() {
       render: (row) => {
         if (!row.created_at) return <span className="text-gray-400">-</span>;
         const date = new Date(row.created_at);
-        return date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
+        return date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
         });
       },
     },
@@ -139,7 +143,7 @@ export default function GeneralStudentsPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-8 py-6">
+          <div className="w-full px-6 py-6">
             <div className="text-center py-12">
               <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading students...</p>
             </div>
@@ -154,7 +158,7 @@ export default function GeneralStudentsPage() {
       <>
         <AdminHeader />
         <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-8 py-6">
+          <div className="w-full px-6 py-6">
             <div className="text-center py-12">
               <p className="text-red-600 dark:text-red-400">Error loading students: {error?.data?.error || "Unknown error"}</p>
             </div>
@@ -167,7 +171,7 @@ export default function GeneralStudentsPage() {
   return (
     <>
       <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 pt-20 transition-colors">
+      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
         <div className="w-full px-8 py-6">
           <DataTable
             title="General Program Students"

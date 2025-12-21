@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono, Playfair_Display, Open_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { ToastProvider } from "@/components/Toast";
 import ReduxProvider from "@/provider/ReduxProvider";
 
 const geistSans = Geist({
@@ -34,10 +35,12 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} ${openSans.variable} antialiased`}
       >
-         <ReduxProvider>
+        <ReduxProvider>
           {/* Existing Theme Provider stays inside */}
           <ThemeProvider>
-            {children}
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </ThemeProvider>
         </ReduxProvider>
       </body>

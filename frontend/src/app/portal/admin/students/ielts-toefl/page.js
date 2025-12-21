@@ -27,7 +27,7 @@ export default function IELTSTOEFLStudentsPage() {
       label: "Full Name",
       render: (row) => (
         <span className="font-medium text-gray-900 dark:text-white">
-          {`${row.first_name} ${row.last_name}`}
+          {`${row.firstName} ${row.lastName}`}
         </span>
       ),
     },
@@ -64,20 +64,20 @@ export default function IELTSTOEFLStudentsPage() {
       label: "Location",
       render: (row) => (
         <div className="text-sm">
-          <div className="font-medium text-gray-900 dark:text-white">{row.residency_city}</div>
-          <div className="text-gray-500 dark:text-gray-400 text-xs">{row.residency_country}</div>
+          <div className="font-medium text-gray-900 dark:text-white">{row.city}</div>
+          <div className="text-gray-500 dark:text-gray-400 text-xs">{row.country}</div>
         </div>
       ),
     },
     {
-      key: "exam_type",
+      key: "examType",
       label: "Exam Type",
       render: (row) => (
-        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.exam_type === "IELTS"
-          ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-          : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.examType === "IELTS"
+            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+            : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
           }`}>
-          {row.exam_type}
+          {row.examType}
         </span>
       ),
     },
@@ -94,11 +94,11 @@ export default function IELTSTOEFLStudentsPage() {
       key: "verification_method",
       label: "Verification Method",
       render: (row) => (
-        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.verification_method === "Certificate"
-          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.verificationMethod === "Certificate"
+            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
           }`}>
-          {row.verification_method}
+          {row.verificationMethod === "Certificate" ? "Certificate" : "Exam Booking"}
         </span>
       ),
     },
@@ -106,11 +106,11 @@ export default function IELTSTOEFLStudentsPage() {
       key: "certificateInfo",
       label: "Certificate Details",
       render: (row) => {
-        if (row.verification_method === "Certificate") {
+        if (row.verificationMethod === "Certificate") {
           return (
             <div className="text-sm space-y-1">
-              <div className="font-semibold text-gray-900 dark:text-white">{row.certificate_institution || "-"}</div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs">{row.certificate_date || "-"}</div>
+              <div className="font-semibold text-gray-900 dark:text-white">{row.certificateInstitution || "-"}</div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs">{row.certificateDate || "-"}</div>
             </div>
           );
         }
@@ -121,11 +121,11 @@ export default function IELTSTOEFLStudentsPage() {
       key: "examBooking",
       label: "Exam Booking",
       render: (row) => {
-        if (row.verification_method === "Exam Booking") {
+        if (row.verificationMethod === "Exam Booking") {
           return (
             <div className="text-sm space-y-1">
-              <div className="font-semibold text-gray-900 dark:text-white">{row.exam_booking_date || "-"}</div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs">{row.exam_booking_time || "-"}</div>
+              <div className="font-semibold text-gray-900 dark:text-white">{row.examBookingDate || "-"}</div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs">{row.examBookingTime || "-"}</div>
             </div>
           );
         }
@@ -140,7 +140,6 @@ export default function IELTSTOEFLStudentsPage() {
           "Verified": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
           "Pending Exam": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
           "Pending Review": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-          "Pending": "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
         };
         return (
           <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[row.status] || "bg-gray-100 text-gray-800"}`}>
@@ -150,11 +149,11 @@ export default function IELTSTOEFLStudentsPage() {
       },
     },
     {
-      key: "registration_date",
+      key: "registrationDate",
       label: "Registration Date",
       render: (row) => {
-        if (!row.registration_date) return <span className="text-gray-400 dark:text-gray-500">-</span>;
-        const date = new Date(row.registration_date);
+        if (!row.registrationDate) return <span className="text-gray-400 dark:text-gray-500">-</span>;
+        const date = new Date(row.registrationDate);
         return (
           <span className="text-gray-700 dark:text-gray-300">
             {date.toLocaleDateString('en-US', {
@@ -180,7 +179,7 @@ export default function IELTSTOEFLStudentsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
           </button>
-          {row.verification_method === "Certificate" && row.certificate_document && (
+          {row.verificationMethod === "Certificate" && row.certificateDocument && (
             <button
               className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20"
               title="View Certificate"
@@ -190,7 +189,7 @@ export default function IELTSTOEFLStudentsPage() {
               </svg>
             </button>
           )}
-          {row.verification_method === "Exam Booking" && (
+          {row.verificationMethod === "Exam Booking" && (
             <button
               className="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 transition-colors p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20"
               title="View Exam Details"
@@ -216,7 +215,7 @@ export default function IELTSTOEFLStudentsPage() {
   return (
     <>
       <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 pt-20 transition-colors">
+      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
         <div className="w-full px-8 py-6">
           {(isLoading) ? (
             <div className="text-center py-10">Loading...</div>
@@ -241,4 +240,3 @@ export default function IELTSTOEFLStudentsPage() {
     </>
   );
 }
-

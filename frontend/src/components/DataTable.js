@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 
-const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true, onRowClick, getRowId }) => {
+const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true }) => {
   const { isDark } = useDarkMode();
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState(data);
@@ -80,31 +80,21 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
           <thead className={`${isDark ? 'bg-white text-gray-900' : 'bg-[#010080] text-white'}`}>
             <tr>
               {columns.map((col, i) => (
-                <th 
-                  key={col.key || i} 
-                  className={`px-5 py-4 uppercase text-xs font-medium tracking-wide ${
-                    col.key === 'password' ? 'w-48' : ''
-                  }`}
-                >
+                <th key={col.key || i} className="px-5 py-4 uppercase text-xs font-medium tracking-wide">
                   {col.label ?? ""}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {filteredData.slice(startIdx, endIdx).map((row, idx) => {
-              const rowId = getRowId ? getRowId(row) : (row._id || row.id || idx);
-              return (
+            {filteredData.slice(startIdx, endIdx).map((row, idx) => (
               <tr
-                key={rowId}
-                onClick={() => onRowClick && onRowClick(rowId)}
+                key={row._id || row.id || idx}
                 className={`${
                   idx % 2 === 0
                     ? "bg-white dark:bg-[#1a2035]"
                     : "bg-gray-50 dark:bg-[#252b40]"
-                } text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2d3447] transition-colors ${
-                  onRowClick ? "cursor-pointer" : ""
-                }`}
+                } text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2d3447] transition-colors`}
               >
                 {columns.map((col, i) => {
                   const rawValue = col.render
@@ -129,19 +119,13 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                   }
 
                   return (
-                    <td 
-                      key={col.key || i} 
-                      className={`px-5 py-4 border-b border-gray-200 dark:border-gray-700 ${
-                        col.key === 'password' ? 'w-48' : ''
-                      }`}
-                    >
+                    <td key={col.key || i} className="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
                       {cellContent}
                     </td>
                   );
                 })}
               </tr>
-            );
-            })}
+            ))}
             {filteredData.length === 0 && (
               <tr>
                 <td

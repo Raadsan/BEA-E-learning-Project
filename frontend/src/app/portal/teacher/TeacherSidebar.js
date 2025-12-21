@@ -3,179 +3,211 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useLogoutMutation } from "@/redux/api/authApi";
 
 export default function TeacherSidebar() {
-  const pathname = usePathname();
-  const router = useRouter();
   const { isDark } = useDarkMode();
-  const [logout] = useLogoutMutation();
+  const pathname = usePathname();
+  const [isMyClassesOpen, setIsMyClassesOpen] = useState(false);
 
-
-
-  const handleLogout = async () => {
-    try {
-      await logout().unwrap();
-      router.replace("/auth/login");
-    } catch (error) {
-      // Even if logout fails, clear local storage and redirect
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-      }
-      router.replace("/auth/login");
+  // Auto-expand dropdowns based on current route
+  useEffect(() => {
+    if (pathname?.includes("/portal/teacher/my-classes")) {
+      setIsMyClassesOpen(true);
     }
+  }, [pathname]);
+
+  const handleMyClassesToggle = () => {
+    setIsMyClassesOpen(!isMyClassesOpen);
   };
 
-  const isActive = (href) => {
-    if (href === "/portal/teacher") {
-      return pathname === href;
-    }
-    return pathname?.startsWith(href);
-  };
-
-  // Using the same styling approach as AdminSidebar
-  const getMenuItemClasses = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
-    return `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active ? 'text-white font-semibold' : 'text-gray-900 hover:bg-gray-100'
-      }`;
-  };
-
-  const getSubMenuItemClasses = (href) => {
-    const active = isActive(href);
-    return `flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm ${active ? 'text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'
-      }`;
-  };
-
-  const getActiveStyle = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
-    return active ? { backgroundColor: '#010080' } : {};
-  };
-
-  const getDropdownButtonStyle = (isOpen) => {
-    return isOpen ? { backgroundColor: '#010080', color: '#ffffff' } : {};
-  };
-
-  const getDropdownButtonClasses = (isOpen) => {
-    return `w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isOpen ? 'text-white font-semibold' : 'text-gray-900 hover:bg-gray-100'
-      }`;
-  };
-
-  const getIconClasses = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
-    return `w-5 h-5 ${active ? 'text-white' : 'text-gray-700'}`;
-  };
-
-  const getTextClasses = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
-    return `font-medium text-sm ${active ? 'text-white' : 'text-gray-900'}`;
-  };
+  const isActive = (path) => pathname === path;
+  const isMyClassesActive = pathname?.includes("/portal/teacher/my-classes");
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm overflow-y-auto">
-      {/* Logo Section */}
-      <div className="border-b border-gray-200 w-full h-24 relative bg-white flex items-center justify-center px-4 py-2 flex-shrink-0">
-        <Image
-          src="/images/headerlogo.png"
-          alt="BEA THE BLUEPRINT ENGLISH ACADEMY"
-          width={1024}
-          height={384}
-          className="h-full w-full object-contain max-w-full"
-          priority
-          style={{ width: '100%', height: 'auto' }}
-        />
-      </div>
+    <div className={`fixed left-0 top-0 h-screen w-64 ${isDark ? 'bg-[#000060] text-white' : 'bg-white text-gray-900'} admin-sidebar flex flex-col shadow-lg transition-colors`}>
+      <div className="flex flex-col h-full">
+        {/* Logo */}
+        <div className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'} w-full h-24 relative ${isDark ? 'bg-gray-800/50' : 'bg-white'} flex items-center justify-center px-2 py-2`}>
+          <Image
+            src="/images/footerlogo-removebg-preview.png"
+            alt="BEA Logo"
+            width={200}
+            height={80}
+            className="object-contain"
+            priority
+          />
+        </div>
 
-      {/* Navigation Menu */}
-      <nav className="flex-1 overflow-y-auto py-2 px-2">
-        <ul className="space-y-0.5">
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto p-4 space-y-2">
           {/* Dashboard */}
-          <li>
-            <Link href="/portal/teacher" className={getMenuItemClasses("/portal/teacher", true)} style={getActiveStyle("/portal/teacher", true)}>
-              <svg className={getIconClasses("/portal/teacher", true)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              <span className={getTextClasses("/portal/teacher", true)}>Dashboard</span>
-            </Link>
-          </li>
+          <Link
+            href="/portal/teacher"
+            className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              isActive("/portal/teacher") || (pathname === "/portal/teacher" && !pathname.includes("/portal/teacher/"))
+                ? 'bg-[#010080] text-white'
+                : isDark
+                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+            }`}
+          >
+            <svg className={`w-5 h-5 ${isActive("/portal/teacher") ? 'text-white' : 'text-[#010080]'} group-hover:text-white`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <span>Dashboard</span>
+          </Link>
 
-          {/* My Classes */}
-          <li>
-            <Link href="/portal/teacher/my-classes" className={getMenuItemClasses("/portal/teacher/my-classes")} style={getActiveStyle("/portal/teacher/my-classes")}>
-              <svg className={getIconClasses("/portal/teacher/my-classes")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-              <span className={getTextClasses("/portal/teacher/my-classes")}>My Classes</span>
-            </Link>
-          </li>
-
-          {/* Attendance */}
-          <li>
-            <Link href="/portal/teacher/attendance" className={getMenuItemClasses("/portal/teacher/attendance")} style={getActiveStyle("/portal/teacher/attendance")}>
-              <svg className={getIconClasses("/portal/teacher/attendance")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span className={getTextClasses("/portal/teacher/attendance")}>Attendance</span>
-            </Link>
-          </li>
-
-          {/* Student Progress */}
-          <li>
-            <Link href="/portal/teacher/student-progress" className={getMenuItemClasses("/portal/teacher/student-progress")} style={getActiveStyle("/portal/teacher/student-progress")}>
-              <svg className={getIconClasses("/portal/teacher/student-progress")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span className={getTextClasses("/portal/teacher/student-progress")}>Student Progress</span>
-            </Link>
-          </li>
-
-          {/* Reports */}
-          <li>
-            <Link href="/portal/teacher/reports" className={getMenuItemClasses("/portal/teacher/reports")} style={getActiveStyle("/portal/teacher/reports")}>
-              <svg className={getIconClasses("/portal/teacher/reports")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className={getTextClasses("/portal/teacher/reports")}>Reports</span>
-            </Link>
-          </li>
-
-          {/* Settings */}
-          <li>
-            <Link href="/portal/teacher/settings" className={getMenuItemClasses("/portal/teacher/settings")} style={getActiveStyle("/portal/teacher/settings")}>
+          {/* My Classes Dropdown */}
+          <div>
+            <button
+              onClick={handleMyClassesToggle}
+              className={`group w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-colors ${
+                isMyClassesActive || isMyClassesOpen
+                  ? 'bg-[#f95150] text-white'
+                  : isDark
+                    ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                    : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span>My Classes</span>
+              </div>
               <svg
-                className={getIconClasses("/portal/teacher/profile")}
+                className={`w-4 h-4 transition-transform ${isMyClassesOpen ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
+            </button>
+            {isMyClassesOpen && (
+              <div className="ml-4 mt-2 space-y-1">
+                <Link
+                  href="/portal/teacher/my-classes"
+                  className={`group block px-4 py-2 rounded-lg text-sm transition-colors ${
+                    isActive("/portal/teacher/my-classes")
+                      ? 'bg-[#f95150] text-white'
+                      : isDark
+                        ? 'text-gray-400 hover:bg-[#010080] hover:text-white'
+                        : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+                  }`}
+                >
+                  Class List
+                </Link>
+              </div>
+            )}
+          </div>
 
-              <span className={getTextClasses("/portal/teacher/settings")}>Profile</span>
-            </Link>
-          </li>
+          {/* Attendance */}
+          <Link
+            href="/portal/teacher/attendance"
+            className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              isActive("/portal/teacher/attendance")
+                ? 'bg-[#f95150] text-white'
+                : isDark
+                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>Attendance</span>
+          </Link>
 
-        </ul>
-      </nav>
+          {/* Classes & Courses */}
+          <Link
+            href="/portal/teacher/classes-courses"
+            className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              isActive("/portal/teacher/classes-courses")
+                ? 'bg-[#f95150] text-white'
+                : isDark
+                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Classes & Courses</span>
+          </Link>
 
-      {/* Logout Button */}
-      <div className="p-4 border-t border-gray-200 mt-auto">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all duration-200 font-medium"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span>Logout</span>
-        </button>
+          {/* Student Progress */}
+          <Link
+            href="/portal/teacher/student-progress"
+            className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              isActive("/portal/teacher/student-progress")
+                ? 'bg-[#f95150] text-white'
+                : isDark
+                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span>Student Progress</span>
+          </Link>
+
+          {/* Reports */}
+          <Link
+            href="/portal/teacher/reports"
+            className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              isActive("/portal/teacher/reports")
+                ? 'bg-[#f95150] text-white'
+                : isDark
+                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Reports</span>
+          </Link>
+
+          {/* Separator */}
+          <div className="border-t border-blue-800/50 my-2"></div>
+
+          {/* Settings */}
+          <Link
+            href="/portal/teacher/settings"
+            className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              isActive("/portal/teacher/settings")
+                ? 'bg-[#f95150] text-white'
+                : isDark
+                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>Settings</span>
+          </Link>
+
+          {/* Logout */}
+          <Link
+            href="/auth/login"
+            className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              isDark
+                ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span>Logout</span>
+          </Link>
+        </nav>
       </div>
     </div>
   );

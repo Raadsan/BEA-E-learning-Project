@@ -58,8 +58,8 @@ export default function AdminSidebar() {
       setOpenSection('assessments');
       if (pathname?.includes('placement-tests')) {
         setOpenSubSection('placementTests');
-      } else if (pathname?.includes('proficiency-tests')) {
-        setOpenSubSection('proficiencyTests');
+      } else if (pathname?.includes('professional-tests')) {
+        setOpenSubSection('professionalTests');
       } else if (pathname?.includes('assignments')) {
         setOpenSubSection('assignments');
       } else if (pathname?.includes('exams')) {
@@ -289,14 +289,14 @@ export default function AdminSidebar() {
                     <span className={isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-900'}>Teacher List</span>
                   </Link>
                 </li>
-                {/* <li>
+                <li>
                   <Link href="/portal/admin/teachers/assign" className={getSubMenuItemClasses("/portal/admin/teachers/assign")} style={getSubActiveStyle("/portal/admin/teachers/assign")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/teachers/assign") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span className={isActive("/portal/admin/teachers/assign") ? 'text-white' : 'text-gray-900'}>Assign to Class</span>
                   </Link>
-                </li> */}
+                </li>
               </ul>
             )}
           </li>
@@ -335,13 +335,20 @@ export default function AdminSidebar() {
                     <span className={isActive("/portal/admin/subprograms") ? 'text-white' : 'text-gray-900'}>Sub Programs</span>
                   </Link>
                 </li>
-
                 <li>
                   <Link href="/portal/admin/classes" className={getSubMenuItemClasses("/portal/admin/classes")} style={getSubActiveStyle("/portal/admin/classes")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H2v-2a4 4 0 014-4h12.356M20 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span className={isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-900'}>Classes</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/courses" className={getSubMenuItemClasses("/portal/admin/courses")} style={getSubActiveStyle("/portal/admin/courses")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/courses") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span className={isActive("/portal/admin/courses") ? 'text-white' : 'text-gray-900'}>Courses</span>
                   </Link>
                 </li>
               </ul>
@@ -367,34 +374,29 @@ export default function AdminSidebar() {
             {openSection === 'learningResources' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
                 <li>
-                  <Link
-                    href="/portal/admin/learning-resources/materials"
-                    className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs ${pathname === '/portal/admin/learning-resources/materials' || pathname?.startsWith('/portal/admin/learning-resources/materials/')
-                      ? 'bg-[#010080] text-white font-semibold'
-                      : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                  >
-                    <svg className={`w-3.5 h-3.5 ${pathname === '/portal/admin/learning-resources/materials' || pathname?.startsWith('/portal/admin/learning-resources/materials/') ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <Link href="/portal/admin/learning-resources/materials" className={getSubMenuItemClasses("/portal/admin/learning-resources/materials")} style={getSubActiveStyle("/portal/admin/learning-resources/materials")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/learning-resources/materials") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
-                    <span className={pathname === '/portal/admin/learning-resources/materials' || pathname?.startsWith('/portal/admin/learning-resources/materials/') ? 'text-white' : 'text-gray-900'}>Course Materials (A1–C2)</span>
+                    <span className={isActive("/portal/admin/learning-resources/materials") ? 'text-white' : 'text-gray-900'}>Course Materials (A1–C2)</span>
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    href="/portal/admin/learning-resources/sessions"
-                    className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs ${pathname === '/portal/admin/learning-resources/sessions'
-                      ? 'bg-[#010080] text-white font-semibold'
-                      : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                  >
-                    <svg className={`w-3.5 h-3.5 ${pathname === '/portal/admin/learning-resources/sessions' ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <Link href="/portal/admin/learning-resources/sessions" className={getSubMenuItemClasses("/portal/admin/learning-resources/sessions")} style={getSubActiveStyle("/portal/admin/learning-resources/sessions")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/learning-resources/sessions") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
-                    <span className={pathname === '/portal/admin/learning-resources/sessions' ? 'text-white' : 'text-gray-900'}>Online Session Links</span>
+                    <span className={isActive("/portal/admin/learning-resources/sessions") ? 'text-white' : 'text-gray-900'}>Online Session Links</span>
                   </Link>
                 </li>
-
+                <li>
+                  <Link href="/portal/admin/learning-resources/tutorials" className={getSubMenuItemClasses("/portal/admin/learning-resources/tutorials")} style={getSubActiveStyle("/portal/admin/learning-resources/tutorials")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/learning-resources/tutorials") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span className={isActive("/portal/admin/learning-resources/tutorials") ? 'text-white' : 'text-gray-900'}>Tutorials & Extra Practice</span>
+                  </Link>
+                </li>
               </ul>
             )}
           </li>
@@ -421,100 +423,68 @@ export default function AdminSidebar() {
                 <li>
                   <button
                     onClick={() => toggleSubSection('placementTests')}
-                    className={`w-full flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm ${openSubSection === 'placementTests' ? 'bg-[#010080] text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm text-gray-700 hover:bg-gray-100 ${openSubSection === 'placementTests' ? 'bg-gray-50' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className={`text-xs ${openSubSection === 'placementTests' ? 'text-white' : 'text-gray-500'}`}>•</span>
-                      <span className={openSubSection === 'placementTests' ? 'text-white' : 'text-gray-900'}>Placement Tests</span>
+                      <span className="text-xs text-gray-500">•</span>
+                      <span className="text-gray-900">Placement Tests</span>
                     </div>
-                    <svg className={`w-3 h-3 transition-transform duration-200 ${openSubSection === 'placementTests' ? 'rotate-180 text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-3 h-3 text-gray-500 transition-transform duration-200 ${openSubSection === 'placementTests' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
                   {openSubSection === 'placementTests' && (
                     <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
                       <li>
-                        <Link
-                          href="/portal/admin/assessments/placement-tests"
-                          className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs ${pathname === '/portal/admin/assessments/placement-tests' || (pathname?.startsWith('/portal/admin/assessments/placement-tests/') && !pathname?.includes('/results'))
-                            ? 'bg-gray-200 text-blue-600 font-semibold'
-                            : 'bg-white text-gray-900 hover:bg-gray-50'
-                            }`}
-                        >
-                          <svg className={`w-3.5 h-3.5 ${pathname === '/portal/admin/assessments/placement-tests' || (pathname?.startsWith('/portal/admin/assessments/placement-tests/') && !pathname?.includes('/results')) ? 'text-blue-600' : 'text-gray-900'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        <Link href="/portal/admin/assessments/placement-tests" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-600 hover:bg-gray-100">
+                          <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                           </svg>
-                          <span className={pathname === '/portal/admin/assessments/placement-tests' || (pathname?.startsWith('/portal/admin/assessments/placement-tests/') && !pathname?.includes('/results')) ? 'text-blue-600' : 'text-gray-900'}>Placement Tests</span>
+                          <span className="text-gray-700">Placement Tests</span>
                         </Link>
                       </li>
                       <li>
-                        <Link
-                          href="/portal/admin/assessments/placement-tests/results"
-                          className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs ${pathname === '/portal/admin/assessments/placement-tests/results'
-                            ? 'bg-gray-200 text-blue-600 font-semibold'
-                            : 'bg-white text-gray-900 hover:bg-gray-50'
-                            }`}
-                        >
-                          <svg className={`w-3.5 h-3.5 ${pathname === '/portal/admin/assessments/placement-tests/results' ? 'text-blue-600' : 'text-gray-900'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <Link href="/portal/admin/assessments/placement-tests/results" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-600 hover:bg-gray-100">
+                          <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                           </svg>
-                          <span className={pathname === '/portal/admin/assessments/placement-tests/results' ? 'text-blue-600' : 'text-gray-900'}>Placement Results</span>
+                          <span className="text-gray-700">Placement Results</span>
                         </Link>
                       </li>
                     </ul>
                   )}
                 </li>
 
-                {/* Proficiency Tests */}
+                {/* Professional Tests */}
                 <li>
                   <button
-                    onClick={() => toggleSubSection('proficiencyTests')}
-                    className={`w-full flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm ${openSubSection === 'proficiencyTests' ? 'bg-[#010080] text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                    onClick={() => toggleSubSection('professionalTests')}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm text-gray-700 hover:bg-gray-100 ${openSubSection === 'professionalTests' ? 'bg-gray-50' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className={`text-xs ${openSubSection === 'proficiencyTests' ? 'text-white' : 'text-gray-500'}`}>•</span>
-                      <span className={openSubSection === 'proficiencyTests' ? 'text-white' : 'text-gray-900'}>Proficiency Tests</span>
+                      <span className="text-xs text-gray-500">•</span>
+                      <span className="text-gray-900">Professional Tests</span>
                     </div>
-                    <svg className={`w-3 h-3 transition-transform duration-200 ${openSubSection === 'proficiencyTests' ? 'rotate-180 text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-3 h-3 text-gray-500 transition-transform duration-200 ${openSubSection === 'professionalTests' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                  {openSubSection === 'proficiencyTests' && (
+                  {openSubSection === 'professionalTests' && (
                     <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
                       <li>
-                        <Link
-                          href="/portal/admin/assessments/proficiency-tests"
-                          className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs ${pathname === '/portal/admin/assessments/proficiency-tests' || pathname?.startsWith('/portal/admin/assessments/proficiency-tests/')
-                            ? 'bg-gray-200 text-blue-600 font-semibold'
-                            : 'bg-white text-gray-900 hover:bg-gray-50'
-                            }`}
-                        >
-                          <svg className={`w-3.5 h-3.5 ${pathname === '/portal/admin/assessments/proficiency-tests' || pathname?.startsWith('/portal/admin/assessments/proficiency-tests/') ? 'text-blue-600' : 'text-gray-900'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                          </svg>
-                          <span className={pathname === '/portal/admin/assessments/proficiency-tests' || pathname?.startsWith('/portal/admin/assessments/proficiency-tests/') ? 'text-blue-600' : 'text-gray-900'}>Proficiency Tests</span>
-                        </Link>
-                      </li>
-                      {/* <li>
-                        <Link href="/portal/admin/assessments/proficiency-tests/create" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-600 hover:bg-gray-100">
+                        <Link href="/portal/admin/assessments/proficiency-tests" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-600 hover:bg-gray-100">
                           <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                           </svg>
-                          <span className="text-gray-700">Create Proficiency Test</span>
+                          <span className="text-gray-700">Professional Tests</span>
                         </Link>
-                      </li> */}
+                      </li>
                       <li>
-                        <Link
-                          href="/portal/admin/assessments/proficiency-tests/results"
-                          className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs ${pathname === '/portal/admin/assessments/proficiency-tests/results'
-                            ? 'bg-gray-200 text-blue-600 font-semibold'
-                            : 'bg-white text-gray-900 hover:bg-gray-50'
-                            }`}
-                        >
-                          <svg className={`w-3.5 h-3.5 ${pathname === '/portal/admin/assessments/proficiency-tests/results' ? 'text-blue-600' : 'text-gray-900'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <Link href="/portal/admin/assessments/proficiency-tests/results" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-600 hover:bg-gray-100">
+                          <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                           </svg>
-                          <span className={pathname === '/portal/admin/assessments/proficiency-tests/results' ? 'text-blue-600' : 'text-gray-900'}>Test Results</span>
+                          <span className="text-gray-700">Professional Results</span>
                         </Link>
                       </li>
                     </ul>
