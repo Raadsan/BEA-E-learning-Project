@@ -3,10 +3,23 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
-import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation } from "@/redux/api/studentApi";
+import { 
+  useGetStudentsQuery, 
+  useCreateStudentMutation, 
+  useUpdateStudentMutation, 
+  useDeleteStudentMutation,
+  useApproveStudentMutation,
+  useRejectStudentMutation 
+} from "@/redux/api/studentApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
+import { 
+  useGetIeltsToeflStudentsQuery, 
+  useDeleteIeltsToeflStudentMutation, 
+  useUpdateIeltsToeflStudentMutation,
+  useRejectIeltsToeflStudentMutation 
+} from "@/redux/api/ieltsToeflApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function StudentsPage() {
@@ -25,6 +38,7 @@ export default function StudentsPage() {
   const { data: ieltsStudents = [], isLoading: isIeltsLoading } = useGetIeltsToeflStudentsQuery();
   const { data: programs = [] } = useGetProgramsQuery();
   const { data: allSubprograms = [] } = useGetSubprogramsQuery();
+  const { data: classes = [] } = useGetClassesQuery();
   const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
   const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
   const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentMutation();

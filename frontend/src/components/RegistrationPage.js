@@ -15,7 +15,7 @@ export default function RegistrationPage() {
   const { data: programs = [], isLoading: programsLoading } = useGetProgramsQuery();
   const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
   const [login] = useLoginMutation();
-  
+
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -41,12 +41,12 @@ export default function RegistrationPage() {
   const formRef = useRef(null);
 
   // Payment specific state for Step 3
-  const [paymentMethod, setPaymentMethod] = useState('evc'); // 'evc' or 'bank'
-  const [paymentAccountNumber, setPaymentAccountNumber] = useState('34389038');
+  const [paymentMethod, setPaymentMethod] = useState('mwallet_account'); // 'evc' or 'bank'
+  const [paymentAccountNumber, setPaymentAccountNumber] = useState('252');
   const [isPaying, setIsPaying] = useState(false);
-  const [paymentError, setPaymentError] = useState(null);  const [requiresPin, setRequiresPin] = useState(false);
+  const [paymentError, setPaymentError] = useState(null); const [requiresPin, setRequiresPin] = useState(false);
   const [waafiTransactionId, setWaafiTransactionId] = useState(null);
-  const [pin, setPin] = useState('');  const APPLICATION_FEE = 0.01;
+  const [pin, setPin] = useState(''); const APPLICATION_FEE = 0.01;
 
   const countriesData = {
     somalia: { name: "Somalia", cities: ["Mogadishu", "Hargeisa", "Kismayo", "Baidoa", "Bosaso", "Beledweyne", "Galkayo", "Burao", "Merca", "Jowhar"] },
@@ -197,10 +197,10 @@ export default function RegistrationPage() {
     } catch (error) {
       console.error("Registration error:", error);
       // Handle different error formats
-      const errorMessage = 
-        error?.data?.error || 
-        error?.data?.message || 
-        error?.message || 
+      const errorMessage =
+        error?.data?.error ||
+        error?.data?.message ||
+        error?.message ||
         "Failed to create account. Please try again.";
       alert(errorMessage);
     }
@@ -208,54 +208,78 @@ export default function RegistrationPage() {
 
   // Final submit — perform Waafi payment and only persist student if payment succeeds
   const handleFinalSubmit = async () => {
-    // Payment request
     setPaymentError(null);
     setIsPaying(true);
 
     try {
-      // Determine payer phone: prefer account number entered during EVC method
-      const payerPhone = (paymentMethod === 'evc' ? (paymentAccountNumber || '').trim() : (formData.phone || '').trim());
-
-      if (!payerPhone) {
-        setIsPaying(false);
-        alert('Please enter an account number or phone number for EVC payment.');
-        return;
-      }
+      const requestId = `req_${Date.now()}`;
+      const invoiceId = `inv_${Date.now()}`;
 
       const payload = {
-        payerPhone,
-        amount: APPLICATION_FEE,
-        currency: 'USD',
-        programId: formData.chosen_program,
-        description: `Application fee for ${programs.find(p => p.id === formData.chosen_program)?.title || 'program'}`
+        schemaVersion: "1.0",
+        requestId: requestId,
+        timestamp: new Date().toISOString(),
+        channelName: "WEB",
+        serviceName: "API_PURCHASE",
+        serviceParams: {
+          merchantUid: "M0910291",
+          apiUserId: "1000416",
+          apiKey: "API-675418888AHX",
+          paymentMethod: "mwallet_account", // 'mwallet_account' or 'evc'
+          payerInfo: {
+            accountNo: paymentAccountNumber // Phone number for mobile wallet
+          },
+          transactionInfo: {
+            referenceId: requestId,
+            invoiceId: invoiceId,
+            amount: APPLICATION_FEE,
+            currency: "USD",
+            description: `Application fee for ${programs.find(p => p.id === formData.chosen_program)?.title || 'program'}`
+          }
+        }
       };
 
-      console.log('Waafi payload ->', payload);
+      console.log('Sending payment request to Waafi...', payload);
 
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
-      const res = await fetch(`${baseUrl}/api/payments/waafi`, {
+      const res = await fetch('https://api.waafipay.net/asm', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-MERCHANT-ID': 'M0910291' // Add if required
+        },
         body: JSON.stringify(payload),
       });
 
-      const json = await res.json().catch(() => ({}));
-      console.log('Waafi response ->', res.status, json);
+      const response = await res.json();
+      console.log('Waafi API Response:', response);
 
-      if (!res.ok || !json.success) {
-        const err = json.error || json.message || 'Payment failed';
-        throw new Error(typeof err === 'string' ? err : JSON.stringify(err));
+      // Handle successful response
+      if (response.responseCode === '2001' ||
+        response.responseMsg === 'SUCCESS' ||
+        (response.serviceParams && response.serviceParams.status === 'SUCCESS')) {
+
+        const transactionId = response.serviceParams?.transactionId || `WAAFI_${requestId}`;
+        console.log('Payment successful, saving student...');
+        await handleSaveStudent(transactionId, response); // Pass the full response for logging
+
+      } else {
+        const errorMsg = response.responseMsg ||
+          response.message ||
+          'Payment failed';
+        throw new Error(errorMsg);
       }
 
-      // If Waafi requires PIN/OTP confirmation, show PIN input to user
-      if (json.requiresPin) {
-        setWaafiTransactionId(json.transactionId);
-        setRequiresPin(true);
-        setIsPaying(false);
-        return;
-      }
-
-      // Payment succeeded immediately — attach payment to formData and create student
+    } catch (err) {
+      console.error('Payment process error:', err);
+      setPaymentError(err.message);
+      alert(`Payment Error: ${err.message}`);
+    } finally {
+      setIsPaying(false);
+    }
+  };
+  const handleSaveStudent = async (transactionId, paymentResponse) => {
+    try {
+      // Prepare student data with payment info
       const studentData = {
         full_name: formData.full_name,
         email: formData.email,
@@ -265,40 +289,55 @@ export default function RegistrationPage() {
         residency_city: formData.residency_city || null,
         chosen_program: formData.chosen_program || null,
         password: formData.password,
-        parent_name: formData.parent_name || null,
-        parent_email: formData.parent_email || null,
-        parent_phone: formData.parent_phone || null,
-        parent_relation: formData.parent_relation || null,
-        parent_res_county: formData.parent_res_county || null,
-        parent_res_city: formData.parent_res_city || null,
-        payment: { method: paymentMethod, transactionId: json.transactionId, amount: APPLICATION_FEE }
+        // Include parent information if applicable
+        ...(showParentSection && {
+          parent_name: formData.parent_name || null,
+          parent_email: formData.parent_email || null,
+          parent_phone: formData.parent_phone || null,
+          parent_relation: formData.parent_relation || null,
+          parent_res_county: formData.parent_res_county || null,
+          parent_res_city: formData.parent_res_city || null,
+        }),
+        // Include payment information
+        payment: {
+          method: paymentMethod,
+          transactionId: transactionId,
+          amount: APPLICATION_FEE,
+          rawResponse: paymentResponse
+        }
       };
 
+      // Create student account
       const response = await createStudent(studentData).unwrap();
+
+      // If student creation is successful
       if (response.success || response.student) {
-        // Auto-login
+        // Try to auto-login
         try {
-          const loginResponse = await login({ email: formData.email, password: formData.password }).unwrap();
-          // Remove draft
+          await login({
+            email: formData.email,
+            password: formData.password
+          }).unwrap();
+
+          // Clear draft and redirect to welcome page
           localStorage.removeItem('registrationDraft');
-          // Redirect to submitted page
-          router.push('/application-submitted');
-        } catch (e) {
+          router.push('/welcome');
+        } catch (loginError) {
+          console.error('Auto-login failed:', loginError);
+          // Still proceed to welcome page even if auto-login fails
           localStorage.removeItem('registrationDraft');
-          router.push('/auth/login');
+          router.push('/welcome');
         }
       } else {
-        alert(response.error || 'Failed to create account after payment. Please contact support.');
+        throw new Error(response.error || 'Failed to create student account');
       }
-    } catch (err) {
-      console.error('Payment/submit error:', err);
-      setPaymentError(err.message || 'Payment failed.');
-      alert(err.message || 'Payment failed. Please try again.');
-    } finally {
-      setIsPaying(false);
+    } catch (error) {
+      console.error('Error saving student:', error);
+      setPaymentError(error.message || 'Failed to complete registration');
+      alert('Error completing registration. Please contact support.');
+      throw error; // Re-throw to be caught by the calling function
     }
   };
-
   // Confirm PIN handler extracted to avoid inline complex JSX functions
   const handleConfirmPin = async () => {
     if (!pin) return alert('Enter PIN');
@@ -307,7 +346,7 @@ export default function RegistrationPage() {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
       const res = await fetch(`${baseUrl}/api/payments/waafi/confirm`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transactionId: waafiTransactionId, pin })
       });
       const json = await res.json().catch(() => ({}));
@@ -359,7 +398,7 @@ export default function RegistrationPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Brand Section (Fixed, Like Sign In Page) */}
-      <div 
+      <div
         className="hidden md:flex md:w-1/2 fixed left-0 top-0 h-screen items-center justify-center"
         style={{ backgroundColor: '#010080' }}
       >
@@ -385,7 +424,7 @@ export default function RegistrationPage() {
               className="mx-auto"
             />
           </div>
-          
+
           {/* Welcome Text */}
           <h1 className="text-4xl font-serif font-bold text-white mb-4">
             Join BEA Today!
@@ -469,14 +508,14 @@ export default function RegistrationPage() {
           <div className="bg-white rounded-xl shadow-sm border p-8 mb-6">
             {/* Visual Stepper (visual only) */}
             <div className="flex items-center justify-center gap-8 mb-6">
-              {[1,2,3,4].map((id) => {
+              {[1, 2, 3, 4].map((id) => {
                 const labels = ['Personalize Info', 'Program', 'Payment', 'Review'];
                 const done = currentStep > id;
                 const active = currentStep === id;
                 return (
                   <div key={id} className="flex flex-col items-center">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${done || active ? 'bg-green-500 text-white' : 'bg-white text-gray-500 border'}`} style={{ boxShadow: active ? '0 4px 10px rgba(1,0,128,0.12)' : 'none' }}>{id}</div>
-                    <span className="text-xs mt-2 text-gray-600">{labels[id-1]}</span>
+                    <span className="text-xs mt-2 text-gray-600">{labels[id - 1]}</span>
                   </div>
                 )
               })}
@@ -920,7 +959,7 @@ export default function RegistrationPage() {
             </form>
           </div>
           {/* Back to Home */}
-         
+
         </div>
       </div>
     </div>

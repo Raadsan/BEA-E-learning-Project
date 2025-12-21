@@ -204,5 +204,217 @@
       }
     },
     "createdAt": "2025-12-21T12:01:15.171Z"
+  },
+  {
+    "id": "WAAFI-1766335418050",
+    "method": "waafi",
+    "payerPhone": "614388477",
+    "programId": 26,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 19:43:31.294",
+      "responseId": "1766335400042",
+      "responseCode": "2001",
+      "errorCode": "0",
+      "responseMsg": "RCS_SUCCESS",
+      "params": {
+        "orderId": "21371626",
+        "accountNo": "614388****8477",
+        "accountType": "mwallet_account",
+        "state": "APPROVED",
+        "referenceId": "REF-1766335400043",
+        "transactionId": "63796982",
+        "issuerTransactionId": "28751230439",
+        "txAmount": "0.01"
+      }
+    },
+    "createdAt": "2025-12-21T16:43:38.050Z"
+  },
+  {
+    "id": "WAAFI-1766335451845",
+    "method": "waafi",
+    "payerPhone": "614388477",
+    "programId": 26,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 19:44:04.97",
+      "responseId": "1766335430903",
+      "responseCode": "2001",
+      "errorCode": "0",
+      "responseMsg": "RCS_SUCCESS",
+      "params": {
+        "orderId": "21371659",
+        "accountNo": "614388****8477",
+        "accountType": "mwallet_account",
+        "state": "APPROVED",
+        "referenceId": "REF-1766335430903",
+        "transactionId": "63797020",
+        "issuerTransactionId": "28751240025",
+        "txAmount": "0.01"
+      }
+    },
+    "createdAt": "2025-12-21T16:44:11.845Z"
+  },
+  {
+    "id": "WAAFI-1766335587401",
+    "method": "waafi",
+    "payerPhone": "614388477",
+    "programId": 26,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 19:46:20.662",
+      "responseId": "1766335576236",
+      "responseCode": "2001",
+      "errorCode": "0",
+      "responseMsg": "RCS_SUCCESS",
+      "params": {
+        "orderId": "21371736",
+        "accountNo": "614388****8477",
+        "accountType": "mwallet_account",
+        "state": "APPROVED",
+        "referenceId": "REF-1766335576236",
+        "transactionId": "63797144",
+        "issuerTransactionId": "28751278614",
+        "txAmount": "0.01"
+      }
+    },
+    "createdAt": "2025-12-21T16:46:27.401Z"
+  },
+  {
+    "id": "WAAFI-1766335906911",
+    "method": "waafi",
+    "payerPhone": "614388477",
+    "programId": 27,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 19:51:39.985",
+      "responseId": "1766335894407",
+      "responseCode": "2001",
+      "errorCode": "0",
+      "responseMsg": "RCS_SUCCESS",
+      "params": {
+        "orderId": "21372011",
+        "accountNo": "614388****8477",
+        "accountType": "mwallet_account",
+        "state": "APPROVED",
+        "referenceId": "REF-1766335894408",
+        "transactionId": "63797571",
+        "issuerTransactionId": "28751371186",
+        "txAmount": "0.01"
+      }
+    },
+    "createdAt": "2025-12-21T16:51:46.911Z"
+  },
+  {
+    "id": "WAAFI-1766336378764",
+    "method": "waafi",
+    "payerPhone": "252614388477",
+    "programId": 27,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 19:59:32.018",
+      "responseId": "1766336367379",
+      "responseCode": "2001",
+      "errorCode": "0",
+      "responseMsg": "RCS_SUCCESS",
+      "params": {
+        "orderId": "21372394",
+        "accountNo": "252614****8477",
+        "accountType": "mwallet_account",
+        "state": "APPROVED",
+        "referenceId": "REF-1766336367379",
+        "transactionId": "63798192",
+        "issuerTransactionId": "28751510423",
+        "txAmount": "0.01"
+      }
+    },
+    "createdAt": "2025-12-21T16:59:38.764Z"
+  },
+  {
+    "id": "WAAFI-1766336426482",
+    "method": "waafi",
+    "payerPhone": "34389038",
+    "programId": 27,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 20:00:19.673",
+      "responseId": "1766336423220",
+      "responseCode": "5027",
+      "errorCode": "E10105",
+      "responseMsg": "No payment route was found for the specified customer account. Please contact customer support for assistance"
+    },
+    "createdAt": "2025-12-21T17:00:26.482Z"
+  },
+  {
+    "id": "WAAFI-1766336458467",
+    "method": "waafi",
+    "payerPhone": "252614388477",
+    "programId": 27,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 20:00:51.675",
+      "responseId": "1766336448071",
+      "responseCode": "5310",
+      "errorCode": "5310",
+      "responseMsg": "RCS_USER_REJECTED",
+      "params": {
+        "orderId": "63798296",
+        "description": "Customer rejected payment"
+      }
+    },
+    "createdAt": "2025-12-21T17:00:58.467Z"
+  },
+  {
+    "id": "WAAFI-1766337036818",
+    "method": "waafi",
+    "payerPhone": "252614388477",
+    "programId": 27,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 20:10:29.929",
+      "responseId": "1766337016777",
+      "responseCode": "2001",
+      "errorCode": "0",
+      "responseMsg": "RCS_SUCCESS",
+      "params": {
+        "orderId": "21372938",
+        "accountNo": "252614****8477",
+        "accountType": "mwallet_account",
+        "state": "APPROVED",
+        "referenceId": "REF-1766337016778",
+        "transactionId": "63799025",
+        "issuerTransactionId": "28751705776",
+        "txAmount": "0.01"
+      }
+    },
+    "createdAt": "2025-12-21T17:10:36.819Z"
+  },
+  {
+    "id": "WAAFI-1766337362413",
+    "method": "waafi",
+    "payerPhone": "252614388477",
+    "programId": 27,
+    "amount": 0.01,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2025-12-21 20:15:55.572",
+      "responseId": "1766337352069",
+      "responseCode": "5310",
+      "errorCode": "5310",
+      "responseMsg": "RCS_USER_REJECTED",
+      "params": {
+        "orderId": "63799439",
+        "description": "Customer rejected payment"
+      }
+    },
+    "createdAt": "2025-12-21T17:16:02.413Z"
   }
 ]
