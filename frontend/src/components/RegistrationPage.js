@@ -379,10 +379,10 @@ export default function RegistrationPage() {
         try {
           await login({ email: formData.email, password: formData.password }).unwrap();
           localStorage.removeItem('registrationDraft');
-          router.push('/application-submitted');
+          router.push('/portal/student');
         } catch (e) {
           localStorage.removeItem('registrationDraft');
-          router.push('/auth/login');
+          router.push('/portal/student');
         }
       } else {
         alert(response.error || 'Failed to create account after payment.');

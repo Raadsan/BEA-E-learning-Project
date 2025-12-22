@@ -57,9 +57,9 @@ export const createStudent = async ({
 // GET all students
 export const getAllStudents = async () => {
   try {
-    const [rows] = await dbp.query(
-      "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students ORDER BY created_at DESC"
-    );
+  const [rows] = await dbp.query(
+    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, created_at, updated_at FROM students ORDER BY created_at DESC"
+  );
     return rows;
   } catch (error) {
     console.error("❌ Error in getAllStudents:", error);
@@ -70,7 +70,7 @@ export const getAllStudents = async () => {
 // GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students WHERE id = ?",
+    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, created_at, updated_at FROM students WHERE id = ?",
     [id]
   );
   return rows[0] || null;
