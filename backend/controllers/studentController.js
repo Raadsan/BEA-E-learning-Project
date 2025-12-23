@@ -20,7 +20,8 @@ export const createStudent = async (req, res) => {
       parent_relation,
       parent_res_county,
       parent_res_city,
-      class_id
+      class_id,
+      gender
     } = req.body;
 
     // Validate required fields
@@ -54,6 +55,7 @@ export const createStudent = async (req, res) => {
       email,
       phone,
       age,
+      gender,
       residency_country,
       residency_city,
       chosen_program,
@@ -298,3 +300,59 @@ export const getStudentProgress = async (req, res) => {
   }
 };
 
+// GET GENDER DISTRIBUTION
+export const getGenderDistribution = async (req, res) => {
+  try {
+    const { program_id, class_id } = req.query;
+    const students = await Student.getGenderDistribution(program_id, class_id);
+
+    res.json({
+      success: true,
+      data: students
+    });
+  } catch (err) {
+    console.error("❌ Get gender distribution error:", err);
+    res.status(500).json({
+      success: false,
+      error: "Server error: " + err.message
+    });
+  }
+};
+
+// GET TOP STUDENTS (Star Students)
+export const getTopStudents = async (req, res) => {
+  try {
+    const { limit = 10, program_id, class_id } = req.query;
+    const students = await Student.getTopStudents(limit, program_id, class_id);
+
+    res.json({
+      success: true,
+      students
+    });
+  } catch (err) {
+    console.error("❌ Get top students error:", err);
+    res.status(500).json({
+      success: false,
+      error: "Server error: " + err.message
+    });
+  }
+};
+
+// GET STUDENT LOCATIONS
+export const getStudentLocations = async (req, res) => {
+  try {
+    const { program_id } = req.query;
+    const locations = await Student.getStudentLocations(program_id);
+
+    res.json({
+      success: true,
+      locations
+    });
+  } catch (err) {
+    console.error("❌ Get student locations error:", err);
+    res.status(500).json({
+      success: false,
+      error: "Server error: " + err.message
+    });
+  }
+};

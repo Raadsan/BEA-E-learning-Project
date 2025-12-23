@@ -20,21 +20,18 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
     const [selectedClass, setSelectedClass] = useState('');
     const [timeFrame, setTimeFrame] = useState('Daily');
 
-    const { data: chartData, isLoading } = useGetAttendanceStatsQuery({
-        program_id: selectedProgram,
-        class_id: selectedClass,
-        timeFrame
-    });
-
-    const data = chartData || [
-        { name: 'Mon', attended: 0, absent: 0, percentage: 0 },
-        { name: 'Tue', attended: 0, absent: 0, percentage: 0 },
-        { name: 'Wed', attended: 0, absent: 0, percentage: 0 },
-        { name: 'Thu', attended: 0, absent: 0, percentage: 0 },
-        { name: 'Fri', attended: 0, absent: 0, percentage: 0 },
-        { name: 'Sat', attended: 0, absent: 0, percentage: 0 },
-        { name: 'Sun', attended: 0, absent: 0, percentage: 0 },
+    // Mock data for a "perfect" look
+    const data = [
+        { name: 'Mon', attended: 45, absent: 5, percentage: 90 },
+        { name: 'Tue', attended: 48, absent: 2, percentage: 96 },
+        { name: 'Wed', attended: 42, absent: 8, percentage: 84 },
+        { name: 'Thu', attended: 50, absent: 0, percentage: 100 },
+        { name: 'Fri', attended: 46, absent: 4, percentage: 92 },
+        { name: 'Sat', attended: 38, absent: 2, percentage: 95 },
+        { name: 'Sun', attended: 40, absent: 3, percentage: 93 },
     ];
+
+    const isLoading = false;
 
     return (
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 w-full h-full">

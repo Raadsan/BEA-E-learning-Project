@@ -1,0 +1,150 @@
+"use client";
+
+import React, { useState } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useGetLearningHoursQuery } from '@/redux/api/learningHoursApi';
+
+const LearningHoursChart = ({ programs = [], classes = [] }) => {
+    const [selectedProgram, setSelectedProgram] = useState('');
+    const [selectedClass, setSelectedClass] = useState('');
+    const [timeFrame, setTimeFrame] = useState('Weekly');
+
+    // Mock data for a "perfect" look
+    const data = [
+        { name: 'Mon', hours: 120 },
+        { name: 'Tue', hours: 145 },
+        { name: 'Wed', hours: 130 },
+        { name: 'Thu', hours: 160 },
+        { name: 'Fri', hours: 155 },
+        { name: 'Sat', hours: 90 },
+        { name: 'Sun', hours: 85 },
+    ];
+
+    const isLoading = false;
+
+    return (
+        <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            <div className="flex flex-col mb-4">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">Learning Hours</h3>
+                <div className="flex gap-2 mb-4">
+                    <select
+                        value={selectedProgram}
+                        onChange={(e) => setSelectedProgram(e.target.value)}
+                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                    >
+                        <option value="">All Programs</option>
+                        {programs.length > 0 ? (
+                            programs.map((program) => (
+                                <option key={program.id} value={program.id}>
+                                    {program.title}
+                                </option>
+                            ))
+                        ) : (
+                            <option disabled>No Programs Available</option>
+                        )}
+                    </select>
+                    <select
+                        value={timeFrame}
+                        onChange={(e) => setTimeFrame(e.target.value)}
+                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                    >
+                        <option value="Daily">Today</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Yearly">Yearly</option>
+                    </select>
+                    <select
+                        value={selectedClass}
+                        onChange={(e) => setSelectedClass(e.target.value)}
+                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                    >
+                        <option value="">All Classes</option>
+                        {classes.length > 0 ? (
+                            classes.map((cls) => (
+                                <option key={cls.id} value={cls.id}>
+                                    {cls.class_name}
+                                </option>
+                            ))
+                        ) : (
+                            <option disabled>No Classes Available</option>
+                        )}
+                    </select>
+                </div>
+            </div>
+
+            <div className="h-[300px] w-full">
+                {isLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                        <p className="text-gray-400">Loading...</p>
+                    </div>
+                ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                            <XAxis
+                                dataKey="name"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#6b7280', fontSize: 12 }}
+                            />
+                            <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#6b7280', fontSize: 12 }}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: '#fff',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e5e7eb',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                            />
+                            <Legend />
+                            <Area
+                                type="monotone"
+                                dataKey="hours"
+                                stroke="#8b5cf6"
+                                fillOpacity={1}
+                                fill="url(#colorHours)"
+                                name="Learning Hours"
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                )}
+            </div>
+
+            {/* Summary */}
+            {data.length > 0 && (
+                <div className="mt-4 grid grid-cols-3 gap-4">
+                    <div className="text-center p-3 bg-purple-50 rounded-lg">
+                        <p className="text-xs text-purple-600 font-medium">Total Hours</p>
+                        <p className="text-2xl font-bold text-purple-900">
+                            {data.reduce((sum, item) => sum + (item.hours || 0), 0)}
+                        </p>
+                    </div>
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                        <p className="text-xs text-blue-600 font-medium">Avg Hours/Day</p>
+                        <p className="text-2xl font-bold text-blue-900">
+                            {(data.reduce((sum, item) => sum + (item.hours || 0), 0) / data.length).toFixed(1)}
+                        </p>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                        <p className="text-xs text-green-600 font-medium">Peak Day</p>
+                        <p className="text-2xl font-bold text-green-900">
+                            {data.reduce((max, item) => item.hours > max.hours ? item : max, data[0])?.name || 'N/A'}
+                        </p>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default LearningHoursChart;

@@ -15,12 +15,13 @@ export default function RegistrationPage() {
   const { data: programs = [] } = useGetProgramsQuery();
   const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
   const [login] = useLoginMutation();
-  
+
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
     phone: "",
     age: "",
+    gender: "",
     residency_country: "",
     residency_city: "",
     chosen_program: "",
@@ -96,7 +97,7 @@ export default function RegistrationPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.termsAccepted) {
       alert("Please accept the terms and conditions to continue.");
       return;
@@ -109,6 +110,7 @@ export default function RegistrationPage() {
         email: formData.email,
         phone: formData.phone || null,
         age: formData.age ? parseInt(formData.age) : null,
+        gender: formData.gender || null,
         residency_country: formData.residency_country || null,
         residency_city: formData.residency_city || null,
         chosen_program: formData.chosen_program || null,
@@ -124,7 +126,7 @@ export default function RegistrationPage() {
 
       // Create student account
       const response = await createStudent(studentData).unwrap();
-      
+
       // Check if registration was successful
       if (response.success || response.student) {
         // Auto-login the student after registration
@@ -133,7 +135,7 @@ export default function RegistrationPage() {
             email: formData.email,
             password: formData.password
           }).unwrap();
-          
+
           if (loginResponse.success) {
             // Success - redirect to student dashboard
             alert("Account created successfully! Redirecting to your dashboard...");
@@ -154,10 +156,10 @@ export default function RegistrationPage() {
     } catch (error) {
       console.error("Registration error:", error);
       // Handle different error formats
-      const errorMessage = 
-        error?.data?.error || 
-        error?.data?.message || 
-        error?.message || 
+      const errorMessage =
+        error?.data?.error ||
+        error?.data?.message ||
+        error?.message ||
         "Failed to create account. Please try again.";
       alert(errorMessage);
     }
@@ -166,7 +168,7 @@ export default function RegistrationPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Brand Section (Fixed, Like Sign In Page) */}
-      <div 
+      <div
         className="hidden md:flex md:w-1/2 fixed left-0 top-0 h-screen items-center justify-center"
         style={{ backgroundColor: '#010080' }}
       >
@@ -192,7 +194,7 @@ export default function RegistrationPage() {
               className="mx-auto"
             />
           </div>
-          
+
           {/* Welcome Text */}
           <h1 className="text-4xl font-serif font-bold text-white mb-4">
             Join BEA Today!
@@ -329,6 +331,29 @@ export default function RegistrationPage() {
                 min="1"
                 className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base"
               />
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
+              <div className="relative">
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="w-full px-5 py-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-800 text-base appearance-none cursor-pointer"
+                >
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </div>
             </div>
 
             {/* Residency Country */}
@@ -567,7 +592,7 @@ export default function RegistrationPage() {
           </form>
 
           {/* Back to Home */}
-         
+
         </div>
       </div>
     </div>

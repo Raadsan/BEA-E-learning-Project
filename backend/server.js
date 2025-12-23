@@ -17,6 +17,9 @@ import placementTestRoutes from "./routes/placementTestRoutes.js";
 import proficiencyTestRoutes from "./routes/proficiencyTestRoutes.js";
 import ieltsToeflRoutes from "./routes/ieltsToeflRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import assignmentRoutes from "./routes/assignmentRoutes.js";
+import attendanceRoutes from "./routes/attendanceRoutes.js";
 
 const app = express();
 
@@ -32,13 +35,7 @@ app.get("/", (req, res) => {
   res.send("Backend is Running...");
 });
 
-// Example users route
-app.get("/users", (req, res) => {
-  db.query("SELECT * FROM users", (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(result);
-  });
-});
+
 
 // ⬇️ Register Programs Routes
 app.use("/api/programs", programRoutes);
@@ -75,6 +72,15 @@ app.use("/api/ielts-toefl", ieltsToeflRoutes);
 
 // ⬇️ Register Admin Routes
 app.use("/api/admins", adminRoutes);
+
+// ⬇️ Register User Routes
+app.use("/api/users", userRoutes);
+
+// ⬇️ Register Assignment Routes
+app.use("/api/assignments", assignmentRoutes);
+
+// ⬇️ Register Attendance Routes
+app.use("/api/attendance", attendanceRoutes);
 
 // Server start
 const PORT = process.env.PORT || 5000;

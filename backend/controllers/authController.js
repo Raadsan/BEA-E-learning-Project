@@ -240,3 +240,20 @@ export const getCurrentUser = async (req, res) => {
   }
 };
 
+// ADMIN AUTHORIZATION MIDDLEWARE
+export const isAdmin = async (req, res, next) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: "Access denied. Admin privileges required."
+      });
+    }
+    next();
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "Authorization failed"
+    });
+  }
+};

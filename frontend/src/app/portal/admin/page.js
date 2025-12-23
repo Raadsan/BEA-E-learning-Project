@@ -7,6 +7,13 @@ import { useGetTeachersQuery } from "@/redux/api/teacherApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import WeeklyAttendanceChart from "@/components/WeeklyAttendanceChart";
 import ProgramPieChart from "@/components/ProgramPieChart";
+import GenderDistributionChart from "@/components/GenderDistributionChart";
+import StarStudentsList from "@/components/StarStudentsList";
+import LearningHoursChart from "@/components/LearningHoursChart";
+import AssignmentCompletionChart from "@/components/AssignmentCompletionChart";
+import PerformanceClustersChart from "@/components/PerformanceClustersChart";
+import StudentLocationsMap from "@/components/StudentLocationsMap";
+import UpcomingEventsList from "@/components/UpcomingEventsList";
 
 export default function AdminDashboard() {
   // Fetch data from APIs
@@ -196,21 +203,45 @@ export default function AdminDashboard() {
           </div>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Total Attendance Chart */}
             <WeeklyAttendanceChart programs={programsData} classes={classesData} />
 
+            {/* Gender Distribution */}
+            <GenderDistributionChart programs={programsData} classes={classesData} />
+          </div>
+
+          {/* Learning Hours and Assignment Completion */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <LearningHoursChart programs={programsData} classes={classesData} />
+            <AssignmentCompletionChart programs={programsData} classes={classesData} />
+          </div>
+
+          {/* Performance Clusters and Student Locations */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <PerformanceClustersChart programs={programsData} classes={classesData} />
+            <StudentLocationsMap programs={programsData} />
+          </div>
+
+          {/* Programs Pie Chart and Upcoming Events */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 flex flex-col">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800 dark:text-white">All Programs</h2>
               </div>
               <div className="h-96 flex-1">
-                {/* Replaced placeholder with ProgramPieChart */}
                 <ProgramPieChart
                   data={programStats}
                   unit="Programs"
                 />
               </div>
             </div>
+
+            <UpcomingEventsList />
+          </div>
+          {/* Star Students - Full Width */}
+          <div className="mb-6">
+            <StarStudentsList programs={programsData} classes={classesData} />
           </div>
         </div>
       </main>

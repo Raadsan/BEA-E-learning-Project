@@ -105,6 +105,57 @@ export const studentApi = createApi({
         return response;
       },
     }),
+
+    // GET GENDER DISTRIBUTION
+    getGenderDistribution: builder.query({
+      query: ({ program_id, class_id } = {}) => {
+        const params = new URLSearchParams();
+        if (program_id) params.append("program_id", program_id);
+        if (class_id) params.append("class_id", class_id);
+        return `/gender-distribution?${params.toString()}`;
+      },
+      providesTags: ["Students"],
+      transformResponse: (response) => {
+        if (response.success) {
+          return response.data;
+        }
+        return response;
+      },
+    }),
+
+    // GET TOP STUDENTS
+    getTopStudents: builder.query({
+      query: ({ limit = 10, program_id, class_id } = {}) => {
+        const params = new URLSearchParams();
+        params.append("limit", limit);
+        if (program_id) params.append("program_id", program_id);
+        if (class_id) params.append("class_id", class_id);
+        return `/top-students?${params.toString()}`;
+      },
+      providesTags: ["Students"],
+      transformResponse: (response) => {
+        if (response.success) {
+          return response.students;
+        }
+        return response;
+      },
+    }),
+
+    // GET STUDENT LOCATIONS
+    getStudentLocations: builder.query({
+      query: ({ program_id } = {}) => {
+        const params = new URLSearchParams();
+        if (program_id) params.append("program_id", program_id);
+        return `/locations?${params.toString()}`;
+      },
+      providesTags: ["Students"],
+      transformResponse: (response) => {
+        if (response.success) {
+          return response.locations;
+        }
+        return response;
+      },
+    }),
   }),
 });
 
@@ -117,5 +168,8 @@ export const {
   useApproveStudentMutation,
   useRejectStudentMutation,
   useGetStudentProgressQuery,
+  useGetGenderDistributionQuery,
+  useGetTopStudentsQuery,
+  useGetStudentLocationsQuery,
 } = studentApi;
 

@@ -10,6 +10,7 @@ export const createStudent = async ({
   email,
   phone,
   age,
+  gender,
   residency_country,
   residency_city,
   chosen_program,
@@ -27,15 +28,16 @@ export const createStudent = async ({
 
   const [result] = await dbp.query(
     `INSERT INTO students (
-      full_name, email, phone, age, residency_country, residency_city,
+      full_name, email, phone, age, gender, residency_country, residency_city,
       chosen_program, chosen_subprogram, password, parent_name, parent_email, parent_phone,
       parent_relation, parent_res_county, parent_res_city
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       full_name,
       email,
       phone || null,
       age || null,
+      gender || null,
       residency_country || null,
       residency_city || null,
       chosen_program || null,
@@ -58,7 +60,7 @@ export const createStudent = async ({
 export const getAllStudents = async () => {
   try {
     const [rows] = await dbp.query(
-      "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students ORDER BY created_at DESC"
+      "SELECT id, full_name, email, phone, age, gender, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students ORDER BY created_at DESC"
     );
     return rows;
   } catch (error) {
@@ -70,7 +72,7 @@ export const getAllStudents = async () => {
 // GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students WHERE id = ?",
+    "SELECT id, full_name, email, phone, age, gender, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, created_at, updated_at FROM students WHERE id = ?",
     [id]
   );
   return rows[0] || null;
@@ -91,6 +93,7 @@ export const updateStudentById = async (id, {
   email,
   phone,
   age,
+  gender,
   residency_country,
   residency_city,
   chosen_program,
@@ -121,6 +124,10 @@ export const updateStudentById = async (id, {
   if (age !== undefined) {
     updates.push("age = ?");
     values.push(age);
+  }
+  if (gender !== undefined) {
+    updates.push("gender = ?");
+    values.push(gender);
   }
   if (residency_country !== undefined) {
     updates.push("residency_country = ?");
@@ -257,4 +264,117 @@ export const updateStudentProgramName = async (oldName, newName) => {
     [newName, oldName]
   );
   return result.affectedRows;
+};
+
+// GET GENDER DISTRIBUTION
+export const getGenderDistribution = async (program_id, class_id) => {
+  let query = `
+    SELECT 
+      gender,
+      COUNT(*) as count
+    FROM students
+    WHERE 1=1
+  `;
+
+  const params = [];
+
+  if (program_id) {
+    query += ` AND chosen_program = ?`;
+    params.push(program_id);
+  }
+
+  if (class_id) {
+    query += ` AND class_id = ?`;
+    params.push(class_id);
+  }
+
+  query += ` GROUP BY gender`;
+
+  const [rows] = await dbp.query(query, params);
+
+  // Calculate percentages
+  const total = rows.reduce((sum, row) => sum + row.count, 0);
+  return rows.map(row => ({
+    gender: row.gender || 'Not Specified',
+    count: row.count,
+    percentage: total > 0 ? Math.round((row.count / total) * 100) : 0
+  }));
+};
+
+// GET TOP STUDENTS
+export const getTopStudents = async (limit = 10, program_id, class_id) => {
+  let query = `
+    SELECT 
+      s.id,
+      s.full_name,
+      s.email,
+      s.residency_country,
+      s.residency_city,
+      s.chosen_program,
+      c.class_name,
+      p.title as program_name,
+      COUNT(DISTINCT a.id) as total_sessions,
+      SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) as attended_sessions,
+      ROUND((SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) / COUNT(DISTINCT a.id)) * 100, 2) as attendance_rate,
+      COALESCE(AVG(asub.score), 0) as avg_assignment_score
+    FROM students s
+    LEFT JOIN classes c ON s.class_id = c.id
+    LEFT JOIN programs p ON s.chosen_program = p.id
+    LEFT JOIN attendance a ON s.id = a.student_id
+    LEFT JOIN assignment_submissions asub ON s.id = asub.student_id AND asub.status = 'graded'
+    WHERE s.approval_status = 'approved'
+  `;
+
+  const params = [];
+
+  if (program_id) {
+    query += ` AND s.chosen_program = ?`;
+    params.push(program_id);
+  }
+
+  if (class_id) {
+    query += ` AND s.class_id = ?`;
+    params.push(class_id);
+  }
+
+  query += `
+    GROUP BY s.id, s.full_name, s.email, s.residency_country, s.residency_city, s.chosen_program, c.class_name, p.title
+    HAVING total_sessions > 0
+    ORDER BY attendance_rate DESC, avg_assignment_score DESC
+    LIMIT ?
+  `;
+
+  params.push(parseInt(limit));
+
+  const [rows] = await dbp.query(query, params);
+  return rows.map((row, index) => ({
+    ...row,
+    rank: index + 1,
+    attendance_rate: row.attendance_rate || 0,
+    avg_assignment_score: row.avg_assignment_score || 0
+  }));
+};
+
+// GET STUDENT LOCATIONS
+export const getStudentLocations = async (program_id) => {
+  let query = `
+    SELECT 
+      residency_country as country,
+      residency_city as city,
+      COUNT(*) as student_count
+    FROM students
+    WHERE residency_country IS NOT NULL AND residency_country != ''
+  `;
+
+  const params = [];
+
+  if (program_id) {
+    query += ` AND chosen_program = ?`;
+    params.push(program_id);
+  }
+
+  query += ` GROUP BY residency_country, residency_city ORDER BY student_count DESC`;
+
+  const [rows] = await dbp.query(query, params);
+  return rows;
 };

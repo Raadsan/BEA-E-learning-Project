@@ -446,10 +446,7 @@ export default function AdminProfilePage() {
                             </form>
 
                             {/* DEBUG: Temporary Data Dump to verify backend response */}
-                            <div className="mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono overflow-auto">
-                                <p className="font-bold mb-2">DEBUG DATA (Show this to support):</p>
-                                <pre>{JSON.stringify(currentAdmin, null, 2)}</pre>
-                            </div>
+                            
                         </div>
                     </div>
                 </div>
