@@ -24,10 +24,12 @@ export default function EditPlacementTestPage() {
     });
 
     const [questions, setQuestions] = useState([]);
+    const [editingIndex, setEditingIndex] = useState(null);
     const [currentQuestion, setCurrentQuestion] = useState({
         questionText: "",
         options: ["", "", "", ""],
         correctOption: 0,
+        points: 1,
     });
 
     // Populate form when data fetches
@@ -58,22 +60,47 @@ export default function EditPlacementTestPage() {
         setCurrentQuestion({ ...currentQuestion, options: newOptions });
     };
 
-    const addQuestion = () => {
+    const handleSaveQuestion = () => {
         if (!currentQuestion.questionText || currentQuestion.options.some((opt) => !opt)) {
             showToast("Please fill in the question and all options.", "error");
             return;
         }
-        setQuestions([...questions, currentQuestion]);
+
+        if (editingIndex !== null) {
+            const updatedQuestions = [...questions];
+            updatedQuestions[editingIndex] = currentQuestion;
+            setQuestions(updatedQuestions);
+            setEditingIndex(null);
+            showToast("Question updated successfully", "success");
+        } else {
+            setQuestions([...questions, currentQuestion]);
+            showToast("Question added successfully", "success");
+        }
+
+        resetQuestionForm();
+    };
+
+    const resetQuestionForm = () => {
         setCurrentQuestion({
             questionText: "",
             options: ["", "", "", ""],
             correctOption: 0,
+            points: 1,
         });
-        showToast("Question added successfully", "success");
+        setEditingIndex(null);
     };
 
-    const removeQuestion = (index) => {
+    const handleSelectQuestion = (index) => {
+        setCurrentQuestion(questions[index]);
+        setEditingIndex(index);
+    };
+
+    const removeQuestion = (e, index) => {
+        e.stopPropagation();
         setQuestions(questions.filter((_, i) => i !== index));
+        if (editingIndex === index) {
+            resetQuestionForm();
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -196,13 +223,13 @@ export default function EditPlacementTestPage() {
                             </div>
                         </div>
 
-                        {/* 2. Add Question Form - Card Style */}
+                        {/* 2. Add/Edit Question Form - Card Style */}
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                             <h2 className="text-xl font-bold mb-6 text-gray-900 flex items-center gap-2">
                                 <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Add New Question
+                                {editingIndex !== null ? `Edit Question #${editingIndex + 1}` : "Add New Question"}
                             </h2>
 
                             <div className="space-y-5">
@@ -214,6 +241,17 @@ export default function EditPlacementTestPage() {
                                         className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-colors"
                                         rows="2"
                                         placeholder="Type your question here..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Question Marks / Points</label>
+                                    <input
+                                        type="number"
+                                        value={currentQuestion.points}
+                                        onChange={(e) => setCurrentQuestion({ ...currentQuestion, points: parseInt(e.target.value) || 1 })}
+                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-colors mb-4"
+                                        min="1"
                                     />
                                 </div>
 
@@ -239,13 +277,24 @@ export default function EditPlacementTestPage() {
                                     ))}
                                 </div>
 
-                                <button
-                                    type="button"
-                                    onClick={addQuestion}
-                                    className="w-full mt-4 bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 hover:text-gray-900 py-2.5 rounded-lg font-medium transition-colors"
-                                >
-                                    + Add Question
-                                </button>
+                                <div className="flex gap-4 mt-6">
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveQuestion}
+                                        className={`flex-1 ${editingIndex !== null ? 'bg-[#673ab7] text-white hover:bg-[#5e35b1]' : 'bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 hover:text-gray-900'} py-2.5 rounded-lg font-medium transition-colors`}
+                                    >
+                                        {editingIndex !== null ? 'Update Question' : '+ Add Question'}
+                                    </button>
+                                    {editingIndex !== null && (
+                                        <button
+                                            type="button"
+                                            onClick={resetQuestionForm}
+                                            className="px-6 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-medium transition-colors border border-red-100"
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -264,9 +313,16 @@ export default function EditPlacementTestPage() {
                             ) : (
                                 <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-2 custom-scrollbar">
                                     {questions.map((q, i) => (
-                                        <div key={i} className="p-4 bg-gray-50 rounded-lg border border-gray-100 relative group hover:bg-gray-100 transition-colors">
+                                        <div
+                                            key={i}
+                                            onClick={() => handleSelectQuestion(i)}
+                                            className={`p-4 rounded-lg border cursor-pointer relative group transition-all ${editingIndex === i
+                                                    ? 'bg-purple-50 border-[#673ab7] shadow-sm'
+                                                    : 'bg-gray-50 border-gray-100 hover:bg-gray-100 hover:border-gray-200'
+                                                }`}
+                                        >
                                             <button
-                                                onClick={() => removeQuestion(i)}
+                                                onClick={(e) => removeQuestion(e, i)}
                                                 className="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-red-50 rounded"
                                                 title="Remove Question"
                                             >
@@ -281,6 +337,7 @@ export default function EditPlacementTestPage() {
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-medium text-sm text-gray-900 mb-2 leading-snug break-words">
                                                         {q.questionText}
+                                                        <span className="ml-2 text-[10px] bg-[#673ab7]/10 text-[#673ab7] px-1.5 py-0.5 rounded font-bold uppercase">{q.points || 1} pts</span>
                                                     </p>
                                                     <ul className="space-y-1">
                                                         {q.options.map((opt, oid) => (

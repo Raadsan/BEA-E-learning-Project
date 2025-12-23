@@ -19,10 +19,12 @@ export default function CreatePlacementTestPage() {
   });
 
   const [questions, setQuestions] = useState([]);
+  const [editingIndex, setEditingIndex] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState({
     questionText: "",
     options: ["", "", "", ""],
     correctOption: 0,
+    points: 1,
   });
 
   const handleTestChange = (e) => {
@@ -39,22 +41,47 @@ export default function CreatePlacementTestPage() {
     setCurrentQuestion({ ...currentQuestion, options: newOptions });
   };
 
-  const addQuestion = () => {
+  const handleSaveQuestion = () => {
     if (!currentQuestion.questionText || currentQuestion.options.some((opt) => !opt)) {
       showToast("Please fill in the question and all options.", "error");
       return;
     }
-    setQuestions([...questions, currentQuestion]);
+
+    if (editingIndex !== null) {
+      const updatedQuestions = [...questions];
+      updatedQuestions[editingIndex] = currentQuestion;
+      setQuestions(updatedQuestions);
+      setEditingIndex(null);
+      showToast("Question updated successfully", "success");
+    } else {
+      setQuestions([...questions, currentQuestion]);
+      showToast("Question added successfully", "success");
+    }
+
+    resetQuestionForm();
+  };
+
+  const resetQuestionForm = () => {
     setCurrentQuestion({
       questionText: "",
       options: ["", "", "", ""],
       correctOption: 0,
+      points: 1,
     });
-    showToast("Question added successfully", "success");
+    setEditingIndex(null);
   };
 
-  const removeQuestion = (index) => {
+  const handleSelectQuestion = (index) => {
+    setCurrentQuestion(questions[index]);
+    setEditingIndex(index);
+  };
+
+  const removeQuestion = (e, index) => {
+    e.stopPropagation();
     setQuestions(questions.filter((_, i) => i !== index));
+    if (editingIndex === index) {
+      resetQuestionForm();
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -147,9 +174,11 @@ export default function CreatePlacementTestPage() {
               </div>
             </div>
 
-            {/* 2. Add Question Form */}
+            {/* 2. Add/Edit Question Form */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-lg font-semibold mb-4 text-[#010080]">Add Question</h2>
+              <h2 className="text-lg font-semibold mb-4 text-[#010080]">
+                {editingIndex !== null ? `Edit Question #${editingIndex + 1}` : "Add Question"}
+              </h2>
 
               <div className="space-y-4">
                 <div>
@@ -160,6 +189,17 @@ export default function CreatePlacementTestPage() {
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#010080] focus:border-[#010080]"
                     rows="2"
                     placeholder="Enter the question here..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Question Marks / Points</label>
+                  <input
+                    type="number"
+                    value={currentQuestion.points}
+                    onChange={(e) => setCurrentQuestion({ ...currentQuestion, points: parseInt(e.target.value) || 1 })}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#010080] focus:border-[#010080]"
+                    min="1"
                   />
                 </div>
 
@@ -185,13 +225,24 @@ export default function CreatePlacementTestPage() {
                   ))}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={addQuestion}
-                  className="w-full mt-2 bg-gray-100 text-gray-700 hover:bg-gray-200 py-2.5 rounded-lg font-medium transition-colors"
-                >
-                  + Add Question
-                </button>
+                <div className="flex gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={handleSaveQuestion}
+                    className={`flex-1 ${editingIndex !== null ? 'bg-[#010080] text-white hover:bg-[#000066]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} py-2.5 rounded-lg font-medium transition-colors`}
+                  >
+                    {editingIndex !== null ? 'Update Question' : '+ Add Question'}
+                  </button>
+                  {editingIndex !== null && (
+                    <button
+                      type="button"
+                      onClick={resetQuestionForm}
+                      className="px-6 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -210,9 +261,16 @@ export default function CreatePlacementTestPage() {
               ) : (
                 <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                   {questions.map((q, i) => (
-                    <div key={i} className="p-3 bg-gray-50 rounded-lg border border-gray-200 relative group">
+                    <div
+                      key={i}
+                      onClick={() => handleSelectQuestion(i)}
+                      className={`p-3 rounded-lg border cursor-pointer relative group transition-all ${editingIndex === i
+                          ? 'bg-blue-50 border-[#010080] shadow-sm'
+                          : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                        }`}
+                    >
                       <button
-                        onClick={() => removeQuestion(i)}
+                        onClick={(e) => removeQuestion(e, i)}
                         className="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Remove Question"
                       >
@@ -220,6 +278,7 @@ export default function CreatePlacementTestPage() {
                       </button>
                       <p className="font-medium text-sm text-gray-900 mb-2">
                         {i + 1}. {q.questionText}
+                        <span className="ml-2 text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold uppercase">{q.points || 1} pts</span>
                       </p>
                       <ul className="pl-4 space-y-1">
                         {q.options.map((opt, oid) => (

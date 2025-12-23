@@ -158,13 +158,14 @@ export default function StudentPaymentsPage() {
               <table className="w-full text-left">
                 <thead className="bg-[#010080] text-white">
                   <tr>
-                    <Th>Date</Th>
+                    
                     <Th>Student Name</Th>
                     <Th>Program</Th>
                     <Th>Fee</Th>
                     <Th>Paid</Th>
                     <Th>Method</Th>
                     <Th>Status</Th>
+                    <Th>Date</Th>
                     <Th>Action</Th>
                   </tr>
                 </thead>
@@ -178,7 +179,7 @@ export default function StudentPaymentsPage() {
                   ) : (
                     payments.map((p) => (
                       <tr key={p.id} className={`transition-colors ${isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-50'}`}>
-                        <Td>{p.created_at ? new Date(p.created_at).toLocaleDateString() : "-"}</Td>
+                        
                         <Td>
                           <div className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.full_name}</div>
                         </Td>
@@ -210,6 +211,7 @@ export default function StudentPaymentsPage() {
                             </span>
                           </span>
                         </Td>
+                        <Td>{p.created_at ? new Date(p.created_at).toLocaleDateString() : "-"}</Td>
                         <Td>
                           <button
                             className="p-2 text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"

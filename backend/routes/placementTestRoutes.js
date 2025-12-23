@@ -5,14 +5,20 @@ import {
     getPlacementTestById,
     updatePlacementTest,
     deletePlacementTest,
+    submitPlacementTest,
+    getStudentPlacementResults,
+    getAllPlacementResults,
 } from "../controllers/placementTestController.js";
 import { verifyToken } from "../controllers/authController.js";
 
 const router = express.Router();
 
 router.post("/", verifyToken, createPlacementTest);
+router.post("/submit", verifyToken, submitPlacementTest);
 router.get("/", verifyToken, getAllPlacementTests);
 router.get("/:id", verifyToken, getPlacementTestById);
+router.get("/results/all", verifyToken, getAllPlacementResults);
+router.get("/results/:studentId", verifyToken, getStudentPlacementResults);
 router.put("/:id", verifyToken, updatePlacementTest);
 router.delete("/:id", verifyToken, deletePlacementTest);
 

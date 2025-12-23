@@ -1,49 +1,72 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
+const getToken = () => {
+    if (typeof window !== "undefined") {
+        return localStorage.getItem("token");
+    }
+    return null;
+};
 
 export const placementTestApi = createApi({
-    reducerPath: 'placementTestApi',
+    reducerPath: "placementTestApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:5000/api',
+        baseUrl: "http://localhost:5000/api/placement-tests",
         prepareHeaders: (headers) => {
-            const token = localStorage.getItem('token');
+            const token = getToken();
             if (token) {
-                headers.set('authorization', `Bearer ${token}`);
+                headers.set("Authorization", `Bearer ${token}`);
             }
             return headers;
         },
     }),
-    tagTypes: ['PlacementTest'],
+    tagTypes: ["PlacementTest", "PlacementResult"],
     endpoints: (builder) => ({
         getPlacementTests: builder.query({
-            query: () => '/placement-tests',
-            providesTags: ['PlacementTest'],
+            query: () => "/",
+            providesTags: ["PlacementTest"],
         }),
         getPlacementTestById: builder.query({
-            query: (id) => `/placement-tests/${id}`,
-            providesTags: (result, error, id) => [{ type: 'PlacementTest', id }],
+            query: (id) => `/${id}`,
+            providesTags: (result, error, id) => [{ type: "PlacementTest", id }],
+        }),
+        submitPlacementTest: builder.mutation({
+            query: (data) => ({
+                url: "/submit",
+                method: "POST",
+                body: data,
+            }),
+            invalidatesTags: ["PlacementResult"],
+        }),
+        getStudentPlacementResults: builder.query({
+            query: (studentId) => `/results/${studentId}`,
+            providesTags: ["PlacementResult"],
+        }),
+        getAllPlacementResults: builder.query({
+            query: () => "/results/all",
+            providesTags: ["PlacementResult"],
         }),
         createPlacementTest: builder.mutation({
             query: (newTest) => ({
-                url: '/placement-tests',
-                method: 'POST',
+                url: "/",
+                method: "POST",
                 body: newTest,
             }),
-            invalidatesTags: ['PlacementTest'],
+            invalidatesTags: ["PlacementTest"],
         }),
         updatePlacementTest: builder.mutation({
             query: ({ id, ...updatedTest }) => ({
-                url: `/placement-tests/${id}`,
-                method: 'PUT',
+                url: `/${id}`,
+                method: "PUT",
                 body: updatedTest,
             }),
-            invalidatesTags: (result, error, { id }) => [{ type: 'PlacementTest', id }, 'PlacementTest'],
+            invalidatesTags: (result, error, { id }) => [{ type: "PlacementTest", id }, "PlacementTest"],
         }),
         deletePlacementTest: builder.mutation({
             query: (id) => ({
-                url: `/placement-tests/${id}`,
-                method: 'DELETE',
+                url: `/${id}`,
+                method: "DELETE",
             }),
-            invalidatesTags: ['PlacementTest'],
+            invalidatesTags: ["PlacementTest"],
         }),
     }),
 });
@@ -51,6 +74,9 @@ export const placementTestApi = createApi({
 export const {
     useGetPlacementTestsQuery,
     useGetPlacementTestByIdQuery,
+    useSubmitPlacementTestMutation,
+    useGetStudentPlacementResultsQuery,
+    useGetAllPlacementResultsQuery,
     useCreatePlacementTestMutation,
     useUpdatePlacementTestMutation,
     useDeletePlacementTestMutation,
