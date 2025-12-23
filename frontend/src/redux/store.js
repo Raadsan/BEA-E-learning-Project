@@ -11,7 +11,6 @@ import { placementTestApi } from "../redux/api/placementTestApi.js";
 import { proficiencyTestApi } from "../redux/api/proficiencyTestApi.js";
 import { adminApi } from "../redux/api/adminApi.js";
 import { ieltsToeflApi } from "../redux/api/ieltsToeflApi.js";
-import { attendanceApi } from "../redux/api/attendanceApi.js";
 import { userApi } from "../redux/api/userApi.js";
 import { assignmentApi } from "../redux/api/assignmentApi.js";
 import { learningHoursApi } from "../redux/api/learningHoursApi.js";
@@ -30,7 +29,6 @@ export const store = configureStore({
     [proficiencyTestApi.reducerPath]: proficiencyTestApi.reducer,
     [adminApi.reducerPath]: adminApi.reducer,
     [ieltsToeflApi.reducerPath]: ieltsToeflApi.reducer,
-    [attendanceApi.reducerPath]: attendanceApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
     [assignmentApi.reducerPath]: assignmentApi.reducer,
     [learningHoursApi.reducerPath]: learningHoursApi.reducer,
@@ -49,7 +47,6 @@ export const store = configureStore({
       proficiencyTestApi.middleware,
       adminApi.middleware,
       ieltsToeflApi.middleware,
-      attendanceApi.middleware,
       userApi.middleware,
       assignmentApi.middleware,
       learningHoursApi.middleware

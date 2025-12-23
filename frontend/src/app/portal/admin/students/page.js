@@ -3,15 +3,15 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
-import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation } from "@/redux/api/studentApi";
+import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation, useApproveStudentMutation, useRejectStudentMutation } from "@/redux/api/studentApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
-import { 
-  useGetIeltsToeflStudentsQuery, 
-  useDeleteIeltsToeflStudentMutation, 
+import {
+  useGetIeltsToeflStudentsQuery,
+  useDeleteIeltsToeflStudentMutation,
   useUpdateIeltsToeflStudentMutation,
-  useRejectIeltsToeflStudentMutation 
+  useRejectIeltsToeflStudentMutation
 } from "@/redux/api/ieltsToeflApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
@@ -32,18 +32,17 @@ export default function StudentsPage() {
 
   // Regular Students Hooks
   const { data: backendStudents, isLoading, isError, error, refetch } = useGetStudentsQuery();
-  
+
   // IELTS/TOEFL Students Hooks (Renamed refetch to refetchIelts)
-  const { 
-    data: ieltsStudents = [], 
-    isLoading: isIeltsLoading, 
-    refetch: refetchIelts 
+  const {
+    data: ieltsStudents = [],
+    isLoading: isIeltsLoading,
+    refetch: refetchIelts
   } = useGetIeltsToeflStudentsQuery();
 
   const { data: programs = [] } = useGetProgramsQuery();
   const { data: classes = [] } = useGetClassesQuery();
   const { data: allSubprograms = [] } = useGetSubprogramsQuery();
-  const { data: classes = [] } = useGetClassesQuery();
 
   // Mutations
   const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
@@ -168,8 +167,8 @@ export default function StudentsPage() {
 
   const handleAssignSubprogram = (student) => {
     if (student.type === 'ielts') {
-        showToast("Subprograms are currently managed differently for IELTS/TOEFL students.", "info");
-        return;
+      showToast("Subprograms are currently managed differently for IELTS/TOEFL students.", "info");
+      return;
     }
     setAssigningStudent(student);
     setIsAssignSubprogramModalOpen(true);
@@ -211,9 +210,9 @@ export default function StudentsPage() {
     if (window.confirm("Are you sure you want to delete this student?")) {
       try {
         if (studentToDelete.type === 'ielts') {
-             await deleteIeltsStudent(studentToDelete.original_id).unwrap();
+          await deleteIeltsStudent(studentToDelete.original_id).unwrap();
         } else {
-             await deleteStudent(id).unwrap();
+          await deleteStudent(id).unwrap();
         }
         showToast("Student deleted successfully!", "success");
       } catch (error) {
@@ -297,12 +296,12 @@ export default function StudentsPage() {
 
       if (editingStudent) {
         if (editingStudent.type === 'ielts') {
-             // Logic for updating IELTS basics could go here if the API supports similar fields
-             // For now, assume this modal is mostly for Regular students or shared basic info
-             showToast("Editing detailed IELTS info via this modal is limited.", "info");
-             await updateStudent({ id: editingStudent.id, ...submitData }).unwrap(); 
+          // Logic for updating IELTS basics could go here if the API supports similar fields
+          // For now, assume this modal is mostly for Regular students or shared basic info
+          showToast("Editing detailed IELTS info via this modal is limited.", "info");
+          await updateStudent({ id: editingStudent.id, ...submitData }).unwrap();
         } else {
-             await updateStudent({ id: editingStudent.id, ...submitData }).unwrap();
+          await updateStudent({ id: editingStudent.id, ...submitData }).unwrap();
         }
         showToast("Student updated successfully!", "success");
       } else {
@@ -410,7 +409,7 @@ export default function StudentsPage() {
         if (subprogram && subprogram.trim() !== "" && subprogram !== "null") {
           return <span className="text-black dark:text-white">{subprogram}</span>;
         }
-        
+
         return <span className="text-gray-500">Not assigned</span>;
       },
     },
@@ -578,12 +577,10 @@ export default function StudentsPage() {
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-2xl font-bold ${
-                isDark ? 'text-white' : 'text-gray-800'
+            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
+                }`}>
                 {editingStudent ? "Edit Student" : "Add New Student"}
               </h2>
               <button
@@ -599,12 +596,10 @@ export default function StudentsPage() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Student Information Section */}
-              <div className={`p-4 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 ${
-                  isDark ? 'text-white' : 'text-gray-800'
+              <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
                 }`}>
+                <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                   Student Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -790,12 +785,10 @@ export default function StudentsPage() {
               </div>
 
               {/* Payment Summary Section */}
-              <div className={`p-5 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-yellow-50/60 border-yellow-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
+              <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-yellow-50/60 border-yellow-200'
                 }`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                   Payment Summary
                 </h3>
                 <div className="space-y-3">
@@ -803,136 +796,122 @@ export default function StudentsPage() {
                     {viewingPayments.length === 0
                       ? "This student has no recorded payments yet."
                       : (() => {
-                          const totalPaid = viewingPayments
-                            .filter(p => p.status === 'paid' || p.status === 'completed')
-                            .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-                          return `This student has paid a total of $${totalPaid.toFixed(2)} so far.`;
-                        })()}
+                        const totalPaid = viewingPayments
+                          .filter(p => p.status === 'paid' || p.status === 'completed')
+                          .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                        return `This student has paid a total of $${totalPaid.toFixed(2)} so far.`;
+                      })()}
                   </p>
                 </div>
               </div>
 
               {/* Parent Information Section */}
               {showParentInfo && (
-                <div className={`p-4 rounded-lg border ${
-                  isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
-                }`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${
-                    isDark ? 'text-white' : 'text-gray-800'
+                <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
                   }`}>
+                  <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'
+                    }`}>
                     Parent/Guardian Information <span className="text-sm font-normal text-gray-500">(Required for students under 18)</span>
                   </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="parent_name" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Name
-                    </label>
-                    <input
-                      type="text"
-                      id="parent_name"
-                      name="parent_name"
-                      value={formData.parent_name}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
-                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="parent_name" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Name
+                      </label>
+                      <input
+                        type="text"
+                        id="parent_name"
+                        name="parent_name"
+                        value={formData.parent_name}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="parent_email" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Email
-                    </label>
-                    <input
-                      type="email"
-                      id="parent_email"
-                      name="parent_email"
-                      value={formData.parent_email}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="parent_email" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Email
+                      </label>
+                      <input
+                        type="email"
+                        id="parent_email"
+                        name="parent_email"
+                        value={formData.parent_email}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="parent_phone" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Phone
-                    </label>
-                    <input
-                      type="tel"
-                      id="parent_phone"
-                      name="parent_phone"
-                      value={formData.parent_phone}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="parent_phone" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Phone
+                      </label>
+                      <input
+                        type="tel"
+                        id="parent_phone"
+                        name="parent_phone"
+                        value={formData.parent_phone}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="parent_relation" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Relation
-                    </label>
-                    <input
-                      type="text"
-                      id="parent_relation"
-                      name="parent_relation"
-                      value={formData.parent_relation}
-                      onChange={handleInputChange}
-                      placeholder="e.g., Father, Mother, Guardian"
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="parent_relation" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Relation
+                      </label>
+                      <input
+                        type="text"
+                        id="parent_relation"
+                        name="parent_relation"
+                        value={formData.parent_relation}
+                        onChange={handleInputChange}
+                        placeholder="e.g., Father, Mother, Guardian"
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="parent_res_county" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Residency Country
-                    </label>
-                    <input
-                      type="text"
-                      id="parent_res_county"
-                      name="parent_res_county"
-                      value={formData.parent_res_county}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="parent_res_county" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Residency Country
+                      </label>
+                      <input
+                        type="text"
+                        id="parent_res_county"
+                        name="parent_res_county"
+                        value={formData.parent_res_county}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="parent_res_city" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Parent Residency City
-                    </label>
-                    <input
-                      type="text"
-                      id="parent_res_city"
-                      name="parent_res_city"
-                      value={formData.parent_res_city}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    />
+                    <div>
+                      <label htmlFor="parent_res_city" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Residency City
+                      </label>
+                      <input
+                        type="text"
+                        id="parent_res_city"
+                        name="parent_res_city"
+                        value={formData.parent_res_city}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
               )}
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -986,12 +965,10 @@ export default function StudentsPage() {
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-2xl font-bold ${
-                isDark ? 'text-white' : 'text-gray-800'
+            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
+                }`}>
                 Assign Subprogram to {assigningStudent.full_name}
               </h2>
               <button
@@ -1027,11 +1004,11 @@ export default function StudentsPage() {
                     parent_res_county: assigningStudent.parent_res_county || null,
                     parent_res_city: assigningStudent.parent_res_city || null,
                   };
-                  
+
                   console.log("Updating student with:", updateData); // Debug log
                   const result = await updateStudent(updateData).unwrap();
                   console.log("Update result:", result); // Debug log
-                  
+
                   // Force refetch to ensure table updates immediately
                   await refetch();
                   showToast("Subprogram assigned successfully!", "success");
@@ -1127,35 +1104,31 @@ export default function StudentsPage() {
           />
 
           <div
-            className={`relative rounded-lg shadow-2xl w-full max-w-lg mx-4 border-2 ${
-              isDark
+            className={`relative rounded-lg shadow-2xl w-full max-w-lg mx-4 border-2 ${isDark
                 ? "bg-gray-800/95 border-gray-600"
                 : "bg-white/95 border-gray-300"
-            }`}
+              }`}
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: "auto", backdropFilter: "blur(2px)" }}
           >
             <div
-              className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
-                isDark
+              className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark
                   ? "bg-gray-800 border-gray-700"
                   : "bg-white border-gray-200"
-              }`}
+                }`}
             >
               <h2
-                className={`text-2xl font-bold ${
-                  isDark ? "text-white" : "text-gray-800"
-                }`}
+                className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-800"
+                  }`}
               >
                 Assign Class to {assigningStudent.full_name}
               </h2>
               <button
                 onClick={handleCloseAssignClassModal}
-                className={`transition-colors ${
-                  isDark
+                className={`transition-colors ${isDark
                     ? "text-gray-400 hover:text-gray-200"
                     : "text-gray-400 hover:text-gray-600"
-                }`}
+                  }`}
               >
                 <svg
                   className="w-6 h-6"
@@ -1204,16 +1177,14 @@ export default function StudentsPage() {
             >
               {classes.length === 0 ? (
                 <div
-                  className={`p-4 rounded-lg ${
-                    isDark
+                  className={`p-4 rounded-lg ${isDark
                       ? "bg-yellow-900/20 border border-yellow-700"
                       : "bg-yellow-50 border-yellow-200"
-                  }`}
+                    }`}
                 >
                   <p
-                    className={`text-sm ${
-                      isDark ? "text-yellow-200" : "text-yellow-800"
-                    }`}
+                    className={`text-sm ${isDark ? "text-yellow-200" : "text-yellow-800"
+                      }`}
                   >
                     There are no classes available yet. Please create classes
                     first in the Class Management page.
@@ -1223,9 +1194,8 @@ export default function StudentsPage() {
                 <div>
                   <label
                     htmlFor="class_id"
-                    className={`block text-sm font-medium mb-1 ${
-                      isDark ? "text-gray-300" : "text-gray-700"
-                    }`}
+                    className={`block text-sm font-medium mb-1 ${isDark ? "text-gray-300" : "text-gray-700"
+                      }`}
                   >
                     Select Class
                   </label>
@@ -1234,11 +1204,10 @@ export default function StudentsPage() {
                     name="class_id"
                     value={selectedClassId}
                     onChange={(e) => setSelectedClassId(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
                         ? "bg-gray-700 border-gray-600 text-white"
                         : "border-gray-300"
-                    }`}
+                      }`}
                     required
                   >
                     <option value="">Select a class</option>
@@ -1255,11 +1224,10 @@ export default function StudentsPage() {
                 <button
                   type="button"
                   onClick={handleCloseAssignClassModal}
-                  className={`px-4 py-2 border rounded-lg transition-colors ${
-                    isDark
+                  className={`px-4 py-2 border rounded-lg transition-colors ${isDark
                       ? "border-gray-600 text-gray-300 hover:bg-gray-700"
                       : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   Cancel
                 </button>
@@ -1313,12 +1281,10 @@ export default function StudentsPage() {
 
             <div className="p-6 space-y-6">
               {/* Personal Information Section */}
-              <div className={`p-5 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
+              <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
                 }`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -1358,12 +1324,10 @@ export default function StudentsPage() {
               </div>
 
               {/* Location Information Section */}
-              <div className={`p-5 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
+              <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
                 }`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1372,17 +1336,15 @@ export default function StudentsPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Country</label>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Country</label>
                     <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                       {viewingStudent.residency_country || 'N/A'}
                     </p>
                   </div>
                   <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>City</label>
+                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>City</label>
                     <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                       {viewingStudent.residency_city || 'N/A'}
                     </p>
@@ -1391,12 +1353,10 @@ export default function StudentsPage() {
               </div>
 
               {/* Academic Information Section */}
-              <div className={`p-5 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-green-50/50 border-green-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
+              <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-green-50/50 border-green-200'
                 }`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
@@ -1424,12 +1384,10 @@ export default function StudentsPage() {
 
               {/* Parent/Guardian Information Section - Only show if age < 18 */}
               {viewingStudent.age && parseInt(viewingStudent.age) < 18 && (
-                <div className={`p-5 rounded-lg border ${
-                  isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-orange-50/50 border-orange-200'
-                }`}>
-                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                    isDark ? 'text-white' : 'text-gray-800'
+                <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-orange-50/50 border-orange-200'
                   }`}>
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                    }`}>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
@@ -1437,49 +1395,43 @@ export default function StudentsPage() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Parent Name</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Parent Name</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_name || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Parent Email</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Parent Email</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_email || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Parent Phone</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Parent Phone</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_phone || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Relation</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Relation</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_relation || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Parent Country</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Parent Country</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_res_county || 'N/A'}
                       </p>
                     </div>
                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Parent City</label>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Parent City</label>
                       <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                         {viewingStudent.parent_res_city || 'N/A'}
                       </p>
@@ -1505,12 +1457,12 @@ function SubprogramsModal({ program, onClose, isDark }) {
   // OR if the hook exists in your project but wasn't in the import list, it needs to be added.
   // However, usually it's cleaner to just fetch all subprograms and filter in frontend if the dataset is small, 
   // or use the specific query.
-  
+
   // Since I cannot see the API definition file, I will use a placeholder query assuming it exists 
   // OR rely on the fact that you might have `useGetSubprogramsByProgramIdQuery` in the actual file imports but missed it in the snippet.
   // **Correction**: In your provided code, you didn't import `useGetSubprogramsByProgramIdQuery`.
   // I will use `useGetSubprogramsQuery` and filter to avoid crashes.
-  
+
   const { data: allSubprograms, isLoading, isError } = useGetSubprogramsQuery();
   const subprograms = allSubprograms ? allSubprograms.filter(s => s.program_id === program.id) : [];
 
