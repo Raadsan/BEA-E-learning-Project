@@ -69,8 +69,13 @@ export const login = async (req, res) => {
             full_name: user.full_name,
             email: user.email,
             role: 'student',
+            phone: user.phone || null,
+            residency_country: user.residency_country || null,
+            residency_city: user.residency_city || null,
             chosen_program: user.chosen_program,
-            chosen_subprogram: user.chosen_subprogram
+            chosen_subprogram: user.chosen_subprogram,
+            approval_status: user.approval_status || null,
+            class_id: user.class_id || null
           };
         }
       }
@@ -200,8 +205,13 @@ export const getCurrentUser = async (req, res) => {
             full_name: user.full_name,
             email: user.email,
             role: 'student',
+            phone: user.phone || null,
+            residency_country: user.residency_country || null,
+            residency_city: user.residency_city || null,
             chosen_program: user.chosen_program,
-            chosen_subprogram: user.chosen_subprogram
+            chosen_subprogram: user.chosen_subprogram,
+            approval_status: user.approval_status || null,
+            class_id: user.class_id || null
           };
         }
         break;
