@@ -43,7 +43,7 @@ export default function RegistrationPage() {
 
   // Payment specific state for Step 3
   const [paymentMethod, setPaymentMethod] = useState('mwallet_account'); // 'evc' or 'bank'
-  const [paymentAccountNumber, setPaymentAccountNumber] = useState('252612853122');
+  const [paymentAccountNumber, setPaymentAccountNumber] = useState('');
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState(null); const [requiresPin, setRequiresPin] = useState(false);
   const [waafiTransactionId, setWaafiTransactionId] = useState(null);
@@ -809,37 +809,73 @@ export default function RegistrationPage() {
 
               {/* Step 2 - Program Selection */}
               {currentStep === 2 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Program Selection</h3>
-                  <p className="text-sm text-gray-500 mb-4">Choose the program you wish to apply for.</p>
+                <div className="animate-fadeIn">
+                  {/* <h3 className="text-xl font-bold text-gray-800 mb-1">Program Selection</h3>
+                  <p className="text-sm text-gray-500 mb-8">Choose the program you wish to apply for.</p> */}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {programsLoading ? (
-                      <div className="col-span-full text-center text-sm text-gray-500">Loading programs...</div>
+                      <div className="col-span-full py-20 text-center text-gray-400">Loading programs...</div>
                     ) : programs && programs.length === 0 ? (
-                      <div className="col-span-full text-center text-sm text-gray-500">No programs found.</div>
+                      <div className="col-span-full py-20 text-center text-gray-400">No active programs available.</div>
                     ) : (
-                      programs.map((program) => {
-                        const selected = formData.chosen_program === program.id;
-                        return (
-                          <button
-                            type="button"
-                            key={program.id}
-                            onClick={() => setFormData(prev => ({ ...prev, chosen_program: program.id }))}
-                            className={`text-left p-4 border rounded-xl hover:shadow-md transition-shadow ${selected ? 'bg-green-50 border-green-600 shadow-md' : 'bg-white border-gray-200'}`}
-                          >
-                            <div className={`h-12 w-12 rounded-md mb-3 ${selected ? 'bg-green-200' : 'bg-gray-200'}`}></div>
-                            <h4 className="font-semibold text-sm mb-2" style={{ color: selected ? '#046c4b' : '#010080' }}>{program.title}</h4>
-                            <p className="text-xs text-gray-500 leading-relaxed">{program.overview ? program.overview.slice(0, 120) : 'Program overview available in details.'}</p>
-                          </button>
-                        );
-                      })
+                      programs
+                        .filter(p => p.status === 'active')
+                        .map((program) => {
+                          const isSelected = formData.chosen_program === program.id;
+                          return (
+                            <button
+                              type="button"
+                              key={program.id}
+                              onClick={() => setFormData(prev => ({ ...prev, chosen_program: program.id }))}
+                              className={`group text-left p-6 bg-white border-2 rounded-2xl transition-all duration-300 hover:shadow-lg ${isSelected
+                                ? 'border-[#010080] shadow-md ring-1 ring-[#010080]/10'
+                                : 'border-gray-100'
+                                }`}
+                            >
+                              {/* Program Image Box */}
+                              <div className={`h-16 w-16 mb-4 rounded-xl overflow-hidden border ${isSelected ? 'border-blue-100 bg-blue-50' : 'border-gray-100 bg-gray-50'}`}>
+                                {program.image ? (
+                                  <img
+                                    src={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${program.image}`}
+                                    alt={program.title}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                  </div>
+                                )}
+                              </div>
+
+                              <h4 className="font-bold text-[15px] mb-2 leading-tight" style={{ color: isSelected ? '#010080' : '#010080' }}>
+                                {program.title}
+                              </h4>
+                              <p className="text-xs text-gray-500 leading-relaxed mb-1 line-clamp-3">
+                                {program.description || 'Program overview available in details.'}
+                              </p>
+                            </button>
+                          );
+                        })
                     )}
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between">
-                    <button type="button" onClick={() => setCurrentStep(1)} className="px-6 py-3 rounded-lg bg-gray-200 text-gray-700">Back</button>
-                    <button type="submit" className="px-6 py-3 rounded-lg bg-blue-900 text-white">Next</button>
+                  <div className="mt-12 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(1)}
+                      className="px-8 py-3 rounded-xl bg-gray-200 text-gray-700 font-semibold text-sm transition-all hover:bg-gray-300"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!formData.chosen_program}
+                      className="px-10 py-3 rounded-xl text-white font-bold text-sm transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: '#010080' }}
+                    >
+                      Next
+                    </button>
                   </div>
                 </div>
               )}

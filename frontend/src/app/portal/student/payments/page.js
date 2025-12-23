@@ -52,160 +52,189 @@ export default function StudentPaymentsPage() {
     .filter((p) => p.status === "paid" || p.status === "completed")
     .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
-  // Stats for the summary boxes
+  // Stats for the summary boxes (Refined design)
   const stats = [
     {
       title: "Total Amount Paid",
       value: `$${totalPaid.toFixed(2)}`,
       icon: <IconDollar />,
-      color: "bg-green-100 text-green-700",
-      darkColor: "bg-green-900/30 text-green-400"
+      color: "bg-blue-100",
+      textColor: "text-blue-600"
     },
     {
-      title: "Active Program",
-      value: user?.chosen_program || "None",
+      title: "Enrolled Program",
+      value: payments[0]?.program_name || user?.chosen_program || "None",
       icon: <IconBook />,
-      color: "bg-blue-100 text-blue-700",
-      darkColor: "bg-blue-900/30 text-blue-400"
+      color: "bg-purple-100",
+      textColor: "text-purple-600"
     },
     {
-      title: "Outstanding Balance",
-      value: "$0.00",
-      icon: <IconClock />,
-      color: "bg-orange-100 text-orange-700",
-      darkColor: "bg-orange-900/30 text-orange-400"
+      title: "Recent Status",
+      value: payments[0]?.status ? (payments[0].status.charAt(0).toUpperCase() + payments[0].status.slice(1)) : "Clean",
+      icon: <IconCheck />,
+      color: "bg-green-100",
+      textColor: "text-green-600"
     }
   ];
 
   if (userLoading || paymentsLoading) {
     return (
-      <div className={`min-h-screen p-8 ${isDark ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"}`}>
-        <div className="flex items-center justify-center h-64 text-[#010080]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-current"></div>
+      <div className={`min-h-screen p-8 ${isDark ? "bg-gray-950 text-white" : "bg-gray-50 text-gray-900"}`}>
+        <div className="flex flex-col items-center justify-center h-[60vh]">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-xs font-medium tracking-wide opacity-50 uppercase">Loading Records...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen transition-colors ${isDark ? "bg-gray-900" : "bg-gray-50"} p-4 md:p-8`}>
-      <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="mb-8">
-          <h1 className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
-            Payment History
-          </h1>
-          <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-            View and manage all your financial transactions and receipts.
-          </p>
-        </div>
+    <div className={`flex-1 min-h-screen flex flex-col transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <main className="flex-1 overflow-y-auto">
+        <div className="w-full px-8 py-6">
 
-        {/* Summary Boxes */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className={`p-6 rounded-2xl shadow-sm border transition-all hover:shadow-md ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
-                }`}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-xl ${isDark ? stat.darkColor : stat.color}`}>
-                  {stat.icon}
-                </div>
-                <div>
-                  <p className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                    {stat.title}
-                  </p>
-                  <p className={`text-2xl font-bold mt-1 ${isDark ? "text-white" : "text-gray-900"}`}>
-                    {stat.value}
-                  </p>
+          {/* Header - OUTSIDE */}
+          <div className="mb-8 pt-6">
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Payment History
+            </h1>
+            <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              View and manage your academic financial transactions and receipts
+            </p>
+          </div>
+
+          {/* Stats Cards - OUTSIDE */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {stats.map((stat, index) => (
+              <div
+                key={index}
+                className={`rounded-xl shadow-md p-6 border transition-all ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+                  }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 rounded-lg ${stat.color}`}>
+                    <span className={stat.textColor}>{stat.icon}</span>
+                  </div>
+                  <div>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {stat.title}
+                    </p>
+                    <p className={`text-xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {stat.value}
+                    </p>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Table Controls - Above the table header */}
+          <div className="flex justify-between items-end mb-4 gap-4 flex-wrap">
+            <div className="flex items-center text-sm text-gray-400">
+              <span className="mr-2">Show</span>
+              <select className={`px-2 py-1 rounded border ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+                <option>10</option>
+                <option>25</option>
+                <option>50</option>
+              </select>
+              <span className="ml-2">entries</span>
             </div>
-          ))}
-        </div>
 
-        {/* Error State */}
-        {error && (
-          <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
-            <IconAlert />
-            <p>Error loading payments: {error.message || "Unknown error"}</p>
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                placeholder="Search..."
+                className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-blue-500 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 font-light'
+                  }`}
+              />
+            </div>
           </div>
-        )}
 
-        {/* Payments Table */}
-        <div className={`rounded-2xl shadow-sm border overflow-hidden ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-          }`}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className={`${isDark ? "bg-gray-700/50" : "bg-gray-50"} border-b ${isDark ? "border-gray-700" : "border-gray-200"}`}>
-                  <Th>Date</Th>
-                  <Th>Student Name</Th>
-                  <Th>Program</Th>
-                  <Th>Orig. Amount</Th>
-                  <Th>Paid</Th>
-                  <Th>Method</Th>
-                  <Th>Curr.</Th>
-                  <Th>Status</Th>
-                  <Th>Action</Th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y ${isDark ? "divide-gray-700" : "divide-gray-100"}`}>
-                {payments.length === 0 ? (
+          {/* Table Container - THE BOX */}
+          <div className={`rounded-lg shadow-sm overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+
+            {/* Modern Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-[#010080] text-white">
                   <tr>
-                    <td colSpan="9" className="px-6 py-12 text-center text-gray-500 italic">
-                      No payment records found.
-                    </td>
+                    <Th>Date</Th>
+                    <Th>Student Name</Th>
+                    <Th>Program</Th>
+                    <Th>Fee</Th>
+                    <Th>Paid</Th>
+                    <Th>Method</Th>
+                    <Th>Status</Th>
+                    <Th>Action</Th>
                   </tr>
-                ) : (
-                  payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
-                      <Td>{p.created_at ? new Date(p.created_at).toLocaleDateString() : "-"}</Td>
-                      <Td className="font-medium">{user?.full_name}</Td>
-                      <Td>{p.program_id || user?.chosen_program || "-"}</Td>
-                      <Td className="text-gray-500">${Number(p.amount || 0).toFixed(2)}</Td>
-                      <Td className="font-bold text-green-600">${Number(p.amount || 0).toFixed(2)}</Td>
-                      <Td>
-                        <span className={`px-2 py-1 rounded text-xs font-semibold capitalize ${isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-600"
-                          }`}>
-                          {p.method || "-"}
-                        </span>
-                      </Td>
-                      <Td className="text-xs">{p.currency || "USD"}</Td>
-                      <Td>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${p.status === "paid" || p.status === "completed"
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400"
-                          }`}>
-                          {p.status === "paid" || p.status === "completed" ? (
-                            <IconCheck />
-                          ) : (
-                            <IconClock />
-                          )}
-                          <span className="capitalize">{p.status || "Pending"}</span>
-                        </span>
-                      </Td>
-                      <Td>
-                        <button className="p-2 text-[#010080] hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors group" title="Download Receipt">
-                          <IconDownload />
-                        </button>
-                      </Td>
+                </thead>
+                <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
+                  {payments.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 italic">
+                        No transaction history available.
+                      </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    payments.map((p) => (
+                      <tr key={p.id} className={`transition-colors ${isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-50'}`}>
+                        <Td>{p.created_at ? new Date(p.created_at).toLocaleDateString() : "-"}</Td>
+                        <Td>
+                          <div className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.full_name}</div>
+                        </Td>
+                        <Td>
+                          <div className={`text-sm font-medium text-blue-600 dark:text-blue-400`}>
+                            {p.program_name || "Enrollment Fee"}
+                          </div>
+                        </Td>
+                        <Td className="text-gray-500">${Number(p.amount || 0).toFixed(2)}</Td>
+                        <Td>
+                          <span className="font-semibold text-emerald-600">
+                            ${Number(p.amount || 0).toFixed(2)}
+                          </span>
+                        </Td>
+                        <Td>
+                          <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600 font-medium'
+                            }`}>
+                            {p.method || "N/A"}
+                          </span>
+                        </Td>
+                        <Td>
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-semibold ${p.status === "paid" || p.status === "completed"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-yellow-100 text-yellow-700"
+                            }`}>
+                            <span className="flex items-center gap-1">
+                              {p.status === "paid" || p.status === "completed" ? <IconCheck /> : null}
+                              {p.status ? p.status.charAt(0).toUpperCase() + p.status.slice(1) : "Pending"}
+                            </span>
+                          </span>
+                        </Td>
+                        <Td>
+                          <button
+                            className="p-2 text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                            title="Download Invoice"
+                          >
+                            <IconDownload />
+                          </button>
+                        </Td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
 function Th({ children }) {
   return (
-    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
+    <th className="px-6 py-4 uppercase text-[10px] font-bold tracking-wider">
       {children}
     </th>
   );
@@ -214,7 +243,8 @@ function Th({ children }) {
 function Td({ children, className = "" }) {
   const { isDark } = useDarkMode();
   return (
-    <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? "text-gray-300" : "text-gray-700"} ${className}`}>
+    <td className={`px-6 py-4 whitespace-nowrap text-[11px] border-b border-gray-50 dark:border-gray-700 ${isDark ? 'text-gray-300' : 'text-gray-600'
+      } ${className}`}>
       {children}
     </td>
   );

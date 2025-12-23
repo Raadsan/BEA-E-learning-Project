@@ -1,6 +1,6 @@
 "use client";
 
-import StudentHeader from "../../../StudentHeader";
+import StudentHeader from "../../StudentHeader";
 import { useRouter } from "next/navigation";
 
 export default function PlacementTestResultsPage() {
@@ -18,7 +18,7 @@ export default function PlacementTestResultsPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              
+
               <h1 className="text-3xl font-bold text-gray-900 mb-4">Test Submitted Successfully!</h1>
               <p className="text-gray-600 mb-8">
                 Your placement test has been submitted. Results will be available within 24 hours.

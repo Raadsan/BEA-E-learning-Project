@@ -1,6 +1,6 @@
 "use client";
 
-import StudentHeader from "../../../StudentHeader";
+import StudentHeader from "../../StudentHeader";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -98,13 +98,6 @@ export default function TakePlacementTestPage() {
     }
   };
 
-  const handleSubmitTest = () => {
-    if (window.confirm("Are you sure you want to submit the test? You cannot change your answers after submission.")) {
-      // In a real app, submit answers to backend
-      console.log("Submitting test with answers:", answers);
-      router.push("/portal/student/placement-test/results");
-    }
-  };
 
   return (
     <>
@@ -148,11 +141,10 @@ export default function TakePlacementTestPage() {
                 {currentQuestionData.options.map((option, index) => (
                   <label
                     key={index}
-                    className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      selectedAnswer === option
-                        ? "border-blue-600 bg-blue-50"
-                        : "border-gray-200 bg-gray-50 hover:border-gray-300"
-                    }`}
+                    className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedAnswer === option
+                      ? "border-blue-600 bg-blue-50"
+                      : "border-gray-200 bg-gray-50 hover:border-gray-300"
+                      }`}
                   >
                     <input
                       type="radio"
