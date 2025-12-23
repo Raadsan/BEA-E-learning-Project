@@ -43,7 +43,7 @@ export default function RegistrationPage() {
 
   // Payment specific state for Step 3
   const [paymentMethod, setPaymentMethod] = useState('mwallet_account'); // 'evc' or 'bank'
-  const [paymentAccountNumber, setPaymentAccountNumber] = useState('252');
+  const [paymentAccountNumber, setPaymentAccountNumber] = useState('252612853122');
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState(null); const [requiresPin, setRequiresPin] = useState(false);
   const [waafiTransactionId, setWaafiTransactionId] = useState(null);
@@ -229,7 +229,7 @@ export default function RegistrationPage() {
           apiKey: "API-675418888AHX",
           paymentMethod: "mwallet_account", // 'mwallet_account' or 'evc'
           payerInfo: {
-            accountNo: paymentAccountNumber // Phone number for mobile wallet
+            accountNo: paymentAccountNumber.replace(/\s+/g, '') // Phone number for mobile wallet
           },
           transactionInfo: {
             referenceId: requestId,
@@ -291,6 +291,7 @@ export default function RegistrationPage() {
         residency_city: formData.residency_city || null,
         chosen_program: formData.chosen_program || null,
         password: formData.password,
+        gender: formData.gender || null,
         // Include parent information if applicable
         ...(showParentSection && {
           parent_name: formData.parent_name || null,
@@ -305,7 +306,9 @@ export default function RegistrationPage() {
           method: paymentMethod,
           transactionId: transactionId,
           amount: APPLICATION_FEE,
-          rawResponse: paymentResponse
+          rawResponse: paymentResponse,
+          payerPhone: paymentAccountNumber,
+          program_id: formData.chosen_program
         }
       };
 
@@ -593,6 +596,28 @@ export default function RegistrationPage() {
                         min="1"
                         className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Gender <span className="text-red-500">*</span></label>
+                      <div className="relative">
+                        <select
+                          name="gender"
+                          value={formData.gender}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-md bg-white text-gray-800 outline-none appearance-none focus:ring-2 focus:ring-blue-200"
+                          required
+                        >
+                          <option value="">Select gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                        </select>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
                     </div>
 
                     <div>

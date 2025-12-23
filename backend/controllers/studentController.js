@@ -1,5 +1,6 @@
 // controllers/studentController.js
 import * as Student from "../models/studentModel.js";
+import { createPayment } from '../models/paymentModel.js';
 
 // CREATE STUDENT
 export const createStudent = async (req, res) => {
@@ -70,20 +71,28 @@ export const createStudent = async (req, res) => {
       class_id
     });
 
+    console.log('✅ Student created with ID:', student?.id);
+
     // If payment info provided, save payment and set approval_status to 'pending'
     let updatedStudent = student;
     if (req.body.payment) {
+      console.log('📝 Payment info found in request:', req.body.payment);
       try {
-        const { createPayment } = await import('../models/paymentModel.js');
-        const payment = await createPayment({
+        const paymentData = {
           student_id: student.id,
           method: req.body.payment.method || 'waafi',
           provider_transaction_id: req.body.payment.transactionId || null,
           amount: req.body.payment.amount || 0,
           currency: req.body.payment.currency || 'USD',
           status: 'paid',
-          raw_response: req.body.payment.raw || null
-        });
+          raw_response: req.body.payment.raw || req.body.payment.rawResponse || null,
+          payer_phone: req.body.payment.payerPhone || null,
+          program_id: req.body.payment.program_id || null
+        };
+        console.log('📝 Attempting to create payment record with data:', paymentData);
+
+        const payment = await createPayment(paymentData);
+        console.log('✅ Payment record created successfully:', payment.id);
 
         // mark student awaiting admin approval
         await Student.updateApprovalStatus(student.id, 'pending');

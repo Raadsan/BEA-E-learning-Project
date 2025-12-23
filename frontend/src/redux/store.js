@@ -14,6 +14,7 @@ import { ieltsToeflApi } from "../redux/api/ieltsToeflApi.js";
 import { userApi } from "../redux/api/userApi.js";
 import { assignmentApi } from "../redux/api/assignmentApi.js";
 import { learningHoursApi } from "../redux/api/learningHoursApi.js";
+import { paymentApi } from "../redux/api/paymentApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -32,6 +33,7 @@ export const store = configureStore({
     [userApi.reducerPath]: userApi.reducer,
     [assignmentApi.reducerPath]: assignmentApi.reducer,
     [learningHoursApi.reducerPath]: learningHoursApi.reducer,
+    [paymentApi.reducerPath]: paymentApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -49,6 +51,7 @@ export const store = configureStore({
       ieltsToeflApi.middleware,
       userApi.middleware,
       assignmentApi.middleware,
-      learningHoursApi.middleware
+      learningHoursApi.middleware,
+      paymentApi.middleware
     ),
 });
