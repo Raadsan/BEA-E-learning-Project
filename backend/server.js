@@ -19,6 +19,7 @@ import ieltsToeflRoutes from "./routes/ieltsToeflRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import assignmentRoutes from "./routes/assignmentRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 
 const app = express();
@@ -78,6 +79,8 @@ app.use("/api/users", userRoutes);
 
 // ⬇️ Register Assignment Routes
 app.use("/api/assignments", assignmentRoutes);
+// ⬇️ Register Payment Routes (EVC / Bank - simple stub integration)
+app.use("/api/payments", paymentRoutes);
 
 // ⬇️ Register Attendance Routes
 app.use("/api/attendance", attendanceRoutes);

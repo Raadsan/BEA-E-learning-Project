@@ -17,12 +17,24 @@ function StudentLayoutContent({ children }) {
   useEffect(() => {
     if (user && user.approval_status) {
       setIsApproved(user.approval_status === 'approved');
-      
-      // If not approved and trying to access other pages, redirect to dashboard
+
+      // If not approved and trying to access restricted pages, redirect to dashboard.
+      // Pending students can only visit: dashboard, profile, and payment history.
       if (user.approval_status !== 'approved' && typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
-        if (currentPath !== '/portal/student' && currentPath !== '/portal/student/') {
-          router.replace('/portal/student');
+        const allowedPaths = [
+          "/portal/student",
+          "/portal/student/",
+          "/portal/student/profile",
+          "/portal/student/payments",
+        ];
+
+        const isAllowed = allowedPaths.some((path) =>
+          currentPath === path || currentPath.startsWith(path + "/")
+        );
+
+        if (!isAllowed) {
+          router.replace("/portal/student");
         }
       }
     }
@@ -44,12 +56,12 @@ function StudentLayoutContent({ children }) {
       className="flex h-screen transition-colors"
       style={isDark ? { background: 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)' } : { backgroundColor: '#f3f4f6' }}
     >
-      {/* Sidebar - Only show if approved */}
-      {isApproved && <StudentSidebar />}
+      {/* Sidebar - Always visible, but items depend on approval status */}
+      <StudentSidebar isApproved={isApproved} />
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col ${isApproved ? 'ml-80' : ''}`}>
-        {isApproved && <StudentHeader />}
+      <div className={`flex-1 flex flex-col ml-80`}>
+        <StudentHeader />
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

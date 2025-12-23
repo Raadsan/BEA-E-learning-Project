@@ -14,13 +14,13 @@ export default function GeneralStudentsPage() {
   const { data: subprograms = [] } = useGetSubprogramsQuery();
   const { data: classes = [] } = useGetClassesQuery();
 
-  // Filter students who have chosen_subprogram (General Program students) AND are approved
-  // Filter students: Approved + NOT IELTS/TOEFL
+  // Filter students: approved general-program students (exclude IELTS/TOEFL)
   const generalStudents = useMemo(() => {
     if (!allStudents) return [];
-    return allStudents.filter(student =>
-      student.approval_status === 'approved' &&
-      student.chosen_program !== "IELTS & TOFEL Preparation"
+    return allStudents.filter(
+      (student) =>
+        student.approval_status === "approved" &&
+        student.chosen_program !== "IELTS & TOFEL Preparation"
     );
   }, [allStudents]);
 

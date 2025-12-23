@@ -5,6 +5,7 @@ import { teacherApi } from "../redux/api/teacherApi.js";
 import { subprogramApi } from "../redux/api/subprogramApi.js";
 import { courseApi } from "../redux/api/courseApi.js";
 import { classApi } from "../redux/api/classApi.js";
+import { attendanceApi } from "../redux/api/attendanceApi.js";
 import { authApi } from "../redux/api/authApi.js";
 import { placementTestApi } from "../redux/api/placementTestApi.js";
 import { proficiencyTestApi } from "../redux/api/proficiencyTestApi.js";
@@ -23,6 +24,7 @@ export const store = configureStore({
     [subprogramApi.reducerPath]: subprogramApi.reducer,
     [courseApi.reducerPath]: courseApi.reducer,
     [classApi.reducerPath]: classApi.reducer,
+    [attendanceApi.reducerPath]: attendanceApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
     [placementTestApi.reducerPath]: placementTestApi.reducer,
     [proficiencyTestApi.reducerPath]: proficiencyTestApi.reducer,
@@ -41,6 +43,7 @@ export const store = configureStore({
       subprogramApi.middleware,
       courseApi.middleware,
       classApi.middleware,
+      attendanceApi.middleware,
       authApi.middleware,
       placementTestApi.middleware,
       proficiencyTestApi.middleware,

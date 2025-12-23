@@ -70,10 +70,64 @@ export const createStudent = async (req, res) => {
       class_id
     });
 
+    // If payment info provided, save payment and set approval_status to 'pending'
+    let updatedStudent = student;
+    if (req.body.payment) {
+      try {
+        const { createPayment } = await import('../models/paymentModel.js');
+        const payment = await createPayment({
+          student_id: student.id,
+          method: req.body.payment.method || 'waafi',
+          provider_transaction_id: req.body.payment.transactionId || null,
+          amount: req.body.payment.amount || 0,
+          currency: req.body.payment.currency || 'USD',
+          status: 'paid',
+          raw_response: req.body.payment.raw || null
+        });
+
+        // mark student awaiting admin approval
+        await Student.updateApprovalStatus(student.id, 'pending');
+        updatedStudent = await Student.getStudentById(student.id);
+
+        // Notify admin that a new paid application is pending approval
+        try {
+          const nodemailer = await import('nodemailer');
+          const adminEmail = process.env.ADMIN_EMAIL || 'admin@bea.com';
+          const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST || 'smtp.example.com',
+            port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
+            secure: false,
+            auth: {
+              user: process.env.SMTP_USER || '',
+              pass: process.env.SMTP_PASS || ''
+            }
+          });
+
+          const mailOptions = {
+            from: process.env.SMTP_FROM || 'noreply@bea.com',
+            to: adminEmail,
+            subject: 'New application pending approval',
+            text: `A new student application was submitted and paid. Name: ${updatedStudent.full_name}, Email: ${updatedStudent.email}, Phone: ${updatedStudent.phone}. Please review and approve/reject in the admin portal.`
+          };
+
+          // Send email but don't block response
+          transporter.sendMail(mailOptions).then(info => {
+            console.log('Admin notification sent:', info.messageId);
+          }).catch(err => {
+            console.error('Failed to send admin notification:', err);
+          });
+        } catch (err) {
+          console.error('Failed to create admin transporter:', err);
+        }
+      } catch (err) {
+        console.error('❌ Error saving payment record:', err);
+      }
+    }
+
     res.status(201).json({
       success: true,
       message: "Student created successfully",
-      student
+      student: updatedStudent
     });
   } catch (err) {
     console.error("❌ Create student error:", err);
