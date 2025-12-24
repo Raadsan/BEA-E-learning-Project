@@ -20,12 +20,30 @@ export const createPayment = async ({ student_id, method, provider_transaction_i
 
 export const getPaymentsForStudent = async (studentId) => {
   const [rows] = await dbp.query(
-    `SELECT pay.*, p.title as program_name 
+    `SELECT pay.id, pay.student_id, pay.amount, pay.currency, pay.status, 
+            pay.method as payment_method, pay.created_at as payment_date, 
+            pay.provider_transaction_id, pay.payer_phone,
+            p.title as program_name,
+            COALESCE(pay.raw_response, '') as description
      FROM payments pay 
      LEFT JOIN programs p ON pay.program_id = p.id 
      WHERE pay.student_id = ? 
      ORDER BY pay.created_at DESC`,
     [studentId]
+  );
+  return rows;
+};
+
+export const getAllPayments = async () => {
+  const [rows] = await dbp.query(
+    `SELECT pay.id, pay.student_id, pay.amount, pay.currency, pay.status, 
+            pay.method as payment_method, pay.created_at as payment_date, 
+            pay.provider_transaction_id, pay.payer_phone,
+            p.title as program_name,
+            COALESCE(pay.raw_response, '') as description
+     FROM payments pay 
+     LEFT JOIN programs p ON pay.program_id = p.id 
+     ORDER BY pay.created_at DESC`
   );
   return rows;
 };

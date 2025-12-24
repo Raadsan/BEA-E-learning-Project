@@ -80,7 +80,11 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
           <thead className={`${isDark ? 'bg-white text-gray-900' : 'bg-[#010080] text-white'}`}>
             <tr>
               {columns.map((col, i) => (
-                <th key={col.key || i} className="px-5 py-4 uppercase text-xs font-medium tracking-wide">
+                <th
+                  key={col.key || i}
+                  className="px-5 py-4 uppercase text-xs font-medium tracking-wide"
+                  style={col.width ? { width: col.width, minWidth: col.width } : {}}
+                >
                   {col.label ?? ""}
                 </th>
               ))}
@@ -90,18 +94,17 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
             {filteredData.slice(startIdx, endIdx).map((row, idx) => (
               <tr
                 key={row._id || row.id || idx}
-                className={`${
-                  idx % 2 === 0
+                className={`${idx % 2 === 0
                     ? "bg-white dark:bg-[#1a2035]"
                     : "bg-gray-50 dark:bg-[#252b40]"
-                } text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2d3447] transition-colors`}
+                  } text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2d3447] transition-colors`}
               >
                 {columns.map((col, i) => {
                   const rawValue = col.render
                     ? col.render(row, idx)
                     : col.key
-                    ? col.key.split(".").reduce((obj, key) => obj?.[key], row)
-                    : undefined;
+                      ? col.key.split(".").reduce((obj, key) => obj?.[key], row)
+                      : undefined;
 
                   let cellContent = rawValue;
 
@@ -119,7 +122,11 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                   }
 
                   return (
-                    <td key={col.key || i} className="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <td
+                      key={col.key || i}
+                      className="px-5 py-4 border-b border-gray-200 dark:border-gray-700"
+                      style={col.width ? { width: col.width, minWidth: col.width } : {}}
+                    >
                       {cellContent}
                     </td>
                   );

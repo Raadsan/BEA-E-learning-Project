@@ -24,11 +24,14 @@ export default function StudentsPage() {
   const [isAssignSubprogramModalOpen, setIsAssignSubprogramModalOpen] = useState(false);
   const [isAssignClassModalOpen, setIsAssignClassModalOpen] = useState(false);
   const [selectedProgramForSubprograms, setSelectedProgramForSubprograms] = useState(null);
+  const [assigningStudent, setAssigningStudent] = useState(null);
+  const [selectedSubprogramId, setSelectedSubprogramId] = useState("");
   const [editingStudent, setEditingStudent] = useState(null);
   const [viewingStudent, setViewingStudent] = useState(null);
   const [viewingPayments, setViewingPayments] = useState([]);
-  const [assigningStudent, setAssigningStudent] = useState(null);
   const [selectedClassId, setSelectedClassId] = useState("");
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+  const [studentToApprove, setStudentToApprove] = useState(null);
 
   // Regular Students Hooks
   const { data: backendStudents, isLoading, isError, error, refetch } = useGetStudentsQuery();
@@ -57,12 +60,16 @@ export default function StudentsPage() {
 
   // Merge and format students
   const students = [
-    ...(backendStudents || []).map(s => ({ ...s, type: 'regular' })),
+    ...(backendStudents || []).map(s => ({
+      ...s,
+      type: 'regular',
+      approval_status: (s.approval_status || 'pending').toLowerCase()
+    })),
     ...ieltsStudents.map(s => ({
       ...s,
       full_name: `${s.first_name} ${s.last_name}`,
       chosen_program: s.exam_type,
-      approval_status: s.status?.toLowerCase() || 'pending',
+      approval_status: (s.status || 'pending').toLowerCase(),
       id: `ielts_${s.id}`, // Unique ID for the table key
       original_id: s.id,   // Real ID for API calls
       type: 'ielts',
@@ -323,35 +330,40 @@ export default function StudentsPage() {
   };
 
   const handleApprove = async (student) => {
-    if (!confirm("Are you sure you want to approve this student?")) return;
+    // If student passed, it means we're approving from the new modal or old action button
+    const targetStudent = student || studentToApprove;
+    if (!targetStudent) return;
+
     try {
-      if (student.type === 'ielts') {
-        // IELTS approval logic is usually just a status update via Update endpoint or specific endpoint
-        // Assuming updateIeltsStudent with status='approved' or similar
-        await updateIeltsStudent({ id: student.original_id, status: 'approved' }).unwrap();
+      if (targetStudent.type === 'ielts') {
+        await updateIeltsStudent({ id: targetStudent.original_id, status: 'approved' }).unwrap();
         refetchIelts();
       } else {
-        await approveStudent(student.id).unwrap();
-        refetch(); // Ensure regular list updates
+        await approveStudent(targetStudent.id).unwrap();
+        refetch();
       }
       showToast("Student approved successfully! Please assign a class.", "success");
-      handleAssignClass(student);
+      setIsApprovalModalOpen(false);
+      handleAssignClass(targetStudent);
     } catch (error) {
       showToast(error?.data?.error || "Failed to approve student.", "error");
     }
   };
 
-  const handleReject = async (id) => {
-    const studentToReject = students.find(s => s.id === id);
-    if (!confirm("Are you sure you want to reject this student?")) return;
+  const handleReject = async (idOrStudent) => {
+    const targetStudent = typeof idOrStudent === 'object' ? idOrStudent : students.find(s => s.id === idOrStudent);
+    if (!targetStudent) return;
+
     try {
-      if (studentToReject && studentToReject.type === 'ielts') {
-        await rejectIeltsStudent(studentToReject.original_id).unwrap();
+      if (targetStudent.type === 'ielts') {
+        await rejectIeltsStudent(targetStudent.original_id).unwrap();
         refetchIelts();
       } else {
-        await rejectStudent(id).unwrap();
+        await rejectStudent(targetStudent.id).unwrap();
+        refetch();
       }
       showToast("Student rejected successfully!", "success");
+      setIsApprovalModalOpen(false);
     } catch (error) {
       showToast(error?.data?.error || "Failed to reject student.", "error");
     }
@@ -396,22 +408,45 @@ export default function StudentsPage() {
       label: "Program",
       render: (row) => {
         if (!row.chosen_program || row.chosen_program === "Not assigned") {
-          return <span className="text-gray-500">Not assigned</span>;
+          return <span className="text-gray-500 italic text-sm">Not assigned</span>;
         }
-        return row.chosen_program;
+        return <span className="font-medium">{row.chosen_program}</span>;
       },
     },
     {
-      key: "chosen_subprogram",
-      label: "Subprogram",
+      key: "approval_status",
+      label: "Status",
       render: (row) => {
-        const subprogram = row.chosen_subprogram;
-        if (subprogram && subprogram.trim() !== "" && subprogram !== "null") {
-          return <span className="text-black dark:text-white">{subprogram}</span>;
+        const status = row.approval_status || 'pending';
+
+        if (status === 'pending') {
+          return (
+            <button
+              onClick={() => {
+                setStudentToApprove(row);
+                setIsApprovalModalOpen(true);
+              }}
+              className="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors"
+            >
+              Pending
+            </button>
+          );
         }
 
-        return <span className="text-gray-500">Not assigned</span>;
-      },
+        if (status === 'approved') {
+          return (
+            <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800">
+              Approved
+            </span>
+          );
+        }
+
+        return (
+          <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800">
+            Rejected
+          </span>
+        );
+      }
     },
     {
       key: "actions",
@@ -424,59 +459,6 @@ export default function StudentsPage() {
 
         return (
           <div className="flex gap-2">
-            {(isPending || isRejected) && (
-              <button
-                onClick={() => handleApprove(row)}
-                disabled={isApproving || isRejecting}
-                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Approve"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
-            )}
-
-            {isApproved && (
-              <button
-                onClick={() => handleAssignClass(row)}
-                disabled={isApproving || isRejecting}
-                className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Assign Class"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 14l9-5-9-5-9 5 9 5z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 14l6.16-3.422A12.083 12.083 0 0118 20.944L12 23l-6-2.056A12.083 12.083 0 015.84 10.578L12 14z"
-                  />
-                </svg>
-              </button>
-            )}
-            {(isPending || isApproved) && (
-              <button
-                onClick={() => handleReject(row.id)}
-                disabled={isApproving || isRejecting}
-                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Reject"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
             <button
               onClick={() => handleView(row)}
               className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
@@ -497,6 +479,7 @@ export default function StudentsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </button>
+
             <button
               onClick={() => handleDelete(row.id)}
               className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -558,6 +541,71 @@ export default function StudentsPage() {
           />
         </div>
       </main>
+
+      {/* Approval Confirmation Modal */}
+      {isApprovalModalOpen && studentToApprove && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsApprovalModalOpen(false)}
+          />
+          <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+            }`}>
+            <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50/50 border-gray-200'
+              }`}>
+              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                Student Approval
+              </h3>
+              <button
+                onClick={() => setIsApprovalModalOpen(false)}
+                className={`p-1 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'
+                  }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600'
+                  }`}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{studentToApprove.full_name}</p>
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{studentToApprove.email}</p>
+                </div>
+              </div>
+
+              <div className={`p-4 rounded-lg mb-6 text-sm border ${isDark ? 'bg-gray-700/30 border-gray-600 text-gray-300' : 'bg-blue-50/50 border-blue-100 text-blue-800'
+                }`}>
+                <p>Give him approve or reject for this student application.</p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleReject(studentToApprove)}
+                  disabled={isRejecting || isRejectingIelts}
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={() => handleApprove(studentToApprove)}
+                  disabled={isApproving}
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  Approve
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Student Modal */}
       {isModalOpen && (
@@ -947,37 +995,57 @@ export default function StudentsPage() {
         />
       )}
 
-      {/* Assign Subprogram Modal */}
+      {/* Assign to Class Modal */}
       {isAssignSubprogramModalOpen && assigningStudent && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ pointerEvents: 'none' }}
+          style={{ pointerEvents: "none" }}
         >
           <div
             className="absolute inset-0 bg-transparent"
             onClick={handleCloseAssignSubprogramModal}
-            style={{ pointerEvents: 'auto' }}
+            style={{ pointerEvents: "auto" }}
           />
 
           <div
-            className={`relative rounded-lg shadow-2xl w-full max-w-4xl mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+            className={`relative rounded-lg shadow-2xl w-full max-w-lg mx-4 border-2 ${isDark
+              ? "bg-gray-800/95 border-gray-600"
+              : "bg-white/95 border-gray-300"
               }`}
             onClick={(e) => e.stopPropagation()}
-            style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
+            style={{ pointerEvents: "auto", backdropFilter: "blur(2px)" }}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-              }`}>
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
-                }`}>
-                Assign Subprogram to {assigningStudent.full_name}
+            <div
+              className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+                }`}
+            >
+              <h2
+                className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-800"
+                  }`}
+              >
+                Assign to Class
               </h2>
               <button
                 onClick={handleCloseAssignSubprogramModal}
-                className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+                className={`transition-colors ${isDark
+                  ? "text-gray-400 hover:text-gray-200"
+                  : "text-gray-400 hover:text-gray-600"
                   }`}
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -985,56 +1053,71 @@ export default function StudentsPage() {
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
+                if (!assigningStudent) return;
+
+                const formData = new FormData(e.target);
+                const subprogramName = formData.get("subprogram_name");
+
                 try {
-                  const subprogramName = e.target.subprogram_name.value;
-                  const updateData = {
+                  await updateStudent({
                     id: assigningStudent.id,
-                    full_name: assigningStudent.full_name,
-                    email: assigningStudent.email,
-                    phone: assigningStudent.phone,
-                    age: assigningStudent.age,
-                    residency_country: assigningStudent.residency_country,
-                    residency_city: assigningStudent.residency_city,
-                    chosen_program: assigningStudent.chosen_program,
                     chosen_subprogram: subprogramName || null,
-                    parent_name: assigningStudent.parent_name || null,
-                    parent_email: assigningStudent.parent_email || null,
-                    parent_phone: assigningStudent.parent_phone || null,
-                    parent_relation: assigningStudent.parent_relation || null,
-                    parent_res_county: assigningStudent.parent_res_county || null,
-                    parent_res_city: assigningStudent.parent_res_city || null,
-                  };
-
-                  console.log("Updating student with:", updateData); // Debug log
-                  const result = await updateStudent(updateData).unwrap();
-                  console.log("Update result:", result); // Debug log
-
-                  // Force refetch to ensure table updates immediately
-                  await refetch();
-                  showToast("Subprogram assigned successfully!", "success");
+                  }).unwrap();
+                  showToast("Select successfull", "success");
+                  refetch();
                   handleCloseAssignSubprogramModal();
                 } catch (error) {
                   console.error("Failed to assign subprogram:", error);
-                  showToast(error?.data?.error || "Failed to assign subprogram.", "error");
+                  showToast(
+                    error?.data?.error || "Failed to assign subprogram.",
+                    "error"
+                  );
                 }
               }}
               className="p-6 space-y-4"
             >
+              {/* Student Info Section */}
+              <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'}`}>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Student Name:</span>
+                    <span className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{assigningStudent.full_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Email:</span>
+                    <span className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>{assigningStudent.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Program:</span>
+                    <span className={`text-base font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{assigningStudent.chosen_program || 'Not assigned'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subprogram Selection */}
               {assigningStudent.chosen_program ? (
                 <div>
-                  <label htmlFor="subprogram_name" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                  <label
+                    htmlFor="subprogram_name"
+                    className={`block text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"
+                      }`}
+                  >
                     Select Subprogram
                   </label>
                   {(() => {
-                    const program = programs.find(p => p.title === assigningStudent.chosen_program);
+                    const program = programs.find(
+                      (p) => p.title === assigningStudent.chosen_program
+                    );
                     const programSubprograms = program
-                      ? allSubprograms.filter(sp => sp.program_id === program.id)
+                      ? allSubprograms.filter((sp) => sp.program_id === program.id)
                       : [];
 
                     if (programSubprograms.length === 0) {
                       return (
-                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <p
+                          className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"
+                            }`}
+                        >
                           No subprograms available for this program.
                         </p>
                       );
@@ -1045,10 +1128,13 @@ export default function StudentsPage() {
                         id="subprogram_name"
                         name="subprogram_name"
                         defaultValue={assigningStudent.chosen_subprogram || ""}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                          ? "bg-gray-700 border-gray-600 text-white"
+                          : "border-gray-300"
                           }`}
+                        required
                       >
-                        <option value="">Select Subprogram (Optional)</option>
+                        <option value="">Select a subprogram</option>
                         {programSubprograms.map((sp) => (
                           <option key={sp.id} value={sp.subprogram_name}>
                             {sp.subprogram_name}
@@ -1059,10 +1145,18 @@ export default function StudentsPage() {
                   })()}
                 </div>
               ) : (
-                <div className={`p-4 rounded-lg ${isDark ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-yellow-50 border border-yellow-200'
-                  }`}>
-                  <p className={`text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
-                    Please assign a program to this student first before assigning a subprogram.
+                <div
+                  className={`p-4 rounded-lg ${isDark
+                    ? "bg-yellow-900/20 border border-yellow-700"
+                    : "bg-yellow-50 border border-yellow-200"
+                    }`}
+                >
+                  <p
+                    className={`text-sm ${isDark ? "text-yellow-300" : "text-yellow-800"
+                      }`}
+                  >
+                    Please assign a program to this student first before
+                    assigning a subprogram.
                   </p>
                 </div>
               )}
@@ -1072,8 +1166,8 @@ export default function StudentsPage() {
                   type="button"
                   onClick={handleCloseAssignSubprogramModal}
                   className={`px-4 py-2 border rounded-lg transition-colors ${isDark
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                    ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
                     }`}
                 >
                   Cancel
@@ -1081,9 +1175,9 @@ export default function StudentsPage() {
                 <button
                   type="submit"
                   disabled={isUpdating || !assigningStudent.chosen_program}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isUpdating ? "Assigning..." : "Save Assignment"}
+                  {isUpdating ? "Assigning..." : "Save"}
                 </button>
               </div>
             </form>
@@ -1105,16 +1199,16 @@ export default function StudentsPage() {
 
           <div
             className={`relative rounded-lg shadow-2xl w-full max-w-lg mx-4 border-2 ${isDark
-                ? "bg-gray-800/95 border-gray-600"
-                : "bg-white/95 border-gray-300"
+              ? "bg-gray-800/95 border-gray-600"
+              : "bg-white/95 border-gray-300"
               }`}
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: "auto", backdropFilter: "blur(2px)" }}
           >
             <div
               className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark
-                  ? "bg-gray-800 border-gray-700"
-                  : "bg-white border-gray-200"
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
                 }`}
             >
               <h2
@@ -1126,8 +1220,8 @@ export default function StudentsPage() {
               <button
                 onClick={handleCloseAssignClassModal}
                 className={`transition-colors ${isDark
-                    ? "text-gray-400 hover:text-gray-200"
-                    : "text-gray-400 hover:text-gray-600"
+                  ? "text-gray-400 hover:text-gray-200"
+                  : "text-gray-400 hover:text-gray-600"
                   }`}
               >
                 <svg
@@ -1178,8 +1272,8 @@ export default function StudentsPage() {
               {classes.length === 0 ? (
                 <div
                   className={`p-4 rounded-lg ${isDark
-                      ? "bg-yellow-900/20 border border-yellow-700"
-                      : "bg-yellow-50 border-yellow-200"
+                    ? "bg-yellow-900/20 border border-yellow-700"
+                    : "bg-yellow-50 border-yellow-200"
                     }`}
                 >
                   <p
@@ -1205,8 +1299,8 @@ export default function StudentsPage() {
                     value={selectedClassId}
                     onChange={(e) => setSelectedClassId(e.target.value)}
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                        ? "bg-gray-700 border-gray-600 text-white"
-                        : "border-gray-300"
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "border-gray-300"
                       }`}
                     required
                   >
@@ -1225,8 +1319,8 @@ export default function StudentsPage() {
                   type="button"
                   onClick={handleCloseAssignClassModal}
                   className={`px-4 py-2 border rounded-lg transition-colors ${isDark
-                      ? "border-gray-600 text-gray-300 hover:bg-gray-700"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
                     }`}
                 >
                   Cancel
@@ -1439,6 +1533,63 @@ export default function StudentsPage() {
                   </div>
                 </div>
               )}
+
+              {/* Payment Information Section */}
+              <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-indigo-50/50 border-indigo-200'}`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Payment Information
+                </h3>
+                {viewingPayments && viewingPayments.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className={`w-full text-sm ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                      <thead className={`${isDark ? 'bg-gray-800' : 'bg-indigo-100'}`}>
+                        <tr>
+                          <th className="px-4 py-2 text-left font-semibold">Date</th>
+                          <th className="px-4 py-2 text-left font-semibold">Amount</th>
+                          <th className="px-4 py-2 text-left font-semibold">Method</th>
+                          <th className="px-4 py-2 text-left font-semibold">Status</th>
+                          <th className="px-4 py-2 text-left font-semibold">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {viewingPayments.map((payment, idx) => (
+                          <tr key={payment.id || idx} className={`border-b ${isDark ? 'border-gray-700' : 'border-indigo-100'}`}>
+                            <td className="px-4 py-3">
+                              {payment.payment_date ? new Date(payment.payment_date).toLocaleDateString() : 'N/A'}
+                            </td>
+                            <td className="px-4 py-3 font-semibold">
+                              ${payment.amount || '0.00'}
+                            </td>
+                            <td className="px-4 py-3">
+                              {payment.payment_method || 'N/A'}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${payment.status === 'completed'
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                  : payment.status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                }`}>
+                                {payment.status || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              {payment.description || payment.notes || '-'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    No payment records found for this student.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

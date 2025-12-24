@@ -31,7 +31,17 @@ export const paymentApi = createApi({
                 return response;
             },
         }),
+        getAllPayments: builder.query({
+            query: () => `/`,
+            providesTags: ["Payments"],
+            transformResponse: (response) => {
+                if (response.success) {
+                    return response.payments;
+                }
+                return response;
+            },
+        }),
     }),
 });
 
-export const { useGetStudentPaymentsQuery } = paymentApi;
+export const { useGetStudentPaymentsQuery, useGetAllPaymentsQuery } = paymentApi;
