@@ -48,6 +48,15 @@ export const getSubprogramsByProgramId = async (program_id) => {
   return rows;
 };
 
+// GET subprogram by Name and Program ID (Check for duplicates)
+export const getSubprogramByNameAndProgramId = async (subprogram_name, program_id) => {
+  const [rows] = await dbp.query(
+    "SELECT * FROM subprograms WHERE subprogram_name = ? AND program_id = ?",
+    [subprogram_name, program_id]
+  );
+  return rows[0] || null;
+};
+
 // UPDATE subprogram
 export const updateSubprogramById = async (id, { subprogram_name, program_id, description, status }) => {
   const updates = [];

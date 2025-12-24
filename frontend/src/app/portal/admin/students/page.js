@@ -193,6 +193,12 @@ export default function StudentsPage() {
     setSelectedClassId("");
   };
 
+  const handleCloseAssignClassModal = () => {
+    setIsAssignClassModalOpen(false);
+    setAssigningStudent(null);
+    setSelectedClassId("");
+  };
+
   const submitAssignClass = async () => {
     if (!assigningStudent) return;
     try {
@@ -611,12 +617,10 @@ export default function StudentsPage() {
       {isModalOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ pointerEvents: 'none' }}
         >
           <div
-            className="absolute inset-0 bg-transparent"
-            onClick={handleBackdropClick}
-            style={{ pointerEvents: 'auto' }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            aria-hidden="true"
           />
 
           <div
@@ -811,24 +815,6 @@ export default function StudentsPage() {
                       />
                     </div>
                   )}
-
-                  {editingStudent && (
-                    <div>
-                      <label htmlFor="password" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                        }`}>
-                        New Password (leave blank to keep current)
-                      </label>
-                      <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                          }`}
-                      />
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -999,12 +985,10 @@ export default function StudentsPage() {
       {isAssignSubprogramModalOpen && assigningStudent && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ pointerEvents: "none" }}
         >
           <div
-            className="absolute inset-0 bg-transparent"
-            onClick={handleCloseAssignSubprogramModal}
-            style={{ pointerEvents: "auto" }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            aria-hidden="true"
           />
 
           <div
@@ -1189,12 +1173,10 @@ export default function StudentsPage() {
       {isAssignClassModalOpen && assigningStudent && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ pointerEvents: "none" }}
         >
           <div
-            className="absolute inset-0 bg-transparent"
-            onClick={handleCloseAssignClassModal}
-            style={{ pointerEvents: "auto" }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            aria-hidden="true"
           />
 
           <div
@@ -1342,12 +1324,10 @@ export default function StudentsPage() {
       {isViewModalOpen && viewingStudent && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ pointerEvents: 'none' }}
         >
           <div
-            className="absolute inset-0 bg-transparent"
-            onClick={handleCloseViewModal}
-            style={{ pointerEvents: 'auto' }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            aria-hidden="true"
           />
 
           <div
@@ -1543,46 +1523,31 @@ export default function StudentsPage() {
                   Payment Information
                 </h3>
                 {viewingPayments && viewingPayments.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className={`w-full text-sm ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      <thead className={`${isDark ? 'bg-gray-800' : 'bg-indigo-100'}`}>
-                        <tr>
-                          <th className="px-4 py-2 text-left font-semibold">Date</th>
-                          <th className="px-4 py-2 text-left font-semibold">Amount</th>
-                          <th className="px-4 py-2 text-left font-semibold">Method</th>
-                          <th className="px-4 py-2 text-left font-semibold">Status</th>
-                          <th className="px-4 py-2 text-left font-semibold">Notes</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {viewingPayments.map((payment, idx) => (
-                          <tr key={payment.id || idx} className={`border-b ${isDark ? 'border-gray-700' : 'border-indigo-100'}`}>
-                            <td className="px-4 py-3">
-                              {payment.payment_date ? new Date(payment.payment_date).toLocaleDateString() : 'N/A'}
-                            </td>
-                            <td className="px-4 py-3 font-semibold">
-                              ${payment.amount || '0.00'}
-                            </td>
-                            <td className="px-4 py-3">
-                              {payment.payment_method || 'N/A'}
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${payment.status === 'completed'
-                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                  : payment.status === 'pending'
-                                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                }`}>
-                                {payment.status || 'N/A'}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3">
-                              {payment.description || payment.notes || '-'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Total Paid */}
+                    <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Paid</label>
+                      <p className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                        ${viewingPayments
+                          .filter(p => p.status === 'paid' || p.status === 'completed')
+                          .reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+                          .toFixed(2)}
+                      </p>
+                    </div>
+                    {/* Payment Method */}
+                    <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Payment Method</label>
+                      <p className={`text-base font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {[...new Set(viewingPayments.map(p => p.payment_method).filter(Boolean))].join(', ') || 'N/A'}
+                      </p>
+                    </div>
+                    {/* Total Payments */}
+                    <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Payments</label>
+                      <p className={`text-base font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {viewingPayments.length} payment{viewingPayments.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -1620,12 +1585,10 @@ function SubprogramsModal({ program, onClose, isDark }) {
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center"
-      style={{ pointerEvents: 'none' }}
     >
       <div
-        className="absolute inset-0 bg-transparent"
-        onClick={onClose}
-        style={{ pointerEvents: 'auto' }}
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        aria-hidden="true"
       />
 
       <div

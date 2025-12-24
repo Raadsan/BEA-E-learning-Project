@@ -22,6 +22,14 @@ export const createSubprogram = async (req, res) => {
       return res.status(400).json({ error: "Status must be 'active' or 'inactive'" });
     }
 
+    // Check for duplicate subprogram name within the same program
+    const existingSubprogram = await Subprogram.getSubprogramByNameAndProgramId(subprogram_name, program_id);
+    if (existingSubprogram) {
+      return res.status(400).json({
+        error: `A subprogram with the name "${subprogram_name}" already exists for this program.`
+      });
+    }
+
     const subprogram = await Subprogram.createSubprogram({
       subprogram_name,
       program_id,
@@ -93,6 +101,19 @@ export const updateSubprogram = async (req, res) => {
     // Validate status if provided
     if (req.body.status && !['active', 'inactive'].includes(req.body.status)) {
       return res.status(400).json({ error: "Status must be 'active' or 'inactive'" });
+    }
+
+    // Check for duplicates if name or program_id is being updated
+    const newName = req.body.subprogram_name || existing.subprogram_name;
+    const newProgramId = req.body.program_id || existing.program_id;
+
+    if (req.body.subprogram_name || req.body.program_id) {
+      const duplicate = await Subprogram.getSubprogramByNameAndProgramId(newName, newProgramId);
+      if (duplicate && duplicate.id !== parseInt(id)) {
+        return res.status(400).json({
+          error: `A subprogram with the name "${newName}" already exists for this program.`
+        });
+      }
     }
 
     await Subprogram.updateSubprogramById(id, req.body);

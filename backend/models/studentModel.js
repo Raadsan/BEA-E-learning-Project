@@ -60,7 +60,13 @@ export const createStudent = async ({
 export const getAllStudents = async () => {
   try {
     const [rows] = await dbp.query(
-      "SELECT id, full_name, email, phone, age, gender, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, approval_status, created_at, updated_at FROM students ORDER BY created_at DESC"
+      `SELECT s.id, s.full_name, s.email, s.phone, s.age, s.gender, s.residency_country, s.residency_city, 
+       s.chosen_program, s.chosen_subprogram, s.parent_name, s.parent_email, s.parent_phone, 
+       s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, 
+       s.created_at, s.updated_at, c.class_name
+       FROM students s
+       LEFT JOIN classes c ON s.class_id = c.id
+       ORDER BY s.created_at DESC`
     );
     return rows;
   } catch (error) {
@@ -104,7 +110,9 @@ export const updateStudentById = async (id, {
   parent_phone,
   parent_relation,
   parent_res_county,
-  parent_res_city
+  parent_res_city,
+  class_id,
+  approval_status
 }) => {
   const updates = [];
   const values = [];
@@ -173,6 +181,14 @@ export const updateStudentById = async (id, {
   if (parent_res_city !== undefined) {
     updates.push("parent_res_city = ?");
     values.push(parent_res_city);
+  }
+  if (class_id !== undefined) {
+    updates.push("class_id = ?");
+    values.push(class_id);
+  }
+  if (approval_status !== undefined) {
+    updates.push("approval_status = ?");
+    values.push(approval_status);
   }
 
   if (updates.length === 0) {
