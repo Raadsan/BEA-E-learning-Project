@@ -13,6 +13,7 @@ export const getProgramRoute = (title) => {
   if (routeMap[title]) {
     return routeMap[title];
   }
+  
 
   // Try partial matching for flexibility
   const titleLower = title.toLowerCase();
