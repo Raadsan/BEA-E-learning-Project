@@ -22,7 +22,6 @@ export default function GeneralStudentsPage() {
   // Modal state for assigning class
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [studentToAssign, setStudentToAssign] = useState(null);
-  const [selectedSubprogramId, setSelectedSubprogramId] = useState("");
   const [selectedClassId, setSelectedClassId] = useState("");
 
   // Modal state for viewing student
@@ -96,18 +95,6 @@ export default function GeneralStudentsPage() {
   // Handle opening assign class modal
   const handleOpenAssignModal = (student) => {
     setStudentToAssign(student);
-
-    // Get subprograms for student's program
-    const program = programs.find(p => p.title === student.chosen_program);
-    const studentSubprograms = program ? subprograms.filter(sp => sp.program_id === program.id) : [];
-
-    // If only one subprogram, auto-select it
-    if (studentSubprograms.length === 1) {
-      setSelectedSubprogramId(studentSubprograms[0].id.toString());
-    } else {
-      setSelectedSubprogramId("");
-    }
-
     setSelectedClassId(student.class_id?.toString() || "");
     setIsAssignModalOpen(true);
   };
@@ -116,7 +103,6 @@ export default function GeneralStudentsPage() {
   const handleCloseAssignModal = () => {
     setIsAssignModalOpen(false);
     setStudentToAssign(null);
-    setSelectedSubprogramId("");
     setSelectedClassId("");
   };
 
@@ -135,10 +121,10 @@ export default function GeneralStudentsPage() {
       await updateStudent({
         id: studentToAssign.id,
         class_id: parseInt(selectedClassId),
-        chosen_subprogram: subprogramId // Auto-assign subprogram from class
+        chosen_subprogram: subprogramId
       }).unwrap();
 
-      showToast("Class and subprogram assigned successfully!", "success");
+      showToast("Class assigned successfully!", "success");
       handleCloseAssignModal();
       refetch();
     } catch (error) {
@@ -329,9 +315,12 @@ export default function GeneralStudentsPage() {
 
         return (
           <div className="flex justify-center">
-            <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
+            <button
+              onClick={() => handleOpenAssignModal(row)}
+              className="px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors cursor-pointer"
+            >
               {subName}
-            </span>
+            </button>
           </div>
         );
       },
@@ -461,16 +450,8 @@ export default function GeneralStudentsPage() {
 
       {/* Assign Class Modal */}
       {isAssignModalOpen && studentToAssign && (() => {
-        // Get subprograms for student's program
-        const program = programs.find(p => p.title === studentToAssign.chosen_program);
-        const studentSubprograms = program ? subprograms.filter(sp => sp.program_id === program.id) : [];
-        const hasMultipleSubprograms = studentSubprograms.length > 1;
-        const hasOneSubprogram = studentSubprograms.length === 1;
-
-        // Get classes for selected subprogram
-        const filteredClasses = selectedSubprogramId
-          ? classes.filter(c => c.subprogram_id == selectedSubprogramId)
-          : [];
+        // Get all classes for the student's program
+        const programClasses = classes.filter(c => c.program_name === studentToAssign.chosen_program);
 
         return (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -481,7 +462,7 @@ export default function GeneralStudentsPage() {
             <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
               <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50/50 border-gray-200'}`}>
                 <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                  Assign Class
+                  {studentToAssign.email}
                 </h3>
                 <button
                   onClick={handleCloseAssignModal}
@@ -494,87 +475,39 @@ export default function GeneralStudentsPage() {
               </div>
 
               <div className="p-6">
-                {/* Student Info */}
-                <div className="flex items-center gap-4 mb-6">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{studentToAssign.full_name}</p>
-                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{studentToAssign.chosen_program}</p>
-                  </div>
+                {/* Student Program Description */}
+                <div className={`p-3 rounded-lg mb-4 border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {studentToAssign.chosen_program}
+                  </p>
                 </div>
 
-                {studentSubprograms.length === 0 ? (
+                {programClasses.length === 0 ? (
                   <div className={`p-4 rounded-lg mb-4 ${isDark ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-yellow-50 border border-yellow-200'}`}>
                     <p className={`text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
-                      No subprograms available for "{studentToAssign.chosen_program}". Please create subprograms first.
+                      No classes available for "{studentToAssign.chosen_program}". Please create classes first.
                     </p>
                   </div>
                 ) : (
                   <>
-                    {/* Subprogram Selection - only show if multiple */}
-                    {hasMultipleSubprograms && (
-                      <div className="mb-4">
-                        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                          Select Subprogram
-                        </label>
-                        <select
-                          value={selectedSubprogramId}
-                          onChange={(e) => {
-                            setSelectedSubprogramId(e.target.value);
-                            setSelectedClassId(""); // Reset class when subprogram changes
-                          }}
-                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white'}`}
-                        >
-                          <option value="">Select a subprogram</option>
-                          {studentSubprograms.map((sp) => (
-                            <option key={sp.id} value={sp.id}>
-                              {sp.subprogram_name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Show selected subprogram if only one */}
-                    {hasOneSubprogram && (
-                      <div className={`p-3 rounded-lg mb-4 border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                        <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Subprogram</p>
-                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{studentSubprograms[0].subprogram_name}</p>
-                      </div>
-                    )}
-
                     {/* Class Selection */}
-                    {selectedSubprogramId && (
-                      <div className="mb-6">
-                        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                          Select Class
-                        </label>
-                        {filteredClasses.length > 0 ? (
-                          <select
-                            value={selectedClassId}
-                            onChange={(e) => setSelectedClassId(e.target.value)}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white'}`}
-                          >
-                            <option value="">Select a class</option>
-                            {filteredClasses.map((cls) => (
-                              <option key={cls.id} value={cls.id}>
-                                {cls.class_name}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <div className={`p-4 rounded-lg ${isDark ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-yellow-50 border border-yellow-200'}`}>
-                            <p className={`text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
-                              No classes available for this subprogram. Please create classes first.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <div className="mb-6">
+                      <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Select Class
+                      </label>
+                      <select
+                        value={selectedClassId}
+                        onChange={(e) => setSelectedClassId(e.target.value)}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white'}`}
+                      >
+                        <option value="">Select a class</option>
+                        {programClasses.map((cls) => (
+                          <option key={cls.id} value={cls.id}>
+                            {cls.class_name} ({cls.subprogram_name})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </>
                 )}
 
@@ -588,7 +521,7 @@ export default function GeneralStudentsPage() {
                   </button>
                   <button
                     onClick={handleAssignClass}
-                    disabled={isUpdating || !selectedClassId || !selectedSubprogramId}
+                    disabled={isUpdating || !selectedClassId}
                     className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUpdating ? "Assigning..." : "Assign Class"}
