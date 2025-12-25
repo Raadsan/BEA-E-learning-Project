@@ -36,6 +36,15 @@ export default function ClassStudentsPage() {
     zoom_link: "",
   });
 
+  // Notification state
+  const [notificationForm, setNotificationForm] = useState({
+    title: "",
+    content: "",
+    targetType: "all_students_and_teacher", // all_students_and_teacher, all_students, student_by_id
+    studentId: "",
+  });
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+
   // Find the current class
   const currentClass = classes?.find(cls => cls.id == classId);
 
@@ -116,6 +125,57 @@ export default function ClassStudentsPage() {
     } catch (error) {
       console.error("Failed to save schedule:", error);
       alert(error?.data?.error || "Failed to save schedule. Please try again.");
+    }
+  };
+
+  // Notification handlers
+  const handleSendNotification = () => {
+    setIsNotificationModalOpen(true);
+  };
+
+  const handleNotificationSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const notificationData = {
+        title: notificationForm.title,
+        content: notificationForm.content,
+        classId: classId,
+        targetType: notificationForm.targetType,
+        studentId: notificationForm.targetType === 'student_by_id' ? notificationForm.studentId : null,
+      };
+
+      // Send notification to backend
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+      const response = await fetch(`${baseUrl}/api/announcements/classes/${classId}/notifications`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          title: notificationForm.title,
+          content: notificationForm.content,
+          targetType: notificationForm.targetType,
+          ...(notificationForm.targetType === 'student_by_id' && { studentId: notificationForm.studentId })
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send notification');
+      }
+
+      alert('Notification sent successfully!');
+      setIsNotificationModalOpen(false);
+      setNotificationForm({
+        title: "",
+        content: "",
+        targetType: "all_students_and_teacher",
+        studentId: "",
+      });
+    } catch (error) {
+      console.error("Failed to send notification:", error);
+      alert("Failed to send notification. Please try again.");
     }
   };
 
@@ -265,6 +325,15 @@ export default function ClassStudentsPage() {
                 >
                   View Schedules ({schedules.length})
                 </button>
+                <button
+                  onClick={() => setActiveTab('notifications')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'notifications'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                >
+                  Send Notifications
+                </button>
               </nav>
             </div>
           </div>
@@ -343,6 +412,26 @@ export default function ClassStudentsPage() {
               )}
             </div>
           )}
+
+          {/* Notifications Tab Content */}
+          {activeTab === 'notifications' && (
+            <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Send Notifications</h2>
+                <button
+                  onClick={() => setIsNotificationModalOpen(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  + Send Notification
+                </button>
+              </div>
+
+              <div className="text-center py-8 text-gray-500">
+                <p>Click &quot;Send Notification&quot; to create and send notifications to students in this class.</p>
+                <p className="text-sm mt-2">You can send to all students, all students + teacher, or individual students.</p>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
@@ -396,6 +485,104 @@ export default function ClassStudentsPage() {
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {(isCreating || isUpdating) ? 'Saving...' : (editingSchedule ? 'Update' : 'Add')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Modal */}
+      {isNotificationModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Send Notification</h3>
+            <form onSubmit={handleNotificationSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Notification Title *
+                </label>
+                <input
+                  type="text"
+                  value={notificationForm.title}
+                  onChange={(e) => setNotificationForm({ ...notificationForm, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter notification title"
+                  required
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message Content *
+                </label>
+                <textarea
+                  value={notificationForm.content}
+                  onChange={(e) => setNotificationForm({ ...notificationForm, content: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows="4"
+                  placeholder="Enter notification message"
+                  required
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Send To *
+                </label>
+                <select
+                  value={notificationForm.targetType}
+                  onChange={(e) => setNotificationForm({ ...notificationForm, targetType: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all_students_and_teacher">All Students + Teacher</option>
+                  <option value="all_students">All Students Only</option>
+                  <option value="student_by_id">Specific Student</option>
+                </select>
+              </div>
+
+              {notificationForm.targetType === 'student_by_id' && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Student ID *
+                  </label>
+                  <select
+                    value={notificationForm.studentId}
+                    onChange={(e) => setNotificationForm({ ...notificationForm, studentId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required={notificationForm.targetType === 'student_by_id'}
+                  >
+                    <option value="">Select a student</option>
+                    {classStudents.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.full_name} ({student.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNotificationModalOpen(false);
+                    setNotificationForm({
+                      title: "",
+                      content: "",
+                      targetType: "all_students_and_teacher",
+                      studentId: "",
+                    });
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Send Notification
                 </button>
               </div>
             </form>

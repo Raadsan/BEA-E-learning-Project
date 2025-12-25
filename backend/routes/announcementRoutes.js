@@ -3,7 +3,8 @@ import {
     getAnnouncements,
     createAnnouncement,
     updateAnnouncement,
-    deleteAnnouncement
+    deleteAnnouncement,
+    sendClassNotification
 } from "../controllers/announcementController.js";
 
 const router = express.Router();
@@ -30,5 +31,10 @@ router.delete("/:id", (req, res, next) => {
     console.log(`📥 DELETE /api/announcements/${req.params.id}`);
     next();
 }, deleteAnnouncement);
+
+router.post("/classes/:classId/notifications", (req, res, next) => {
+    console.log(`📥 POST /api/announcements/classes/${req.params.classId}/notifications`);
+    next();
+}, sendClassNotification);
 
 export default router;

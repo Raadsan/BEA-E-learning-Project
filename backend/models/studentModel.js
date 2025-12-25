@@ -394,3 +394,18 @@ export const getStudentLocations = async (program_id) => {
   const [rows] = await dbp.query(query, params);
   return rows;
 };
+
+// GET STUDENTS BY CLASS ID
+export const getStudentsByClassId = async (classId) => {
+  const [rows] = await dbp.query(
+    `SELECT s.id, s.full_name, s.email, s.phone, s.age, s.gender, s.residency_country, s.residency_city, 
+     s.chosen_program, s.chosen_subprogram, s.parent_name, s.parent_email, s.parent_phone, 
+     s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, 
+     s.created_at, s.updated_at
+     FROM students s
+     WHERE s.class_id = ? AND s.approval_status = 'approved'
+     ORDER BY s.full_name ASC`,
+    [classId]
+  );
+  return rows;
+};
