@@ -51,8 +51,9 @@ export default function AttendancePage() {
   const bg = isDark ? "bg-gray-900" : "bg-gray-100";
 
   return (
-    <div className={`min-h-screen ${bg}`}>
-      <div className="max-w-5xl mx-auto p-6">
+    <div className={`min-h-screen transition-colors ${bg}`}>
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto">
         <div
           className={`mb-6 p-6 rounded-xl shadow ${
             isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
@@ -109,6 +110,7 @@ export default function AttendancePage() {
             </table>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

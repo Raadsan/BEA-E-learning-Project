@@ -1,0 +1,187 @@
+{
+	"info": {
+		"_postman_id": "create-classes-subprogram",
+		"name": "Create Classes for Subprogram",
+		"description": "API endpoint to create two classes (morning and night) for a subprogram",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Morning and Night Classes for Subprogram",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subprogram_id\": 1,\n    \"teacher_id\": null,\n    \"description\": \"Optional description for the classes\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/classes/create-for-subprogram",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"classes",
+						"create-for-subprogram"
+					]
+				},
+				"description": "Creates two classes (morning and night) for the specified subprogram. The class names will be automatically generated as '{Subprogram Name} - Morning' and '{Subprogram Name} - Night'."
+			},
+			"response": [
+				{
+					"name": "Success Response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subprogram_id\": 1,\n    \"teacher_id\": null,\n    \"description\": \"Optional description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/classes/create-for-subprogram",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"classes",
+								"create-for-subprogram"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Successfully created 2 class(es) for subprogram\",\n    \"subprogram\": {\n        \"id\": 1,\n        \"name\": \"Level 1 - Beginner\"\n    },\n    \"classes\": [\n        {\n            \"id\": 1,\n            \"class_name\": \"Level 1 - Beginner - Morning\",\n            \"description\": \"Morning class for Level 1 - Beginner\",\n            \"subprogram_id\": 1,\n            \"teacher_id\": null,\n            \"type\": \"morning\",\n            \"created_at\": \"2024-01-01T00:00:00.000Z\",\n            \"updated_at\": \"2024-01-01T00:00:00.000Z\"\n        },\n        {\n            \"id\": 2,\n            \"class_name\": \"Level 1 - Beginner - Night\",\n            \"description\": \"Night class for Level 1 - Beginner\",\n            \"subprogram_id\": 1,\n            \"teacher_id\": null,\n            \"type\": \"night\",\n            \"created_at\": \"2024-01-01T00:00:00.000Z\",\n            \"updated_at\": \"2024-01-01T00:00:00.000Z\"\n        }\n    ]\n}"
+				},
+				{
+					"name": "Error - Subprogram Not Found",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subprogram_id\": 999\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/classes/create-for-subprogram",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"classes",
+								"create-for-subprogram"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"error\": \"Subprogram not found\"\n}"
+				},
+				{
+					"name": "Error - Missing subprogram_id",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/classes/create-for-subprogram",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"classes",
+								"create-for-subprogram"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"error\": \"subprogram_id is required\"\n}"
+				}
+			]
+		}
+	]
+}
+
