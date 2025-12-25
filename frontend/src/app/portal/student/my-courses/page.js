@@ -78,22 +78,19 @@ export default function MyCoursesPage() {
     }
   }, [userLoading, classLoading, subprogramsLoading]);
 
-  // Calculate progress (placeholder - you can adjust based on your data)
-  const calculateProgress = () => {
-    // This is a placeholder - adjust based on your actual progress tracking
-    if (courses.length === 0) return 0;
-    // For now, return a mock progress
-    return 72; // 72% as shown in the image
+  // Calculate progress for each subprogram (placeholder)
+  const calculateProgress = (subprogramId) => {
+    // If it's the active subprogram, calculate based on courses
+    if (subprogramId == studentClass?.subprogram_id && courses.length > 0) {
+      return 72; // Mock progress
+    }
+    return 0; // Locked subprograms have 0% progress
   };
 
-  const progress = calculateProgress();
-  const completedCourses = Math.floor((progress / 100) * courses.length);
-  const remainingCourses = courses.length - completedCourses;
-
-  // Handle subprogram click
+  // Handle subprogram click - navigate to course overview
   const handleSubprogramClick = (subprogram) => {
-    if (subprogram.id == studentClass?.subprogram_id) {
-      // Navigate to course overview
+    const isActive = studentClass && (subprogram.id == studentClass.subprogram_id);
+    if (isActive) {
       router.push(`/portal/student/my-courses/${subprogram.id}`);
     }
   };
@@ -131,222 +128,222 @@ export default function MyCoursesPage() {
     );
   }
 
-  const programImage = studentProgram.image 
-    ? (studentProgram.image.startsWith('http') 
-        ? studentProgram.image 
-        : `http://localhost:5000${studentProgram.image}`)
-    : '/images/book1.jpg';
+  // Get program image from database
+  const getProgramImage = () => {
+    if (!studentProgram?.image) return '/images/book1.jpg';
+    
+    // If image path starts with /, use it directly with backend URL
+    if (studentProgram.image.startsWith('/')) {
+      return `http://localhost:5000${studentProgram.image}`;
+    }
+    // If image path doesn't start with /, add it
+    if (studentProgram.image.startsWith('http')) {
+      return studentProgram.image;
+    }
+    return `http://localhost:5000/${studentProgram.image}`;
+  };
+
+  const programImage = getProgramImage();
 
   return (
     <div className={`min-h-screen transition-colors ${bg}`}>
       <div className="p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className={`mb-6 p-6 rounded-xl ${card} shadow-md`}>
+          <div className="mb-6">
             <h1 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
               My Courses
             </h1>
             <p className={`text-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-              View your enrolled programs and courses.
+              Available Courses
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Section - Program Card */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Program Card with Image */}
-              <div className={`rounded-xl shadow-lg overflow-hidden ${card}`}>
-                <div className={`relative h-64 bg-gradient-to-br ${isDark ? 'from-gray-700 to-gray-800' : 'from-gray-200 to-gray-300'}`}>
-                  {studentProgram.image && (
-                    <Image
-                      src={programImage}
-                      alt={studentProgram.title}
-                      fill
-                      className="object-cover"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-black/20"></div>
-                  <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-                    <h2 className={`text-2xl font-bold mb-2 text-white`}>
-                      {studentProgram.title}
-                    </h2>
-                    {studentSubprogram && (
-                      <p className="text-white/80 text-sm">
-                        {studentSubprogram.subprogram_name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Progress Bar */}
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-sm font-medium ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                      Progress
-                    </span>
-                    <span className={`text-sm font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
-                      {progress}%
-                    </span>
-                  </div>
-                  <div className={`w-full h-3 rounded-full ${isDark ? "bg-gray-700" : "bg-gray-200"}`}>
-                    <div
-                      className="h-3 rounded-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                  </div>
+          {/* Main Program Card */}
+          <div className={`mb-8 rounded-xl shadow-lg overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-50"} border ${isDark ? "border-gray-700" : "border-gray-200"}`}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+              {/* Left Section - Program Card with Image */}
+              <div className={`lg:col-span-1 ${isDark ? "bg-gray-700" : "bg-gray-100"} p-6 relative overflow-hidden`}>
+                <div className="relative h-full min-h-[300px] flex flex-col items-center justify-center">
+                  <Image
+                    src={programImage}
+                    alt={studentProgram.title}
+                    fill
+                    className="object-cover "
+                    unoptimized
+                  />
+                  
                 </div>
               </div>
 
-              {/* Subprograms List */}
-              <div className={`rounded-xl shadow overflow-hidden ${card}`}>
-                <div className={`px-6 py-4 border-b ${isDark ? "border-gray-700" : "border-gray-200"}`}>
-                  <h2 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-                    Available Subprograms
-                  </h2>
-                  <p className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                    Click on your active subprogram to view course details
-                  </p>
-                </div>
-
-                {subprogramsLoading ? (
-                  <div className="p-6 text-center">
-                    <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading subprograms...</p>
-                  </div>
-                ) : subprogramsData.length === 0 ? (
-                  <div className="p-6 text-center">
-                    <p className={isDark ? "text-gray-400" : "text-gray-600"}>No subprograms available.</p>
-                  </div>
-                ) : (
-                  <div className="p-6 space-y-3">
-                    {subprogramsData.map((subprogram) => {
-                      const isActive = studentClass && (subprogram.id == studentClass.subprogram_id);
-                      const isLocked = !isActive;
-
-                      return (
-                        <div
-                          key={subprogram.id}
-                          onClick={() => !isLocked && handleSubprogramClick(subprogram)}
-                          className={`p-5 rounded-xl border-2 transition-all ${
-                            isActive
-                              ? `border-[#010080] shadow-lg bg-gradient-to-br ${isDark ? 'from-[#010080]/30 to-[#010080]/10' : 'from-[#010080]/15 to-blue-50'} ${card} cursor-pointer hover:shadow-xl`
-                              : `border-gray-300 dark:border-gray-600 ${isDark ? "bg-gray-700/50" : "bg-gray-100"} opacity-60 cursor-not-allowed relative`
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <h3 className={`text-lg font-semibold mb-1 ${
-                                isLocked 
-                                  ? (isDark ? "text-gray-500" : "text-gray-400")
-                                  : (isDark ? "text-white" : "text-gray-900")
-                              }`}>
-                                {subprogram.subprogram_name}
-                              </h3>
-                              {subprogram.description && (
-                                <p className={`text-sm ${
-                                  isLocked
-                                    ? (isDark ? "text-gray-600" : "text-gray-500")
-                                    : (isDark ? "text-gray-300" : "text-gray-600")
-                                }`}>
-                                  {subprogram.description}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3">
-                              {isActive && (
-                                <span className="px-3 py-1 bg-[#010080] text-white rounded-full text-xs font-semibold shadow-md">
-                                  Active
-                                </span>
-                              )}
-                              {isLocked && (
-                                <svg
-                                  className="w-6 h-6 text-gray-400"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                  />
-                                </svg>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Sidebar - Statistics */}
-            <div className="space-y-6">
-              {/* Program Info */}
-              <div className={`rounded-xl p-6 ${card} shadow-md`}>
-                <h3 className={`text-lg font-bold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
-                  Program Information
-                </h3>
-                <div className="space-y-4">
+              {/* Right Section - Course Details */}
+              <div className={`lg:col-span-2 ${isDark ? "bg-gray-800" : "bg-white"} p-8`}>
+                <div className="flex items-start justify-between mb-4">
                   <div>
-                    <p className={`text-sm font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                      Program
-                    </p>
-                    <p className={`text-base font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+                    <h3 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
+                      {studentProgram.title}
+                    </h3>
+                    <p className={`text-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                       {studentProgram.title}
                     </p>
                   </div>
-                  {studentSubprogram && (
-                    <div>
-                      <p className={`text-sm font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                        Subprogram
-                      </p>
-                      <p className={`text-base font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-                        {studentSubprogram.subprogram_name}
-                      </p>
-                    </div>
-                  )}
-                  <div>
-                    <p className={`text-sm font-medium mb-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                      Total Courses
-                    </p>
-                    <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
-                      {courses.length}
-                    </p>
+                  <div className="bg-[#010080] text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-semibold">In Progress</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Course Statistics */}
-              <div className={`rounded-xl p-6 ${card} shadow-md`}>
-                <h3 className={`text-lg font-bold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
-                  Course Progress
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>Completed</p>
-                    <p className={`text-2xl font-bold text-green-500 ${isDark ? "text-green-400" : "text-green-600"}`}>
-                      {completedCourses}
-                    </p>
+
+                {/* Activity Info */}
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <svg className={`w-5 h-5 ${isDark ? "text-gray-400" : "text-gray-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className={isDark ? "text-gray-400" : "text-gray-600"}>
+                      Last activity: 4 days ago
+                    </span>
                   </div>
                   <div>
-                    <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>Remaining</p>
-                    <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
-                      {remainingCourses}
-                    </p>
-                  </div>
-                  <div>
-                    <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>Total Lessons</p>
-                    <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
-                      {courses.length}
-                    </p>
+                    <span className={isDark ? "text-gray-400" : "text-gray-600"}>
+                      {subprogramsData.length} courses available
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Subprograms as Course Cards */}
+          {subprogramsLoading ? (
+            <div className={`p-6 rounded-xl shadow ${card} text-center`}>
+              <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading courses...</p>
+            </div>
+          ) : subprogramsData.length === 0 ? (
+            <div className={`p-6 rounded-xl shadow ${card} text-center`}>
+              <p className={isDark ? "text-gray-400" : "text-gray-600"}>No courses available.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {subprogramsData.map((subprogram) => {
+                const isActive = studentClass && (subprogram.id == studentClass.subprogram_id);
+                const isLocked = !isActive;
+                const progress = calculateProgress(subprogram.id);
+                const totalLessons = subprogram.id == studentClass?.subprogram_id ? courses.length : 0;
+                const completedLessons = Math.floor((progress / 100) * totalLessons);
+
+                return (
+                  <div
+                    key={subprogram.id}
+                    onClick={() => handleSubprogramClick(subprogram)}
+                    className={`relative rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
+                      isLocked
+                        ? `${isDark ? "bg-gray-800/50" : "bg-gray-200"} opacity-60 cursor-not-allowed`
+                        : `${card} cursor-pointer hover:shadow-2xl hover:scale-105`
+                    }`}
+                  >
+                    {/* Course Image/Thumbnail */}
+                    <div className={`relative h-48 ${isDark ? "bg-gray-700" : "bg-gray-300"}`}>
+                      {programImage && (
+                        <Image
+                          src={programImage}
+                          alt={subprogram.subprogram_name}
+                          fill
+                          className="object-cover"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                      
+                      {/* Completed Badge */}
+                      {isActive && progress === 100 && (
+                        <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                          Completed
+                        </div>
+                      )}
+
+                      {/* Active Badge */}
+                      {isActive && progress < 100 && (
+                        <div className="absolute top-3 right-3 bg-[#010080] text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                          </svg>
+                          In Progress
+                        </div>
+                      )}
+
+                      {/* Lock Icon for Locked Courses */}
+                      {isLocked && (
+                        <div className="absolute top-3 right-3 bg-gray-600/80 text-white p-2 rounded-full">
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                            />
+                          </svg>
+                        </div>
+                      )}
+
+                      {/* Course Title Overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h3 className={`text-lg font-bold text-white mb-1 line-clamp-2`}>
+                          {subprogram.subprogram_name}
+                        </h3>
+                        {subprogram.description && (
+                          <p className="text-white/80 text-sm line-clamp-2">
+                            {subprogram.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Course Content */}
+                    <div className="p-5">
+                      
+
+                      {/* Lesson Count */}
+                      {isActive && totalLessons > 0 && (
+                        <p className={`text-sm mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                          {completedLessons}/{totalLessons} lessons
+                        </p>
+                      )}
+
+                      {/* Continue Button */}
+                      {isActive && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/portal/student/my-courses/${subprogram.id}`);
+                          }}
+                          className="w-full bg-[#010080] hover:bg-[#010080] hover:text-white text-white font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                          </svg>
+                          View
+                        </button>
+                      )}
+
+                      {/* Locked Message */}
+                      {isLocked && (
+                        <div className={`text-center py-2 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                          <p className="text-sm">Locked</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
