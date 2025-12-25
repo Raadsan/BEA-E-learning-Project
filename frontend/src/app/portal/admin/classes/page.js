@@ -32,6 +32,7 @@ export default function ClassesPage() {
     program_id: "",
     subprogram_id: "",
     teacher_id: "",
+    type: "morning",
   });
 
   // Filter subprograms based on selected program
@@ -43,6 +44,9 @@ export default function ClassesPage() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedClassForAssign, setSelectedClassForAssign] = useState(null);
 
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [viewingClass, setViewingClass] = useState(null);
+
   const handleAddClass = () => {
     setEditingClass(null);
     setFormData({
@@ -51,6 +55,7 @@ export default function ClassesPage() {
       program_id: "",
       subprogram_id: "",
       teacher_id: "",
+      type: "morning",
     });
     setIsModalOpen(true);
   };
@@ -74,6 +79,7 @@ export default function ClassesPage() {
       program_id: "", // TODO: Populate if backend returns existing IDs
       subprogram_id: "",
       teacher_id: classItem.teacher_id || "",
+      type: classItem.type || "morning",
     });
     setIsModalOpen(true);
   };
@@ -81,6 +87,16 @@ export default function ClassesPage() {
   const handleAssign = (classItem) => {
     setSelectedClassForAssign(classItem);
     setIsAssignModalOpen(true);
+  };
+
+  const handleView = (classItem) => {
+    setViewingClass(classItem);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+    setViewingClass(null);
   };
 
   const handleCloseAssignModal = () => {
@@ -135,6 +151,7 @@ export default function ClassesPage() {
         description: formData.description,
         subprogram_id: formData.subprogram_id ? parseInt(formData.subprogram_id) : null,
         teacher_id: formData.teacher_id ? parseInt(formData.teacher_id) : null,
+        type: formData.type || 'morning' // Always include type with default value
       };
 
       if (editingClass) {
@@ -179,10 +196,35 @@ export default function ClassesPage() {
       render: (row) => row.teacher_name || "No assigned teacher",
     },
     {
+      key: "type",
+      label: "Shift Type",
+      render: (row) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+          row.type === 'morning' ? 'bg-yellow-100 text-yellow-800' :
+          row.type === 'afternoon' ? 'bg-orange-100 text-orange-800' :
+          row.type === 'night' ? 'bg-blue-100 text-blue-800' :
+          'bg-gray-100 text-gray-800'
+        }`}>
+          {row.type ? row.type.charAt(0).toUpperCase() + row.type.slice(1) : 'Not set'}
+        </span>
+      ),
+    },
+    {
       key: "actions",
       label: "Actions",
       render: (row) => (
         <div className="flex gap-2">
+          {/* View Details Button */}
+          <button
+            onClick={() => handleView(row)}
+            className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+            title="View Details"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
           {/* Assign Teacher Button - kept for quick access specifically for teacher */}
           <button
             onClick={() => handleAssign(row)}
@@ -352,6 +394,24 @@ export default function ClassesPage() {
                 </div>
 
                 <div>
+                  <label htmlFor="type" className="block text-sm font-medium mb-1 text-gray-700">
+                    Class Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="type"
+                    name="type"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                  >
+                    <option value="morning">Morning</option>
+                    <option value="afternoon">Afternoon</option>
+                    <option value="night">Night</option>
+                  </select>
+                </div>
+
+                <div>
                   <label htmlFor="class_name" className="block text-sm font-medium mb-1 text-gray-700">
                     Class Name <span className="text-red-500">*</span>
                   </label>
@@ -507,6 +567,112 @@ export default function ClassesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Class Details Modal */}
+      {isViewModalOpen && viewingClass && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={handleCloseViewModal}
+          />
+          <div className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className={`sticky top-0 z-10 px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                Class Details
+              </h3>
+              <button
+                onClick={handleCloseViewModal}
+                className={`text-gray-400 hover:text-gray-600 transition-colors ${isDark ? 'hover:text-gray-300' : ''}`}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Class Name
+                  </label>
+                  <p className={`text-sm p-2 rounded border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-200'}`}>
+                    {viewingClass.class_name}
+                  </p>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Shift Type
+                  </label>
+                  <p className={`text-sm p-2 rounded border ${
+                    viewingClass.type === 'morning' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                    viewingClass.type === 'afternoon' ? 'bg-orange-100 text-orange-800 border-orange-200' :
+                    viewingClass.type === 'night' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                    (isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-200')
+                  }`}>
+                    {viewingClass.type ? viewingClass.type.charAt(0).toUpperCase() + viewingClass.type.slice(1) : 'Not set'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Program
+                  </label>
+                  <p className={`text-sm p-2 rounded border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-200'}`}>
+                    {viewingClass.program_name || 'Not assigned'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Subprogram
+                  </label>
+                  <p className={`text-sm p-2 rounded border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-200'}`}>
+                    {viewingClass.subprogram_name || 'Not assigned'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Assigned Teacher
+                  </label>
+                  <p className={`text-sm p-2 rounded border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-200'}`}>
+                    {viewingClass.teacher_name || 'No assigned teacher'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Created At
+                  </label>
+                  <p className={`text-sm p-2 rounded border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-200'}`}>
+                    {viewingClass.created_at ? new Date(viewingClass.created_at).toLocaleString() : 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="col-span-full">
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Description
+                </label>
+                <p className={`text-sm p-3 rounded border min-h-[60px] ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-200'}`}>
+                  {viewingClass.description || 'No description provided'}
+                </p>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={handleCloseViewModal}
+                  className={`px-4 py-2 rounded-lg border font-semibold transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

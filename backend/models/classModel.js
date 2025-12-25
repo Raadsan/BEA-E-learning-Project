@@ -4,10 +4,10 @@ import db from "../database/dbconfig.js";
 const dbp = db.promise();
 
 // CREATE class
-export const createClass = async ({ class_name, description, subprogram_id, teacher_id }) => {
+export const createClass = async ({ class_name, description, subprogram_id, teacher_id, type }) => {
   const [result] = await dbp.query(
-    "INSERT INTO classes (class_name, description, subprogram_id, teacher_id) VALUES (?, ?, ?, ?)",
-    [class_name, description || null, subprogram_id || null, teacher_id || null]
+    "INSERT INTO classes (class_name, description, subprogram_id, teacher_id, type) VALUES (?, ?, ?, ?, ?)",
+    [class_name, description || null, subprogram_id || null, teacher_id || null, type || 'morning']
   );
 
   const [newClass] = await dbp.query("SELECT * FROM classes WHERE id = ?", [result.insertId]);
@@ -74,7 +74,7 @@ export const getClassesByTeacherId = async (teacher_id) => {
 };
 
 // UPDATE class
-export const updateClassById = async (id, { class_name, subprogram_id, schedule, description, teacher_id }) => {
+export const updateClassById = async (id, { class_name, subprogram_id, schedule, description, teacher_id, type }) => {
   const updates = [];
   const values = [];
 
@@ -97,6 +97,10 @@ export const updateClassById = async (id, { class_name, subprogram_id, schedule,
   if (teacher_id !== undefined) {
     updates.push("teacher_id = ?");
     values.push(teacher_id || null);
+  }
+  if (type !== undefined) {
+    updates.push("type = ?");
+    values.push(type);
   }
 
   if (updates.length === 0) {

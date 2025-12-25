@@ -23,6 +23,7 @@ export default function GeneralStudentsPage() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [studentToAssign, setStudentToAssign] = useState(null);
   const [selectedClassId, setSelectedClassId] = useState("");
+  const [selectedType, setSelectedType] = useState("");
 
   // Modal state for viewing student
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -96,6 +97,7 @@ export default function GeneralStudentsPage() {
   const handleOpenAssignModal = (student) => {
     setStudentToAssign(student);
     setSelectedClassId(student.class_id?.toString() || "");
+    setSelectedType("");
     setIsAssignModalOpen(true);
   };
 
@@ -104,6 +106,7 @@ export default function GeneralStudentsPage() {
     setIsAssignModalOpen(false);
     setStudentToAssign(null);
     setSelectedClassId("");
+    setSelectedType("");
   };
 
   // Handle assigning class (with auto-subprogram)
@@ -482,10 +485,43 @@ export default function GeneralStudentsPage() {
                   </p>
                 </div>
 
+                {/* Type Selection */}
+                <div className="mb-4">
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Select Class Type
+                  </label>
+                  <div className="flex gap-2">
+                    {['morning', 'afternoon', 'night'].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => {
+                          setSelectedType(type);
+                          setSelectedClassId(""); // Reset class selection
+                        }}
+                        className={`flex-1 px-3 py-2 rounded-lg border font-medium transition-all ${
+                          selectedType === type
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : isDark
+                            ? 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {programClasses.length === 0 ? (
                   <div className={`p-4 rounded-lg mb-4 ${isDark ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-yellow-50 border border-yellow-200'}`}>
                     <p className={`text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
                       No classes available for "{studentToAssign.chosen_program}". Please create classes first.
+                    </p>
+                  </div>
+                ) : !selectedType ? (
+                  <div className={`p-4 rounded-lg mb-4 ${isDark ? 'bg-blue-900/20 border border-blue-700' : 'bg-blue-50 border border-blue-200'}`}>
+                    <p className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>
+                      Please select a class type above to view available classes.
                     </p>
                   </div>
                 ) : (
@@ -501,12 +537,27 @@ export default function GeneralStudentsPage() {
                         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white'}`}
                       >
                         <option value="">Select a class</option>
-                        {programClasses.map((cls) => (
-                          <option key={cls.id} value={cls.id}>
-                            {cls.class_name} ({cls.subprogram_name})
-                          </option>
-                        ))}
+                        {programClasses
+                          .filter(cls => {
+                            // If type column exists and is set, filter by type; otherwise show all classes
+                            if (cls.type && selectedType) {
+                              return cls.type === selectedType;
+                            }
+                            return true; // Show all classes if type column doesn't exist or no type selected
+                          })
+                          .map((cls) => (
+                            <option key={cls.id} value={cls.id}>
+                              {cls.class_name} ({cls.subprogram_name || 'No subprogram'})
+                            </option>
+                          ))}
                       </select>
+                      {programClasses.filter(cls => cls.type === selectedType).length === 0 && (
+                        <div className={`p-4 rounded-lg mt-2 ${isDark ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-yellow-50 border border-yellow-200'}`}>
+                          <p className={`text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
+                            This shift have no class
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
