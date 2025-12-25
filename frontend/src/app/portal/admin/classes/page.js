@@ -117,6 +117,7 @@ export default function ClassesPage() {
       program_id: "",
       subprogram_id: "",
       teacher_id: "",
+      type: "morning",
     });
   };
 
@@ -144,7 +145,7 @@ export default function ClassesPage() {
         description: formData.description,
         subprogram_id: formData.subprogram_id ? parseInt(formData.subprogram_id) : null,
         teacher_id: formData.teacher_id ? parseInt(formData.teacher_id) : null,
-        type: formData.type || 'morning' // Always include type with default value
+        type: formData.type || 'morning', // Always include type with default value
       };
 
       if (editingClass) {
@@ -203,6 +204,25 @@ export default function ClassesPage() {
       ),
     },
     {
+      key: "latest_schedule_date",
+      label: "Next Schedule",
+      render: (row) => row.latest_schedule_date ? new Date(row.latest_schedule_date).toLocaleDateString() : "No schedule",
+    },
+    {
+      key: "latest_zoom_link",
+      label: "Zoom Link",
+      render: (row) => row.latest_zoom_link ? (
+        <a 
+          href={row.latest_zoom_link} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 underline"
+        >
+          Join Meeting
+        </a>
+      ) : "Not set",
+    },
+    {
       key: "actions",
       label: "Actions",
       render: (row) => (
@@ -211,7 +231,7 @@ export default function ClassesPage() {
           <button
             onClick={() => handleView(row)}
             className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
-            title="View Details"
+            title="View Students & Manage Schedules"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -226,6 +246,16 @@ export default function ClassesPage() {
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </button>
+          {/* View Students Button */}
+          <button
+            onClick={() => router.push(`/portal/admin/classes/${row.id}/students`)}
+            className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+            title="View Students"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
             </svg>
           </button>
           <button

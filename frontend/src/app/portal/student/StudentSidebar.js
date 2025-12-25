@@ -208,6 +208,34 @@ export default function StudentSidebar({ isApproved }) {
             </li>
           )}
 
+          {/* Calendar - visible once approved */}
+          {isApproved && (
+            <li>
+              <Link
+                href="/portal/student/calendar"
+                className={getMenuItemClasses("/portal/student/calendar")}
+                style={getActiveStyle("/portal/student/calendar")}
+              >
+                <svg
+                  className={getIconClasses("/portal/student/calendar")}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className={getTextClasses("/portal/student/calendar")}>
+                  Class Calendar
+                </span>
+              </Link>
+            </li>
+          )}
+
           {/* The following items are only visible after admin approval */}
           {isApproved && (
             <>
