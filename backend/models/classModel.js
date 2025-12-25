@@ -17,15 +17,22 @@ export const createClass = async ({ class_name, description, subprogram_id, teac
 // GET all classes
 export const getAllClasses = async () => {
   const [rows] = await dbp.query(
-    `SELECT cl.*, 
+    `SELECT cl.*,
             t.full_name as teacher_name,
             s.subprogram_name,
             s.program_id,
-            p.title as program_name
-     FROM classes cl 
-     LEFT JOIN teachers t ON cl.teacher_id = t.id 
-     LEFT JOIN subprograms s ON cl.subprogram_id = s.id 
-     LEFT JOIN programs p ON s.program_id = p.id 
+            p.title as program_name,
+            cs.schedule_date as latest_schedule_date,
+            cs.zoom_link as latest_zoom_link
+     FROM classes cl
+     LEFT JOIN teachers t ON cl.teacher_id = t.id
+     LEFT JOIN subprograms s ON cl.subprogram_id = s.id
+     LEFT JOIN programs p ON s.program_id = p.id
+     LEFT JOIN class_schedules cs ON cl.id = cs.class_id
+       AND cs.schedule_date = (
+         SELECT MAX(schedule_date) FROM class_schedules
+         WHERE class_id = cl.id AND schedule_date >= CURDATE()
+       )
      ORDER BY cl.created_at DESC`
   );
   return rows;
@@ -34,14 +41,21 @@ export const getAllClasses = async () => {
 // GET class by ID
 export const getClassById = async (id) => {
   const [rows] = await dbp.query(
-    `SELECT cl.*, 
+    `SELECT cl.*,
             t.full_name as teacher_name,
             s.subprogram_name,
-            p.title as program_name
-     FROM classes cl 
-     LEFT JOIN teachers t ON cl.teacher_id = t.id 
-     LEFT JOIN subprograms s ON cl.subprogram_id = s.id 
-     LEFT JOIN programs p ON s.program_id = p.id 
+            p.title as program_name,
+            cs.schedule_date as latest_schedule_date,
+            cs.zoom_link as latest_zoom_link
+     FROM classes cl
+     LEFT JOIN teachers t ON cl.teacher_id = t.id
+     LEFT JOIN subprograms s ON cl.subprogram_id = s.id
+     LEFT JOIN programs p ON s.program_id = p.id
+     LEFT JOIN class_schedules cs ON cl.id = cs.class_id
+       AND cs.schedule_date = (
+         SELECT MAX(schedule_date) FROM class_schedules
+         WHERE class_id = cl.id AND schedule_date >= CURDATE()
+       )
      WHERE cl.id = ?`,
     [id]
   );
@@ -74,7 +88,7 @@ export const getClassesByTeacherId = async (teacher_id) => {
 };
 
 // UPDATE class
-export const updateClassById = async (id, { class_name, subprogram_id, schedule, description, teacher_id, type }) => {
+export const updateClassById = async (id, { class_name, subprogram_id, description, teacher_id, type }) => {
   const updates = [];
   const values = [];
 
@@ -85,10 +99,6 @@ export const updateClassById = async (id, { class_name, subprogram_id, schedule,
   if (subprogram_id !== undefined) {
     updates.push("subprogram_id = ?");
     values.push(subprogram_id || null);
-  }
-  if (schedule !== undefined) {
-    updates.push("schedule = ?");
-    values.push(schedule);
   }
   if (description !== undefined) {
     updates.push("description = ?");

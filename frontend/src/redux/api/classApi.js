@@ -13,7 +13,7 @@ export const classApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Classes"],
+  tagTypes: ["Classes", "ClassSchedules"],
   endpoints: (builder) => ({
     getClasses: builder.query({
       query: () => "/",
@@ -50,6 +50,41 @@ export const classApi = createApi({
       }),
       invalidatesTags: ["Classes"],
     }),
+    // Class Schedule endpoints
+    getClassSchedules: builder.query({
+      query: (classId) => `/${classId}/schedules`,
+      providesTags: (classId) => [{ type: "ClassSchedules", id: classId }],
+    }),
+    createClassSchedule: builder.mutation({
+      query: ({ classId, ...body }) => ({
+        url: `/${classId}/schedules`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (classId) => [
+        { type: "ClassSchedules", id: classId },
+        "Classes"
+      ],
+    }),
+    updateClassSchedule: builder.mutation({
+      query: ({ id, ...body }) => ({
+        url: `/schedules/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["ClassSchedules", "Classes"],
+    }),
+    deleteClassSchedule: builder.mutation({
+      query: (id) => ({
+        url: `/schedules/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["ClassSchedules", "Classes"],
+    }),
+    getStudentSchedules: builder.query({
+      query: () => "/student/schedules",
+      providesTags: ["ClassSchedules"],
+    }),
   }),
 });
 
@@ -60,5 +95,10 @@ export const {
   useCreateClassMutation,
   useUpdateClassMutation,
   useDeleteClassMutation,
+  useGetClassSchedulesQuery,
+  useCreateClassScheduleMutation,
+  useUpdateClassScheduleMutation,
+  useDeleteClassScheduleMutation,
+  useGetStudentSchedulesQuery,
 } = classApi;
 

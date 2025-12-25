@@ -21,6 +21,7 @@ import userRoutes from "./routes/userRoutes.js";
 import assignmentRoutes from "./routes/assignmentRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
+import announcementRoutes from "./routes/announcementRoutes.js";
 
 const app = express();
 
@@ -84,6 +85,9 @@ app.use("/api/payments", paymentRoutes);
 
 // ⬇️ Register Attendance Routes
 app.use("/api/attendance", attendanceRoutes);
+
+// ⬇️ Register Announcement Routes
+app.use("/api/announcements", announcementRoutes);
 
 // Server start
 const PORT = process.env.PORT || 5000;

@@ -10,11 +10,18 @@ import {
   createClassesForSubprogram,
   createClassesForAllSubprograms,
 } from "../controllers/classController.js";
+import {
+  createClassSchedule,
+  getClassSchedules,
+  updateClassSchedule,
+  deleteClassSchedule,
+  getStudentSchedules,
+} from "../controllers/classScheduleController.js";
 import { verifyToken } from "../controllers/authController.js";
 
 const router = express.Router();
 
-// ---------- ROUTES ----------
+// ---------- CLASS ROUTES ----------
 router.get("/", verifyToken, getClasses);
 router.get("/course/:course_id", getClassesByCourseId);
 router.get("/:id", getClass);
@@ -23,6 +30,15 @@ router.post("/create-for-subprogram", createClassesForSubprogram); // Create mor
 router.post("/create-for-all-subprograms", createClassesForAllSubprograms); // Create morning and night classes for ALL subprograms
 router.put("/:id", updateClass);
 router.delete("/:id", deleteClass);
+
+// ---------- CLASS SCHEDULE ROUTES ----------
+router.get("/:class_id/schedules", getClassSchedules);
+router.post("/:class_id/schedules", createClassSchedule);
+router.put("/schedules/:id", updateClassSchedule);
+router.delete("/schedules/:id", deleteClassSchedule);
+
+// Student calendar view
+router.get("/student/schedules", verifyToken, getStudentSchedules);
 
 export default router;
 
