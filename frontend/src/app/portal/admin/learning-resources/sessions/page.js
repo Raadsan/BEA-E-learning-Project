@@ -1,63 +1,203 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
+import { useGetClassesQuery } from "@/redux/api/classApi";
+import { useCreateClassScheduleMutation, useUpdateClassScheduleMutation } from "@/redux/api/classApi";
+import { useToast } from "@/components/Toast";
 
 export default function OnlineSessionsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingSession, setEditingSession] = useState(null);
+    const [sessions, setSessions] = useState([]);
+    const { showToast } = useToast();
+    
+    const { data: classes = [], isLoading: classesLoading } = useGetClassesQuery();
+    const [createSchedule, { isLoading: isCreating }] = useCreateClassScheduleMutation();
+    const [updateSchedule, { isLoading: isUpdating }] = useUpdateClassScheduleMutation();
+
     const [formData, setFormData] = useState({
+        class_id: "",
         title: "",
         platform: "",
         meetingLink: "",
         meetingId: "",
         passcode: "",
         scheduleDate: "",
-        scheduleTime: "",
-        status: "Scheduled",
+        startTime: "",
+        endTime: "",
+        description: "",
     });
 
-    // Sample data
-    const [sessions, setSessions] = useState([
-        {
-            id: 1,
-            title: "Weekly Grammar Workshop",
-            platform: "Zoom",
-            meetingLink: "https://zoom.us/j/123456789",
-            meetingId: "123 456 789",
-            passcode: "grammar101",
-            scheduleDate: "2024-10-25",
-            scheduleTime: "14:00",
-            status: "Scheduled"
-        },
-        {
-            id: 2,
-            title: "IELTS Speaking Practice",
-            platform: "Google Meet",
-            meetingLink: "https://meet.google.com/fad-tsap-phc",
-            meetingId: "fad-tsap-phc",
-            passcode: "-",
-            scheduleDate: "2024-10-26",
-            scheduleTime: "10:30",
-            status: "Active"
-        },
-    ]);
-
-    const handleAddSession = () => {
-        setIsModalOpen(true);
+    // Helper function to fetch all schedules
+    const fetchAllSchedules = async (classesList = classes) => {
+        try {
+            const allSchedules = [];
+            
+            for (const classItem of classesList) {
+                try {
+                    const response = await fetch(
+                        `http://localhost:5000/api/classes/${classItem.id}/schedules`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
+                    
+                    if (response.ok) {
+                        const schedules = await response.json();
+                        schedules.forEach(schedule => {
+                            allSchedules.push({
+                                id: schedule.id,
+                                title: schedule.title || classItem.class_name || "Class Session",
+                                platform: schedule.zoom_link?.includes('zoom') ? 'Zoom' : 
+                                         schedule.zoom_link?.includes('meet.google') ? 'Google Meet' :
+                                         schedule.zoom_link?.includes('teams') ? 'Microsoft Teams' : 'Other',
+                                meetingLink: schedule.zoom_link || "",
+                                meetingId: extractMeetingId(schedule.zoom_link),
+                                passcode: "-",
+                                scheduleDate: schedule.schedule_date 
+                                    ? (typeof schedule.schedule_date === 'string' 
+                                        ? schedule.schedule_date.split('T')[0].split(' ')[0]
+                                        : schedule.schedule_date instanceof Date
+                                            ? schedule.schedule_date.toISOString().split('T')[0]
+                                            : String(schedule.schedule_date).split('T')[0].split(' ')[0])
+                                    : "",
+                                startTime: schedule.start_time 
+                                    ? (String(schedule.start_time).length > 8 
+                                        ? String(schedule.start_time).substring(0, 8) 
+                                        : String(schedule.start_time).substring(0, 5))
+                                    : "",
+                                endTime: schedule.end_time 
+                                    ? (String(schedule.end_time).length > 8 
+                                        ? String(schedule.end_time).substring(0, 8) 
+                                        : String(schedule.end_time).substring(0, 5))
+                                    : "",
+                                status: getSessionStatus(
+                                    schedule.schedule_date 
+                                        ? (typeof schedule.schedule_date === 'string' 
+                                            ? schedule.schedule_date.split('T')[0].split(' ')[0]
+                                            : schedule.schedule_date instanceof Date
+                                                ? schedule.schedule_date.toISOString().split('T')[0]
+                                                : String(schedule.schedule_date).split('T')[0].split(' ')[0])
+                                        : "",
+                                    schedule.start_time ? String(schedule.start_time).substring(0, 8) : "",
+                                    schedule.end_time ? String(schedule.end_time).substring(0, 8) : ""
+                                ),
+                                class_id: schedule.class_id,
+                                className: classItem.class_name,
+                                description: schedule.description || "",
+                            });
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error fetching schedules for class ${classItem.id}:`, error);
+                }
+            }
+            
+            // Sort by date and start time (most recent first)
+            allSchedules.sort((a, b) => {
+                const dateA = new Date(`${a.scheduleDate}T${a.startTime || '00:00'}`);
+                const dateB = new Date(`${b.scheduleDate}T${b.startTime || '00:00'}`);
+                return dateB - dateA;
+            });
+            
+            setSessions(allSchedules);
+        } catch (error) {
+            console.error("Error fetching schedules:", error);
+        }
     };
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
+    // Fetch all schedules from all classes
+    useEffect(() => {
+        if (classes.length > 0) {
+            fetchAllSchedules();
+        }
+    }, [classes]);
+
+    const extractMeetingId = (link) => {
+        if (!link) return "-";
+        if (link.includes('zoom.us/j/')) {
+            return link.split('zoom.us/j/')[1]?.split('?')[0] || "-";
+        }
+        if (link.includes('meet.google.com/')) {
+            return link.split('meet.google.com/')[1]?.split('?')[0] || "-";
+        }
+        return "-";
+    };
+
+    const getSessionStatus = (dateString, startTime, endTime) => {
+        if (!dateString) return "Scheduled";
+        
+        const now = new Date();
+        
+        // Parse the date string properly (format: YYYY-MM-DD)
+        const [year, month, day] = dateString.split('-').map(Number);
+        const sessionDateOnly = new Date(year, month - 1, day); // month is 0-indexed
+        
+        // If no times are set, just check the date
+        if (!startTime && !endTime) {
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            if (sessionDateOnly < today) {
+                return "Completed";
+            } else if (sessionDateOnly > today) {
+                return "Scheduled";
+            }
+            return "Active"; // Same day but no time specified
+        }
+        
+        // Combine date and time to create full datetime objects
+        const [startHours, startMinutes, startSeconds = 0] = startTime ? startTime.split(':').map(Number) : [0, 0, 0];
+        const [endHours, endMinutes, endSeconds = 0] = endTime ? endTime.split(':').map(Number) : [23, 59, 59];
+        
+        const startDateTime = new Date(year, month - 1, day, startHours, startMinutes, startSeconds);
+        const endDateTime = new Date(year, month - 1, day, endHours, endMinutes, endSeconds);
+        
+        // Check if current time is between start and end
+        if (now >= startDateTime && now <= endDateTime) {
+            return "Active";
+        } else if (now > endDateTime) {
+            return "Completed";
+        }
+        
+        // If we get here, the session is in the future
+        return "Scheduled";
+    };
+
+    const handleAddSession = () => {
+        setEditingSession(null);
         setFormData({
+            class_id: "",
             title: "",
             platform: "",
             meetingLink: "",
             meetingId: "",
             passcode: "",
             scheduleDate: "",
-            scheduleTime: "",
-            status: "Scheduled",
+            startTime: "",
+            endTime: "",
+            description: "",
+        });
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setEditingSession(null);
+        setFormData({
+            class_id: "",
+            title: "",
+            platform: "",
+            meetingLink: "",
+            meetingId: "",
+            passcode: "",
+            scheduleDate: "",
+            startTime: "",
+            endTime: "",
+            description: "",
         });
     };
 
@@ -75,28 +215,126 @@ export default function OnlineSessionsPage() {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        console.log("Saving new session:", formData);
+        if (!formData.class_id || !formData.scheduleDate) {
+            showToast("Please fill in all required fields (Class and Date)", "error");
+            return false;
+        }
 
-        const newSession = {
-            id: sessions.length + 1,
-            ...formData
-        };
+        try {
+            // Ensure date is in YYYY-MM-DD format without timezone conversion
+            // Date input always returns YYYY-MM-DD format, use it directly
+            let dateToSend = formData.scheduleDate;
+            if (dateToSend) {
+                // Remove any time portion if present and ensure it's just YYYY-MM-DD
+                dateToSend = String(dateToSend).split('T')[0].split(' ')[0].trim();
+                // Validate and format: YYYY-MM-DD
+                if (dateToSend.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    // Already in correct format, use as is
+                } else if (dateToSend.match(/^\d{4}-\d{1,2}-\d{1,2}$/)) {
+                    // Format with padding
+                    const parts = dateToSend.split('-');
+                    dateToSend = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                }
+            }
+            
+            
+            // Format time as HH:MM:SS (MySQL TIME format)
+            let startTimeToSend = formData.startTime || null;
+            let endTimeToSend = formData.endTime || null;
+            
+            if (startTimeToSend && startTimeToSend.length === 5) {
+                // If it's HH:MM format, add seconds
+                startTimeToSend = `${startTimeToSend}:00`;
+            }
+            
+            if (endTimeToSend && endTimeToSend.length === 5) {
+                // If it's HH:MM format, add seconds
+                endTimeToSend = `${endTimeToSend}:00`;
+            }
+            
+            const scheduleData = {
+                schedule_date: dateToSend,
+                zoom_link: formData.meetingLink || null,
+                start_time: startTimeToSend,
+                end_time: endTimeToSend,
+                title: formData.title || null,
+            };
+            
+            // If editing and class_id changed, include it in the update
+            if (editingSession && formData.class_id !== editingSession.class_id) {
+                scheduleData.class_id = formData.class_id;
+            }
 
-        setSessions([...sessions, newSession]);
-        handleCloseModal();
+            if (editingSession) {
+                // Update existing session
+                await updateSchedule({
+                    id: editingSession.id,
+                    ...scheduleData
+                }).unwrap();
+            } else {
+                // Create new session
+                await createSchedule({
+                    classId: formData.class_id,
+                    ...scheduleData
+                }).unwrap();
+            }
+
+            // Close modal first
+            handleCloseModal();
+            
+            // Refresh the sessions list
+            await fetchAllSchedules(classes);
+            
+            // Show success toast message after refresh
+            const successMessage = editingSession 
+                ? "Session updated successfully!" 
+                : "Session created successfully!";
+            showToast(successMessage, "success");
+        } catch (error) {
+            console.error("Error saving schedule:", error);
+            showToast(
+                error?.data?.error || `Failed to ${editingSession ? 'update' : 'create'} session. Please try again.`,
+                "error"
+            );
+        }
 
         return false;
     };
 
     const handleEdit = (session) => {
-        console.log("Edit session:", session);
+        setEditingSession(session);
+        
+        // Find the class ID from the session
+        const classItem = classes.find(c => (c.id || c._id) == session.class_id);
+        
+        setFormData({
+            class_id: session.class_id || "",
+            title: session.title || "",
+            platform: session.platform || "",
+            meetingLink: session.meetingLink || "",
+            meetingId: session.meetingId || "",
+            passcode: session.passcode || "",
+            scheduleDate: session.scheduleDate || "",
+            startTime: session.startTime || "",
+            endTime: session.endTime || "",
+            description: session.description || "",
+        });
+        
+        setIsModalOpen(true);
     };
 
     const columns = [
+        {
+            key: "className",
+            label: "Class",
+            render: (row) => (
+                <span className="font-medium text-gray-900">{row.className || "N/A"}</span>
+            ),
+        },
         {
             key: "title",
             label: "Session Title",
@@ -120,7 +358,13 @@ export default function OnlineSessionsPage() {
             render: (row) => (
                 <div className="flex flex-col text-sm">
                     <span className="font-medium text-gray-900">{row.scheduleDate}</span>
-                    <span className="text-gray-500">{row.scheduleTime}</span>
+                    {row.startTime && row.endTime ? (
+                        <span className="text-gray-500">{row.startTime} - {row.endTime}</span>
+                    ) : row.startTime ? (
+                        <span className="text-gray-500">{row.startTime}</span>
+                    ) : (
+                        <span className="text-gray-400">No time set</span>
+                    )}
                 </div>
             ),
         },
@@ -187,26 +431,31 @@ export default function OnlineSessionsPage() {
         <>
             <AdminHeader />
 
-            <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
+            <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors mt-20">
                 <div className="w-full px-8 py-6">
-                    <DataTable
-                        title="Online Session Links"
-                        columns={columns}
-                        data={sessions}
-                        onAddClick={handleAddSession}
-                        showAddButton={true}
-                    />
+                    {classesLoading ? (
+                        <div className="bg-white rounded-lg shadow p-6 text-center">
+                            <p className="text-gray-600">Loading classes and sessions...</p>
+                        </div>
+                    ) : (
+                        <DataTable
+                            title="Online Session Links"
+                            columns={columns}
+                            data={sessions}
+                            onAddClick={handleAddSession}
+                            showAddButton={true}
+                        />
+                    )}
                 </div>
             </main>
 
             {/* Add Session Modal */}
             {isModalOpen && (
                 <div
-                    className="fixed inset-0 z-[100] flex items-center justify-center"
-                    style={{ pointerEvents: 'none' }}
+                    className="fixed inset-0 z-[100] flex items-center justify-center "
                 >
                     <div
-                        className="absolute inset-0 bg-black bg-opacity-20"
+                        className="absolute inset-0 bg-black/50 backdrop-blur-smin"
                         onClick={handleBackdropClick}
                         style={{ pointerEvents: 'auto' }}
                     />
@@ -217,7 +466,9 @@ export default function OnlineSessionsPage() {
                         style={{ pointerEvents: 'auto' }}
                     >
                         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                            <h2 className="text-2xl font-bold text-gray-800">Schedule New Session</h2>
+                            <h2 className="text-2xl font-bold text-gray-800">
+                                {editingSession ? "Edit Session" : "Schedule New Session"}
+                            </h2>
                             <button
                                 onClick={handleCloseModal}
                                 className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -230,6 +481,27 @@ export default function OnlineSessionsPage() {
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="md:col-span-2">
+                                    <label htmlFor="class_id" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Class <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        id="class_id"
+                                        name="class_id"
+                                        value={formData.class_id}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Select a Class</option>
+                                        {classes.map((classItem) => (
+                                            <option key={classItem.id || classItem._id} value={classItem.id || classItem._id}>
+                                                {classItem.class_name} {classItem.teacher_name ? `- ${classItem.teacher_name}` : ''}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
                                 <div className="md:col-span-2">
                                     <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                                         Session Title <span className="text-red-500">*</span>
@@ -267,22 +539,19 @@ export default function OnlineSessionsPage() {
                                     </select>
                                 </div>
 
-                                <div>
-                                    <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Status
+                                <div className="md:col-span-2">
+                                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Description (Optional)
                                     </label>
-                                    <select
-                                        id="status"
-                                        name="status"
-                                        value={formData.status}
+                                    <textarea
+                                        id="description"
+                                        name="description"
+                                        value={formData.description}
                                         onChange={handleInputChange}
+                                        placeholder="Add any additional notes or description..."
+                                        rows="3"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="Scheduled">Scheduled</option>
-                                        <option value="Active">Active (Happening Now)</option>
-                                        <option value="Completed">Completed</option>
-                                        <option value="Cancelled">Cancelled</option>
-                                    </select>
+                                    />
                                 </div>
 
                                 <div>
@@ -301,14 +570,29 @@ export default function OnlineSessionsPage() {
                                 </div>
 
                                 <div>
-                                    <label htmlFor="scheduleTime" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Time <span className="text-red-500">*</span>
+                                    <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Start Time <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="time"
-                                        id="scheduleTime"
-                                        name="scheduleTime"
-                                        value={formData.scheduleTime}
+                                        id="startTime"
+                                        name="startTime"
+                                        value={formData.startTime}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">
+                                        End Time <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="time"
+                                        id="endTime"
+                                        name="endTime"
+                                        value={formData.endTime}
                                         onChange={handleInputChange}
                                         required
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -374,9 +658,13 @@ export default function OnlineSessionsPage() {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                    disabled={isCreating || isUpdating}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Schedule Session
+                                    {isCreating || isUpdating 
+                                        ? (editingSession ? "Updating..." : "Creating...") 
+                                        : (editingSession ? "Update Session" : "Schedule Session")
+                                    }
                                 </button>
                             </div>
                         </form>

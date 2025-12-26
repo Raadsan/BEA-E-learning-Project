@@ -57,13 +57,21 @@ export default function CourseOverviewPage() {
     }
   }, [subprogramData, programs]);
 
-  // Filter classes for this subprogram
+  // Filter classes for this subprogram and sort: student's class first
   useEffect(() => {
     if (allClasses.length > 0 && subprogramId) {
       const filtered = allClasses.filter(cls => cls.subprogram_id == subprogramId);
-      setSubprogramClasses(filtered);
+      // Sort: student's class first, then others
+      const sorted = filtered.sort((a, b) => {
+        const aIsStudentClass = studentClass && (a.id == studentClass.id || a._id == studentClass.id);
+        const bIsStudentClass = studentClass && (b.id == studentClass.id || b._id == studentClass.id);
+        if (aIsStudentClass && !bIsStudentClass) return -1;
+        if (!aIsStudentClass && bIsStudentClass) return 1;
+        return 0;
+      });
+      setSubprogramClasses(sorted);
     }
-  }, [allClasses, subprogramId]);
+  }, [allClasses, subprogramId, studentClass]);
 
   // Fetch schedules for each class
   useEffect(() => {
@@ -195,10 +203,10 @@ export default function CourseOverviewPage() {
                     return (
                       <div
                         key={cls.id || cls._id}
-                        className={`relative rounded-2xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border-2 ${
+                        className={`relative rounded-2xl overflow-hidden shadow-xl transition-all duration-300 border-2 ${
                           isStudentClass
-                            ? `border-[#010080] ${isDark ? 'bg-gray-800' : 'bg-blue-50'}`
-                            : `${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-gray-50'}`
+                            ? `border-[#010080] ${isDark ? 'bg-gray-800' : 'bg-blue-50'} hover:shadow-2xl hover:scale-[1.02]`
+                            : `${isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-300 bg-gray-50/50'} opacity-75 cursor-not-allowed`
                         }`}
                       >
                         <div className="relative p-6">
@@ -226,12 +234,19 @@ export default function CourseOverviewPage() {
                                 </span>
                               </div>
                             </div>
-                            {isStudentClass && (
+                            {isStudentClass ? (
                               <span className="px-3 py-1.5 bg-[#010080] text-white rounded-full text-xs font-semibold shadow-md flex items-center gap-1.5 whitespace-nowrap">
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                 </svg>
                                 Your Class
+                              </span>
+                            ) : (
+                              <span className="px-3 py-1.5 bg-gray-400 text-white rounded-full text-xs font-semibold shadow-md flex items-center gap-1.5 whitespace-nowrap">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                </svg>
+                                Can't Access
                               </span>
                             )}
                           </div>
@@ -257,7 +272,7 @@ export default function CourseOverviewPage() {
                                   day: 'numeric' 
                                 })}
                               </p>
-                              {schedule.zoom_link && (
+                              {schedule.zoom_link && isStudentClass && (
                                 <a 
                                   href={schedule.zoom_link} 
                                   target="_blank" 
@@ -266,6 +281,11 @@ export default function CourseOverviewPage() {
                                 >
                                   Join Zoom Meeting →
                                 </a>
+                              )}
+                              {schedule.zoom_link && !isStudentClass && (
+                                <span className={`text-xs mt-1 ${isDark ? "text-gray-500" : "text-gray-400"} cursor-not-allowed`}>
+                                  Join Zoom Meeting →
+                                </span>
                               )}
                             </div>
                           )}

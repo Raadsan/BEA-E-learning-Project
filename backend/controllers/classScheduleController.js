@@ -5,7 +5,7 @@ import * as ClassSchedule from "../models/classScheduleModel.js";
 export const createClassSchedule = async (req, res) => {
   try {
     const { class_id } = req.params;
-    const { schedule_date, zoom_link } = req.body;
+    const { schedule_date, zoom_link, start_time, end_time, title } = req.body;
 
     if (!class_id || !schedule_date) {
       return res.status(400).json({ error: "Class ID and schedule date are required" });
@@ -14,7 +14,10 @@ export const createClassSchedule = async (req, res) => {
     const scheduleItem = await ClassSchedule.createClassSchedule({
       class_id,
       schedule_date,
-      zoom_link
+      zoom_link,
+      start_time,
+      end_time,
+      title
     });
 
     res.status(201).json({ message: "Class schedule created", schedule: scheduleItem });
