@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import TeacherHeader from "../TeacherHeader";
 import { useGetTeacherQuery, useUpdateTeacherMutation } from "@/redux/api/teacherApi";
 import { useDarkMode } from "@/context/ThemeContext";
-import { Toast } from "@/components/Toast";
 
 export default function SettingsPage() {
     const { isDark } = useDarkMode();

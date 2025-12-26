@@ -1,6 +1,6 @@
 "use client";
 
-import StudentHeader from "../../../StudentHeader";
+import StudentHeader from "../../StudentHeader";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGetProficiencyTestsQuery } from "@/redux/api/proficiencyTestApi";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import StudentHeader from "@/components/StudentHeader";
+import StudentHeader from "../StudentHeader";
 import { useGetStudentSchedulesQuery } from "@/redux/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
 

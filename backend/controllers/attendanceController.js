@@ -1,4 +1,5 @@
 import * as Attendance from "../models/attendanceModel.js";
+import * as Class from "../models/classModel.js";
 
 // SAVE ATTENDANCE (Bulk or Single)
 export const saveAttendance = async (req, res) => {
@@ -8,6 +9,14 @@ export const saveAttendance = async (req, res) => {
 
         if (!class_id || !date || !attendanceData) {
             return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        // Check if teacher is assigned to the class
+        if (req.user.role === 'teacher') {
+            const classItem = await Class.getClassById(class_id);
+            if (!classItem || classItem.teacher_id !== req.user.userId) {
+                return res.status(403).json({ error: "Access denied" });
+            }
         }
 
         // Process each student's attendance
@@ -37,6 +46,14 @@ export const getAttendance = async (req, res) => {
 
         if (!classId || !date) {
             return res.status(400).json({ error: "Missing classId or date" });
+        }
+
+        // Check if teacher is assigned to the class
+        if (req.user.role === 'teacher') {
+            const classItem = await Class.getClassById(classId);
+            if (!classItem || classItem.teacher_id !== req.user.userId) {
+                return res.status(403).json({ error: "Access denied" });
+            }
         }
 
         const records = await Attendance.getAttendance(classId, date);
@@ -77,6 +94,15 @@ export const getAttendanceReport = async (req, res) => {
 export const getStats = async (req, res) => {
     try {
         const { class_id, program_id, timeFrame } = req.query;
+
+        // Check if teacher is assigned to the class if class_id is provided
+        if (req.user.role === 'teacher' && class_id) {
+            const classItem = await Class.getClassById(class_id);
+            if (!classItem || classItem.teacher_id !== req.user.userId) {
+                return res.status(403).json({ error: "Access denied" });
+            }
+        }
+
         let startDate, endDate = new Date();
         let period = 'daily';
 

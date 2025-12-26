@@ -1,6 +1,6 @@
 "use client";
 
-import StudentHeader from "../../StudentHeader";
+import StudentHeader from "../StudentHeader";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 

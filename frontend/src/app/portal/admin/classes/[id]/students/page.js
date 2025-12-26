@@ -224,6 +224,23 @@ export default function ClassStudentsPage() {
         </span>
       ),
     },
+    {
+      key: "actions",
+      label: "Actions",
+      render: (row) => (
+        <button
+          onClick={() => router.push(`/portal/admin/students/${row.id}`)}
+          className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+            isDark
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
+          title="View Student Details"
+        >
+          View
+        </button>
+      ),
+    },
   ];
 
   if (classesLoading || studentsLoading) {
