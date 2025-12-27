@@ -57,7 +57,7 @@ export const store = configureStore({
       assignmentApi.middleware,
       learningHoursApi.middleware,
       paymentApi.middleware,
-      materialApi.middleware
+      materialApi.middleware,
       announcementApi.middleware
     ),
 });
