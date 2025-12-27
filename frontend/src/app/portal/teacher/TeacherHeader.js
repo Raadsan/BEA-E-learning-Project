@@ -1,16 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
+import { useGetTeacherAnnouncementsQuery } from "@/redux/api/announcementApi";
+import Link from "next/link";
 
 export default function TeacherHeader() {
   const { isDark, toggleDarkMode } = useDarkMode();
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Notification Logic
+  const { data: announcements } = useGetTeacherAnnouncementsQuery();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const updateUnreadCount = () => {
+    if (!announcements) return;
+    const stored = JSON.parse(localStorage.getItem("teacher_read_announcements") || "[]");
+    const count = announcements.filter(a => !stored.includes(a.id)).length;
+    setUnreadCount(count);
+  };
+
+  useEffect(() => {
+    updateUnreadCount();
+    window.addEventListener("announcementReadUpdate", updateUnreadCount);
+    return () => window.removeEventListener("announcementReadUpdate", updateUnreadCount);
+  }, [announcements]);
+
   return (
-    <header className={`sticky top-0 z-40 border-b transition-colors ${
-      isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-    }`}>
+    <header className={`sticky top-0 z-40 border-b transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+      }`}>
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Search Bar */}
@@ -21,11 +39,10 @@ export default function TeacherHeader() {
                 placeholder="Search Course..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  isDark 
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-gray-50 border-gray-300 text-gray-900'
-                }`}
+                  }`}
               />
               <svg
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -40,14 +57,27 @@ export default function TeacherHeader() {
 
           {/* Right Side Icons */}
           <div className="flex items-center gap-4">
+
+            {/* Notification Icon */}
+            <Link href="/portal/teacher/announcements" className={`relative p-2 rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
+              }`}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full border-2 border-white dark:border-gray-800">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Link>
+
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
-              className={`p-2 rounded-lg transition-colors ${
-                isDark 
-                  ? 'text-gray-300 hover:bg-gray-700' 
+              className={`p-2 rounded-lg transition-colors ${isDark
+                  ? 'text-gray-300 hover:bg-gray-700'
                   : 'text-gray-600 hover:bg-gray-100'
-              }`}
+                }`}
               title="Toggle Dark Mode"
             >
               {isDark ? (
@@ -63,22 +93,19 @@ export default function TeacherHeader() {
 
             {/* User Profile */}
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                isDark ? 'bg-blue-600' : 'bg-green-500'
-              }`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-blue-600' : 'bg-green-500'
+                }`}>
                 <span className="text-white font-semibold">T</span>
               </div>
               <div className="flex flex-col">
-                <span className={`text-sm font-medium ${
-                  isDark ? 'text-white' : 'text-gray-900'
-                }`}>
+                <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'
+                  }`}>
                   teacher
                 </span>
               </div>
               <svg
-                className={`w-5 h-5 ${
-                  isDark ? 'text-gray-400' : 'text-gray-600'
-                }`}
+                className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

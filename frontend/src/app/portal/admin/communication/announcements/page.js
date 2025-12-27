@@ -134,6 +134,8 @@ export default function AnnouncementsPage() {
       title: formData.title,
       content: formData.content,
       targetAudience: targetAudienceString,
+      targetType: formData.targetType,
+      targetId: formData.targetId,
       publishDate: formData.publishDate,
       status: formData.status
     };
@@ -178,8 +180,8 @@ export default function AnnouncementsPage() {
       label: "Status",
       render: (row) => (
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === "Published"
-            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
           }`}>
           {row.status}
         </span>
@@ -388,8 +390,8 @@ export default function AnnouncementsPage() {
                 <div className={`p-3 rounded-lg ${isDark ? 'bg-gray-700/30' : 'bg-blue-50'}`}>
                   <p className="text-xs font-semibold opacity-75 uppercase">Status</p>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize ${selectedAnnouncement.status === "Published"
-                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                      : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                    : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
                     }`}>
                     {selectedAnnouncement.status}
                   </span>

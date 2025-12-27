@@ -4,8 +4,10 @@ import {
     createAnnouncement,
     updateAnnouncement,
     deleteAnnouncement,
-    sendClassNotification
+    sendClassNotification,
+    getTeacherAnnouncements
 } from "../controllers/announcementController.js";
+import { verifyToken } from "../controllers/authController.js";
 
 const router = express.Router();
 
@@ -15,6 +17,11 @@ router.get("/", (req, res, next) => {
     console.log(`📥 GET /api/announcements`);
     next();
 }, getAnnouncements);
+
+router.get("/teacher", verifyToken, (req, res, next) => {
+    console.log(`📥 GET /api/announcements/teacher`);
+    next();
+}, getTeacherAnnouncements);
 
 router.post("/", (req, res, next) => {
     console.log(`📥 POST /api/announcements`);
