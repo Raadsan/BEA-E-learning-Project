@@ -15,6 +15,7 @@ import { userApi } from "../redux/api/userApi.js";
 import { assignmentApi } from "../redux/api/assignmentApi.js";
 import { learningHoursApi } from "../redux/api/learningHoursApi.js";
 import { paymentApi } from "../redux/api/paymentApi.js";
+import { materialApi } from "../redux/api/materialApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -34,6 +35,7 @@ export const store = configureStore({
     [assignmentApi.reducerPath]: assignmentApi.reducer,
     [learningHoursApi.reducerPath]: learningHoursApi.reducer,
     [paymentApi.reducerPath]: paymentApi.reducer,
+    [materialApi.reducerPath]: materialApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -52,6 +54,7 @@ export const store = configureStore({
       userApi.middleware,
       assignmentApi.middleware,
       learningHoursApi.middleware,
-      paymentApi.middleware
+      paymentApi.middleware,
+      materialApi.middleware
     ),
 });

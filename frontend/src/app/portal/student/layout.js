@@ -13,7 +13,7 @@ function StudentLayoutContent({ children }) {
   const router = useRouter();
   const { data: user, isLoading } = useGetCurrentUserQuery();
   const [isApproved, setIsApproved] = useState(false);
-  
+
   useEffect(() => {
     if (user && user.approval_status) {
       setIsApproved(user.approval_status === 'approved');
@@ -39,20 +39,12 @@ function StudentLayoutContent({ children }) {
       }
     }
   }, [user, router]);
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-  
+
+  // We remove the full-page "isLoading" blocker to provide an "Admin-style" loading experience. 
+  // This ensures the sidebar and header stay visible while navigation happens.
+
   return (
-    <div 
+    <div
       className="flex h-screen transition-colors"
       style={isDark ? { background: 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)' } : { backgroundColor: '#f3f4f6' }}
     >

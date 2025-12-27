@@ -23,7 +23,19 @@ router.get("/student/:studentId", verifyToken, async (req, res) => {
     const { studentId } = req.params;
     const dbp = db.promise();
     const [rows] = await dbp.query(
-      "SELECT * FROM attendance WHERE student_id = ? ORDER BY date DESC",
+      `SELECT 
+        a.*, 
+        c.class_name, 
+        co.course_title, 
+        s.subprogram_name, 
+        p.title as program_name
+      FROM attendance a
+      JOIN classes c ON a.class_id = c.id
+      LEFT JOIN courses co ON c.course_id = co.id
+      LEFT JOIN subprograms s ON co.subprogram_id = s.id
+      LEFT JOIN programs p ON s.program_id = p.id
+      WHERE a.student_id = ? 
+      ORDER BY a.date DESC`,
       [studentId]
     );
     res.json({ success: true, records: rows });
