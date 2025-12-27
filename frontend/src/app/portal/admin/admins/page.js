@@ -1,15 +1,115 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useGetAdminsQuery } from "@/redux/api/adminApi";
+import {
+  useGetAdminsQuery,
+  useCreateAdminMutation,
+  useUpdateAdminMutation,
+  useDeleteAdminMutation
+} from "@/redux/api/adminApi";
 import Loader from "@/components/Loader";
+import { useToast } from "@/components/Toast";
 
 export default function AdminsPage() {
   const { isDark } = useDarkMode();
+  const { showToast } = useToast();
+
+  // API Hooks
   const { data: allUsers, isLoading } = useGetAdminsQuery();
+  const [createAdmin, { isLoading: isCreating }] = useCreateAdminMutation();
+  const [updateAdmin, { isLoading: isUpdating }] = useUpdateAdminMutation();
+  const [deleteAdmin, { isLoading: isDeleting }] = useDeleteAdminMutation();
+
+  // Local State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingAdmin, setEditingAdmin] = useState(null);
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    username: "",
+    email: "",
+    password: "", // Only required for creation
+    role: "admin",
+    status: "active"
+  });
+
+  // Handlers
+  const handleAddClick = () => {
+    setEditingAdmin(null);
+    setFormData({
+      first_name: "",
+      last_name: "",
+      username: "",
+      email: "",
+      password: "",
+      role: "admin",
+      status: "active"
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleEditClick = (admin) => {
+    setEditingAdmin(admin);
+    setFormData({
+      first_name: admin.first_name || "",
+      last_name: admin.last_name || "",
+      username: admin.username || "",
+      email: admin.email || "",
+      password: "", // Leave empty to keep existing
+      role: admin.role || "admin",
+      status: admin.status || "active"
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteClick = async (id) => {
+    if (window.confirm("Are you sure you want to delete this admin?")) {
+      try {
+        await deleteAdmin(id).unwrap();
+        showToast("Admin deleted successfully", "success");
+      } catch (error) {
+        console.error("Failed to delete admin:", error);
+        showToast(error?.data?.error || "Failed to delete admin", "error");
+      }
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingAdmin(null);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = { ...formData };
+
+      // If editing and password is empty, remove it so it doesn't try to update to empty string
+      if (editingAdmin && !payload.password) {
+        delete payload.password;
+      }
+
+      if (editingAdmin) {
+        await updateAdmin({ id: editingAdmin.id, ...payload }).unwrap();
+        showToast("Admin updated successfully", "success");
+      } else {
+        await createAdmin(payload).unwrap();
+        showToast("Admin created successfully", "success");
+      }
+      handleCloseModal();
+    } catch (error) {
+      console.error("Operation failed:", error);
+      showToast(error?.data?.error || "Operation failed", "error");
+    }
+  };
 
   const columns = [
     {
@@ -45,6 +145,18 @@ export default function AdminsPage() {
       ),
     },
     {
+      key: "status",
+      label: "Status",
+      render: (row) => (
+        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === 'active'
+            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+          }`}>
+          {row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'Active'}
+        </span>
+      ),
+    },
+    {
       key: "role",
       label: "Role",
       render: (row) => (
@@ -59,15 +171,7 @@ export default function AdminsPage() {
       render: (row) => (
         <div className="flex gap-2 items-center">
           <button
-            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
-            title="View Details"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-          <button
+            onClick={() => handleEditClick(row)}
             className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20"
             title="Edit"
           >
@@ -76,6 +180,7 @@ export default function AdminsPage() {
             </svg>
           </button>
           <button
+            onClick={() => handleDeleteClick(row.id)}
             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
             title="Delete"
           >
@@ -113,10 +218,138 @@ export default function AdminsPage() {
             columns={columns}
             data={allUsers || []}
             showAddButton={true}
-            onAddClick={() => alert("Add new admin functionality")}
+            onAddClick={handleAddClick}
           />
         </div>
       </main>
+
+      {/* Admin Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className={`rounded-lg p-6 w-full max-w-2xl mx-4 shadow-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
+            <div className="flex justify-between items-center mb-6 border-b pb-4">
+              <h3 className="text-xl font-bold">
+                {editingAdmin ? 'Edit Admin' : 'Add New Admin'}
+              </h3>
+              <button onClick={handleCloseModal} className="text-gray-500 hover:text-gray-700">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <div className={`p-6 rounded-lg border mb-6 ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-100'}`}>
+                <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  Admin Information
+                </h3>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>First Name *</label>
+                      <input
+                        type="text"
+                        name="first_name"
+                        value={formData.first_name}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-blue-200 text-blue-900'}`}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Last Name *</label>
+                      <input
+                        type="text"
+                        name="last_name"
+                        value={formData.last_name}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-blue-200 text-blue-900'}`}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Username *</label>
+                      <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-blue-200 text-blue-900'}`}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Email *</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-blue-200 text-blue-900'}`}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {editingAdmin ? 'Password (leave blank to keep current)' : 'Password *'}
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-blue-200 text-blue-900'}`}
+                      required={!editingAdmin}
+                      minLength={6}
+                    />
+                  </div>
+
+                  {editingAdmin && (
+                    <div>
+                      <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Status
+                      </label>
+                      <select
+                        name="status"
+                        value={formData.status}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-blue-200 text-blue-900'}`}
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className={`px-4 py-2 border rounded-lg transition-colors ${isDark ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50'}`}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating || isUpdating}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  {isCreating || isUpdating ? 'Saving...' : (editingAdmin ? 'Update Admin' : 'Create Admin')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
