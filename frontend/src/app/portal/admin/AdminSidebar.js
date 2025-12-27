@@ -265,40 +265,12 @@ export default function AdminSidebar() {
 
           {/* Teacher Management */}
           <li>
-            <button
-              onClick={() => toggleSection('teacherManagement')}
-              className={getDropdownButtonClasses('teacherManagement')} style={getDropdownButtonStyle('teacherManagement')}
-            >
-              <div className="flex items-center gap-3">
-                <svg className={`w-5 h-5 ${openSection === 'teacherManagement' ? 'text-white' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                <span className={`font-medium text-sm ${openSection === 'teacherManagement' ? 'text-white' : 'text-gray-900'}`}>Teacher Management</span>
-              </div>
-              <svg className={`w-4 h-4 ${openSection === 'teacherManagement' ? 'text-white' : 'text-gray-700'} transition-transform duration-200 ${openSection === 'teacherManagement' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <Link href="/portal/admin/teachers" className={getSubMenuItemClasses("/portal/admin/teachers")} style={getSubActiveStyle("/portal/admin/teachers")}>
+              <svg className={`w-4 h-4 ${isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-            </button>
-            {openSection === 'teacherManagement' && (
-              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
-                <li>
-                  <Link href="/portal/admin/teachers" className={getSubMenuItemClasses("/portal/admin/teachers")} style={getSubActiveStyle("/portal/admin/teachers")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-900'}>Teacher List</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/portal/admin/teachers/assign" className={getSubMenuItemClasses("/portal/admin/teachers/assign")} style={getSubActiveStyle("/portal/admin/teachers/assign")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/teachers/assign") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/teachers/assign") ? 'text-white' : 'text-gray-900'}>Assign to Class</span>
-                  </Link>
-                </li>
-              </ul>
-            )}
+              <span className={isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-900'}>Teachers</span>
+            </Link>
           </li>
 
           {/* Academic Management */}
@@ -332,7 +304,7 @@ export default function AdminSidebar() {
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/subprograms") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
-                    <span className={isActive("/portal/admin/subprograms") ? 'text-white' : 'text-gray-900'}>Sub Programs</span>
+                    <span className={isActive("/portal/admin/subprograms") ? 'text-white' : 'text-gray-900'}>Courses</span>
                   </Link>
                 </li>
                 <li>
@@ -344,12 +316,6 @@ export default function AdminSidebar() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/portal/admin/courses" className={getSubMenuItemClasses("/portal/admin/courses")} style={getSubActiveStyle("/portal/admin/courses")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/courses") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    <span className={isActive("/portal/admin/courses") ? 'text-white' : 'text-gray-900'}>Courses</span>
-                  </Link>
                 </li>
               </ul>
             )}
@@ -724,7 +690,7 @@ export default function AdminSidebar() {
             )}
           </li>
 
-          
+
         </ul>
       </nav>
 
