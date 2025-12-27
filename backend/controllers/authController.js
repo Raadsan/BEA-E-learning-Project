@@ -43,7 +43,8 @@ export const login = async (req, res) => {
         id: user.id,
         full_name: user.full_name,
         email: user.email,
-        role: user.role || 'admin'
+        role: user.role || 'admin',
+        status: user.status
       };
     } else {
       // Check teacher
@@ -56,7 +57,8 @@ export const login = async (req, res) => {
           full_name: user.full_name,
           email: user.email,
           role: 'teacher',
-          specialization: user.specialization
+          specialization: user.specialization,
+          status: user.status
         };
       } else {
         // Check student
@@ -87,6 +89,15 @@ export const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         error: "Invalid email or password"
+      });
+    }
+
+    // Check Status (Admin/Teacher 'status' or Student 'approval_status')
+    if (user.status === 'inactive' || user.approval_status === 'inactive') {
+      console.log(`[Login Debug] User ${email} is inactive. Login denied.`);
+      return res.status(403).json({
+        success: false,
+        error: "Your account is inactive. Please contact support."
       });
     }
 
@@ -192,6 +203,7 @@ export const getCurrentUser = async (req, res) => {
             bio: user.bio,
             profile_image: user.profile_image,
             role: user.role || 'admin',
+            status: user.status,
             created_at: user.created_at
           };
         }
@@ -224,7 +236,8 @@ export const getCurrentUser = async (req, res) => {
             full_name: user.full_name,
             email: user.email,
             role: 'teacher',
-            specialization: user.specialization
+            specialization: user.specialization,
+            status: user.status
           };
         }
         break;

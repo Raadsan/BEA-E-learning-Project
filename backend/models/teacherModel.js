@@ -49,7 +49,7 @@ export const createTeacher = async ({
 // GET all teachers
 export const getAllTeachers = async () => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, created_at, updated_at FROM teachers ORDER BY created_at DESC"
+    "SELECT id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, status, created_at, updated_at FROM teachers ORDER BY created_at DESC"
   );
   return rows;
 };
@@ -57,7 +57,7 @@ export const getAllTeachers = async () => {
 // GET teacher by ID
 export const getTeacherById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, created_at, updated_at FROM teachers WHERE id = ?",
+    "SELECT id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, status, created_at, updated_at FROM teachers WHERE id = ?",
     [id]
   );
   return rows[0] || null;
@@ -83,7 +83,8 @@ export const updateTeacherById = async (id, {
   portfolio_link,
   skills,
   hire_date,
-  password
+  password,
+  status
 }) => {
   const updates = [];
   const values = [];
@@ -139,6 +140,10 @@ export const updateTeacherById = async (id, {
   if (password !== undefined) {
     updates.push("password = ?");
     values.push(password);
+  }
+  if (status !== undefined) {
+    updates.push("status = ?");
+    values.push(status);
   }
 
   if (updates.length === 0) {

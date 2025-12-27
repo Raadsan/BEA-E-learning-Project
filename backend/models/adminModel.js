@@ -27,7 +27,7 @@ export const getAdminById = (id) => {
 // Get all admins
 export const getAllAdmins = () => {
     return new Promise((resolve, reject) => {
-        const query = "SELECT id, first_name, last_name, username, email, phone, role, created_at FROM admins";
+        const query = "SELECT id, first_name, last_name, username, email, phone, role, status, created_at FROM admins";
         db.query(query, (err, results) => {
             if (err) return reject(err);
             resolve(results);
@@ -50,10 +50,20 @@ export const createAdmin = (adminData) => {
 // Update admin
 export const updateAdminById = (id, adminData) => {
     return new Promise((resolve, reject) => {
-        const { first_name, last_name, username, email, phone, bio } = adminData;
+        const { first_name, last_name, username, email, phone, bio, status, role } = adminData;
 
         let query = "UPDATE admins SET first_name = ?, last_name = ?, username = ?, email = ?, phone = ?, bio = ?";
         const params = [first_name, last_name, username, email, phone, bio];
+
+        if (status) {
+            query += ", status = ?";
+            params.push(status);
+        }
+
+        if (role) {
+            query += ", role = ?";
+            params.push(role);
+        }
 
         if (adminData.password) {
             query += ", password = ?";

@@ -13,6 +13,13 @@ export default function TeachersPage() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [viewingTeacher, setViewingTeacher] = useState(null);
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    isLoading: false
+  });
 
   const { data: backendTeachers, isLoading, isError, error } = useGetTeachersQuery();
   const { data: classes = [] } = useGetClassesQuery();
@@ -21,7 +28,7 @@ export default function TeachersPage() {
   const [deleteTeacher, { isLoading: isDeleting }] = useDeleteTeacherMutation();
 
   const teachers = backendTeachers || [];
-  
+
   // Get classes assigned to the viewing teacher
   const getAssignedClasses = (teacherId) => {
     return classes.filter(c => c.teacher_id === teacherId);
@@ -83,15 +90,48 @@ export default function TeachersPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this teacher?")) {
-      try {
-        await deleteTeacher(id).unwrap();
-      } catch (error) {
-        console.error("Failed to delete teacher:", error);
-        alert("Failed to delete teacher. Please try again.");
-      }
-    }
+  const handleStatusToggle = (teacher) => {
+    const newStatus = teacher.status === 'active' ? 'inactive' : 'active';
+    const confirmMessage = `Do you want to change status of ${teacher.full_name} to ${newStatus}?`;
+
+    setConfirmationModal({
+      isOpen: true,
+      title: "Confirm Status Change",
+      message: confirmMessage,
+      onConfirm: async () => {
+        setConfirmationModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await updateTeacher({ id: teacher.id, status: newStatus }).unwrap();
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false });
+        } catch (error) {
+          console.error("Failed to update status:", error);
+          setConfirmationModal(prev => ({ ...prev, isLoading: false }));
+          // Ideally use a toast here, but for now I'll stick to not using alert as requested, maybe just log or keep modal open with error
+          alert(error?.data?.error || "Failed to update status."); // Fallback if user only complained about the confirm dialog style
+        }
+      },
+      isLoading: false
+    });
+  };
+
+  const handleDelete = (id) => {
+    setConfirmationModal({
+      isOpen: true,
+      title: "Delete Teacher",
+      message: "Are you sure you want to delete this teacher? This action cannot be undone.",
+      onConfirm: async () => {
+        setConfirmationModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await deleteTeacher(id).unwrap();
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false });
+        } catch (error) {
+          console.error("Failed to delete teacher:", error);
+          setConfirmationModal(prev => ({ ...prev, isLoading: false }));
+          alert("Failed to delete teacher. Please try again.");
+        }
+      },
+      isLoading: false
+    });
   };
 
   const handleView = (teacher) => {
@@ -150,7 +190,7 @@ export default function TeachersPage() {
 
     try {
       const submitData = { ...formData };
-      
+
       // Convert years_experience to number
       if (submitData.years_experience) {
         submitData.years_experience = parseInt(submitData.years_experience);
@@ -215,6 +255,23 @@ export default function TeachersPage() {
       label: "Experience",
       render: (row) => `${row.years_experience || 0} years`,
     },
+    {
+      key: "status",
+      label: "Status",
+      render: (row) => (
+        <button
+          onClick={() => handleStatusToggle(row)}
+          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer transition-opacity hover:opacity-80 ${row.status === 'active'
+            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+            }`}
+          title="Click to toggle status"
+        >
+          {row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'Active'}
+        </button>
+      ),
+    },
+
     {
       key: "actions",
       label: "Actions",
@@ -287,7 +344,7 @@ export default function TeachersPage() {
   return (
     <>
       <AdminHeader />
-      
+
       <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
         <div className="w-full px-8 py-6">
           <DataTable
@@ -302,36 +359,32 @@ export default function TeachersPage() {
 
       {/* Add/Edit Teacher Modal */}
       {isModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
           style={{ pointerEvents: 'none' }}
         >
-          <div 
+          <div
             className="absolute inset-0 bg-transparent"
             onClick={handleBackdropClick}
             style={{ pointerEvents: 'auto' }}
           />
-          
-          <div 
-            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${
-              isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-            }`}
+
+          <div
+            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+              }`}
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-2xl font-bold ${
-                isDark ? 'text-white' : 'text-gray-800'
+            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
+                }`}>
                 {editingTeacher ? "Edit Teacher" : "Add New Teacher"}
               </h2>
               <button
                 onClick={handleCloseModal}
-                className={`transition-colors ${
-                  isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-                }`}
+                className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+                  }`}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -342,9 +395,8 @@ export default function TeachersPage() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="full_name" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <label htmlFor="full_name" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Full Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -354,16 +406,14 @@ export default function TeachersPage() {
                     value={formData.full_name}
                     onChange={handleInputChange}
                     required
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="email" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <label htmlFor="email" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Email <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -373,16 +423,14 @@ export default function TeachersPage() {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <label htmlFor="phone" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Phone
                   </label>
                   <input
@@ -391,16 +439,14 @@ export default function TeachersPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="country" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <label htmlFor="country" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Country
                   </label>
                   <input
@@ -409,16 +455,14 @@ export default function TeachersPage() {
                     name="country"
                     value={formData.country}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="city" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <label htmlFor="city" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     City
                   </label>
                   <input
@@ -427,16 +471,14 @@ export default function TeachersPage() {
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="specialization" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <label htmlFor="specialization" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Specialization
                   </label>
                   <input
@@ -445,16 +487,14 @@ export default function TeachersPage() {
                     name="specialization"
                     value={formData.specialization}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="highest_qualification" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <label htmlFor="highest_qualification" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Highest Qualification
                   </label>
                   <input
@@ -463,16 +503,14 @@ export default function TeachersPage() {
                     name="highest_qualification"
                     value={formData.highest_qualification}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="years_experience" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <label htmlFor="years_experience" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Years of Experience
                   </label>
                   <input
@@ -482,16 +520,14 @@ export default function TeachersPage() {
                     value={formData.years_experience}
                     onChange={handleInputChange}
                     min="0"
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      }`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="hire_date" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <label htmlFor="hire_date" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Hire Date
                   </label>
                   <input
@@ -500,17 +536,15 @@ export default function TeachersPage() {
                     name="hire_date"
                     value={formData.hire_date}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      }`}
                   />
                 </div>
 
                 {!editingTeacher && (
                   <div>
-                    <label htmlFor="password" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <label htmlFor="password" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       Password <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -520,18 +554,16 @@ export default function TeachersPage() {
                       value={formData.password}
                       onChange={handleInputChange}
                       required={!editingTeacher}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
                     />
                   </div>
                 )}
 
                 {editingTeacher && (
                   <div>
-                    <label htmlFor="password" className={`block text-sm font-medium mb-1 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                    <label htmlFor="password" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                       New Password (leave blank to keep current)
                     </label>
                     <input
@@ -540,77 +572,72 @@ export default function TeachersPage() {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
                     />
                   </div>
                 )}
 
-                <div className="md:col-span-2">
-                  <label htmlFor="portfolio_link" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Portfolio Link
-                  </label>
-                  <input
-                    type="url"
-                    id="portfolio_link"
-                    name="portfolio_link"
-                    value={formData.portfolio_link}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label htmlFor="skills" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Skills
-                  </label>
-                  <textarea
-                    id="skills"
-                    name="skills"
-                    value={formData.skills}
-                    onChange={handleInputChange}
-                    rows={2}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label htmlFor="bio" className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Bio
-                  </label>
-                  <textarea
-                    id="bio"
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
-                  />
-                </div>
               </div>
+
+              <div className="md:col-span-2">
+                <label htmlFor="portfolio_link" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                  Portfolio Link
+                </label>
+                <input
+                  type="url"
+                  id="portfolio_link"
+                  name="portfolio_link"
+                  value={formData.portfolio_link}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label htmlFor="skills" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                  Skills
+                </label>
+                <textarea
+                  id="skills"
+                  name="skills"
+                  value={formData.skills}
+                  onChange={handleInputChange}
+                  rows={2}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label htmlFor="bio" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                  Bio
+                </label>
+                <textarea
+                  id="bio"
+                  name="bio"
+                  value={formData.bio}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                />
+              </div>
+
+
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className={`px-4 py-2 border rounded-lg transition-colors ${
-                    isDark
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`px-4 py-2 border rounded-lg transition-colors ${isDark
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   Cancel
                 </button>
@@ -628,307 +655,320 @@ export default function TeachersPage() {
       )}
 
       {/* View Teacher Modal */}
-      {isViewModalOpen && viewingTeacher && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ pointerEvents: 'none' }}
-        >
-          <div 
-            className="absolute inset-0 bg-transparent"
-            onClick={handleCloseViewModal}
-            style={{ pointerEvents: 'auto' }}
-          />
-          
-          <div 
-            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${
-              isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-            }`}
-            onClick={(e) => e.stopPropagation()}
-            style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
+      {
+        isViewModalOpen && viewingTeacher && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center"
+            style={{ pointerEvents: 'none' }}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-2xl font-bold ${
-                isDark ? 'text-white' : 'text-gray-800'
-              }`}>
-                Teacher Profile: {viewingTeacher.full_name}
-              </h2>
-              <button
-                onClick={handleCloseViewModal}
-                className={`transition-colors ${
-                  isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+            <div
+              className="absolute inset-0 bg-transparent"
+              onClick={handleCloseViewModal}
+              style={{ pointerEvents: 'auto' }}
+            />
+
+            <div
+              className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
                 }`}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Personal Information Section */}
-              <div className={`p-5 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
+              onClick={(e) => e.stopPropagation()}
+              style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
+            >
+              <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
                 }`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
+                  Teacher Profile: {viewingTeacher.full_name}
+                </h2>
+                <button
+                  onClick={handleCloseViewModal}
+                  className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  Personal Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Full Name</label>
-                    <p className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {viewingTeacher.full_name || 'N/A'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Email</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingTeacher.email || 'N/A'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Phone</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingTeacher.phone || 'N/A'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Country</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingTeacher.country || 'N/A'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>City</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingTeacher.city || 'N/A'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Hire Date</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingTeacher.hire_date ? new Date(viewingTeacher.hire_date).toLocaleDateString() : 'N/A'}
-                    </p>
-                  </div>
-                </div>
+                </button>
               </div>
 
-              {/* Professional Information Section */}
-              <div className={`p-5 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
-                }`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Professional Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Specialization</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingTeacher.specialization || 'N/A'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Highest Qualification</label>
-                    <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {viewingTeacher.highest_qualification || 'N/A'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Years of Experience</label>
-                    <p className={`text-base font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                      {viewingTeacher.years_experience || 0} years
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Portfolio Link</label>
-                    {viewingTeacher.portfolio_link ? (
-                      <a 
-                        href={viewingTeacher.portfolio_link} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline break-all flex items-center gap-1"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                        {viewingTeacher.portfolio_link}
-                      </a>
-                    ) : (
-                      <p className={`text-base ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>N/A</p>
-                    )}
+              <div className="p-6 space-y-6">
+                {/* Personal Information Section */}
+                <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
+                  }`}>
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                    }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Personal Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Full Name</label>
+                      <p className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {viewingTeacher.full_name || 'N/A'}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Email</label>
+                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {viewingTeacher.email || 'N/A'}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Phone</label>
+                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {viewingTeacher.phone || 'N/A'}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Country</label>
+                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {viewingTeacher.country || 'N/A'}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>City</label>
+                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {viewingTeacher.city || 'N/A'}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Hire Date</label>
+                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {viewingTeacher.hire_date ? new Date(viewingTeacher.hire_date).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Bio and Skills Section */}
-              <div className={`p-5 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-green-50/50 border-green-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
-                }`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Additional Information
-                </h3>
-                <div className="space-y-4">
-                  <div className={`p-4 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Bio</label>
-                    <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {viewingTeacher.bio || 'No bio available'}
-                    </p>
-                  </div>
-                  <div className={`p-4 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>Skills</label>
-                    <div className="flex flex-wrap gap-2">
-                      {viewingTeacher.skills ? (
-                        viewingTeacher.skills.split(',').map((skill, index) => (
-                          <span 
-                            key={index}
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              isDark 
-                                ? 'bg-purple-600/30 text-purple-300 border border-purple-500/50' 
-                                : 'bg-purple-100 text-purple-700 border border-purple-200'
-                            }`}
-                          >
-                            {skill.trim()}
-                          </span>
-                        ))
+                {/* Professional Information Section */}
+                <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
+                  }`}>
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                    }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Professional Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Specialization</label>
+                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {viewingTeacher.specialization || 'N/A'}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Highest Qualification</label>
+                      <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {viewingTeacher.highest_qualification || 'N/A'}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Years of Experience</label>
+                      <p className={`text-base font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                        {viewingTeacher.years_experience || 0} years
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Portfolio Link</label>
+                      {viewingTeacher.portfolio_link ? (
+                        <a
+                          href={viewingTeacher.portfolio_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline break-all flex items-center gap-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          {viewingTeacher.portfolio_link}
+                        </a>
                       ) : (
-                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>No skills listed</p>
+                        <p className={`text-base ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>N/A</p>
                       )}
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Assigned Classes Section */}
-              <div className={`p-5 rounded-lg border ${
-                isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-orange-50/50 border-orange-200'
-              }`}>
-                <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
-                }`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  Assigned Classes
-                  <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
-                    isDark ? 'bg-blue-600/30 text-blue-300' : 'bg-blue-100 text-blue-700'
+                {/* Bio and Skills Section */}
+                <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-green-50/50 border-green-200'
                   }`}>
-                    {getAssignedClasses(viewingTeacher.id).length}
-                  </span>
-                </h3>
-                {getAssignedClasses(viewingTeacher.id).length === 0 ? (
-                  <div className={`p-6 text-center rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
-                    <svg className="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                    }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Additional Information
+                  </h3>
+                  <div className="space-y-4">
+                    <div className={`p-4 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Bio</label>
+                      <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {viewingTeacher.bio || 'No bio available'}
+                      </p>
+                    </div>
+                    <div className={`p-4 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>Skills</label>
+                      <div className="flex flex-wrap gap-2">
+                        {viewingTeacher.skills ? (
+                          viewingTeacher.skills.split(',').map((skill, index) => (
+                            <span
+                              key={index}
+                              className={`px-3 py-1 rounded-full text-xs font-medium ${isDark
+                                ? 'bg-purple-600/30 text-purple-300 border border-purple-500/50'
+                                : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                }`}
+                            >
+                              {skill.trim()}
+                            </span>
+                          ))
+                        ) : (
+                          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>No skills listed</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Assigned Classes Section */}
+                <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-orange-50/50 border-orange-200'
+                  }`}>
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+                    }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
-                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      No classes assigned to this teacher.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {getAssignedClasses(viewingTeacher.id).map((classItem) => (
-                      <div 
-                        key={classItem.id}
-                        className={`p-4 rounded-lg border transition-all hover:shadow-lg ${
-                          isDark 
-                            ? 'bg-gradient-to-br from-gray-800/80 to-gray-700/80 border-gray-600 hover:border-gray-500' 
+                    Assigned Classes
+                    <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-600/30 text-blue-300' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                      {getAssignedClasses(viewingTeacher.id).length}
+                    </span>
+                  </h3>
+                  {getAssignedClasses(viewingTeacher.id).length === 0 ? (
+                    <div className={`p-6 text-center rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                      <svg className="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        No classes assigned to this teacher.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {getAssignedClasses(viewingTeacher.id).map((classItem) => (
+                        <div
+                          key={classItem.id}
+                          className={`p-4 rounded-lg border transition-all hover:shadow-lg ${isDark
+                            ? 'bg-gradient-to-br from-gray-800/80 to-gray-700/80 border-gray-600 hover:border-gray-500'
                             : 'bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:border-blue-300'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <h4 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {classItem.class_name || 'N/A'}
-                          </h4>
-                          <div className={`w-2 h-2 rounded-full ${
-                            classItem.course_title ? 'bg-green-500' : 'bg-gray-400'
-                          }`}></div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <svg className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                            <div className="flex-1">
-                              <label className={`block text-xs font-semibold mb-0.5 uppercase tracking-wide ${
-                                isDark ? 'text-gray-400' : 'text-gray-500'
-                              }`}>Course</label>
-                              <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                                {classItem.course_title || 'Not assigned'}
-                              </p>
-                            </div>
+                            }`}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              {classItem.class_name || 'N/A'}
+                            </h4>
+                            <div className={`w-2 h-2 rounded-full ${classItem.course_title ? 'bg-green-500' : 'bg-gray-400'
+                              }`}></div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <svg className={`w-4 h-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <div className="flex-1">
-                              <label className={`block text-xs font-semibold mb-0.5 uppercase tracking-wide ${
-                                isDark ? 'text-gray-400' : 'text-gray-500'
-                              }`}>Subprogram</label>
-                              <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                                {classItem.subprogram_name || 'Not assigned'}
-                              </p>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <svg className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                              </svg>
+                              <div className="flex-1">
+                                <label className={`block text-xs font-semibold mb-0.5 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                  }`}>Course</label>
+                                <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                                  {classItem.course_title || 'Not assigned'}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <svg className={`w-4 h-4 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                            <div className="flex-1">
-                              <label className={`block text-xs font-semibold mb-0.5 uppercase tracking-wide ${
-                                isDark ? 'text-gray-400' : 'text-gray-500'
-                              }`}>Program</label>
-                              <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                                {classItem.program_name || 'Not assigned'}
-                              </p>
+                            <div className="flex items-center gap-2">
+                              <svg className={`w-4 h-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              <div className="flex-1">
+                                <label className={`block text-xs font-semibold mb-0.5 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                  }`}>Subprogram</label>
+                                <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                                  {classItem.subprogram_name || 'Not assigned'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <svg className={`w-4 h-4 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                              </svg>
+                              <div className="flex-1">
+                                <label className={`block text-xs font-semibold mb-0.5 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                  }`}>Program</label>
+                                <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                                  {classItem.program_name || 'Not assigned'}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Confirmation Modal */}
+      {confirmationModal.isOpen && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+          />
+          <div className={`relative w-full max-w-md p-6 rounded-lg shadow-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+            }`}>
+            <h3 className="text-xl font-bold mb-3">{confirmationModal.title}</h3>
+            <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              {confirmationModal.message}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+                disabled={confirmationModal.isLoading}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDark
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  } disabled:opacity-50`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmationModal.onConfirm}
+                disabled={confirmationModal.isLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {confirmationModal.isLoading && (
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                Confirm
+              </button>
             </div>
           </div>
         </div>

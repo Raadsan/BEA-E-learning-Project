@@ -164,3 +164,21 @@ export const sendClassNotification = async (req, res) => {
         res.status(500).json({ message: "Failed to send notification" });
     }
 };
+
+export const getTeacherAnnouncements = async (req, res) => {
+    try {
+        const teacherId = req.user.userId;
+
+        // 1. Get classes taught by teacher
+        const classes = await classModel.getClassesByTeacherId(teacherId);
+        const classIds = classes.map(c => c.id);
+
+        // 2. Fetch announcements
+        const announcements = await announcementModel.getAnnouncementsForTeacher(teacherId, classIds);
+
+        res.status(200).json(announcements);
+    } catch (error) {
+        console.error("Error fetching teacher announcements:", error);
+        res.status(500).json({ message: "Failed to fetch announcements" });
+    }
+};
