@@ -13,7 +13,7 @@ export const adminApi = createApi({
             return headers;
         },
     }),
-    tagTypes: ["Admins"],
+    tagTypes: ["Admins", "Auth"],
     endpoints: (builder) => ({
         getAdmins: builder.query({
             query: () => "/",
