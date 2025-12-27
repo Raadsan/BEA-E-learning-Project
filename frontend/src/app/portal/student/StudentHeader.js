@@ -23,9 +23,10 @@ export default function StudentHeader() {
   };
 
   return (
-    <header className={`sticky top-0 z-40 border-b transition-colors px-6 py-4 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+    <header className={`sticky top-0 z-40 border-b transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
       }`}>
-      <div className="flex items-center justify-between">
+      <div className="w-full max-w-[1600px] mx-auto px-4 lg:px-6 xl:px-8 py-4">
+        <div className="flex items-center justify-between">
         {/* Search Bar - Left Side */}
         <div className="relative flex-1 max-w-md">
           <input
@@ -138,6 +139,7 @@ export default function StudentHeader() {
             )}
           </div>
         </div>
+      </div>
       </div>
     </header>
   );

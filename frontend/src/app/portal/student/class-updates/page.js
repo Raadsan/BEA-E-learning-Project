@@ -12,8 +12,7 @@ export default function ClassUpdatesPage() {
 
   return (
     <div className={`min-h-screen transition-colors ${bg}`}>
-      <div className="p-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="py-6">
         <div className={`mb-6 p-6 rounded-xl shadow ${card}`}>
           <h1 className="text-2xl font-bold mb-2">Class Updates</h1>
           <p className={isDark ? "text-gray-300" : "text-gray-600"}>
@@ -59,7 +58,6 @@ export default function ClassUpdatesPage() {
             ))}
           </div>
         )}
-        </div>
       </div>
     </div>
   );

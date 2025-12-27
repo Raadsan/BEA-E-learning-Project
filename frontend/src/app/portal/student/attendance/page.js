@@ -87,8 +87,7 @@ export default function AttendancePage() {
 
   return (
     <div className={`min-h-screen transition-colors ${bg}`}>
-      <div className="p-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="py-6">
         <div
           className={`mb-6 p-6 rounded-xl shadow ${
             isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
@@ -171,7 +170,6 @@ export default function AttendancePage() {
             )}
           </div>
         )}
-        </div>
       </div>
     </div>
   );

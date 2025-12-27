@@ -91,8 +91,7 @@ export default function StudentPaymentsPage() {
   return (
     <div className={`flex-1 min-h-screen flex flex-col transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <main className="flex-1 overflow-y-auto">
-        <div className="p-6">
-          <div className="max-w-7xl mx-auto">
+        <div className="py-6">
 
           {/* Header - OUTSIDE */}
           <div className="mb-8 pt-6">
@@ -227,8 +226,6 @@ export default function StudentPaymentsPage() {
                 </tbody>
               </table>
             </div>
-
-          </div>
           </div>
         </div>
       </main>
