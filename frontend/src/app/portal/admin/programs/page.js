@@ -14,9 +14,16 @@ export default function ProgramsPage() {
   const { isDark } = useDarkMode();
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubprogramsModalOpen, setIsSubprogramsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [editingProgram, setEditingProgram] = useState(null);
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    isLoading: false
+  });
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -71,15 +78,59 @@ export default function ProgramsPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this program?")) {
-      try {
-        await deleteProgram(id).unwrap();
-      } catch (error) {
-        console.error("Failed to delete program:", error);
-        alert("Failed to delete program. Please try again.");
-      }
-    }
+  const handleStatusToggle = (program) => {
+    const newStatus = program.status === 'active' ? 'inactive' : 'active';
+    const confirmMessage = `Do you want to change status of ${program.title} to ${newStatus}?`;
+
+    setConfirmationModal({
+      isOpen: true,
+      title: "Confirm Status Change",
+      message: confirmMessage,
+      onConfirm: async () => {
+        setConfirmationModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          const submitFormData = new FormData();
+          submitFormData.append("status", newStatus);
+          await updateProgram({ id: program.id, formData: submitFormData }).unwrap();
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false });
+        } catch (error) {
+          console.error("Failed to update status:", error);
+          setConfirmationModal(prev => ({ ...prev, isLoading: false }));
+          alert(error?.data?.error || "Failed to update status.");
+        }
+      },
+      isLoading: false
+    });
+  };
+
+  const handleDelete = (id) => {
+    setConfirmationModal({
+      isOpen: true,
+      title: "Delete Program",
+      message: "Are you sure you want to delete this program? This action cannot be undone.",
+      onConfirm: async () => {
+        setConfirmationModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await deleteProgram(id).unwrap();
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false });
+        } catch (error) {
+          console.error("Failed to delete program:", error);
+          setConfirmationModal(prev => ({ ...prev, isLoading: false }));
+          alert("Failed to delete program. Please try again.");
+        }
+      },
+      isLoading: false
+    });
+  };
+
+  const handleView = (program) => {
+    setSelectedProgram(program);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+    setSelectedProgram(null);
   };
 
   const handleCloseModal = () => {
@@ -144,7 +195,10 @@ export default function ProgramsPage() {
       const submitFormData = new FormData();
       submitFormData.append("title", formData.title);
       submitFormData.append("description", formData.description);
-      submitFormData.append("status", formData.status);
+      // Only append status if it's a new program or if it's explicitly changed in the form
+      if (!editingProgram || formData.status !== editingProgram.status) {
+        submitFormData.append("status", formData.status);
+      }
 
       if (formData.image) {
         submitFormData.append("image", formData.image);
@@ -188,12 +242,16 @@ export default function ProgramsPage() {
       key: "status",
       label: "Status",
       render: (row) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === "active"
-          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-          : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-          }`}>
-          {row.status === "active" ? "Active" : "Inactive"}
-        </span>
+        <button
+          onClick={() => handleStatusToggle(row)}
+          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer transition-opacity hover:opacity-80 ${row.status === 'active'
+            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+            }`}
+          title="Click to toggle status"
+        >
+          {row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'Active'}
+        </button>
       ),
     },
     {
@@ -202,12 +260,13 @@ export default function ProgramsPage() {
       render: (row) => (
         <div className="flex gap-2">
           <button
-            onClick={() => handleViewSubprograms(row)}
-            className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
-            title="View Subprograms"
+            onClick={() => handleView(row)}
+            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            title="View Details"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
           </button>
           <button
@@ -414,26 +473,28 @@ export default function ProgramsPage() {
                 )}
               </div>
 
-              <div>
-                <label htmlFor="status" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                  Status <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  required
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'border-gray-300'
-                    }`}
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
+              {!editingProgram && (
+                <div>
+                  <label htmlFor="status" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                    Status <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    required
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'border-gray-300'
+                      }`}
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              )}
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
@@ -459,20 +520,62 @@ export default function ProgramsPage() {
         </div>
       )}
 
-      {/* View Subprograms Modal */}
-      {isSubprogramsModalOpen && selectedProgram && (
-        <SubprogramsModal
+      {/* View Program Modal (including subprograms) */}
+      {isViewModalOpen && selectedProgram && (
+        <ViewProgramModal
           program={selectedProgram}
-          onClose={handleCloseSubprogramsModal}
+          onClose={handleCloseViewModal}
           isDark={isDark}
         />
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmationModal.isOpen && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+          />
+          <div className={`relative w-full max-w-md p-6 rounded-lg shadow-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+            }`}>
+            <h3 className="text-xl font-bold mb-3">{confirmationModal.title}</h3>
+            <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              {confirmationModal.message}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+                disabled={confirmationModal.isLoading}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDark
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  } disabled:opacity-50`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmationModal.onConfirm}
+                disabled={confirmationModal.isLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {confirmationModal.isLoading && (
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
 }
 
-// Subprograms Modal Component
-function SubprogramsModal({ program, onClose, isDark }) {
+// View Program Modal Component (Updated Design)
+function ViewProgramModal({ program, onClose, isDark }) {
   const { data: subprograms, isLoading, isError } = useGetSubprogramsByProgramIdQuery(program.id);
 
   return (
@@ -496,7 +599,7 @@ function SubprogramsModal({ program, onClose, isDark }) {
           }`}>
           <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
             }`}>
-            Subprograms for {program.title}
+            Program Details: {program.title}
           </h2>
           <button
             onClick={onClose}
@@ -509,56 +612,120 @@ function SubprogramsModal({ program, onClose, isDark }) {
           </button>
         </div>
 
-        <div className="p-4 bg-gray-50">
-          {isLoading ? (
-            <div className="text-center py-8">
-              <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Loading subprograms...</p>
-            </div>
-          ) : isError ? (
-            <div className="text-center py-8">
-              <p className="text-red-600 dark:text-red-400">Error loading subprograms</p>
-            </div>
-          ) : !subprograms || subprograms.length === 0 ? (
-            <div className="text-center py-8">
-              <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="p-6 space-y-6">
+          {/* Program Information */}
+          <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'
+            }`}>
+            <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+              }`}>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>No subprograms found for this program.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {subprograms.map((subprogram) => (
-                <div
-                  key={subprogram.id}
-                  className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
-                    }`}
-                >
-                  <h3 className={`font-semibold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'
+              Basic Information
+            </h3>
+            <div className="space-y-4">
+              <div className={`p-4 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                  }`}>Title</label>
+                <p className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {program.title}
+                </p>
+              </div>
+              <div className={`p-4 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                  }`}>Description</label>
+                <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {program.description}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                  <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Status</label>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${program.status === 'active'
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                     }`}>
-                    {subprogram.subprogram_name}
-                  </h3>
-                  <p className={`text-sm mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    {subprogram.description || 'No description'}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${subprogram.status === 'active'
-                      ? isDark
-                        ? 'bg-green-900/30 text-green-300 border border-green-700'
-                        : 'bg-green-100 text-green-800'
-                      : isDark
-                        ? 'bg-gray-700 text-gray-400 border border-gray-600'
-                        : 'bg-gray-200 text-gray-600'
-                      }`}>
-                      {subprogram.status === 'active' ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
+                    {program.status}
+                  </span>
                 </div>
-              ))}
+              </div>
             </div>
-          )}
+            {/* Visuals */}
+            {(program.image || program.video) && (
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {program.image && (
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Image</label>
+                    <div className="relative h-48 w-full rounded overflow-hidden">
+                      <Image src={program.image} alt={program.title} fill className="object-cover" />
+                    </div>
+                  </div>
+                )}
+                {program.video && (
+                  <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Video</label>
+                    <video src={program.video} controls className="w-full h-48 object-cover rounded" />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Subprograms Section */}
+          <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'
+            }`}>
+            <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'
+              }`}>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              Associated Subprograms
+            </h3>
+            {isLoading ? (
+              <div className="text-center py-8">
+                <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Loading subprograms...</p>
+              </div>
+            ) : isError ? (
+              <div className="text-center py-8">
+                <p className="text-red-600 dark:text-red-400">Error loading subprograms</p>
+              </div>
+            ) : !subprograms || subprograms.length === 0 ? (
+              <div className={`p-6 text-center rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>No subprograms found for this program.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {subprograms.map((subprogram) => (
+                  <div
+                    key={subprogram.id}
+                    className={`p-4 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-600' : 'bg-white border-gray-200'
+                      } hover:shadow-md transition-shadow`}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {subprogram.subprogram_name}
+                      </h4>
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${subprogram.status === 'active'
+                        ? isDark ? 'bg-green-900/30 text-green-300' : 'bg-green-100 text-green-800'
+                        : isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                        {subprogram.status}
+                      </span>
+                    </div>
+                    <p className={`text-sm line-clamp-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {subprogram.description || 'No description available'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
