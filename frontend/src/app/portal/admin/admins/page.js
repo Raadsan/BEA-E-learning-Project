@@ -36,7 +36,60 @@ export default function AdminsPage() {
     status: "active"
   });
 
+  // Confirmation Modal State
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    isLoading: false
+  });
+
   // Handlers
+  const handleStatusToggle = (admin) => {
+    const newStatus = admin.status === 'active' ? 'inactive' : 'active';
+
+    setConfirmationModal({
+      isOpen: true,
+      title: "Confirm Status Change",
+      message: `Do you want to change status of ${admin.username} to ${newStatus}?`,
+      onConfirm: async () => {
+        setConfirmationModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await updateAdmin({ id: admin.id, status: newStatus }).unwrap();
+          showToast("Admin status updated successfully", "success");
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false });
+        } catch (error) {
+          console.error("Failed to update status:", error);
+          showToast(error?.data?.error || "Failed to update status", "error");
+          setConfirmationModal(prev => ({ ...prev, isLoading: false }));
+        }
+      },
+      isLoading: false
+    });
+  };
+
+  const handleDeleteClick = (id) => {
+    setConfirmationModal({
+      isOpen: true,
+      title: "Delete Admin",
+      message: "Are you sure you want to delete this admin?",
+      onConfirm: async () => {
+        setConfirmationModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await deleteAdmin(id).unwrap();
+          showToast("Admin deleted successfully", "success");
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false });
+        } catch (error) {
+          console.error("Failed to delete admin:", error);
+          showToast(error?.data?.error || "Failed to delete admin", "error");
+          setConfirmationModal(prev => ({ ...prev, isLoading: false }));
+        }
+      },
+      isLoading: false
+    });
+  };
+
   const handleAddClick = () => {
     setEditingAdmin(null);
     setFormData({
@@ -65,17 +118,6 @@ export default function AdminsPage() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = async (id) => {
-    if (window.confirm("Are you sure you want to delete this admin?")) {
-      try {
-        await deleteAdmin(id).unwrap();
-        showToast("Admin deleted successfully", "success");
-      } catch (error) {
-        console.error("Failed to delete admin:", error);
-        showToast(error?.data?.error || "Failed to delete admin", "error");
-      }
-    }
-  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -148,12 +190,16 @@ export default function AdminsPage() {
       key: "status",
       label: "Status",
       render: (row) => (
-        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === 'active'
+        <button
+          onClick={() => handleStatusToggle(row)}
+          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full transition-opacity hover:opacity-80 ${row.status === 'active'
             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
             : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-          }`}>
+            }`}
+          title="Click to toggle status"
+        >
           {row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'Active'}
-        </span>
+        </button>
       ),
     },
     {
@@ -347,6 +393,64 @@ export default function AdminsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Confirmation Modal */}
+      {confirmationModal.isOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0  backdrop-blur-sm"
+            onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+          />
+          <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50/50 border-gray-200'}`}>
+              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                {confirmationModal.title}
+              </h3>
+              <button
+                onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+                className={`p-1 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                disabled={confirmationModal.isLoading}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6">
+              <p className={`text-base ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                {confirmationModal.message}
+              </p>
+
+              <div className="flex justify-end gap-3 mt-8">
+                <button
+                  onClick={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+                  className={`px-4 py-2 rounded-lg border font-medium transition-colors ${isDark
+                    ? 'border-gray-700 text-gray-300 hover:bg-gray-800'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                  disabled={confirmationModal.isLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmationModal.onConfirm}
+                  disabled={confirmationModal.isLoading}
+                  className="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center px-6"
+                >
+                  {confirmationModal.isLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : "Confirm"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

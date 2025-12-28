@@ -113,7 +113,10 @@ export const getStats = async (req, res) => {
 
         // Calculate Date Range
         const now = new Date();
-        if (timeFrame === 'Weekly') {
+        if (timeFrame === 'Today') {
+            period = 'daily';
+            startDate = new Date(); // Today
+        } else if (timeFrame === 'Weekly') {
             period = 'weekly';
             startDate = new Date(now.setMonth(now.getMonth() - 3)); // Last 3 months
         } else if (timeFrame === 'Monthly') {

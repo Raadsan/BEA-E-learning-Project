@@ -18,6 +18,7 @@ import { useToast } from "@/components/Toast";
 
 export default function StudentsPage() {
   const { isDark } = useDarkMode();
+  const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isSubprogramsModalOpen, setIsSubprogramsModalOpen] = useState(false);
@@ -552,7 +553,7 @@ export default function StudentsPage() {
       {isApprovalModalOpen && studentToApprove && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0  backdrop-blur-sm"
             onClick={() => setIsApprovalModalOpen(false)}
           />
           <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
@@ -619,7 +620,7 @@ export default function StudentsPage() {
           className="fixed inset-0 z-[100] flex items-center justify-center"
         >
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0  backdrop-blur-sm"
             aria-hidden="true"
           />
 
@@ -987,7 +988,7 @@ export default function StudentsPage() {
           className="fixed inset-0 z-[100] flex items-center justify-center"
         >
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0  backdrop-blur-sm"
             aria-hidden="true"
           />
 
@@ -1175,7 +1176,7 @@ export default function StudentsPage() {
           className="fixed inset-0 z-[100] flex items-center justify-center"
         >
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0  backdrop-blur-sm"
             aria-hidden="true"
           />
 
@@ -1326,7 +1327,7 @@ export default function StudentsPage() {
           className="fixed inset-0 z-[100] flex items-center justify-center"
         >
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0  backdrop-blur-sm"
             aria-hidden="true"
           />
 

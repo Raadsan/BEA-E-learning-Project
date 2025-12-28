@@ -187,7 +187,7 @@ export default function UsersPage() {
       {/* View User Modal */}
       {isViewModalOpen && viewingUser && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
+          className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
           style={{ pointerEvents: 'none' }}
         >
           <div
