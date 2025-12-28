@@ -18,6 +18,7 @@ import { useToast } from "@/components/Toast";
 
 export default function StudentsPage() {
   const { isDark } = useDarkMode();
+  const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isSubprogramsModalOpen, setIsSubprogramsModalOpen] = useState(false);
