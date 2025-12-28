@@ -48,10 +48,23 @@ export const getStudentMaterials = async (req, res) => {
         const programId = student.chosen_program;
         const subprogramId = student.chosen_subprogram;
 
+        console.log("📚 Fetching materials for student:", {
+            studentId,
+            studentName: student.full_name,
+            programId,
+            subprogramId
+        });
+
         const materials = await Material.getMaterialsByLevel(programId, subprogramId);
+
+        console.log(`✅ Found ${materials.length} materials for student ${student.full_name}`);
+        if (materials.length > 0) {
+            console.log("Materials:", materials.map(m => ({ id: m.id, title: m.title, subprogram_id: m.subprogram_id })));
+        }
+
         res.json(materials);
     } catch (err) {
-        console.error(err);
+        console.error("❌ Error fetching student materials:", err);
         res.status(500).json({ error: "Server error" });
     }
 };

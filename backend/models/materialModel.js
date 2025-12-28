@@ -33,26 +33,18 @@ export const getAllMaterials = async () => {
 
 // GET materials for student by program/subprogram
 export const getMaterialsByLevel = async (programId, subprogramId) => {
-    // We want materials where:
-    // 1. (material.program_id matches student.program OR material.program_id is NULL)
-    // AND
-    // 2. (material.subprogram_id matches student.subprogram OR material.subprogram_id is NULL)
-    // This allows students to see their specific materials AND general/program-wide materials.
+    // Students should see ONLY materials specifically assigned to their subprogram
+    // This ensures each student sees only materials for their level (e.g., A1 - Beginner)
 
-    // Using a more robust query with joins to get name labels
     const [rows] = await dbp.query(
         `SELECT m.*, p.title as program_name, sp.subprogram_name as subprogram_name 
      FROM learning_materials m
      LEFT JOIN programs p ON m.program_id = p.id
      LEFT JOIN subprograms sp ON m.subprogram_id = sp.id
-     WHERE (
-        (m.program_id IS NULL OR m.program_id = ?)
-        AND
-        (m.subprogram_id IS NULL OR m.subprogram_id = ? OR ? IS NULL)
-     )
+     WHERE m.subprogram_id = ?
      AND m.status = 'Active' 
      ORDER BY m.created_at DESC`,
-        [programId, subprogramId, subprogramId]
+        [subprogramId]
     );
     return rows;
 };

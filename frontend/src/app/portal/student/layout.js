@@ -55,7 +55,7 @@ function StudentLayoutContent({ children }) {
       <div className={`flex-1 flex flex-col ml-80`}>
         <StudentHeader />
         <main className="flex-1 overflow-y-auto">
-          <div className="w-full max-w-[1600px] mx-auto px-4 lg:px-6 xl:px-8">
+          <div className="w-full">
             {children}
           </div>
         </main>
