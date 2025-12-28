@@ -28,6 +28,12 @@ export const attendanceApi = createApi({
             }),
             providesTags: ["Attendance"],
         }),
+        getStudentAttendance: builder.query({
+            query: (studentId) => `/student/${studentId}`,
+            providesTags: (result, error, studentId) => [
+                { type: "Attendance", id: `student-${studentId}` },
+            ],
+        }),
         saveAttendance: builder.mutation({
             query: (body) => ({
                 url: "/",
@@ -41,4 +47,9 @@ export const attendanceApi = createApi({
     }),
 });
 
-export const { useGetAttendanceQuery, useSaveAttendanceMutation, useGetAttendanceStatsQuery } = attendanceApi;
+export const {
+    useGetAttendanceQuery,
+    useSaveAttendanceMutation,
+    useGetAttendanceStatsQuery,
+    useGetStudentAttendanceQuery
+} = attendanceApi;

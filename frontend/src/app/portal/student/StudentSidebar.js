@@ -154,6 +154,48 @@ export default function StudentSidebar({ isApproved }) {
               </Link>
             </li>
 
+            {/* Attendance */}
+            <li>
+              <Link
+                href="/portal/student/attendance"
+                className={getMenuItemClasses("/portal/student/attendance")}
+                style={getActiveStyle("/portal/student/attendance")}
+              >
+                <svg className={getIconClasses("/portal/student/attendance")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <span className={getTextClasses("/portal/student/attendance")}>Attendance</span>
+              </Link>
+            </li>
+
+            {/* Resources */}
+            <li>
+              <Link
+                href="/portal/student/resources"
+                className={getMenuItemClasses("/portal/student/resources")}
+                style={getActiveStyle("/portal/student/resources")}
+              >
+                <svg className={getIconClasses("/portal/student/resources")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <span className={getTextClasses("/portal/student/resources")}>Resources</span>
+              </Link>
+            </li>
+
+             {/* Class Updates */}
+            <li>
+              <Link
+                href="/portal/student/class-updates"
+                className={getMenuItemClasses("/portal/student/class-updates")}
+                style={getActiveStyle("/portal/student/class-updates")}
+              >
+                <svg className={getIconClasses("/portal/student/class-updates")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span className={getTextClasses("/portal/student/class-updates")}>Class Updates</span>
+              </Link>
+            </li>
+
             {/* Writing Tasks */}
             <li>
               <Link
@@ -196,21 +238,28 @@ export default function StudentSidebar({ isApproved }) {
               </Link>
             </li>
 
-            {/* Class Updates */}
+          
+
+           
+
+            
+
+            {/* Oral Assignment */}
             <li>
               <Link
-                href="/portal/student/class-updates"
-                className={getMenuItemClasses("/portal/student/class-updates")}
-                style={getActiveStyle("/portal/student/class-updates")}
+                href="/portal/student/oral-assignment"
+                className={getMenuItemClasses("/portal/student/oral-assignment")}
+                style={getActiveStyle("/portal/student/oral-assignment")}
               >
-                <svg className={getIconClasses("/portal/student/class-updates")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                <svg className={getIconClasses("/portal/student/oral-assignment")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                 </svg>
-                <span className={getTextClasses("/portal/student/class-updates")}>Class Updates</span>
+                <span className={getTextClasses("/portal/student/oral-assignment")}>Oral Assignment</span>
               </Link>
             </li>
 
-            {/* Term Cycle Info */}
+
+             {/* Term Cycle Info */}
             <li>
               <Link
                 href="/portal/student/term-cycle-info"
@@ -238,48 +287,7 @@ export default function StudentSidebar({ isApproved }) {
               </Link>
             </li>
 
-            {/* Attendance */}
-            <li>
-              <Link
-                href="/portal/student/attendance"
-                className={getMenuItemClasses("/portal/student/attendance")}
-                style={getActiveStyle("/portal/student/attendance")}
-              >
-                <svg className={getIconClasses("/portal/student/attendance")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-                <span className={getTextClasses("/portal/student/attendance")}>Attendance</span>
-              </Link>
-            </li>
-
-            {/* Resources */}
-            <li>
-              <Link
-                href="/portal/student/resources"
-                className={getMenuItemClasses("/portal/student/resources")}
-                style={getActiveStyle("/portal/student/resources")}
-              >
-                <svg className={getIconClasses("/portal/student/resources")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                <span className={getTextClasses("/portal/student/resources")}>Resources</span>
-              </Link>
-            </li>
-
-            {/* Oral Assignment */}
-            <li>
-              <Link
-                href="/portal/student/oral-assignment"
-                className={getMenuItemClasses("/portal/student/oral-assignment")}
-                style={getActiveStyle("/portal/student/oral-assignment")}
-              >
-                <svg className={getIconClasses("/portal/student/oral-assignment")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-                <span className={getTextClasses("/portal/student/oral-assignment")}>Oral Assignment</span>
-              </Link>
-            </li>
-
+            
             {/* Progress Report */}
             <li>
               <Link

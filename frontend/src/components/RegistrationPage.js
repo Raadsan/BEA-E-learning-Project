@@ -8,6 +8,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useCreateStudentMutation } from "@/redux/api/studentApi";
 import { useLoginMutation } from "@/redux/api/authApi";
+import { useToast } from "@/components/Toast";
 
 export default function RegistrationPage() {
   const { isDarkMode } = useTheme();
@@ -15,6 +16,7 @@ export default function RegistrationPage() {
   const { data: programs = [], isLoading: programsLoading } = useGetProgramsQuery();
   const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
   const [login] = useLoginMutation();
+  const { showToast } = useToast();
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -178,23 +180,23 @@ export default function RegistrationPage() {
 
           if (loginResponse.success) {
             // Success - redirect to student dashboard
-            alert("Account created successfully! Redirecting to your dashboard...");
+            showToast("Account created successfully! Redirecting to your dashboard...", "success");
             localStorage.removeItem('registrationDraft');
             router.push("/portal/student");
           } else {
             // If auto-login fails, redirect to login page
-            alert("Account created successfully! Please login to continue.");
+            showToast("Account created successfully! Please login to continue.", "info");
             localStorage.removeItem('registrationDraft');
             router.push("/auth/login");
           }
         } catch (loginError) {
           // If auto-login fails, redirect to login page
-          alert("Account created successfully! Please login to continue.");
+          showToast("Account created successfully! Please login to continue.", "info");
           localStorage.removeItem('registrationDraft');
           router.push("/auth/login");
         }
       } else {
-        alert(response.error || "Failed to create account. Please try again.");
+        showToast(response.error || "Failed to create account. Please try again.", "error");
       }
     } catch (error) {
       console.error("Registration error:", error);
@@ -204,7 +206,7 @@ export default function RegistrationPage() {
         error?.data?.message ||
         error?.message ||
         "Failed to create account. Please try again.";
-      alert(errorMessage);
+      showToast(errorMessage, "error");
     }
   };
 
@@ -274,7 +276,7 @@ export default function RegistrationPage() {
     } catch (err) {
       console.error('Payment process error:', err);
       setPaymentError(err.message);
-      alert(`Payment Error: ${err.message}`);
+      showToast(`Payment Error: ${err.message}`, "error");
     } finally {
       setIsPaying(false);
     }
@@ -339,13 +341,13 @@ export default function RegistrationPage() {
     } catch (error) {
       console.error('Error saving student:', error);
       setPaymentError(error.message || 'Failed to complete registration');
-      alert('Error completing registration. Please contact support.');
+      showToast('Error completing registration. Please contact support.', "error");
       throw error; // Re-throw to be caught by the calling function
     }
   };
   // Confirm PIN handler extracted to avoid inline complex JSX functions
   const handleConfirmPin = async () => {
-    if (!pin) return alert('Enter PIN');
+    if (!pin) return showToast('Please enter the PIN sent to your phone', 'info');
     setIsPaying(true);
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
@@ -390,11 +392,11 @@ export default function RegistrationPage() {
           router.push('/portal/student');
         }
       } else {
-        alert(response.error || 'Failed to create account after payment.');
+        showToast(response.error || 'Failed to create account after payment.', 'error');
       }
     } catch (err) {
       console.error('Confirm error', err);
-      alert(err.message || 'Confirm failed');
+      showToast(err.message || 'Confirm failed', "error");
     } finally {
       setIsPaying(false);
     }

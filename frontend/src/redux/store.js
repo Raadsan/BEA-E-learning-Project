@@ -15,6 +15,7 @@ import { userApi } from "../redux/api/userApi.js";
 import { assignmentApi } from "../redux/api/assignmentApi.js";
 import { learningHoursApi } from "../redux/api/learningHoursApi.js";
 import { paymentApi } from "../redux/api/paymentApi.js";
+import { materialApi } from "../redux/api/materialApi.js";
 import { announcementApi } from "../redux/api/announcementApi.js";
 import { newsApi } from "../redux/api/newsApi.js";
 
@@ -36,6 +37,7 @@ export const store = configureStore({
     [assignmentApi.reducerPath]: assignmentApi.reducer,
     [learningHoursApi.reducerPath]: learningHoursApi.reducer,
     [paymentApi.reducerPath]: paymentApi.reducer,
+    [materialApi.reducerPath]: materialApi.reducer,
     [announcementApi.reducerPath]: announcementApi.reducer,
     [newsApi.reducerPath]: newsApi.reducer,
   },
@@ -57,7 +59,8 @@ export const store = configureStore({
       assignmentApi.middleware,
       learningHoursApi.middleware,
       paymentApi.middleware,
-      announcementApi.middleware,
-      newsApi.middleware
+      newsApi.middleware,
+      materialApi.middleware,
+      announcementApi.middleware
     ),
 });
