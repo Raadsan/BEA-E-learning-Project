@@ -46,10 +46,10 @@ export default function TeacherSidebar() {
           <Link
             href="/portal/teacher"
             className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive("/portal/teacher") || (pathname === "/portal/teacher" && !pathname.includes("/portal/teacher/"))
-                ? 'bg-[#010080] text-white'
-                : isDark
-                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
-                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+              ? 'bg-[#010080] text-white'
+              : isDark
+                ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                : 'text-gray-700 hover:bg-[#010080] hover:text-white'
               }`}
           >
             <svg className={`w-5 h-5 ${isActive("/portal/teacher") ? 'text-white' : 'text-[#010080]'} group-hover:text-white`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,10 +62,10 @@ export default function TeacherSidebar() {
           <Link
             href="/portal/teacher/announcements"
             className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive("/portal/teacher/announcements")
-                ? 'bg-[#f95150] text-white'
-                : isDark
-                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
-                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+              ? 'bg-[#f95150] text-white'
+              : isDark
+                ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                : 'text-gray-700 hover:bg-[#010080] hover:text-white'
               }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,15 +74,31 @@ export default function TeacherSidebar() {
             <span>Announcements</span>
           </Link>
 
+          {/* News & Events */}
+          <Link
+            href="/portal/teacher/news"
+            className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive("/portal/teacher/news")
+              ? 'bg-[#f95150] text-white'
+              : isDark
+                ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+              }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+            </svg>
+            <span>News & Events</span>
+          </Link>
+
           {/* My Classes Dropdown */}
           <div>
             <button
               onClick={handleMyClassesToggle}
               className={`group w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-colors ${isMyClassesActive || isMyClassesOpen
-                  ? 'bg-[#f95150] text-white'
-                  : isDark
-                    ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
-                    : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+                ? 'bg-[#f95150] text-white'
+                : isDark
+                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
                 }`}
             >
               <div className="flex items-center gap-3">
@@ -105,10 +121,10 @@ export default function TeacherSidebar() {
                 <Link
                   href="/portal/teacher/my-classes"
                   className={`group block px-4 py-2 rounded-lg text-sm transition-colors ${isActive("/portal/teacher/my-classes")
-                      ? 'bg-[#f95150] text-white'
-                      : isDark
-                        ? 'text-gray-400 hover:bg-[#010080] hover:text-white'
-                        : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+                    ? 'bg-[#f95150] text-white'
+                    : isDark
+                      ? 'text-gray-400 hover:bg-[#010080] hover:text-white'
+                      : 'text-gray-700 hover:bg-[#010080] hover:text-white'
                     }`}
                 >
                   Class List
@@ -121,10 +137,10 @@ export default function TeacherSidebar() {
           <Link
             href="/portal/teacher/attendance"
             className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive("/portal/teacher/attendance")
-                ? 'bg-[#f95150] text-white'
-                : isDark
-                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
-                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+              ? 'bg-[#f95150] text-white'
+              : isDark
+                ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                : 'text-gray-700 hover:bg-[#010080] hover:text-white'
               }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,10 +153,10 @@ export default function TeacherSidebar() {
           <Link
             href="/portal/teacher/classes-courses"
             className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive("/portal/teacher/classes-courses")
-                ? 'bg-[#f95150] text-white'
-                : isDark
-                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
-                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+              ? 'bg-[#f95150] text-white'
+              : isDark
+                ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                : 'text-gray-700 hover:bg-[#010080] hover:text-white'
               }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,10 +169,10 @@ export default function TeacherSidebar() {
           <Link
             href="/portal/teacher/student-progress"
             className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive("/portal/teacher/student-progress")
-                ? 'bg-[#f95150] text-white'
-                : isDark
-                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
-                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+              ? 'bg-[#f95150] text-white'
+              : isDark
+                ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                : 'text-gray-700 hover:bg-[#010080] hover:text-white'
               }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,10 +185,10 @@ export default function TeacherSidebar() {
           <Link
             href="/portal/teacher/reports"
             className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive("/portal/teacher/reports")
-                ? 'bg-[#f95150] text-white'
-                : isDark
-                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
-                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+              ? 'bg-[#f95150] text-white'
+              : isDark
+                ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                : 'text-gray-700 hover:bg-[#010080] hover:text-white'
               }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,10 +204,10 @@ export default function TeacherSidebar() {
           <Link
             href="/portal/teacher/settings"
             className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive("/portal/teacher/settings")
-                ? 'bg-[#f95150] text-white'
-                : isDark
-                  ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
-                  : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+              ? 'bg-[#f95150] text-white'
+              : isDark
+                ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+                : 'text-gray-700 hover:bg-[#010080] hover:text-white'
               }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,8 +221,8 @@ export default function TeacherSidebar() {
           <Link
             href="/auth/login"
             className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isDark
-                ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
-                : 'text-gray-700 hover:bg-[#010080] hover:text-white'
+              ? 'text-gray-300 hover:bg-[#010080] hover:text-white'
+              : 'text-gray-700 hover:bg-[#010080] hover:text-white'
               }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

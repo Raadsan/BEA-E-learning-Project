@@ -1,6 +1,7 @@
 "use client";
 
 import TeacherHeader from "./TeacherHeader";
+import UpcomingEventsList from "@/components/UpcomingEventsList";
 import React from 'react';
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
@@ -39,7 +40,7 @@ function ProgressCircle({ percent = 0, size = 56, strokeWidth = 6, colors = ['#3
 
 export default function TeacherDashboard() {
   const { isDark } = useDarkMode();
-  
+
   // Fetch data from APIs
   const { data: classesData, isLoading: classesLoading } = useGetClassesQuery();
   const { data: studentsData, isLoading: studentsLoading } = useGetStudentsQuery();
@@ -48,13 +49,13 @@ export default function TeacherDashboard() {
   // Extract counts
   const classes = Array.isArray(classesData) ? classesData : [];
   const totalClasses = classes.length;
-  
+
   const studentsArray = studentsData?.students || (Array.isArray(studentsData) ? studentsData : []);
   const totalStudents = studentsArray.length;
   const activeStudents = studentsArray.filter(
     (student) => student.status === "Active" || !student.status
   ).length;
-  
+
   const courses = Array.isArray(coursesData) ? coursesData : [];
   const totalCourses = courses.length;
 
@@ -86,7 +87,7 @@ export default function TeacherDashboard() {
       <main className="flex-1 overflow-y-auto p-6 bg-gray-100 dark:bg-gray-900 transition-colors">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Dashboard Overview</h1>
-          
+
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* Total Course Card */}
@@ -154,15 +155,13 @@ export default function TeacherDashboard() {
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Weekly Attendance Bar Chart */}
-            <div className={`rounded-lg shadow-sm p-6 border transition-colors ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-lg font-semibold mb-4 ${
-                isDark ? 'text-white' : 'text-gray-800'
+            <div className={`rounded-lg shadow-sm p-6 border transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
+              <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'
+                }`}>
                 Statistics Weekly Attendance
               </h2>
-              
+
               {/* Legend */}
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex items-center gap-2">
@@ -182,7 +181,7 @@ export default function TeacherDashboard() {
                     const thisWeekHeight = (data.thisWeek / maxAttendance) * 100;
                     const lastWeekHeight = (data.lastWeek / maxAttendance) * 100;
                     const isHighlighted = data.day === "Mon";
-                    
+
                     return (
                       <div key={index} className="flex-1 flex flex-col items-center gap-1 group">
                         <div className="relative w-full h-full flex items-end justify-center gap-2">
@@ -194,28 +193,25 @@ export default function TeacherDashboard() {
                           </div>
                         </div>
                         {isHighlighted && (
-                          <div className={`absolute -top-8 px-2 py-1 rounded text-xs font-medium ${
-                            isDark ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'
-                          }`}>
+                          <div className={`absolute -top-8 px-2 py-1 rounded text-xs font-medium ${isDark ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'
+                            }`}>
                             {data.day} {data.thisWeek}
                           </div>
                         )}
-                        <span className={`text-xs font-medium mt-1 ${
-                          isDark ? 'text-gray-400' : 'text-gray-600'
-                        }`}>
+                        <span className={`text-xs font-medium mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'
+                          }`}>
                           {data.day}
                         </span>
                       </div>
                     );
                   })}
                 </div>
-                
+
                 {/* Y-axis labels */}
                 <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between pr-2 text-right w-8">
                   {[0, 100, 200, 300, 400].map((value) => (
-                    <span key={value} className={`text-xs ${
-                      isDark ? 'text-gray-500' : 'text-gray-400'
-                    }`}>
+                    <span key={value} className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'
+                      }`}>
                       {value}
                     </span>
                   ))}
@@ -224,20 +220,17 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Course Completion Rate Pie Chart */}
-            <div className={`rounded-lg shadow-sm p-6 border transition-colors ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
+            <div className={`rounded-lg shadow-sm p-6 border transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              }`}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className={`text-lg font-semibold ${
-                  isDark ? 'text-white' : 'text-gray-800'
-                }`}>
+                <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                   Statistics Course Completion Rate
                 </h2>
-                <select className={`px-3 py-1 border rounded-lg text-sm transition-colors ${
-                  isDark 
-                    ? 'bg-gray-700 border-gray-600 text-white' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}>
+                <select className={`px-3 py-1 border rounded-lg text-sm transition-colors ${isDark
+                  ? 'bg-gray-700 border-gray-600 text-white'
+                  : 'bg-white border-gray-300 text-gray-900'
+                  }`}>
                   <option>Weekly</option>
                   <option>Monthly</option>
                 </select>
@@ -252,12 +245,12 @@ export default function TeacherDashboard() {
                       const startAngle = courseCompletion.slice(0, index).reduce((sum, c) => sum + (c.percentage / total) * 360, 0);
                       const angle = (course.percentage / total) * 360;
                       const largeArcFlag = angle > 180 ? 1 : 0;
-                      
+
                       const x1 = 50 + 50 * Math.cos((startAngle * Math.PI) / 180);
                       const y1 = 50 + 50 * Math.sin((startAngle * Math.PI) / 180);
                       const x2 = 50 + 50 * Math.cos(((startAngle + angle) * Math.PI) / 180);
                       const y2 = 50 + 50 * Math.sin(((startAngle + angle) * Math.PI) / 180);
-                      
+
                       return (
                         <path
                           key={index}
@@ -279,23 +272,20 @@ export default function TeacherDashboard() {
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: index % 2 === 0 ? '#3b82f6' : '#ef4444' }}
                         ></div>
-                        <span className={`text-sm font-medium ${
-                          isDark ? 'text-gray-300' : 'text-gray-700'
-                        }`}>
+                        <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'
+                          }`}>
                           {course.course}:
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-sm font-semibold ${
-                          isDark ? 'text-white' : 'text-gray-900'
-                        }`}>
+                        <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'
+                          }`}>
                           {course.percentage}%
                         </span>
-                        <span className={`text-xs ${
-                          course.change >= 0 
-                            ? 'text-green-600' 
-                            : 'text-red-600'
-                        }`}>
+                        <span className={`text-xs ${course.change >= 0
+                          ? 'text-green-600'
+                          : 'text-red-600'
+                          }`}>
                           ({course.change >= 0 ? '+' : ''}{course.change.toFixed(2)}%)
                         </span>
                       </div>
@@ -305,10 +295,15 @@ export default function TeacherDashboard() {
               </div>
             </div>
           </div>
+
+          {/* Upcoming Events Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <UpcomingEventsList />
+          </div>
         </div>
       </main>
     </>
   );
 }
 
- 
+

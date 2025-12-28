@@ -89,6 +89,10 @@ app.use("/api/attendance", attendanceRoutes);
 // ⬇️ Register Announcement Routes
 app.use("/api/announcements", announcementRoutes);
 
+// ⬇️ Register News/Events Routes
+import newsRoutes from "./routes/newsRoutes.js";
+app.use("/api/news", newsRoutes);
+
 // Server start
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}`));
