@@ -317,13 +317,13 @@ export default function GeneralStudentsPage() {
         }
 
         return (
-          <div className="flex justify-center">
-            <button
-              onClick={() => handleOpenAssignModal(row)}
-              className="px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors cursor-pointer"
+          <div className="flex justify-start">
+            <span
+              className="block truncate max-w-[150px] text-sm text-gray-700 dark:text-gray-300"
+              title={subName}
             >
               {subName}
-            </button>
+            </span>
           </div>
         );
       },
@@ -670,10 +670,10 @@ export default function GeneralStudentsPage() {
                   <div>
                     <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Status</p>
                     <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${viewingStudent.approval_status === 'approved'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                        : viewingStudent.approval_status === 'inactive'
-                          ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                      : viewingStudent.approval_status === 'inactive'
+                        ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                       }`}>
                       {viewingStudent.approval_status === 'approved' ? 'Active' : viewingStudent.approval_status.charAt(0).toUpperCase() + viewingStudent.approval_status.slice(1)}
                     </span>

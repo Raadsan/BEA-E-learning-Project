@@ -20,24 +20,43 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
     const [selectedClass, setSelectedClass] = useState('');
     const [timeFrame, setTimeFrame] = useState('Daily');
 
-    // Mock data for a "perfect" look
-    const data = [
-        { name: 'Mon', attended: 45, absent: 5, percentage: 90 },
-        { name: 'Tue', attended: 48, absent: 2, percentage: 96 },
-        { name: 'Wed', attended: 42, absent: 8, percentage: 84 },
-        { name: 'Thu', attended: 50, absent: 0, percentage: 100 },
-        { name: 'Fri', attended: 46, absent: 4, percentage: 92 },
-        { name: 'Sat', attended: 38, absent: 2, percentage: 95 },
-        { name: 'Sun', attended: 40, absent: 3, percentage: 93 },
-    ];
+    // Fetch Stats
+    const { data: statsData, isLoading } = useGetAttendanceStatsQuery({
+        class_id: selectedClass || undefined,
+        program_id: selectedProgram || undefined,
+        timeFrame
+    });
 
-    const isLoading = false;
+    // Process Data based on TimeFrame
+    const processedData = React.useMemo(() => {
+        if (!statsData) return [];
+
+        // If daily, we might want to map "Monday" to "Mon" etc.
+        if (timeFrame === 'Daily') {
+            // Create a map for quick lookup
+            const dayMap = {
+                'Monday': 'Mon', 'Tuesday': 'Tue', 'Wednesday': 'Wed', 'Thursday': 'Thu', 'Friday': 'Fri', 'Saturday': 'Sat', 'Sunday': 'Sun'
+            };
+
+            // We want to ensure we show the sequence returned by API (chronological) 
+            // but formatted correctly.
+            return statsData.map(item => ({
+                ...item,
+                name: dayMap[item.name] || item.name // shorter name if daily
+            }));
+        }
+
+        return statsData;
+    }, [statsData, timeFrame]);
+
+    // Fallback if empty to show an empty chart structure or message
+    // But chart handles empty array nicely usually.
 
     return (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 w-full h-full">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 w-full h-full flex flex-col">
             <div className="flex flex-col mb-4">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Weekly Class Attendance Overview</h3>
-                <div className="flex gap-2 mb-2">
+                <div className="flex gap-2 mb-2 flex-wrap">
                     <select
                         value={selectedProgram}
                         onChange={(e) => setSelectedProgram(e.target.value)}
@@ -59,10 +78,10 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                         onChange={(e) => setTimeFrame(e.target.value)}
                         className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
-                        <option value="Daily">Today</option>
-                        <option value="Weekly">Weekly</option>
-                        <option value="Monthly">Monthly</option>
-                        <option value="Yearly">Yearly</option>
+                        <option value="Today">Today</option>
+                        <option value="Daily">Daily (Last 7 Days)</option>
+                        <option value="Weekly">Weekly (Last 3 Months)</option>
+                        <option value="Monthly">Monthly (Last Year)</option>
                     </select>
                     <select
                         value={selectedClass}
@@ -83,15 +102,22 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                 </div>
             </div>
 
-            <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                    {isLoading ? (
-                        <div className="flex items-center justify-center h-full">
-                            <p className="text-gray-400">Loading stats...</p>
+            <div className="flex-1 min-h-[300px] w-full relative">
+                {isLoading ? (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <p className="text-gray-400 text-sm">Loading stats...</p>
+                    </div>
+                ) : processedData.length === 0 ? (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                            <p className="text-gray-400 text-lg mb-1">No attendance data</p>
+                            <p className="text-gray-400 text-sm opacity-70">Try adjusting the filters or range.</p>
                         </div>
-                    ) : (
+                    </div>
+                ) : (
+                    <ResponsiveContainer width="100%" height="100%">
                         <LineChart
-                            data={data}
+                            data={processedData}
                             margin={{
                                 top: 5,
                                 right: 20,
@@ -106,6 +132,7 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                                 tickLine={false}
                                 tick={{ fill: '#6b7280', fontSize: 12 }}
                                 dy={10}
+                                interval={0} // Force show all
                             />
                             <YAxis
                                 axisLine={false}
@@ -153,34 +180,33 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                                 activeDot={{ r: 6 }}
                             />
                         </LineChart>
-                    )}
-                </ResponsiveContainer>
+                    </ResponsiveContainer>
+                )}
             </div>
 
-            <div className="mt-4 h-24 w-full relative">
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data}>
-                        <defs>
-                            <linearGradient id="colorPercentage" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#dbeafe" stopOpacity={0.8} />
-                                <stop offset="95%" stopColor="#dbeafe" stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
-                        <XAxis
-                            dataKey="name"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: '#6b7280', fontSize: 12 }}
-                            hide
-                        />
-                        <Area type="monotone" dataKey="percentage" stroke="#93c5fd" fillOpacity={1} fill="url(#colorPercentage)" />
-                    </AreaChart>
-                </ResponsiveContainer>
-                <div className="absolute right-0 top-0 flex flex-col items-end text-xs text-gray-500 pr-2">
-                    {/* Static stats for now or could be calculated */}
+            {/* Keeping the Area chart at bottom for extra visual flair as per original but mapping same data */}
+            {processedData.length > 0 && (
+                <div className="mt-4 h-24 w-full relative">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={processedData}>
+                            <defs>
+                                <linearGradient id="colorPercentage" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#dbeafe" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#dbeafe" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <XAxis
+                                dataKey="name"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#6b7280', fontSize: 12 }}
+                                hide
+                            />
+                            <Area type="monotone" dataKey="percentage" stroke="#93c5fd" fillOpacity={1} fill="url(#colorPercentage)" />
+                        </AreaChart>
+                    </ResponsiveContainer>
                 </div>
-            </div>
-
+            )}
         </div>
     );
 };

@@ -81,12 +81,10 @@ export const getAttendanceStats = async (filters) => {
     params.push(class_id);
   }
 
-  /*
   if (program_id) {
     query += ` AND c.program_id = ?`;
     params.push(program_id);
   }
-  */
 
   // Grouping
   if (period === 'monthly') {

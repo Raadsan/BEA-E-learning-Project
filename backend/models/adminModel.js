@@ -50,32 +50,26 @@ export const createAdmin = (adminData) => {
 // Update admin
 export const updateAdminById = (id, adminData) => {
     return new Promise((resolve, reject) => {
-        const { first_name, last_name, username, email, phone, bio, status, role } = adminData;
+        const allowedFields = [
+            'first_name', 'last_name', 'username', 'email', 'phone',
+            'bio', 'status', 'role', 'password', 'profile_image'
+        ];
 
-        let query = "UPDATE admins SET first_name = ?, last_name = ?, username = ?, email = ?, phone = ?, bio = ?";
-        const params = [first_name, last_name, username, email, phone, bio];
+        const updates = [];
+        const params = [];
 
-        if (status) {
-            query += ", status = ?";
-            params.push(status);
+        allowedFields.forEach(field => {
+            if (adminData[field] !== undefined) {
+                updates.push(`${field} = ?`);
+                params.push(adminData[field]);
+            }
+        });
+
+        if (updates.length === 0) {
+            return resolve({ affectedRows: 0 });
         }
 
-        if (role) {
-            query += ", role = ?";
-            params.push(role);
-        }
-
-        if (adminData.password) {
-            query += ", password = ?";
-            params.push(adminData.password);
-        }
-
-        if (adminData.profile_image) {
-            query += ", profile_image = ?";
-            params.push(adminData.profile_image);
-        }
-
-        query += " WHERE id = ?";
+        const query = `UPDATE admins SET ${updates.join(', ')} WHERE id = ?`;
         params.push(id);
 
         console.log("[Admin Debug] Executing Update Query:", query);
