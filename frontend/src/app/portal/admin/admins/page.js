@@ -400,7 +400,7 @@ export default function AdminsPage() {
       {confirmationModal.isOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0  backdrop-blur-sm"
             onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
           />
           <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
@@ -437,7 +437,7 @@ export default function AdminsPage() {
                 <button
                   onClick={confirmationModal.onConfirm}
                   disabled={confirmationModal.isLoading}
-                  className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center px-6"
+                  className="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center px-6"
                 >
                   {confirmationModal.isLoading ? (
                     <>

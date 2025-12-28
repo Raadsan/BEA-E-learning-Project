@@ -459,7 +459,7 @@ export default function GeneralStudentsPage() {
         return (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
             <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              className="absolute inset-0  backdrop-blur-sm"
               aria-hidden="true"
             />
             <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
@@ -587,7 +587,7 @@ export default function GeneralStudentsPage() {
       {isViewModalOpen && viewingStudent && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 backdrop-blur-sm"
             aria-hidden="true"
           />
           <div className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
@@ -710,7 +710,7 @@ export default function GeneralStudentsPage() {
         return (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
             <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              className="absolute inset-0  backdrop-blur-sm"
               aria-hidden="true"
             />
             <div className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>

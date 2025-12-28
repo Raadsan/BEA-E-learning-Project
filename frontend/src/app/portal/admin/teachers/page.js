@@ -279,7 +279,7 @@ export default function TeachersPage() {
         <div className="flex gap-2">
           <button
             onClick={() => handleView(row)}
-            className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+            className="text-green-600 bg-green  hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
             title="View"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -360,7 +360,7 @@ export default function TeachersPage() {
       {/* Add/Edit Teacher Modal */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
+          className="fixed inset-0 z-[100] bg-green-400 backdrop-blur-sm flex items-center justify-center bg-transparent"
           style={{ pointerEvents: 'none' }}
         >
           <div
@@ -658,7 +658,7 @@ export default function TeachersPage() {
       {
         isViewModalOpen && viewingTeacher && (
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center"
+            className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm "
             style={{ pointerEvents: 'none' }}
           >
             <div
@@ -934,9 +934,9 @@ export default function TeachersPage() {
 
       {/* Confirmation Modal */}
       {confirmationModal.isOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center  backdrop-blur-sm">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0  backdrop-blur-sm"
             onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
           />
           <div className={`relative w-full max-w-md p-6 rounded-lg shadow-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
@@ -959,7 +959,7 @@ export default function TeachersPage() {
               <button
                 onClick={confirmationModal.onConfirm}
                 disabled={confirmationModal.isLoading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 {confirmationModal.isLoading && (
                   <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
