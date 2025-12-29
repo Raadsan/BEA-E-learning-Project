@@ -6,9 +6,11 @@ import DataTable from "@/components/DataTable";
 import { useGetTeachersQuery, useCreateTeacherMutation, useUpdateTeacherMutation, useDeleteTeacherMutation } from "@/redux/api/teacherApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
+import { useToast } from "@/components/Toast";
 
 export default function TeachersPage() {
   const { isDark } = useDarkMode();
+  const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
@@ -107,7 +109,7 @@ export default function TeachersPage() {
           console.error("Failed to update status:", error);
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
           // Ideally use a toast here, but for now I'll stick to not using alert as requested, maybe just log or keep modal open with error
-          alert(error?.data?.error || "Failed to update status."); // Fallback if user only complained about the confirm dialog style
+          showToast(error?.data?.error || "Failed to update status.", "error");
         }
       },
       isLoading: false
@@ -127,7 +129,7 @@ export default function TeachersPage() {
         } catch (error) {
           console.error("Failed to delete teacher:", error);
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
-          alert("Failed to delete teacher. Please try again.");
+          showToast("Failed to delete teacher. Please try again.", "error");
         }
       },
       isLoading: false
@@ -147,7 +149,7 @@ export default function TeachersPage() {
   const handleAssign = (teacher) => {
     // Note: Teacher assignment to classes has been removed
     // This functionality is no longer available
-    alert("Teacher assignment to classes has been removed. Teachers are no longer directly assigned to classes.");
+    showToast("Teacher assignment to classes has been removed. Teachers are no longer directly assigned to classes.", "info");
   };
 
   const handleCloseModal = () => {
@@ -206,7 +208,7 @@ export default function TeachersPage() {
       } else {
         // Password is required for new teachers
         if (!submitData.password || submitData.password.trim() === "") {
-          alert("Password is required for new teachers");
+          showToast("Password is required for new teachers", "error");
           return;
         }
         await createTeacher(submitData).unwrap();
@@ -215,7 +217,7 @@ export default function TeachersPage() {
       handleCloseModal();
     } catch (error) {
       console.error("Failed to save teacher:", error);
-      alert(error?.data?.error || "Failed to save teacher. Please try again.");
+      showToast(error?.data?.error || "Failed to save teacher. Please try again.", "error");
     }
 
     return false;

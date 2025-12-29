@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from "@/redux/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
+import { useToast } from "@/components/Toast";
 
 export default function StudentAssignmentList({ type, title }) {
     const { isDark } = useDarkMode();
+    const { showToast } = useToast();
     const { data: user } = useGetCurrentUserQuery();
     const { data: assignments, isLoading } = useGetAssignmentsQuery({
         class_id: user?.class_id,
@@ -16,6 +18,7 @@ export default function StudentAssignmentList({ type, title }) {
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [view, setView] = useState("list"); // "list" or "workspace"
     const [submissionContent, setSubmissionContent] = useState("");
+    const [quizAnswers, setQuizAnswers] = useState({});
     const [submitting, setSubmitting] = useState(false);
 
     const getWordCount = (text) => {
@@ -24,31 +27,58 @@ export default function StudentAssignmentList({ type, title }) {
 
     const handleOpenWorkspace = (assignment) => {
         setSelectedAssignment(assignment);
-        setSubmissionContent(assignment.student_content || "");
+        if (assignment.questions) {
+            const initialAnswers = assignment.student_content ?
+                (typeof assignment.student_content === 'string' ? JSON.parse(assignment.student_content) : assignment.student_content)
+                : {};
+            setQuizAnswers(initialAnswers);
+        } else {
+            setSubmissionContent(assignment.student_content || "");
+        }
         setView("workspace");
     };
 
     const handleFinalSubmit = async () => {
-        if (!submissionContent.trim()) {
-            alert("Please write something before submitting.");
+        const isQuiz = !!selectedAssignment?.questions;
+
+        if (!isQuiz && !submissionContent.trim()) {
+            showToast("Please write something before submitting.", "error");
             return;
+        }
+
+        if (isQuiz) {
+            const questions = typeof selectedAssignment.questions === 'string'
+                ? JSON.parse(selectedAssignment.questions)
+                : selectedAssignment.questions;
+
+            if (Object.keys(quizAnswers).length < questions.length) {
+                if (!window.confirm("You haven't answered all questions. Submit anyway?")) return;
+            }
         }
 
         try {
             setSubmitting(true);
             await submitAssignment({
                 assignment_id: selectedAssignment.id,
-                content: submissionContent,
+                content: isQuiz ? quizAnswers : submissionContent,
                 type: type // Pass type for multi-table routing
             }).unwrap();
             setView("list");
             setSubmissionContent("");
-            alert("Work submitted successfully!");
+            setQuizAnswers({});
+            showToast("Work submitted successfully!", "success");
         } catch (err) {
-            alert(err.data?.error || "Failed to submit work");
+            showToast(err.data?.error || "Failed to submit work", "error");
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const handleAnswerChange = (qIndex, option) => {
+        setQuizAnswers(prev => ({
+            ...prev,
+            [qIndex]: option
+        }));
     };
 
     if (isLoading) {
@@ -75,8 +105,8 @@ export default function StudentAssignmentList({ type, title }) {
                         </svg>
                     </button>
                     <div>
-                        <h1 className="text-4xl font-semibold tracking-tight">{selectedAssignment.title}</h1>
-                        <p className={`text-lg font-medium opacity-70 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <h1 className="text-2xl font-bold tracking-tight">{selectedAssignment.title}</h1>
+                        <p className={`text-sm font-medium opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                             {type === 'writing_task' ? 'Writing Workspace' : 'Assignment Submission'}
                         </p>
                     </div>
@@ -136,45 +166,95 @@ export default function StudentAssignmentList({ type, title }) {
                     )}
                 </div>
 
-                {/* Writing Area - Full Width */}
-                <div className="max-w-screen-2xl mx-auto">
-                    <div className="relative group">
-                        <textarea
-                            className={`w-full h-[650px] p-10 border-2 rounded-2xl shadow-2xl focus:ring-8 focus:ring-blue-500/10 focus:outline-none transition-all resize-none text-xl leading-relaxed font-serif ${isDark ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-600' : 'bg-white border-gray-100 text-gray-800 placeholder-gray-400'
-                                } ${isClosed ? 'opacity-80 cursor-not-allowed border-dashed' : 'group-hover:border-blue-200 dark:group-hover:border-blue-900'}`}
-                            placeholder="Type your essay content here..."
-                            value={submissionContent}
-                            onChange={(e) => !isClosed && setSubmissionContent(e.target.value)}
-                            disabled={isClosed}
-                        />
-                        <div className={`absolute bottom-8 right-10 px-6 py-3 rounded-2xl text-lg font-semibold shadow-xl border-2 transform group-hover:scale-105 transition-transform ${getWordCount(submissionContent) < (selectedAssignment?.word_count || 0)
-                            ? (isDark ? 'bg-yellow-900/40 text-yellow-400 border-yellow-800/50' : 'bg-yellow-50 text-yellow-700 border-yellow-100')
-                            : (isDark ? 'bg-green-900/40 text-green-400 border-green-800/50' : 'bg-green-50 text-green-700 border-green-100')
-                            }`}>
-                            <span className="opacity-60 mr-2 text-sm uppercase">Words:</span>
-                            {getWordCount(submissionContent)}
-                            {selectedAssignment?.word_count ? <span className="text-sm opacity-40 ml-1">/ {selectedAssignment.word_count}</span> : ''}
+                {/* Writing Area / Quiz Area */}
+                <div className="w-full">
+                    {selectedAssignment.questions ? (
+                        <div className="space-y-6">
+                            {(typeof selectedAssignment.questions === 'string' ? JSON.parse(selectedAssignment.questions) : selectedAssignment.questions).map((q, idx) => (
+                                <div key={idx} className={`p-8 rounded-2xl shadow-sm border transition-all ${isDark ? 'bg-gray-800 border-gray-700 hover:border-blue-500/30' : 'bg-white border-gray-200 hover:border-blue-200 shadow-sm'}`}>
+                                    <div className="flex justify-between items-start mb-6">
+                                        <h3 className="text-lg font-bold flex gap-3">
+                                            <span className="opacity-30">{idx + 1}.</span>
+                                            {q.questionText}
+                                        </h3>
+                                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                                            {q.points || 1} Points
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {q.options.map((opt, oIdx) => (
+                                            <label
+                                                key={oIdx}
+                                                className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${quizAnswers[idx] === opt
+                                                        ? (isDark ? 'bg-blue-900/20 border-blue-500 text-blue-100' : 'bg-blue-50 border-blue-500 text-blue-900')
+                                                        : (isDark ? 'bg-gray-900/50 border-gray-700 hover:border-gray-600 text-gray-400' : 'bg-gray-50 border-gray-100 hover:border-gray-300 text-gray-600')
+                                                    } ${isClosed ? 'cursor-not-allowed opacity-80' : ''}`}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name={`q-${idx}`}
+                                                    value={opt}
+                                                    checked={quizAnswers[idx] === opt}
+                                                    onChange={() => !isClosed && handleAnswerChange(idx, opt)}
+                                                    className="hidden"
+                                                    disabled={isClosed}
+                                                />
+                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${quizAnswers[idx] === opt
+                                                        ? 'border-blue-500 bg-blue-500 text-white'
+                                                        : 'border-gray-300'
+                                                    }`}>
+                                                    {quizAnswers[idx] === opt && (
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                                <span className="font-medium">{opt}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    </div>
+                    ) : (
+                        <div className="relative group">
+                            <textarea
+                                className={`w-full h-[500px] p-6 border rounded-xl shadow-sm focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all resize-none text-lg leading-relaxed ${isDark ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-600' : 'bg-white border-gray-200 text-gray-800 placeholder-gray-400'
+                                    } ${isClosed ? 'opacity-80 cursor-not-allowed border-dashed' : 'hover:border-blue-500/30'}`}
+                                placeholder="Type your essay content here..."
+                                value={submissionContent}
+                                onChange={(e) => !isClosed && setSubmissionContent(e.target.value)}
+                                disabled={isClosed}
+                            />
+                            <div className={`absolute bottom-6 right-6 px-4 py-2 rounded-lg text-sm font-semibold border ${getWordCount(submissionContent) < (selectedAssignment?.word_count || 0)
+                                ? (isDark ? 'bg-yellow-900/20 text-yellow-400 border-yellow-800/30' : 'bg-yellow-50 text-yellow-700 border-yellow-200')
+                                : (isDark ? 'bg-green-900/20 text-green-400 border-green-800/30' : 'bg-green-50 text-green-700 border-green-200')
+                                }`}>
+                                <span className="opacity-60 mr-1.5 font-medium">Word Count:</span>
+                                {getWordCount(submissionContent)}
+                                {selectedAssignment?.word_count ? <span className="opacity-40 ml-1">/ {selectedAssignment.word_count}</span> : ''}
+                            </div>
+                        </div>
+                    )}
 
                     {!isClosed && (
-                        <div className="flex justify-center mt-12 mb-20 animate-in fade-in slide-in-from-bottom-4">
+                        <div className="flex justify-center mt-12 mb-20">
                             <button
                                 onClick={handleFinalSubmit}
-                                className={`px-20 py-5 rounded-[2rem] font-semibold text-2xl text-white transition-all shadow-2xl active:scale-95 flex items-center gap-4 ${submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#010080] hover:bg-blue-700 hover:shadow-blue-500/40'
+                                className={`px-16 py-4 rounded-2xl font-bold text-white transition-all shadow-xl active:scale-[0.98] flex items-center gap-3 ${submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
                                     }`}
                                 disabled={submitting}
                             >
                                 {submitting ? (
                                     <>
-                                        <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
                                         Processing...
                                     </>
                                 ) : (
                                     <>
-                                        Submit My Assignment
-                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        Complete & Submit Progress
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                         </svg>
                                     </>
                                 )}
@@ -195,13 +275,13 @@ export default function StudentAssignmentList({ type, title }) {
                 </p>
             </div>
 
-            {!assignments || assignments.length === 0 ? (
-                <div className={`p-20 rounded-2xl shadow-xl border-2 border-dashed text-center ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <p className="text-2xl font-semibold text-gray-400">No active {title.toLowerCase()} assignments yet.</p>
+            {!assignments || assignments.filter(t => t.status !== 'inactive').length === 0 ? (
+                <div className={`p-20 rounded-xl shadow-sm border-2 border-dashed text-center ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <p className="text-xl font-medium text-gray-400">No active {title.toLowerCase()} assignments yet.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {assignments.map((task) => {
+                    {assignments.filter(t => t.status !== 'inactive').map((task) => {
                         const isGraded = task.submission_status === 'graded';
                         const isSubmitted = task.submission_status === 'submitted';
                         const currentWords = getWordCount(task.student_content || "");
@@ -210,57 +290,66 @@ export default function StudentAssignmentList({ type, title }) {
                             <div
                                 key={task.id}
                                 onClick={() => handleOpenWorkspace(task)}
-                                className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 cursor-pointer overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                                    } hover:shadow-2xl hover:scale-[1.02] hover:border-[#010080]`}
+                                className={`group p-6 rounded-xl border transition-all cursor-pointer hover:shadow-md flex flex-col justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                                    }`}
                             >
-                                <div className="flex justify-between items-center mb-6">
-                                    <div className={`p-2.5 rounded-xl ${isGraded ? 'bg-green-100 text-green-700' : isSubmitted ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
+                                <div>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <h3 className={`text-lg font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                            {task.title}
+                                        </h3>
+                                        <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${isGraded ? 'bg-green-100 text-green-700 border-green-200' :
+                                            isSubmitted ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                                                'bg-yellow-100 text-yellow-700 border-yellow-200'
+                                            }`}>
+                                            {(task.submission_status || 'pending').charAt(0).toUpperCase() + (task.submission_status || 'pending').slice(1)}
+                                        </span>
                                     </div>
-                                    <span className={`px-3 py-1.5 rounded-xl text-[10px] font-semibold uppercase tracking-widest ${isGraded ? 'bg-green-500 text-white' :
-                                        isSubmitted ? 'bg-blue-500 text-white' :
-                                            'bg-yellow-500 text-white'
-                                        }`}>
-                                        {task.submission_status || 'Pending'}
-                                    </span>
-                                </div>
-                                <h3 className={`text-xl font-semibold mb-3 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>{task.title}</h3>
 
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {task.word_count && (
-                                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
-                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16" /></svg>
-                                            Goal: {task.word_count}
+                                    <div className="space-y-3 mb-6">
+                                        <div className="flex items-center gap-3 text-gray-500">
+                                            <svg className="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <span className="text-sm font-medium">
+                                                {task.due_date ? new Date(task.due_date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                                            </span>
+                                        </div>
+                                        {isGraded ? (
+                                            <div className="flex items-center gap-2.5 text-green-600">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" /></svg>
+                                                <span className="text-sm font-semibold">Grade: {task.score} / {task.total_points}</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-3 text-gray-500">
+                                                <svg className="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span className="text-sm font-medium">{task.total_points} Points</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {isGraded && task.feedback && (
+                                        <div className={`mb-4 p-3 rounded-xl border border-dashed text-xs italic ${isDark ? 'bg-blue-900/10 border-blue-800/40 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
+                                            "{task.feedback}"
                                         </div>
                                     )}
-                                    {isSubmitted && (
-                                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-600'}`}>
-                                            {currentWords} Words
-                                        </div>
-                                    )}
                                 </div>
 
-                                <p className={`text-sm line-clamp-2 mb-6 opacity-70 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    {task.description}
-                                </p>
-
-                                <div className={`flex items-center justify-between mt-auto pt-5 border-t border-dashed ${isDark ? 'border-gray-700' : 'border-gray-100'} text-xs font-medium text-gray-500`}>
-                                    <div className="flex items-center gap-1.5">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                        {task.due_date ? new Date(task.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "N/A"}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-lg font-semibold">{task.total_points}</span>
-                                        <span className="text-[10px] uppercase opacity-60">Pts</span>
-                                    </div>
-                                </div>
+                                <button
+                                    className={`w-full py-2.5 rounded-lg font-semibold transition-all text-sm border ${isSubmitted || isGraded
+                                        ? 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                                        : 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
+                                        }`}
+                                >
+                                    {isSubmitted || isGraded ? 'View My Work' : 'Start Working'}
+                                </button>
                             </div>
                         );
                     })}
                 </div>
             )}
-        </div>
+        </div >
     );
 }

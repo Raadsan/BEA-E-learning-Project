@@ -4,10 +4,11 @@ import React, { useState, useEffect } from "react";
 import TeacherHeader from "../TeacherHeader";
 import { useGetTeacherQuery, useUpdateTeacherMutation } from "@/redux/api/teacherApi";
 import { useDarkMode } from "@/context/ThemeContext";
+import { useToast } from "@/components/Toast";
 
 export default function SettingsPage() {
     const { isDark } = useDarkMode();
-    const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+    const { showToast } = useToast();
     const [isEditing, setIsEditing] = useState(false); // Track edit mode
 
     // Get teacher ID from localStorage
@@ -56,10 +57,6 @@ export default function SettingsPage() {
         }
     }, [teacherData]);
 
-    const showToast = (message, type = "success") => {
-        setToast({ show: true, message, type });
-        setTimeout(() => setToast({ show: false, message: "", type: "success" }), 3000);
-    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -405,14 +402,6 @@ export default function SettingsPage() {
                     )}
                 </div>
             </main>
-
-            {toast.show && (
-                <Toast
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={() => setToast({ show: false, message: "", type: "success" })}
-                />
-            )}
         </>
     );
 }

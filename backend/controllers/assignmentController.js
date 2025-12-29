@@ -170,7 +170,8 @@ export const getAssignments = async (req, res) => {
             if (!table) continue;
 
             let query = `
-                SELECT a.*, '${t}' as type, c.class_name, p.title as program_name, t.full_name as teacher_name
+                SELECT a.*, '${t}' as type, c.class_name, p.title as program_name, t.full_name as teacher_name,
+                (SELECT COUNT(*) FROM ${subTable} WHERE assignment_id = a.id) as submission_count
                 ${role === 'student' ? `, s.status as submission_status, s.content as student_content, s.score, s.feedback` : ''}
                 FROM ${table} a
                 LEFT JOIN classes c ON a.class_id = c.id
@@ -216,16 +217,29 @@ export const createAssignment = async (req, res) => {
     try {
         const {
             title, description, class_id, program_id, type, due_date,
-            total_points, status, word_count, duration, submission_format, requirements
+            total_points, status, word_count, duration, submission_format, requirements, questions
         } = req.body;
         const userId = req.user.userId;
+
+        const safeStatus = (status || 'active').toLowerCase();
 
         const table = tableMapping[type]?.main;
         if (!table) return res.status(400).json({ error: "Invalid assignment type" });
 
+        console.log(`Creating ${type} assignment for user ${userId}`);
+
         // Build dynamic query based on table columns
         let columns = ['title', 'description', 'class_id', 'program_id', 'due_date', 'total_points', 'status', 'created_by'];
-        let values = [title, description, class_id, program_id, due_date, total_points, status || 'active', userId];
+        let values = [
+            title,
+            description || null,
+            class_id || null,
+            program_id || null,
+            (due_date && due_date !== "") ? due_date : null,
+            total_points || 0,
+            safeStatus,
+            userId
+        ];
 
         if (type === 'writing_task') {
             columns.push('word_count', 'requirements');
@@ -234,8 +248,8 @@ export const createAssignment = async (req, res) => {
             columns.push('duration');
             values.push(duration || null);
         } else if (type === 'course_work') {
-            columns.push('submission_format');
-            values.push(submission_format || null);
+            columns.push('submission_format', 'questions');
+            values.push(submission_format || null, questions ? JSON.stringify(questions) : null);
         }
 
         const placeholders = columns.map(() => '?').join(', ');
@@ -260,17 +274,29 @@ export const updateAssignment = async (req, res) => {
         const { id } = req.params;
         const {
             title, description, class_id, program_id, type, due_date,
-            total_points, status, word_count, duration, submission_format, requirements
+            total_points, status, word_count, duration, submission_format, requirements, questions
         } = req.body;
+
+        const safeStatus = (status || 'active').toLowerCase();
 
         const table = tableMapping[type]?.main;
         if (!table) return res.status(400).json({ error: "Invalid assignment type" });
+
+        console.log(`Updating ${type} assignment ${id}`);
 
         let updateParts = [
             'title = ?', 'description = ?', 'class_id = ?', 'program_id = ?',
             'due_date = ?', 'total_points = ?', 'status = ?'
         ];
-        let values = [title, description, class_id, program_id, due_date, total_points, status];
+        let values = [
+            title,
+            description || null,
+            class_id || null,
+            program_id || null,
+            (due_date && due_date !== "") ? due_date : null,
+            total_points || 0,
+            safeStatus
+        ];
 
         if (type === 'writing_task') {
             updateParts.push('word_count = ?', 'requirements = ?');
@@ -279,8 +305,8 @@ export const updateAssignment = async (req, res) => {
             updateParts.push('duration = ?');
             values.push(duration || null);
         } else if (type === 'course_work') {
-            updateParts.push('submission_format = ?');
-            values.push(submission_format || null);
+            updateParts.push('submission_format = ?', 'questions = ?');
+            values.push(submission_format || null, questions ? JSON.stringify(questions) : null);
         }
 
         values.push(id);
@@ -293,6 +319,8 @@ export const updateAssignment = async (req, res) => {
         res.json({ message: "Assignment updated successfully" });
     } catch (error) {
         console.error("Error updating assignment:", error);
+        // Log more detail for debugging
+        if (error.sql) console.error("Failed SQL:", error.sql);
         res.status(500).json({ error: "Failed to update assignment" });
     }
 };
@@ -330,7 +358,7 @@ export const submitAssignment = async (req, res) => {
 
         // Check if assignment exists and is active
         const [assignments] = await dbp.query(
-            `SELECT id, status FROM ${table} WHERE id = ?`,
+            `SELECT id, status, questions FROM ${table} WHERE id = ?`,
             [assignment_id]
         );
 
@@ -342,19 +370,61 @@ export const submitAssignment = async (req, res) => {
             return res.status(400).json({ error: "This assignment is closed for submissions" });
         }
 
+        let score = null;
+        let finalStatus = 'submitted';
+
+        // Auto-grading for Coursework with MCQs
+        if (type === 'course_work' && assignments[0].questions) {
+            try {
+                const testQuestions = typeof assignments[0].questions === 'string'
+                    ? JSON.parse(assignments[0].questions)
+                    : assignments[0].questions;
+
+                if (testQuestions && Array.isArray(testQuestions) && testQuestions.length > 0) {
+                    let totalScore = 0;
+                    const studentAnswers = typeof content === 'string' ? JSON.parse(content) : content;
+
+                    testQuestions.forEach((q, index) => {
+                        const studentAnswer = studentAnswers[index];
+                        const qPoints = parseInt(q.points) || 1;
+
+                        // Support both index-based and string-based correct answers
+                        const correctAnswer = q.options && q.correctOption !== undefined
+                            ? q.options[q.correctOption]
+                            : (q.correctAnswer || q.answer);
+
+                        if (studentAnswer === correctAnswer && studentAnswer !== undefined) {
+                            totalScore += qPoints;
+                        }
+                    });
+
+                    score = totalScore;
+                    finalStatus = 'graded';
+                }
+            } catch (e) {
+                console.error("Auto-grading failed:", e);
+                // Fallback to normal submission
+            }
+        }
+
         // UPSERT submission
         await dbp.query(
-            `INSERT INTO ${subTable} (assignment_id, student_id, content, file_url, status, submission_date)
-             VALUES (?, ?, ?, ?, 'submitted', NOW())
+            `INSERT INTO ${subTable} (assignment_id, student_id, content, file_url, score, status, submission_date)
+             VALUES (?, ?, ?, ?, ?, ?, NOW())
              ON DUPLICATE KEY UPDATE 
                 content = VALUES(content), 
                 file_url = VALUES(file_url), 
-                status = 'submitted', 
+                score = VALUES(score),
+                status = VALUES(status), 
                 submission_date = NOW()`,
-            [assignment_id, student_id, content, file_url]
+            [assignment_id, student_id, typeof content === 'object' ? JSON.stringify(content) : content, file_url, score, finalStatus]
         );
 
-        res.json({ message: "Assignment submitted successfully" });
+        res.json({
+            message: finalStatus === 'graded' ? "Assignment submitted and graded successfully" : "Assignment submitted successfully",
+            score,
+            status: finalStatus
+        });
     } catch (error) {
         console.error("Error submitting assignment:", error);
         res.status(500).json({ error: "Failed to submit assignment" });

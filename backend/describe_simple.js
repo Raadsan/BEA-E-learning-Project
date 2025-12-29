@@ -27,9 +27,10 @@ async function describeTableSimple(tableName) {
 }
 
 async function run() {
-    await describeTableSimple('attendance');
-    await describeTableSimple('announcements');
-    await describeTableSimple('students');
+    await describeTableSimple('writing_tasks');
+    await describeTableSimple('tests');
+    await describeTableSimple('oral_assignments');
+    await describeTableSimple('course_work');
     await pool.end();
 }
 

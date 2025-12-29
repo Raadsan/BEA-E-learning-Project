@@ -167,47 +167,44 @@ export default function TeacherSidebar() {
             )}
           </li>
 
-          {/* Assessments Section */}
+          {/* Writing Tasks */}
           <li>
-            <button
-              onClick={() => toggleSection('assessments')}
-              className={getDropdownButtonClasses('assessments')}
-              style={getDropdownButtonStyle('assessments')}
-            >
-              <div className="flex items-center gap-3">
-                <svg className={`w-5 h-5 ${openSection === 'assessments' ? 'text-white' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-                <span className="font-medium text-sm">Assessments</span>
-              </div>
-              <svg className={`w-4 h-4 transition-transform duration-200 ${openSection === 'assessments' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <Link href="/portal/teacher/assessments/writing-tasks" className={getMenuItemClasses("/portal/teacher/assessments/writing-tasks")} style={getActiveStyle("/portal/teacher/assessments/writing-tasks")}>
+              <svg className={getIconClasses("/portal/teacher/assessments/writing-tasks")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-            </button>
-            {openSection === 'assessments' && (
-              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
-                <li>
-                  <Link href="/portal/teacher/assessments/writing-tasks" className={getSubMenuItemClasses("/portal/teacher/assessments/writing-tasks")} style={getSubActiveStyle("/portal/teacher/assessments/writing-tasks")}>
-                    <span className="text-sm">Writing Tasks</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/portal/teacher/assessments/course-work" className={getSubMenuItemClasses("/portal/teacher/assessments/course-work")} style={getSubActiveStyle("/portal/teacher/assessments/course-work")}>
-                    <span className="text-sm">Course Work</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/portal/teacher/assessments/tests" className={getSubMenuItemClasses("/portal/teacher/assessments/tests")} style={getSubActiveStyle("/portal/teacher/assessments/tests")}>
-                    <span className="text-sm">Tests</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/portal/teacher/assessments/oral-assignment" className={getSubMenuItemClasses("/portal/teacher/assessments/oral-assignment")} style={getSubActiveStyle("/portal/teacher/assessments/oral-assignment")}>
-                    <span className="text-sm">Oral Assignment</span>
-                  </Link>
-                </li>
-              </ul>
-            )}
+              <span className="font-medium text-sm">Writing Tasks</span>
+            </Link>
+          </li>
+
+          {/* Course Work */}
+          <li>
+            <Link href="/portal/teacher/assessments/course-work" className={getMenuItemClasses("/portal/teacher/assessments/course-work")} style={getActiveStyle("/portal/teacher/assessments/course-work")}>
+              <svg className={getIconClasses("/portal/teacher/assessments/course-work")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              <span className="font-medium text-sm">Course Work</span>
+            </Link>
+          </li>
+
+          {/* Tests */}
+          <li>
+            <Link href="/portal/teacher/assessments/tests" className={getMenuItemClasses("/portal/teacher/assessments/tests")} style={getActiveStyle("/portal/teacher/assessments/tests")}>
+              <svg className={getIconClasses("/portal/teacher/assessments/tests")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-medium text-sm">Tests</span>
+            </Link>
+          </li>
+
+          {/* Oral Assignment */}
+          <li>
+            <Link href="/portal/teacher/assessments/oral-assignment" className={getMenuItemClasses("/portal/teacher/assessments/oral-assignment")} style={getActiveStyle("/portal/teacher/assessments/oral-assignment")}>
+              <svg className={getIconClasses("/portal/teacher/assessments/oral-assignment")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+              <span className="font-medium text-sm">Oral Assignment</span>
+            </Link>
           </li>
 
           {/* Attendance */}
