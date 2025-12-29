@@ -12,7 +12,7 @@ export const createClassSchedule = async ({ class_id, schedule_date, zoom_link, 
 
   const [newSchedule] = await dbp.query("SELECT * FROM class_schedules WHERE id = ?", [result.insertId]);
   const schedule = newSchedule[0];
-  
+
   // Format date as string to avoid timezone issues
   if (schedule && schedule.schedule_date) {
     if (schedule.schedule_date instanceof Date) {
@@ -24,7 +24,7 @@ export const createClassSchedule = async ({ class_id, schedule_date, zoom_link, 
       schedule.schedule_date = String(schedule.schedule_date).split('T')[0].split(' ')[0];
     }
   }
-  
+
   return schedule;
 };
 
@@ -34,7 +34,33 @@ export const getClassSchedules = async (class_id) => {
     "SELECT * FROM class_schedules WHERE class_id = ? ORDER BY schedule_date ASC",
     [class_id]
   );
-  
+
+  // Format dates as strings to avoid timezone issues
+  return rows.map(row => {
+    if (row.schedule_date) {
+      if (row.schedule_date instanceof Date) {
+        const year = row.schedule_date.getFullYear();
+        const month = String(row.schedule_date.getMonth() + 1).padStart(2, '0');
+        const day = String(row.schedule_date.getDate()).padStart(2, '0');
+        row.schedule_date = `${year}-${month}-${day}`;
+      } else {
+        row.schedule_date = String(row.schedule_date).split('T')[0].split(' ')[0];
+      }
+    }
+    return row;
+  });
+};
+
+// GET all schedules (Admin view)
+export const getAllClassSchedules = async () => {
+  const [rows] = await dbp.query(
+    `SELECT cs.*, c.class_name, t.full_name as teacher_name 
+     FROM class_schedules cs 
+     JOIN classes c ON cs.class_id = c.id
+     LEFT JOIN teachers t ON c.teacher_id = t.id 
+     ORDER BY cs.schedule_date ASC`
+  );
+
   // Format dates as strings to avoid timezone issues
   return rows.map(row => {
     if (row.schedule_date) {

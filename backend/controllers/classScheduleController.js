@@ -39,6 +39,17 @@ export const getClassSchedules = async (req, res) => {
   }
 };
 
+// GET all schedules (Admin)
+export const getAllClassSchedules = async (req, res) => {
+  try {
+    const schedules = await ClassSchedule.getAllClassSchedules();
+    res.json(schedules);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 // UPDATE class schedule
 export const updateClassSchedule = async (req, res) => {
   try {
