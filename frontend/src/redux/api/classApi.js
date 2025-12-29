@@ -55,14 +55,19 @@ export const classApi = createApi({
       query: (classId) => `/${classId}/schedules`,
       providesTags: (classId) => [{ type: "ClassSchedules", id: classId }],
     }),
+    getAllClassSchedules: builder.query({
+      query: () => "/all-schedules",
+      providesTags: ["ClassSchedules"],
+    }),
     createClassSchedule: builder.mutation({
       query: ({ classId, ...body }) => ({
         url: `/${classId}/schedules`,
         method: "POST",
         body,
       }),
-      invalidatesTags: (classId) => [
+      invalidatesTags: (result, error, { classId }) => [
         { type: "ClassSchedules", id: classId },
+        "ClassSchedules",
         "Classes"
       ],
     }),
@@ -96,6 +101,7 @@ export const {
   useUpdateClassMutation,
   useDeleteClassMutation,
   useGetClassSchedulesQuery,
+  useGetAllClassSchedulesQuery,
   useCreateClassScheduleMutation,
   useUpdateClassScheduleMutation,
   useDeleteClassScheduleMutation,

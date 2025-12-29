@@ -13,6 +13,7 @@ import {
 import {
   createClassSchedule,
   getClassSchedules,
+  getAllClassSchedules,
   updateClassSchedule,
   deleteClassSchedule,
   getStudentSchedules,
@@ -23,6 +24,7 @@ const router = express.Router();
 
 // ---------- CLASS ROUTES ----------
 router.get("/", verifyToken, getClasses);
+router.get("/all-schedules", verifyToken, getAllClassSchedules); // Get all schedules across classes
 router.get("/course/:course_id", getClassesByCourseId);
 router.get("/:id", getClass);
 router.post("/", createClass);
