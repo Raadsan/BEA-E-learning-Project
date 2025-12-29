@@ -38,7 +38,8 @@ export default function StudentAssignmentList({ type, title }) {
             setSubmitting(true);
             await submitAssignment({
                 assignment_id: selectedAssignment.id,
-                content: submissionContent
+                content: submissionContent,
+                type: type // Pass type for multi-table routing
             }).unwrap();
             setView("list");
             setSubmissionContent("");
@@ -219,8 +220,8 @@ export default function StudentAssignmentList({ type, title }) {
                                         </svg>
                                     </div>
                                     <span className={`px-3 py-1.5 rounded-xl text-[10px] font-semibold uppercase tracking-widest ${isGraded ? 'bg-green-500 text-white' :
-                                            isSubmitted ? 'bg-blue-500 text-white' :
-                                                'bg-yellow-500 text-white'
+                                        isSubmitted ? 'bg-blue-500 text-white' :
+                                            'bg-yellow-500 text-white'
                                         }`}>
                                         {task.submission_status || 'Pending'}
                                     </span>

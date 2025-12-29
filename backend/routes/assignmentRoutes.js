@@ -6,7 +6,9 @@ import {
     deleteAssignment,
     getAssignmentStats,
     getPerformanceClusters,
-    submitAssignment
+    submitAssignment,
+    getAssignmentSubmissions,
+    gradeSubmission
 } from "../controllers/assignmentController.js";
 import { verifyToken } from "../controllers/authController.js";
 
@@ -20,5 +22,7 @@ router.delete('/delete/:id', verifyToken, deleteAssignment);
 router.post('/submit', verifyToken, submitAssignment);
 router.get("/stats", verifyToken, getAssignmentStats);
 router.get("/performance-clusters", verifyToken, getPerformanceClusters);
+router.get("/submissions/:id", verifyToken, getAssignmentSubmissions);
+router.put("/grade/:id", verifyToken, gradeSubmission);
 
 export default router;

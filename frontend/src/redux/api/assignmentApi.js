@@ -16,10 +16,11 @@ export const assignmentApi = createApi({
     tagTypes: ["Assignments"],
     endpoints: (builder) => ({
         getAssignments: builder.query({
-            query: ({ program_id, class_id } = {}) => {
+            query: ({ program_id, class_id, type } = {}) => {
                 const params = new URLSearchParams();
                 if (program_id) params.append("program_id", program_id);
                 if (class_id) params.append("class_id", class_id);
+                if (type) params.append("type", type);
                 return `/?${params.toString()}`;
             },
             providesTags: ["Assignments"],
@@ -60,8 +61,8 @@ export const assignmentApi = createApi({
             invalidatesTags: ["Assignments"],
         }),
         deleteAssignment: builder.mutation({
-            query: (id) => ({
-                url: `/delete/${id}`,
+            query: ({ id, type }) => ({
+                url: `/delete/${id}?type=${type}`,
                 method: "DELETE",
             }),
             invalidatesTags: ["Assignments"],
@@ -70,6 +71,18 @@ export const assignmentApi = createApi({
             query: (body) => ({
                 url: "/submit",
                 method: "POST",
+                body,
+            }),
+            invalidatesTags: ["Assignments"],
+        }),
+        getAssignmentSubmissions: builder.query({
+            query: ({ id, type }) => `/submissions/${id}?type=${type}`,
+            providesTags: ["Assignments"],
+        }),
+        gradeSubmission: builder.mutation({
+            query: ({ id, ...body }) => ({
+                url: `/grade/${id}`,
+                method: "PUT",
                 body,
             }),
             invalidatesTags: ["Assignments"],
@@ -85,4 +98,6 @@ export const {
     useUpdateAssignmentMutation,
     useDeleteAssignmentMutation,
     useSubmitAssignmentMutation,
+    useGetAssignmentSubmissionsQuery,
+    useGradeSubmissionMutation,
 } = assignmentApi;

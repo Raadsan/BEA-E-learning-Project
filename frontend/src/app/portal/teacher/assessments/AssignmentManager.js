@@ -7,7 +7,9 @@ import {
     useGetAssignmentsQuery,
     useCreateAssignmentMutation,
     useUpdateAssignmentMutation,
-    useDeleteAssignmentMutation
+    useDeleteAssignmentMutation,
+    useGetAssignmentSubmissionsQuery,
+    useGradeSubmissionMutation
 } from "@/redux/api/assignmentApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
@@ -21,6 +23,11 @@ export default function AssignmentManager({ type, title, description }) {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAssignment, setEditingAssignment] = useState(null);
+    const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
+    const [selectedAssignmentForSubmissions, setSelectedAssignmentForSubmissions] = useState(null);
+    const [gradingSubmission, setGradingSubmission] = useState(null);
+    const [gradeData, setGradeData] = useState({ score: "", feedback: "" });
+
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -43,10 +50,17 @@ export default function AssignmentManager({ type, title, description }) {
     const { data: classes } = useGetClassesQuery();
     const { data: programs } = useGetProgramsQuery();
 
+    // Fetch submissions for selected assignment
+    const { data: submissions, isLoading: isLoadingSubmissions } = useGetAssignmentSubmissionsQuery(
+        { id: selectedAssignmentForSubmissions?.id, type },
+        { skip: !selectedAssignmentForSubmissions }
+    );
+
     // Mutations
     const [createAssignment] = useCreateAssignmentMutation();
     const [updateAssignment] = useUpdateAssignmentMutation();
     const [deleteAssignment] = useDeleteAssignmentMutation();
+    const [gradeSubmission] = useGradeSubmissionMutation();
 
     const handleAddClick = () => {
         setEditingAssignment(null);
@@ -87,10 +101,38 @@ export default function AssignmentManager({ type, title, description }) {
     const handleDeleteClick = async (id) => {
         if (window.confirm("Are you sure you want to delete this?")) {
             try {
-                await deleteAssignment(id).unwrap();
+                await deleteAssignment({ id, type }).unwrap();
             } catch (err) {
                 alert("Failed to delete");
             }
+        }
+    };
+
+    const handleViewSubmissions = (assignment) => {
+        setSelectedAssignmentForSubmissions(assignment);
+        setIsSubmissionsModalOpen(true);
+    };
+
+    const handleGradeClick = (submission) => {
+        setGradingSubmission(submission);
+        setGradeData({
+            score: submission.score || "",
+            feedback: submission.feedback || ""
+        });
+    };
+
+    const handleGradeSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await gradeSubmission({
+                id: gradingSubmission.id,
+                type,
+                ...gradeData
+            }).unwrap();
+            setGradingSubmission(null);
+            alert("Submission graded successfully!");
+        } catch (err) {
+            alert("Failed to grade submission");
         }
     };
 
@@ -141,10 +183,21 @@ export default function AssignmentManager({ type, title, description }) {
             {
                 label: "Actions",
                 render: (row) => (
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => handleViewSubmissions(row)}
+                            className="p-1 hover:text-[#010080] transition-colors flex items-center gap-1 text-xs font-medium text-gray-500"
+                            title="View Submissions"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                            Submissions
+                        </button>
                         <button
                             onClick={() => handleEditClick(row)}
                             className="p-1 hover:text-blue-600 transition-colors"
+                            title="Edit"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -153,6 +206,7 @@ export default function AssignmentManager({ type, title, description }) {
                         <button
                             onClick={() => handleDeleteClick(row.id)}
                             className="p-1 hover:text-red-600 transition-colors"
+                            title="Delete"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -183,6 +237,7 @@ export default function AssignmentManager({ type, title, description }) {
                     showAddButton={true}
                 />
 
+                {/* Main Modal: Create/Edit Assignment */}
                 <Modal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
@@ -378,6 +433,120 @@ export default function AssignmentManager({ type, title, description }) {
                             </button>
                         </div>
                     </form>
+                </Modal>
+
+                {/* Submissions Modal */}
+                <Modal
+                    isOpen={isSubmissionsModalOpen}
+                    onClose={() => setIsSubmissionsModalOpen(false)}
+                    title={`Submissions: ${selectedAssignmentForSubmissions?.title}`}
+                    width="w-[90%] max-w-5xl"
+                >
+                    <div className="p-6">
+                        {isLoadingSubmissions ? (
+                            <div className="flex justify-center py-10">
+                                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#010080]"></div>
+                            </div>
+                        ) : submissions?.length === 0 ? (
+                            <div className="text-center py-10 text-gray-400">
+                                No submissions yet for this assignment.
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {/* Left Side: List of submissions */}
+                                <div className={`md:col-span-1 border-r pr-4 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                                    <div className="space-y-2">
+                                        {submissions?.map(sub => (
+                                            <button
+                                                key={sub.id}
+                                                onClick={() => handleGradeClick(sub)}
+                                                className={`w-full text-left p-3 rounded-xl transition-all ${gradingSubmission?.id === sub.id
+                                                    ? 'bg-[#010080] text-white shadow-lg scale-[1.02]'
+                                                    : isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                                                    }`}
+                                            >
+                                                <div className="font-semibold truncate">{sub.student_name}</div>
+                                                <div className={`text-xs ${gradingSubmission?.id === sub.id ? 'text-blue-100' : 'text-gray-500'}`}>
+                                                    {sub.status === 'graded' ? `Graded: ${sub.score}/${selectedAssignmentForSubmissions.total_points}` : 'Pending Grade'}
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Right Side: Submission Detail & Grading Form */}
+                                <div className="md:col-span-2">
+                                    {gradingSubmission ? (
+                                        <div className="space-y-6">
+                                            <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border dark:border-gray-700">
+                                                <div>
+                                                    <h3 className="font-bold text-lg">{gradingSubmission.student_name}</h3>
+                                                    <p className="text-sm opacity-60">Submitted on: {new Date(gradingSubmission.submission_date).toLocaleString()}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-xs uppercase font-bold opacity-40">Status</div>
+                                                    <div className={`text-sm font-bold ${gradingSubmission.status === 'graded' ? 'text-green-500' : 'text-yellow-500'}`}>
+                                                        {gradingSubmission.status.toUpperCase()}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className={`p-6 rounded-2xl border shadow-inner min-h-[300px] overflow-auto whitespace-pre-wrap font-serif text-lg leading-relaxed ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-100'
+                                                }`}>
+                                                {gradingSubmission.content}
+                                            </div>
+
+                                            <form onSubmit={handleGradeSubmit} className={`p-6 rounded-2xl border space-y-4 ${isDark ? 'bg-gray-800 border-gray-700 shadow-xl' : 'bg-blue-50/30 border-blue-100 shadow-sm'}`}>
+                                                <h4 className="font-bold text-[#010080] dark:text-blue-400">Grade & Feedback</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                    <div className="md:col-span-1">
+                                                        <label className="block text-xs font-bold uppercase opacity-60 mb-1">Score / {selectedAssignmentForSubmissions.total_points}</label>
+                                                        <input
+                                                            type="number"
+                                                            required
+                                                            max={selectedAssignmentForSubmissions.total_points}
+                                                            value={gradeData.score}
+                                                            onChange={(e) => setGradeData({ ...gradeData, score: e.target.value })}
+                                                            className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-[#010080] focus:outline-none ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-300'}`}
+                                                        />
+                                                    </div>
+                                                    <div className="md:col-span-3">
+                                                        <label className="block text-xs font-bold uppercase opacity-60 mb-1">Feedback to Student</label>
+                                                        <textarea
+                                                            rows="2"
+                                                            required
+                                                            placeholder="Great work! Focus on..."
+                                                            value={gradeData.feedback}
+                                                            onChange={(e) => setGradeData({ ...gradeData, feedback: e.target.value })}
+                                                            className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-[#010080] focus:outline-none ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-300'}`}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-end">
+                                                    <button
+                                                        type="submit"
+                                                        className="px-8 py-3 bg-[#010080] text-white rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg flex items-center gap-2"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        Assign Grade
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-4">
+                                            <svg className="w-20 h-20 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                            <p className="text-xl font-medium">Select a student from the left to grade their work</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </Modal>
             </div>
         </div>
