@@ -124,6 +124,31 @@ export default function StudentSidebar({ isApproved }) {
         {showMyCourses ? (
           /* My Courses Submenu */
           <ul className="space-y-0.5">
+            {/* Dashboard */}
+            <li>
+              <Link
+                href="/portal/student"
+                className={getMenuItemClasses("/portal/student", true)}
+                style={getActiveStyle("/portal/student", true)}
+              >
+                <svg
+                  className={getIconClasses("/portal/student", true)}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  />
+                </svg>
+                <span className={getTextClasses("/portal/student", true)}>
+                  Dashboard
+                </span>
+              </Link>
+            </li>
             {/* Back Button */}
             <li>
               <button
@@ -362,241 +387,19 @@ export default function StudentSidebar({ isApproved }) {
         ) : (
           /* Main Menu */
           <ul className="space-y-0.5">
-            {/* Dashboard */}
+
+            {/* Profile (Visible to everyone including pending) */}
             <li>
               <Link
-                href="/portal/student"
-                className={getMenuItemClasses("/portal/student", true)}
-                style={getActiveStyle("/portal/student", true)}
+                href="/portal/student/profile"
+                className={getMenuItemClasses("/portal/student/profile")}
+                style={getActiveStyle("/portal/student/profile")}
               >
-                <svg
-                  className={getIconClasses("/portal/student", true)}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                  />
+                <svg className={getIconClasses("/portal/student/profile")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span className={getTextClasses("/portal/student", true)}>
-                  Dashboard
-                </span>
-              </Link>
-            </li>
-
-            {/* News & Events */}
-            <li>
-              <Link
-                href="/portal/student/news"
-                className={getMenuItemClasses("/portal/student/news")}
-                style={getActiveStyle("/portal/student/news")}
-              >
-                <svg className={getIconClasses("/portal/student/news")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                </svg>
-                <span className={getTextClasses("/portal/student/news")}>
-                  News & Events
-                </span>
-              </Link>
-            </li>
-
-            {/* My Courses - Clickable to show submenu */}
-            <li>
-              <button
-                onClick={() => setShowMyCourses(true)}
-                className={getMenuItemClasses("/portal/student/my-courses")}
-                style={getActiveStyle("/portal/student/my-courses")}
-              >
-                <svg
-                  className={getIconClasses("/portal/student/my-courses")}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-                <span
-                  className={getTextClasses("/portal/student/my-courses")}
-                >
-                  My Courses
-                </span>
-                <svg
-                  className="w-4 h-4 ml-auto text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
-            </li>
-
-            {/* Payment */}
-            <li>
-              <Link
-                href="/portal/student/payments"
-                className={getMenuItemClasses("/portal/student/payments")}
-                style={getActiveStyle("/portal/student/payments")}
-              >
-                <svg
-                  className={getIconClasses("/portal/student/payments")}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8c-2.21 0-4 .895-4 2s1.79 2 4 2 4 .895 4 2-1.79 2-4 2m0-8c2.21 0 4 .895 4 2m-4-2V6m0 8v2m8-4a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span className={getTextClasses("/portal/student/payments")}>
-                  Payment
-                </span>
-              </Link>
-            </li>
-
-            {/* Freezing Request */}
-            <li>
-              <Link
-                href="/portal/student/freezing-request"
-                className={getMenuItemClasses("/portal/student/freezing-request")}
-                style={getActiveStyle("/portal/student/freezing-request")}
-              >
-                <svg
-                  className={getIconClasses("/portal/student/freezing-request")}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-                <span className={getTextClasses("/portal/student/freezing-request")}>
-                  Freezing Request
-                </span>
-              </Link>
-            </li>
-
-            {/* Session Change */}
-            <li>
-              <Link
-                href="/portal/student/session-change"
-                className={getMenuItemClasses("/portal/student/session-change")}
-                style={getActiveStyle("/portal/student/session-change")}
-              >
-                <svg
-                  className={getIconClasses("/portal/student/session-change")}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <span className={getTextClasses("/portal/student/session-change")}>
-                  Session Change
-                </span>
-              </Link>
-            </li>
-
-            {/* Tutorials */}
-            <li>
-              <Link
-                href="/portal/student/tutorials"
-                className={getMenuItemClasses("/portal/student/tutorials")}
-                style={getActiveStyle("/portal/student/tutorials")}
-              >
-                <svg
-                  className={getIconClasses("/portal/student/tutorials")}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-                <span className={getTextClasses("/portal/student/tutorials")}>
-                  Tutorials
-                </span>
-              </Link>
-            </li>
-
-            {/* Policies */}
-            <li>
-              <Link
-                href="/portal/student/policies"
-                className={getMenuItemClasses("/portal/student/policies")}
-                style={getActiveStyle("/portal/student/policies")}
-              >
-                <svg
-                  className={getIconClasses("/portal/student/policies")}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <span className={getTextClasses("/portal/student/policies")}>
-                  Policies
-                </span>
-              </Link>
-            </li>
-
-            {/* Student Support */}
-            <li>
-              <Link
-                href="/portal/student/student-support"
-                className={getMenuItemClasses("/portal/student/student-support")}
-                style={getActiveStyle("/portal/student/student-support")}
-              >
-                <svg
-                  className={getIconClasses("/portal/student/student-support")}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
-                </svg>
-                <span className={getTextClasses("/portal/student/student-support")}>
-                  Student Support
+                <span className={getTextClasses("/portal/student/profile")}>
+                  My Profile
                 </span>
               </Link>
             </li>
@@ -626,6 +429,229 @@ export default function StudentSidebar({ isApproved }) {
                 </span>
               </Link>
             </li>
+
+            {isApproved && (
+              <>
+                {/* News & Events */}
+                <li>
+                  <Link
+                    href="/portal/student/news"
+                    className={getMenuItemClasses("/portal/student/news")}
+                    style={getActiveStyle("/portal/student/news")}
+                  >
+                    <svg className={getIconClasses("/portal/student/news")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/news")}>
+                      News & Events
+                    </span>
+                  </Link>
+                </li>
+
+                {/* My Courses - Clickable to show submenu */}
+                <li>
+                  <button
+                    onClick={() => setShowMyCourses(true)}
+                    className={getMenuItemClasses("/portal/student/my-courses")}
+                    style={getActiveStyle("/portal/student/my-courses")}
+                  >
+                    <svg
+                      className={getIconClasses("/portal/student/my-courses")}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                      />
+                    </svg>
+                    <span
+                      className={getTextClasses("/portal/student/my-courses")}
+                    >
+                      My Courses
+                    </span>
+                    <svg
+                      className="w-4 h-4 ml-auto text-gray-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                </li>
+              </>
+            )}
+
+            {/* Payment */}
+            <li>
+              <Link
+                href="/portal/student/payments"
+                className={getMenuItemClasses("/portal/student/payments")}
+                style={getActiveStyle("/portal/student/payments")}
+              >
+                <svg
+                  className={getIconClasses("/portal/student/payments")}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-2.21 0-4 .895-4 2s1.79 2 4 2 4 .895 4 2-1.79 2-4 2m0-8c2.21 0 4 .895 4 2m-4-2V6m0 8v2m8-4a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span className={getTextClasses("/portal/student/payments")}>
+                  Payment
+                </span>
+              </Link>
+            </li>
+
+            {isApproved && (
+              <>
+                {/* Freezing Request */}
+                <li>
+                  <Link
+                    href="/portal/student/freezing-request"
+                    className={getMenuItemClasses("/portal/student/freezing-request")}
+                    style={getActiveStyle("/portal/student/freezing-request")}
+                  >
+                    <svg
+                      className={getIconClasses("/portal/student/freezing-request")}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/freezing-request")}>
+                      Freezing Request
+                    </span>
+                  </Link>
+                </li>
+
+                {/* Session Change */}
+                <li>
+                  <Link
+                    href="/portal/student/session-change"
+                    className={getMenuItemClasses("/portal/student/session-change")}
+                    style={getActiveStyle("/portal/student/session-change")}
+                  >
+                    <svg
+                      className={getIconClasses("/portal/student/session-change")}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/session-change")}>
+                      Session Change
+                    </span>
+                  </Link>
+                </li>
+
+                {/* Tutorials */}
+                <li>
+                  <Link
+                    href="/portal/student/tutorials"
+                    className={getMenuItemClasses("/portal/student/tutorials")}
+                    style={getActiveStyle("/portal/student/tutorials")}
+                  >
+                    <svg
+                      className={getIconClasses("/portal/student/tutorials")}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                      />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/tutorials")}>
+                      Tutorials
+                    </span>
+                  </Link>
+                </li>
+
+                {/* Policies */}
+                <li>
+                  <Link
+                    href="/portal/student/policies"
+                    className={getMenuItemClasses("/portal/student/policies")}
+                    style={getActiveStyle("/portal/student/policies")}
+                  >
+                    <svg
+                      className={getIconClasses("/portal/student/policies")}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/policies")}>
+                      Policies
+                    </span>
+                  </Link>
+                </li>
+
+                {/* Student Support */}
+                <li>
+                  <Link
+                    href="/portal/student/student-support"
+                    className={getMenuItemClasses("/portal/student/student-support")}
+                    style={getActiveStyle("/portal/student/student-support")}
+                  >
+                    <svg
+                      className={getIconClasses("/portal/student/student-support")}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
+                      />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/student-support")}>
+                      Student Support
+                    </span>
+                  </Link>
+                </li>
+
+
+              </>
+            )}
           </ul>
         )}
       </nav>
