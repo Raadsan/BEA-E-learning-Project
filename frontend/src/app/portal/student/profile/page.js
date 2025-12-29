@@ -200,7 +200,7 @@ function DetailCard({ icon, label, value, subValue, isDark, accentColor }) {
   return (
     <div className={`p-4 rounded-xl border transition-all hover:shadow-md ${isDark ? "bg-slate-800/50 border-slate-700" : "bg-white border-gray-100 shadow-sm"
       }`}>
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-3"> 
         <div className={`p-2 rounded-lg ${colors}`}>
           {icon}
         </div>
