@@ -48,6 +48,11 @@ export const getAttendance = async (req, res) => {
             return res.status(400).json({ error: "Missing classId or date" });
         }
 
+        // Validate date to prevent SQL crashes (e.g. if 'summary' is passed)
+        if (date === 'summary' || isNaN(Date.parse(date))) {
+            return res.status(400).json({ error: "Invalid date format" });
+        }
+
         // Check if teacher is assigned to the class
         if (req.user.role === 'teacher') {
             const classItem = await Class.getClassById(classId);

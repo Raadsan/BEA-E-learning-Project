@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useGetClassQuery, useGetClassSchedulesQuery } from "@/redux/api/classApi";
@@ -10,11 +10,6 @@ export default function OnlineSessionsPage() {
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
   const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
-  const [studentClass, setStudentClass] = useState(null);
-  const [sessions, setSessions] = useState([]);
-  const [upcomingSessions, setUpcomingSessions] = useState([]);
-  const [pastSessions, setPastSessions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeMeeting, setActiveMeeting] = useState(null);
 
   // Fetch student's class
@@ -23,17 +18,15 @@ export default function OnlineSessionsPage() {
     { skip: !user?.class_id }
   );
 
+  const studentClass = classData;
+
   // Fetch schedules for student's class
   const { data: schedulesData = [], isLoading: schedulesLoading } = useGetClassSchedulesQuery(
     user?.class_id,
     { skip: !user?.class_id }
   );
 
-  useEffect(() => {
-    if (classData) {
-      setStudentClass(classData);
-    }
-  }, [classData]);
+  const loading = userLoading || classLoading || schedulesLoading;
 
   // Helper function to get session status
   const getSessionStatus = (dateString, startTime, endTime) => {
@@ -69,65 +62,55 @@ export default function OnlineSessionsPage() {
     return "Scheduled";
   };
 
-  useEffect(() => {
-    if (schedulesData && schedulesData.length > 0 && studentClass) {
-      const now = new Date();
-      const upcoming = [];
-      const past = [];
-
-      schedulesData.forEach((schedule) => {
-        const dateStr = typeof schedule.schedule_date === 'string'
-          ? schedule.schedule_date.split('T')[0].split(' ')[0]
-          : schedule.schedule_date;
-
-        const [year, month, day] = dateStr.split('-').map(Number);
-
-        let sessionEndDateTime = new Date(year, month - 1, day, 23, 59, 59);
-        if (schedule.end_time) {
-          const [endHours, endMinutes] = schedule.end_time.split(':').map(Number);
-          sessionEndDateTime = new Date(year, month - 1, day, endHours, endMinutes, 0);
-        } else if (schedule.start_time) {
-          const [startHours, startMinutes] = schedule.start_time.split(':').map(Number);
-          sessionEndDateTime = new Date(year, month - 1, day, startHours + 1, startMinutes, 0);
-        }
-
-        const sessionData = {
-          id: schedule.id || schedule._id,
-          date: dateStr,
-          startTime: schedule.start_time || "",
-          endTime: schedule.end_time || "",
-          zoomLink: schedule.zoom_link,
-          classId: schedule.class_id,
-          className: studentClass.class_name || "Class",
-          description: schedule.description || "",
-          status: getSessionStatus(dateStr, schedule.start_time || "", schedule.end_time || ""),
-        };
-
-        if (sessionEndDateTime >= now) {
-          upcoming.push(sessionData);
-        } else {
-          past.push(sessionData);
-        }
-      });
-
-      upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
-      past.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      setUpcomingSessions(upcoming);
-      setPastSessions(past);
-      setSessions([...upcoming, ...past]);
-    } else if (schedulesData && schedulesData.length === 0) {
-      setUpcomingSessions([]);
-      setPastSessions([]);
-      setSessions([]);
+  const { upcomingSessions, pastSessions } = useMemo(() => {
+    if (!schedulesData || schedulesData.length === 0 || !studentClass) {
+      return { upcomingSessions: [], pastSessions: [] };
     }
+
+    const now = new Date();
+    const upcoming = [];
+    const past = [];
+
+    schedulesData.forEach((schedule) => {
+      const dateStr = typeof schedule.schedule_date === 'string'
+        ? schedule.schedule_date.split('T')[0].split(' ')[0]
+        : schedule.schedule_date;
+
+      const [year, month, day] = dateStr.split('-').map(Number);
+
+      let sessionEndDateTime = new Date(year, month - 1, day, 23, 59, 59);
+      if (schedule.end_time) {
+        const [endHours, endMinutes] = schedule.end_time.split(':').map(Number);
+        sessionEndDateTime = new Date(year, month - 1, day, endHours, endMinutes, 0);
+      } else if (schedule.start_time) {
+        const [startHours, startMinutes] = schedule.start_time.split(':').map(Number);
+        sessionEndDateTime = new Date(year, month - 1, day, startHours + 1, startMinutes, 0);
+      }
+
+      const sessionData = {
+        id: schedule.id || schedule._id,
+        date: dateStr,
+        startTime: schedule.start_time || "",
+        endTime: schedule.end_time || "",
+        zoomLink: schedule.zoom_link,
+        classId: schedule.class_id,
+        className: studentClass.class_name || "Class",
+        description: schedule.description || "",
+        status: getSessionStatus(dateStr, schedule.start_time || "", schedule.end_time || ""),
+      };
+
+      if (sessionEndDateTime >= now) {
+        upcoming.push(sessionData);
+      } else {
+        past.push(sessionData);
+      }
+    });
+
+    upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+    past.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return { upcomingSessions: upcoming, pastSessions: past };
   }, [schedulesData, studentClass]);
-
-  useEffect(() => {
-    if (!userLoading && !classLoading && !schedulesLoading) {
-      setLoading(false);
-    }
-  }, [userLoading, classLoading, schedulesLoading]);
 
   // Helper function to handle Zoom/Meet link transformations
   const getEmbeddableUrl = (url) => {

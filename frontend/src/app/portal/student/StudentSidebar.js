@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useLogoutMutation } from "@/redux/api/authApi";
+import { useGetAnnouncementsQuery } from "@/redux/api/announcementApi";
 import { useState, useEffect } from "react";
 
 // Course-related paths that should show My Courses menu
@@ -29,6 +30,29 @@ export default function StudentSidebar({ isApproved }) {
   const router = useRouter();
   const [logout] = useLogoutMutation();
   const [showMyCourses, setShowMyCourses] = useState(false);
+
+  const { data: announcements } = useGetAnnouncementsQuery();
+  const [hasNewUpdates, setHasNewUpdates] = useState(false);
+
+  // Check for new updates
+  useEffect(() => {
+    if (announcements && announcements.length > 0) {
+      const lastSeenId = localStorage.getItem("last_seen_announcement_id");
+      const latestId = announcements[0].id.toString();
+
+      if (lastSeenId !== latestId && pathname !== "/portal/student/class-updates") {
+        setHasNewUpdates(true);
+      }
+    }
+  }, [announcements, pathname]);
+
+  // Reset update status when visiting the page
+  useEffect(() => {
+    if (pathname === "/portal/student/class-updates" && announcements && announcements.length > 0) {
+      localStorage.setItem("last_seen_announcement_id", announcements[0].id.toString());
+      setHasNewUpdates(false);
+    }
+  }, [pathname, announcements]);
 
   // Auto-detect if we're on a course-related page
   useEffect(() => {
@@ -182,7 +206,7 @@ export default function StudentSidebar({ isApproved }) {
               </Link>
             </li>
 
-             {/* Class Updates */}
+            {/* Class Updates */}
             <li>
               <Link
                 href="/portal/student/class-updates"
@@ -192,7 +216,12 @@ export default function StudentSidebar({ isApproved }) {
                 <svg className={getIconClasses("/portal/student/class-updates")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                <span className={getTextClasses("/portal/student/class-updates")}>Class Updates</span>
+                <div className="flex items-center gap-2">
+                  <span className={getTextClasses("/portal/student/class-updates")}>Class Updates</span>
+                  {hasNewUpdates && (
+                    <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
+                  )}
+                </div>
               </Link>
             </li>
 
@@ -238,11 +267,11 @@ export default function StudentSidebar({ isApproved }) {
               </Link>
             </li>
 
-          
 
-           
 
-            
+
+
+
 
             {/* Oral Assignment */}
             <li>
@@ -259,7 +288,7 @@ export default function StudentSidebar({ isApproved }) {
             </li>
 
 
-             {/* Term Cycle Info */}
+            {/* Term Cycle Info */}
             <li>
               <Link
                 href="/portal/student/term-cycle-info"
@@ -287,7 +316,7 @@ export default function StudentSidebar({ isApproved }) {
               </Link>
             </li>
 
-            
+
             {/* Progress Report */}
             <li>
               <Link
@@ -568,6 +597,32 @@ export default function StudentSidebar({ isApproved }) {
                 </svg>
                 <span className={getTextClasses("/portal/student/student-support")}>
                   Student Support
+                </span>
+              </Link>
+            </li>
+
+            {/* Placement Test */}
+            <li>
+              <Link
+                href="/portal/student/placement-test"
+                className={getMenuItemClasses("/portal/student/placement-test")}
+                style={getActiveStyle("/portal/student/placement-test")}
+              >
+                <svg
+                  className={getIconClasses("/portal/student/placement-test")}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+                <span className={getTextClasses("/portal/student/placement-test")}>
+                  Placement Test
                 </span>
               </Link>
             </li>
