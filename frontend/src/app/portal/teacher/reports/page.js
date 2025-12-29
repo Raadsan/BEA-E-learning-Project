@@ -34,10 +34,10 @@ export default function AttendanceReportPage() {
     }) || [];
 
     return (
-        <div className={`min-h-screen ${isDark ? 'bg-[#03081d] text-white' : 'bg-gray-50 text-gray-900'}`}>
+        <div className={`min-h-screen transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
             <TeacherHeader />
-            <div className="p-6">
-                <h2 className="text-2xl font-semibold mb-6">Attendance Report</h2>
+            <div className="w-full px-8 py-6 pt-24">
+                <h1 className="text-3xl font-bold mb-8">Attendance Report</h1>
 
                 {/* Filters Row */}
                 <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">

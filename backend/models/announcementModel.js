@@ -60,6 +60,28 @@ export const getAnnouncementsForTeacher = async (teacherId, classIds = []) => {
     return rows;
 };
 
+export const getAnnouncementsByClass = async (classId) => {
+    let query = `
+        SELECT * FROM announcements 
+        WHERE status = 'Published' 
+        AND (
+            target_type = 'all_students'
+            OR target_type = 'all_users'
+    `;
+
+    const params = [];
+
+    if (classId) {
+        query += ` OR (target_type = 'by_class' AND target_id = ?)`;
+        params.push(classId);
+    }
+
+    query += `) ORDER BY created_at DESC`;
+
+    const [rows] = await dbp.query(query, params);
+    return rows;
+};
+
 export const deleteAnnouncement = async (id) => {
     const [result] = await dbp.query("DELETE FROM announcements WHERE id = ?", [id]);
     return result.affectedRows;

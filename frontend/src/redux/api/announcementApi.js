@@ -15,7 +15,10 @@ export const announcementApi = createApi({
     tagTypes: ["Announcements"],
     endpoints: (builder) => ({
         getAnnouncements: builder.query({
-            query: () => "/announcements",
+            query: (params) => ({
+                url: "/announcements",
+                params: params
+            }),
             providesTags: ["Announcements"],
         }),
         getTeacherAnnouncements: builder.query({

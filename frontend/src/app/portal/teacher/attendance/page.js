@@ -142,17 +142,17 @@ export default function AttendancePage() {
   const totalCount = filteredStudents.length;
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-[#03081d] text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`min-h-screen transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
       <TeacherHeader />
-      <div className="p-6">
+      <div className="w-full px-8 py-6 pt-24">
         {classes.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-lg text-gray-500">Not assigned class yet</p>
           </div>
         ) : (
           <>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <h2 className="text-2xl font-semibold">Attendance</h2>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-8">
+              <h1 className="text-3xl font-bold">Attendance</h1>
               <div className="flex items-center gap-3">
                 <select
                   className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-[#06102b] text-white border-[#07203c]' : 'bg-white text-gray-900'}`}

@@ -1,11 +1,16 @@
 "use client";
 
 import { useGetAnnouncementsQuery } from "@/redux/api/announcementApi";
+import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function ClassUpdatesPage() {
   const { isDark } = useDarkMode();
-  const { data: updates, isLoading, error } = useGetAnnouncementsQuery();
+  const { data: user } = useGetCurrentUserQuery();
+  const { data: updates, isLoading, error } = useGetAnnouncementsQuery(
+    { classId: user?.class_id },
+    { skip: !user?.class_id }
+  );
 
   const loadingSkeleton = (
     <div className="space-y-4">
@@ -66,6 +71,16 @@ function AnnouncementCard({ update, isDark }) {
   // Determine gradient based on type (optional logic can be added)
   const typeColor = update.type === 'Alert' ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-blue-600 bg-blue-50 dark:bg-blue-900/20';
 
+  // Determine tag label based on target_type
+  const getTargetLabel = () => {
+    if (update.target_type === 'by_class') return 'Class Only';
+    if (update.target_type === 'all_students') return 'All Students';
+    if (update.target_type === 'all_users') return 'Universal';
+    return update.type || 'Notice';
+  };
+
+  const targetLabel = getTargetLabel();
+
   return (
     <div className={`group rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border overflow-hidden ${isDark ? "bg-slate-800 border-slate-700" : "bg-white border-gray-100"
       }`}>
@@ -89,12 +104,10 @@ function AnnouncementCard({ update, isDark }) {
             </div>
           </div>
 
-          {/* Badge (Optional Type) */}
-          {update.type && (
-            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${typeColor}`}>
-              {update.type}
-            </span>
-          )}
+          {/* Badge (Target Type / Label) */}
+          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${typeColor}`}>
+            {targetLabel}
+          </span>
         </div>
 
         {/* Content */}

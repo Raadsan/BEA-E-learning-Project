@@ -30,9 +30,9 @@ export default function TeacherNewsPage() {
     return (
         <div className={`min-h-screen ${isDark ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} transition-colors duration-200`}>
             <TeacherHeader />
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20">
+            <main className="w-full px-8 py-6 pt-24">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold">News & Events</h1>
+                    <h1 className="text-3xl font-bold">News & Events</h1>
                 </div>
 
                 {isLoading ? (
@@ -77,10 +77,10 @@ export default function TeacherNewsPage() {
                                         <span>{new Date(item.event_date).toLocaleDateString()}</span>
                                         <span className="mx-2">•</span>
                                         <span className={`capitalize font-medium ${item.type === 'exam' ? 'text-red-500' :
-                                                item.type === 'deadline' ? 'text-orange-500' :
-                                                    item.type === 'event' ? 'text-purple-500' :
-                                                        item.type === 'training' ? 'text-blue-500' :
-                                                            'text-gray-500'
+                                            item.type === 'deadline' ? 'text-orange-500' :
+                                                item.type === 'event' ? 'text-purple-500' :
+                                                    item.type === 'training' ? 'text-blue-500' :
+                                                        'text-gray-500'
                                             }`}>{item.type}</span>
                                     </div>
 

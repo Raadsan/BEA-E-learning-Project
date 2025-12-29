@@ -84,8 +84,8 @@ export default function TeacherDashboard() {
       <TeacherHeader />
 
       {/* Dashboard Content */}
-      <main className="flex-1 overflow-y-auto p-6 bg-gray-100 dark:bg-gray-900 transition-colors">
-        <div className="max-w-7xl mx-auto">
+      <main className="flex-1 overflow-y-auto px-8 py-6 pt-24 bg-gray-100 dark:bg-gray-900 transition-colors">
+        <div className="w-full">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Dashboard Overview</h1>
 
           {/* Summary Cards */}

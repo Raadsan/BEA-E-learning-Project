@@ -5,7 +5,15 @@ import * as classModel from "../models/classModel.js";
 
 export const getAnnouncements = async (req, res) => {
     try {
-        const announcements = await announcementModel.getAllAnnouncements();
+        const { classId } = req.query;
+        let announcements;
+
+        if (classId) {
+            announcements = await announcementModel.getAnnouncementsByClass(classId);
+        } else {
+            announcements = await announcementModel.getAllAnnouncements();
+        }
+
         res.status(200).json(announcements);
     } catch (error) {
         console.error("Error fetching announcements:", error);

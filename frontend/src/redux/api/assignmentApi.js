@@ -45,7 +45,30 @@ export const assignmentApi = createApi({
         }),
         createAssignment: builder.mutation({
             query: (body) => ({
-                url: "/",
+                url: "/create",
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: ["Assignments"],
+        }),
+        updateAssignment: builder.mutation({
+            query: ({ id, ...body }) => ({
+                url: `/update/${id}`,
+                method: "PUT",
+                body,
+            }),
+            invalidatesTags: ["Assignments"],
+        }),
+        deleteAssignment: builder.mutation({
+            query: (id) => ({
+                url: `/delete/${id}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["Assignments"],
+        }),
+        submitAssignment: builder.mutation({
+            query: (body) => ({
+                url: "/submit",
                 method: "POST",
                 body,
             }),
@@ -59,4 +82,7 @@ export const {
     useGetAssignmentStatsQuery,
     useGetPerformanceClustersQuery,
     useCreateAssignmentMutation,
+    useUpdateAssignmentMutation,
+    useDeleteAssignmentMutation,
+    useSubmitAssignmentMutation,
 } = assignmentApi;
