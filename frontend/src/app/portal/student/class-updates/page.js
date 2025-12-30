@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { useGetAnnouncementsQuery } from "@/redux/api/announcementApi";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useDarkMode } from "@/context/ThemeContext";
@@ -8,9 +10,23 @@ export default function ClassUpdatesPage() {
   const { isDark } = useDarkMode();
   const { data: user } = useGetCurrentUserQuery();
   const { data: updates, isLoading, error } = useGetAnnouncementsQuery(
-    { classId: user?.class_id },
     { skip: !user?.class_id }
   );
+
+  // Mark announcements as read when fetched
+  useEffect(() => {
+    if (updates && updates.length > 0) {
+      const stored = JSON.parse(localStorage.getItem("student_read_announcements") || "[]");
+      const newIds = updates.map(u => u.id).filter(id => !stored.includes(id));
+
+      if (newIds.length > 0) {
+        const updatedStored = [...stored, ...newIds];
+        localStorage.setItem("student_read_announcements", JSON.stringify(updatedStored));
+        // Dispatch custom event to notify header to update count
+        window.dispatchEvent(new Event("studentAnnouncementReadUpdate"));
+      }
+    }
+  }, [updates]);
 
   const loadingSkeleton = (
     <div className="space-y-4">
@@ -21,47 +37,42 @@ export default function ClassUpdatesPage() {
   );
 
   return (
-    <div className={`min-h-screen pb-12 transition-colors ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
-      {/* Header Banner */}
-      <div className={`h-48 relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-700`}>
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pattern-grid-lg"></div>
-        {/* Decorative Orbs */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-black/10 rounded-full blur-3xl"></div>
-
-        <div className="relative h-full max-w-7xl mx-auto px-6 flex flex-col justify-center">
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Class Updates</h1>
-          <p className="text-blue-100 text-lg max-w-2xl">
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
+      <div className="w-full">
+        <div className="mb-12">
+          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
+            Class Updates
+          </h1>
+          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
             Stay informed with the latest announcements, schedule changes, and important notices from your instructors.
           </p>
         </div>
-      </div>
 
-      <div className="max-w-4xl mx-auto px-6 -mt-10 relative z-10">
-
-        {isLoading ? loadingSkeleton : error ? (
-          <div className={`p-8 rounded-2xl text-center border ${isDark ? "bg-slate-800 border-red-900/50" : "bg-white border-red-100"}`}>
-            <span className="text-red-500 font-medium">Failed to load updates. Please try again later.</span>
-          </div>
-        ) : (!updates || updates.length === 0) ? (
-          <div className={`p-12 rounded-2xl text-center shadow-lg border backdrop-blur-sm ${isDark ? "bg-slate-800/80 border-slate-700" : "bg-white/90 border-white/50"
-            }`}>
-            <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${isDark ? "bg-slate-700 text-slate-400" : "bg-gray-100 text-gray-400"
-              }`}>
-              <BellOffIcon className="w-10 h-10" />
+        <div>
+          {isLoading ? loadingSkeleton : error ? (
+            <div className={`p-8 rounded-2xl text-center border ${isDark ? "bg-slate-800 border-red-900/50" : "bg-white border-red-100"}`}>
+              <span className="text-red-500 font-medium">Failed to load updates. Please try again later.</span>
             </div>
-            <h3 className={`text-xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>All caught up!</h3>
-            <p className={isDark ? "text-slate-400" : "text-gray-500"}>
-              There are no new class updates or announcements at the moment.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {updates.map((update) => (
-              <AnnouncementCard key={update.id} update={update} isDark={isDark} />
-            ))}
-          </div>
-        )}
+          ) : (!updates || updates.length === 0) ? (
+            <div className={`p-12 rounded-2xl text-center shadow-lg border backdrop-blur-sm ${isDark ? "bg-slate-800/80 border-slate-700" : "bg-white/90 border-white/50"
+              }`}>
+              <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${isDark ? "bg-slate-700 text-slate-400" : "bg-gray-100 text-gray-400"
+                }`}>
+                <BellOffIcon className="w-10 h-10" />
+              </div>
+              <h3 className={`text-xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>All caught up!</h3>
+              <p className={isDark ? "text-slate-400" : "text-gray-500"}>
+                There are no new class updates or announcements at the moment.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {updates.map((update) => (
+                <AnnouncementCard key={update.id} update={update} isDark={isDark} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

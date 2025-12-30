@@ -142,14 +142,14 @@ export default function MyCoursesPage() {
   const programImage = getProgramImage();
 
   return (
-    <div className={`min-h-screen transition-colors ${bg}`}>
-      <div className="py-6">
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+      <div className="w-full">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
+        <div className="mb-12">
+          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
             My Courses
           </h1>
-          <p className={`text-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
             Available Courses
           </p>
         </div>
@@ -221,7 +221,7 @@ export default function MyCoursesPage() {
             <p className={isDark ? "text-gray-400" : "text-gray-600"}>No courses available.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {subprogramsData.map((subprogram, index) => {
               const isActive = studentClass && (subprogram.id == studentClass.subprogram_id);
               const isLocked = !isActive;
@@ -245,8 +245,8 @@ export default function MyCoursesPage() {
                   key={subprogram.id}
                   onClick={() => handleSubprogramClick(subprogram)}
                   className={`group relative rounded-2xl overflow-hidden transition-all duration-500 border-2 ${isLocked
-                      ? `${isDark ? "bg-gray-800/40 border-gray-700/50" : "bg-gray-100 border-gray-200"} grayscale opacity-80 cursor-not-allowed`
-                      : `${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"} cursor-pointer hover:shadow-2xl hover:border-[#010080]/30 hover:-translate-y-2`
+                    ? `${isDark ? "bg-gray-800/40 border-gray-700/50" : "bg-gray-100 border-gray-200"} grayscale opacity-80 cursor-not-allowed`
+                    : `${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"} cursor-pointer hover:shadow-2xl hover:border-[#010080]/30 hover:-translate-y-2`
                     }`}
                 >
                   {/* Top Decorative Section with Icon */}
@@ -269,8 +269,8 @@ export default function MyCoursesPage() {
                     <div className="absolute top-4 right-4">
                       {isActive && (
                         <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg flex items-center gap-1.5 ${progress === 100
-                            ? "bg-green-500 text-white"
-                            : "bg-white text-[#010080]"
+                          ? "bg-green-500 text-white"
+                          : "bg-white text-[#010080]"
                           }`}>
                           <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${progress === 100 ? "bg-white" : "bg-[#010080]"}`}></div>
                           {progress === 100 ? "Completed" : "Active"}
@@ -290,8 +290,8 @@ export default function MyCoursesPage() {
                   <div className="p-6">
                     <div className="mb-4">
                       <h3 className={`text-xl font-bold mb-2 line-clamp-1 transition-colors ${isLocked
-                          ? (isDark ? "text-gray-500" : "text-gray-400")
-                          : (isDark ? "text-white group-hover:text-[#4F46E5]" : "text-gray-900 group-hover:text-[#010080]")
+                        ? (isDark ? "text-gray-500" : "text-gray-400")
+                        : (isDark ? "text-white group-hover:text-[#4F46E5]" : "text-gray-900 group-hover:text-[#010080]")
                         }`}>
                         {subprogram.subprogram_name}
                       </h3>
@@ -326,8 +326,8 @@ export default function MyCoursesPage() {
                           router.push(`/portal/student/my-courses/${subprogram.id}`);
                         }}
                         className={`w-full group/btn relative flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all duration-300 overflow-hidden ${isDark
-                            ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                            : "bg-[#010080] text-white hover:bg-[#010080]/90 shadow-[0_4px_14px_0_rgba(1,0,128,0.39)]"
+                          ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                          : "bg-[#010080] text-white hover:bg-[#010080]/90 shadow-[0_4px_14px_0_rgba(1,0,128,0.39)]"
                           }`}
                       >
                         <span className="relative z-10 transition-transform duration-300 group-hover/btn:-translate-x-1">View Course</span>

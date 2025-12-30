@@ -85,32 +85,32 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
-      <div className="py-6">
-        {/* Welcome Message */}
-        <div className={`mb-6 p-6 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-          <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="w-full">
+        {/* Header Section */}
+        <div className={`mb-8 p-8 rounded-2xl ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} shadow-sm border`}>
+          <h1 className={`text-4xl font-bold mb-2 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Welcome, {user?.full_name || 'Student'}!
           </h1>
-          <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className={`text-lg font-medium opacity-60 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Dashboard Overview
           </p>
           {approvalStatus !== 'approved' && (
             <div className="mt-4">
               <div
                 className={`p-4 rounded-lg flex items-start gap-3 ${approvalStatus === "pending"
-                    ? isDark
-                      ? "bg-blue-900/30 border border-blue-700"
-                      : "bg-blue-50 border border-blue-200"
-                    : isDark
-                      ? "bg-red-900/30 border border-red-700"
-                      : "bg-red-50 border border-red-200"
+                  ? isDark
+                    ? "bg-blue-900/30 border border-blue-700"
+                    : "bg-blue-50 border border-blue-200"
+                  : isDark
+                    ? "bg-red-900/30 border border-red-700"
+                    : "bg-red-50 border border-red-200"
                   }`}
               >
                 <svg
                   className={`w-8 h-8 ${approvalStatus === "pending"
-                      ? "text-blue-600"
-                      : "text-red-600"
+                    ? "text-blue-600"
+                    : "text-red-600"
                     }`}
                   fill="none"
                   stroke="currentColor"

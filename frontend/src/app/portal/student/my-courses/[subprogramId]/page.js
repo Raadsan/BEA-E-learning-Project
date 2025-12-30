@@ -132,8 +132,8 @@ export default function CourseOverviewPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors ${bg}`}>
-      <div className="py-6">
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+      <div className="w-full">
         {/* Back Button Only */}
         <div className="mb-6">
           <button
@@ -188,7 +188,7 @@ export default function CourseOverviewPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {subprogramClasses.map((cls) => {
                   const isStudentClass = studentClass && (cls.id == studentClass.id || cls._id == studentClass.id);
                   const isMorning = cls.type === 'morning';

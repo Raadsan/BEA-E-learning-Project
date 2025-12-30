@@ -28,16 +28,16 @@ export default function ResourcesPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${bg}`}>
-      <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="w-full">
 
         {/* Header Section */}
-        <div className="mb-10">
+        <div className="mb-12">
           <div className="animate-fade-in">
-            <h1 className={`text-3xl font-semibold mb-3 ${isDark ? "text-white" : "text-[#010080]"}`}>
+            <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-[#010080]"}`}>
               Learning Resources
             </h1>
-            <p className={`text-base max-w-2xl ${isDark ? "text-blue-200/60" : "text-gray-500"}`}>
+            <p className={`text-lg font-medium opacity-60 ${isDark ? "text-blue-200/60" : "text-gray-500"}`}>
               Access your course materials and resources for your level.
             </p>
           </div>

@@ -29,7 +29,7 @@ export default function SessionChangePage() {
   const card = isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900";
 
   return (
-    <div className={`min-h-screen transition-colors ${bg}`}>
+    <div className={`min-h-screen transition-colors px-8 ${bg}`}>
       <div className="py-6">
         <div className={`mb-6 p-6 rounded-xl shadow ${card}`}>
           <h1 className="text-2xl font-bold mb-2">Session Change Request</h1>

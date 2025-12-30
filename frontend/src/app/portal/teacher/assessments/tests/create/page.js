@@ -13,7 +13,7 @@ import TeacherHeader from "../../../TeacherHeader";
 import { useToast } from "@/components/Toast";
 import { useDarkMode } from "@/context/ThemeContext";
 
-export default function CreateCourseWorkPage() {
+export default function CreateTestPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const editId = searchParams.get("id");
@@ -28,7 +28,7 @@ export default function CreateCourseWorkPage() {
     const { data: programs } = useGetProgramsQuery();
 
     // Fetch existing if editing
-    const { data: assignments } = useGetAssignmentsQuery({ type: 'course_work' }, { skip: !editId });
+    const { data: assignments } = useGetAssignmentsQuery({ type: 'test' }, { skip: !editId });
     const editingAssignment = assignments?.find(a => a.id === parseInt(editId));
 
     const [testData, setTestData] = useState({
@@ -39,14 +39,16 @@ export default function CreateCourseWorkPage() {
         program_id: "",
         total_points: 100,
         status: "active",
+        duration: 60, // Default 60 minutes
     });
 
     const [questions, setQuestions] = useState([]);
     const [editingIndex, setEditingIndex] = useState(null);
     const [currentQuestion, setCurrentQuestion] = useState({
+        type: "mcq", // mcq, true_false, short_answer
         questionText: "",
         options: ["", "", "", ""],
-        correctOption: 0,
+        correctOption: 0, // index for mcq/tf, string for short_answer
         points: 1,
     });
 
@@ -60,6 +62,7 @@ export default function CreateCourseWorkPage() {
                 program_id: editingAssignment.program_id,
                 total_points: editingAssignment.total_points,
                 status: editingAssignment.status || "active",
+                duration: editingAssignment.duration || 60,
             });
             const q = typeof editingAssignment.questions === 'string'
                 ? JSON.parse(editingAssignment.questions)
@@ -72,6 +75,21 @@ export default function CreateCourseWorkPage() {
         setTestData({ ...testData, [e.target.name]: e.target.value });
     };
 
+    const handleTypeChange = (type) => {
+        let newQuestion = { ...currentQuestion, type };
+        if (type === "true_false") {
+            newQuestion.options = ["True", "False"];
+            newQuestion.correctOption = 0;
+        } else if (type === "mcq") {
+            newQuestion.options = ["", "", "", ""];
+            newQuestion.correctOption = 0;
+        } else if (type === "short_answer") {
+            newQuestion.options = [];
+            newQuestion.correctOption = "";
+        }
+        setCurrentQuestion(newQuestion);
+    };
+
     const handleOptionChange = (index, value) => {
         const newOptions = [...currentQuestion.options];
         newOptions[index] = value;
@@ -79,8 +97,18 @@ export default function CreateCourseWorkPage() {
     };
 
     const handleSaveQuestion = () => {
-        if (!currentQuestion.questionText || currentQuestion.options.some((opt) => !opt)) {
-            showToast("Please fill in the question and all options.", "error");
+        if (!currentQuestion.questionText) {
+            showToast("Please enter the question text.", "error");
+            return;
+        }
+
+        if (currentQuestion.type === "mcq" && currentQuestion.options.some(opt => !opt)) {
+            showToast("Please fill in all options for the MCQ.", "error");
+            return;
+        }
+
+        if (currentQuestion.type === "short_answer" && !currentQuestion.correctOption) {
+            showToast("Please provide a sample correct answer for reference.", "error");
             return;
         }
 
@@ -100,6 +128,7 @@ export default function CreateCourseWorkPage() {
 
     const resetQuestionForm = () => {
         setCurrentQuestion({
+            type: "mcq",
             questionText: "",
             options: ["", "", "", ""],
             correctOption: 0,
@@ -136,7 +165,7 @@ export default function CreateCourseWorkPage() {
         const payload = {
             ...testData,
             due_date: testData.due_date === "" ? null : testData.due_date,
-            type: 'course_work',
+            type: 'test',
             questions: questions.length > 0 ? questions : null,
             status: testData.status.toLowerCase()
         };
@@ -144,14 +173,14 @@ export default function CreateCourseWorkPage() {
         try {
             if (editId) {
                 await updateAssignment({ id: editId, ...payload }).unwrap();
-                showToast("Course Work updated successfully!", "success");
+                showToast("Test updated successfully!", "success");
             } else {
                 await createAssignment(payload).unwrap();
-                showToast("Course Work created successfully!", "success");
+                showToast("Test created successfully!", "success");
             }
-            router.push("/portal/teacher/assessments/course-work");
+            router.push("/portal/teacher/assessments/tests");
         } catch (err) {
-            showToast(err.data?.error || "Failed to save Course Work.", "error");
+            showToast(err.data?.error || "Failed to save Test.", "error");
         }
     };
 
@@ -164,14 +193,14 @@ export default function CreateCourseWorkPage() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                         <div>
                             <h1 className={`text-3xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                {editId ? "Update" : "Create"} Course Work
+                                {editId ? "Update Test" : "Create New Test"}
                             </h1>
                             <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-                                Create an MCQ-based assessment for your collection.
+                                {editId ? "Modify the existing test details and questions." : "Define test settings and build your question bank."}
                             </p>
                         </div>
                         <button
-                            onClick={() => router.push("/portal/teacher/assessments/course-work")}
+                            onClick={() => router.push("/portal/teacher/assessments/tests")}
                             className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all text-sm font-medium ${isDark ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 shadow-sm'}`}
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,36 +216,36 @@ export default function CreateCourseWorkPage() {
                             {/* 1. Basic Info Card - Google Form Header Style */}
                             <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl shadow-sm border-t-[10px] border-t-[#673ab7] p-8`}>
                                 <div className="flex items-center gap-2 mb-6">
-                                    <h2 className="text-xl font-semibold">General Settings</h2>
+                                    <h2 className="text-xl font-semibold">Test Details</h2>
                                 </div>
 
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Test Title</label>
                                         <input
                                             type="text"
                                             name="title"
                                             value={testData.title}
                                             onChange={handleDataChange}
-                                            placeholder="e.g., Week 1 Grammar Review"
+                                            placeholder="e.g., Final Proficiency Exam"
                                             className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Instructions</label>
+                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Instructions / Description</label>
                                         <textarea
                                             name="description"
                                             value={testData.description}
                                             onChange={handleDataChange}
                                             className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                                             rows="3"
-                                            placeholder="Brief instructions for students..."
+                                            placeholder="Describe the rules and content of this test..."
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Program</label>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Target Program</label>
                                             <select
                                                 name="program_id"
                                                 value={testData.program_id}
@@ -224,11 +253,13 @@ export default function CreateCourseWorkPage() {
                                                 className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-all bg-white dark:bg-gray-700 ${isDark ? 'border-gray-600 text-white' : 'border-gray-300'}`}
                                             >
                                                 <option value="">Select Program</option>
-                                                {programs?.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+                                                {programs?.map((p) => (
+                                                    <option key={p.id} value={p.id}>{p.title}</option>
+                                                ))}
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Class</label>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Target Class</label>
                                             <select
                                                 name="class_id"
                                                 value={testData.class_id}
@@ -236,18 +267,30 @@ export default function CreateCourseWorkPage() {
                                                 className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-all bg-white dark:bg-gray-700 ${isDark ? 'border-gray-600 text-white' : 'border-gray-300'}`}
                                             >
                                                 <option value="">Select Class</option>
-                                                {classes?.map(c => <option key={c.id} value={c.id}>{c.class_name}</option>)}
+                                                {classes?.map((c) => (
+                                                    <option key={c.id} value={c.id}>{c.class_name}</option>
+                                                ))}
                                             </select>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Due Date</label>
                                             <input
                                                 type="date"
                                                 name="due_date"
                                                 value={testData.due_date}
+                                                onChange={handleDataChange}
+                                                className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Duration (Min)</label>
+                                            <input
+                                                type="number"
+                                                name="duration"
+                                                value={testData.duration}
                                                 onChange={handleDataChange}
                                                 className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                                             />
@@ -262,6 +305,7 @@ export default function CreateCourseWorkPage() {
                                             >
                                                 <option value="active">Active</option>
                                                 <option value="inactive">Inactive</option>
+                                                <option value="closed">Closed</option>
                                             </select>
                                         </div>
                                     </div>
@@ -275,60 +319,127 @@ export default function CreateCourseWorkPage() {
                                             {isCreating || isUpdating ? (
                                                 <div className="flex items-center justify-center gap-2">
                                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                    Processing...
+                                                    Saving...
                                                 </div>
                                             ) : (
-                                                editId ? "Update Course Work" : "Publish Course Work"
+                                                editId ? "Update Test Details" : "Publish Test"
                                             )}
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Question Form */}
+                            {/* 2. Add/Edit Question Form */}
                             <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl shadow-sm border p-8 space-y-6`}>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                                         {editingIndex !== null ? `Edit Question #${editingIndex + 1}` : "Add Question"}
                                     </h2>
-                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-100 dark:bg-gray-900/40 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700/50">
-                                        MCQ Builder
+
+                                    {/* Pill Switcher */}
+                                    <div className="flex bg-gray-100 dark:bg-gray-900/50 p-1.5 rounded-2xl gap-1 shadow-inner border border-gray-200/50 dark:border-gray-700">
+                                        {['mcq', 'true_false', 'short_answer'].map((type) => (
+                                            <button
+                                                key={type}
+                                                type="button"
+                                                onClick={() => handleTypeChange(type)}
+                                                className={`px-4 py-2 text-[10px] font-bold uppercase tracking-[0.1em] rounded-xl transition-all ${currentQuestion.type === type
+                                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                                                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                                    }`}
+                                            >
+                                                {type === 'mcq' ? 'MCQ' : type === 'true_false' ? 'TRUE FALSE' : 'SHORT ANSWER'}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Question Content</label>
+                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Question Text</label>
                                         <textarea
                                             value={currentQuestion.questionText}
                                             onChange={(e) => setCurrentQuestion({ ...currentQuestion, questionText: e.target.value })}
                                             className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                            rows="3"
-                                            placeholder="What is your question?"
+                                            rows="2"
+                                            placeholder="Enter the question here..."
                                         />
                                     </div>
 
-                                    <div className="space-y-4">
-                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Multiple Choice Options</label>
-                                        {currentQuestion.options.map((opt, idx) => (
-                                            <div key={idx} className="flex items-center gap-4 group">
-                                                <input
-                                                    type="radio"
-                                                    name="correctOption"
-                                                    checked={currentQuestion.correctOption === idx}
-                                                    onChange={() => setCurrentQuestion({ ...currentQuestion, correctOption: idx })}
-                                                    className="w-6 h-6 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={opt}
-                                                    onChange={(e) => handleOptionChange(idx, e.target.value)}
-                                                    className={`flex-1 border rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                                    placeholder={`Option ${idx + 1}`}
-                                                />
-                                            </div>
-                                        ))}
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Points</label>
+                                            <input
+                                                type="number"
+                                                value={currentQuestion.points}
+                                                onChange={(e) => setCurrentQuestion({ ...currentQuestion, points: parseInt(e.target.value) || 1 })}
+                                                className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                                                min="1"
+                                            />
+                                        </div>
                                     </div>
+
+                                    {/* Dynamic Options/Answer Area */}
+                                    {currentQuestion.type === 'mcq' && (
+                                        <div className="space-y-4">
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Options (Select the correct one)</label>
+                                            {currentQuestion.options.map((opt, idx) => (
+                                                <div key={idx} className="flex items-center gap-4 group">
+                                                    <input
+                                                        type="radio"
+                                                        name="correctOption"
+                                                        checked={currentQuestion.correctOption === idx}
+                                                        onChange={() => setCurrentQuestion({ ...currentQuestion, correctOption: idx })}
+                                                        className="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={opt}
+                                                        onChange={(e) => handleOptionChange(idx, e.target.value)}
+                                                        className={`flex-1 border rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                                                        placeholder={`Option ${idx + 1}`}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {currentQuestion.type === 'true_false' && (
+                                        <div className="space-y-4">
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Select Correct Answer</label>
+                                            <div className="grid grid-cols-2 gap-6">
+                                                {currentQuestion.options.map((opt, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={() => setCurrentQuestion({ ...currentQuestion, correctOption: idx })}
+                                                        className={`py-4 rounded-xl border-2 font-semibold transition-all ${currentQuestion.correctOption === idx
+                                                            ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20'
+                                                            : (isDark ? 'bg-gray-700 border-gray-600 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-500 hover:border-blue-300')
+                                                            }`}
+                                                    >
+                                                        {opt}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {currentQuestion.type === 'short_answer' && (
+                                        <div className="space-y-4">
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                Sample Correct Answer (for auto-grading)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={currentQuestion.correctOption}
+                                                onChange={(e) => setCurrentQuestion({ ...currentQuestion, correctOption: e.target.value })}
+                                                placeholder="Enter the expected answer..."
+                                                className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                                            />
+                                            <p className="text-[11px] text-gray-500 dark:text-gray-400 italic">Students must provide an exact match (case-insensitive) for this answer.</p>
+                                        </div>
+                                    )}
 
                                     <div className="flex gap-4 mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
                                         <button
@@ -336,7 +447,7 @@ export default function CreateCourseWorkPage() {
                                             onClick={handleSaveQuestion}
                                             className={`flex-1 py-3.5 rounded-xl font-semibold transition-all active:scale-[0.98] ${editingIndex !== null ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}`}
                                         >
-                                            {editingIndex !== null ? 'Update Item' : '+ Add Question'}
+                                            {editingIndex !== null ? 'Update Question' : '+ Add Question'}
                                         </button>
                                         {editingIndex !== null && (
                                             <button
@@ -344,7 +455,7 @@ export default function CreateCourseWorkPage() {
                                                 onClick={resetQuestionForm}
                                                 className="px-8 py-3.5 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 rounded-xl font-semibold transition-all border border-red-100 dark:border-transparent"
                                             >
-                                                Discard
+                                                Cancel
                                             </button>
                                         )}
                                     </div>
@@ -352,22 +463,22 @@ export default function CreateCourseWorkPage() {
                             </div>
                         </div>
 
-                        {/* Right Column: Collection Preview */}
+                        {/* Right Column: Preview */}
                         <div className="lg:col-span-1">
                             <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl shadow-sm border p-6 sticky top-24`}>
                                 <div className="flex justify-between items-center mb-6">
                                     <h2 className="text-lg font-semibold flex items-center gap-2">
-                                        Review Bank
+                                        Question List
                                         <span className="text-gray-400 font-normal">({questions.length})</span>
                                     </h2>
                                     <div className="px-3 py-1 bg-purple-50 dark:bg-purple-900/40 text-[#673ab7] dark:text-purple-300 rounded-lg text-xs font-bold uppercase">
-                                        {questions.length} Items
+                                        {questions.reduce((acc, q) => acc + (q.points || 0), 0)} PTS
                                     </div>
                                 </div>
 
                                 {questions.length === 0 ? (
                                     <div className="py-12 px-6 text-center bg-gray-50 dark:bg-gray-900/40 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700">
-                                        <p className="text-sm text-gray-400 font-medium italic">No items available for preview.</p>
+                                        <p className="text-sm text-gray-400 font-medium italic">Your questions will appear here.</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 custom-scrollbar">
@@ -395,12 +506,13 @@ export default function CreateCourseWorkPage() {
                                                         <p className="font-semibold text-sm leading-snug truncate mb-2">
                                                             {q.questionText}
                                                         </p>
-                                                        <div className="flex flex-wrap gap-1.5">
-                                                            {q.options.map((opt, oid) => (
-                                                                <span key={oid} className={`text-[8px] px-1.5 py-0.5 rounded font-bold border ${oid === q.correctOption ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' : 'bg-white text-gray-400 border-gray-100 dark:bg-gray-800 dark:border-gray-700'}`}>
-                                                                    {opt}
-                                                                </span>
-                                                            ))}
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <span className="text-[9px] font-bold uppercase tracking-wider text-[#673ab7] dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">
+                                                                {q.type.replace('_', ' ')}
+                                                            </span>
+                                                            <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">
+                                                                {q.points || 1} PTS
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>

@@ -1,5 +1,3 @@
-"use client";
-
 import StudentAssignmentList from "../components/StudentAssignmentList";
 
 export default function TestsPage() {

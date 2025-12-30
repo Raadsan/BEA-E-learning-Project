@@ -77,63 +77,63 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors `}>
-      <div className="py-6 space-y-6">
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+      <div className="w-full">
 
         {/* Simple Header */}
-        <div>
-          <h1 className={`text-2xl font-bold tracking-tight mb-0.5 ${isDark ? "text-white" : "text-gray-900"}`}>
+        <div className="mb-12">
+          <h1 className={`text-4xl font-bold tracking-tight mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
             Attendance
           </h1>
-          <p className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
             Your recorded attendance by date and class.
           </p>
         </div>
 
         {/* Stats Grid - Normal Size */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* Total Days */}
-          <div className={`p-4 rounded-xl shadow-sm border flex items-center justify-between ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
+          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
             <div>
-              <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Total Days</p>
-              <h2 className="text-xl font-bold">{stats.totalDays}</h2>
+              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Total Days</p>
+              <h2 className="text-2xl font-extrabold">{stats.totalDays}</h2>
             </div>
-            <div className={`p-2 rounded-lg ${isDark ? "bg-blue-500/10 text-blue-400" : "bg-blue-50 text-blue-600"}`}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div className={`p-3 rounded-xl ${isDark ? "bg-blue-500/10 text-blue-400" : "bg-blue-50 text-blue-600"}`}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
           </div>
 
           {/* Present Hours */}
-          <div className={`p-4 rounded-xl shadow-sm border flex items-center justify-between ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
+          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
             <div>
-              <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Present Hours</p>
-              <h2 className="text-xl font-bold text-green-500">{stats.presentHours}</h2>
+              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Present Hours</p>
+              <h2 className="text-2xl font-extrabold text-green-500">{stats.presentHours}</h2>
             </div>
-            <div className={`p-2 rounded-lg ${isDark ? "bg-green-500/10 text-green-400" : "bg-green-50 text-green-600"}`}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div className={`p-3 rounded-xl ${isDark ? "bg-green-500/10 text-green-400" : "bg-green-50 text-green-600"}`}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           </div>
 
           {/* Absent Hours */}
-          <div className={`p-4 rounded-xl shadow-sm border flex items-center justify-between ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
+          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
             <div>
-              <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Absent Hours</p>
-              <h2 className="text-xl font-bold text-red-500">{stats.absentHours}</h2>
+              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Absent Hours</p>
+              <h2 className="text-2xl font-extrabold text-red-500">{stats.absentHours}</h2>
             </div>
-            <div className={`p-2 rounded-lg ${isDark ? "bg-red-500/10 text-red-400" : "bg-red-50 text-red-600"}`}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div className={`p-3 rounded-xl ${isDark ? "bg-red-500/10 text-red-400" : "bg-red-50 text-red-600"}`}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           </div>
         </div>
 
         {/* Overview Chart */}
-        <div className={`p-5 rounded-xl shadow-sm border ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
+        <div className={`p-5 rounded-xl shadow-sm border mb-8 ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
           <h3 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>Overall Allocation</h3>
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -161,7 +161,7 @@ export default function AttendancePage() {
         </div>
 
         {/* Tracking Table */}
-        <div className="pb-10">
+        <div className="pb-10 ">
           <DataTable
             title="Attendance History"
             columns={columns}
@@ -178,15 +178,14 @@ export default function AttendancePage() {
 function Card({ children, isDark, error }) {
   return (
     <div
-      className={`p-6 rounded-xl shadow ${
-        error
-          ? isDark
-            ? "bg-red-900/20 border border-red-500 text-red-200"
-            : "bg-red-50 border border-red-200 text-red-700"
-          : isDark
+      className={`p-6 rounded-xl shadow ${error
+        ? isDark
+          ? "bg-red-900/20 border border-red-500 text-red-200"
+          : "bg-red-50 border border-red-200 text-red-700"
+        : isDark
           ? "bg-gray-800 text-gray-100"
           : "bg-white text-gray-800"
-      }`}
+        }`}
     >
       <p className="text-sm">{children}</p>
     </div>

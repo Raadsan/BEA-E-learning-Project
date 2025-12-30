@@ -48,12 +48,14 @@ export default function MyClassPage() {
   const card = isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900";
 
   return (
-    <div className={`min-h-screen transition-colors ${bg}`}>
-      <div className="py-6">
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+      <div className="w-full">
         {/* Header */}
-        <div className={`mb-6 p-6 rounded-xl shadow ${card}`}>
-          <h1 className="text-2xl font-bold mb-2">My Class</h1>
-          <p className={isDark ? "text-gray-300" : "text-gray-600"}>
+        <div className="mb-12">
+          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
+            My Class
+          </h1>
+          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
             Complete information about your assigned class, courses, and schedule.
           </p>
         </div>
@@ -179,15 +181,14 @@ export default function MyClassPage() {
                       {courses.map((course, index) => (
                         <tr
                           key={course.id || course._id || index}
-                          className={`${
-                            index % 2 === 0
-                              ? isDark
-                                ? "bg-gray-800"
-                                : "bg-white"
-                              : isDark
+                          className={`${index % 2 === 0
+                            ? isDark
+                              ? "bg-gray-800"
+                              : "bg-white"
+                            : isDark
                               ? "bg-gray-800/50"
                               : "bg-gray-50"
-                          } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+                            } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
                         >
                           <Td isDark={isDark}>
                             <div className="font-medium">{course.course_name || "N/A"}</div>
@@ -202,11 +203,10 @@ export default function MyClassPage() {
                           </Td>
                           <Td isDark={isDark}>
                             <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                course.status === "active"
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                  : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                              }`}
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${course.status === "active"
+                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                                }`}
                             >
                               {course.status || "N/A"}
                             </span>
@@ -282,7 +282,6 @@ export default function MyClassPage() {
             </div>
           </div>
         )}
-        </div>
       </div>
     </div>
   );

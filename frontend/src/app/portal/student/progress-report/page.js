@@ -11,11 +11,14 @@ export default function ProgressReportPage() {
   const card = isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900";
 
   return (
-    <div className={`min-h-screen transition-colors ${bg}`}>
-      <div className="py-6">
-        <div className={`mb-6 p-6 rounded-xl shadow ${card}`}>
-          <h1 className="text-2xl font-bold mb-2">Progress Report</h1>
-          <p className={isDark ? "text-gray-300" : "text-gray-600"}>
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="w-full">
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
+            Progress Report
+          </h1>
+          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
             Track your academic progress and performance across all courses.
           </p>
         </div>

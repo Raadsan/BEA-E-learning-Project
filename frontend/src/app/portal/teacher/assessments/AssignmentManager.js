@@ -80,6 +80,14 @@ export default function AssignmentManager({ type, title, description }) {
             router.push('/portal/teacher/assessments/course-work/create');
             return;
         }
+        if (type === 'test') {
+            router.push('/portal/teacher/assessments/tests/create');
+            return;
+        }
+        if (type === 'oral_assignment') {
+            router.push('/portal/teacher/assessments/oral-assignment/create');
+            return;
+        }
         setEditingAssignment(null);
         setFormData({
             title: "",
@@ -100,6 +108,14 @@ export default function AssignmentManager({ type, title, description }) {
     const handleEditClick = (assignment) => {
         if (type === 'course_work') {
             router.push(`/portal/teacher/assessments/course-work/create?id=${assignment.id}`);
+            return;
+        }
+        if (type === 'test') {
+            router.push(`/portal/teacher/assessments/tests/update/${assignment.id}`);
+            return;
+        }
+        if (type === 'oral_assignment') {
+            router.push(`/portal/teacher/assessments/oral-assignment/create?id=${assignment.id}`);
             return;
         }
         setEditingAssignment(assignment);
@@ -134,15 +150,33 @@ export default function AssignmentManager({ type, title, description }) {
     const handleStatusToggle = async (assignment) => {
         const newStatus = assignment.status === 'inactive' ? 'active' : 'inactive';
         try {
-            await updateAssignment({
+            // Ensure due_date is in YYYY-MM-DD format for the backend/MySQL
+            const formattedDate = assignment.due_date
+                ? new Date(assignment.due_date).toISOString().split('T')[0]
+                : null;
+
+            const updatePayload = {
                 id: assignment.id,
-                type,
-                ...assignment,
-                status: newStatus
-            }).unwrap();
-            showToast(`Status updated to ${newStatus}`, "success");
+                type: type,
+                title: assignment.title,
+                description: assignment.description,
+                class_id: assignment.class_id,
+                program_id: assignment.program_id,
+                due_date: formattedDate,
+                total_points: assignment.total_points,
+                status: newStatus,
+                word_count: assignment.word_count,
+                duration: assignment.duration,
+                submission_format: assignment.submission_format,
+                requirements: assignment.requirements,
+                questions: assignment.questions
+            };
+
+            await updateAssignment(updatePayload).unwrap();
+            showToast(`Assignment is now ${newStatus}`, "success");
         } catch (err) {
-            showToast("Failed to update status", "error");
+            console.error("Status update error details:", err);
+            showToast(err.data?.error || "Failed to update status", "error");
         }
     };
 
@@ -244,21 +278,13 @@ export default function AssignmentManager({ type, title, description }) {
                     <div className="flex gap-2">
                         <button
                             onClick={() => handleStatusToggle(row)}
-                            className={`p-1.5 rounded-lg transition-colors ${row.status === 'inactive'
-                                ? 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20'
-                                : 'text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-900/20'
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${row.status === 'inactive'
+                                ? 'bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 hover:bg-amber-200'
+                                : 'bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800 hover:bg-emerald-200'
                                 }`}
-                            title={row.status === 'inactive' ? "Activate" : "Deactivate"}
                         >
-                            {row.status === 'inactive' ? (
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            ) : (
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            )}
+                            <div className={`w-2 h-2 rounded-full animate-pulse ${row.status === 'inactive' ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
+                            {row.status || 'active'}
                         </button>
                         <button
                             onClick={() => handleViewSubmissions(row)}
@@ -427,12 +453,16 @@ export default function AssignmentManager({ type, title, description }) {
                                                             </h3>
                                                             <span className="text-[11px] text-gray-500 uppercase font-medium">{assignment.class_name}</span>
                                                         </div>
-                                                        <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${assignment.status === 'inactive'
-                                                            ? 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
-                                                            : 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
-                                                            }`}>
-                                                            {(assignment.status || 'active').charAt(0).toUpperCase() + (assignment.status || 'active').slice(1)}
-                                                        </span>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); handleStatusToggle(assignment); }}
+                                                            className={`flex items-center gap-2 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border transition-all hover:scale-105 active:scale-95 ${assignment.status === 'inactive'
+                                                                ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
+                                                                : 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800'
+                                                                }`}
+                                                        >
+                                                            <div className={`w-2 h-2 rounded-full ${assignment.status === 'inactive' ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`}></div>
+                                                            {assignment.status || 'active'}
+                                                        </button>
                                                     </div>
 
                                                     <div className="space-y-3 mb-6">
@@ -469,24 +499,6 @@ export default function AssignmentManager({ type, title, description }) {
                                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                             </svg>
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); handleStatusToggle(assignment); }}
-                                                            className={`transition-all p-2 rounded-lg ${assignment.status === 'inactive'
-                                                                ? 'text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20'
-                                                                : 'text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20'
-                                                                }`}
-                                                            title={assignment.status === 'inactive' ? "Activate" : "Deactivate"}
-                                                        >
-                                                            {assignment.status === 'inactive' ? (
-                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                                </svg>
-                                                            ) : (
-                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                                </svg>
-                                                            )}
                                                         </button>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleDeleteClick(assignment.id); }}

@@ -34,11 +34,13 @@ export default function NotificationsPage() {
   const card = isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900";
 
   return (
-    <div className={`min-h-screen ${bg}`}>
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-        <div className={`p-6 rounded-xl shadow ${card}`}>
-          <h1 className="text-2xl font-bold mb-2">Notifications</h1>
-          <p className={isDark ? "text-gray-300" : "text-gray-600"}>
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="w-full">
+        <div className="mb-12">
+          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
+            Notifications
+          </h1>
+          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-slate-400" : "text-gray-600"}`}>
             Announcements and updates from the academy.
           </p>
         </div>
@@ -49,9 +51,8 @@ export default function NotificationsPage() {
           </div>
         ) : error ? (
           <div
-            className={`p-6 rounded-xl shadow border border-red-200 ${
-              isDark ? "bg-red-900/20" : "bg-red-50"
-            }`}
+            className={`p-6 rounded-xl shadow border border-red-200 ${isDark ? "bg-red-900/20" : "bg-red-50"
+              }`}
           >
             <p className="text-sm text-red-600">{error}</p>
           </div>

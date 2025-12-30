@@ -23,6 +23,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
 import materialRoutes from "./routes/materialRoutes.js";
+import uploadRoutes from "./routes/uploadRoutes.js";
 
 const app = express();
 
@@ -95,6 +96,9 @@ import newsRoutes from "./routes/newsRoutes.js";
 app.use("/api/news", newsRoutes);
 // ⬇️ Register Material Routes
 app.use("/api/materials", materialRoutes);
+
+// ⬇️ Register Upload Routes
+app.use("/api/uploads", uploadRoutes);
 
 // Server start
 const PORT = process.env.PORT || 5000;

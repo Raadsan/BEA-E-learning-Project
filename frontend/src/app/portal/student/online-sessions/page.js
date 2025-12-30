@@ -192,16 +192,16 @@ export default function OnlineSessionsPage() {
     const blocksEmbedding = isGoogleMeet || isZoom;
 
     return (
-      <div className={`min-h-screen transition-colors ${bg}`}>
-        <div className="py-6 h-full flex flex-col">
-          <div className="mb-6 flex items-center justify-between px-2">
+      <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+        <div className="max-w-7xl mx-auto h-full flex flex-col">
+          <div className="mb-10 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={handleBackToSessions}
-                className={`p-2 rounded-full transition-all ${isDark ? "bg-gray-800 hover:bg-gray-700 text-white" : "bg-white hover:bg-gray-100 text-gray-900 shadow-sm"}`}
+                className={`p-2 rounded-xl transition-all ${isDark ? "bg-gray-800 hover:bg-gray-700 text-white" : "bg-white hover:bg-gray-100 text-gray-900 border border-gray-200 shadow-sm"}`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </button>
               <div>
@@ -322,16 +322,16 @@ export default function OnlineSessionsPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors ${bg}`}>
-      <div className="py-6">
-        <div className="mb-6">
-          <h1 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+      <div className="w-full">
+        <div className="mb-12">
+          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
             Online Sessions
           </h1>
-          <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
             View and join your scheduled online class sessions.
             {studentClass && (
-              <span className="ml-2 font-semibold">
+              <span className="ml-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold">
                 Class: {studentClass.class_name}
               </span>
             )}

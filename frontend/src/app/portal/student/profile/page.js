@@ -29,7 +29,7 @@ export default function StudentProfilePage() {
   const bannerGradient = "bg-gradient-to-r from-blue-600 to-indigo-700";
 
   return (
-    <div className={`min-h-screen pb-12 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
+    <div className={`min-h-screen pb-20 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
       {/* Top Banner */}
       <div className={`h-48 ${bannerGradient} relative overflow-hidden`}>
         <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
@@ -38,7 +38,7 @@ export default function StudentProfilePage() {
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-60 h-60 rounded-full bg-black/10 blur-3xl"></div>
       </div>
 
-      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-10">
+      <div className="mx-auto px-6 sm:px-10 -mt-24 relative z-10">
 
         {/* Main Profile Card */}
         <div className={`rounded-2xl shadow-xl overflow-hidden backdrop-blur-md border ${isDark
@@ -200,7 +200,7 @@ function DetailCard({ icon, label, value, subValue, isDark, accentColor }) {
   return (
     <div className={`p-4 rounded-xl border transition-all hover:shadow-md ${isDark ? "bg-slate-800/50 border-slate-700" : "bg-white border-gray-100 shadow-sm"
       }`}>
-      <div className="flex items-center gap-3 mb-3"> 
+      <div className="flex items-center gap-3 mb-3">
         <div className={`p-2 rounded-lg ${colors}`}>
           {icon}
         </div>

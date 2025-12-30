@@ -124,31 +124,6 @@ export default function StudentSidebar({ isApproved }) {
         {showMyCourses ? (
           /* My Courses Submenu */
           <ul className="space-y-0.5">
-            {/* Dashboard */}
-            <li>
-              <Link
-                href="/portal/student"
-                className={getMenuItemClasses("/portal/student", true)}
-                style={getActiveStyle("/portal/student", true)}
-              >
-                <svg
-                  className={getIconClasses("/portal/student", true)}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                  />
-                </svg>
-                <span className={getTextClasses("/portal/student", true)}>
-                  Dashboard
-                </span>
-              </Link>
-            </li>
             {/* Back Button */}
             <li>
               <button
@@ -388,6 +363,32 @@ export default function StudentSidebar({ isApproved }) {
           /* Main Menu */
           <ul className="space-y-0.5">
 
+            {/* Dashboard (Moved outside) */}
+            <li>
+              <Link
+                href="/portal/student"
+                className={getMenuItemClasses("/portal/student", true)}
+                style={getActiveStyle("/portal/student", true)}
+              >
+                <svg
+                  className={getIconClasses("/portal/student", true)}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  />
+                </svg>
+                <span className={getTextClasses("/portal/student", true)}>
+                  Dashboard
+                </span>
+              </Link>
+            </li>
+
             {/* Profile (Visible to everyone including pending) */}
             <li>
               <Link
@@ -450,8 +451,8 @@ export default function StudentSidebar({ isApproved }) {
 
                 {/* My Courses - Clickable to show submenu */}
                 <li>
-                  <button
-                    onClick={() => setShowMyCourses(true)}
+                  <Link
+                    href="/portal/student/my-courses"
                     className={getMenuItemClasses("/portal/student/my-courses")}
                     style={getActiveStyle("/portal/student/my-courses")}
                   >
@@ -486,7 +487,7 @@ export default function StudentSidebar({ isApproved }) {
                         d="M9 5l7 7-7 7"
                       />
                     </svg>
-                  </button>
+                  </Link>
                 </li>
               </>
             )}

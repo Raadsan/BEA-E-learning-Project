@@ -245,8 +245,8 @@ export const createAssignment = async (req, res) => {
             columns.push('word_count', 'requirements');
             values.push(word_count || null, requirements || null);
         } else if (type === 'test' || type === 'oral_assignment') {
-            columns.push('duration');
-            values.push(duration || null);
+            columns.push('duration', 'questions');
+            values.push(duration || null, questions ? JSON.stringify(questions) : null);
         } else if (type === 'course_work') {
             columns.push('submission_format', 'questions');
             values.push(submission_format || null, questions ? JSON.stringify(questions) : null);
@@ -302,11 +302,18 @@ export const updateAssignment = async (req, res) => {
             updateParts.push('word_count = ?', 'requirements = ?');
             values.push(word_count || null, requirements || null);
         } else if (type === 'test' || type === 'oral_assignment') {
-            updateParts.push('duration = ?');
-            values.push(duration || null);
+            updateParts.push('duration = ?', 'questions = ?');
+            const processedQuestions = questions
+                ? (typeof questions === 'string' ? questions : JSON.stringify(questions))
+                : null;
+            values.push(duration || null, processedQuestions);
         } else if (type === 'course_work') {
             updateParts.push('submission_format = ?', 'questions = ?');
-            values.push(submission_format || null, questions ? JSON.stringify(questions) : null);
+            // Check if questions is already a string to avoid double stringification
+            const processedQuestions = questions
+                ? (typeof questions === 'string' ? questions : JSON.stringify(questions))
+                : null;
+            values.push(submission_format || null, processedQuestions);
         }
 
         values.push(id);
@@ -373,8 +380,8 @@ export const submitAssignment = async (req, res) => {
         let score = null;
         let finalStatus = 'submitted';
 
-        // Auto-grading for Coursework with MCQs
-        if (type === 'course_work' && assignments[0].questions) {
+        // Auto-grading for Assignments with Questions (Tests and Course Work)
+        if ((type === 'course_work' || type === 'test') && assignments[0].questions) {
             try {
                 const testQuestions = typeof assignments[0].questions === 'string'
                     ? JSON.parse(assignments[0].questions)
@@ -388,13 +395,23 @@ export const submitAssignment = async (req, res) => {
                         const studentAnswer = studentAnswers[index];
                         const qPoints = parseInt(q.points) || 1;
 
-                        // Support both index-based and string-based correct answers
-                        const correctAnswer = q.options && q.correctOption !== undefined
-                            ? q.options[q.correctOption]
-                            : (q.correctAnswer || q.answer);
+                        // Case 1: MCQ or True/False (index-based)
+                        if (q.type === 'mcq' || q.type === 'true_false' || !q.type) {
+                            const correctAnswer = q.options && q.correctOption !== undefined
+                                ? q.options[q.correctOption]
+                                : (q.correctAnswer || q.answer);
 
-                        if (studentAnswer === correctAnswer && studentAnswer !== undefined) {
-                            totalScore += qPoints;
+                            if (studentAnswer === correctAnswer && studentAnswer !== undefined) {
+                                totalScore += qPoints;
+                            }
+                        }
+                        // Case 2: Short Answer (Exact string match, case-insensitive)
+                        else if (q.type === 'short_answer') {
+                            const correctAnswer = q.correctOption || q.correctAnswer || q.answer;
+                            if (studentAnswer && correctAnswer &&
+                                studentAnswer.toString().trim().toLowerCase() === correctAnswer.toString().trim().toLowerCase()) {
+                                totalScore += qPoints;
+                            }
                         }
                     });
 
