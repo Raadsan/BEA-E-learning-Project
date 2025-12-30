@@ -25,6 +25,10 @@ export default function GeneralStudentsPage() {
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedType, setSelectedType] = useState("");
 
+  // Modal state for status toggle
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [studentToToggleStatus, setStudentToToggleStatus] = useState(null);
+
   // Modal state for viewing student
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingStudent, setViewingStudent] = useState(null);
@@ -253,6 +257,35 @@ export default function GeneralStudentsPage() {
     }
   };
 
+  // Handle status toggle (Active/Inactive)
+  // Handle status toggle click
+  const handleStatusToggle = (student) => {
+    setStudentToToggleStatus(student);
+    setIsStatusModalOpen(true);
+  };
+
+  // Confirm status toggle
+  const confirmStatusToggle = async () => {
+    if (!studentToToggleStatus) return;
+
+    const isActive = studentToToggleStatus.approval_status === 'approved';
+    const newDbStatus = isActive ? 'inactive' : 'approved';
+
+    try {
+      await updateStudent({
+        id: studentToToggleStatus.id,
+        approval_status: newDbStatus
+      }).unwrap();
+      showToast("Status updated successfully!", "success");
+      refetch();
+      setIsStatusModalOpen(false);
+      setStudentToToggleStatus(null);
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      showToast("Failed to update status.", "error");
+    }
+  };
+
   const columns = [
     {
       key: "full_name",
@@ -277,11 +310,7 @@ export default function GeneralStudentsPage() {
       label: "Country",
       render: (row) => row.residency_country || <span className="text-gray-400">-</span>,
     },
-    {
-      key: "residency_city",
-      label: "City",
-      render: (row) => row.residency_city || <span className="text-gray-400">-</span>,
-    },
+
     {
       key: "chosen_program",
       label: "Program",
@@ -373,6 +402,26 @@ export default function GeneralStudentsPage() {
           month: 'short',
           day: 'numeric'
         });
+      },
+    },
+    {
+      key: "approval_status",
+      label: "Status",
+      render: (row) => {
+        const isActive = row.approval_status === 'approved';
+        return (
+          <div className="flex justify-center">
+            <button
+              onClick={() => handleStatusToggle(row)}
+              className={`min-w-[80px] px-3 py-1 text-xs font-medium rounded-full border transition-colors ${isActive
+                ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/50'
+                : 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/50'
+                }`}
+            >
+              {isActive ? 'Active' : 'Inactive'}
+            </button>
+          </div>
+        );
       },
     },
     {
@@ -703,7 +752,6 @@ export default function GeneralStudentsPage() {
 
       {/* Edit Student Modal */}
       {isEditModalOpen && editingStudent && (() => {
-        const program = programs.find(p => p.title === editingStudent.chosen_program);
         const studentSubprograms = program ? subprograms.filter(sp => sp.program_id === program.id) : [];
         const showParentInfo = parseInt(editFormData.age) < 18;
 
@@ -1000,6 +1048,62 @@ export default function GeneralStudentsPage() {
           </div>
         );
       })()}
+      {/* Status Toggle Confirmation Modal */}
+      {isStatusModalOpen && studentToToggleStatus && (() => {
+        const isActive = studentToToggleStatus.approval_status === 'approved';
+        const currentStatusLabel = isActive ? 'Active' : 'Inactive';
+        const newStatusLabel = isActive ? 'Inactive' : 'Active';
+
+        return (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 backdrop-blur-sm"
+              onClick={() => setIsStatusModalOpen(false)}
+            />
+            <div className={`relative w-full max-w-sm rounded-xl shadow-2xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+              <div className="mb-6 text-center">
+                <div className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-4 ${isActive
+                  ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                  : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                  }`}>
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                </div>
+                <h3 className={`text-lg font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Change Status?
+                </h3>
+                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Do you want to change Status of <strong>{studentToToggleStatus.full_name}</strong> to <strong>{newStatusLabel}</strong>
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsStatusModalOpen(false)}
+                  className={`flex-1 px-4 py-2 rounded-lg border font-medium transition-colors ${isDark
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmStatusToggle}
+                  disabled={isUpdating}
+                  className={`flex-1 px-4 py-2 rounded-lg text-white font-medium transition-colors shadow-lg disabled:opacity-50 ${isActive
+                    ? 'bg-red-600 hover:bg-red-700 shadow-red-500/20'
+                    : 'bg-green-600 hover:bg-green-700 shadow-green-500/20'
+                    }`}
+                >
+                  {isUpdating ? 'Updating...' : `Confirm`}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
     </>
   );
 }

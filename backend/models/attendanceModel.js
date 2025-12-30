@@ -129,3 +129,24 @@ export const getTotalStudents = async (filters) => {
   const [rows] = await dbp.query(query, params);
   return rows[0]?.total || 0;
 };
+
+export const getStudentLearningHours = async (studentId, startDate) => {
+  const query = `
+      SELECT date, (hour1 + hour2) as hours 
+      FROM attendance 
+      WHERE student_id = ? AND date >= ?
+      ORDER BY date ASC
+  `;
+  const [rows] = await dbp.query(query, [studentId, startDate]);
+  return rows;
+};
+
+export const getStudentLearningHoursSummary = async (studentId) => {
+  const query = `
+      SELECT SUM(hour1 + hour2) as total_hours 
+      FROM attendance 
+      WHERE student_id = ?
+  `;
+  const [rows] = await dbp.query(query, [studentId]);
+  return rows[0]?.total_hours || 0;
+};

@@ -155,7 +155,7 @@ export default function RegistrationPage() {
         gender: formData.gender || null,
         residency_country: formData.residency_country || null,
         residency_city: formData.residency_city || null,
-        chosen_program: formData.chosen_program || null,
+        chosen_program: programs.find(p => p.id === formData.chosen_program)?.title || null,
         password: formData.password,
         // Parent information (only if age < 18)
         parent_name: formData.parent_name || null,
@@ -291,7 +291,7 @@ export default function RegistrationPage() {
         age: formData.age ? parseInt(formData.age) : null,
         residency_country: formData.residency_country || null,
         residency_city: formData.residency_city || null,
-        chosen_program: formData.chosen_program || null,
+        chosen_program: programs.find(p => p.id === formData.chosen_program)?.title || null,
         password: formData.password,
         gender: formData.gender || null,
         // Include parent information if applicable
@@ -370,7 +370,7 @@ export default function RegistrationPage() {
         age: formData.age ? parseInt(formData.age) : null,
         residency_country: formData.residency_country || null,
         residency_city: formData.residency_city || null,
-        chosen_program: formData.chosen_program || null,
+        chosen_program: programs.find(p => p.id === formData.chosen_program)?.title || null,
         password: formData.password,
         parent_name: formData.parent_name || null,
         parent_email: formData.parent_email || null,

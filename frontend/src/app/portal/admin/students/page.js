@@ -349,9 +349,9 @@ export default function StudentsPage() {
         await approveStudent(targetStudent.id).unwrap();
         refetch();
       }
-      showToast("Student approved successfully! Please assign a class.", "success");
+      showToast("Student approved successfully!", "success");
       setIsApprovalModalOpen(false);
-      handleAssignClass(targetStudent);
+      // Removed automatic class assignment trigger as per request
     } catch (error) {
       showToast(error?.data?.error || "Failed to approve student.", "error");
     }
@@ -448,9 +448,25 @@ export default function StudentsPage() {
           );
         }
 
+        if (status === 'inactive') {
+          return (
+            <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+              Inactive
+            </span>
+          );
+        }
+
+        if (status === 'rejected') {
+          return (
+            <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800">
+              Rejected
+            </span>
+          );
+        }
+
         return (
-          <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800">
-            Rejected
+          <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+            {status}
           </span>
         );
       }
