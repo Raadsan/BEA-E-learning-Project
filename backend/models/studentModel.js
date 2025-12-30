@@ -292,10 +292,13 @@ export const getGenderDistribution = async (program_id, class_id) => {
     WHERE 1=1
   `;
 
+  // Join with programs to support filtering by ID even if Title is stored
+  query += ` LEFT JOIN programs p ON (students.chosen_program = p.id OR students.chosen_program = p.title)`;
+
   const params = [];
 
   if (program_id) {
-    query += ` AND chosen_program = ?`;
+    query += ` AND p.id = ?`;
     params.push(program_id);
   }
 
@@ -335,7 +338,7 @@ export const getTopStudents = async (limit = 10, program_id, class_id) => {
       COALESCE(AVG(asub.score), 0) as avg_assignment_score
     FROM students s
     LEFT JOIN classes c ON s.class_id = c.id
-    LEFT JOIN programs p ON s.chosen_program = p.id
+    LEFT JOIN programs p ON (s.chosen_program = p.id OR s.chosen_program = p.title)
     LEFT JOIN attendance a ON s.id = a.student_id
     LEFT JOIN assignment_submissions asub ON s.id = asub.student_id AND asub.status = 'graded'
     WHERE s.approval_status = 'approved'
@@ -344,7 +347,7 @@ export const getTopStudents = async (limit = 10, program_id, class_id) => {
   const params = [];
 
   if (program_id) {
-    query += ` AND s.chosen_program = ?`;
+    query += ` AND p.id = ?`; // Filter by Program ID (resolved via join)
     params.push(program_id);
   }
 
@@ -378,14 +381,15 @@ export const getStudentLocations = async (program_id) => {
       residency_country as country,
       residency_city as city,
       COUNT(*) as student_count
-    FROM students
+    FROM students s
+    LEFT JOIN programs p ON (s.chosen_program = p.id OR s.chosen_program = p.title)
     WHERE residency_country IS NOT NULL AND residency_country != ''
   `;
 
   const params = [];
 
   if (program_id) {
-    query += ` AND chosen_program = ?`;
+    query += ` AND p.id = ?`;
     params.push(program_id);
   }
 

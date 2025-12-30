@@ -349,9 +349,9 @@ export default function StudentsPage() {
         await approveStudent(targetStudent.id).unwrap();
         refetch();
       }
-      showToast("Student approved successfully! Please assign a class.", "success");
+      showToast("Student approved successfully!", "success");
       setIsApprovalModalOpen(false);
-      handleAssignClass(targetStudent);
+      // Removed automatic class assignment trigger as per request
     } catch (error) {
       showToast(error?.data?.error || "Failed to approve student.", "error");
     }
