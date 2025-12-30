@@ -172,3 +172,51 @@ export const getStats = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
+// GET LEARNING HOURS (Chart)
+export const getLearningHours = async (req, res) => {
+    try {
+        const studentId = req.user.userId;
+        const { timeFrame } = req.query;
+        let startDate = new Date();
+
+        // Calculate Date Range
+        const now = new Date();
+        if (timeFrame === 'Weekly') {
+            startDate = new Date(now.setDate(now.getDate() - 7));
+        } else if (timeFrame === 'Monthly') {
+            startDate = new Date(now.setMonth(now.getMonth() - 1));
+        } else {
+            // Default last 7 days
+            startDate = new Date(now.setDate(now.getDate() - 7));
+        }
+
+        // Format startDate for MySQL
+        const formattedDate = startDate.toISOString().split('T')[0];
+
+        const records = await Attendance.getStudentLearningHours(studentId, formattedDate);
+
+        // Transform for chart
+        const data = records.map(r => ({
+            date: r.date,
+            hours: r.hours
+        }));
+
+        res.json(data);
+    } catch (err) {
+        console.error("Get learning hours error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
+// GET LEARNING HOURS SUMMARY (Card)
+export const getLearningHoursSummary = async (req, res) => {
+    try {
+        const studentId = req.user.userId;
+        const total_hours = await Attendance.getStudentLearningHoursSummary(studentId);
+        res.json({ total_hours });
+    } catch (err) {
+        console.error("Get learning hours summary error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+};

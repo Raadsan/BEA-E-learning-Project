@@ -4,6 +4,8 @@ import {
   getAttendance,
   getAttendanceReport,
   getStats,
+  getLearningHours,
+  getLearningHoursSummary
 } from "../controllers/attendanceController.js";
 import { verifyToken } from "../controllers/authController.js";
 import db from "../database/dbconfig.js";
@@ -16,6 +18,10 @@ router.post("/", verifyToken, saveAttendance);
 // Attendance reports and stats (teacher/admin)
 router.get("/report", verifyToken, getAttendanceReport);
 router.get("/stats", verifyToken, getStats);
+
+// Learning Hours (Student)
+router.get("/learning-hours", verifyToken, getLearningHours);
+router.get("/learning-hours/summary", verifyToken, getLearningHoursSummary);
 
 // Per-student attendance history for student dashboard
 router.get("/student/:studentId", verifyToken, async (req, res) => {

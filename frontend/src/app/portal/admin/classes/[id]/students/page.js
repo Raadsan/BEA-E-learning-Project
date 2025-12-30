@@ -3,11 +3,14 @@
 import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AdminHeader from "@/components/AdminHeader";
+import Modal from "@/components/Modal";
 import DataTable from "@/components/DataTable";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
 import { useGetClassesQuery, useGetClassSchedulesQuery } from "@/redux/api/classApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
+import { useGetTeachersQuery } from "@/redux/api/teacherApi";
+import { useGetAdminsQuery } from "@/redux/api/adminApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function ClassStudentsPage() {
@@ -20,6 +23,8 @@ export default function ClassStudentsPage() {
   const { data: classes, isLoading: classesLoading } = useGetClassesQuery();
   const { data: programs = [] } = useGetProgramsQuery();
   const { data: subprograms = [] } = useGetSubprogramsQuery();
+  const { data: teachers = [] } = useGetTeachersQuery();
+  const { data: admins = [] } = useGetAdminsQuery();
   const { data: schedules = [], isLoading: schedulesLoading } = useGetClassSchedulesQuery(classId);
 
   // Tab state
@@ -29,8 +34,10 @@ export default function ClassStudentsPage() {
   const [notificationForm, setNotificationForm] = useState({
     title: "",
     content: "",
-    targetType: "all_students_and_teacher", // all_students_and_teacher, all_students, student_by_id
+    targetType: "all_students", // Default to students only
     studentId: "",
+    teacherId: "",
+    adminId: "",
   });
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
@@ -72,6 +79,8 @@ export default function ClassStudentsPage() {
         classId: classId,
         targetType: notificationForm.targetType,
         studentId: notificationForm.targetType === 'student_by_id' ? notificationForm.studentId : null,
+        teacherId: notificationForm.targetType === 'teacher_by_id' ? notificationForm.teacherId : null,
+        adminId: notificationForm.targetType === 'admin_by_id' ? notificationForm.adminId : null,
       };
 
       // Send notification to backend
@@ -86,7 +95,9 @@ export default function ClassStudentsPage() {
           title: notificationForm.title,
           content: notificationForm.content,
           targetType: notificationForm.targetType,
-          ...(notificationForm.targetType === 'student_by_id' && { studentId: notificationForm.studentId })
+          ...(notificationForm.targetType === 'student_by_id' && { studentId: notificationForm.studentId }),
+          ...(notificationForm.targetType === 'teacher_by_id' && { teacherId: notificationForm.teacherId }),
+          ...(notificationForm.targetType === 'admin_by_id' && { adminId: notificationForm.adminId })
         }),
       });
 
@@ -99,8 +110,10 @@ export default function ClassStudentsPage() {
       setNotificationForm({
         title: "",
         content: "",
-        targetType: "all_students_and_teacher",
+        targetType: "all_students",
         studentId: "",
+        teacherId: "",
+        adminId: "",
       });
     } catch (error) {
       console.error("Failed to send notification:", error);
@@ -317,6 +330,145 @@ export default function ClassStudentsPage() {
         </div>
       </main>
 
+      <Modal
+        isOpen={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
+        title="Send Notification"
+      >
+        <form onSubmit={handleNotificationSubmit}>
+          <div className="mb-4">
+            <label htmlFor="notificationTitle" className="block text-sm font-medium text-gray-700 mb-2">
+              Title *
+            </label>
+            <input
+              type="text"
+              id="notificationTitle"
+              value={notificationForm.title}
+              onChange={(e) => setNotificationForm({ ...notificationForm, title: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="notificationContent" className="block text-sm font-medium text-gray-700 mb-2">
+              Content *
+            </label>
+            <textarea
+              id="notificationContent"
+              value={notificationForm.content}
+              onChange={(e) => setNotificationForm({ ...notificationForm, content: e.target.value })}
+              rows="4"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            ></textarea>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Send To *
+            </label>
+            <select
+              value={notificationForm.targetType}
+              onChange={(e) => setNotificationForm({ ...notificationForm, targetType: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all_students">All Students (Class Only)</option>
+              <option value="student_by_id">Specific Student</option>
+              <option value="teacher_by_id">Specific Teacher</option>
+              <option value="admin_by_id">Specific Admin</option>
+            </select>
+          </div>
+
+          {notificationForm.targetType === 'student_by_id' && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Student *
+              </label>
+              <select
+                value={notificationForm.studentId}
+                onChange={(e) => setNotificationForm({ ...notificationForm, studentId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required={notificationForm.targetType === 'student_by_id'}
+              >
+                <option value="">Select a student</option>
+                {classStudents.map((student) => (
+                  <option key={student.id} value={student.id}>
+                    {student.full_name} ({student.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {notificationForm.targetType === 'teacher_by_id' && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Teacher *
+              </label>
+              <select
+                value={notificationForm.teacherId}
+                onChange={(e) => setNotificationForm({ ...notificationForm, teacherId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required={notificationForm.targetType === 'teacher_by_id'}
+              >
+                <option value="">Select a teacher</option>
+                {teachers.map((teacher) => (
+                  <option key={teacher.id} value={teacher.id}>
+                    {teacher.full_name} ({teacher.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {notificationForm.targetType === 'admin_by_id' && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Admin *
+              </label>
+              <select
+                value={notificationForm.adminId}
+                onChange={(e) => setNotificationForm({ ...notificationForm, adminId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required={notificationForm.targetType === 'admin_by_id'}
+              >
+                <option value="">Select an admin</option>
+                {admins.map((admin) => (
+                  <option key={admin.id} value={admin.id}>
+                    {admin.full_name} ({admin.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={() => {
+                setIsNotificationModalOpen(false);
+                setNotificationForm({
+                  title: "",
+                  content: "",
+                  targetType: "all_students",
+                  studentId: "",
+                  teacherId: "",
+                  adminId: "",
+                });
+              }}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Send Notification
+            </button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }

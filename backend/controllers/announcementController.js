@@ -1,6 +1,7 @@
 import * as announcementModel from "../models/announcementModel.js";
 import * as studentModel from "../models/studentModel.js";
 import * as teacherModel from "../models/teacherModel.js";
+import * as adminModel from "../models/adminModel.js";
 import * as classModel from "../models/classModel.js";
 
 export const getAnnouncements = async (req, res) => {
@@ -68,7 +69,7 @@ export const sendClassNotification = async (req, res) => {
         });
 
         const { classId } = req.params;
-        const { title, content, targetType, studentId } = req.body;
+        const { title, content, targetType, studentId, teacherId, adminId } = req.body;
 
         if (!title || !content || !targetType) {
             return res.status(400).json({ message: "Title, content, and target type are required" });
@@ -139,6 +140,42 @@ export const sendClassNotification = async (req, res) => {
             }];
 
             targetAudience = `Class ${classInfo.class_name} - Student: ${student.full_name}`;
+        } else if (targetType === "teacher_by_id") {
+            if (!teacherId) {
+                return res.status(400).json({ message: "Teacher ID is required" });
+            }
+
+            const teacher = await teacherModel.getTeacherById(teacherId);
+            if (!teacher) {
+                return res.status(404).json({ message: "Teacher not found" });
+            }
+
+            recipients = [{
+                id: teacher.id,
+                email: teacher.email,
+                name: teacher.full_name,
+                type: "teacher"
+            }];
+
+            targetAudience = `Teacher: ${teacher.full_name}`;
+        } else if (targetType === "admin_by_id") {
+            if (!adminId) {
+                return res.status(400).json({ message: "Admin ID is required" });
+            }
+
+            const admin = await adminModel.getAdminById(adminId);
+            if (!admin) {
+                return res.status(404).json({ message: "Admin not found" });
+            }
+
+            recipients = [{
+                id: admin.id,
+                email: admin.email,
+                name: admin.full_name,
+                type: "admin"
+            }];
+
+            targetAudience = `Admin: ${admin.full_name}`;
         } else {
             return res.status(400).json({ message: "Invalid target type" });
         }
