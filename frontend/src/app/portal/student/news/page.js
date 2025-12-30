@@ -29,7 +29,7 @@ export default function StudentNewsPage() {
 
     return (
         <div className={`min-h-screen ${isDark ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} transition-colors duration-200`}>
-            <StudentHeader />
+            {/* <StudentHeader /> */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold">News & Events</h1>
