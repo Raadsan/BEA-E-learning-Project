@@ -100,6 +100,15 @@ app.use("/api/materials", materialRoutes);
 // ⬇️ Register Upload Routes
 app.use("/api/uploads", uploadRoutes);
 
+// ⬇️ Register Notification Routes
+import notificationRoutes from "./routes/notificationRoutes.js";
+app.use("/api/notifications", notificationRoutes);
+
+// ⬇️ Register Session Request Routes
+import sessionRequestRoutes from "./routes/sessionRequestRoutes.js";
+app.use("/api/session-requests", sessionRequestRoutes);
+
+
 // Server start
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}`));

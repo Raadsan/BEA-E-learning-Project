@@ -18,6 +18,8 @@ import { paymentApi } from "../redux/api/paymentApi.js";
 import { materialApi } from "../redux/api/materialApi.js";
 import { announcementApi } from "../redux/api/announcementApi.js";
 import { newsApi } from "../redux/api/newsApi.js";
+import { notificationApi } from "../redux/api/notificationApi.js";
+import { sessionRequestApi } from "../redux/api/sessionRequestApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -40,6 +42,8 @@ export const store = configureStore({
     [materialApi.reducerPath]: materialApi.reducer,
     [announcementApi.reducerPath]: announcementApi.reducer,
     [newsApi.reducerPath]: newsApi.reducer,
+    [notificationApi.reducerPath]: notificationApi.reducer,
+    [sessionRequestApi.reducerPath]: sessionRequestApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -61,6 +65,8 @@ export const store = configureStore({
       paymentApi.middleware,
       newsApi.middleware,
       materialApi.middleware,
-      announcementApi.middleware
+      announcementApi.middleware,
+      notificationApi.middleware,
+      sessionRequestApi.middleware
     ),
 });
