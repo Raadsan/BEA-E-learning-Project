@@ -9,6 +9,10 @@ import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useCreateStudentMutation } from "@/redux/api/studentApi";
 import { useLoginMutation } from "@/redux/api/authApi";
 import { useToast } from "@/components/Toast";
+import { Country, City } from "country-state-city";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import CountrySelect from "@/components/CountrySelect";
 
 export default function RegistrationPage() {
   const { isDarkMode } = useTheme();
@@ -51,24 +55,19 @@ export default function RegistrationPage() {
   const [waafiTransactionId, setWaafiTransactionId] = useState(null);
   const [pin, setPin] = useState(''); const APPLICATION_FEE = 0.01;
 
-  const countriesData = {
-    somalia: { name: "Somalia", cities: ["Mogadishu", "Hargeisa", "Kismayo", "Baidoa", "Bosaso", "Beledweyne", "Galkayo", "Burao", "Merca", "Jowhar"] },
-    kenya: { name: "Kenya", cities: ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Thika", "Malindi", "Kitale", "Garissa", "Nyeri"] },
-    ethiopia: { name: "Ethiopia", cities: ["Addis Ababa", "Dire Dawa", "Mekelle", "Gondar", "Hawassa", "Bahir Dar", "Adama", "Jimma", "Dessie", "Jijiga"] },
-    djibouti: { name: "Djibouti", cities: ["Djibouti City", "Ali Sabieh", "Tadjoura", "Obock", "Dikhil", "Arta"] },
-    uganda: { name: "Uganda", cities: ["Kampala", "Entebbe", "Jinja", "Gulu", "Mbarara", "Mbale", "Mukono", "Masaka", "Lira", "Arua"] },
-    tanzania: { name: "Tanzania", cities: ["Dar es Salaam", "Dodoma", "Mwanza", "Arusha", "Mbeya", "Zanzibar City", "Tanga", "Morogoro", "Kigoma", "Tabora"] },
-  };
+  const countriesData = []; // Removed in favor of library
 
   useEffect(() => {
     if (formData.residency_country) {
-      // Find the country data by matching the name
-      const countryEntry = Object.entries(countriesData).find(
-        ([key, data]) => data.name === formData.residency_country
-      );
-      if (countryEntry) {
-        setCities(countryEntry[1].cities);
-        setFormData(prev => ({ ...prev, residency_city: "" }));
+      // formData.residency_country should store the ISO Code for logic, but we might want to store Name in DB?
+      // The previous code stored Name.
+      // To maintain compatibility, let's assume we store Name in DB but need Code for City lookup.
+      // We can find the code from the name.
+      const countries = Country.getAllCountries();
+      const country = countries.find(c => c.name === formData.residency_country);
+
+      if (country) {
+        setCities(City.getCitiesOfCountry(country.isoCode));
       } else {
         setCities([]);
       }
@@ -79,13 +78,11 @@ export default function RegistrationPage() {
 
   useEffect(() => {
     if (formData.parent_res_county) {
-      // Find the country data by matching the name
-      const countryEntry = Object.entries(countriesData).find(
-        ([key, data]) => data.name === formData.parent_res_county
-      );
-      if (countryEntry) {
-        setParentCities(countryEntry[1].cities);
-        setFormData(prev => ({ ...prev, parent_res_city: "" }));
+      const countries = Country.getAllCountries();
+      const country = countries.find(c => c.name === formData.parent_res_county);
+
+      if (country) {
+        setParentCities(City.getCitiesOfCountry(country.isoCode));
       } else {
         setParentCities([]);
       }
@@ -576,14 +573,90 @@ export default function RegistrationPage() {
                     </div>
 
                     <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Residency Country</label>
+                      <CountrySelect
+                        value={formData.residency_country}
+                        onChange={(value) => {
+                          setFormData(prev => ({ ...prev, residency_country: value, residency_city: "" }));
+                        }}
+                        placeholder="Select country"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Residency City</label>
+                      <div className="relative">
+                        <select
+                          name="residency_city"
+                          value={formData.residency_city}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-md bg-white text-gray-800 outline-none appearance-none focus:ring-2 focus:ring-blue-200"
+                          disabled={!formData.residency_country}
+                        >
+                          <option value="">Select city</option>
+                          {cities.map((city, index) => (
+                            <option key={`${city.name}-${index}`} value={city.name}>{city.name}</option>
+                          ))}
+                        </select>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                      <input
-                        type="tel"
-                        name="phone"
+                      <PhoneInput
+                        country={(() => {
+                          if (formData.residency_country) {
+                            const c = Country.getAllCountries().find(c => c.name === formData.residency_country);
+                            return c ? c.isoCode.toLowerCase() : 'us';
+                          }
+                          return 'us';
+                        })()}
+                        enableSearch={true}
+                        separateDialCode={true}
+                        disableDropdown={true}
                         value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="+252 61-*******"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
+                        onChange={phone => setFormData(prev => ({ ...prev, phone }))}
+                        inputStyle={{
+                          width: '100%',
+                          height: '48px',
+                          fontSize: '16px',
+                          paddingLeft: '12px',
+                          borderRadius: '0.375rem',
+                          border: 'none',
+                          borderLeft: '1px solid #e5e7eb',
+                          boxShadow: 'none',
+                          backgroundColor: 'transparent'
+                        }}
+                        containerStyle={{
+                          width: '100%',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '0.375rem',
+                          backgroundColor: 'white'
+                        }}
+                        buttonStyle={{
+                          border: 'none',
+                          borderRight: '1px solid #e5e7eb',
+                          backgroundColor: 'transparent',
+                          borderRadius: '0.375rem 0 0 0.375rem',
+                          paddingLeft: '12px',
+                          paddingRight: '12px',
+                          cursor: 'default',
+                          width: 'auto',
+                          minWidth: '80px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '16px'
+                        }}
+                        dropdownStyle={{
+                          width: '300px'
+                        }}
+                        placeholder="Phone Number"
                       />
                     </div>
 
@@ -622,50 +695,7 @@ export default function RegistrationPage() {
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Residency Country</label>
-                      <div className="relative">
-                        <select
-                          name="residency_country"
-                          value={formData.residency_country}
-                          onChange={handleChange}
-                          className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-md bg-white text-gray-800 outline-none appearance-none focus:ring-2 focus:ring-blue-200"
-                        >
-                          <option value="">select country</option>
-                          {Object.entries(countriesData).map(([key, data]) => (
-                            <option key={key} value={data.name}>{data.name}</option>
-                          ))}
-                        </select>
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Residency City</label>
-                      <div className="relative">
-                        <select
-                          name="residency_city"
-                          value={formData.residency_city}
-                          onChange={handleChange}
-                          className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-md bg-white text-gray-800 outline-none appearance-none focus:ring-2 focus:ring-blue-200"
-                          disabled={!formData.residency_country}
-                        >
-                          <option value="">select city</option>
-                          {cities.map((city) => (
-                            <option key={city} value={city}>{city}</option>
-                          ))}
-                        </select>
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Password <span className="text-red-500">*</span></label>
@@ -714,14 +744,90 @@ export default function RegistrationPage() {
                         </div>
 
                         <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Residency Country</label>
+                          <CountrySelect
+                            value={formData.parent_res_county}
+                            onChange={(value) => {
+                              setFormData(prev => ({ ...prev, parent_res_county: value, parent_res_city: "" }));
+                            }}
+                            placeholder="Select country"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Residency City</label>
+                          <div className="relative">
+                            <select
+                              name="parent_res_city"
+                              value={formData.parent_res_city}
+                              onChange={handleChange}
+                              className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-md bg-white text-gray-800 outline-none appearance-none focus:ring-2 focus:ring-blue-200"
+                              disabled={!formData.parent_res_county}
+                            >
+                              <option value="">Select city</option>
+                              {parentCities.map((city, index) => (
+                                <option key={`${city.name}-${index}`} value={city.name}>{city.name}</option>
+                              ))}
+                            </select>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Phone</label>
-                          <input
-                            type="tel"
-                            name="parent_phone"
+                          <PhoneInput
+                            country={(() => {
+                              if (formData.parent_res_county) {
+                                const c = Country.getAllCountries().find(c => c.name === formData.parent_res_county);
+                                return c ? c.isoCode.toLowerCase() : 'us';
+                              }
+                              return 'us';
+                            })()}
+                            enableSearch={true}
+                            separateDialCode={true}
+                            disableDropdown={true}
                             value={formData.parent_phone}
-                            onChange={handleChange}
-                            placeholder="+252 61-*******"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
+                            onChange={phone => setFormData(prev => ({ ...prev, parent_phone: phone }))}
+                            inputStyle={{
+                              width: '100%',
+                              height: '48px',
+                              fontSize: '16px',
+                              paddingLeft: '12px',
+                              borderRadius: '0.375rem',
+                              border: 'none',
+                              borderLeft: '1px solid #e5e7eb',
+                              boxShadow: 'none',
+                              backgroundColor: 'transparent'
+                            }}
+                            containerStyle={{
+                              width: '100%',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '0.375rem',
+                              backgroundColor: 'white'
+                            }}
+                            buttonStyle={{
+                              border: 'none',
+                              borderRight: '1px solid #e5e7eb',
+                              backgroundColor: 'transparent',
+                              borderRadius: '0.375rem 0 0 0.375rem',
+                              paddingLeft: '12px',
+                              paddingRight: '12px',
+                              cursor: 'default',
+                              width: 'auto',
+                              minWidth: '80px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              fontSize: '16px'
+                            }}
+                            dropdownStyle={{
+                              width: '300px'
+                            }}
+                            placeholder="Phone Number"
                           />
                         </div>
 
@@ -747,50 +853,7 @@ export default function RegistrationPage() {
                           </div>
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Residency Country</label>
-                          <div className="relative">
-                            <select
-                              name="parent_res_county"
-                              value={formData.parent_res_county}
-                              onChange={handleChange}
-                              className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-md bg-white text-gray-800 outline-none appearance-none focus:ring-2 focus:ring-blue-200"
-                            >
-                              <option value="">Select country</option>
-                              {Object.entries(countriesData).map(([key, data]) => (
-                                <option key={key} value={data.name}>{data.name}</option>
-                              ))}
-                            </select>
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            </span>
-                          </div>
-                        </div>
 
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Residency City</label>
-                          <div className="relative">
-                            <select
-                              name="parent_res_city"
-                              value={formData.parent_res_city}
-                              onChange={handleChange}
-                              className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-md bg-white text-gray-800 outline-none appearance-none focus:ring-2 focus:ring-blue-200"
-                              disabled={!formData.parent_res_county}
-                            >
-                              <option value="">Select city</option>
-                              {parentCities.map((city) => (
-                                <option key={city} value={city}>{city}</option>
-                              ))}
-                            </select>
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            </span>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   )}

@@ -15,6 +15,10 @@ import {
 } from "@/redux/api/ieltsToeflApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import { Country, City } from "country-state-city";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import CountrySelect from '@/components/CountrySelect';
 
 export default function StudentsPage() {
   const { isDark } = useDarkMode();
@@ -33,6 +37,39 @@ export default function StudentsPage() {
   const [selectedClassId, setSelectedClassId] = useState("");
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [studentToApprove, setStudentToApprove] = useState(null);
+
+  // Location State
+  const [cities, setCities] = useState([]);
+  const [parentCities, setParentCities] = useState([]);
+
+  // Effects for Cities
+  useEffect(() => {
+    if (formData.residency_country) {
+      const countries = Country.getAllCountries();
+      const country = countries.find(c => c.name === formData.residency_country);
+      if (country) {
+        setCities(City.getCitiesOfCountry(country.isoCode));
+      } else {
+        setCities([]);
+      }
+    } else {
+      setCities([]);
+    }
+  }, [formData.residency_country]);
+
+  useEffect(() => {
+    if (formData.parent_res_county) {
+      const countries = Country.getAllCountries();
+      const country = countries.find(c => c.name === formData.parent_res_county);
+      if (country) {
+        setParentCities(City.getCitiesOfCountry(country.isoCode));
+      } else {
+        setParentCities([]);
+      }
+    } else {
+      setParentCities([]);
+    }
+  }, [formData.parent_res_county]);
 
   // Regular Students Hooks
   const { data: backendStudents, isLoading, isError, error, refetch } = useGetStudentsQuery();
@@ -707,19 +744,95 @@ export default function StudentsPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="phone" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                      Phone
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                        }`}
-                    />
+                    <div>
+                      <label htmlFor="residency_country" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Residency Country
+                      </label>
+                      <CountrySelect
+                        value={formData.residency_country}
+                        onChange={(value) => {
+                          handleInputChange({ target: { name: 'residency_country', value } });
+                          handleInputChange({ target: { name: 'residency_city', value: '' } });
+                        }}
+                        isDark={isDark}
+                        placeholder="Select Country"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="residency_city" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Residency City
+                      </label>
+                      <select
+                        id="residency_city"
+                        name="residency_city"
+                        value={formData.residency_city}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                        disabled={!formData.residency_country}
+                      >
+                        <option value="">Select City</option>
+                        {cities.map((city) => (
+                          <option key={city.name} value={city.name}>{city.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="phone" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Phone
+                      </label>
+                      <PhoneInput
+                        country={(() => {
+                          if (formData.residency_country) {
+                            const c = Country.getAllCountries().find(c => c.name === formData.residency_country);
+                            return c ? c.isoCode.toLowerCase() : 'us';
+                          }
+                          return 'us';
+                        })()}
+                        enableSearch={true}
+                        separateDialCode={true}
+                        disableDropdown={true}
+                        value={formData.phone}
+                        onChange={phone => setFormData(prev => ({ ...prev, phone }))}
+                        inputStyle={{
+                          width: '100%',
+                          height: '42px',
+                          fontSize: '16px',
+                          paddingLeft: '12px',
+                          borderRadius: '0.5rem',
+                          border: 'none',
+                          borderLeft: isDark ? '1px solid #4b5563' : '1px solid #d1d5db',
+                          backgroundColor: 'transparent',
+                          color: isDark ? 'white' : 'inherit',
+                          boxShadow: 'none'
+                        }}
+                        containerStyle={{
+                          width: '100%',
+                          border: isDark ? '1px solid #4b5563' : '1px solid #d1d5db',
+                          borderRadius: '0.5rem',
+                          backgroundColor: isDark ? '#374151' : 'white'
+                        }}
+                        buttonStyle={{
+                          border: 'none',
+                          borderRight: isDark ? '1px solid #4b5563' : '1px solid #d1d5db',
+                          backgroundColor: 'transparent',
+                          borderRadius: '0.5rem 0 0 0.5rem',
+                          paddingLeft: '8px',
+                          paddingRight: '8px',
+                          cursor: 'default'
+                        }}
+                        dropdownStyle={{
+                          color: 'black',
+                          width: '300px'
+                        }}
+                        placeholder="Phone Number"
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -764,15 +877,24 @@ export default function StudentsPage() {
                       }`}>
                       Residency Country
                     </label>
-                    <input
-                      type="text"
+                    <select
                       id="residency_country"
                       name="residency_country"
                       value={formData.residency_country}
-                      onChange={handleInputChange}
+                      onChange={(e) => {
+                        handleInputChange({ target: { name: 'residency_country', value: e.target.value } });
+                        // Also clear city manually or let effect handle it (effect resets list, but value might stick if not cleared)
+                        // Ideally we clear the city value too
+                        handleInputChange({ target: { name: 'residency_city', value: '' } });
+                      }}
                       className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
                         }`}
-                    />
+                    >
+                      <option value="">Select Country</option>
+                      {Country.getAllCountries().map((country) => (
+                        <option key={country.isoCode} value={country.name}>{country.name}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
@@ -780,15 +902,20 @@ export default function StudentsPage() {
                       }`}>
                       Residency City
                     </label>
-                    <input
-                      type="text"
+                    <select
                       id="residency_city"
                       name="residency_city"
                       value={formData.residency_city}
                       onChange={handleInputChange}
                       className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
                         }`}
-                    />
+                      disabled={!formData.residency_country}
+                    >
+                      <option value="">Select City</option>
+                      {cities.map((city, index) => (
+                        <option key={`${city.name}-${index}`} value={city.name}>{city.name}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
@@ -898,18 +1025,92 @@ export default function StudentsPage() {
                     </div>
 
                     <div>
+                      <label htmlFor="parent_res_county" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Residency Country
+                      </label>
+                      <CountrySelect
+                        value={formData.parent_res_county}
+                        onChange={(value) => {
+                          handleInputChange({ target: { name: 'parent_res_county', value } });
+                          handleInputChange({ target: { name: 'parent_res_city', value: '' } });
+                        }}
+                        isDark={isDark}
+                        placeholder="Select Country"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="parent_res_city" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                        Parent Residency City
+                      </label>
+                      <select
+                        id="parent_res_city"
+                        name="parent_res_city"
+                        value={formData.parent_res_city}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                        disabled={!formData.parent_res_county}
+                      >
+                        <option value="">Select City</option>
+                        {parentCities.map((city, index) => (
+                          <option key={`${city.name}-${index}`} value={city.name}>{city.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
                       <label htmlFor="parent_phone" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
                         }`}>
                         Parent Phone
                       </label>
-                      <input
-                        type="tel"
-                        id="parent_phone"
-                        name="parent_phone"
+                      <PhoneInput
+                        country={(() => {
+                          if (formData.parent_res_county) {
+                            const c = Country.getAllCountries().find(c => c.name === formData.parent_res_county);
+                            return c ? c.isoCode.toLowerCase() : 'us';
+                          }
+                          return 'us';
+                        })()}
+                        enableSearch={true}
+                        separateDialCode={true}
+                        disableDropdown={true}
                         value={formData.parent_phone}
-                        onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                          }`}
+                        onChange={phone => setFormData(prev => ({ ...prev, parent_phone: phone }))}
+                        inputStyle={{
+                          width: '100%',
+                          height: '42px',
+                          fontSize: '16px',
+                          paddingLeft: '12px',
+                          borderRadius: '0.5rem',
+                          border: 'none',
+                          borderLeft: isDark ? '1px solid #4b5563' : '1px solid #d1d5db',
+                          backgroundColor: 'transparent',
+                          color: isDark ? 'white' : 'inherit',
+                          boxShadow: 'none'
+                        }}
+                        containerStyle={{
+                          width: '100%',
+                          border: isDark ? '1px solid #4b5563' : '1px solid #d1d5db',
+                          borderRadius: '0.5rem',
+                          backgroundColor: isDark ? '#374151' : 'white'
+                        }}
+                        buttonStyle={{
+                          border: 'none',
+                          borderRight: isDark ? '1px solid #4b5563' : '1px solid #d1d5db',
+                          backgroundColor: 'transparent',
+                          borderRadius: '0.5rem 0 0 0.5rem',
+                          paddingLeft: '8px',
+                          paddingRight: '8px',
+                          cursor: 'default'
+                        }}
+                        dropdownStyle={{
+                          color: 'black',
+                          width: '300px'
+                        }}
+                        placeholder="Phone Number"
                       />
                     </div>
 
@@ -935,15 +1136,22 @@ export default function StudentsPage() {
                         }`}>
                         Parent Residency Country
                       </label>
-                      <input
-                        type="text"
+                      <select
                         id="parent_res_county"
                         name="parent_res_county"
                         value={formData.parent_res_county}
-                        onChange={handleInputChange}
+                        onChange={(e) => {
+                          handleInputChange({ target: { name: 'parent_res_county', value: e.target.value } });
+                          handleInputChange({ target: { name: 'parent_res_city', value: '' } });
+                        }}
                         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
                           }`}
-                      />
+                      >
+                        <option value="">Select Country</option>
+                        {Country.getAllCountries().map((country) => (
+                          <option key={country.isoCode} value={country.name}>{country.name}</option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>
@@ -951,15 +1159,20 @@ export default function StudentsPage() {
                         }`}>
                         Parent Residency City
                       </label>
-                      <input
-                        type="text"
+                      <select
                         id="parent_res_city"
                         name="parent_res_city"
                         value={formData.parent_res_city}
                         onChange={handleInputChange}
                         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
                           }`}
-                      />
+                        disabled={!formData.parent_res_county}
+                      >
+                        <option value="">Select City</option>
+                        {parentCities.map((city, index) => (
+                          <option key={`${city.name}-${index}`} value={city.name}>{city.name}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
