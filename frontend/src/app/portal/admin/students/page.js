@@ -38,38 +38,29 @@ export default function StudentsPage() {
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [studentToApprove, setStudentToApprove] = useState(null);
 
+  // Form Data State - Moved up to avoid initialization error
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    age: "",
+    gender: "",
+    residency_country: "",
+    residency_city: "",
+    chosen_program: "",
+    chosen_subprogram: "",
+    password: "",
+    parent_name: "",
+    parent_email: "",
+    parent_phone: "",
+    parent_relation: "",
+    parent_res_county: "",
+    parent_res_city: "",
+  });
+
   // Location State
   const [cities, setCities] = useState([]);
   const [parentCities, setParentCities] = useState([]);
-
-  // Effects for Cities
-  useEffect(() => {
-    if (formData.residency_country) {
-      const countries = Country.getAllCountries();
-      const country = countries.find(c => c.name === formData.residency_country);
-      if (country) {
-        setCities(City.getCitiesOfCountry(country.isoCode));
-      } else {
-        setCities([]);
-      }
-    } else {
-      setCities([]);
-    }
-  }, [formData.residency_country]);
-
-  useEffect(() => {
-    if (formData.parent_res_county) {
-      const countries = Country.getAllCountries();
-      const country = countries.find(c => c.name === formData.parent_res_county);
-      if (country) {
-        setParentCities(City.getCitiesOfCountry(country.isoCode));
-      } else {
-        setParentCities([]);
-      }
-    } else {
-      setParentCities([]);
-    }
-  }, [formData.parent_res_county]);
 
   // Regular Students Hooks
   const { data: backendStudents, isLoading, isError, error, refetch } = useGetStudentsQuery();
@@ -115,24 +106,6 @@ export default function StudentsPage() {
     }))
   ];
 
-  const [formData, setFormData] = useState({
-    full_name: "",
-    email: "",
-    phone: "",
-    age: "",
-    gender: "",
-    residency_country: "",
-    residency_city: "",
-    chosen_program: "",
-    chosen_subprogram: "",
-    password: "",
-    parent_name: "",
-    parent_email: "",
-    parent_phone: "",
-    parent_relation: "",
-    parent_res_county: "",
-    parent_res_city: "",
-  });
 
   const handleAddStudent = () => {
     setEditingStudent(null);
