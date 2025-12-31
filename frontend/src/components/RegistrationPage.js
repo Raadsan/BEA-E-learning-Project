@@ -619,16 +619,15 @@ export default function RegistrationPage() {
                         enableSearch={true}
                         separateDialCode={true}
                         disableDropdown={true}
+                        countryCodeEditable={false}
                         value={formData.phone}
                         onChange={phone => setFormData(prev => ({ ...prev, phone }))}
                         inputStyle={{
                           width: '100%',
                           height: '48px',
                           fontSize: '16px',
-                          paddingLeft: '12px',
                           borderRadius: '0.375rem',
                           border: 'none',
-                          borderLeft: '1px solid #e5e7eb',
                           boxShadow: 'none',
                           backgroundColor: 'transparent'
                         }}
@@ -640,18 +639,11 @@ export default function RegistrationPage() {
                         }}
                         buttonStyle={{
                           border: 'none',
-                          borderRight: '1px solid #e5e7eb',
                           backgroundColor: 'transparent',
                           borderRadius: '0.375rem 0 0 0.375rem',
-                          paddingLeft: '12px',
-                          paddingRight: '12px',
-                          cursor: 'default',
-                          width: 'auto',
-                          minWidth: '80px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          fontSize: '16px'
+                          paddingLeft: '8px',
+                          paddingRight: '4px',
+                          cursor: 'default'
                         }}
                         dropdownStyle={{
                           width: '300px'
@@ -790,16 +782,15 @@ export default function RegistrationPage() {
                             enableSearch={true}
                             separateDialCode={true}
                             disableDropdown={true}
+                            countryCodeEditable={false}
                             value={formData.parent_phone}
                             onChange={phone => setFormData(prev => ({ ...prev, parent_phone: phone }))}
                             inputStyle={{
                               width: '100%',
                               height: '48px',
                               fontSize: '16px',
-                              paddingLeft: '12px',
                               borderRadius: '0.375rem',
                               border: 'none',
-                              borderLeft: '1px solid #e5e7eb',
                               boxShadow: 'none',
                               backgroundColor: 'transparent'
                             }}
@@ -811,18 +802,11 @@ export default function RegistrationPage() {
                             }}
                             buttonStyle={{
                               border: 'none',
-                              borderRight: '1px solid #e5e7eb',
                               backgroundColor: 'transparent',
                               borderRadius: '0.375rem 0 0 0.375rem',
-                              paddingLeft: '12px',
-                              paddingRight: '12px',
-                              cursor: 'default',
-                              width: 'auto',
-                              minWidth: '80px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              fontSize: '16px'
+                              paddingLeft: '8px',
+                              paddingRight: '4px',
+                              cursor: 'default'
                             }}
                             dropdownStyle={{
                               width: '300px'
