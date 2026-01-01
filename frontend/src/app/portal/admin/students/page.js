@@ -13,6 +13,7 @@ import {
   useUpdateIeltsToeflStudentMutation,
   useRejectIeltsToeflStudentMutation
 } from "@/redux/api/ieltsToeflApi";
+import { useGetSessionRequestsQuery } from "@/redux/api/sessionRequestApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import { Country, City } from "country-state-city";
@@ -63,7 +64,7 @@ export default function StudentsPage() {
   const [parentCities, setParentCities] = useState([]);
 
   // Regular Students Hooks
-  const { data: backendStudents, isLoading, isError, error, refetch } = useGetStudentsQuery();
+  const { data: backendStudents = [], isLoading, isError, error, refetch } = useGetStudentsQuery();
 
   // IELTS/TOEFL Students Hooks (Renamed refetch to refetchIelts)
   const {
@@ -73,8 +74,9 @@ export default function StudentsPage() {
   } = useGetIeltsToeflStudentsQuery();
 
   const { data: programs = [] } = useGetProgramsQuery();
+  const { data: subprograms = [] } = useGetSubprogramsQuery();
   const { data: classes = [] } = useGetClassesQuery();
-  const { data: allSubprograms = [] } = useGetSubprogramsQuery();
+  const { data: sessionRequests = [] } = useGetSessionRequestsQuery();
 
   // Mutations
   const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
@@ -88,7 +90,7 @@ export default function StudentsPage() {
   const [rejectIeltsStudent, { isLoading: isRejectingIelts }] = useRejectIeltsToeflStudentMutation();
 
   // Merge and format students
-  const students = [
+  const mergedStudents = [
     ...(backendStudents || []).map(s => ({
       ...s,
       type: 'regular',
@@ -388,46 +390,159 @@ export default function StudentsPage() {
 
   const columns = [
     {
+      key: "student_id",
+      label: "Student ID",
+      width: "150px",
+      render: (row) => (
+        <span className="font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
+          {row.student_id || "N/A"}
+        </span>
+      ),
+    },
+    {
       key: "full_name",
       label: "Full Name",
+      width: "180px",
     },
     {
       key: "email",
       label: "Email",
+      width: "220px",
     },
     {
       key: "phone",
       label: "Phone",
+      width: "150px",
       render: (row) => row.phone || "N/A",
     },
     {
       key: "age",
       label: "Age",
+      width: "80px",
       render: (row) => row.age || "N/A",
     },
     {
       key: "gender",
       label: "Gender",
+      width: "100px",
       render: (row) => row.gender || "N/A",
     },
     {
       key: "residency_country",
       label: "Country",
+      width: "150px",
       render: (row) => row.residency_country || "N/A",
     },
     {
       key: "residency_city",
       label: "City",
+      width: "150px",
       render: (row) => row.residency_city || "N/A",
     },
     {
       key: "chosen_program",
       label: "Program",
+      width: "180px",
+      render: (row) => (
+        <span className="block truncate max-w-[160px]" title={row.chosen_program}>
+          {row.chosen_program || <span className="text-gray-400">-</span>}
+        </span>
+      ),
+    },
+    {
+      key: "class_name",
+      label: "Class",
+      width: "140px",
       render: (row) => {
-        if (!row.chosen_program || row.chosen_program === "Not assigned") {
-          return <span className="text-gray-500 italic text-sm">Not assigned</span>;
+        // Find session requests for this student
+        const studentRequests = sessionRequests.filter(r => r.student_id === row.student_id);
+        const pendingRequest = studentRequests.find(r => r.status === 'pending');
+        const rejectedRequest = !pendingRequest && studentRequests.find(r => r.status === 'rejected');
+
+        // Helper to get class name
+        const getClassName = (classId) => {
+          if (!classId) return null;
+          const cls = classes.find(c => c.id == classId);
+          return cls ? cls.class_name : null;
+        };
+
+        const className = getClassName(row.class_id) || row.class_name;
+        const hasClass = className && className !== "Not assigned";
+
+        if (pendingRequest) {
+          return (
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  setAssigningStudent(row);
+                  setSelectedClassId(row.class_id || "");
+                  setIsAssignClassModalOpen(true);
+                }}
+                className="min-w-[120px] px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors flex items-center justify-center gap-1"
+                title={`Sesssion Change Requested: ${pendingRequest.requested_session_type}`}
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                {className || "Pending Request"}
+              </button>
+            </div>
+          );
         }
-        return <span className="font-medium">{row.chosen_program}</span>;
+
+        if (rejectedRequest) {
+          return (
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  setAssigningStudent(row);
+                  setSelectedClassId(row.class_id || "");
+                  setIsAssignClassModalOpen(true);
+                }}
+                className="min-w-[120px] px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors flex items-center justify-center gap-1"
+                title={`Request Rejected: ${rejectedRequest.admin_response || 'No reason provided'}`}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                {className || "Request Rejected"}
+              </button>
+            </div>
+          );
+        }
+
+        if (hasClass) {
+          return (
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  setAssigningStudent(row);
+                  setSelectedClassId(row.class_id || "");
+                  setIsAssignClassModalOpen(true);
+                }}
+                className="min-w-[100px] px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+              >
+                {className}
+              </button>
+            </div>
+          );
+        }
+
+        return (
+          <div className="flex justify-center">
+            <button
+              onClick={() => {
+                setAssigningStudent(row);
+                setSelectedClassId("");
+                setIsAssignClassModalOpen(true);
+              }}
+              className="min-w-[100px] px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors"
+            >
+              Assign Class
+            </button>
+          </div>
+        );
       },
     },
     {
@@ -533,9 +648,9 @@ export default function StudentsPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
-            <div className="text-center py-12">
+        <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 pt-20 transition-colors">
+          <div className="flex-1 w-full max-w-full px-4 sm:px-8 py-6 flex items-center justify-center">
+            <div className="text-center">
               <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading students...</p>
             </div>
           </div>
@@ -548,9 +663,9 @@ export default function StudentsPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
-            <div className="text-center py-12">
+        <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 pt-20 transition-colors">
+          <div className="flex-1 w-full max-w-full px-4 sm:px-8 py-6 flex items-center justify-center">
+            <div className="text-center">
               <p className="text-red-600 dark:text-red-400">Error loading students: {error?.data?.error || "Unknown error"}</p>
             </div>
           </div>
@@ -563,12 +678,12 @@ export default function StudentsPage() {
     <>
       <AdminHeader />
 
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-        <div className="w-full px-8 py-6">
+      <main className="flex-1 min-w-0 flex flex-col items-center overflow-y-auto overflow-x-hidden bg-gray-50 pt-20">
+        <div className="w-full max-w-full px-4 sm:px-8 py-6 min-w-0 flex flex-col">
           <DataTable
             title="Student Management"
             columns={columns}
-            data={students}
+            data={mergedStudents}
             onAddClick={handleAddStudent}
             showAddButton={true}
           />
@@ -1266,9 +1381,15 @@ export default function StudentsPage() {
               {/* Student Info Section */}
               <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-blue-50/50 border-blue-200'}`}>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Student Name:</span>
-                    <span className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{assigningStudent.full_name}</span>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div>
+                      <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Student ID</p>
+                      <p className={`font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{assigningStudent.student_id || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Full Name</p>
+                      <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{assigningStudent.full_name}</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Email:</span>

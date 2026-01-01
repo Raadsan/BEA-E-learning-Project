@@ -71,7 +71,7 @@ export const createStudent = async (req, res) => {
       class_id
     });
 
-    console.log('✅ Student created with ID:', student?.id);
+    console.log('✅ Student created with ID:', student?.student_id);
 
     // If payment info provided, save payment and set approval_status to 'pending'
     let updatedStudent = student;
@@ -79,7 +79,7 @@ export const createStudent = async (req, res) => {
       console.log('📝 Payment info found in request:', req.body.payment);
       try {
         const paymentData = {
-          student_id: student.id,
+          student_id: student.student_id,
           method: req.body.payment.method || 'waafi',
           provider_transaction_id: req.body.payment.transactionId || null,
           amount: req.body.payment.amount || 0,
@@ -95,8 +95,8 @@ export const createStudent = async (req, res) => {
         console.log('✅ Payment record created successfully:', payment.id);
 
         // mark student awaiting admin approval
-        await Student.updateApprovalStatus(student.id, 'pending');
-        updatedStudent = await Student.getStudentById(student.id);
+        await Student.updateApprovalStatus(student.student_id, 'pending');
+        updatedStudent = await Student.getStudentById(student.student_id);
 
         // Notify admin that a new paid application is pending approval
         try {

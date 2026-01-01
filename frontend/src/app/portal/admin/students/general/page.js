@@ -7,6 +7,7 @@ import { useGetStudentsQuery, useUpdateStudentMutation } from "@/redux/api/stude
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
+import { useGetSessionRequestsQuery } from "@/redux/api/sessionRequestApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 
@@ -17,6 +18,7 @@ export default function GeneralStudentsPage() {
   const { data: subprograms = [] } = useGetSubprogramsQuery();
   const { data: classes = [] } = useGetClassesQuery();
   const { data: programs = [] } = useGetProgramsQuery();
+  const { data: sessionRequests = [] } = useGetSessionRequestsQuery();
   const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
 
   // Modal state for assigning class
@@ -288,26 +290,41 @@ export default function GeneralStudentsPage() {
 
   const columns = [
     {
+      key: "student_id",
+      label: "Student ID",
+      width: "150px",
+      render: (row) => (
+        <span className="font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
+          {row.student_id || "N/A"}
+        </span>
+      ),
+    },
+    {
       key: "full_name",
       label: "Full Name",
+      width: "180px",
     },
     {
       key: "email",
       label: "Email",
+      width: "220px",
     },
     {
       key: "phone",
       label: "Phone",
+      width: "150px",
       render: (row) => row.phone || <span className="text-gray-400">-</span>,
     },
     {
       key: "age",
       label: "Age",
+      width: "80px",
       render: (row) => row.age || <span className="text-gray-400">-</span>,
     },
     {
       key: "residency_country",
       label: "Country",
+      width: "150px",
       render: (row) => row.residency_country || <span className="text-gray-400">-</span>,
     },
 
@@ -324,6 +341,7 @@ export default function GeneralStudentsPage() {
     {
       key: "chosen_subprogram",
       label: "Subprogram",
+      width: "180px",
       render: (row) => {
         // Try to get subprogram from student record first
         let subId = row.chosen_subprogram;
@@ -362,9 +380,49 @@ export default function GeneralStudentsPage() {
       label: "Class",
       width: "140px",
       render: (row) => {
+        // Find session requests for this student
+        const studentRequests = sessionRequests.filter(r => r.student_id === row.student_id);
+        const pendingRequest = studentRequests.find(r => r.status === 'pending');
+        const rejectedRequest = !pendingRequest && studentRequests.find(r => r.status === 'rejected');
+
         // Get class name from classes array using class_id
         const className = getClassName(row.class_id) || row.class_name;
         const hasClass = className && className !== "Not assigned";
+
+        if (pendingRequest) {
+          return (
+            <div className="flex justify-center">
+              <button
+                onClick={() => handleOpenAssignModal(row)}
+                className="min-w-[120px] px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors flex items-center justify-center gap-1"
+                title={`Sesssion Change Requested: ${pendingRequest.requested_session_type}`}
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                {className || "Pending Request"}
+              </button>
+            </div>
+          );
+        }
+
+        if (rejectedRequest) {
+          return (
+            <div className="flex justify-center">
+              <button
+                onClick={() => handleOpenAssignModal(row)}
+                className="min-w-[120px] px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors flex items-center justify-center gap-1"
+                title={`Request Rejected: ${rejectedRequest.admin_response || 'No reason provided'}`}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                {className || "Request Rejected"}
+              </button>
+            </div>
+          );
+        }
 
         if (hasClass) {
           return (
@@ -457,9 +515,9 @@ export default function GeneralStudentsPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
-            <div className="text-center py-12">
+        <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 pt-20 transition-colors">
+          <div className="flex-1 w-full max-w-full px-4 sm:px-8 py-6 flex items-center justify-center">
+            <div className="text-center">
               <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading students...</p>
             </div>
           </div>
@@ -472,9 +530,9 @@ export default function GeneralStudentsPage() {
     return (
       <>
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
-          <div className="w-full px-6 py-6">
-            <div className="text-center py-12">
+        <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 pt-20 transition-colors">
+          <div className="flex-1 w-full max-w-full px-4 sm:px-8 py-6 flex items-center justify-center">
+            <div className="text-center">
               <p className="text-red-600 dark:text-red-400">Error loading students: {error?.data?.error || "Unknown error"}</p>
             </div>
           </div>
@@ -489,8 +547,8 @@ export default function GeneralStudentsPage() {
   return (
     <>
       <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
-        <div className="w-full px-8 py-6">
+      <main className="flex-1 min-w-0 flex flex-col items-center overflow-y-auto overflow-x-hidden bg-gray-50 pt-20 transition-colors">
+        <div className="w-full max-w-full px-4 sm:px-8 py-6 min-w-0 flex flex-col">
           <DataTable
             title="General Program Students"
             columns={columns}
@@ -526,10 +584,102 @@ export default function GeneralStudentsPage() {
                 </button>
               </div>
 
-              <div className="p-6">
-                {/* Student Program Description */}
-                <div className={`p-3 rounded-lg mb-4 border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              <div className="p-6 text-left">
+                {/* Session Change Request Alert */}
+                {(() => {
+                  const pendingRequest = sessionRequests.find(
+                    r => r.student_id === studentToAssign.student_id && r.status === 'pending'
+                  );
+                  const rejectedRequest = !pendingRequest && sessionRequests.find(
+                    r => r.student_id === studentToAssign.student_id && r.status === 'rejected'
+                  );
+
+                  if (pendingRequest) {
+                    return (
+                      <div className={`p-3 rounded-lg mb-4 border-l-4 ${isDark ? 'bg-yellow-900/20 border-yellow-600' : 'bg-yellow-50 border-yellow-400'}`}>
+                        <div className="flex items-start gap-2">
+                          <div className={`p-1 rounded-full ${isDark ? 'bg-yellow-900/40 text-yellow-500' : 'bg-yellow-100 text-yellow-600'}`}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className={`text-xs font-bold mb-1 ${isDark ? 'text-yellow-500' : 'text-yellow-800'}`}>Pending Session Change</h4>
+                            <div className="flex items-center gap-3 text-xs">
+                              <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Wants:</span>
+                              <span className={`font-bold ${isDark ? 'text-yellow-400' : 'text-yellow-700'}`}>{pendingRequest.requested_session_type}</span>
+                              <span className={`ml-auto text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{new Date(pendingRequest.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <p className={`text-[11px] mt-1 italic ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>"{pendingRequest.reason}"</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (rejectedRequest) {
+                    return (
+                      <div className={`p-3 rounded-lg mb-4 border-l-4 ${isDark ? 'bg-red-900/20 border-red-600' : 'bg-red-50 border-red-400'}`}>
+                        <div className="flex items-start gap-2">
+                          <div className={`p-1 rounded-full ${isDark ? 'bg-red-900/40 text-red-500' : 'bg-red-100 text-red-600'}`}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className={`text-xs font-bold mb-1 ${isDark ? 'text-red-500' : 'text-red-800'}`}>Request Rejected</h4>
+                            <div className="flex items-center gap-2 text-xs mb-1">
+                              <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Wanted:</span>
+                              <span className={`font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{rejectedRequest.requested_session_type}</span>
+                            </div>
+                            <div className={`text-[11px] space-y-1`}>
+                              <p className={`italic ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>"{rejectedRequest.reason}"</p>
+                              <p className={`font-medium ${isDark ? 'text-red-400' : 'text-red-700'}`}>
+                                <span className="font-bold">Admin:</span> {rejectedRequest.admin_response || 'No reason given'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return null;
+                })()}
+
+                {/* Student Information Section */}
+                <div className={`p-4 rounded-xl mb-6 border-2 ${isDark ? 'bg-blue-900/10 border-blue-800' : 'bg-blue-50/50 border-blue-100'}`}>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Student Name</p>
+                      <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{studentToAssign.full_name}</p>
+                    </div>
+                    <div>
+                      <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Email Address</p>
+                      <p className={`font-medium truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`} title={studentToAssign.email}>{studentToAssign.email}</p>
+                    </div>
+                    <div>
+                      <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Current Class</p>
+                      <p className={`font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                        {getClassName(studentToAssign.class_id) || 'Not Assigned'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Current Shift</p>
+                      <p className={`font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                        {(() => {
+                          const currentCls = classes.find(c => c.id == studentToAssign.class_id);
+                          return currentCls?.type ? currentCls.type.charAt(0).toUpperCase() + currentCls.type.slice(1) : 'None';
+                        })()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Student Program Info */}
+                <div className="mb-4">
+                  <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Target Program:</p>
+                  <p className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                     {studentToAssign.chosen_program}
                   </p>
                 </div>
@@ -671,8 +821,12 @@ export default function GeneralStudentsPage() {
                 <h5 className={`text-sm font-semibold uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Personal Information</h5>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Phone</p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.phone || 'N/A'}</p>
+                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Student ID</p>
+                    <p className={`font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{viewingStudent.student_id || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Full Name</p>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.full_name}</p>
                   </div>
                   <div>
                     <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Age</p>
@@ -752,6 +906,7 @@ export default function GeneralStudentsPage() {
 
       {/* Edit Student Modal */}
       {isEditModalOpen && editingStudent && (() => {
+        const program = programs.find(p => p.title === editFormData.chosen_program);
         const studentSubprograms = program ? subprograms.filter(sp => sp.program_id === program.id) : [];
         const showParentInfo = parseInt(editFormData.age) < 18;
 

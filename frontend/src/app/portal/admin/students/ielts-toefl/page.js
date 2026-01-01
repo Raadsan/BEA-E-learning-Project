@@ -6,11 +6,13 @@ import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetIeltsToeflStudentsQuery } from "@/redux/api/ieltsToeflApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
+import { useGetSessionRequestsQuery } from "@/redux/api/sessionRequestApi";
 
 export default function IELTSTOEFLStudentsPage() {
   const { isDark } = useDarkMode();
   const { data: ieltsStudents, isLoading, isError, error } = useGetIeltsToeflStudentsQuery();
   const { data: classes = [] } = useGetClassesQuery();
+  const { data: sessionRequests = [] } = useGetSessionRequestsQuery();
 
   const filteredStudents = (ieltsStudents || []).filter(student =>
     student.status?.toLowerCase() === 'approved' && student.class_id
@@ -23,8 +25,19 @@ export default function IELTSTOEFLStudentsPage() {
 
   const columns = [
     {
+      key: "student_id",
+      label: "Student ID",
+      width: "150px",
+      render: (row) => (
+        <span className="font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
+          {row.student_id || "N/A"}
+        </span>
+      ),
+    },
+    {
       key: "fullName",
       label: "Full Name",
+      width: "180px",
       render: (row) => (
         <span className="font-medium text-gray-900 dark:text-white">
           {`${row.firstName} ${row.lastName}`}
@@ -34,6 +47,7 @@ export default function IELTSTOEFLStudentsPage() {
     {
       key: "email",
       label: "Email",
+      width: "220px",
       render: (row) => (
         <span className="text-gray-700 dark:text-gray-300">{row.email}</span>
       ),
@@ -41,6 +55,7 @@ export default function IELTSTOEFLStudentsPage() {
     {
       key: "phone",
       label: "Phone",
+      width: "150px",
       render: (row) => (
         <span className="text-gray-700 dark:text-gray-300">{row.phone}</span>
       ),
@@ -48,6 +63,7 @@ export default function IELTSTOEFLStudentsPage() {
     {
       key: "age",
       label: "Age",
+      width: "80px",
       render: (row) => (
         <span className="text-gray-700 dark:text-gray-300">{row.age}</span>
       ),
@@ -55,6 +71,7 @@ export default function IELTSTOEFLStudentsPage() {
     {
       key: "gender",
       label: "Gender",
+      width: "100px",
       render: (row) => (
         <span className="text-gray-700 dark:text-gray-300">{row.gender}</span>
       ),
@@ -62,6 +79,7 @@ export default function IELTSTOEFLStudentsPage() {
     {
       key: "location",
       label: "Location",
+      width: "180px",
       render: (row) => (
         <div className="text-sm">
           <div className="font-medium text-gray-900 dark:text-white">{row.city}</div>
@@ -72,10 +90,11 @@ export default function IELTSTOEFLStudentsPage() {
     {
       key: "examType",
       label: "Exam Type",
+      width: "120px",
       render: (row) => (
         <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.examType === "IELTS"
-            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-            : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+          ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+          : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
           }`}>
           {row.examType}
         </span>
@@ -84,19 +103,65 @@ export default function IELTSTOEFLStudentsPage() {
     {
       key: "class_name",
       label: "Class",
-      render: (row) => (
-        <span className="font-medium text-gray-900 dark:text-white">
-          {getClassName(row.class_id)}
-        </span>
-      ),
+      width: "140px",
+      render: (row) => {
+        // Find session requests for this student
+        const studentRequests = sessionRequests.filter(r => r.student_id === row.student_id);
+        const pendingRequest = studentRequests.find(r => r.status === 'pending');
+        const rejectedRequest = !pendingRequest && studentRequests.find(r => r.status === 'rejected');
+
+        const className = getClassName(row.class_id);
+
+        if (pendingRequest) {
+          return (
+            <div className="flex justify-center">
+              <span
+                className="min-w-[120px] px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center gap-1"
+                title={`Sesssion Change Requested: ${pendingRequest.requested_session_type}`}
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                {className || "Pending Request"}
+              </span>
+            </div>
+          );
+        }
+
+        if (rejectedRequest) {
+          return (
+            <div className="flex justify-center">
+              <span
+                className="min-w-[120px] px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800 flex items-center justify-center gap-1"
+                title={`Request Rejected: ${rejectedRequest.admin_response || 'No reason provided'}`}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                {className || "Request Rejected"}
+              </span>
+            </div>
+          );
+        }
+
+        return (
+          <div className="flex justify-center">
+            <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800">
+              {className}
+            </span>
+          </div>
+        );
+      },
     },
     {
       key: "verification_method",
       label: "Verification Method",
+      width: "180px",
       render: (row) => (
         <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${row.verificationMethod === "Certificate"
-            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
           }`}>
           {row.verificationMethod === "Certificate" ? "Certificate" : "Exam Booking"}
         </span>
@@ -105,6 +170,7 @@ export default function IELTSTOEFLStudentsPage() {
     {
       key: "certificateInfo",
       label: "Certificate Details",
+      width: "200px",
       render: (row) => {
         if (row.verificationMethod === "Certificate") {
           return (
@@ -120,6 +186,7 @@ export default function IELTSTOEFLStudentsPage() {
     {
       key: "examBooking",
       label: "Exam Booking",
+      width: "200px",
       render: (row) => {
         if (row.verificationMethod === "Exam Booking") {
           return (
@@ -215,16 +282,22 @@ export default function IELTSTOEFLStudentsPage() {
   return (
     <>
       <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
-        <div className="w-full px-8 py-6">
+      <main className="flex-1 min-w-0 flex flex-col items-center overflow-y-auto overflow-x-hidden bg-gray-50 pt-20 transition-colors">
+        <div className="w-full max-w-full px-4 sm:px-8 py-6 min-w-0 flex flex-col">
           {(isLoading) ? (
-            <div className="text-center py-10">Loading...</div>
+            <div className="flex items-center justify-center py-10">
+              <div className="text-center">Loading...</div>
+            </div>
           ) : isError ? (
-            <div className="text-center py-10 text-red-500">Error loading data</div>
+            <div className="flex items-center justify-center py-10">
+              <div className="text-center text-red-500">Error loading data</div>
+            </div>
           ) : (
             !filteredStudents || filteredStudents.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-gray-600 dark:text-gray-400 text-lg">No active IELTS/TOEFL students assigned to classes</p>
+              <div className="flex items-center justify-center py-10">
+                <div className="text-center">
+                  <p className="text-gray-600 dark:text-gray-400 text-lg">No active IELTS/TOEFL students assigned to classes</p>
+                </div>
               </div>
             ) : (
               <DataTable

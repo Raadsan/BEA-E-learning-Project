@@ -76,7 +76,7 @@ export const getPerformanceClusters = async (req, res) => {
 
         let query = `
             SELECT 
-                s.id,
+                s.student_id as id,
                 s.full_name,
                 ROUND(AVG(all_subs.score), 2) as avg_score,
                 COUNT(all_subs.student_id) as graded_count,
@@ -86,7 +86,7 @@ export const getPerformanceClusters = async (req, res) => {
                     ELSE 'Low'
                 END as performance_level
             FROM students s
-            LEFT JOIN (${unionQueries}) all_subs ON s.id = all_subs.student_id
+            LEFT JOIN (${unionQueries}) all_subs ON s.student_id = all_subs.student_id
             WHERE 1=1
         `;
 
@@ -100,7 +100,7 @@ export const getPerformanceClusters = async (req, res) => {
             params.push(class_id);
         }
 
-        query += ` GROUP BY s.id, s.full_name HAVING graded_count > 0`;
+        query += ` GROUP BY s.student_id, s.full_name HAVING graded_count > 0`;
 
         const [students] = await dbp.query(query, params);
 
@@ -459,7 +459,7 @@ export const getAssignmentSubmissions = async (req, res) => {
         const query = `
             SELECT s.*, st.full_name as student_name, st.email as student_email
             FROM ${subTable} s
-            JOIN students st ON s.student_id = st.id
+            JOIN students st ON s.student_id = st.student_id
             WHERE s.assignment_id = ?
         `;
 

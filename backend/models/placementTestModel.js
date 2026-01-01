@@ -79,7 +79,7 @@ export const getAllResults = async () => {
         `SELECT r.*, t.title as test_title, s.full_name as student_name 
      FROM placement_test_results r 
      JOIN placement_tests t ON r.test_id = t.id 
-     JOIN students s ON r.student_id = s.id
+     JOIN students s ON r.student_id = s.student_id
      ORDER BY r.submitted_at DESC`
     );
     return rows;
