@@ -15,8 +15,14 @@ export default function SubprogramsPage() {
   const [isViewSubprogramsModalOpen, setIsViewSubprogramsModalOpen] = useState(false);
   const [selectedProgramForView, setSelectedProgramForView] = useState(null);
   const [editingSubprogram, setEditingSubprogram] = useState(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [subprogramToDelete, setSubprogramToDelete] = useState(null);
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    isLoading: false,
+    confirmButtonColor: "blue"
+  });
 
   const { data: backendSubprograms, isLoading, isError, error } = useGetSubprogramsQuery();
   const { data: programs = [] } = useGetProgramsQuery();
@@ -55,9 +61,51 @@ export default function SubprogramsPage() {
     setIsModalOpen(true);
   };
 
+  const handleStatusToggle = (subprogram) => {
+    const newStatus = subprogram.status === 'active' ? 'inactive' : 'active';
+    const confirmMessage = `Do you want to change status of "${subprogram.subprogram_name}" to ${newStatus}?`;
+
+    setConfirmationModal({
+      isOpen: true,
+      title: "Confirm Status Change",
+      message: confirmMessage,
+      onConfirm: async () => {
+        setConfirmationModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await updateSubprogram({ id: subprogram.id, status: newStatus }).unwrap();
+          showToast("Status updated successfully!", "success");
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "blue" });
+        } catch (error) {
+          console.error("Failed to update status:", error);
+          setConfirmationModal(prev => ({ ...prev, isLoading: false }));
+          showToast(error?.data?.error || "Failed to update status.", "error");
+        }
+      },
+      isLoading: false,
+      confirmButtonColor: "blue"
+    });
+  };
+
   const handleDeleteClick = (subprogram) => {
-    setSubprogramToDelete(subprogram);
-    setIsDeleteModalOpen(true);
+    setConfirmationModal({
+      isOpen: true,
+      title: "Delete Subprogram",
+      message: `Are you sure you want to delete "${subprogram.subprogram_name}"? This action cannot be undone.`,
+      onConfirm: async () => {
+        setConfirmationModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await deleteSubprogram(subprogram.id).unwrap();
+          showToast("Subprogram deleted successfully!", "success");
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "red" });
+        } catch (error) {
+          console.error("Failed to delete subprogram:", error);
+          setConfirmationModal(prev => ({ ...prev, isLoading: false }));
+          showToast(error?.data?.error || "Failed to delete subprogram.", "error");
+        }
+      },
+      isLoading: false,
+      confirmButtonColor: "red"
+    });
   };
 
   const confirmDelete = async () => {
@@ -159,12 +207,16 @@ export default function SubprogramsPage() {
       key: "status",
       label: "Status",
       render: (row) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === "active"
-          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-          : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-          }`}>
+        <button
+          onClick={() => handleStatusToggle(row)}
+          className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-lg border-2 transition-all active:scale-95 shadow-sm hover:shadow ${row.status === 'active'
+            ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
+            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+            }`}
+          title="Click to toggle status"
+        >
           {row.status === "active" ? "Active" : "Inactive"}
-        </span>
+        </button>
       ),
     },
     {
@@ -246,7 +298,7 @@ export default function SubprogramsPage() {
       {isModalOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0  backdrop-blur-sm"
             aria-hidden="true"
             onClick={handleCloseModal}
           />
@@ -366,45 +418,43 @@ export default function SubprogramsPage() {
           </div>
         </div>
       )}
-      {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+      {/* Confirmation Modal */}
+      {confirmationModal.isOpen && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
-            onClick={() => setIsDeleteModalOpen(false)}
+            className="absolute inset-0  backdrop-blur-sm"
+            onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
           />
-          <div className={`relative w-full max-w-md transform transition-all animate-pop-in rounded-2xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+          <div className={`relative w-full max-w-md p-6 rounded-lg shadow-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
             }`}>
-            <div className="p-8 text-center">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-100 mb-6 animate-bounce-subtle">
-                <svg className="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                </svg>
-              </div>
-              <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Delete Subprogram?
-              </h3>
-              <p className={`text-sm mb-8 px-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                Are you sure you want to delete <span className="font-semibold text-red-500">"{subprogramToDelete?.subprogram_name}"</span>? This action cannot be undone.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsDeleteModalOpen(false)}
-                  className={`flex-1 px-4 py-3 rounded-xl border font-semibold transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                    }`}
-                >
-                  No, Keep it
-                </button>
-                <button
-                  type="button"
-                  onClick={confirmDelete}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-all active:scale-95 disabled:opacity-50"
-                >
-                  {isDeleting ? "Deleting..." : "Yes, Delete"}
-                </button>
-              </div>
+            <h3 className="text-xl font-bold mb-3">{confirmationModal.title}</h3>
+            <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              {confirmationModal.message}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+                disabled={confirmationModal.isLoading}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDark
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  } disabled:opacity-50`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmationModal.onConfirm}
+                disabled={confirmationModal.isLoading}
+                className={`px-6 py-2 ${confirmationModal.confirmButtonColor === 'red' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 shadow-md`}
+              >
+                {confirmationModal.isLoading && (
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                Confirm
+              </button>
             </div>
           </div>
         </div>
@@ -437,4 +487,3 @@ export default function SubprogramsPage() {
     </>
   );
 }
-

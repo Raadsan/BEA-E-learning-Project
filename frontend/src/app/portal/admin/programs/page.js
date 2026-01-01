@@ -22,7 +22,8 @@ export default function ProgramsPage() {
     title: "",
     message: "",
     onConfirm: null,
-    isLoading: false
+    isLoading: false,
+    confirmButtonColor: "blue"
   });
   const [formData, setFormData] = useState({
     title: "",
@@ -30,6 +31,8 @@ export default function ProgramsPage() {
     status: "active",
     image: null,
     video: null,
+    price: "",
+    discount: "",
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
@@ -48,6 +51,8 @@ export default function ProgramsPage() {
     image: program.image ? `http://localhost:5000${program.image}` : null,
     video: program.video ? `http://localhost:5000${program.video}` : null,
     status: program.status || "active",
+    price: program.price || 0,
+    discount: program.discount || 0,
   })) || [];
 
   const handleAddProgram = () => {
@@ -58,6 +63,8 @@ export default function ProgramsPage() {
       status: "active",
       image: null,
       video: null,
+      price: "",
+      discount: "",
     });
     setImagePreview(null);
     setVideoPreview(null);
@@ -72,6 +79,8 @@ export default function ProgramsPage() {
       status: program.status || "active",
       image: null,
       video: null,
+      price: program.price || "",
+      discount: program.discount || "",
     });
     setImagePreview(program.image || null);
     setVideoPreview(program.video || null);
@@ -92,14 +101,15 @@ export default function ProgramsPage() {
           const submitFormData = new FormData();
           submitFormData.append("status", newStatus);
           await updateProgram({ id: program.id, formData: submitFormData }).unwrap();
-          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false });
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "blue" });
         } catch (error) {
           console.error("Failed to update status:", error);
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
           alert(error?.data?.error || "Failed to update status.");
         }
       },
-      isLoading: false
+      isLoading: false,
+      confirmButtonColor: "blue"
     });
   };
 
@@ -112,14 +122,15 @@ export default function ProgramsPage() {
         setConfirmationModal(prev => ({ ...prev, isLoading: true }));
         try {
           await deleteProgram(id).unwrap();
-          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false });
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "red" });
         } catch (error) {
           console.error("Failed to delete program:", error);
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
           alert("Failed to delete program. Please try again.");
         }
       },
-      isLoading: false
+      isLoading: false,
+      confirmButtonColor: "red"
     });
   };
 
@@ -142,6 +153,8 @@ export default function ProgramsPage() {
       status: "active",
       image: null,
       video: null,
+      price: "",
+      discount: "",
     });
     setImagePreview(null);
     setVideoPreview(null);
@@ -206,6 +219,8 @@ export default function ProgramsPage() {
       if (formData.video) {
         submitFormData.append("video", formData.video);
       }
+      submitFormData.append("price", formData.price || 0);
+      submitFormData.append("discount", formData.discount || 0);
 
       if (editingProgram) {
         await updateProgram({ id: editingProgram.id, formData: submitFormData }).unwrap();
@@ -239,14 +254,30 @@ export default function ProgramsPage() {
       ),
     },
     {
+      key: "price",
+      label: "Price",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-gray-700 dark:text-gray-300 max-w-xs ">
+            ${(parseFloat(row.price || 0) - parseFloat(row.discount || 0)).toFixed(2)}
+          </span>
+          {parseFloat(row.discount || 0) > 0 && (
+            <span className="text-[10px] text-gray-400 line-through">
+              ${parseFloat(row.price || 0).toFixed(2)}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
       key: "status",
       label: "Status",
       render: (row) => (
         <button
           onClick={() => handleStatusToggle(row)}
-          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer transition-opacity hover:opacity-80 ${row.status === 'active'
-            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+          className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-lg border-2 transition-all active:scale-95 shadow-sm hover:shadow ${row.status === 'active'
+            ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
+            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
             }`}
           title="Click to toggle status"
         >
@@ -342,7 +373,7 @@ export default function ProgramsPage() {
       {/* Add/Edit Program Modal */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
+          className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
           style={{ pointerEvents: 'none' }}
         >
           {/* Backdrop overlay */}
@@ -473,6 +504,46 @@ export default function ProgramsPage() {
                 )}
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="price" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Price ($)
+                  </label>
+                  <input
+                    type="number"
+                    id="price"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    step="0.01"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'border-gray-300'
+                      }`}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="discount" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Discount ($)
+                  </label>
+                  <input
+                    type="number"
+                    id="discount"
+                    name="discount"
+                    value={formData.discount}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    step="0.01"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'border-gray-300'
+                      }`}
+                  />
+                </div>
+              </div>
+
               {!editingProgram && (
                 <div>
                   <label htmlFor="status" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
@@ -533,7 +604,7 @@ export default function ProgramsPage() {
       {confirmationModal.isOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0  backdrop-blur-sm"
             onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
           />
           <div className={`relative w-full max-w-md p-6 rounded-lg shadow-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
@@ -556,7 +627,7 @@ export default function ProgramsPage() {
               <button
                 onClick={confirmationModal.onConfirm}
                 disabled={confirmationModal.isLoading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                className={`px-6 py-2 ${confirmationModal.confirmButtonColor === 'red' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 shadow-md`}
               >
                 {confirmationModal.isLoading && (
                   <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -580,7 +651,7 @@ function ViewProgramModal({ program, onClose, isDark }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center"
+      className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
       style={{ pointerEvents: 'none' }}
     >
       <div
@@ -648,6 +719,21 @@ function ViewProgramModal({ program, onClose, isDark }) {
                     }`}>
                     {program.status}
                   </span>
+                </div>
+                <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                  <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Pricing</label>
+                  <p className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Price: ${parseFloat(program.price).toFixed(2)}
+                    {parseFloat(program.discount) > 0 && (
+                      <span className="ml-2 text-green-600 text-sm font-medium">
+                        (Discount: -${parseFloat(program.discount).toFixed(2)})
+                      </span>
+                    )}
+                    <span className="ml-2 text-blue-600">
+                      Total: ${(parseFloat(program.price) - parseFloat(program.discount)).toFixed(2)}
+                    </span>
+                  </p>
                 </div>
               </div>
             </div>

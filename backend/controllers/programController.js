@@ -17,16 +17,18 @@ export const createProgram = async (req, res) => {
     const video = videoFile ? `/uploads/${videoFile.filename}` : null;
 
     // Handle both JSON and multipart/form-data
-    let title, description, status;
+    let title, description, status, price, discount;
 
     if (req.headers['content-type']?.includes('application/json')) {
       // JSON request
-      ({ title, description, status } = req.body);
+      ({ title, description, status, price, discount } = req.body);
     } else {
       // multipart/form-data request
       title = req.body.title;
       description = req.body.description;
       status = req.body.status;
+      price = req.body.price;
+      discount = req.body.discount;
     }
 
     if (!title) return res.status(400).json({ error: "Title is required" });
@@ -41,7 +43,9 @@ export const createProgram = async (req, res) => {
       video,
       title,
       description,
-      status
+      status,
+      price,
+      discount
     });
 
     res.status(201).json({ message: "Program created", program });
@@ -110,14 +114,16 @@ export const updateProgram = async (req, res) => {
     const video = videoFile ? `/uploads/${videoFile.filename}` : undefined;
 
     // Handle both JSON and multipart/form-data
-    let title, description, status;
+    let title, description, status, price, discount;
 
     if (req.headers['content-type']?.includes('application/json')) {
-      ({ title, description, status } = req.body);
+      ({ title, description, status, price, discount } = req.body);
     } else {
       title = req.body.title;
       description = req.body.description;
       status = req.body.status;
+      price = req.body.price;
+      discount = req.body.discount;
     }
 
     // Validate status if provided
@@ -130,7 +136,9 @@ export const updateProgram = async (req, res) => {
       video,
       title,
       description,
-      status
+      status,
+      price,
+      discount
     });
 
     // SYNC: If title changed, update all students who have this program chosen
