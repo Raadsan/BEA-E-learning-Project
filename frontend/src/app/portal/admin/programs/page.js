@@ -30,6 +30,8 @@ export default function ProgramsPage() {
     status: "active",
     image: null,
     video: null,
+    price: "",
+    discount: "",
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
@@ -48,6 +50,8 @@ export default function ProgramsPage() {
     image: program.image ? `http://localhost:5000${program.image}` : null,
     video: program.video ? `http://localhost:5000${program.video}` : null,
     status: program.status || "active",
+    price: program.price || 0,
+    discount: program.discount || 0,
   })) || [];
 
   const handleAddProgram = () => {
@@ -58,6 +62,8 @@ export default function ProgramsPage() {
       status: "active",
       image: null,
       video: null,
+      price: "",
+      discount: "",
     });
     setImagePreview(null);
     setVideoPreview(null);
@@ -72,6 +78,8 @@ export default function ProgramsPage() {
       status: program.status || "active",
       image: null,
       video: null,
+      price: program.price || "",
+      discount: program.discount || "",
     });
     setImagePreview(program.image || null);
     setVideoPreview(program.video || null);
@@ -142,6 +150,8 @@ export default function ProgramsPage() {
       status: "active",
       image: null,
       video: null,
+      price: "",
+      discount: "",
     });
     setImagePreview(null);
     setVideoPreview(null);
@@ -206,6 +216,8 @@ export default function ProgramsPage() {
       if (formData.video) {
         submitFormData.append("video", formData.video);
       }
+      submitFormData.append("price", formData.price || 0);
+      submitFormData.append("discount", formData.discount || 0);
 
       if (editingProgram) {
         await updateProgram({ id: editingProgram.id, formData: submitFormData }).unwrap();
@@ -236,6 +248,22 @@ export default function ProgramsPage() {
         <span className="text-gray-700 dark:text-gray-300 max-w-xs truncate block">
           {row.description || <span className="text-gray-400">No description</span>}
         </span>
+      ),
+    },
+    {
+      key: "price",
+      label: "Price",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-gray-700 dark:text-gray-300 max-w-xs ">
+            ${(parseFloat(row.price || 0) - parseFloat(row.discount || 0)).toFixed(2)}
+          </span>
+          {parseFloat(row.discount || 0) > 0 && (
+            <span className="text-[10px] text-gray-400 line-through">
+              ${parseFloat(row.price || 0).toFixed(2)}
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -342,7 +370,7 @@ export default function ProgramsPage() {
       {/* Add/Edit Program Modal */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
+          className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
           style={{ pointerEvents: 'none' }}
         >
           {/* Backdrop overlay */}
@@ -473,6 +501,46 @@ export default function ProgramsPage() {
                 )}
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="price" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Price ($)
+                  </label>
+                  <input
+                    type="number"
+                    id="price"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    step="0.01"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'border-gray-300'
+                      }`}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="discount" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Discount ($)
+                  </label>
+                  <input
+                    type="number"
+                    id="discount"
+                    name="discount"
+                    value={formData.discount}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    step="0.01"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'border-gray-300'
+                      }`}
+                  />
+                </div>
+              </div>
+
               {!editingProgram && (
                 <div>
                   <label htmlFor="status" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
@@ -533,7 +601,7 @@ export default function ProgramsPage() {
       {confirmationModal.isOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0  backdrop-blur-sm"
             onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
           />
           <div className={`relative w-full max-w-md p-6 rounded-lg shadow-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
@@ -580,7 +648,7 @@ function ViewProgramModal({ program, onClose, isDark }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center"
+      className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
       style={{ pointerEvents: 'none' }}
     >
       <div
@@ -648,6 +716,21 @@ function ViewProgramModal({ program, onClose, isDark }) {
                     }`}>
                     {program.status}
                   </span>
+                </div>
+                <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                  <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Pricing</label>
+                  <p className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Price: ${parseFloat(program.price).toFixed(2)}
+                    {parseFloat(program.discount) > 0 && (
+                      <span className="ml-2 text-green-600 text-sm font-medium">
+                        (Discount: -${parseFloat(program.discount).toFixed(2)})
+                      </span>
+                    )}
+                    <span className="ml-2 text-blue-600">
+                      Total: ${(parseFloat(program.price) - parseFloat(program.discount)).toFixed(2)}
+                    </span>
+                  </p>
                 </div>
               </div>
             </div>

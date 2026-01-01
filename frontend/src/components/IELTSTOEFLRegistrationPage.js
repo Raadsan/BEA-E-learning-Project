@@ -56,7 +56,11 @@ export default function IELTSTOEFLRegistrationPage() {
   const [requiresPin, setRequiresPin] = useState(false);
   const [waafiTransactionId, setWaafiTransactionId] = useState(null);
   const [pin, setPin] = useState('');
-  const APPLICATION_FEE = 0.01;
+
+  const selectedProgramObj = programs.find(p => p.title === formData.chosen_program);
+  const programPrice = selectedProgramObj ? parseFloat(selectedProgramObj.price || 0) : 0;
+  const programDiscount = selectedProgramObj ? parseFloat(selectedProgramObj.discount || 0) : 0;
+  const APPLICATION_FEE = Math.max(0, programPrice - programDiscount);
 
   // Update cities when country changes
   useEffect(() => {

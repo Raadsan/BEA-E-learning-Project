@@ -1,7 +1,9 @@
 import Select from 'react-select';
 import { Country } from 'country-state-city';
+import { useId } from 'react';
 
 export default function CountrySelect({ value, onChange, isDark = false, placeholder = "Select country" }) {
+    const id = useId();
     const countries = Country.getAllCountries();
 
     const options = countries.map(country => ({
@@ -85,6 +87,7 @@ export default function CountrySelect({ value, onChange, isDark = false, placeho
 
     return (
         <Select
+            instanceId={id}
             options={options}
             value={selectedOption}
             onChange={(option) => onChange(option ? option.value : '')}

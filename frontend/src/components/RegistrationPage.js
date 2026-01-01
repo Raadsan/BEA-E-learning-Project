@@ -51,9 +51,15 @@ export default function RegistrationPage() {
   const [paymentMethod, setPaymentMethod] = useState('mwallet_account'); // 'evc' or 'bank'
   const [paymentAccountNumber, setPaymentAccountNumber] = useState('');
   const [isPaying, setIsPaying] = useState(false);
-  const [paymentError, setPaymentError] = useState(null); const [requiresPin, setRequiresPin] = useState(false);
+  const [paymentError, setPaymentError] = useState(null);
+  const [requiresPin, setRequiresPin] = useState(false);
   const [waafiTransactionId, setWaafiTransactionId] = useState(null);
-  const [pin, setPin] = useState(''); const APPLICATION_FEE = 0.01;
+  const [pin, setPin] = useState('');
+
+  const selectedProgramObj = programs.find(p => p.id === formData.chosen_program);
+  const programPrice = selectedProgramObj ? parseFloat(selectedProgramObj.price || 0) : 0;
+  const programDiscount = selectedProgramObj ? parseFloat(selectedProgramObj.discount || 0) : 0;
+  const APPLICATION_FEE = Math.max(0, programPrice - programDiscount);
 
   const countriesData = []; // Removed in favor of library
 
@@ -903,6 +909,24 @@ export default function RegistrationPage() {
                               <p className="text-xs text-gray-500 leading-relaxed mb-1 line-clamp-3">
                                 {program.description || 'Program overview available in details.'}
                               </p>
+
+                              <div className="mt-3 flex items-center justify-between">
+                                <div className="flex flex-col">
+                                  {parseFloat(program.discount) > 0 && (
+                                    <span className="text-[10px] text-red-500 line-through font-medium">
+                                      ${parseFloat(program.price).toFixed(2)}
+                                    </span>
+                                  )}
+                                  <span className="text-sm font-bold text-[#010080]">
+                                    ${(parseFloat(program.price) - parseFloat(program.discount)).toFixed(2)}
+                                  </span>
+                                </div>
+                                {parseFloat(program.discount) > 0 && (
+                                  <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                                    SAVE ${(parseFloat(program.discount)).toFixed(0)}
+                                  </span>
+                                )}
+                              </div>
                             </button>
                           );
                         })
@@ -939,7 +963,7 @@ export default function RegistrationPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-gray-600">Application fee</p>
-                        <p className="text-2xl font-semibold" style={{ color: '#010080' }}>${APPLICATION_FEE}</p>
+                        <p className="text-2xl font-semibold" style={{ color: '#010080' }}>${APPLICATION_FEE.toFixed(2)}</p>
                       </div>
                       <div className="w-12 h-12 bg-gray-200 rounded-md" />
                     </div>
@@ -957,7 +981,7 @@ export default function RegistrationPage() {
                         <p className="font-semibold">EVC - Waafi</p>
                         <p className="text-xs text-gray-500 mt-1">Instant mobile payment</p>
                       </div>
-                      <div className="text-sm font-semibold">${APPLICATION_FEE}</div>
+                      <div className="text-sm font-semibold">${APPLICATION_FEE.toFixed(2)}</div>
                     </button>
 
                     <button
@@ -969,7 +993,7 @@ export default function RegistrationPage() {
                         <p className="font-semibold">Bank Transfer</p>
                         <p className="text-xs text-gray-500 mt-1">Manual transfer (confirm later)</p>
                       </div>
-                      <div className="text-sm font-semibold">${APPLICATION_FEE}</div>
+                      <div className="text-sm font-semibold">${APPLICATION_FEE.toFixed(2)}</div>
                     </button>
                   </div>
 
@@ -1024,7 +1048,7 @@ export default function RegistrationPage() {
                       <div>
                         <h4 className="font-semibold">Payment Information</h4>
                         <p className="text-sm text-gray-600">Payment method: {paymentMethod === 'evc' ? 'EVC - Waafi' : 'Bank Transfer'}</p>
-                        <p className="text-sm text-gray-600">Application fee: ${APPLICATION_FEE}</p>
+                        <p className="text-sm text-gray-600">Application fee: ${APPLICATION_FEE.toFixed(2)}</p>
                         <p className="text-sm text-gray-600">Account: {paymentAccountNumber}</p>
                       </div>
                     </div>
