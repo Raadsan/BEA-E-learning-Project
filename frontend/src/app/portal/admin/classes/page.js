@@ -347,16 +347,13 @@ export default function ClassesPage() {
             className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-[#010080] border-b border-blue-900/50 px-6 py-5 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                {editingClass ? "Update Class Details" : "Create New Class"}
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-5 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-[#010080]">
+                {editingClass ? "Update Class Details" : "Add New Class"}
               </h2>
               <button
                 onClick={handleCloseModal}
-                className="text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-1.5 rounded-lg"
+                className="text-gray-400 hover:text-[#010080] transition-colors p-1 border-2 border-gray-100 rounded-md hover:border-[#010080]/20"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -367,7 +364,7 @@ export default function ClassesPage() {
             <form onSubmit={handleSubmit} className="p-6 bg-white space-y-4 overflow-y-auto max-h-[calc(90vh-80px)]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="program_id" className="block text-sm font-medium mb-1 text-gray-700">
+                  <label htmlFor="program_id" className="block text-sm font-semibold mb-2 text-gray-700">
                     Program <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -375,7 +372,7 @@ export default function ClassesPage() {
                     name="program_id"
                     value={formData.program_id}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium placeholder:text-gray-400"
                   >
                     <option value="">Select Program</option>
                     {programs.map((program) => (
@@ -387,7 +384,7 @@ export default function ClassesPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="subprogram_id" className="block text-sm font-medium mb-1 text-gray-700">
+                  <label htmlFor="subprogram_id" className="block text-sm font-semibold mb-2 text-gray-700">
                     Subprogram <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -396,7 +393,7 @@ export default function ClassesPage() {
                     value={formData.subprogram_id}
                     onChange={handleInputChange}
                     disabled={!formData.program_id}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 ${!formData.program_id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium ${!formData.program_id ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <option value="">Select Subprogram</option>
                     {filteredSubprograms.map((sub) => (
@@ -408,7 +405,7 @@ export default function ClassesPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="teacher_id" className="block text-sm font-medium mb-1 text-gray-700">
+                  <label htmlFor="teacher_id" className="block text-sm font-semibold mb-2 text-gray-700">
                     Assign Teacher
                   </label>
                   <select
@@ -416,7 +413,7 @@ export default function ClassesPage() {
                     name="teacher_id"
                     value={formData.teacher_id}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium placeholder:text-gray-400"
                   >
                     <option value="">Select Teacher (Optional)</option>
                     {teachers.map((teacher) => (
@@ -428,7 +425,7 @@ export default function ClassesPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="type" className="block text-sm font-medium mb-1 text-gray-700">
+                  <label htmlFor="type" className="block text-sm font-semibold mb-2 text-gray-700">
                     Class Type <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -437,7 +434,7 @@ export default function ClassesPage() {
                     value={formData.type}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium placeholder:text-gray-400"
                   >
                     <option value="morning">Morning</option>
                     <option value="afternoon">Afternoon</option>
@@ -446,7 +443,7 @@ export default function ClassesPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="class_name" className="block text-sm font-medium mb-1 text-gray-700">
+                  <label htmlFor="class_name" className="block text-sm font-semibold mb-2 text-gray-700">
                     Class Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -457,13 +454,13 @@ export default function ClassesPage() {
                     onChange={handleInputChange}
                     required
                     placeholder="Enter class name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium placeholder:text-gray-400"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium mb-1 text-gray-700">
+                <label htmlFor="description" className="block text-sm font-semibold mb-2 text-gray-700">
                   Description
                 </label>
                 <textarea
@@ -473,25 +470,22 @@ export default function ClassesPage() {
                   onChange={handleInputChange}
                   placeholder="Enter class description"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium placeholder:text-gray-400"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className={`px - 4 py - 2 border rounded - lg transition - colors ${isDark
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    } `}
+                  className={`px-6 py-2.5 border border-gray-200 rounded-xl font-semibold transition-all hover:bg-gray-50 text-gray-600`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating || isUpdating}
-                  className="px-6 py-2.5 bg-[#010080] text-white rounded-lg hover:bg-blue-900 transition-all font-bold shadow-lg hover:shadow-blue-900/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-8 py-2.5 bg-[#2563eb] text-white rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-500/20 active:scale-95 disabled:opacity-50"
                 >
                   {isCreating || isUpdating ? "Processing..." : editingClass ? "Save Changes" : "Create Class"}
                 </button>
@@ -519,16 +513,13 @@ export default function ClassesPage() {
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: 'auto' }}
           >
-            <div className={`px-6 py-5 border-b flex items-center justify-between bg-[#010080] text-white`}>
-              <h2 className={`text-xl font-bold flex items-center gap-2`}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-white">
+              <h2 className="text-xl font-bold text-[#010080]">
                 Assign Teacher
               </h2>
               <button
                 onClick={handleCloseAssignModal}
-                className={`text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-1.5 rounded-lg`}
+                className="text-gray-400 hover:text-[#010080] transition-colors p-1 border-2 border-gray-100 rounded-md hover:border-[#010080]/20"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -600,7 +591,7 @@ export default function ClassesPage() {
                 <button
                   type="submit"
                   disabled={isUpdating}
-                  className="flex-[2] px-4 py-3 bg-[#010080] text-white rounded-xl font-bold hover:bg-blue-900 transition-all shadow-lg hover:shadow-blue-900/20 active:scale-95 disabled:opacity-50"
+                  className="flex-[2] px-4 py-3 bg-[#2563eb] text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 active:scale-95 disabled:opacity-50"
                 >
                   {isUpdating ? "Assigning..." : "Save Assignment"}
                 </button>

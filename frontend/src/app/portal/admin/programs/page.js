@@ -275,9 +275,9 @@ export default function ProgramsPage() {
       render: (row) => (
         <button
           onClick={() => handleStatusToggle(row)}
-          className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-lg border-2 transition-all active:scale-95 shadow-sm hover:shadow ${row.status === 'active'
-            ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
-            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+          className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full transition-all active:scale-95 ${row.status === 'active'
+            ? 'bg-green-100 text-green-700'
+            : 'bg-red-100 text-red-700'
             }`}
           title="Click to toggle status"
         >
@@ -390,18 +390,15 @@ export default function ProgramsPage() {
             style={{ backdropFilter: 'blur(2px)', pointerEvents: 'auto' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-              }`}>
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
-                }`}>
-                {editingProgram ? "Edit Program" : "Add New Program"}
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-5 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-[#010080]">
+                {editingProgram ? "Update Program Details" : "Add New Program"}
               </h2>
               <button
                 onClick={handleCloseModal}
-                className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-                  }`}
+                className="text-gray-400 hover:text-[#010080] transition-colors p-1 border-2 border-gray-100 rounded-md hover:border-[#010080]/20"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -409,8 +406,7 @@ export default function ProgramsPage() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label htmlFor="title" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                <label htmlFor="title" className="block text-sm font-semibold mb-2 text-gray-700">
                   Title <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -421,16 +417,12 @@ export default function ProgramsPage() {
                   onChange={handleInputChange}
                   required
                   placeholder="Enter program title"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                    : 'border-gray-300'
-                    }`}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium placeholder:text-gray-400"
                 />
               </div>
 
               <div>
-                <label htmlFor="description" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                <label htmlFor="description" className="block text-sm font-semibold mb-2 text-gray-700">
                   Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -441,16 +433,12 @@ export default function ProgramsPage() {
                   required
                   rows={4}
                   placeholder="Enter program description"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${isDark
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                    : 'border-gray-300'
-                    }`}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium placeholder:text-gray-400 resize-none"
                 />
               </div>
 
               <div>
-                <label htmlFor="image" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                <label htmlFor="image" className="block text-sm font-semibold mb-2 text-gray-700">
                   Image
                 </label>
                 <input
@@ -459,10 +447,7 @@ export default function ProgramsPage() {
                   name="image"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'border-gray-300'
-                    }`}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium"
                 />
                 {imagePreview && (
                   <div className="mt-2 w-32 h-32 relative">
@@ -477,8 +462,7 @@ export default function ProgramsPage() {
               </div>
 
               <div>
-                <label htmlFor="video" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                <label htmlFor="video" className="block text-sm font-semibold mb-2 text-gray-700">
                   Video
                 </label>
                 <input
@@ -487,10 +471,7 @@ export default function ProgramsPage() {
                   name="video"
                   accept="video/*"
                   onChange={handleFileChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'border-gray-300'
-                    }`}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium"
                 />
                 {videoPreview && (
                   <div className="mt-2 w-full max-w-md">
@@ -506,7 +487,7 @@ export default function ProgramsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="price" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label htmlFor="price" className="block text-sm font-semibold mb-2 text-gray-700">
                     Price ($)
                   </label>
                   <input
@@ -517,15 +498,12 @@ export default function ProgramsPage() {
                     onChange={handleInputChange}
                     placeholder="0.00"
                     step="0.01"
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                      : 'border-gray-300'
-                      }`}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium placeholder:text-gray-400"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="discount" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label htmlFor="discount" className="block text-sm font-semibold mb-2 text-gray-700">
                     Discount ($)
                   </label>
                   <input
@@ -536,18 +514,14 @@ export default function ProgramsPage() {
                     onChange={handleInputChange}
                     placeholder="0.00"
                     step="0.01"
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                      : 'border-gray-300'
-                      }`}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium placeholder:text-gray-400"
                   />
                 </div>
               </div>
 
               {!editingProgram && (
                 <div>
-                  <label htmlFor="status" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+                  <label htmlFor="status" className="block text-sm font-semibold mb-2 text-gray-700">
                     Status <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -556,10 +530,7 @@ export default function ProgramsPage() {
                     value={formData.status}
                     onChange={handleInputChange}
                     required
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                      ? 'bg-gray-700 border-gray-600 text-white'
-                      : 'border-gray-300'
-                      }`}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -571,19 +542,16 @@ export default function ProgramsPage() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className={`px-4 py-2 border rounded-lg transition-colors ${isDark
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
+                  className="px-6 py-2.5 border border-gray-200 rounded-xl font-semibold transition-all hover:bg-gray-50 text-gray-600"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating || isUpdating}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-8 py-2.5 bg-[#2563eb] text-white rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-500/10 active:scale-95 disabled:opacity-50"
                 >
-                  {isCreating || isUpdating ? "Saving..." : editingProgram ? "Update Program" : "Add Program"}
+                  {isCreating || isUpdating ? "Processing..." : editingProgram ? "Save Changes" : "Add Program"}
                 </button>
               </div>
             </form>
