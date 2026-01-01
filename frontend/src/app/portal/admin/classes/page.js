@@ -16,6 +16,14 @@ export default function ClassesPage() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    isLoading: false,
+    confirmButtonColor: "red"
+  });
 
   const { data: backendClasses, isLoading, isError, error } = useGetClassesQuery();
   const { data: teachers = [] } = useGetTeachersQuery();
@@ -97,15 +105,25 @@ export default function ClassesPage() {
     setSelectedClassForAssign(null);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this class?")) {
-      try {
-        await deleteClass(id).unwrap();
-      } catch (error) {
-        console.error("Failed to delete class:", error);
-        alert("Failed to delete class. Please try again.");
-      }
-    }
+  const handleDelete = (id) => {
+    setConfirmationModal({
+      isOpen: true,
+      title: "Delete Class",
+      message: "Are you sure you want to delete this class? This action cannot be undone.",
+      onConfirm: async () => {
+        setConfirmationModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await deleteClass(id).unwrap();
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "red" });
+        } catch (error) {
+          console.error("Failed to delete class:", error);
+          setConfirmationModal(prev => ({ ...prev, isLoading: false }));
+          alert("Failed to delete class. Please try again.");
+        }
+      },
+      isLoading: false,
+      confirmButtonColor: "red"
+    });
   };
 
   const handleCloseModal = () => {
@@ -193,12 +211,11 @@ export default function ClassesPage() {
       key: "type",
       label: "Shift Type",
       render: (row) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          row.type === 'morning' ? 'bg-yellow-100 text-yellow-800' :
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.type === 'morning' ? 'bg-yellow-100 text-yellow-800' :
           row.type === 'afternoon' ? 'bg-orange-100 text-orange-800' :
-          row.type === 'night' ? 'bg-blue-100 text-blue-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
+            row.type === 'night' ? 'bg-blue-100 text-blue-800' :
+              'bg-gray-100 text-gray-800'
+          }`}>
           {row.type ? row.type.charAt(0).toUpperCase() + row.type.slice(1) : 'Not set'}
         </span>
       ),
@@ -212,9 +229,9 @@ export default function ClassesPage() {
       key: "latest_zoom_link",
       label: "Zoom Link",
       render: (row) => row.latest_zoom_link ? (
-        <a 
-          href={row.latest_zoom_link} 
-          target="_blank" 
+        <a
+          href={row.latest_zoom_link}
+          target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 hover:text-blue-800 underline"
         >
@@ -228,7 +245,7 @@ export default function ClassesPage() {
       render: (row) => (
         <div className="flex gap-2">
           {/* View Details Button */}
-           {/* View Students Button */}
+          {/* View Students Button */}
           <button
             onClick={() => handleView(row)}
             className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
@@ -322,7 +339,7 @@ export default function ClassesPage() {
       {/* Add/Edit Class Modal */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
           onClick={handleBackdropClick}
         >
 
@@ -330,15 +347,18 @@ export default function ClassesPage() {
             className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {editingClass ? "Edit Class" : "Add New Class"}
+            <div className="sticky top-0 bg-[#010080] border-b border-blue-900/50 px-6 py-5 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                {editingClass ? "Update Class Details" : "Create New Class"}
               </h2>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-1.5 rounded-lg"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -471,9 +491,9 @@ export default function ClassesPage() {
                 <button
                   type="submit"
                   disabled={isCreating || isUpdating}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2.5 bg-[#010080] text-white rounded-lg hover:bg-blue-900 transition-all font-bold shadow-lg hover:shadow-blue-900/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isCreating || isUpdating ? "Saving..." : editingClass ? "Update Class" : "Add Class"}
+                  {isCreating || isUpdating ? "Processing..." : editingClass ? "Save Changes" : "Create Class"}
                 </button>
               </div>
             </form>
@@ -494,26 +514,32 @@ export default function ClassesPage() {
           />
 
           <div
-            className={`relative rounded - lg shadow - 2xl w - full max - w - 4xl mx - 4 border - 2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
-              } `}
+            className={`relative rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+              }`}
             onClick={(e) => e.stopPropagation()}
-            style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
+            style={{ pointerEvents: 'auto' }}
           >
-            <div className={`sticky top - 0 border - b px - 6 py - 4 flex items - center justify - between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-              } `}>
-              <h2 className={`text - 2xl font - bold ${isDark ? 'text-white' : 'text-gray-800'
-                } `}>
-                Assign Teacher to {selectedClassForAssign.class_name}
+            <div className={`px-6 py-5 border-b flex items-center justify-between bg-[#010080] text-white`}>
+              <h2 className={`text-xl font-bold flex items-center gap-2`}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Assign Teacher
               </h2>
               <button
                 onClick={handleCloseAssignModal}
-                className={`transition - colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-                  } `}
+                className={`text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-1.5 rounded-lg`}
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
+            </div>
+
+            <div className="px-6 pt-4">
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                Class: <span className="font-bold text-[#010080] dark:text-blue-400">{selectedClassForAssign.class_name}</span>
+              </p>
             </div>
 
             <form
@@ -541,18 +567,17 @@ export default function ClassesPage() {
               {/* Course selection removed */}
 
               <div>
-                <label htmlFor="assign_teacher_id" className={`block text - sm font - medium mb - 1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  } `}>
-                  Select Teacher
+                <label htmlFor="assign_teacher_id" className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Select Instructor
                 </label>
                 <select
                   id="assign_teacher_id"
                   name="teacher_id"
                   defaultValue={selectedClassForAssign.teacher_id || ""}
-                  className={`w - full px - 3 py - 2 border rounded - lg focus: outline - none focus: ring - 2 focus: ring - blue - 500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    } `}
+                  className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-[#010080] transition-all appearance-none cursor-pointer ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-inner'
+                    }`}
                 >
-                  <option value="">Select Teacher (Optional)</option>
+                  <option value="">No teacher assigned</option>
                   {teachers.map((teacher) => (
                     <option key={teacher.id} value={teacher.id}>
                       {teacher.full_name}
@@ -561,26 +586,68 @@ export default function ClassesPage() {
                 </select>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex gap-3 pt-6">
                 <button
                   type="button"
                   onClick={handleCloseAssignModal}
-                  className={`px - 4 py - 2 border rounded - lg transition - colors ${isDark
+                  className={`flex-1 px-4 py-3 rounded-xl border-2 font-bold transition-all ${isDark
                     ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    } `}
+                    : 'border-gray-200 text-gray-500 hover:bg-gray-50 hover:border-gray-300'
+                    }`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isUpdating}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-[2] px-4 py-3 bg-[#010080] text-white rounded-xl font-bold hover:bg-blue-900 transition-all shadow-lg hover:shadow-blue-900/20 active:scale-95 disabled:opacity-50"
                 >
                   {isUpdating ? "Assigning..." : "Save Assignment"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmationModal.isOpen && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center">
+          <div
+            className="absolute inset-0  backdrop-blur-sm"
+            onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+          />
+          <div className={`relative w-full max-w-md p-6 rounded-lg shadow-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+            }`}>
+            <h3 className="text-xl font-bold mb-3">{confirmationModal.title}</h3>
+            <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              {confirmationModal.message}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+                disabled={confirmationModal.isLoading}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDark
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  } disabled:opacity-50`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmationModal.onConfirm}
+                disabled={confirmationModal.isLoading}
+                className={`px-6 py-2 ${confirmationModal.confirmButtonColor === 'red' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 shadow-md`}
+              >
+                {confirmationModal.isLoading && (
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
       )}

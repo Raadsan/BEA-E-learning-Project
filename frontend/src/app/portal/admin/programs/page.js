@@ -22,7 +22,8 @@ export default function ProgramsPage() {
     title: "",
     message: "",
     onConfirm: null,
-    isLoading: false
+    isLoading: false,
+    confirmButtonColor: "blue"
   });
   const [formData, setFormData] = useState({
     title: "",
@@ -100,14 +101,15 @@ export default function ProgramsPage() {
           const submitFormData = new FormData();
           submitFormData.append("status", newStatus);
           await updateProgram({ id: program.id, formData: submitFormData }).unwrap();
-          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false });
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "blue" });
         } catch (error) {
           console.error("Failed to update status:", error);
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
           alert(error?.data?.error || "Failed to update status.");
         }
       },
-      isLoading: false
+      isLoading: false,
+      confirmButtonColor: "blue"
     });
   };
 
@@ -120,14 +122,15 @@ export default function ProgramsPage() {
         setConfirmationModal(prev => ({ ...prev, isLoading: true }));
         try {
           await deleteProgram(id).unwrap();
-          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false });
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "red" });
         } catch (error) {
           console.error("Failed to delete program:", error);
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
           alert("Failed to delete program. Please try again.");
         }
       },
-      isLoading: false
+      isLoading: false,
+      confirmButtonColor: "red"
     });
   };
 
@@ -272,9 +275,9 @@ export default function ProgramsPage() {
       render: (row) => (
         <button
           onClick={() => handleStatusToggle(row)}
-          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer transition-opacity hover:opacity-80 ${row.status === 'active'
-            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+          className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-lg border-2 transition-all active:scale-95 shadow-sm hover:shadow ${row.status === 'active'
+            ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
+            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
             }`}
           title="Click to toggle status"
         >
@@ -624,7 +627,7 @@ export default function ProgramsPage() {
               <button
                 onClick={confirmationModal.onConfirm}
                 disabled={confirmationModal.isLoading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                className={`px-6 py-2 ${confirmationModal.confirmButtonColor === 'red' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 shadow-md`}
               >
                 {confirmationModal.isLoading && (
                   <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
