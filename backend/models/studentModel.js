@@ -1,6 +1,6 @@
-// models/studentModel.js
 import db from "../database/dbconfig.js";
 import bcrypt from "bcryptjs";
+import { generateStudentId } from "../utils/idGenerator.js";
 
 const dbp = db.promise();
 
@@ -23,16 +23,20 @@ export const createStudent = async ({
   parent_res_county,
   parent_res_city
 }) => {
+  // Generate unique student ID
+  const student_id = await generateStudentId('students');
+
   // Hash password
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const [result] = await dbp.query(
     `INSERT INTO students (
-      full_name, email, phone, age, gender, residency_country, residency_city,
+      student_id, full_name, email, phone, age, gender, residency_country, residency_city,
       chosen_program, chosen_subprogram, password, parent_name, parent_email, parent_phone,
       parent_relation, parent_res_county, parent_res_city
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
+      student_id,
       full_name,
       email,
       phone || null,
@@ -52,7 +56,7 @@ export const createStudent = async ({
     ]
   );
 
-  const [newStudent] = await dbp.query("SELECT * FROM students WHERE id = ?", [result.insertId]);
+  const [newStudent] = await dbp.query("SELECT * FROM students WHERE student_id = ?", [student_id]);
   return newStudent[0];
 };
 
@@ -60,7 +64,7 @@ export const createStudent = async ({
 export const getAllStudents = async () => {
   try {
     const [rows] = await dbp.query(
-      `SELECT s.id, s.full_name, s.email, s.phone, s.age, s.gender, s.residency_country, s.residency_city, 
+      `SELECT s.student_id, s.full_name, s.email, s.phone, s.age, s.gender, s.residency_country, s.residency_city, 
        s.chosen_program, s.chosen_subprogram, s.parent_name, s.parent_email, s.parent_phone, 
        s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, 
        s.created_at, s.updated_at, c.class_name
@@ -78,7 +82,7 @@ export const getAllStudents = async () => {
 // GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, created_at, updated_at FROM students WHERE id = ?",
+    "SELECT student_id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, created_at, updated_at FROM students WHERE student_id = ?",
     [id]
   );
   return rows[0] || null;
@@ -197,7 +201,7 @@ export const updateStudentById = async (id, {
 
   values.push(id);
   const [result] = await dbp.query(
-    `UPDATE students SET ${updates.join(", ")} WHERE id = ?`,
+    `UPDATE students SET ${updates.join(", ")} WHERE student_id = ?`,
     values
   );
 
@@ -206,14 +210,14 @@ export const updateStudentById = async (id, {
 
 // DELETE student
 export const deleteStudentById = async (id) => {
-  const [result] = await dbp.query("DELETE FROM students WHERE id = ?", [id]);
+  const [result] = await dbp.query("DELETE FROM students WHERE student_id = ?", [id]);
   return result.affectedRows;
 };
 
 // UPDATE approval status
 export const updateApprovalStatus = async (id, status) => {
   const [result] = await dbp.query(
-    "UPDATE students SET approval_status = ? WHERE id = ?",
+    "UPDATE students SET approval_status = ? WHERE student_id = ?",
     [status, id]
   );
   return result.affectedRows;
@@ -222,7 +226,7 @@ export const updateApprovalStatus = async (id, status) => {
 // REJECT student (sets status to rejected and clears class_id)
 export const rejectStudentById = async (id) => {
   const [result] = await dbp.query(
-    "UPDATE students SET approval_status = 'rejected', class_id = NULL WHERE id = ?",
+    "UPDATE students SET approval_status = 'rejected', class_id = NULL WHERE student_id = ?",
     [id]
   );
   return result.affectedRows;
@@ -232,7 +236,7 @@ export const rejectStudentById = async (id) => {
 export const getStudentProgressByTeacher = async (teacherId) => {
   const [students] = await dbp.query(
     `SELECT 
-      s.id,
+      s.student_id,
       s.full_name,
       s.email,
       s.phone,
@@ -246,9 +250,9 @@ export const getStudentProgressByTeacher = async (teacherId) => {
       MAX(a.date) as last_active
     FROM students s
     LEFT JOIN classes c ON s.class_id = c.id
-    LEFT JOIN attendance a ON s.id = a.student_id AND c.id = a.class_id
+    LEFT JOIN attendance a ON s.student_id = a.student_id AND c.id = a.class_id
     WHERE c.teacher_id = ?
-    GROUP BY s.id, s.full_name, s.email, s.phone, s.chosen_program, s.chosen_subprogram, s.class_id, c.class_name
+    GROUP BY s.student_id, s.full_name, s.email, s.phone, s.chosen_program, s.chosen_subprogram, s.class_id, c.class_name
     ORDER BY s.full_name ASC`,
     [teacherId]
   );

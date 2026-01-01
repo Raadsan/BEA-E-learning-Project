@@ -55,7 +55,7 @@ export const getNotifications = async (req, res) => {
             `SELECT n.*, 
             s.full_name as sender_name
          FROM notifications n
-         LEFT JOIN students s ON n.sender_id = s.id AND n.sender_id IS NOT NULL
+         LEFT JOIN students s ON n.sender_id = s.student_id AND n.sender_id IS NOT NULL
          ORDER BY n.created_at DESC`
         );
 

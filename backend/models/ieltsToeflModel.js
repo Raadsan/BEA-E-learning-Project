@@ -1,4 +1,5 @@
 import db from "../database/dbconfig.js";
+import { generateStudentId } from "../utils/idGenerator.js";
 
 const dbp = db.promise();
 
@@ -11,16 +12,19 @@ export const createStudent = async (data) => {
         exam_booking_date, exam_booking_time, status
     } = data;
 
+    const student_id = await generateStudentId('IELTSTOEFL');
+
     const query = `
     INSERT INTO IELTSTOEFL (
-      first_name, last_name, email, phone, password, chosen_program, age, gender,
+      student_id, first_name, last_name, email, phone, password, chosen_program, age, gender,
       residency_country, residency_city, exam_type, verification_method,
       certificate_institution, certificate_date, certificate_document,
       exam_booking_date, exam_booking_time, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
     const values = [
+        student_id,
         first_name, last_name, email, phone, password, chosen_program, age, gender,
         residency_country, residency_city, exam_type, verification_method,
         certificate_institution || null, certificate_date || null, certificate_document || null,
@@ -28,7 +32,7 @@ export const createStudent = async (data) => {
     ];
 
     const [result] = await dbp.query(query, values);
-    const [newStudent] = await dbp.query("SELECT * FROM IELTSTOEFL WHERE id = ?", [result.insertId]);
+    const [newStudent] = await dbp.query("SELECT * FROM IELTSTOEFL WHERE student_id = ?", [student_id]);
     return newStudent[0];
 };
 
@@ -40,7 +44,7 @@ export const getAllStudents = async () => {
 
 // Get Student by ID
 export const getStudentById = async (id) => {
-    const [rows] = await dbp.query("SELECT * FROM IELTSTOEFL WHERE id = ?", [id]);
+    const [rows] = await dbp.query("SELECT * FROM IELTSTOEFL WHERE student_id = ?", [id]);
     return rows[0];
 };
 
@@ -53,14 +57,14 @@ export const updateStudent = async (id, data) => {
 
     if (keys.length === 0) return 0;
 
-    const [result] = await dbp.query(`UPDATE IELTSTOEFL SET ${updates} WHERE id = ?`, values);
+    const [result] = await dbp.query(`UPDATE IELTSTOEFL SET ${updates} WHERE student_id = ?`, values);
     return result.affectedRows;
 };
 
 // Reject Student (set status to rejected and clear class_id)
 export const rejectStudent = async (id) => {
     const [result] = await dbp.query(
-        "UPDATE IELTSTOEFL SET status = 'rejected', class_id = NULL WHERE id = ?",
+        "UPDATE IELTSTOEFL SET status = 'rejected', class_id = NULL WHERE student_id = ?",
         [id]
     );
     return result.affectedRows;
@@ -68,6 +72,6 @@ export const rejectStudent = async (id) => {
 
 // Delete Student
 export const deleteStudent = async (id) => {
-    const [result] = await dbp.query("DELETE FROM IELTSTOEFL WHERE id = ?", [id]);
+    const [result] = await dbp.query("DELETE FROM IELTSTOEFL WHERE student_id = ?", [id]);
     return result.affectedRows;
 };

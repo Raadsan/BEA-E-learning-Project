@@ -67,7 +67,7 @@ export const login = async (req, res) => {
           console.log("[Login Debug] Found user in Student table");
           detectedRole = 'student';
           userData = {
-            id: user.id,
+            id: user.student_id,
             full_name: user.full_name,
             email: user.email,
             role: 'student',
@@ -213,7 +213,7 @@ export const getCurrentUser = async (req, res) => {
         user = await Student.getStudentById(userId);
         if (user) {
           user = {
-            id: user.id,
+            id: user.student_id,
             full_name: user.full_name,
             email: user.email,
             role: 'student',

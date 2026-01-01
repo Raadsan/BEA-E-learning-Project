@@ -30,7 +30,7 @@ export const getSessionRequests = async () => {
         c_req.class_name as requested_class_name,
         c_req.type as requested_class_type
         FROM session_change_requests r
-        JOIN students s ON r.student_id = s.id
+        JOIN students s ON r.student_id = s.student_id
         LEFT JOIN classes c_curr ON r.current_class_id = c_curr.id
         LEFT JOIN classes c_req ON r.requested_class_id = c_req.id
         ORDER BY r.created_at DESC`

@@ -36,7 +36,7 @@ export const getAttendanceReportByTeacherId = async (teacher_id) => {
         c.class_name,
         co.course_title
       FROM attendance a
-      JOIN students s ON a.student_id = s.id
+      JOIN students s ON a.student_id = s.student_id
       JOIN classes c ON a.class_id = c.id
       LEFT JOIN courses co ON c.course_id = co.id
       WHERE c.teacher_id = ?
@@ -107,7 +107,7 @@ export const getAttendanceStats = async (filters) => {
 export const getTotalStudents = async (filters) => {
   const { class_id, program_id } = filters;
   let query = `
-     SELECT COUNT(s.id) as total
+     SELECT COUNT(s.student_id) as total
      FROM students s
      JOIN classes c ON s.class_id = c.id
      WHERE 1=1

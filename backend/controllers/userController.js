@@ -12,7 +12,8 @@ export const getAllUsers = async (req, res) => {
 
         // Fetch all students (both regular and IELTS/TOEFL)
         // Basic students
-        const [students] = await dbp.query("SELECT id, full_name, email, approval_status as status, created_at FROM students");
+        // Basic students
+        const [students] = await dbp.query("SELECT student_id, full_name, email, approval_status as status, created_at FROM students");
         // IELTS students could be fetched too if needed, but for now focusing on main tables or maybe combining them.
         // Let's stick to the main tables requested: Admin, Teacher, Student.
 
@@ -40,8 +41,8 @@ export const getAllUsers = async (req, res) => {
         }));
 
         const formattedStudents = students.map(user => ({
-            id: `student_${user.id}`,
-            original_id: user.id,
+            id: `student_${user.student_id}`,
+            original_id: user.student_id,
             full_name: user.full_name,
             email: user.email,
             role: 'student',
