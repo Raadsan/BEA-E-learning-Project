@@ -1,5 +1,6 @@
 import * as SessionRequestModel from "../models/sessionRequestModel.js";
 import * as StudentModel from "../models/studentModel.js";
+import * as ClassModel from "../models/classModel.js";
 import { createNotificationInternal } from "./notificationController.js";
 
 // Create Request
@@ -41,6 +42,26 @@ export const createRequest = async (req, res) => {
                 requestedClassId: requested_class_id
             }
         });
+
+        // Trigger Notification to Teacher
+        if (student?.class_id) {
+            const classData = await ClassModel.getClassById(student.class_id);
+            if (classData?.teacher_id) {
+                await createNotificationInternal({
+                    user_id: classData.teacher_id,
+                    sender_id: student_id,
+                    type: "session_change",
+                    title: "Student Session Change",
+                    message: `Your student ${studentName} has requested to change their session.`,
+                    metadata: {
+                        requestId: newRequest.id,
+                        studentName,
+                        requestedSession: requested_session_type,
+                        reason
+                    }
+                });
+            }
+        }
 
         res.status(201).json(newRequest);
     } catch (err) {

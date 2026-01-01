@@ -298,12 +298,11 @@ export default function SubprogramsPage() {
       {isModalOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0  backdrop-blur-sm"
-            aria-hidden="true"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={handleCloseModal}
           />
-          <div className={`relative w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-            <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50/50 border-gray-200'}`}>
+          <div className={`relative w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden border-2 transition-all ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className={`sticky top-0 z-10 px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
               <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 {editingSubprogram ? "Edit Subprogram" : "Add New Subprogram"}
               </h3>
@@ -420,12 +419,12 @@ export default function SubprogramsPage() {
       )}
       {/* Confirmation Modal */}
       {confirmationModal.isOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0  backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
           />
-          <div className={`relative w-full max-w-md p-6 rounded-lg shadow-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+          <div className={`relative w-full max-w-md p-6 rounded-xl shadow-2xl border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
             }`}>
             <h3 className="text-xl font-bold mb-3">{confirmationModal.title}</h3>
             <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>

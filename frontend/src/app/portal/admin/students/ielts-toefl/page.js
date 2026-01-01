@@ -100,60 +100,7 @@ export default function IELTSTOEFLStudentsPage() {
         </span>
       ),
     },
-    {
-      key: "class_name",
-      label: "Class",
-      width: "140px",
-      render: (row) => {
-        // Find session requests for this student
-        const studentRequests = sessionRequests.filter(r => r.student_id === row.student_id);
-        const pendingRequest = studentRequests.find(r => r.status === 'pending');
-        const rejectedRequest = !pendingRequest && studentRequests.find(r => r.status === 'rejected');
 
-        const className = getClassName(row.class_id);
-
-        if (pendingRequest) {
-          return (
-            <div className="flex justify-center">
-              <span
-                className="min-w-[120px] px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center gap-1"
-                title={`Sesssion Change Requested: ${pendingRequest.requested_session_type}`}
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                </span>
-                {className || "Pending Request"}
-              </span>
-            </div>
-          );
-        }
-
-        if (rejectedRequest) {
-          return (
-            <div className="flex justify-center">
-              <span
-                className="min-w-[120px] px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800 flex items-center justify-center gap-1"
-                title={`Request Rejected: ${rejectedRequest.admin_response || 'No reason provided'}`}
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                {className || "Request Rejected"}
-              </span>
-            </div>
-          );
-        }
-
-        return (
-          <div className="flex justify-center">
-            <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800">
-              {className}
-            </span>
-          </div>
-        );
-      },
-    },
     {
       key: "verification_method",
       label: "Verification Method",

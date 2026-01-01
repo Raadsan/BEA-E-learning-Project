@@ -1,0 +1,50 @@
+
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+export const freezingApi = createApi({
+    reducerPath: 'freezingApi',
+    baseQuery: fetchBaseQuery({
+        baseUrl: 'http://localhost:5000/api',
+        prepareHeaders: (headers) => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                headers.set('authorization', `Bearer ${token}`);
+            }
+            return headers;
+        },
+    }),
+    tagTypes: ['FreezingRequest'],
+    endpoints: (builder) => ({
+        createFreezingRequest: builder.mutation({
+            query: (data) => ({
+                url: '/freezing-requests/create',
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['FreezingRequest'],
+        }),
+        getFreezingRequests: builder.query({
+            query: () => '/freezing-requests/all',
+            providesTags: ['FreezingRequest'],
+        }),
+        getMyFreezingRequests: builder.query({
+            query: () => '/freezing-requests/my',
+            providesTags: ['FreezingRequest'],
+        }),
+        updateFreezingRequestStatus: builder.mutation({
+            query: ({ id, ...body }) => ({
+                url: `/freezing-requests/status/${id}`,
+                method: 'PATCH',
+                body,
+            }),
+            invalidatesTags: ['FreezingRequest'],
+        }),
+    }),
+});
+
+export const {
+    useCreateFreezingRequestMutation,
+    useGetFreezingRequestsQuery,
+    useGetMyFreezingRequestsQuery,
+    useUpdateFreezingRequestStatusMutation
+} = freezingApi;

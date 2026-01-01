@@ -101,19 +101,7 @@ export default function ProgramStudentsPage() {
             key: "programName",
             label: "Program",
         },
-        {
-            key: "className",
-            label: "Class",
-            render: (row) => {
-                if (!row.class_id) return <span className="text-gray-400">Not assigned</span>;
-                const cls = classes.find(c => c.id == row.class_id);
-                return cls ? (
-                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                        {cls.class_name}
-                    </span>
-                ) : "Unknown Class";
-            }
-        },
+
         {
             key: "status",
             label: "Status",
@@ -155,10 +143,10 @@ export default function ProgramStudentsPage() {
                                     key={program.id}
                                     onClick={() => setSelectedProgramId(program.id)}
                                     className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${selectedProgramId === program.id
-                                            ? 'bg-blue-600 text-white shadow-md'
-                                            : isDark
-                                                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                                                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                        ? 'bg-blue-600 text-white shadow-md'
+                                        : isDark
+                                            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                                            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                                         }`}
                                 >
                                     {program.title}

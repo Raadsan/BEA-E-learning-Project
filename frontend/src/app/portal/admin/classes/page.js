@@ -339,16 +339,19 @@ export default function ClassesPage() {
       {/* Add/Edit Class Modal */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
-          onClick={handleBackdropClick}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
         >
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={handleCloseModal}
+          />
 
           <div
-            className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden mx-4"
+            className={`relative rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-[#010080] border-b border-blue-900/50 px-6 py-5 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <div className={`sticky top-0 z-10 border-b px-6 py-5 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-[#010080]'}`}>
+              <h2 className={`text-xl font-bold text-white flex items-center gap-2`}>
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
@@ -364,7 +367,7 @@ export default function ClassesPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 bg-white space-y-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+            <form onSubmit={handleSubmit} className={`p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-80px)] ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="program_id" className="block text-sm font-medium mb-1 text-gray-700">
@@ -504,22 +507,19 @@ export default function ClassesPage() {
       {/* Assign Teacher Modal - Renamed slightly to reflect removal of course */}
       {isAssignModalOpen && selectedClassForAssign && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ pointerEvents: 'none' }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
         >
           <div
-            className="absolute inset-0 bg-transparent"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={handleCloseAssignModal}
-            style={{ pointerEvents: 'auto' }}
           />
 
           <div
-            className={`relative rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+            className={`relative rounded-xl shadow-2xl w-full max-w-md overflow-hidden border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
               }`}
             onClick={(e) => e.stopPropagation()}
-            style={{ pointerEvents: 'auto' }}
           >
-            <div className={`px-6 py-5 border-b flex items-center justify-between bg-[#010080] text-white`}>
+            <div className={`sticky top-0 z-10 px-6 py-5 border-b flex items-center justify-between bg-[#010080] text-white`}>
               <h2 className={`text-xl font-bold flex items-center gap-2`}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -612,12 +612,12 @@ export default function ClassesPage() {
 
       {/* Confirmation Modal */}
       {confirmationModal.isOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0  backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
           />
-          <div className={`relative w-full max-w-md p-6 rounded-lg shadow-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+          <div className={`relative w-full max-w-md p-6 rounded-xl shadow-2xl border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
             }`}>
             <h3 className="text-xl font-bold mb-3">{confirmationModal.title}</h3>
             <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>

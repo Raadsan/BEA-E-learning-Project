@@ -635,6 +635,16 @@ export default function AdminSidebar() {
             </Link>
           </li>
 
+          {/* Freezing Requests */}
+          <li>
+            <Link href="/portal/admin/freezing-requests" className={getMenuItemClasses("/portal/admin/freezing-requests")} style={getActiveStyle("/portal/admin/freezing-requests")}>
+              <svg className={getIconClasses("/portal/admin/freezing-requests")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span className={getTextClasses("/portal/admin/freezing-requests")}>Freezing Requests</span>
+            </Link>
+          </li>
+
           {/* Payments */}
           <li>
             <Link href="/portal/admin/payments" className={getMenuItemClasses("/portal/admin/payments")} style={getActiveStyle("/portal/admin/payments")}>

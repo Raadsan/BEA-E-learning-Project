@@ -108,6 +108,10 @@ app.use("/api/notifications", notificationRoutes);
 import sessionRequestRoutes from "./routes/sessionRequestRoutes.js";
 app.use("/api/session-requests", sessionRequestRoutes);
 
+// ⬇️ Register Freezing Request Routes
+import freezingRoutes from "./routes/freezingRoutes.js";
+app.use("/api/freezing-requests", freezingRoutes);
+
 
 // Server start
 const PORT = process.env.PORT || 5000;

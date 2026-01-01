@@ -375,80 +375,7 @@ export default function GeneralStudentsPage() {
         );
       },
     },
-    {
-      key: "class_name",
-      label: "Class",
-      width: "140px",
-      render: (row) => {
-        // Find session requests for this student
-        const studentRequests = sessionRequests.filter(r => r.student_id === row.student_id);
-        const pendingRequest = studentRequests.find(r => r.status === 'pending');
-        const rejectedRequest = !pendingRequest && studentRequests.find(r => r.status === 'rejected');
 
-        // Get class name from classes array using class_id
-        const className = getClassName(row.class_id) || row.class_name;
-        const hasClass = className && className !== "Not assigned";
-
-        if (pendingRequest) {
-          return (
-            <div className="flex justify-center">
-              <button
-                onClick={() => handleOpenAssignModal(row)}
-                className="min-w-[120px] px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors flex items-center justify-center gap-1"
-                title={`Sesssion Change Requested: ${pendingRequest.requested_session_type}`}
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                </span>
-                {className || "Pending Request"}
-              </button>
-            </div>
-          );
-        }
-
-        if (rejectedRequest) {
-          return (
-            <div className="flex justify-center">
-              <button
-                onClick={() => handleOpenAssignModal(row)}
-                className="min-w-[120px] px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors flex items-center justify-center gap-1"
-                title={`Request Rejected: ${rejectedRequest.admin_response || 'No reason provided'}`}
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                {className || "Request Rejected"}
-              </button>
-            </div>
-          );
-        }
-
-        if (hasClass) {
-          return (
-            <div className="flex justify-center">
-              <button
-                onClick={() => handleOpenAssignModal(row)}
-                className="min-w-[100px] px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
-              >
-                {className}
-              </button>
-            </div>
-          );
-        }
-
-        return (
-          <div className="flex justify-center">
-            <button
-              onClick={() => handleOpenAssignModal(row)}
-              className="min-w-[100px] px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors"
-            >
-              Assign Class
-            </button>
-          </div>
-        );
-      },
-    },
     {
       key: "created_at",
       label: "Registration Date",
@@ -566,11 +493,12 @@ export default function GeneralStudentsPage() {
         return (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
             <div
-              className="absolute inset-0  backdrop-blur-sm"
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
               aria-hidden="true"
+              onClick={handleCloseAssignModal}
             />
-            <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-              <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50/50 border-gray-200'}`}>
+            <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-y-auto border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+              <div className={`sticky top-0 z-10 px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                   {studentToAssign.email}
                 </h3>
@@ -786,10 +714,11 @@ export default function GeneralStudentsPage() {
       {isViewModalOpen && viewingStudent && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             aria-hidden="true"
+            onClick={handleCloseViewModal}
           />
-          <div className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+          <div className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
             <div className={`sticky top-0 z-10 px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
               <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 Student Details
@@ -913,10 +842,11 @@ export default function GeneralStudentsPage() {
         return (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
             <div
-              className="absolute inset-0  backdrop-blur-sm"
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
               aria-hidden="true"
+              onClick={handleCloseEditModal}
             />
-            <div className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
               <div className={`sticky top-0 z-20 px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                   Edit Student Details
@@ -1212,10 +1142,10 @@ export default function GeneralStudentsPage() {
         return (
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
             <div
-              className="absolute inset-0 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
               onClick={() => setIsStatusModalOpen(false)}
             />
-            <div className={`relative w-full max-w-sm rounded-xl shadow-2xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className={`relative w-full max-w-sm rounded-xl shadow-2xl p-6 border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
               <div className="mb-6 text-center">
                 <div className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-4 ${isActive
                   ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'

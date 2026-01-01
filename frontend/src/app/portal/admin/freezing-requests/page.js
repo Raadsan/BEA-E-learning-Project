@@ -1,17 +1,21 @@
+
 "use client";
 
 import { useState } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useGetSessionRequestsQuery, useUpdateSessionRequestStatusMutation } from "@/redux/api/sessionRequestApi";
+import {
+    useGetFreezingRequestsQuery,
+    useUpdateFreezingRequestStatusMutation
+} from "@/redux/api/freezingApi";
 import { useToast } from "@/components/Toast";
 
-export default function AdminSessionRequestsPage() {
+export default function AdminFreezingRequestsPage() {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
-    const { data: requests = [], isLoading, refetch } = useGetSessionRequestsQuery();
-    const [updateStatus, { isLoading: isUpdating }] = useUpdateSessionRequestStatusMutation();
+    const { data: requests = [], isLoading, refetch } = useGetFreezingRequestsQuery();
+    const [updateStatus, { isLoading: isUpdating }] = useUpdateFreezingRequestStatusMutation();
 
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [adminNote, setAdminNote] = useState("");
@@ -60,33 +64,33 @@ export default function AdminSessionRequestsPage() {
             ),
         },
         {
-            key: "current_class_name",
-            label: "Current Class",
-            width: "150px",
+            key: "period",
+            label: "Freezing Period",
+            width: "220px",
             render: (row) => (
-                <span className="text-sm">{row.current_class_name || "N/A"}</span>
-            ),
-        },
-        {
-            key: "requested_session_type",
-            label: "Requested Session",
-            width: "180px",
-            render: (row) => (
-                <div>
-                    <div className="font-medium text-sm text-blue-600 dark:text-blue-400">{row.requested_session_type}</div>
-                    {row.requested_class_name && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{row.requested_class_name}</div>
-                    )}
+                <div className="text-sm">
+                    <div className="font-bold text-[#010080] dark:text-blue-400">
+                        {new Date(row.start_date).toLocaleDateString()} - {new Date(row.end_date).toLocaleDateString()}
+                    </div>
+                    <div className="text-xs text-gray-500">Duration: {Math.ceil((new Date(row.end_date) - new Date(row.start_date)) / (1000 * 60 * 60 * 24))} days</div>
                 </div>
             ),
         },
         {
             key: "reason",
             label: "Reason",
+            width: "200px",
+            render: (row) => (
+                <span className="capitalize text-sm font-medium">{row.reason}</span>
+            ),
+        },
+        {
+            key: "description",
+            label: "Details",
             width: "250px",
             render: (row) => (
-                <span className="text-sm max-w-xs truncate block hover:whitespace-normal cursor-help" title={row.reason}>
-                    {row.reason}
+                <span className="text-sm max-w-xs truncate block hover:whitespace-normal cursor-help" title={row.description}>
+                    {row.description || "No description provided"}
                 </span>
             ),
         },
@@ -136,14 +140,19 @@ export default function AdminSessionRequestsPage() {
     return (
         <>
             <AdminHeader />
-            <main className="flex-1 min-w-0 flex flex-col items-center overflow-y-auto overflow-x-hidden bg-gray-50 pt-20 transition-colors">
+            <main className="flex-1 min-w-0 flex flex-col items-center overflow-y-auto overflow-x-hidden bg-gray-50 pt-20 transition-colors dark:bg-gray-900">
                 <div className="w-full max-w-full px-4 sm:px-8 py-6 min-w-0 flex flex-col">
+                    <div className="mb-6">
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Course Freezing Requests</h1>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Review and manage student requests to temporarily freeze their enrollment.</p>
+                    </div>
+
                     <DataTable
-                        title="Session Change Requests"
                         columns={columns}
                         data={requests}
                         showAddButton={false}
                         isLoading={isLoading}
+                        searchKey="student_name"
                     />
                 </div>
             </main>
@@ -158,7 +167,7 @@ export default function AdminSessionRequestsPage() {
                     <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-hidden border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
                         <div className={`sticky top-0 z-10 px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                             <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                                {modalType === 'approve' ? 'Approve' : 'Reject'} Session Request
+                                {modalType === 'approve' ? 'Approve' : 'Reject'} Freezing Request
                             </h3>
                             <button
                                 onClick={closeModal}
@@ -171,33 +180,25 @@ export default function AdminSessionRequestsPage() {
                         </div>
 
                         <div className="p-6 space-y-4">
-                            <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-blue-900/10 border-blue-800' : 'bg-blue-50/50 border-blue-100'}`}>
-                                <p className={`text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Student</p>
+                            <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-blue-900/10 border-blue-800' : 'bg-blue-100 border-blue-200'}`}>
+                                <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Student</p>
                                 <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedRequest.student_name}</p>
-                                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{selectedRequest.student_email}</p>
-                            </div>
-
-                            <div className={`p-3 rounded-lg text-sm ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Requested Session:</span>
-                                    <span className="font-bold text-blue-600 dark:text-blue-400">{selectedRequest.requested_session_type}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Requested Class:</span>
-                                    <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedRequest.requested_class_name || "Generic"}</span>
+                                <div className="mt-2 flex justify-between items-center text-sm">
+                                    <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Period:</span>
+                                    <span className="font-bold text-blue-600">{new Date(selectedRequest.start_date).toLocaleDateString()} - {new Date(selectedRequest.end_date).toLocaleDateString()}</span>
                                 </div>
                             </div>
 
                             <div>
                                 <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    {modalType === 'approve' ? 'Approval Note (Optional)' : 'Reason for Rejection'}
+                                    {modalType === 'approve' ? 'Academy Note (Optional)' : 'Reason for Rejection'}
                                 </label>
                                 <textarea
                                     value={adminNote}
                                     onChange={(e) => setAdminNote(e.target.value)}
-                                    placeholder={modalType === 'approve' ? "Any instructions for the student..." : "Why is this request being rejected?"}
+                                    placeholder={modalType === 'approve' ? "Instructions or feedback for the student..." : "Provide a reason for the student..."}
                                     rows={4}
-                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                                     required={modalType === 'reject'}
                                 />
                             </div>

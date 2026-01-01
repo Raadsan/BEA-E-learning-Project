@@ -46,18 +46,32 @@ export const createNotificationInternal = async ({ user_id, sender_id, type, tit
 // TODO: Filtering by user_id if needed. For now, we fetch all for admin.
 export const getNotifications = async (req, res) => {
     try {
-        // If we want to filter by specific admin user:
-        // const { userId } = req.user;
+        const { userId, role } = req.user;
+        let query;
+        let params = [];
 
-        // Fetch notifications. Join with sender info (students/teachers) if possible.
-        // For now, simple fetch.
-        const [rows] = await dbp.query(
-            `SELECT n.*, 
-            s.full_name as sender_name
-         FROM notifications n
-         LEFT JOIN students s ON n.sender_id = s.student_id AND n.sender_id IS NOT NULL
-         ORDER BY n.created_at DESC`
-        );
+        if (role === 'admin') {
+            // Admin sees system notifications (user_id NULL) or specifically for them
+            query = `
+                SELECT n.*, s.full_name as sender_name
+                FROM notifications n
+                LEFT JOIN students s ON n.sender_id = s.student_id AND n.sender_id IS NOT NULL
+                WHERE n.user_id IS NULL OR n.user_id = ?
+                ORDER BY n.created_at DESC
+            `;
+            params = [userId];
+        } else {
+            // Student/Teacher only sees notifications specifically for them
+            query = `
+                SELECT n.*, NULL as sender_name
+                FROM notifications n
+                WHERE n.user_id = ?
+                ORDER BY n.created_at DESC
+            `;
+            params = [userId];
+        }
+
+        const [rows] = await dbp.query(query, params);
 
         // Also try to join teachers if sender could be teacher?
         // Optimization: If sender_id refers to 'users' table or mixed tables, the join is tricky.

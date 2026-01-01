@@ -140,11 +140,11 @@ export default function NotificationsPage() {
             {selectedNotification && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={closeModal}>
                     <div
-                        className={`w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden ${modalBg} transform transition-all scale-100 border ${isDark ? 'border-gray-700' : 'border-gray-100'}`}
+                        className={`w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden ${modalBg} transform transition-all scale-100 border-2 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Modal Header */}
-                        <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                        <div className={`sticky top-0 z-10 px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                             <h3 className={`text-xl font-bold ${textMain}`}>Notification Details</h3>
                             <button onClick={closeModal} className={`p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${textSub}`}>
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

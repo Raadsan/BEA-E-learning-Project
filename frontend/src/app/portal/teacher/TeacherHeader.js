@@ -2,7 +2,7 @@
 
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
-import { useGetTeacherAnnouncementsQuery } from "@/redux/api/announcementApi";
+import { useGetNotificationsQuery } from "@/redux/api/notificationApi";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -16,21 +16,8 @@ export default function TeacherHeader() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Notification Logic
-  const { data: announcements } = useGetTeacherAnnouncementsQuery();
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  const updateUnreadCount = () => {
-    if (!announcements) return;
-    const stored = JSON.parse(localStorage.getItem("teacher_read_announcements") || "[]");
-    const count = announcements.filter(a => !stored.includes(a.id)).length;
-    setUnreadCount(count);
-  };
-
-  useEffect(() => {
-    updateUnreadCount();
-    window.addEventListener("announcementReadUpdate", updateUnreadCount);
-    return () => window.removeEventListener("announcementReadUpdate", updateUnreadCount);
-  }, [announcements]);
+  const { data: notifications = [] } = useGetNotificationsQuery(undefined, { pollingInterval: 30000 });
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-8 py-4 transition-colors fixed top-0 left-80 right-0 z-40">
@@ -74,7 +61,7 @@ export default function TeacherHeader() {
           </button>
 
           {/* Notification Icon */}
-          <Link href="/portal/teacher/announcements" className={`relative p-2 rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
+          <Link href="/portal/teacher/notifications" className={`relative p-2 rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
             }`}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.032 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />

@@ -1,9 +1,26 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
+const DEFAULT_MIN_COLUMN_WIDTH = "120px";
 
 const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true }) => {
+  const tableRef = useRef(null);
+  const [hasHorizontalScroll, setHasHorizontalScroll] = useState(false);
+
+  // Detect if table overflows horizontally
+  useLayoutEffect(() => {
+    const el = tableRef.current;
+    if (el) {
+      const checkOverflow = () => {
+        setHasHorizontalScroll(el.scrollWidth > el.clientWidth);
+      };
+      checkOverflow();
+      window.addEventListener('resize', checkOverflow);
+      return () => window.removeEventListener('resize', checkOverflow);
+    }
+  }, []);
+
   const { isDark } = useDarkMode();
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState(data);
@@ -79,7 +96,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
       </div>
 
       <div className="w-full rounded-lg border border-gray-200 dark:border-gray-700">
-        <div className="overflow-x-auto custom-scrollbar">
+        <div ref={tableRef} className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-sm" style={{ minWidth: 'max-content', borderCollapse: 'separate', borderSpacing: 0 }}>
             <thead className={`${isDark ? 'bg-white text-gray-900' : 'bg-[#010080] text-white'} sticky top-0 z-30`}>
               <tr>
@@ -88,9 +105,9 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                   return (
                     <th
                       key={col.key || i}
-                      className={`px-5 py-4 uppercase text-xs font-medium tracking-wide ${isLast ? 'sticky right-0 z-40 shadow-[-4px_0_10px_-4px_rgba(0,0,0,0.1)]' : ''}`}
+                      className={`px-5 py-4 uppercase text-xs font-medium tracking-wide ${isLast ? (hasHorizontalScroll ? 'sticky right-0 z-40 shadow-[-4px_0_10px_-4px_rgba(0,0,0,0.1)]' : '') : ''}`}
                       style={{
-                        ...(col.width ? { width: col.width, minWidth: col.width } : {}),
+                        ...(col.width ? { width: col.width, minWidth: col.width } : { minWidth: DEFAULT_MIN_COLUMN_WIDTH }),
                         backgroundColor: isDark ? '#ffffff' : '#010080'
                       }}
                     >
@@ -138,9 +155,9 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                     return (
                       <td
                         key={col.key || i}
-                        className={`px-5 py-4 border-b border-gray-200 dark:border-gray-700 ${isLast ? 'sticky right-0 z-10 shadow-[-4px_0_10px_-4px_rgba(0,0,0,0.1)]' : ''}`}
+                        className={`px-5 py-4 border-b border-gray-200 dark:border-gray-700 ${isLast ? (hasHorizontalScroll ? 'sticky right-0 z-10 shadow-[-4px_0_10px_-4px_rgba(0,0,0,0.1)]' : '') : ''}`}
                         style={{
-                          ...(col.width ? { width: col.width, minWidth: col.width } : {}),
+                          ...(col.width ? { width: col.width, minWidth: col.width } : { minWidth: DEFAULT_MIN_COLUMN_WIDTH }),
                           backgroundColor: idx % 2 === 0
                             ? (isDark ? '#1a2035' : '#ffffff')
                             : (isDark ? '#252b40' : '#f9fafb')

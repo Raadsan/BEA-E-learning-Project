@@ -373,24 +373,19 @@ export default function ProgramsPage() {
       {/* Add/Edit Program Modal */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
-          style={{ pointerEvents: 'none' }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
         >
-          {/* Backdrop overlay */}
           <div
-            className="absolute inset-0 bg-transparent"
-            onClick={handleBackdropClick}
-            style={{ pointerEvents: 'auto' }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={handleCloseModal}
           />
 
-          {/* Modal content */}
           <div
-            className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+            className={`relative rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
               }`}
-            style={{ backdropFilter: 'blur(2px)', pointerEvents: 'auto' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            <div className={`sticky top-0 z-10 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
               <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
                 }`}>
@@ -602,12 +597,12 @@ export default function ProgramsPage() {
 
       {/* Confirmation Modal */}
       {confirmationModal.isOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0  backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
           />
-          <div className={`relative w-full max-w-md p-6 rounded-lg shadow-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+          <div className={`relative w-full max-w-md p-6 rounded-xl shadow-2xl border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
             }`}>
             <h3 className="text-xl font-bold mb-3">{confirmationModal.title}</h3>
             <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -651,23 +646,21 @@ function ViewProgramModal({ program, onClose, isDark }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
-      style={{ pointerEvents: 'none' }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
     >
       <div
-        className="absolute inset-0 bg-transparent"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
-        style={{ pointerEvents: 'auto' }}
       />
 
       <div
-        className={`relative rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4 border-2 ${isDark ? 'bg-gray-800/95 border-gray-600' : 'bg-white/95 border-gray-300'
+        className={`relative rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
           }`}
         onClick={(e) => e.stopPropagation()}
-        style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
       >
-        <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        <div className={`sticky top-0 z-10 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
           }`}>
+          ...
           <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
             }`}>
             Program Details: {program.title}

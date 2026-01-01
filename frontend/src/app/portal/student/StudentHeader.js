@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useGetAnnouncementsQuery } from "@/redux/api/announcementApi";
+import { useGetNotificationsQuery } from "@/redux/api/notificationApi";
 
 export default function StudentHeader() {
   const { isDark, toggleDarkMode } = useDarkMode();
@@ -14,22 +15,12 @@ export default function StudentHeader() {
   const [currentStudent, setCurrentStudent] = useState(null);
 
   // Notification Logic
-  const { data: announcements } = useGetAnnouncementsQuery();
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { data: notifications = [] } = useGetNotificationsQuery(undefined, { pollingInterval: 30000 });
 
-  const updateUnreadCount = () => {
-    if (!announcements) return;
-    const stored = JSON.parse(localStorage.getItem("student_read_announcements") || "[]");
-    const count = announcements.filter(a => !stored.includes(a.id)).length;
-    setUnreadCount(count);
-  };
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
-  useEffect(() => {
-    updateUnreadCount();
-    // Optional: listen for custom event if we implement mark-as-read elsewhere
-    window.addEventListener("studentAnnouncementReadUpdate", updateUnreadCount);
-    return () => window.removeEventListener("studentAnnouncementReadUpdate", updateUnreadCount);
-  }, [announcements]);
+  // Cleanup legacy announcement logic if not needed, or keep alongside
+  // For now, focusing on the new notification system like Admin.
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -84,8 +75,12 @@ export default function StudentHeader() {
             </button>
 
             {/* Notification Icon */}
-            <Link href="/portal/student/class-updates" className={`relative p-2 rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
-              }`}>
+            <button
+              onClick={() => router.push("/portal/student/notifications")}
+              className={`relative p-2 rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              title="Notifications"
+            >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.032 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
@@ -94,7 +89,7 @@ export default function StudentHeader() {
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
-            </Link>
+            </button>
 
             {/* User Profile - Clickable with Dropdown */}
             <div className="relative">

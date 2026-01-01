@@ -20,6 +20,7 @@ import { announcementApi } from "../redux/api/announcementApi.js";
 import { newsApi } from "../redux/api/newsApi.js";
 import { notificationApi } from "../redux/api/notificationApi.js";
 import { sessionRequestApi } from "../redux/api/sessionRequestApi.js";
+import { freezingApi } from "../redux/api/freezingApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -44,6 +45,7 @@ export const store = configureStore({
     [newsApi.reducerPath]: newsApi.reducer,
     [notificationApi.reducerPath]: notificationApi.reducer,
     [sessionRequestApi.reducerPath]: sessionRequestApi.reducer,
+    [freezingApi.reducerPath]: freezingApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -67,6 +69,7 @@ export const store = configureStore({
       materialApi.middleware,
       announcementApi.middleware,
       notificationApi.middleware,
-      sessionRequestApi.middleware
+      sessionRequestApi.middleware,
+      freezingApi.middleware
     ),
 });

@@ -133,9 +133,14 @@ export default function SessionChangePage() {
         <div className="max-w-xs break-words">
           <div className="text-sm">{row.reason}</div>
           {row.admin_response && (
-            <div className="mt-2 p-2 rounded bg-gray-100 dark:bg-gray-700/50 text-xs border-l-2 border-blue-500">
-              <span className="font-bold block mb-1">Admin Response:</span>
-              {row.admin_response}
+            <div className="mt-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-xs border border-blue-100 dark:border-blue-800 shadow-sm animate-in fade-in slide-in-from-top-1 duration-300">
+              <span className="font-bold text-blue-700 dark:text-blue-300 block mb-1 flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Academy Feedback:
+              </span>
+              <span className="text-gray-700 dark:text-gray-300 italic">{row.admin_response}</span>
             </div>
           )}
         </div>
