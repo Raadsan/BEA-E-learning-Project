@@ -209,9 +209,9 @@ export default function SubprogramsPage() {
       render: (row) => (
         <button
           onClick={() => handleStatusToggle(row)}
-          className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-lg border-2 transition-all active:scale-95 shadow-sm hover:shadow ${row.status === 'active'
-            ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
-            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+          className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full transition-all active:scale-95  ${row.status === 'active'
+            ? 'bg-green-100 text-green-700'
+            : 'bg-red-100 text-red-700'
             }`}
           title="Click to toggle status"
         >
@@ -308,9 +308,9 @@ export default function SubprogramsPage() {
               </h3>
               <button
                 onClick={handleCloseModal}
-                className={`p-1 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                className="text-gray-400 hover:text-[#010080] transition-colors p-1 border-2 border-gray-100 rounded-md hover:border-[#010080]/20"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -318,8 +318,7 @@ export default function SubprogramsPage() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label htmlFor="subprogram_name" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                <label htmlFor="subprogram_name" className="block text-sm font-semibold mb-2 text-gray-700">
                   Subprogram Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -330,14 +329,12 @@ export default function SubprogramsPage() {
                   onChange={handleInputChange}
                   required
                   placeholder="Enter subprogram name"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium placeholder:text-gray-400"
                 />
               </div>
 
               <div>
-                <label htmlFor="program_id" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                <label htmlFor="program_id" className="block text-sm font-semibold mb-2 text-gray-700">
                   Program <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -346,8 +343,7 @@ export default function SubprogramsPage() {
                   value={formData.program_id}
                   onChange={handleInputChange}
                   required
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium"
                 >
                   <option value="">Select Program</option>
                   {programs.map((program) => (
@@ -359,8 +355,7 @@ export default function SubprogramsPage() {
               </div>
 
               <div>
-                <label htmlFor="description" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                <label htmlFor="description" className="block text-sm font-semibold mb-2 text-gray-700">
                   Description
                 </label>
                 <textarea
@@ -370,14 +365,12 @@ export default function SubprogramsPage() {
                   onChange={handleInputChange}
                   rows={4}
                   placeholder="Enter subprogram description"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium resize-none placeholder:text-gray-400"
                 />
               </div>
 
               <div>
-                <label htmlFor="status" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                <label htmlFor="status" className="block text-sm font-semibold mb-2 text-gray-700">
                   Status <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -386,8 +379,7 @@ export default function SubprogramsPage() {
                   value={formData.status}
                   onChange={handleInputChange}
                   required
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-[#f0f7ff] text-gray-900 transition-all font-medium"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -398,19 +390,16 @@ export default function SubprogramsPage() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className={`px-4 py-2 border rounded-lg transition-colors ${isDark
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
+                  className="px-6 py-2.5 border border-gray-200 rounded-xl font-semibold transition-all hover:bg-gray-50 text-gray-600"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating || isUpdating}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-8 py-2.5 bg-[#2563eb] text-white rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-500/10 active:scale-95 disabled:opacity-50"
                 >
-                  {isCreating || isUpdating ? "Saving..." : editingSubprogram ? "Update Subprogram" : "Add Subprogram"}
+                  {isCreating || isUpdating ? "Processing..." : editingSubprogram ? "Save Changes" : "Add Subprogram"}
                 </button>
               </div>
             </form>
