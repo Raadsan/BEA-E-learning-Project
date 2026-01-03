@@ -7,6 +7,9 @@ import { useGetTeachersQuery, useCreateTeacherMutation, useUpdateTeacherMutation
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import { Country } from 'country-state-city';
 
 export default function TeachersPage() {
   const { isDark } = useDarkMode();
@@ -50,6 +53,7 @@ export default function TeachersPage() {
     skills: "",
     hire_date: "",
     password: "",
+    confirmPassword: "",
   });
 
   const handleAddTeacher = () => {
@@ -86,8 +90,9 @@ export default function TeachersPage() {
       bio: teacher.bio || "",
       portfolio_link: teacher.portfolio_link || "",
       skills: teacher.skills || "",
-      hire_date: teacher.hire_date || "",
+      hire_date: teacher.hire_date ? new Date(teacher.hire_date).toISOString().split('T')[0] : "",
       password: "", // Don't pre-fill password
+      confirmPassword: "",
     });
     setIsModalOpen(true);
   };
@@ -191,7 +196,18 @@ export default function TeachersPage() {
     e.stopPropagation();
 
     try {
+      if (formData.password && formData.password !== formData.confirmPassword) {
+        showToast("Passwords do not match", "error");
+        return;
+      }
+
       const submitData = { ...formData };
+      delete submitData.confirmPassword;
+
+      // Format hire_date for MySQL (YYYY-MM-DD)
+      if (submitData.hire_date) {
+        submitData.hire_date = new Date(submitData.hire_date).toISOString().split('T')[0];
+      }
 
       // Convert years_experience to number
       if (submitData.years_experience) {
@@ -205,6 +221,7 @@ export default function TeachersPage() {
 
       if (editingTeacher) {
         await updateTeacher({ id: editingTeacher.id, ...submitData }).unwrap();
+        showToast("Teacher updated successfully", "success");
       } else {
         // Password is required for new teachers
         if (!submitData.password || submitData.password.trim() === "") {
@@ -212,6 +229,7 @@ export default function TeachersPage() {
           return;
         }
         await createTeacher(submitData).unwrap();
+        showToast("Teacher created successfully", "success");
       }
 
       handleCloseModal();
@@ -362,22 +380,17 @@ export default function TeachersPage() {
       {/* Add/Edit Teacher Modal */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
         >
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={handleCloseModal}
-          />
-
-          <div
-            className={`relative rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+            className={`relative rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
               }`}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Header - Sticky */}
             <div className={`sticky top-0 z-10 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'
-                }`}>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 {editingTeacher ? "Edit Teacher" : "Add New Teacher"}
               </h2>
               <button
@@ -391,160 +404,213 @@ export default function TeachersPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="full_name" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    Full Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="full_name"
-                    name="full_name"
-                    value={formData.full_name}
-                    onChange={handleInputChange}
-                    required
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    Email <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="phone" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="country" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    Country
-                  </label>
-                  <input
-                    type="text"
-                    id="country"
-                    name="country"
-                    value={formData.country}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="city" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="specialization" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    Specialization
-                  </label>
-                  <input
-                    type="text"
-                    id="specialization"
-                    name="specialization"
-                    value={formData.specialization}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="highest_qualification" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    Highest Qualification
-                  </label>
-                  <input
-                    type="text"
-                    id="highest_qualification"
-                    name="highest_qualification"
-                    value={formData.highest_qualification}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="years_experience" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    Years of Experience
-                  </label>
-                  <input
-                    type="number"
-                    id="years_experience"
-                    name="years_experience"
-                    value={formData.years_experience}
-                    onChange={handleInputChange}
-                    min="0"
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="hire_date" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                    Hire Date
-                  </label>
-                  <input
-                    type="date"
-                    id="hire_date"
-                    name="hire_date"
-                    value={formData.hire_date}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                  />
-                </div>
-
-                {!editingTeacher && (
+            {/* Form Content - Scrollable */}
+            <form id="teacherForm" onSubmit={handleSubmit} className="flex flex-col h-full max-h-[calc(90vh-120px)]">
+              <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                   <div>
-                    <label htmlFor="password" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                      Password <span className="text-red-500">*</span>
+                    <label htmlFor="full_name" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="full_name"
+                      name="full_name"
+                      value={formData.full_name}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="e.g. John Doe"
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                        }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="email" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="email@example.com"
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                        }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Phone Number
+                    </label>
+                    <PhoneInput
+                      country={(() => {
+                        if (formData.country) {
+                          const c = Country.getAllCountries().find(c => c.name === formData.country);
+                          return c ? c.isoCode.toLowerCase() : 'us';
+                        }
+                        return 'us';
+                      })()}
+                      enableSearch={true}
+                      separateDialCode={false}
+                      value={formData.phone}
+                      onChange={phone => setFormData(prev => ({ ...prev, phone }))}
+                      inputStyle={{
+                        width: '100%',
+                        height: '46px',
+                        fontSize: '16px',
+                        borderRadius: '0.75rem',
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        color: isDark ? '#60a5fa' : '#2563eb',
+                        paddingLeft: '48px'
+                      }}
+                      containerStyle={{
+                        width: '100%',
+                        border: '2px solid',
+                        borderColor: isDark ? '#4b5563' : '#e5e7eb',
+                        borderRadius: '0.75rem',
+                        backgroundColor: isDark ? '#1f2937' : 'white',
+                        boxShadow: 'none'
+                      }}
+                      buttonStyle={{
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        borderRadius: '0.75rem 0 0 0.75rem',
+                        paddingLeft: '12px',
+                        paddingRight: '0px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: isDark ? '#60a5fa' : '#2563eb',
+                        fontSize: '16px',
+                        cursor: 'default',
+                        width: '40px'
+                      }}
+                      dropdownStyle={{
+                        color: 'black',
+                        borderRadius: '0.75rem',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="country" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      id="country"
+                      name="country"
+                      value={formData.country}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Somalia"
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                        }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="city" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Mogadishu"
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                        }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="hire_date" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Hire Date
+                    </label>
+                    <input
+                      type="date"
+                      id="hire_date"
+                      name="hire_date"
+                      value={formData.hire_date}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'
+                        }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="specialization" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Specialization
+                    </label>
+                    <input
+                      type="text"
+                      id="specialization"
+                      name="specialization"
+                      value={formData.specialization}
+                      onChange={handleInputChange}
+                      placeholder="e.g. English Professor"
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                        }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="highest_qualification" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Highest Qualification
+                    </label>
+                    <input
+                      type="text"
+                      id="highest_qualification"
+                      name="highest_qualification"
+                      value={formData.highest_qualification}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Master's Degree"
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                        }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="years_experience" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Years of Experience
+                    </label>
+                    <input
+                      type="number"
+                      id="years_experience"
+                      name="years_experience"
+                      value={formData.years_experience}
+                      onChange={handleInputChange}
+                      min="0"
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'
+                        }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="portfolio_link" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Portfolio Link
+                    </label>
+                    <input
+                      type="url"
+                      id="portfolio_link"
+                      name="portfolio_link"
+                      value={formData.portfolio_link}
+                      onChange={handleInputChange}
+                      placeholder="https://..."
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                        }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="password" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {editingTeacher ? "New Password (optional)" : "Password *"}
                     </label>
                     <input
                       type="password"
@@ -553,89 +619,72 @@ export default function TeachersPage() {
                       value={formData.password}
                       onChange={handleInputChange}
                       required={!editingTeacher}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      placeholder="••••••••"
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
                         }`}
                     />
                   </div>
-                )}
 
-                {editingTeacher && (
                   <div>
-                    <label htmlFor="password" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                      New Password (leave blank to keep current)
+                    <label htmlFor="confirmPassword" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Confirm Password {editingTeacher ? "(optional)" : "*"}
                     </label>
                     <input
                       type="password"
-                      id="password"
-                      name="password"
-                      value={formData.password}
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                      required={!editingTeacher || !!formData.password}
+                      placeholder="••••••••"
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
                         }`}
                     />
                   </div>
-                )}
 
+                  <div className="md:col-span-2">
+                    <label htmlFor="skills" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Skills
+                    </label>
+                    <textarea
+                      id="skills"
+                      name="skills"
+                      value={formData.skills}
+                      onChange={handleInputChange}
+                      rows={2}
+                      placeholder="e.g. Project Management, Teaching..."
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                        }`}
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label htmlFor="bio" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Bio
+                    </label>
+                    <textarea
+                      id="bio"
+                      name="bio"
+                      value={formData.bio}
+                      onChange={handleInputChange}
+                      rows={3}
+                      placeholder="Enter a brief biography..."
+                      className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                        }`}
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="md:col-span-2">
-                <label htmlFor="portfolio_link" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                  Portfolio Link
-                </label>
-                <input
-                  type="url"
-                  id="portfolio_link"
-                  name="portfolio_link"
-                  value={formData.portfolio_link}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label htmlFor="skills" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                  Skills
-                </label>
-                <textarea
-                  id="skills"
-                  name="skills"
-                  value={formData.skills}
-                  onChange={handleInputChange}
-                  rows={2}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label htmlFor="bio" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                  Bio
-                </label>
-                <textarea
-                  id="bio"
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleInputChange}
-                  rows={3}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                    }`}
-                />
-              </div>
-
-
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              {/* Footer - Sticky */}
+              <div className={`sticky bottom-0 z-10 border-t px-6 py-4 flex items-center justify-end gap-3 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                }`}>
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className={`px-4 py-2 border rounded-lg transition-colors ${isDark
+                  className={`px-4 py-2 border-2 rounded-xl font-semibold transition-all ${isDark
                     ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                    : 'border-gray-200 text-gray-700 hover:bg-gray-50'
                     }`}
                 >
                   Cancel
@@ -643,7 +692,7 @@ export default function TeachersPage() {
                 <button
                   type="submit"
                   disabled={isCreating || isUpdating}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCreating || isUpdating ? "Saving..." : editingTeacher ? "Update Teacher" : "Add Teacher"}
                 </button>
@@ -929,46 +978,48 @@ export default function TeachersPage() {
       }
 
       {/* Confirmation Modal */}
-      {confirmationModal.isOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
-          />
-          <div className={`relative w-full max-w-md p-6 rounded-xl shadow-2xl border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
-            }`}>
-            <h3 className="text-xl font-bold mb-3">{confirmationModal.title}</h3>
-            <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-              {confirmationModal.message}
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
-                disabled={confirmationModal.isLoading}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDark
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  } disabled:opacity-50`}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmationModal.onConfirm}
-                disabled={confirmationModal.isLoading}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                {confirmationModal.isLoading && (
-                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                )}
-                Confirm
-              </button>
+      {
+        confirmationModal.isOpen && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => !confirmationModal.isLoading && setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+            />
+            <div className={`relative w-full max-w-md p-6 rounded-xl shadow-2xl border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+              }`}>
+              <h3 className="text-xl font-bold mb-3">{confirmationModal.title}</h3>
+              <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                {confirmationModal.message}
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+                  disabled={confirmationModal.isLoading}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDark
+                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    } disabled:opacity-50`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmationModal.onConfirm}
+                  disabled={confirmationModal.isLoading}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {confirmationModal.isLoading && (
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  Confirm
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
     </>
   );

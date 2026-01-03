@@ -1,5 +1,4 @@
 import * as Admin from "../models/adminModel.js";
-import bcrypt from "bcryptjs";
 
 // Get all admins
 export const getAdmins = async (req, res) => {
@@ -41,8 +40,8 @@ export const createAdmin = async (req, res) => {
             lName = names.slice(1).join(' ');
         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // No hashing, use plain text as requested
+        const hashedPassword = password;
 
         const newAdmin = await Admin.createAdmin({
             first_name: fName,
@@ -76,9 +75,9 @@ export const updateAdmin = async (req, res) => {
             delete updateData.full_name; // Model doesn't have full_name
         }
 
-        // If password is being updated, hash it
+        // If password is being updated, use plain text as requested
         if (updateData.password) {
-            updateData.password = await bcrypt.hash(updateData.password, 10);
+            // No hashing
         }
 
         // Remove password from updateData if it's empty/null to avoid overwriting with empty string

@@ -64,16 +64,34 @@ export default function UsersPage() {
         const password = row.password || "";
 
         return (
-          <div className="max-w-[200px]">
+          <div className="flex items-center gap-2 min-w-[120px]">
             <span
-              className={`font-mono text-sm ${isVisible
-                ? "text-gray-900 dark:text-gray-100 font-semibold"
-                : "text-gray-500 dark:text-gray-400"
+              className={`font-mono text-sm transition-all duration-200 ${isVisible
+                ? "text-blue-600 dark:text-blue-400 font-bold tracking-normal"
+                : "text-gray-400 dark:text-gray-500 tracking-widest"
                 }`}
-              title={password || "No password"}
             >
-              {isVisible ? (password || "N/A") : "••••••••"}
+              {isVisible ? password : "••••••••"}
             </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePasswordVisibility(row.id);
+              }}
+              className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              title={isVisible ? "Hide Password" : "Show Password"}
+            >
+              {isVisible ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              )}
+            </button>
           </div>
         );
       },
@@ -178,7 +196,7 @@ export default function UsersPage() {
             columns={columns}
             data={users}
             showAddButton={false}
-            onRowClick={togglePasswordVisibility}
+            onRowClick={handleView}
             getRowId={(row) => row.id}
           />
         </div>
@@ -256,9 +274,9 @@ export default function UsersPage() {
                     <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
                       }`}>Status</label>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${(viewingUser.status && viewingUser.status.toLowerCase() === 'active') ||
-                        (viewingUser.status && viewingUser.status.toLowerCase() === 'approved')
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                      (viewingUser.status && viewingUser.status.toLowerCase() === 'approved')
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                      : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                       }`}>
                       {viewingUser.status || 'N/A'}
                     </span>

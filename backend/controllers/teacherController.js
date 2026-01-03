@@ -1,7 +1,6 @@
 // controllers/teacherController.js
 import * as Teacher from "../models/teacherModel.js";
 import * as Class from "../models/classModel.js";
-import bcrypt from "bcryptjs";
 
 // CREATE TEACHER
 export const createTeacher = async (req, res) => {
@@ -32,8 +31,7 @@ export const createTeacher = async (req, res) => {
       return res.status(400).json({ error: "Email already exists" });
     }
 
-    // Hash password (REMOVED: Using plain text for now)
-    // const hashedPassword = await bcrypt.hash(password, 10);
+    // No hashing, use plain text as requested
     const hashedPassword = password;
 
     const teacher = await Teacher.createTeacher({
@@ -97,12 +95,7 @@ export const updateTeacher = async (req, res) => {
 
     const updateData = { ...req.body };
 
-    // Hashing removed for plain text compatibility
-    /*
-    if (updateData.password) {
-      updateData.password = await bcrypt.hash(updateData.password, 10);
-    }
-    */
+    // No hashing, use plain text as requested
 
     await Teacher.updateTeacherById(id, updateData);
 

@@ -91,7 +91,7 @@ export default function AttendancePage() {
         </div>
 
         {/* Stats Grid - Normal Size */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Total Days */}
           <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
             <div>
@@ -127,6 +127,23 @@ export default function AttendancePage() {
             <div className={`p-3 rounded-xl ${isDark ? "bg-red-500/10 text-red-400" : "bg-red-50 text-red-600"}`}>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Absent Percentage */}
+          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
+            <div>
+              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Absent Rate</p>
+              <h2 className="text-2xl font-extrabold text-orange-500">
+                {stats.presentHours + stats.absentHours > 0
+                  ? `${((stats.absentHours / (stats.presentHours + stats.absentHours)) * 100).toFixed(1)}%`
+                  : '0%'}
+              </h2>
+            </div>
+            <div className={`p-3 rounded-xl ${isDark ? "bg-orange-500/10 text-orange-400" : "bg-orange-50 text-orange-600"}`}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
           </div>

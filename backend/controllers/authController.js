@@ -101,27 +101,15 @@ export const login = async (req, res) => {
       });
     }
 
-    // Verify password
+    // Verify password (plain text as requested)
     console.log("[Login Debug] User found, verifying password...");
-    // console.log(`[Login Debug] Stored password hash: ${user.password}`); // CAUTION: Only for local debugging
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      console.log("[Login Debug] Password verification failed (Hash mismatch)");
-
-      // Fallback check for plain text password (TEMPORARY FIX for legacy/manual data)
-      if (password === user.password) {
-        console.log("[Login Debug] Plain text password matched! (Legacy data)");
-        // Ideally, we should hash it and update the DB here, but let's just allow login for now
-        // or at least warn.
-        // Let's treat it as valid for now to unblock the user if this is the case.
-      } else {
-        return res.status(401).json({
-          success: false,
-          error: "Invalid email or password"
-        });
-      }
+    if (password !== user.password) {
+      console.log("[Login Debug] Password verification failed");
+      return res.status(401).json({
+        success: false,
+        error: "Invalid email or password"
+      });
     } else {
       console.log("[Login Debug] Password verified successfully");
     }

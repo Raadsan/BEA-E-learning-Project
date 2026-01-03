@@ -1,5 +1,4 @@
 import db from "../database/dbconfig.js";
-import bcrypt from "bcryptjs";
 import { generateStudentId } from "../utils/idGenerator.js";
 
 const dbp = db.promise();
@@ -26,8 +25,8 @@ export const createStudent = async ({
   // Generate unique student ID
   const student_id = await generateStudentId('students');
 
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10);
+  // No hashing, use plain text as requested
+  const hashedPassword = password;
 
   const [result] = await dbp.query(
     `INSERT INTO students (
@@ -158,9 +157,9 @@ export const updateStudentById = async (id, {
     values.push(chosen_subprogram);
   }
   if (password !== undefined && password.trim() !== "") {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // No hashing, use plain text as requested
     updates.push("password = ?");
-    values.push(hashedPassword);
+    values.push(password);
   }
   if (parent_name !== undefined) {
     updates.push("parent_name = ?");
@@ -293,11 +292,9 @@ export const getGenderDistribution = async (program_id, class_id) => {
       gender,
       COUNT(*) as count
     FROM students
+    LEFT JOIN programs p ON (students.chosen_program = p.id OR students.chosen_program = p.title)
     WHERE 1=1
   `;
-
-  // Join with programs to support filtering by ID even if Title is stored
-  query += ` LEFT JOIN programs p ON (students.chosen_program = p.id OR students.chosen_program = p.title)`;
 
   const params = [];
 
