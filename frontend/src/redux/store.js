@@ -21,6 +21,8 @@ import { newsApi } from "../redux/api/newsApi.js";
 import { notificationApi } from "../redux/api/notificationApi.js";
 import { sessionRequestApi } from "../redux/api/sessionRequestApi.js";
 import { freezingApi } from "../redux/api/freezingApi.js";
+import { timetableApi } from "../redux/api/timetableApi.js";
+import { eventApi } from "../redux/api/eventApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -46,6 +48,8 @@ export const store = configureStore({
     [notificationApi.reducerPath]: notificationApi.reducer,
     [sessionRequestApi.reducerPath]: sessionRequestApi.reducer,
     [freezingApi.reducerPath]: freezingApi.reducer,
+    [timetableApi.reducerPath]: timetableApi.reducer,
+    [eventApi.reducerPath]: eventApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -70,6 +74,8 @@ export const store = configureStore({
       announcementApi.middleware,
       notificationApi.middleware,
       sessionRequestApi.middleware,
-      freezingApi.middleware
+      freezingApi.middleware,
+      timetableApi.middleware,
+      eventApi.middleware
     ),
 });

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 const DEFAULT_MIN_COLUMN_WIDTH = "120px";
 
-const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true }) => {
+const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true, customActions }) => {
   const tableRef = useRef(null);
   const [hasHorizontalScroll, setHasHorizontalScroll] = useState(false);
 
@@ -53,16 +53,22 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
           <div className="header">
             <h2 className="text-xl font-semibold">{title}</h2>
           </div>
-          {showAddButton && onAddClick && (
-            <button
-              onClick={onAddClick}
-              className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} px-4 py-2 rounded-lg flex items-center gap-2 transition-colors`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add
-            </button>
+          {customActions ? (
+            <div className="flex gap-2">
+              {customActions}
+            </div>
+          ) : (
+            showAddButton && onAddClick && (
+              <button
+                onClick={onAddClick}
+                className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} px-4 py-2 rounded-lg flex items-center gap-2 transition-colors`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add
+              </button>
+            )
           )}
         </div>
 

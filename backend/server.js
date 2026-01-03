@@ -82,7 +82,8 @@ app.use("/api/users", userRoutes);
 
 // ⬇️ Register Assignment Routes
 app.use("/api/assignments", assignmentRoutes);
-// ⬇️ Register Payment Routes (EVC / Bank - simple stub integration)
+
+// ⬇️ Register Payment Routes
 app.use("/api/payments", paymentRoutes);
 
 // ⬇️ Register Attendance Routes
@@ -94,6 +95,7 @@ app.use("/api/announcements", announcementRoutes);
 // ⬇️ Register News/Events Routes
 import newsRoutes from "./routes/newsRoutes.js";
 app.use("/api/news", newsRoutes);
+
 // ⬇️ Register Material Routes
 app.use("/api/materials", materialRoutes);
 
@@ -111,6 +113,14 @@ app.use("/api/session-requests", sessionRequestRoutes);
 // ⬇️ Register Freezing Request Routes
 import freezingRoutes from "./routes/freezingRoutes.js";
 app.use("/api/freezing-requests", freezingRoutes);
+
+// ⬇️ Register Timetable Routes
+import timetableRoutes from "./routes/timetableRoutes.js";
+app.use("/api/timetables", timetableRoutes);
+
+// ⬇️ Register Event Routes (Monthly Calendar)
+import eventRoutes from "./routes/eventRoutes.js";
+app.use("/api/events", eventRoutes);
 
 
 // Server start
