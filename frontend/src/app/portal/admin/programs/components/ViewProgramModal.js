@@ -4,7 +4,11 @@ import Image from "next/image";
 import { useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
 
 export default function ViewProgramModal({ program, onClose, isDark }) {
-    const { data: subprograms, isLoading, isError } = useGetSubprogramsByProgramIdQuery(program.id);
+    const { data: subprograms, isLoading, isError } = useGetSubprogramsByProgramIdQuery(program?.id, {
+        skip: !program?.id
+    });
+
+    if (!program) return null;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">

@@ -91,7 +91,7 @@ export default function AdminSessionRequestsPage() {
     return (
         <>
             <AdminHeader />
-            <main className="flex-1 min-w-0 flex flex-col items-center overflow-y-auto overflow-x-hidden bg-gray-50 pt-20 transition-colors">
+            <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 pt-20 transition-colors">
                 <div className="w-full max-w-full px-4 sm:px-8 py-6 min-w-0 flex flex-col">
                     <DataTable title="Session Change Requests" columns={columns} data={requests} showAddButton={false} isLoading={isLoading} />
                 </div>

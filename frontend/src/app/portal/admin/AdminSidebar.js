@@ -47,9 +47,12 @@ export default function AdminSidebar() {
       setOpenSubSection(null);
     } else if (pathname?.startsWith("/portal/admin/programs") ||
       pathname?.startsWith("/portal/admin/subprograms") ||
-      pathname?.startsWith("/portal/admin/courses") ||
-      pathname?.startsWith("/portal/admin/classes")) {
+      pathname?.startsWith("/portal/admin/courses")) {
       setOpenSection('academicManagement');
+      setOpenSubSection(null);
+    } else if (pathname?.startsWith("/portal/admin/learning-resources/timetable") ||
+      pathname?.startsWith("/portal/admin/classes")) {
+      setOpenSection('timetableManagement');
       setOpenSubSection(null);
     } else if (pathname?.startsWith("/portal/admin/learning-resources")) {
       setOpenSection('learningResources');
@@ -307,14 +310,6 @@ export default function AdminSidebar() {
                     <span className={isActive("/portal/admin/subprograms") ? 'text-white' : 'text-gray-900'}>Courses</span>
                   </Link>
                 </li>
-                <li>
-                  <Link href="/portal/admin/classes" className={getSubMenuItemClasses("/portal/admin/classes")} style={getSubActiveStyle("/portal/admin/classes")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H2v-2a4 4 0 014-4h12.356M20 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-900'}>Classes</span>
-                  </Link>
-                </li>
 
               </ul>
             )}
@@ -354,12 +349,42 @@ export default function AdminSidebar() {
                     <span className={isActive("/portal/admin/learning-resources/sessions") ? 'text-white' : 'text-gray-900'}>Online Session Links</span>
                   </Link>
                 </li>
+              </ul>
+            )}
+          </li>
+
+          {/* Timetable Management */}
+          <li>
+            <button
+              onClick={() => toggleSection('timetableManagement')}
+              className={getDropdownButtonClasses('timetableManagement')} style={getDropdownButtonStyle('timetableManagement')}
+            >
+              <div className="flex items-center gap-3">
+                <svg className={`w-5 h-5 ${openSection === 'timetableManagement' ? 'text-white' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className={`font-medium text-sm ${openSection === 'timetableManagement' ? 'text-white' : 'text-gray-900'}`}>Timetable Management</span>
+              </div>
+              <svg className={`w-4 h-4 ${openSection === 'timetableManagement' ? 'text-white' : 'text-gray-700'} transition-transform duration-200 ${openSection === 'timetableManagement' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {openSection === 'timetableManagement' && (
+              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
                 <li>
                   <Link href="/portal/admin/learning-resources/timetable" className={getSubMenuItemClasses("/portal/admin/learning-resources/timetable")} style={getSubActiveStyle("/portal/admin/learning-resources/timetable")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/learning-resources/timetable") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span className={isActive("/portal/admin/learning-resources/timetable") ? 'text-white' : 'text-gray-900'}>Timetable</span>
+                    <span className={isActive("/portal/admin/learning-resources/timetable") ? 'text-white' : 'text-gray-900'}>Academic Timetable</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/classes" className={getSubMenuItemClasses("/portal/admin/classes")} style={getSubActiveStyle("/portal/admin/classes")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H2v-2a4 4 0 014-4h12.356M20 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-900'}>Session & Classes</span>
                   </Link>
                 </li>
               </ul>

@@ -96,7 +96,7 @@ export default function AdminFreezingRequestsPage() {
     return (
         <>
             <AdminHeader />
-            <main className="flex-1 min-w-0 flex flex-col items-center overflow-y-auto overflow-x-hidden bg-gray-50 pt-20 transition-colors dark:bg-gray-900">
+            <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 pt-20 transition-colors dark:bg-gray-900">
                 <div className="w-full max-w-full px-4 sm:px-8 py-6 min-w-0 flex flex-col">
                     <div className="mb-6">
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Course Freezing Requests</h1>

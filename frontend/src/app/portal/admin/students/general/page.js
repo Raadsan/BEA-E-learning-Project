@@ -343,18 +343,12 @@ export default function GeneralStudentsPage() {
       label: "Subprogram",
       width: "180px",
       render: (row) => {
-        // Try to get subprogram from student record first
         let subId = row.chosen_subprogram;
-
-        // If not found, try to find it via assigned class
         if (!subId && row.class_id) {
           const cls = classes.find(c => c.id == row.class_id);
           if (cls) subId = cls.subprogram_id;
         }
-
         const subName = getSubprogramName(subId);
-
-        // If N/A, show plain text without badge
         if (subName === "N/A") {
           return (
             <div className="flex justify-center">
@@ -362,7 +356,6 @@ export default function GeneralStudentsPage() {
             </div>
           );
         }
-
         return (
           <div className="flex justify-start">
             <span
@@ -375,7 +368,29 @@ export default function GeneralStudentsPage() {
         );
       },
     },
-
+    {
+      key: "class_id",
+      label: "Class",
+      width: "150px",
+      render: (row) => {
+        const className = getClassName(row.class_id);
+        if (!className) {
+          return (
+            <button
+              onClick={() => handleOpenAssignModal(row)}
+              className="px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 transition-colors"
+            >
+              Assign Class
+            </button>
+          );
+        }
+        return (
+          <span className="block truncate max-w-[130px] font-medium text-blue-600 dark:text-blue-400">
+            {className}
+          </span>
+        );
+      },
+    },
     {
       key: "created_at",
       label: "Registration Date",
@@ -385,7 +400,7 @@ export default function GeneralStudentsPage() {
         return date.toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'short',
-          day: 'numeric'
+          day: 'numeric',
         });
       },
     },
@@ -414,6 +429,15 @@ export default function GeneralStudentsPage() {
       label: "Actions",
       render: (row) => (
         <div className="flex gap-2 justify-center">
+          <button
+            onClick={() => handleOpenAssignModal(row)}
+            className="text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300 transition-colors p-1 rounded hover:bg-orange-50 dark:hover:bg-orange-900/20"
+            title="Assign Class"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
           <button
             onClick={() => handleOpenViewModal(row)}
             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
@@ -474,7 +498,7 @@ export default function GeneralStudentsPage() {
   return (
     <>
       <AdminHeader />
-      <main className="flex-1 min-w-0 flex flex-col items-center overflow-y-auto overflow-x-hidden bg-gray-50 pt-20 transition-colors">
+      <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 pt-20 transition-colors">
         <div className="w-full max-w-full px-4 sm:px-8 py-6 min-w-0 flex flex-col">
           <DataTable
             title="General Program Students"

@@ -43,11 +43,16 @@ export default function TimetablePage() {
 
     // Class Form state
     const [classFormData, setClassFormData] = useState({
-        day: "Monday",
-        start_time: "",
-        end_time: "",
+        days: ["Monday"],
+        start_time: "00:00",
+        end_time: "00:00",
         subject: "",
-        teacher_id: ""
+        teacher_id: "",
+        sessionType: "class",
+        eventType: "holiday",
+        title: "",
+        description: "",
+        eventDate: new Date().toISOString().split('T')[0]
     });
 
     // Queries
@@ -96,6 +101,24 @@ export default function TimetablePage() {
     };
 
     // --- Calendar Navigation ---
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+
+    const handleMonthChange = (e) => {
+        const newMonth = parseInt(e.target.value);
+        setCurrentDate(prev => new Date(prev.getFullYear(), newMonth, 1));
+    };
+
+    const handleYearChange = (e) => {
+        const newYear = parseInt(e.target.value);
+        setCurrentDate(prev => new Date(newYear, prev.getMonth(), 1));
+    };
+
     const handlePrevMonth = () => {
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
     };
@@ -104,93 +127,50 @@ export default function TimetablePage() {
     };
 
     // --- Data Generation Logic ---
-    const monthlySessions = useMemo(() => {
+    const timetableEntries = useMemo(() => {
         if (!selectedSubprogram) return [];
 
         const sessions = [];
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const numDays = new Date(year, month + 1, 0).getDate();
 
-        for (let day = 1; day <= numDays; day++) {
-            const date = new Date(year, month, day);
-            const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-            const dateString = date.toISOString().split('T')[0];
+        // 1. Add Specific Events
+        events.forEach(event => {
+            const dateObj = new Date(event.event_date);
+            const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
 
-            // 1. Check for Events (Holidays/Exams)
-            const dayEvents = events.filter(e => e.event_date.startsWith(dateString));
-            const holiday = dayEvents.find(e => e.type === 'holiday');
+            sessions.push({
+                id: `event-${event.id}`,
+                uniqueKey: `event-${event.id}`,
+                date: event.event_date,
+                day: dayName,
+                type: event.type === 'exam' ? "Exam" : (event.type === 'holiday' ? 'Holiday' : 'Event'),
+                subject: event.title || "Event",
+                teacher_name: "-",
+                isEvent: true,
+                originalData: event
+            });
+        });
 
-            if (holiday) {
-                // If it's a holiday, only show the holiday (no classes)
-                sessions.push({
-                    id: `event - ${holiday.id} `,
-                    uniqueKey: `event - ${holiday.id} `,
-                    date: dateString,
-                    day: dayName,
-                    time: "All Day",
-                    type: "Holiday",
-                    subject: holiday.title,
-                    teacher_name: "-",
-                    originalData: holiday,
-                    isEvent: true
-                });
-                // Check if there are exams on a holiday? Usually not, but let's show them if they exist
-                dayEvents.filter(e => e.type !== 'holiday').forEach(event => {
-                    sessions.push({
-                        id: `event - ${event.id} `,
-                        uniqueKey: `event - ${event.id} `,
-                        date: dateString,
-                        day: dayName,
-                        time: "Scheduled", // or event specific time if we had it
-                        type: event.type === 'exam' ? "Exam" : "Event",
-                        subject: event.title,
-                        teacher_name: "-",
-                        originalData: event,
-                        isEvent: true
-                    });
-                });
+        // 2. Add Weekly Recurring Classes
+        weeklyTimetable.forEach(cls => {
+            sessions.push({
+                id: `class-${cls.id}`,
+                uniqueKey: `class-${cls.id}`,
+                date: "Weekly", // Explicitly mark as weekly pattern
+                day: cls.day,
+                type: cls.type || "Class",
+                subject: cls.subject || "Class",
+                teacher_name: cls.teacher_name || "Unassigned",
+                isEvent: false,
+                originalData: cls
+            });
+        });
 
-            } else {
-                // 2. Not a holiday -> Show Exams + Regular Classes
-                dayEvents.forEach(event => {
-                    sessions.push({
-                        id: `event - ${event.id} `,
-                        uniqueKey: `event - ${event.id} `,
-                        date: dateString,
-                        day: dayName,
-                        time: "Scheduled",
-                        type: event.type === 'exam' ? "Exam" : "Event",
-                        subject: event.title,
-                        teacher_name: "-",
-                        originalData: event,
-                        isEvent: true
-                    });
-                });
-
-                // Regular Classes
-                const daysClasses = weeklyTimetable.filter(c => c.day === dayName);
-                // Sort classes by time
-                daysClasses.sort((a, b) => a.start_time.localeCompare(b.start_time));
-
-                daysClasses.forEach(cls => {
-                    sessions.push({
-                        id: `class-${cls.id} -${day} `, // unique id for table
-                        uniqueKey: `class-${cls.id} `,
-                        date: dateString,
-                        day: dayName,
-                        time: `${cls.start_time?.slice(0, 5)} - ${cls.end_time?.slice(0, 5)} `,
-                        type: cls.type || "Class",
-                        subject: cls.subject,
-                        teacher_name: cls.teacher_name || "Unassigned",
-                        originalData: cls,
-                        isEvent: false
-                    });
-                });
-            }
-        }
-        return sessions;
-    }, [currentDate, events, weeklyTimetable, selectedSubprogram]);
+        return sessions.sort((a, b) => {
+            if (a.isEvent && b.isEvent) return a.date.localeCompare(b.date);
+            if (!a.isEvent && !b.isEvent) return a.day.localeCompare(b.day);
+            return a.isEvent ? -1 : 1; // Events first
+        });
+    }, [events, weeklyTimetable, selectedSubprogram]);
 
 
     // --- Class Modal Handlers ---
@@ -198,46 +178,76 @@ export default function TimetablePage() {
         if (entry) {
             setEditingClass(entry);
             setClassFormData({
-                day: entry.day,
-                start_time: entry.start_time,
-                end_time: entry.end_time,
-                subject: entry.subject,
+                days: [entry.day],
+                start_time: entry.start_time || "00:00",
+                end_time: entry.end_time || "00:00",
+                subject: entry.subject || "",
                 teacher_id: entry.teacher_id || "",
-                classType: entry.type || "Class"
+                classType: entry.type || "Class",
+                sessionType: "class",
+                eventType: "holiday",
+                title: entry.subject || "",
+                description: entry.description || "",
+                eventDate: entry.date || new Date().toISOString().split('T')[0]
             });
         } else {
             setEditingClass(null);
             setClassFormData({
-                day: "Monday",
-                start_time: "",
-                end_time: "",
+                days: ["Monday"],
+                start_time: "00:00",
+                end_time: "00:00",
                 subject: "",
                 teacher_id: "",
-                classType: "Class"
+                classType: "Class",
+                sessionType: "class",
+                eventType: "holiday",
+                title: "",
+                description: "",
+                eventDate: new Date().toISOString().split('T')[0]
             });
         }
         setIsClassModalOpen(true);
     };
 
-    const handleClassSubmit = async (e) => {
-        e.preventDefault();
+    const handleClassSubmit = async (e, keepOpen = false) => {
+        if (e && e.preventDefault) e.preventDefault();
         try {
-            const payload = {
-                ...classFormData,
-                program_id: parseInt(selectedProgram),
-                subprogram_id: parseInt(selectedSubprogram),
-                teacher_id: classFormData.teacher_id ? parseInt(classFormData.teacher_id) : null,
-                type: classFormData.classType || "Class"
-            };
-
             if (editingClass) {
+                const payload = {
+                    day: classFormData.days[0],
+                    start_time: "00:00",
+                    end_time: "00:00",
+                    subject: classFormData.subject,
+                    program_id: parseInt(selectedProgram),
+                    subprogram_id: parseInt(selectedSubprogram),
+                    teacher_id: classFormData.teacher_id ? parseInt(classFormData.teacher_id) : null,
+                    type: classFormData.classType || "Class"
+                };
                 await updateClass({ id: editingClass.id, ...payload }).unwrap();
                 showToast("Class updated successfully", "success");
             } else {
-                await createClass(payload).unwrap();
-                showToast("Class created successfully", "success");
+                const promises = classFormData.days.map(day => {
+                    const payload = {
+                        day,
+                        start_time: "00:00",
+                        end_time: "00:00",
+                        subject: classFormData.subject,
+                        program_id: parseInt(selectedProgram),
+                        subprogram_id: parseInt(selectedSubprogram),
+                        teacher_id: classFormData.teacher_id ? parseInt(classFormData.teacher_id) : null,
+                        type: classFormData.classType || "Class"
+                    };
+                    return createClass(payload).unwrap();
+                });
+                await Promise.all(promises);
+                showToast(`Created ${classFormData.days.length} session(s) successfully`, "success");
             }
-            setIsClassModalOpen(false);
+
+            if (keepOpen) {
+                setClassFormData(prev => ({ ...prev, subject: "" }));
+            } else {
+                setIsClassModalOpen(false);
+            }
         } catch (error) {
             console.error(error);
             showToast(error?.data?.error || "Failed to save class", "error");
@@ -260,7 +270,6 @@ export default function TimetablePage() {
         }
     };
 
-
     // --- Event Modal Handlers ---
     const handleOpenAddEvent = () => {
         setSelectedDateForEvent(new Date()); // Default to today
@@ -274,11 +283,12 @@ export default function TimetablePage() {
         setIsEventModalOpen(true);
     };
 
-    const handleEventSave = async (eventData) => {
+    const handleEventSave = async (eventData, keepOpen = false) => {
         try {
             const payload = {
                 subprogram_id: parseInt(selectedSubprogram),
-                event_date: selectedDateForEvent.toISOString().split('T')[0],
+                program_id: parseInt(selectedProgram),
+                event_date: eventData.event_date || classFormData.eventDate,
                 ...eventData
             };
 
@@ -289,7 +299,13 @@ export default function TimetablePage() {
                 await createEvent(payload).unwrap();
                 showToast("Event created successfully", "success");
             }
-            setIsEventModalOpen(false);
+
+            if (keepOpen) {
+                setClassFormData(prev => ({ ...prev, title: "", description: "" }));
+            } else {
+                setIsEventModalOpen(false);
+                setIsClassModalOpen(false);
+            }
         } catch (error) {
             console.error(error);
             showToast("Failed to save event", "error");
@@ -314,16 +330,12 @@ export default function TimetablePage() {
         {
             key: "date",
             label: "Date",
-            render: (row) => <span className="text-gray-600 dark:text-gray-400 font-medium">{row.date}</span>
+            render: (row) => <span className={`font-bold ${row.isEvent ? 'text-indigo-600' : 'text-gray-500 text-xs uppercase'}`}>{row.date}</span>
         },
         {
             key: "day",
             label: "Day",
             render: (row) => <span className="font-semibold text-gray-900 dark:text-white">{row.day}</span>
-        },
-        {
-            key: "time",
-            label: "Time"
         },
         {
             key: "type",
@@ -332,22 +344,15 @@ export default function TimetablePage() {
                 let colorClass = "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
                 if (row.type === 'Holiday') colorClass = "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
                 if (row.type === 'Exam' || row.type === 'exam') colorClass = "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
-                if (row.type === 'midterm') colorClass = "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
-                if (row.type === 'final') colorClass = "bg-red-200 text-red-900 dark:bg-red-900/50 dark:text-red-200";
-                if (row.type === 'quiz') colorClass = "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
-                if (row.type === 'meeting') colorClass = "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300";
-                if (row.type === 'activity') colorClass = "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
 
                 // Weekly Class Types
                 if (row.type === 'Lecture') colorClass = "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300";
                 if (row.type === 'Lab') colorClass = "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300";
                 if (row.type === 'Tutorial') colorClass = "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-300";
-                if (row.type === 'Workshop') colorClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300";
-                if (row.type === 'Seminar') colorClass = "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/30 dark:text-fuchsia-300";
 
                 return (
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${colorClass}`}>
-                        {row.type === 'exam' ? 'Exam' : row.type.charAt(0).toUpperCase() + row.type.slice(1)}
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${colorClass}`}>
+                        {row.type}
                     </span>
                 );
             }
@@ -355,11 +360,12 @@ export default function TimetablePage() {
         {
             key: "subject",
             label: "Subject / Title",
-            render: (row) => <span className="font-medium">{row.subject}</span>
+            render: (row) => <span className="font-medium text-gray-900 dark:text-white">{row.subject}</span>
         },
         {
             key: "teacher_name",
-            label: "Teacher"
+            label: "Teacher",
+            render: (row) => <span className="text-gray-500 text-sm">{row.teacher_name}</span>
         },
         {
             key: "actions",
@@ -371,7 +377,7 @@ export default function TimetablePage() {
                             <button onClick={() => handleEditEvent(row.originalData)} className="text-blue-600 hover:text-blue-800 p-1" title="Edit Event">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
-                            {/* Delete logic is inside modal for events currently, but better to have direct delete here? 
+                            {/* Delete logic is inside modal for events currently, but better to have direct delete here?
                                 The EventModal has delete. Let's just open modal.
                             */}
                         </>
@@ -394,33 +400,31 @@ export default function TimetablePage() {
     return (
         <>
             <AdminHeader />
-            <main className={`flex - 1 overflow - y - auto mt - 20 transition - colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'} `}>
+            <main className={`flex-1 overflow-y-auto mt-20 transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
                 <div className="w-full px-8 py-6">
                     {/* Header */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                         <div>
-                            <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            <h1 className={`text-3xl font-extrabold mb-2 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                 Academic Timetable
                             </h1>
-                            <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                Manage classes, exams, meetings, and academic events
+                            <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Centralized schedule for classes, exams, and academic events
                             </p>
                         </div>
-                        {/* Buttons moved to DataTable header */}
-                        <div className="hidden"></div>
                     </div>
 
                     {/* Filters */}
-                    <div className={`mb - 8 p - 6 rounded - xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow - sm`}>
+                    <div className={`mb-8 p-6 rounded-2xl border transition-all ${isDark ? 'bg-gray-800 border-gray-700 shadow-lg shadow-black/20' : 'bg-white border-gray-200 shadow-sm'}`}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className={`block text - sm font - semibold mb - 2 ${isDark ? 'text-gray-300' : 'text-gray-700'} `}>
+                                <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                                     Select Program <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     value={selectedProgram}
                                     onChange={handleProgramChange}
-                                    className={`w - full px - 4 py - 3 border rounded - xl transition - all focus: outline - none focus: ring - 2 focus: ring - blue - 500 / 20 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} `}
+                                    className={`w-full px-4 py-3 border rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                                 >
                                     <option value="">-- Select a Program --</option>
                                     {programs.map((program) => (
@@ -429,13 +433,13 @@ export default function TimetablePage() {
                                 </select>
                             </div>
                             <div>
-                                <label className={`block text - sm font - semibold mb - 2 ${isDark ? 'text-gray-300' : 'text-gray-700'} `}>
+                                <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                                     Select Course <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     value={selectedSubprogram}
                                     onChange={(e) => setSelectedSubprogram(e.target.value)}
-                                    className={`w - full px - 4 py - 3 border rounded - xl transition - all focus: outline - none focus: ring - 2 focus: ring - blue - 500 / 20 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} `}
+                                    className={`w-full px-4 py-3 border rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} ${!selectedProgram ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     disabled={!selectedProgram}
                                 >
                                     <option value="">-- Select a Course --</option>
@@ -449,30 +453,42 @@ export default function TimetablePage() {
 
                     {/* Monthly Timetable Data Table */}
                     {selectedSubprogram ? (
-                        <div className="space-y-6 fade-in">
+                        <div className="space-y-6 animate-in fade-in duration-500">
                             {/* Month Navigation */}
-                            <div className="flex items-center justify-between">
-                                <h2 className={`text - xl font - bold ${isDark ? 'text-white' : 'text-gray-900'} `}>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-2 gap-4">
+                                <h2 className={`text-xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                     Schedule for {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                                 </h2>
-                                <div className="flex gap-2">
-                                    <button onClick={handlePrevMonth} className={`p - 2 rounded - lg border ${isDark ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-50'} `}>
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                                    </button>
-                                    <button onClick={handleNextMonth} className={`p - 2 rounded - lg border ${isDark ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-50'} `}>
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                                    </button>
+                                <div className="flex items-center gap-1">
+                                    <select
+                                        value={currentDate.getMonth()}
+                                        onChange={handleMonthChange}
+                                        className={`px-3 py-2 border rounded-xl font-bold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-700'}`}
+                                    >
+                                        {months.map((month, index) => (
+                                            <option key={month} value={index}>{month}</option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        value={currentDate.getFullYear()}
+                                        onChange={handleYearChange}
+                                        className={`px-3 py-2 border rounded-xl font-bold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-700'}`}
+                                    >
+                                        {years.map(year => (
+                                            <option key={year} value={year}>{year}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
 
                             <DataTable
-                                title={`Sessions - ${currentDate.toLocaleDateString('en-US', { month: 'long' })} `}
+                                title="Registered Sessions"
                                 columns={columns}
-                                data={monthlySessions}
+                                data={timetableEntries}
                                 customActions={
                                     <button
                                         onClick={() => handleOpenClassModal()}
-                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm"
+                                        className={`px-5 py-2.5 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} font-bold rounded-xl shadow-lg transition-all flex items-center gap-2 text-sm active:scale-95`}
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                                         Add Session
@@ -480,194 +496,239 @@ export default function TimetablePage() {
                                 }
                             />
 
-                            <div className="text-sm text-gray-500 mt-2 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/20">
-                                💡 <strong>Note:</strong> This table shows a generated view of the month.
-                                <ul className="list-disc ml-5 mt-1">
-                                    <li><strong>Classes</strong> are repeated weekly based on the schedule. Editing one updates the weekly schedule.</li>
-                                    <li><strong>Events (Holidays/Exams)</strong> are specific to a date. Holidays hide regular classes for that day.</li>
-                                </ul>
+                            <div className={`p-4 rounded-2xl border transition-all ${isDark ? 'bg-indigo-900/10 border-indigo-900/20 text-indigo-300' : 'bg-indigo-50 border-indigo-100 text-indigo-800'}`}>
+                                <div className="flex gap-3">
+                                    <div className={`p-2 rounded-full h-fit ${isDark ? 'bg-indigo-900/40 text-indigo-400' : 'bg-indigo-100 text-indigo-600'}`}>
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-sm mb-1 uppercase tracking-wider">Schedule Information</h4>
+                                        <ul className="text-xs space-y-1.5 font-medium opacity-90">
+                                            <li>• <span className="font-bold">Weekly Classes</span> repeat automatically every week. Editing one updates the global pattern.</li>
+                                            <li>• <span className="font-bold">Events & Holidays</span> are date-specific. Holidays will automatically suppress recurring classes.</li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     ) : (
-                        <div className={`p - 12 text - center rounded - xl border - 2 border - dashed ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-300'} `}>
-                            <h3 className={`text - xl font - bold mb - 2 ${isDark ? 'text-gray-300' : 'text-gray-700'} `}>No Course Selected</h3>
-                            <p className={`${isDark ? 'text-gray-500' : 'text-gray-600'} `}>Please select a program and course to view the timetable.</p>
+                        <div className={`p-20 text-center rounded-3xl border-2 border-dashed transition-all ${isDark ? 'bg-gray-800/30 border-gray-700' : 'bg-gray-50 border-gray-300'}`}>
+                            <div className="max-w-xs mx-auto">
+                                <div className={`w-16 h-16 rounded-full mx-auto mb-6 flex items-center justify-center ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                                    <svg className={`w-8 h-8 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                </div>
+                                <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>No Course Selected</h3>
+                                <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Choose a program and course above to manage the academic timetable.</p>
+                            </div>
                         </div>
                     )}
                 </div>
 
-                {/* Unified Add Modal (Replaces separate Class/Event modals) */}
                 <Modal
                     isOpen={isClassModalOpen}
                     onClose={() => setIsClassModalOpen(false)}
                     title={editingClass ? "Edit Weekly Class" : "Add Session"}
                 >
-                    <div className="space-y-4">
-                        {/* Type Selector ( Only show if creating new ) */}
-                        {!editingClass && (
+                    <div className="space-y-6">
+                        {/* 1. DATE / DAY SELECTION (FIRST) */}
+                        {!editingClass ? (
                             <div>
-                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    Session Type
+                                <label className={`block text-sm font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    1. When? (Pick Date or Days)
                                 </label>
-                                <select
-                                    value={classFormData.sessionType || 'class'}
-                                    onChange={(e) => setClassFormData({ ...classFormData, sessionType: e.target.value })}
-                                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-                                >
-                                    <option value="class">Weekly Recurring Class</option>
-                                    <option value="event">Specific Event (Holiday/Exam/Meeting)</option>
-                                </select>
+                                <div className="space-y-4">
+                                    <div className="flex flex-col sm:flex-row gap-4">
+                                        <div className="flex-1">
+                                            <label className="block text-xs font-semibold mb-1 opacity-70">Single Date (for Events)</label>
+                                            <input
+                                                type="date"
+                                                value={classFormData.eventDate || new Date().toISOString().split('T')[0]}
+                                                onChange={(e) => {
+                                                    const date = new Date(e.target.value);
+                                                    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                                                    setClassFormData({
+                                                        ...classFormData,
+                                                        eventDate: e.target.value,
+                                                        days: [dayName],
+                                                        sessionType: 'event'
+                                                    });
+                                                }}
+                                                className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs font-semibold mb-1 opacity-70">Recurring Days (for Batch Classes)</label>
+                                            <div className="flex flex-wrap gap-1.5 mt-1">
+                                                {days.map(day => {
+                                                    const isSelected = classFormData.days.includes(day);
+                                                    return (
+                                                        <button
+                                                            key={day}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newDays = isSelected
+                                                                    ? classFormData.days.filter(d => d !== day)
+                                                                    : [...classFormData.days, day];
+                                                                if (newDays.length === 0) return;
+                                                                setClassFormData({
+                                                                    ...classFormData,
+                                                                    days: newDays,
+                                                                    sessionType: 'class'
+                                                                });
+                                                            }}
+                                                            className={`w-10 h-10 flex items-center justify-center rounded-xl text-[10px] font-bold transition-all border ${isSelected
+                                                                ? 'bg-[#010080] border-[#010080] text-white shadow-md'
+                                                                : (isDark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-white border-gray-300 text-gray-600')
+                                                                }`}
+                                                            title={day}
+                                                        >
+                                                            {day.slice(0, 2)}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div>
+                                <p className="text-sm font-medium mb-1">Editing Pattern for: <span className="font-bold text-indigo-600">{classFormData.days[0]}</span></p>
                             </div>
                         )}
 
-                        {/* RENDER FORM BASED ON TYPE */}
-                        {(classFormData.sessionType === 'event') ? (
-                            /* --- EVENT FORM (Date-Specific) --- */
-                            <form onSubmit={(e) => {
-                                e.preventDefault();
-                                handleEventSave({
-                                    title: classFormData.title,
-                                    type: classFormData.eventType,
-                                    description: classFormData.description,
-                                    event_date: classFormData.eventDate
-                                });
-                            }} className="space-y-4 pt-2">
+                        {/* 2. SESSION TYPE */}
+                        <div>
+                            <label className={`block text-sm font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                2. Session Type
+                            </label>
+                            <select
+                                value={classFormData.sessionType || 'class'}
+                                onChange={(e) => setClassFormData({ ...classFormData, sessionType: e.target.value })}
+                                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                            >
+                                <option value="class">🎓 Weekly Recurring Class</option>
+                                <option value="event">📅 Specific Event (Holiday/Exam/etc.)</option>
+                            </select>
+                        </div>
+
+                        {/* 3. SUBJECT */}
+                        <div>
+                            <label className={`block text-sm font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                3. Subject / Title
+                            </label>
+                            <input
+                                type="text"
+                                value={(classFormData.sessionType === 'event' ? classFormData.title : classFormData.subject) || ""}
+                                onChange={(e) => {
+                                    if (classFormData.sessionType === 'event') {
+                                        setClassFormData({ ...classFormData, title: e.target.value });
+                                    } else {
+                                        setClassFormData({ ...classFormData, subject: e.target.value });
+                                    }
+                                }}
+                                required
+                                placeholder="Enter subject or event title..."
+                                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                            />
+                        </div>
+
+                        {/* 4. CLASS TYPE (OR EVENT TYPE) & TEACHER */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className={`block text-sm font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    4. {classFormData.sessionType === 'class' ? 'Class Type' : 'Category'}
+                                </label>
+                                <select
+                                    value={(classFormData.sessionType === 'class' ? (classFormData.classType || 'Class') : (classFormData.eventType || 'holiday'))}
+                                    onChange={(e) => {
+                                        if (classFormData.sessionType === 'class') {
+                                            setClassFormData({ ...classFormData, classType: e.target.value });
+                                        } else {
+                                            setClassFormData({ ...classFormData, eventType: e.target.value });
+                                        }
+                                    }}
+                                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                                >
+                                    {classFormData.sessionType === 'class' ? (
+                                        <>
+                                            <option value="Class">Class (General)</option>
+                                            <option value="Lecture">Lecture</option>
+                                            <option value="Lab">Lab</option>
+                                            <option value="Tutorial">Tutorial</option>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <option value="holiday">Holiday</option>
+                                            <option value="exam">Exam</option>
+                                            <option value="activity">Activity</option>
+                                        </>
+                                    )}
+                                </select>
+                            </div>
+                            {classFormData.sessionType === 'class' && (
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Date *</label>
-                                    <input
-                                        type="date"
-                                        value={classFormData.eventDate || new Date().toISOString().split('T')[0]}
-                                        onChange={(e) => setClassFormData({ ...classFormData, eventDate: e.target.value })}
-                                        required
-                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Event Type *</label>
-                                    <select
-                                        value={classFormData.eventType || 'holiday'}
-                                        onChange={(e) => setClassFormData({ ...classFormData, eventType: e.target.value })}
-                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                    >
-                                        <option value="holiday">Holiday</option>
-                                        <option value="exam">Exam (General)</option>
-                                        <option value="midterm">Mid-term Exam</option>
-                                        <option value="final">Final Exam</option>
-                                        <option value="quiz">Quiz</option>
-                                        <option value="meeting">Meeting</option>
-                                        <option value="activity">School Activity</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">
-                                        {classFormData.eventType === 'holiday' ? 'Holiday Name' : 'Title'} *
+                                    <label className={`block text-sm font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        5. Teacher
                                     </label>
-                                    <input
-                                        type="text"
-                                        value={classFormData.title || ""}
-                                        onChange={(e) => setClassFormData({ ...classFormData, title: e.target.value })}
-                                        required
-                                        placeholder={classFormData.eventType === 'holiday' ? "e.g. Eid al-Fitr" : "e.g. Mid-term Exam"}
-                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Description</label>
-                                    <textarea
-                                        value={classFormData.description || ""}
-                                        onChange={(e) => setClassFormData({ ...classFormData, description: e.target.value })}
-                                        rows={3}
-                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                    />
-                                </div>
-                                <div className="flex justify-end gap-3 mt-6">
-                                    <button type="button" onClick={() => setIsClassModalOpen(false)} className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700">Cancel</button>
-                                    <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Event</button>
-                                </div>
-                            </form>
-                        ) : (
-                            /* --- WEEKLY CLASS FORM (Default) --- */
-                            <form onSubmit={handleClassSubmit} className="space-y-6 pt-2">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Day of Week *</label>
                                     <select
-                                        name="day"
-                                        value={classFormData.day}
-                                        onChange={(e) => setClassFormData({ ...classFormData, day: e.target.value })}
-                                        required
-                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                    >
-                                        {days.map(day => <option key={day} value={day}>{day}</option>)}
-                                    </select>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Start Time *</label>
-                                        <input
-                                            type="time"
-                                            value={classFormData.start_time}
-                                            onChange={(e) => setClassFormData({ ...classFormData, start_time: e.target.value })}
-                                            required
-                                            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">End Time *</label>
-                                        <input
-                                            type="time"
-                                            value={classFormData.end_time}
-                                            onChange={(e) => setClassFormData({ ...classFormData, end_time: e.target.value })}
-                                            required
-                                            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Subject *</label>
-                                    <input
-                                        type="text"
-                                        value={classFormData.subject}
-                                        onChange={(e) => setClassFormData({ ...classFormData, subject: e.target.value })}
-                                        required
-                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Teacher</label>
-                                    <select
-                                        value={classFormData.teacher_id}
+                                        value={classFormData.teacher_id || ""}
                                         onChange={(e) => setClassFormData({ ...classFormData, teacher_id: e.target.value })}
-                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                                     >
-                                        <option value="">-- Select Teacher --</option>
-                                        {teachers.map(t => <option key={t.id} value={t.id}>{t.full_name}</option>)}
+                                        <option value="">Select Teacher...</option>
+                                        {teachers.map(t => (
+                                            <option key={t.id} value={t.id}>{t.full_name}</option>
+                                        ))}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Class Type *</label>
-                                    <select
-                                        value={classFormData.classType || 'Class'}
-                                        onChange={(e) => setClassFormData({ ...classFormData, classType: e.target.value })}
-                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                    >
-                                        <option value="Class">Class (General)</option>
-                                        <option value="Lecture">Lecture</option>
-                                        <option value="Lab">Lab</option>
-                                        <option value="Tutorial">Tutorial</option>
-                                        <option value="Workshop">Workshop</option>
-                                        <option value="Seminar">Seminar</option>
-                                    </select>
-                                </div>
-                                <div className="flex justify-end gap-3 mt-6">
-                                    <button type="button" onClick={() => setIsClassModalOpen(false)} className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700">Cancel</button>
-                                    <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{editingClass ? 'Update' : 'Add'}</button>
-                                </div>
-                            </form>
-                        )}
+                            )}
+                        </div>
+
+                        {/* BUTTONS */}
+                        <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-gray-800">
+                            <button type="button" onClick={() => setIsClassModalOpen(false)} className={`px-4 py-2.5 rounded-xl transition-colors font-semibold ${isDark ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>Cancel</button>
+                            {!editingClass && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (classFormData.sessionType === 'event') {
+                                            handleEventSave({
+                                                title: classFormData.title,
+                                                type: classFormData.eventType,
+                                                description: classFormData.description,
+                                                event_date: classFormData.eventDate
+                                            }, true);
+                                        } else {
+                                            handleClassSubmit(null, true);
+                                        }
+                                    }}
+                                    className={`px-4 py-2.5 ${isDark ? 'bg-indigo-900/40 hover:bg-indigo-900/60 text-indigo-300' : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700'} border border-indigo-200 font-bold rounded-xl shadow-sm transition-all active:scale-95`}
+                                >
+                                    Add & Another
+                                </button>
+                            )}
+                            <button
+                                onClick={() => {
+                                    if (classFormData.sessionType === 'event') {
+                                        handleEventSave({
+                                            title: classFormData.title,
+                                            type: classFormData.eventType,
+                                            description: classFormData.description,
+                                            event_date: classFormData.eventDate
+                                        });
+                                    } else {
+                                        handleClassSubmit(null, false);
+                                    }
+                                }}
+                                className={`px-6 py-2.5 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} font-bold rounded-xl shadow-lg transition-all active:scale-95`}
+                            >
+                                {editingClass ? 'Update' : 'Add Session'}
+                            </button>
+                        </div>
                     </div>
                 </Modal>
 
-                {/* Event Modal (Only used for Editing existing events now) */}
                 <EventModal
                     isOpen={isEventModalOpen}
                     onClose={() => setIsEventModalOpen(false)}
@@ -677,7 +738,6 @@ export default function TimetablePage() {
                     onDelete={handleEventDelete}
                 />
 
-                {/* Delete Class Confirmation Modal */}
                 <Modal
                     isOpen={isDeleteClassModalOpen}
                     onClose={() => setIsDeleteClassModalOpen(false)}
@@ -691,7 +751,6 @@ export default function TimetablePage() {
                         </div>
                     </div>
                 </Modal>
-
             </main>
         </>
     );

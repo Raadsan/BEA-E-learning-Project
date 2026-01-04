@@ -176,7 +176,9 @@ export default function ProgramsPage() {
       <AdminHeader />
       <main className="flex-1 bg-gray-50 pt-20"><div className="w-full px-8 py-6"><DataTable title="Program Management" columns={columns} data={programs} onAddClick={handleAddProgram} showAddButton={true} /></div></main>
       <ProgramForm isOpen={isModalOpen} onClose={handleCloseModal} editingProgram={editingProgram} formData={formData} handleInputChange={handleInputChange} handleFileChange={handleFileChange} handleSubmit={handleSubmit} isDark={isDark} isCreating={isCreating} isUpdating={isUpdating} imagePreview={imagePreview} videoPreview={videoPreview} />
-      <ViewProgramModal program={selectedProgram} onClose={handleCloseViewModal} isDark={isDark} />
+      {isViewModalOpen && selectedProgram && (
+        <ViewProgramModal program={selectedProgram} onClose={handleCloseViewModal} isDark={isDark} />
+      )}
       <ProgramConfirmationModal isOpen={confirmationModal.isOpen} onClose={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))} title={confirmationModal.title} message={confirmationModal.message} onConfirm={confirmationModal.onConfirm} isLoading={confirmationModal.isLoading} confirmButtonColor={confirmationModal.confirmButtonColor} isDark={isDark} />
     </>
   );

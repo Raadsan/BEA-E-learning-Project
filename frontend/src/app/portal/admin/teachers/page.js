@@ -142,7 +142,7 @@ export default function TeachersPage() {
 
   const columns = [
     { key: "full_name", label: "Full Name" }, { key: "email", label: "Email" }, { key: "phone", label: "Phone" },
-    { key: "country", label: "Country" }, { key: "status", label: "Status", render: (row) => <button onClick={() => handleStatusToggle(row)} className={`px-3 py-1 text-xs font-semibold rounded-full ${row.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{row.status?.charAt(0).toUpperCase() + row.status?.slice(1)}</button> },
+    { key: "country", label: "Country" }, { key: "hire_date", label: "Hired Date", render: (row) => row.hire_date ? new Date(row.hire_date).toLocaleDateString() : 'N/A' }, { key: "years_experience", label: "Years Experience" }, { key: "status", label: "Status", render: (row) => <button onClick={() => handleStatusToggle(row)} className={`px-3 py-1 text-xs font-semibold rounded-full ${row.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{row.status?.charAt(0).toUpperCase() + row.status?.slice(1)}</button> },
     {
       key: "actions", label: "Actions",
       render: (row) => (
