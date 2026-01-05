@@ -54,53 +54,61 @@ export default function TeacherSidebar() {
     return pathname?.startsWith(href);
   };
 
+  // Menu Item Classes
   const getMenuItemClasses = (href, exact = false) => {
     const active = exact ? (pathname === href) : isActive(href);
-    return `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active ? 'text-white font-semibold' : 'text-gray-900 hover:bg-gray-100'
+    return `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
+        ? 'text-white font-semibold'
+        : 'text-gray-100 hover:bg-white/10 hover:text-white'
       }`;
   };
 
   const getSubMenuItemClasses = (href) => {
     const active = isActive(href);
-    return `flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm ${active ? 'text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'
+    return `flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm ${active
+        ? 'text-white font-semibold'
+        : 'text-gray-300 hover:bg-white/10 hover:text-white'
       }`;
   };
 
+  // Active Background Style (Red/Salmon based on inference)
   const getActiveStyle = (href, exact = false) => {
     const active = exact ? (pathname === href) : isActive(href);
-    return active ? { backgroundColor: '#010080' } : {};
+    return active ? { backgroundColor: '#FF4D4D' } : {}; // Red/Salmon
   };
 
   const getSubActiveStyle = (href) => {
     const active = isActive(href);
-    return active ? { backgroundColor: '#010080' } : {};
+    return active ? { backgroundColor: '#FF4D4D' } : {};
   };
 
   const getDropdownButtonStyle = (sectionId) => {
-    return openSection === sectionId ? { backgroundColor: '#010080', color: '#ffffff' } : {};
+    return openSection === sectionId ? { backgroundColor: '#FF4D4D', color: '#ffffff' } : {};
   };
 
   const getDropdownButtonClasses = (sectionId) => {
     const isOpen = openSection === sectionId;
-    return `w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isOpen ? 'text-white font-semibold' : 'text-gray-900 hover:bg-gray-100'
+    return `w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isOpen
+        ? 'text-white font-semibold'
+        : 'text-gray-100 hover:bg-white/10 hover:text-white'
       }`;
   };
 
   const getIconClasses = (href, exact = false) => {
     const active = exact ? (pathname === href) : isActive(href);
-    return `w-5 h-5 ${active ? 'text-white' : 'text-gray-700'}`;
+    return `w-5 h-5 ${active ? 'text-white' : 'text-gray-100'}`;
   };
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm overflow-y-auto">
-      {/* Logo Section */}
-      <div className="border-b border-gray-200 w-full h-24 relative bg-white flex items-center justify-center px-4 py-2 flex-shrink-0">
+    <div className="fixed left-0 top-0 h-screen w-80 bg-[#010080] border-r border-blue-900 flex flex-col shadow-sm overflow-y-auto z-50">
+      {/* Logo Section - Keeping white background for logo visibility or adjusting? keeping white for now but strictly logo box */}
+      <div className="border-b border-blue-900 w-full h-24 relative bg-[#010080] flex items-center justify-center px-4 py-2 flex-shrink-0">
         <Image
           src="/images/headerlogo.png"
           alt="BEA THE BLUEPRINT ENGLISH ACADEMY"
           width={1024}
           height={384}
-          className="h-full w-full object-contain max-w-full"
+          className="h-full w-full object-contain max-w-full brightness-0 invert" // Invert logo to white if possible, or use different logo
           priority
           style={{ width: '100%', height: 'auto' }}
         />
@@ -119,7 +127,7 @@ export default function TeacherSidebar() {
             </Link>
           </li>
 
-          
+
 
           {/* My Classes Dropdown */}
           <li>
@@ -129,17 +137,17 @@ export default function TeacherSidebar() {
               style={getDropdownButtonStyle('myClasses')}
             >
               <div className="flex items-center gap-3">
-                <svg className={`w-5 h-5 ${openSection === 'myClasses' ? 'text-white' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-5 h-5 ${openSection === 'myClasses' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <span className="font-medium text-sm">My Classes</span>
               </div>
-              <svg className={`w-4 h-4 transition-transform duration-200 ${openSection === 'myClasses' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-4 h-4 transition-transform duration-200 ${openSection === 'myClasses' ? 'rotate-180' : ''} text-gray-100`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             {openSection === 'myClasses' && (
-              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
+              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
                 <li>
                   <Link href="/portal/teacher/my-classes" className={getSubMenuItemClasses("/portal/teacher/my-classes")} style={getSubActiveStyle("/portal/teacher/my-classes")}>
                     <span className="text-sm">Class List</span>
@@ -229,24 +237,23 @@ export default function TeacherSidebar() {
             </Link>
           </li>
 
-          {/* Settings */}
-          <li>
-            <Link href="/portal/teacher/settings" className={getMenuItemClasses("/portal/teacher/settings")} style={getActiveStyle("/portal/teacher/settings")}>
-              <svg className={getIconClasses("/portal/teacher/settings")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="font-medium text-sm">Settings</span>
-            </Link>
-          </li>
+          {/* My Profile - commented out by user, keeping it commented */}
+          {/* <li>
+             <Link href="/portal/teacher/settings" className={getMenuItemClasses("/portal/teacher/settings")} style={getActiveStyle("/portal/teacher/settings")}>
+               <svg className={getIconClasses("/portal/teacher/settings")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+               </svg>
+               <span className="font-medium text-sm">My Profile</span>
+             </Link>
+           </li> */}
         </ul>
       </nav>
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-gray-200 mt-auto">
+      <div className="p-4 border-t border-blue-900 mt-auto">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all duration-200 font-medium"
+          className="flex items-center gap-3 w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-all duration-200 font-medium"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

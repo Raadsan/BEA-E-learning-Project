@@ -12,7 +12,8 @@ export default function AdminProfilePage() {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
     const { data: authData, isLoading, refetch } = useGetCurrentUserQuery();
-    const currentAdmin = authData?.user;
+    // Fix: authData IS the user object, not authData.user
+    const currentAdmin = authData;
     const [updateAdmin, { isLoading: isUpdating }] = useUpdateAdminMutation();
 
     const [isEditing, setIsEditing] = useState(false);
@@ -28,6 +29,9 @@ export default function AdminProfilePage() {
     });
 
     useEffect(() => {
+        console.log("Admin Profile - authData:", authData);
+        console.log("Admin Profile - currentAdmin:", currentAdmin);
+
         if (currentAdmin) {
             setFormData({
                 first_name: currentAdmin.first_name || "",
@@ -40,7 +44,7 @@ export default function AdminProfilePage() {
                 confirmPassword: "",
             });
         }
-    }, [currentAdmin]);
+    }, [currentAdmin, authData]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;

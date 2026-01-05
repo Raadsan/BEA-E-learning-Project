@@ -84,36 +84,38 @@ export default function StudentSidebar({ isApproved }) {
   // Helper function for menu item classes
   const getMenuItemClasses = (href, exact = false) => {
     const active = exact ? (pathname === href) : isActive(href);
-    return `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active ? 'text-white font-semibold' : 'text-gray-900 hover:bg-gray-100'
+    return `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
+        ? 'text-white font-semibold'
+        : 'text-gray-100 hover:bg-white/10 hover:text-white'
       }`;
   };
 
   // Helper function to get active background style for main menu items
   const getActiveStyle = (href, exact = false) => {
     const active = exact ? (pathname === href) : isActive(href);
-    return active ? { backgroundColor: '#010080' } : {};
+    return active ? { backgroundColor: '#FF4D4D' } : {};
   };
 
   const getIconClasses = (href, exact = false) => {
     const active = exact ? (pathname === href) : isActive(href);
-    return `w-5 h-5 ${active ? 'text-white' : 'text-gray-700'}`;
+    return `w-5 h-5 ${active ? 'text-white' : 'text-gray-100'}`;
   };
 
   const getTextClasses = (href, exact = false) => {
     const active = exact ? (pathname === href) : isActive(href);
-    return `font-medium text-sm ${active ? 'text-white' : 'text-gray-900'}`;
+    return `font-medium text-sm ${active ? 'text-white' : 'text-gray-100'}`;
   };
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm overflow-y-auto">
+    <div className="fixed left-0 top-0 h-screen w-80 bg-[#010080] border-r border-blue-900 flex flex-col shadow-sm overflow-y-auto z-50">
       {/* Logo Section */}
-      <div className="border-b border-gray-200 w-full h-24 relative bg-white flex items-center justify-center px-4 py-2 flex-shrink-0">
+      <div className="border-b border-blue-900 w-full h-24 relative bg-[#010080] flex items-center justify-center px-4 py-2 flex-shrink-0">
         <Image
           src="/images/headerlogo.png"
           alt="BEA THE BLUEPRINT ENGLISH ACADEMY"
           width={1024}
           height={384}
-          className="h-full w-full object-contain max-w-full"
+          className="h-full w-full object-contain max-w-full brightness-0 invert"
           priority
           style={{ width: '100%', height: 'auto' }}
         />
@@ -128,10 +130,10 @@ export default function StudentSidebar({ isApproved }) {
             <li>
               <button
                 onClick={() => setShowMyCourses(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-gray-900 hover:bg-gray-100 w-full text-left"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-gray-100 hover:bg-white/10 w-full text-left"
               >
                 <svg
-                  className="w-5 h-5 text-gray-700"
+                  className="w-5 h-5 text-gray-100"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -143,12 +145,9 @@ export default function StudentSidebar({ isApproved }) {
                     d="M10 19l-7-7m0 0l7-7m-7 7h18"
                   />
                 </svg>
-                <span className="font-medium text-sm text-gray-900">Back to Menu</span>
+                <span className="font-medium text-sm text-gray-100">Back to Menu</span>
               </button>
             </li>
-
-            {/* My Courses Header */}
-
 
             {/* My Courses */}
             <li>
@@ -410,7 +409,7 @@ export default function StudentSidebar({ isApproved }) {
                       My Courses
                     </span>
                     <svg
-                      className="w-4 h-4 ml-auto text-gray-500"
+                      className="w-4 h-4 ml-auto text-gray-100"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -427,7 +426,7 @@ export default function StudentSidebar({ isApproved }) {
               </>
             )}
 
-            
+
 
             {isApproved && (
               <>
@@ -552,30 +551,30 @@ export default function StudentSidebar({ isApproved }) {
                 </li>
 
                 {/* Payment */}
-            <li>
-              <Link
-                href="/portal/student/payments"
-                className={getMenuItemClasses("/portal/student/payments")}
-                style={getActiveStyle("/portal/student/payments")}
-              >
-                <svg
-                  className={getIconClasses("/portal/student/payments")}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8c-2.21 0-4 .895-4 2s1.79 2 4 2 4 .895 4 2-1.79 2-4 2m0-8c2.21 0 4 .895 4 2m-4-2V6m0 8v2m8-4a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span className={getTextClasses("/portal/student/payments")}>
-                  Payment
-                </span>
-              </Link>
-            </li>
+                <li>
+                  <Link
+                    href="/portal/student/payments"
+                    className={getMenuItemClasses("/portal/student/payments")}
+                    style={getActiveStyle("/portal/student/payments")}
+                  >
+                    <svg
+                      className={getIconClasses("/portal/student/payments")}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-2.21 0-4 .895-4 2s1.79 2 4 2 4 .895 4 2-1.79 2-4 2m0-8c2.21 0 4 .895 4 2m-4-2V6m0 8v2m8-4a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/payments")}>
+                      Payment
+                    </span>
+                  </Link>
+                </li>
 
                 {/* Student Support */}
                 <li>
@@ -603,46 +602,30 @@ export default function StudentSidebar({ isApproved }) {
                   </Link>
                 </li>
                 {/* Placement Test */}
-            <li>
-              <Link
-                href="/portal/student/placement-test"
-                className={getMenuItemClasses("/portal/student/placement-test")}
-                style={getActiveStyle("/portal/student/placement-test")}
-              >
-                <svg
-                  className={getIconClasses("/portal/student/placement-test")}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                  />
-                </svg>
-                <span className={getTextClasses("/portal/student/placement-test")}>
-                  Placement Test
-                </span>
-              </Link>
-            </li>
-
-              {/* Profile (Visible to everyone including pending) */}
-            {/* <li>
-              <Link
-                href="/portal/student/profile"
-                className={getMenuItemClasses("/portal/student/profile")}
-                style={getActiveStyle("/portal/student/profile")}
-              >
-                <svg className={getIconClasses("/portal/student/profile")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span className={getTextClasses("/portal/student/profile")}>
-                  My Profile
-                </span>
-              </Link>
-            </li> */}
+                <li>
+                  <Link
+                    href="/portal/student/placement-test"
+                    className={getMenuItemClasses("/portal/student/placement-test")}
+                    style={getActiveStyle("/portal/student/placement-test")}
+                  >
+                    <svg
+                      className={getIconClasses("/portal/student/placement-test")}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                      />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/placement-test")}>
+                      Placement Test
+                    </span>
+                  </Link>
+                </li>
 
               </>
             )}
@@ -651,10 +634,10 @@ export default function StudentSidebar({ isApproved }) {
       </nav>
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-gray-200 mt-auto">
+      <div className="p-4 border-t border-blue-900 mt-auto">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all duration-200 font-medium"
+          className="flex items-center gap-3 w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-all duration-200 font-medium"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

@@ -29,7 +29,7 @@ export default function StudentProfilePage() {
   const bannerGradient = "bg-gradient-to-r from-blue-600 to-indigo-700";
 
   return (
-    <div className={`min-h-screen pb-20 py-38 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
+    <div className={`min-h-screen pb-20 pt-20 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
 
       <div className="mx-auto px-6 sm:px-10 -mt-24 relative z-10">
 
