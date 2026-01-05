@@ -1,5 +1,7 @@
 import db from '../database/dbconfig.js';
 
+const dbp = db.promise();
+
 // Get events for a specific subprogram within a date range (e.g., a month)
 export const getEventsBySubprogram = async (subprogramId, startDate, endDate) => {
     const query = `
@@ -8,7 +10,7 @@ export const getEventsBySubprogram = async (subprogramId, startDate, endDate) =>
         AND event_date BETWEEN ? AND ?
         ORDER BY event_date ASC
     `;
-    const [rows] = await db.query(query, [subprogramId, startDate, endDate]);
+    const [rows] = await dbp.query(query, [subprogramId, startDate, endDate]);
     return rows;
 };
 
@@ -19,7 +21,7 @@ export const createEvent = async (eventData) => {
         INSERT INTO timetable_events (subprogram_id, event_date, type, title, description)
         VALUES (?, ?, ?, ?, ?)
     `;
-    const [result] = await db.query(query, [subprogram_id, event_date, type, title, description]);
+    const [result] = await dbp.query(query, [subprogram_id, event_date, type, title, description]);
     return result.insertId;
 };
 
@@ -31,13 +33,13 @@ export const updateEvent = async (id, eventData) => {
         SET event_date = ?, type = ?, title = ?, description = ?
         WHERE id = ?
     `;
-    const [result] = await db.query(query, [event_date, type, title, description, id]);
+    const [result] = await dbp.query(query, [event_date, type, title, description, id]);
     return result.affectedRows > 0;
 };
 
 // Delete an event
 export const deleteEvent = async (id) => {
     const query = 'DELETE FROM timetable_events WHERE id = ?';
-    const [result] = await db.query(query, [id]);
+    const [result] = await dbp.query(query, [id]);
     return result.affectedRows > 0;
 };

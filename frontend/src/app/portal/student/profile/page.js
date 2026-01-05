@@ -29,14 +29,7 @@ export default function StudentProfilePage() {
   const bannerGradient = "bg-gradient-to-r from-blue-600 to-indigo-700";
 
   return (
-    <div className={`min-h-screen pb-20 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
-      {/* Top Banner */}
-      <div className={`h-48 ${bannerGradient} relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-        {/* Decorative Circles */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-white/10 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-60 h-60 rounded-full bg-black/10 blur-3xl"></div>
-      </div>
+    <div className={`min-h-screen pb-20 py-38 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
 
       <div className="mx-auto px-6 sm:px-10 -mt-24 relative z-10">
 
@@ -149,7 +142,7 @@ export default function StudentProfilePage() {
                 <DetailCard
                   icon={<HashIcon />}
                   label="Student ID"
-                  value={`ST-${user?.id?.toString().padStart(4, '0')}`}
+                  value={user?.id || "N/A"}
                   isDark={isDark}
                   accentColor="purple"
                 />
@@ -157,7 +150,7 @@ export default function StudentProfilePage() {
                 <DetailCard
                   icon={<CalendarIcon />}
                   label="Joined Date"
-                  value={user?.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}
+                  value={user?.created_at ? user.created_at.split(' ')[0] : "N/A"}
                   isDark={isDark}
                   accentColor="orange"
                 />

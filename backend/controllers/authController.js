@@ -211,7 +211,8 @@ export const getCurrentUser = async (req, res) => {
             chosen_program: user.chosen_program,
             chosen_subprogram: user.chosen_subprogram,
             approval_status: user.approval_status || null,
-            class_id: user.class_id || null
+            class_id: user.class_id || null,
+            created_at: user.created_at || null
           };
         }
         break;

@@ -267,12 +267,6 @@ export default function StudentSidebar({ isApproved }) {
               </Link>
             </li>
 
-
-
-
-
-
-
             {/* Oral Assignment */}
             <li>
               <Link
@@ -388,67 +382,8 @@ export default function StudentSidebar({ isApproved }) {
                 </span>
               </Link>
             </li>
-
-            {/* Profile (Visible to everyone including pending) */}
-            <li>
-              <Link
-                href="/portal/student/profile"
-                className={getMenuItemClasses("/portal/student/profile")}
-                style={getActiveStyle("/portal/student/profile")}
-              >
-                <svg className={getIconClasses("/portal/student/profile")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span className={getTextClasses("/portal/student/profile")}>
-                  My Profile
-                </span>
-              </Link>
-            </li>
-
-            {/* Placement Test */}
-            <li>
-              <Link
-                href="/portal/student/placement-test"
-                className={getMenuItemClasses("/portal/student/placement-test")}
-                style={getActiveStyle("/portal/student/placement-test")}
-              >
-                <svg
-                  className={getIconClasses("/portal/student/placement-test")}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                  />
-                </svg>
-                <span className={getTextClasses("/portal/student/placement-test")}>
-                  Placement Test
-                </span>
-              </Link>
-            </li>
-
             {isApproved && (
               <>
-                {/* News & Events */}
-                <li>
-                  <Link
-                    href="/portal/student/news"
-                    className={getMenuItemClasses("/portal/student/news")}
-                    style={getActiveStyle("/portal/student/news")}
-                  >
-                    <svg className={getIconClasses("/portal/student/news")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                    </svg>
-                    <span className={getTextClasses("/portal/student/news")}>
-                      News & Events
-                    </span>
-                  </Link>
-                </li>
-
                 {/* My Courses - Clickable to show submenu */}
                 <li>
                   <Link
@@ -492,31 +427,7 @@ export default function StudentSidebar({ isApproved }) {
               </>
             )}
 
-            {/* Payment */}
-            <li>
-              <Link
-                href="/portal/student/payments"
-                className={getMenuItemClasses("/portal/student/payments")}
-                style={getActiveStyle("/portal/student/payments")}
-              >
-                <svg
-                  className={getIconClasses("/portal/student/payments")}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8c-2.21 0-4 .895-4 2s1.79 2 4 2 4 .895 4 2-1.79 2-4 2m0-8c2.21 0 4 .895 4 2m-4-2V6m0 8v2m8-4a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span className={getTextClasses("/portal/student/payments")}>
-                  Payment
-                </span>
-              </Link>
-            </li>
+            
 
             {isApproved && (
               <>
@@ -598,6 +509,22 @@ export default function StudentSidebar({ isApproved }) {
                   </Link>
                 </li>
 
+                {/* News & Events */}
+                <li>
+                  <Link
+                    href="/portal/student/news"
+                    className={getMenuItemClasses("/portal/student/news")}
+                    style={getActiveStyle("/portal/student/news")}
+                  >
+                    <svg className={getIconClasses("/portal/student/news")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/news")}>
+                      News & Events
+                    </span>
+                  </Link>
+                </li>
+
                 {/* Policies */}
                 <li>
                   <Link
@@ -624,6 +551,32 @@ export default function StudentSidebar({ isApproved }) {
                   </Link>
                 </li>
 
+                {/* Payment */}
+            <li>
+              <Link
+                href="/portal/student/payments"
+                className={getMenuItemClasses("/portal/student/payments")}
+                style={getActiveStyle("/portal/student/payments")}
+              >
+                <svg
+                  className={getIconClasses("/portal/student/payments")}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-2.21 0-4 .895-4 2s1.79 2 4 2 4 .895 4 2-1.79 2-4 2m0-8c2.21 0 4 .895 4 2m-4-2V6m0 8v2m8-4a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span className={getTextClasses("/portal/student/payments")}>
+                  Payment
+                </span>
+              </Link>
+            </li>
+
                 {/* Student Support */}
                 <li>
                   <Link
@@ -649,7 +602,47 @@ export default function StudentSidebar({ isApproved }) {
                     </span>
                   </Link>
                 </li>
+                {/* Placement Test */}
+            <li>
+              <Link
+                href="/portal/student/placement-test"
+                className={getMenuItemClasses("/portal/student/placement-test")}
+                style={getActiveStyle("/portal/student/placement-test")}
+              >
+                <svg
+                  className={getIconClasses("/portal/student/placement-test")}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+                <span className={getTextClasses("/portal/student/placement-test")}>
+                  Placement Test
+                </span>
+              </Link>
+            </li>
 
+              {/* Profile (Visible to everyone including pending) */}
+            {/* <li>
+              <Link
+                href="/portal/student/profile"
+                className={getMenuItemClasses("/portal/student/profile")}
+                style={getActiveStyle("/portal/student/profile")}
+              >
+                <svg className={getIconClasses("/portal/student/profile")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className={getTextClasses("/portal/student/profile")}>
+                  My Profile
+                </span>
+              </Link>
+            </li> */}
 
               </>
             )}

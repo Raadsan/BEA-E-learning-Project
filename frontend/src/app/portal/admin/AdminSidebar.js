@@ -310,12 +310,20 @@ export default function AdminSidebar() {
                     <span className={isActive("/portal/admin/subprograms") ? 'text-white' : 'text-gray-900'}>Courses</span>
                   </Link>
                 </li>
+                <li>
+                  <Link href="/portal/admin/learning-resources/materials" className={getSubMenuItemClasses("/portal/admin/learning-resources/materials")} style={getSubActiveStyle("/portal/admin/learning-resources/materials")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/learning-resources/materials") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span className={isActive("/portal/admin/learning-resources/materials") ? 'text-white' : 'text-gray-900'}>Course Materials </span>
+                  </Link>
+                </li>
 
               </ul>
             )}
           </li>
 
-          {/* Learning Resources */}
+          {/* Class Management */}
           <li>
             <button
               onClick={() => toggleSection('learningResources')}
@@ -325,7 +333,7 @@ export default function AdminSidebar() {
                 <svg className={`w-5 h-5 ${openSection === 'learningResources' ? 'text-white' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
-                <span className={`font-medium text-sm ${openSection === 'learningResources' ? 'text-white' : 'text-gray-900'}`}>Learning Resources</span>
+                <span className={`font-medium text-sm ${openSection === 'learningResources' ? 'text-white' : 'text-gray-900'}`}>Class Management</span>
               </div>
               <svg className={`w-4 h-4 ${openSection === 'learningResources' ? 'text-white' : 'text-gray-700'} transition-transform duration-200 ${openSection === 'learningResources' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -333,12 +341,13 @@ export default function AdminSidebar() {
             </button>
             {openSection === 'learningResources' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
+                
                 <li>
-                  <Link href="/portal/admin/learning-resources/materials" className={getSubMenuItemClasses("/portal/admin/learning-resources/materials")} style={getSubActiveStyle("/portal/admin/learning-resources/materials")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/learning-resources/materials") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  <Link href="/portal/admin/classes" className={getSubMenuItemClasses("/portal/admin/classes")} style={getSubActiveStyle("/portal/admin/classes")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H2v-2a4 4 0 014-4h12.356M20 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className={isActive("/portal/admin/learning-resources/materials") ? 'text-white' : 'text-gray-900'}>Course Materials </span>
+                    <span className={isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-900'}>Classes</span>
                   </Link>
                 </li>
                 <li>
@@ -349,42 +358,12 @@ export default function AdminSidebar() {
                     <span className={isActive("/portal/admin/learning-resources/sessions") ? 'text-white' : 'text-gray-900'}>Online Session Links</span>
                   </Link>
                 </li>
-              </ul>
-            )}
-          </li>
-
-          {/* Timetable Management */}
-          <li>
-            <button
-              onClick={() => toggleSection('timetableManagement')}
-              className={getDropdownButtonClasses('timetableManagement')} style={getDropdownButtonStyle('timetableManagement')}
-            >
-              <div className="flex items-center gap-3">
-                <svg className={`w-5 h-5 ${openSection === 'timetableManagement' ? 'text-white' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span className={`font-medium text-sm ${openSection === 'timetableManagement' ? 'text-white' : 'text-gray-900'}`}>Timetable Management</span>
-              </div>
-              <svg className={`w-4 h-4 ${openSection === 'timetableManagement' ? 'text-white' : 'text-gray-700'} transition-transform duration-200 ${openSection === 'timetableManagement' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {openSection === 'timetableManagement' && (
-              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
                 <li>
                   <Link href="/portal/admin/learning-resources/timetable" className={getSubMenuItemClasses("/portal/admin/learning-resources/timetable")} style={getSubActiveStyle("/portal/admin/learning-resources/timetable")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/learning-resources/timetable") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span className={isActive("/portal/admin/learning-resources/timetable") ? 'text-white' : 'text-gray-900'}>Academic Timetable</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/portal/admin/classes" className={getSubMenuItemClasses("/portal/admin/classes")} style={getSubActiveStyle("/portal/admin/classes")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H2v-2a4 4 0 014-4h12.356M20 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-900'}>Session & Classes</span>
                   </Link>
                 </li>
               </ul>

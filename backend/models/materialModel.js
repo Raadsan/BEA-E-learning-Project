@@ -33,18 +33,17 @@ export const getAllMaterials = async () => {
 
 // GET materials for student by program/subprogram
 export const getMaterialsByLevel = async (programId, subprogramId) => {
-    // Students should see ONLY materials specifically assigned to their subprogram
-    // This ensures each student sees only materials for their level (e.g., A1 - Beginner)
-
+    // UPDATED: Students see materials assigned to their specific subprogram (level)
+    // AND materials assigned to their overall program (General resources)
     const [rows] = await dbp.query(
         `SELECT m.*, p.title as program_name, sp.subprogram_name as subprogram_name 
      FROM learning_materials m
      LEFT JOIN programs p ON m.program_id = p.id
      LEFT JOIN subprograms sp ON m.subprogram_id = sp.id
-     WHERE m.subprogram_id = ?
+     WHERE (m.subprogram_id = ? OR (m.program_id = ? AND m.subprogram_id IS NULL) OR m.program_id = ?)
      AND m.status = 'Active' 
      ORDER BY m.created_at DESC`,
-        [subprogramId]
+        [subprogramId, programId, programId]
     );
     return rows;
 };

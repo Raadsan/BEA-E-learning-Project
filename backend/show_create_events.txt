@@ -1,0 +1,13 @@
+CREATE TABLE `timetable_events` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `subprogram_id` int NOT NULL,
+  `event_date` date NOT NULL,
+  `type` varchar(50) NOT NULL DEFAULT 'other',
+  `title` varchar(255) NOT NULL,
+  `description` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `subprogram_id` (`subprogram_id`),
+  CONSTRAINT `timetable_events_ibfk_1` FOREIGN KEY (`subprogram_id`) REFERENCES `subprograms` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3

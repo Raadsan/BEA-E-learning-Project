@@ -40,6 +40,8 @@ export default function TimetablePage() {
     // Delete states
     const [isDeleteClassModalOpen, setIsDeleteClassModalOpen] = useState(false);
     const [deleteClassId, setDeleteClassId] = useState(null);
+    const [isDeleteEventModalOpen, setIsDeleteEventModalOpen] = useState(false);
+    const [deleteEventId, setDeleteEventId] = useState(null);
 
     // Class Form state
     const [classFormData, setClassFormData] = useState({
@@ -136,11 +138,17 @@ export default function TimetablePage() {
         events.forEach(event => {
             const dateObj = new Date(event.event_date);
             const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+            const displayDate = dateObj.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
 
             sessions.push({
                 id: `event-${event.id}`,
                 uniqueKey: `event-${event.id}`,
                 date: event.event_date,
+                displayDate,
                 day: dayName,
                 type: event.type === 'exam' ? "Exam" : (event.type === 'holiday' ? 'Holiday' : 'Event'),
                 subject: event.title || "Event",
@@ -152,10 +160,21 @@ export default function TimetablePage() {
 
         // 2. Add Weekly Recurring Classes
         weeklyTimetable.forEach(cls => {
+            let displayDate = "Weekly Pattern";
+            if (cls.date) {
+                const dateObj = new Date(cls.date);
+                displayDate = dateObj.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            }
+
             sessions.push({
                 id: `class-${cls.id}`,
                 uniqueKey: `class-${cls.id}`,
-                date: "Weekly", // Explicitly mark as weekly pattern
+                date: cls.date, // Store the raw date string
+                displayDate,    // Store formatted date for display
                 day: cls.day,
                 type: cls.type || "Class",
                 subject: cls.subject || "Class",
@@ -179,8 +198,6 @@ export default function TimetablePage() {
             setEditingClass(entry);
             setClassFormData({
                 days: [entry.day],
-                start_time: entry.start_time || "00:00",
-                end_time: entry.end_time || "00:00",
                 subject: entry.subject || "",
                 teacher_id: entry.teacher_id || "",
                 classType: entry.type || "Class",
@@ -188,14 +205,13 @@ export default function TimetablePage() {
                 eventType: "holiday",
                 title: entry.subject || "",
                 description: entry.description || "",
-                eventDate: entry.date || new Date().toISOString().split('T')[0]
+                eventDate: entry.date || ""
             });
         } else {
             setEditingClass(null);
+            const today = new Date().toISOString().split('T')[0];
             setClassFormData({
-                days: ["Monday"],
-                start_time: "00:00",
-                end_time: "00:00",
+                days: [new Date().toLocaleDateString('en-US', { weekday: 'long' })],
                 subject: "",
                 teacher_id: "",
                 classType: "Class",
@@ -203,7 +219,7 @@ export default function TimetablePage() {
                 eventType: "holiday",
                 title: "",
                 description: "",
-                eventDate: new Date().toISOString().split('T')[0]
+                eventDate: today
             });
         }
         setIsClassModalOpen(true);
@@ -212,32 +228,30 @@ export default function TimetablePage() {
     const handleClassSubmit = async (e, keepOpen = false) => {
         if (e && e.preventDefault) e.preventDefault();
         try {
+            const basePayload = {
+                subject: classFormData.subject,
+                program_id: parseInt(selectedProgram),
+                subprogram_id: parseInt(selectedSubprogram),
+                teacher_id: classFormData.teacher_id ? parseInt(classFormData.teacher_id) : null,
+                type: classFormData.classType || "Class",
+                start_time: "00:00",
+                end_time: "00:00",
+                date: classFormData.eventDate || null
+            };
+
             if (editingClass) {
-                const payload = {
-                    day: classFormData.days[0],
-                    start_time: "00:00",
-                    end_time: "00:00",
-                    subject: classFormData.subject,
-                    program_id: parseInt(selectedProgram),
-                    subprogram_id: parseInt(selectedSubprogram),
-                    teacher_id: classFormData.teacher_id ? parseInt(classFormData.teacher_id) : null,
-                    type: classFormData.classType || "Class"
-                };
-                await updateClass({ id: editingClass.id, ...payload }).unwrap();
+                await updateClass({
+                    id: editingClass.id,
+                    ...basePayload,
+                    day: classFormData.days[0]
+                }).unwrap();
                 showToast("Class updated successfully", "success");
             } else {
                 const promises = classFormData.days.map(day => {
-                    const payload = {
-                        day,
-                        start_time: "00:00",
-                        end_time: "00:00",
-                        subject: classFormData.subject,
-                        program_id: parseInt(selectedProgram),
-                        subprogram_id: parseInt(selectedSubprogram),
-                        teacher_id: classFormData.teacher_id ? parseInt(classFormData.teacher_id) : null,
-                        type: classFormData.classType || "Class"
-                    };
-                    return createClass(payload).unwrap();
+                    return createClass({
+                        ...basePayload,
+                        day
+                    }).unwrap();
                 });
                 await Promise.all(promises);
                 showToast(`Created ${classFormData.days.length} session(s) successfully`, "success");
@@ -312,16 +326,20 @@ export default function TimetablePage() {
         }
     };
 
-    const handleEventDelete = async (id) => {
-        if (confirm("Are you sure you want to delete this event?")) {
-            try {
-                await deleteEvent(id).unwrap();
-                showToast("Event deleted successfully", "success");
-                setIsEventModalOpen(false);
-            } catch (error) {
-                console.error(error);
-                showToast("Failed to delete event", "error");
-            }
+    const handleEventDelete = (id) => {
+        setDeleteEventId(id);
+        setIsDeleteEventModalOpen(true);
+    };
+
+    const handleConfirmDeleteEvent = async () => {
+        try {
+            await deleteEvent(deleteEventId).unwrap();
+            showToast("Event deleted successfully", "success");
+            setIsDeleteEventModalOpen(false);
+            setIsEventModalOpen(false);
+        } catch (error) {
+            console.error(error);
+            showToast("Failed to delete event", "error");
         }
     };
 
@@ -330,12 +348,19 @@ export default function TimetablePage() {
         {
             key: "date",
             label: "Date",
-            render: (row) => <span className={`font-bold ${row.isEvent ? 'text-indigo-600' : 'text-gray-500 text-xs uppercase'}`}>{row.date}</span>
+            render: (row) => {
+                const isWeekly = row.displayDate === "Weekly Pattern";
+                return (
+                    <span className={`font-bold ${isWeekly ? 'text-gray-400 text-[10px] uppercase tracking-wider' : 'text-black dark:text-white'}`}>
+                        {row.displayDate}
+                    </span>
+                );
+            }
         },
         {
             key: "day",
             label: "Day",
-            render: (row) => <span className="font-semibold text-gray-900 dark:text-white">{row.day}</span>
+            render: (row) => <span className="font-semibold text-gray-900 dark:text-white uppercase text-xs tracking-wider">{row.day}</span>
         },
         {
             key: "type",
@@ -365,7 +390,16 @@ export default function TimetablePage() {
         {
             key: "teacher_name",
             label: "Teacher",
-            render: (row) => <span className="text-gray-500 text-sm">{row.teacher_name}</span>
+            render: (row) => {
+                if (row.isEvent) {
+                    return (
+                        <span className="text-gray-400 text-xs italic font-medium uppercase tracking-tighter">
+                            {row.type === 'Holiday' ? 'Holiday - No Class' : 'School Event'}
+                        </span>
+                    );
+                }
+                return <span className="text-gray-500 text-sm font-medium">{row.teacher_name || "Unassigned"}</span>
+            }
         },
         {
             key: "actions",
@@ -377,9 +411,9 @@ export default function TimetablePage() {
                             <button onClick={() => handleEditEvent(row.originalData)} className="text-blue-600 hover:text-blue-800 p-1" title="Edit Event">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
-                            {/* Delete logic is inside modal for events currently, but better to have direct delete here?
-                                The EventModal has delete. Let's just open modal.
-                            */}
+                            <button onClick={() => handleEventDelete(row.originalData.id)} className="text-red-600 hover:text-red-800 p-1" title="Delete Event">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
                         </>
                     ) : (
                         // For class rows, we edit/delete the underlying WEEKLY class
@@ -530,72 +564,35 @@ export default function TimetablePage() {
                     title={editingClass ? "Edit Weekly Class" : "Add Session"}
                 >
                     <div className="space-y-6">
-                        {/* 1. DATE / DAY SELECTION (FIRST) */}
-                        {!editingClass ? (
-                            <div>
-                                <label className={`block text-sm font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    1. When? (Pick Date or Days)
-                                </label>
-                                <div className="space-y-4">
-                                    <div className="flex flex-col sm:flex-row gap-4">
-                                        <div className="flex-1">
-                                            <label className="block text-xs font-semibold mb-1 opacity-70">Single Date (for Events)</label>
-                                            <input
-                                                type="date"
-                                                value={classFormData.eventDate || new Date().toISOString().split('T')[0]}
-                                                onChange={(e) => {
-                                                    const date = new Date(e.target.value);
-                                                    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-                                                    setClassFormData({
-                                                        ...classFormData,
-                                                        eventDate: e.target.value,
-                                                        days: [dayName],
-                                                        sessionType: 'event'
-                                                    });
-                                                }}
-                                                className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                            />
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="block text-xs font-semibold mb-1 opacity-70">Recurring Days (for Batch Classes)</label>
-                                            <div className="flex flex-wrap gap-1.5 mt-1">
-                                                {days.map(day => {
-                                                    const isSelected = classFormData.days.includes(day);
-                                                    return (
-                                                        <button
-                                                            key={day}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const newDays = isSelected
-                                                                    ? classFormData.days.filter(d => d !== day)
-                                                                    : [...classFormData.days, day];
-                                                                if (newDays.length === 0) return;
-                                                                setClassFormData({
-                                                                    ...classFormData,
-                                                                    days: newDays,
-                                                                    sessionType: 'class'
-                                                                });
-                                                            }}
-                                                            className={`w-10 h-10 flex items-center justify-center rounded-xl text-[10px] font-bold transition-all border ${isSelected
-                                                                ? 'bg-[#010080] border-[#010080] text-white shadow-md'
-                                                                : (isDark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-white border-gray-300 text-gray-600')
-                                                                }`}
-                                                            title={day}
-                                                        >
-                                                            {day.slice(0, 2)}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        {/* 1. DATE & DAY SELECTION */}
+                        <div>
+                            <label className={`block text-sm font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                1. When? (Date or Weekly Day)
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <input
+                                    type="date"
+                                    value={classFormData.eventDate || ""}
+                                    onChange={(e) => {
+                                        const date = new Date(e.target.value);
+                                        const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                                        setClassFormData({
+                                            ...classFormData,
+                                            eventDate: e.target.value,
+                                            days: [dayName]
+                                        });
+                                    }}
+                                    className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                />
+                                <select
+                                    value={classFormData.days[0] || "Monday"}
+                                    onChange={(e) => setClassFormData({ ...classFormData, days: [e.target.value] })}
+                                    className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                >
+                                    {days.map(d => <option key={d} value={d}>{d}</option>)}
+                                </select>
                             </div>
-                        ) : (
-                            <div>
-                                <p className="text-sm font-medium mb-1">Editing Pattern for: <span className="font-bold text-indigo-600">{classFormData.days[0]}</span></p>
-                            </div>
-                        )}
+                        </div>
 
                         {/* 2. SESSION TYPE */}
                         <div>
@@ -748,6 +745,20 @@ export default function TimetablePage() {
                         <div className="flex justify-end gap-3">
                             <button onClick={() => setIsDeleteClassModalOpen(false)} className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200">Cancel</button>
                             <button onClick={handleConfirmDeleteClass} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
+                        </div>
+                    </div>
+                </Modal>
+
+                <Modal
+                    isOpen={isDeleteEventModalOpen}
+                    onClose={() => setIsDeleteEventModalOpen(false)}
+                    title="Delete Event"
+                >
+                    <div className="space-y-4">
+                        <p>Are you sure you want to delete this event? <br /> <span className="text-red-500 text-sm">This action cannot be undone.</span></p>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={() => setIsDeleteEventModalOpen(false)} className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200">Cancel</button>
+                            <button onClick={handleConfirmDeleteEvent} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
                         </div>
                     </div>
                 </Modal>

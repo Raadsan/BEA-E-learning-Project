@@ -6,6 +6,7 @@ const dbp = db.promise();
 export const createTimetableEntry = async ({
     program_id,
     subprogram_id,
+    date,
     day,
     start_time,
     end_time,
@@ -15,9 +16,9 @@ export const createTimetableEntry = async ({
 }) => {
     const [result] = await dbp.query(
         `INSERT INTO timetables (
-      program_id, subprogram_id, day, start_time, end_time, subject, teacher_id, type
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [program_id, subprogram_id, day, start_time, end_time, subject, teacher_id, type]
+      program_id, subprogram_id, date, day, start_time, end_time, subject, teacher_id, type
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [program_id, subprogram_id, date, day, start_time, end_time, subject, teacher_id, type]
     );
 
     const [newEntry] = await dbp.query("SELECT * FROM timetables WHERE id = ?", [result.insertId]);
@@ -52,6 +53,7 @@ export const getTimetableByProgram = async (program_id) => {
 
 // UPDATE timetable entry
 export const updateTimetableEntry = async (id, {
+    date,
     day,
     start_time,
     end_time,
@@ -62,6 +64,10 @@ export const updateTimetableEntry = async (id, {
     const updates = [];
     const values = [];
 
+    if (date !== undefined) {
+        updates.push("date = ?");
+        values.push(date);
+    }
     if (day !== undefined) {
         updates.push("day = ?");
         values.push(day);

@@ -19,7 +19,7 @@ export const getTimetable = async (req, res) => {
 // Create a new timetable entry
 export const createEntry = async (req, res) => {
     try {
-        const { program_id, subprogram_id, day, start_time, end_time, subject, teacher_id, type } = req.body;
+        const { program_id, subprogram_id, date, day, start_time, end_time, subject, teacher_id, type } = req.body;
 
         if (!program_id || !subprogram_id || !day || !start_time || !end_time || !subject) {
             return res.status(400).json({ error: "All required fields must be provided" });
@@ -28,6 +28,7 @@ export const createEntry = async (req, res) => {
         const newEntry = await timetableModel.createTimetableEntry({
             program_id,
             subprogram_id,
+            date: date || null,
             day,
             start_time,
             end_time,
@@ -47,9 +48,10 @@ export const createEntry = async (req, res) => {
 export const updateEntry = async (req, res) => {
     try {
         const { id } = req.params;
-        const { day, start_time, end_time, subject, teacher_id, type } = req.body;
+        const { date, day, start_time, end_time, subject, teacher_id, type } = req.body;
 
         const updated = await timetableModel.updateTimetableEntry(id, {
+            date,
             day,
             start_time,
             end_time,

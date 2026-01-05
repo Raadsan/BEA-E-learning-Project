@@ -39,10 +39,14 @@ export const getMaterials = async (req, res) => {
 export const getStudentMaterials = async (req, res) => {
     try {
         // Get student info from token (req.user)
-        const studentId = req.user.id;
+        // Fix: Use req.user.userId instead of req.user.id
+        const studentId = req.user.userId;
         const student = await Student.getStudentById(studentId);
 
-        if (!student) return res.status(404).json({ error: "Student not found" });
+        if (!student) {
+            console.error(`❌ Student not found for ID: ${studentId}`);
+            return res.status(404).json({ error: "Student not found" });
+        }
 
         // Identify student's program and subprogram
         const programId = student.chosen_program;
@@ -59,7 +63,7 @@ export const getStudentMaterials = async (req, res) => {
 
         console.log(`✅ Found ${materials.length} materials for student ${student.full_name}`);
         if (materials.length > 0) {
-            console.log("Materials:", materials.map(m => ({ id: m.id, title: m.title, subprogram_id: m.subprogram_id })));
+            console.log("Materials:", materials.map(m => ({ id: m.id, title: m.title, subprogram_id: m.subprogram_id, program_id: m.program_id })));
         }
 
         res.json(materials);
