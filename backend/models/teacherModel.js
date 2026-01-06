@@ -175,10 +175,18 @@ export const getTeacherStatsById = async (id) => {
 
   // 2. Active Students
   const [studentsCount] = await dbp.query(
-    `SELECT COUNT(DISTINCT s.id) as count
+    `SELECT COUNT(DISTINCT s.student_id) as count
      FROM students s
-     JOIN courses c ON c.subprogram_id = s.chosen_subprogram
-     JOIN classes cl ON cl.course_id = c.id
+     JOIN classes cl ON s.class_id = cl.id
+     WHERE cl.teacher_id = ?`,
+    [id]
+  );
+
+  // 2b. Total Programs
+  const [programsCount] = await dbp.query(
+    `SELECT COUNT(DISTINCT sp.program_id) as count
+     FROM classes cl
+     JOIN subprograms sp ON cl.subprogram_id = sp.id
      WHERE cl.teacher_id = ?`,
     [id]
   );
@@ -250,6 +258,7 @@ export const getTeacherStatsById = async (id) => {
   return {
     totalClasses: classesCount[0].count,
     activeStudents: studentsCount[0].count,
+    totalPrograms: programsCount[0].count,
     avgAttendance,
     totalAttended,
     totalPossible,
