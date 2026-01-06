@@ -66,7 +66,7 @@ export const getAttendanceStats = async (filters) => {
       MIN(DATE(a.date)) as date,
       ${period === 'monthly' ? 'MAX(MONTHNAME(a.date)) as label,' : ''}
       ${period === 'yearly' ? 'MAX(YEAR(a.date)) as label,' : ''}
-      ${period === 'weekly' ? 'MAX(CONCAT("Week ", WEEK(a.date))) as label,' : ''}
+      ${period === 'weekly' ? 'MAX(DATE_FORMAT(DATE_SUB(a.date, INTERVAL WEEKDAY(a.date) DAY), "%b %d")) as label,' : ''}
       ${period === 'daily' ? 'MAX(DAYNAME(a.date)) as label,' : ''}
       COUNT(DISTINCT CASE WHEN (a.hour1 = 1 OR a.hour2 = 1) THEN a.student_id END) as attended
     FROM attendance a
@@ -118,13 +118,10 @@ export const getTotalStudents = async (filters) => {
     query += ` AND s.class_id = ?`;
     params.push(class_id);
   }
-
-  /*
   if (program_id) {
     query += ` AND c.program_id = ?`;
     params.push(program_id);
   }
-  */
 
   const [rows] = await dbp.query(query, params);
   return rows[0]?.total || 0;
@@ -149,4 +146,50 @@ export const getStudentLearningHoursSummary = async (studentId) => {
   `;
   const [rows] = await dbp.query(query, [studentId]);
   return rows[0]?.total_hours || 0;
+};
+
+export const getAggregateLearningHours = async (filters) => {
+  const { class_id, program_id, startDate, endDate, period } = filters;
+
+  let query = `
+    SELECT 
+      MIN(DATE(a.date)) as date,
+      ${period === 'monthly' ? 'MAX(MONTHNAME(a.date)) as label,' : ''}
+      ${period === 'yearly' ? 'MAX(YEAR(a.date)) as label,' : ''}
+      ${period === 'weekly' ? 'MAX(DATE_FORMAT(DATE_SUB(a.date, INTERVAL WEEKDAY(a.date) DAY), "%b %d")) as label,' : ''}
+      ${period === 'daily' ? 'MAX(DAYNAME(a.date)) as label,' : ''}
+      SUM(a.hour1 + a.hour2) as hours
+    FROM attendance a
+    JOIN classes c ON a.class_id = c.id
+    WHERE a.date BETWEEN ? AND ?
+  `;
+
+  const params = [startDate, endDate];
+
+  if (class_id) {
+    query += ` AND a.class_id = ?`;
+    params.push(class_id);
+  }
+
+  if (program_id) {
+    query += ` AND c.program_id = ?`;
+    params.push(program_id);
+  }
+
+  // Grouping
+  if (period === 'monthly') {
+    query += ` GROUP BY YEAR(a.date), MONTH(a.date)`;
+  } else if (period === 'yearly') {
+    query += ` GROUP BY YEAR(a.date)`;
+  } else if (period === 'weekly') {
+    query += ` GROUP BY YEAR(a.date), WEEK(a.date)`;
+  } else {
+    // Default Daily
+    query += ` GROUP BY DATE(a.date)`;
+  }
+
+  query += ` ORDER BY date ASC`;
+
+  const [rows] = await dbp.query(query, params);
+  return rows;
 };

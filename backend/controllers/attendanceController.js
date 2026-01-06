@@ -209,6 +209,68 @@ export const getLearningHours = async (req, res) => {
     }
 };
 
+// GET ADMIN ALL LEARNING HOURS (Dynamic Chart)
+export const getAdminLearningHours = async (req, res) => {
+    try {
+        const { class_id, program_id, timeFrame } = req.query;
+
+        // Check permissions if teacher
+        if (req.user.role === 'teacher' && class_id) {
+            const classItem = await Class.getClassById(class_id);
+            if (!classItem || classItem.teacher_id !== req.user.userId) {
+                return res.status(403).json({ error: "Access denied" });
+            }
+        }
+
+        let startDate, endDate = new Date();
+        let period = 'daily';
+
+        // Calculate Date Range (Reuse stats logic)
+        const now = new Date();
+        if (timeFrame === 'Today') {
+            period = 'daily';
+            startDate = new Date();
+        } else if (timeFrame === 'Weekly') {
+            period = 'weekly';
+            startDate = new Date(now.setMonth(now.getMonth() - 3));
+        } else if (timeFrame === 'Monthly') {
+            period = 'monthly';
+            startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+        } else if (timeFrame === 'Yearly') {
+            period = 'yearly';
+            startDate = new Date(now.setFullYear(now.getFullYear() - 5));
+        } else {
+            // Default Daily
+            period = 'daily';
+            startDate = new Date(now.setDate(now.getDate() - 6));
+        }
+
+        const formatDate = (d) => d.toISOString().split('T')[0];
+
+        const filters = {
+            class_id: class_id ? parseInt(class_id) : null,
+            program_id: program_id ? parseInt(program_id) : null,
+            startDate: formatDate(startDate),
+            endDate: formatDate(new Date()),
+            period
+        };
+
+        const records = await Attendance.getAggregateLearningHours(filters);
+
+        // Transform for chart
+        const data = records.map(r => ({
+            name: r.label || r.date.toISOString().split('T')[0],
+            hours: parseInt(r.hours) || 0
+        }));
+
+        res.json(data);
+
+    } catch (err) {
+        console.error("Get admin learning hours error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
 // GET LEARNING HOURS SUMMARY (Card)
 export const getLearningHoursSummary = async (req, res) => {
     try {

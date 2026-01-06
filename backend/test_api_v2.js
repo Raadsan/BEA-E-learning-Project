@@ -1,7 +1,5 @@
 
-import fetch from 'node-fetch';
-
-async function testApi() {
+const testApi = async () => {
     try {
         const response = await fetch('http://localhost:5000/api/students/gender-distribution');
         const data = await response.json();
@@ -11,6 +9,6 @@ async function testApi() {
     } catch (error) {
         console.error('Error:', error);
     }
-}
+};
 
 testApi();

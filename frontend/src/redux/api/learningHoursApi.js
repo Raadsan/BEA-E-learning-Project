@@ -34,10 +34,21 @@ export const learningHoursApi = createApi({
             },
             providesTags: ["LearningHours"],
         }),
+        getAdminLearningHours: builder.query({
+            query: ({ program_id, class_id, timeFrame = 'Weekly' } = {}) => {
+                const params = new URLSearchParams();
+                if (program_id) params.append("program_id", program_id);
+                if (class_id) params.append("class_id", class_id);
+                if (timeFrame) params.append("timeFrame", timeFrame);
+                return `/learning-hours/admin?${params.toString()}`;
+            },
+            providesTags: ["LearningHours"],
+        }),
     }),
 });
 
 export const {
     useGetLearningHoursQuery,
     useGetLearningHoursSummaryQuery,
+    useGetAdminLearningHoursQuery,
 } = learningHoursApi;

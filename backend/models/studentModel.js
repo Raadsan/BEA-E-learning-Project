@@ -287,25 +287,24 @@ export const updateStudentProgramName = async (oldName, newName) => {
 
 // GET GENDER DISTRIBUTION
 export const getGenderDistribution = async (program_id, class_id) => {
-  let query = `
-    SELECT 
-      gender,
-      COUNT(*) as count
-    FROM students
-    LEFT JOIN programs p ON (students.chosen_program = p.id OR students.chosen_program = p.title)
-    WHERE 1=1
-  `;
-
+  let query = `SELECT gender, COUNT(*) as count FROM students`;
   const params = [];
+  const conditions = [];
 
+  // Only join if we need to filter by program
   if (program_id) {
-    query += ` AND p.id = ?`;
+    query += ` LEFT JOIN programs p ON (students.chosen_program = p.id OR students.chosen_program = p.title)`;
+    conditions.push(`p.id = ?`);
     params.push(program_id);
   }
 
   if (class_id) {
-    query += ` AND class_id = ?`;
+    conditions.push(`class_id = ?`);
     params.push(class_id);
+  }
+
+  if (conditions.length > 0) {
+    query += ` WHERE ${conditions.join(" AND ")}`;
   }
 
   query += ` GROUP BY gender`;

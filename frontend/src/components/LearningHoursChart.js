@@ -2,25 +2,18 @@
 
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { useGetLearningHoursQuery } from '@/redux/api/learningHoursApi';
+import { useGetAdminLearningHoursQuery } from '@/redux/api/learningHoursApi';
 
 const LearningHoursChart = ({ programs = [], classes = [] }) => {
     const [selectedProgram, setSelectedProgram] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
     const [timeFrame, setTimeFrame] = useState('Weekly');
 
-    // Mock data for a "perfect" look
-    const data = [
-        { name: 'Mon', hours: 120 },
-        { name: 'Tue', hours: 145 },
-        { name: 'Wed', hours: 130 },
-        { name: 'Thu', hours: 160 },
-        { name: 'Fri', hours: 155 },
-        { name: 'Sat', hours: 90 },
-        { name: 'Sun', hours: 85 },
-    ];
-
-    const isLoading = false;
+    const { data: chartData = [], isLoading } = useGetAdminLearningHoursQuery({
+        class_id: selectedClass || undefined,
+        program_id: selectedProgram || undefined,
+        timeFrame
+    });
 
     return (
         <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
@@ -29,7 +22,10 @@ const LearningHoursChart = ({ programs = [], classes = [] }) => {
                 <div className="flex gap-2 mb-4">
                     <select
                         value={selectedProgram}
-                        onChange={(e) => setSelectedProgram(e.target.value)}
+                        onChange={(e) => {
+                            setSelectedProgram(e.target.value);
+                            setSelectedClass(''); // Reset class selection
+                        }}
                         className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
                         <option value="">All Programs</option>
@@ -59,15 +55,14 @@ const LearningHoursChart = ({ programs = [], classes = [] }) => {
                         className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
                         <option value="">All Classes</option>
-                        {classes.length > 0 ? (
-                            classes.map((cls) => (
+                        {classes
+                            .filter(cls => !selectedProgram || cls.program_id == selectedProgram)
+                            .map((cls) => (
                                 <option key={cls.id} value={cls.id}>
                                     {cls.class_name}
                                 </option>
                             ))
-                        ) : (
-                            <option disabled>No Classes Available</option>
-                        )}
+                        }
                     </select>
                 </div>
             </div>
@@ -79,11 +74,11 @@ const LearningHoursChart = ({ programs = [], classes = [] }) => {
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="#010080" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#010080" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
@@ -110,7 +105,7 @@ const LearningHoursChart = ({ programs = [], classes = [] }) => {
                             <Area
                                 type="monotone"
                                 dataKey="hours"
-                                stroke="#8b5cf6"
+                                stroke="#010080"
                                 fillOpacity={1}
                                 fill="url(#colorHours)"
                                 name="Learning Hours"
@@ -121,24 +116,24 @@ const LearningHoursChart = ({ programs = [], classes = [] }) => {
             </div>
 
             {/* Summary */}
-            {data.length > 0 && (
+            {chartData.length > 0 && (
                 <div className="mt-4 grid grid-cols-3 gap-4">
-                    <div className="text-center p-3 bg-purple-50 rounded-lg">
-                        <p className="text-xs text-purple-600 font-medium">Total Hours</p>
-                        <p className="text-2xl font-bold text-purple-900">
-                            {data.reduce((sum, item) => sum + (item.hours || 0), 0)}
+                    <div className="text-center p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Total Hours</p>
+                        <p className="text-2xl font-bold text-[#010080]">
+                            {chartData.reduce((sum, item) => sum + (item.hours || 0), 0)}
                         </p>
                     </div>
-                    <div className="text-center p-3 bg-blue-50 rounded-lg">
-                        <p className="text-xs text-blue-600 font-medium">Avg Hours/Day</p>
-                        <p className="text-2xl font-bold text-blue-900">
-                            {(data.reduce((sum, item) => sum + (item.hours || 0), 0) / data.length).toFixed(1)}
+                    <div className="text-center p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Avg Hours/Day</p>
+                        <p className="text-2xl font-bold text-[#010080]">
+                            {(chartData.reduce((sum, item) => sum + (item.hours || 0), 0) / chartData.length).toFixed(1)}
                         </p>
                     </div>
-                    <div className="text-center p-3 bg-green-50 rounded-lg">
-                        <p className="text-xs text-green-600 font-medium">Peak Day</p>
-                        <p className="text-2xl font-bold text-green-900">
-                            {data.reduce((max, item) => item.hours > max.hours ? item : max, data[0])?.name || 'N/A'}
+                    <div className="text-center p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Peak Day</p>
+                        <p className="text-2xl font-bold text-[#010080]">
+                            {chartData.reduce((max, item) => item.hours > max.hours ? item : max, chartData[0])?.name || 'N/A'}
                         </p>
                     </div>
                 </div>
