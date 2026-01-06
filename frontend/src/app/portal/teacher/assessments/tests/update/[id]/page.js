@@ -163,10 +163,10 @@ export default function UpdateTestPage({ params: paramsPromise }) {
 
         try {
             await updateAssignment({ id, ...payload }).unwrap();
-            showToast("Test updated successfully!", "success");
+            showToast("Exam updated successfully!", "success");
             router.push("/portal/teacher/assessments/tests");
         } catch (err) {
-            showToast(err.data?.error || "Failed to update Test.", "error");
+            showToast(err.data?.error || "Failed to update Exam.", "error");
         }
     };
 
@@ -179,10 +179,10 @@ export default function UpdateTestPage({ params: paramsPromise }) {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                         <div>
                             <h1 className={`text-3xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                Update Test
+                                Update Exam
                             </h1>
                             <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-                                Modify the existing test details and questions.
+                                Modify the existing exam details and questions.
                             </p>
                         </div>
                         <button
@@ -202,12 +202,12 @@ export default function UpdateTestPage({ params: paramsPromise }) {
                             {/* 1. Basic Info Card - Google Form Header Style */}
                             <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl shadow-sm border-t-[10px] border-t-[#673ab7] p-8`}>
                                 <div className="flex items-center gap-2 mb-6">
-                                    <h2 className="text-xl font-semibold">General Settings</h2>
+                                    <h2 className="text-xl font-semibold">Exam Settings</h2>
                                 </div>
 
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Test Title</label>
+                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Exam Title</label>
                                         <input
                                             type="text"
                                             name="title"
@@ -304,7 +304,7 @@ export default function UpdateTestPage({ params: paramsPromise }) {
                                                     Updating...
                                                 </div>
                                             ) : (
-                                                "Save Test Changes"
+                                                "Save Exam Changes"
                                             )}
                                         </button>
                                     </div>

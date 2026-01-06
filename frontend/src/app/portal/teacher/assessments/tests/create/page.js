@@ -173,14 +173,14 @@ export default function CreateTestPage() {
         try {
             if (editId) {
                 await updateAssignment({ id: editId, ...payload }).unwrap();
-                showToast("Test updated successfully!", "success");
+                showToast("Exam updated successfully!", "success");
             } else {
                 await createAssignment(payload).unwrap();
-                showToast("Test created successfully!", "success");
+                showToast("Exam created successfully!", "success");
             }
             router.push("/portal/teacher/assessments/tests");
         } catch (err) {
-            showToast(err.data?.error || "Failed to save Test.", "error");
+            showToast(err.data?.error || "Failed to save Exam.", "error");
         }
     };
 
@@ -193,10 +193,10 @@ export default function CreateTestPage() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                         <div>
                             <h1 className={`text-3xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                {editId ? "Update Test" : "Create New Test"}
+                                {editId ? "Update Exam" : "Create New Exam"}
                             </h1>
                             <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-                                {editId ? "Modify the existing test details and questions." : "Define test settings and build your question bank."}
+                                {editId ? "Modify the existing exam details and questions." : "Define exam settings and build your question bank."}
                             </p>
                         </div>
                         <button
@@ -216,12 +216,12 @@ export default function CreateTestPage() {
                             {/* 1. Basic Info Card - Google Form Header Style */}
                             <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl shadow-sm border-t-[10px] border-t-[#673ab7] p-8`}>
                                 <div className="flex items-center gap-2 mb-6">
-                                    <h2 className="text-xl font-semibold">Test Details</h2>
+                                    <h2 className="text-xl font-semibold">Exam Details</h2>
                                 </div>
 
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Test Title</label>
+                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Exam Title</label>
                                         <input
                                             type="text"
                                             name="title"
@@ -239,7 +239,7 @@ export default function CreateTestPage() {
                                             onChange={handleDataChange}
                                             className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                                             rows="3"
-                                            placeholder="Describe the rules and content of this test..."
+                                            placeholder="Describe the rules and content of this exam..."
                                         />
                                     </div>
 
@@ -322,7 +322,7 @@ export default function CreateTestPage() {
                                                     Saving...
                                                 </div>
                                             ) : (
-                                                editId ? "Update Test Details" : "Publish Test"
+                                                editId ? "Update Exam Details" : "Publish Exam"
                                             )}
                                         </button>
                                     </div>
@@ -356,7 +356,7 @@ export default function CreateTestPage() {
 
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Question Text</label>
+                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Question</label>
                                         <textarea
                                             value={currentQuestion.questionText}
                                             onChange={(e) => setCurrentQuestion({ ...currentQuestion, questionText: e.target.value })}

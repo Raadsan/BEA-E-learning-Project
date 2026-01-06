@@ -395,7 +395,7 @@ export default function AssignmentManager({ type, title, description }) {
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                     </svg>
-                                    Add New {title}
+                                    Add New {title.endsWith('s') ? title.slice(0, -1) : title}
                                 </button>
                             )}
                         </div>
@@ -435,7 +435,7 @@ export default function AssignmentManager({ type, title, description }) {
                                             </svg>
                                         </div>
                                         <h3 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>No {title} Found</h3>
-                                        <p className="text-gray-500 max-w-xs mx-auto">Click the button above to create your first {title.toLowerCase()} and get started.</p>
+                                        <p className="text-gray-500 max-w-xs mx-auto">Click the button above to create your first {title.toLowerCase().endsWith('s') ? title.toLowerCase().slice(0, -1) : title.toLowerCase()} and get started.</p>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
