@@ -5,6 +5,7 @@ import {
   getAttendanceReport,
   getStats,
   getLearningHours,
+  getAdminLearningHours,
   getLearningHoursSummary
 } from "../controllers/attendanceController.js";
 import { verifyToken } from "../controllers/authController.js";
@@ -21,6 +22,7 @@ router.get("/stats", verifyToken, getStats);
 
 // Learning Hours (Student)
 router.get("/learning-hours", verifyToken, getLearningHours);
+router.get("/learning-hours/admin", verifyToken, getAdminLearningHours);
 router.get("/learning-hours/summary", verifyToken, getLearningHoursSummary);
 
 // Per-student attendance history for student dashboard

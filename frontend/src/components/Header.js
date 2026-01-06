@@ -73,6 +73,8 @@ export default function Header() {
 
   return (
     <header className={`sticky top-0 z-50 shadow-sm transition-colors duration-300 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`} style={{ fontFamily: 'var(--font-opensans)' }}>
+      {/* Top Blue Line Container */}
+      <div className="w-full h-11 bg-[#010080]"></div>
       <div className={`container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         {/* First Row: Logo, Search, Icons */}
         <div className={`flex items-center justify-between pt-10 pb-8 -mt-0 h-12 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
@@ -134,7 +136,7 @@ export default function Header() {
             </Link>
 
             {/* Mobile Menu Button */}
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className={`lg:hidden p-1 ${isDarkMode ? 'text-white' : 'text-gray-700'}`}
               aria-label="Toggle menu"
@@ -158,7 +160,7 @@ export default function Header() {
             <Link href="/" className={`text-sm xl:text-base hover:opacity-80 transition-colors ${isDarkMode ? 'text-white' : ''}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Home
             </Link>
-            
+
             {/* Programs Dropdown */}
             <div className="relative">
               <div className="flex items-center gap-1">
@@ -232,7 +234,7 @@ export default function Header() {
                             </svg>
                           )}
                         </div>
-                        
+
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className={`font-bold text-white mb-0.5 sm:mb-1 text-xs sm:text-sm leading-tight ${isDarkMode ? 'group-hover:text-blue-300' : 'group-hover:text-blue-200'}`}>
@@ -305,7 +307,7 @@ export default function Header() {
                             </svg>
                           )}
                         </div>
-                        
+
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className={`font-bold text-white mb-0.5 sm:mb-1 text-xs sm:text-sm leading-tight ${isDarkMode ? 'group-hover:text-blue-300' : 'group-hover:text-blue-200'}`}>
@@ -326,7 +328,7 @@ export default function Header() {
               Exams
             </Link>
             <Link href="/website/contact-us" className="text-sm xl:text-base hover:opacity-80 transition-colors" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
-              Contact us
+              Contact
             </Link>
           </nav>
         </div>
@@ -335,7 +337,7 @@ export default function Header() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)}>
-          <div 
+          <div
             className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
@@ -359,7 +361,7 @@ export default function Header() {
                 <Link href="/" className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors rounded-lg">
                   Home
                 </Link>
-                
+
                 {/* Mobile Programs Dropdown */}
                 <div>
                   <div className="w-full flex items-center justify-between px-4 py-2">
@@ -455,7 +457,7 @@ export default function Header() {
                               </svg>
                             )}
                           </div>
-                          
+
                           {/* Content */}
                           <div className="flex-1 min-w-0">
                             <div className={`font-bold text-white mb-0.5 sm:mb-1 text-xs sm:text-sm leading-tight ${isDarkMode ? 'group-hover:text-blue-300' : 'group-hover:text-blue-200'}`}>

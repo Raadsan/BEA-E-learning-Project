@@ -29,7 +29,10 @@ const GenderDistributionChart = ({ programs = [], classes = [] }) => {
                 <div className="flex gap-2 mb-4">
                     <select
                         value={selectedProgram}
-                        onChange={(e) => setSelectedProgram(e.target.value)}
+                        onChange={(e) => {
+                            setSelectedProgram(e.target.value);
+                            setSelectedClass(''); // Reset class
+                        }}
                         className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
                         <option value="">All Programs</option>
@@ -49,15 +52,14 @@ const GenderDistributionChart = ({ programs = [], classes = [] }) => {
                         className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
                         <option value="">All Classes</option>
-                        {classes.length > 0 ? (
-                            classes.map((cls) => (
+                        {classes
+                            .filter(cls => !selectedProgram || cls.program_id == selectedProgram)
+                            .map((cls) => (
                                 <option key={cls.id} value={cls.id}>
                                     {cls.class_name}
                                 </option>
                             ))
-                        ) : (
-                            <option disabled>No Classes Available</option>
-                        )}
+                        }
                     </select>
                 </div>
             </div>
