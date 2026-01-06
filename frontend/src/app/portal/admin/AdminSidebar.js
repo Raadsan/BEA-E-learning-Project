@@ -46,14 +46,14 @@ export default function AdminSidebar() {
       setOpenSubSection(null);
     } else if (pathname?.startsWith("/portal/admin/programs") ||
       pathname?.startsWith("/portal/admin/subprograms") ||
-      pathname?.startsWith("/portal/admin/courses")) {
+      pathname?.startsWith("/portal/admin/courses") ||
+      pathname?.includes("/learning-resources/materials")) {
       setOpenSection('academicManagement');
       setOpenSubSection(null);
-    } else if (pathname?.startsWith("/portal/admin/learning-resources/timetable") ||
-      pathname?.startsWith("/portal/admin/classes")) {
-      setOpenSection('timetableManagement');
-      setOpenSubSection(null);
-    } else if (pathname?.startsWith("/portal/admin/learning-resources")) {
+    } else if (pathname?.startsWith("/portal/admin/classes") ||
+      pathname?.startsWith("/portal/admin/learning-resources/timetable") ||
+      pathname?.startsWith("/portal/admin/learning-resources/sessions") ||
+      pathname?.startsWith("/portal/admin/learning-resources")) {
       setOpenSection('learningResources');
       setOpenSubSection(null);
     } else if (pathname?.startsWith("/portal/admin/assessments")) {
@@ -121,16 +121,16 @@ export default function AdminSidebar() {
   const getMenuItemClasses = (href, exact = false) => {
     const active = exact ? (pathname === href) : isActive(href);
     return `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
-        ? 'text-white font-semibold'
-        : 'text-gray-100 hover:bg-white/10 hover:text-white'
+      ? 'text-white font-semibold'
+      : 'text-gray-100 hover:bg-white/10 hover:text-white'
       }`;
   };
 
   const getSubMenuItemClasses = (href) => {
     const active = isActive(href);
     return `flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm ${active
-        ? 'text-white font-semibold'
-        : 'text-gray-300 hover:bg-white/10 hover:text-white'
+      ? 'text-white font-semibold'
+      : 'text-gray-300 hover:bg-white/10 hover:text-white'
       }`;
   };
 
@@ -154,8 +154,8 @@ export default function AdminSidebar() {
   const getDropdownButtonClasses = (sectionId) => {
     const isOpen = openSection === sectionId;
     return `w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isOpen
-        ? 'text-white font-semibold'
-        : 'text-gray-100 hover:bg-white/10 hover:text-white'
+      ? 'text-white font-semibold'
+      : 'text-gray-100 hover:bg-white/10 hover:text-white'
       }`;
   };
 
@@ -320,10 +320,9 @@ export default function AdminSidebar() {
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/learning-resources/materials") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
-                    <span className={isActive("/portal/admin/learning-resources/materials") ? 'text-white' : 'text-gray-100'}>Course Materials </span>
+                    <span className={isActive("/portal/admin/learning-resources/materials") ? 'text-white' : 'text-gray-100'}>Course Materials</span>
                   </Link>
                 </li>
-
               </ul>
             )}
           </li>
@@ -346,7 +345,6 @@ export default function AdminSidebar() {
             </button>
             {openSection === 'learningResources' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
-
                 <li>
                   <Link href="/portal/admin/classes" className={getSubMenuItemClasses("/portal/admin/classes")} style={getSubActiveStyle("/portal/admin/classes")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
