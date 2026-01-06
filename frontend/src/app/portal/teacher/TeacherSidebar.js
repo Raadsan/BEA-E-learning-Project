@@ -159,7 +159,7 @@ export default function TeacherSidebar() {
             </Link>
           </li>
 
-          {/* Tests */}
+          {/* Exams */}
           <li>
             <Link href="/portal/teacher/assessments/tests" className={getMenuItemClasses("/portal/teacher/assessments/tests")} style={getActiveStyle("/portal/teacher/assessments/tests")}>
               <svg className={getIconClasses("/portal/teacher/assessments/tests")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
