@@ -58,16 +58,16 @@ export default function TeacherSidebar() {
   const getMenuItemClasses = (href, exact = false) => {
     const active = exact ? (pathname === href) : isActive(href);
     return `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
-        ? 'text-white font-semibold'
-        : 'text-gray-100 hover:bg-white/10 hover:text-white'
+      ? 'text-white font-semibold'
+      : 'text-gray-100 hover:bg-white/10 hover:text-white'
       }`;
   };
 
   const getSubMenuItemClasses = (href) => {
     const active = isActive(href);
     return `flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm ${active
-        ? 'text-white font-semibold'
-        : 'text-gray-300 hover:bg-white/10 hover:text-white'
+      ? 'text-white font-semibold'
+      : 'text-gray-300 hover:bg-white/10 hover:text-white'
       }`;
   };
 
@@ -89,8 +89,8 @@ export default function TeacherSidebar() {
   const getDropdownButtonClasses = (sectionId) => {
     const isOpen = openSection === sectionId;
     return `w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isOpen
-        ? 'text-white font-semibold'
-        : 'text-gray-100 hover:bg-white/10 hover:text-white'
+      ? 'text-white font-semibold'
+      : 'text-gray-100 hover:bg-white/10 hover:text-white'
       }`;
   };
 
@@ -129,32 +129,14 @@ export default function TeacherSidebar() {
 
 
 
-          {/* My Classes Dropdown */}
+          {/* My Classes */}
           <li>
-            <button
-              onClick={() => toggleSection('myClasses')}
-              className={getDropdownButtonClasses('myClasses')}
-              style={getDropdownButtonStyle('myClasses')}
-            >
-              <div className="flex items-center gap-3">
-                <svg className={`w-5 h-5 ${openSection === 'myClasses' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span className="font-medium text-sm">My Classes</span>
-              </div>
-              <svg className={`w-4 h-4 transition-transform duration-200 ${openSection === 'myClasses' ? 'rotate-180' : ''} text-gray-100`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <Link href="/portal/teacher/my-classes" className={getMenuItemClasses("/portal/teacher/my-classes")} style={getActiveStyle("/portal/teacher/my-classes")}>
+              <svg className={getIconClasses("/portal/teacher/my-classes")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-            </button>
-            {openSection === 'myClasses' && (
-              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
-                <li>
-                  <Link href="/portal/teacher/my-classes" className={getSubMenuItemClasses("/portal/teacher/my-classes")} style={getSubActiveStyle("/portal/teacher/my-classes")}>
-                    <span className="text-sm">Class List</span>
-                  </Link>
-                </li>
-              </ul>
-            )}
+              <span className="font-medium text-sm">My Classes</span>
+            </Link>
           </li>
 
           {/* Writing Tasks */}
