@@ -325,7 +325,7 @@ export const getGenderDistribution = async (program_id, class_id) => {
 export const getTopStudents = async (limit = 10, program_id, class_id) => {
   let query = `
     SELECT 
-      s.id,
+      s.student_id,
       s.full_name,
       s.email,
       s.residency_country,
@@ -340,8 +340,8 @@ export const getTopStudents = async (limit = 10, program_id, class_id) => {
     FROM students s
     LEFT JOIN classes c ON s.class_id = c.id
     LEFT JOIN programs p ON (s.chosen_program = p.id OR s.chosen_program = p.title)
-    LEFT JOIN attendance a ON s.id = a.student_id
-    LEFT JOIN assignment_submissions asub ON s.id = asub.student_id AND asub.status = 'graded'
+    LEFT JOIN attendance a ON s.student_id = a.student_id
+    LEFT JOIN assignment_submissions asub ON s.student_id = asub.student_id AND asub.status = 'graded'
     WHERE s.approval_status = 'approved'
   `;
 
@@ -358,7 +358,7 @@ export const getTopStudents = async (limit = 10, program_id, class_id) => {
   }
 
   query += `
-    GROUP BY s.id, s.full_name, s.email, s.residency_country, s.residency_city, s.chosen_program, c.class_name, p.title
+    GROUP BY s.student_id, s.full_name, s.email, s.residency_country, s.residency_city, s.chosen_program, c.class_name, p.title
     HAVING total_sessions > 0
     ORDER BY attendance_rate DESC, avg_assignment_score DESC
     LIMIT ?
@@ -403,7 +403,7 @@ export const getStudentLocations = async (program_id) => {
 // GET STUDENTS BY CLASS ID
 export const getStudentsByClassId = async (classId) => {
   const [rows] = await dbp.query(
-    `SELECT s.id, s.full_name, s.email, s.phone, s.age, s.gender, s.residency_country, s.residency_city, 
+    `SELECT s.student_id, s.full_name, s.email, s.phone, s.age, s.gender, s.residency_country, s.residency_city, 
      s.chosen_program, s.chosen_subprogram, s.parent_name, s.parent_email, s.parent_phone, 
      s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, 
      s.created_at, s.updated_at
