@@ -79,6 +79,9 @@ export default function AdminSidebar() {
     } else if (pathname?.startsWith("/portal/admin/communication")) {
       setOpenSection('communication');
       setOpenSubSection(null);
+    } else if (pathname?.includes("students-requests")) {
+      setOpenSection('studentRequests');
+      setOpenSubSection(null);
     } else if (pathname?.startsWith("/portal/admin/reports")) {
       setOpenSection('reports');
       setOpenSubSection(null);
@@ -505,24 +508,43 @@ export default function AdminSidebar() {
             )}
           </li>
 
-          {/* Session Requests */}
+          {/* Student Requests Dropdown */}
           <li>
-            <Link href="/portal/admin/session-requests" className={getMenuItemClasses("/portal/admin/session-requests")} style={getActiveStyle("/portal/admin/session-requests")}>
-              <svg className={getIconClasses("/portal/admin/session-requests")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <button
+              onClick={() => toggleSection('studentRequests')}
+              className={getDropdownButtonClasses('studentRequests')}
+              style={getDropdownButtonStyle('studentRequests')}
+            >
+              <div className="flex items-center gap-3">
+                <svg className={`w-5 h-5 ${openSection === 'studentRequests' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                <span className={`font-medium text-sm ${openSection === 'studentRequests' ? 'text-white' : 'text-gray-100'}`}>Students Requests</span>
+              </div>
+              <svg className={`w-4 h-4 ${openSection === 'studentRequests' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'studentRequests' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
-              <span className={getTextClasses("/portal/admin/session-requests")}>Session Requests</span>
-            </Link>
-          </li>
-
-          {/* Freezing Requests */}
-          <li>
-            <Link href="/portal/admin/freezing-requests" className={getMenuItemClasses("/portal/admin/freezing-requests")} style={getActiveStyle("/portal/admin/freezing-requests")}>
-              <svg className={getIconClasses("/portal/admin/freezing-requests")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <span className={getTextClasses("/portal/admin/freezing-requests")}>Freezing Requests</span>
-            </Link>
+            </button>
+            {openSection === 'studentRequests' && (
+              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                <li>
+                  <Link href="/portal/admin/students-requests/session" className={getSubMenuItemClasses("/portal/admin/students-requests/session")} style={getSubActiveStyle("/portal/admin/students-requests/session")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/students-requests/session") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/students-requests/session") ? 'text-white' : 'text-gray-100'}>Session Requests</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/students-requests/freezing" className={getSubMenuItemClasses("/portal/admin/students-requests/freezing")} style={getSubActiveStyle("/portal/admin/students-requests/freezing")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/students-requests/freezing") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/students-requests/freezing") ? 'text-white' : 'text-gray-100'}>Freezing Requests</span>
+                  </Link>
+                </li>
+              </ul>
+            )}
           </li>
 
           {/* Payments */}

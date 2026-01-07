@@ -209,6 +209,7 @@ export default function TeacherSidebar() {
             </Link>
           </li>
 
+
           {/* Reports */}
           <li>
             <Link href="/portal/teacher/reports" className={getMenuItemClasses("/portal/teacher/reports")} style={getActiveStyle("/portal/teacher/reports")}>
