@@ -34,6 +34,18 @@ export default function OnlineSessionsPage() {
             render: (row) => row.subprogram_name || "N/A",
         },
         {
+            key: "shift_info",
+            label: "Shift & Schedule",
+            render: (row) => (
+                row.shift_name ? (
+                    <div className="flex flex-col text-xs">
+                        <span className="font-bold text-blue-600">{row.shift_name}</span>
+                        <span className="text-gray-500">{row.shift_start?.substring(0, 5)} - {row.shift_end?.substring(0, 5)}</span>
+                    </div>
+                ) : <span className="text-gray-400">No shift</span>
+            ),
+        },
+        {
             key: "actions",
             label: "Actions",
             render: (row) => (

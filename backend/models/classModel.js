@@ -4,10 +4,10 @@ import db from "../database/dbconfig.js";
 const dbp = db.promise();
 
 // CREATE class
-export const createClass = async ({ class_name, description, subprogram_id, teacher_id, type }) => {
+export const createClass = async ({ class_name, description, subprogram_id, teacher_id, shift_id }) => {
   const [result] = await dbp.query(
-    "INSERT INTO classes (class_name, description, subprogram_id, teacher_id, type) VALUES (?, ?, ?, ?, ?)",
-    [class_name, description || null, subprogram_id || null, teacher_id || null, type || 'morning']
+    "INSERT INTO classes (class_name, description, subprogram_id, teacher_id, shift_id) VALUES (?, ?, ?, ?, ?)",
+    [class_name, description || null, subprogram_id || null, teacher_id || null, shift_id || null]
   );
 
   const [newClass] = await dbp.query("SELECT * FROM classes WHERE id = ?", [result.insertId]);
@@ -22,12 +22,17 @@ export const getAllClasses = async () => {
             s.subprogram_name,
             s.program_id,
             p.title as program_name,
+            sh.shift_name,
+            sh.session_type as shift_session,
+            sh.start_time as shift_start,
+            sh.end_time as shift_end,
             cs.schedule_date as latest_schedule_date,
             cs.zoom_link as latest_zoom_link
      FROM classes cl
      LEFT JOIN teachers t ON cl.teacher_id = t.id
      LEFT JOIN subprograms s ON cl.subprogram_id = s.id
      LEFT JOIN programs p ON s.program_id = p.id
+     LEFT JOIN shifts sh ON cl.shift_id = sh.id
      LEFT JOIN class_schedules cs ON cl.id = cs.class_id
        AND cs.schedule_date = (
          SELECT MAX(schedule_date) FROM class_schedules
@@ -45,12 +50,17 @@ export const getClassById = async (id) => {
             t.full_name as teacher_name,
             s.subprogram_name,
             p.title as program_name,
+            sh.shift_name,
+            sh.session_type as shift_session,
+            sh.start_time as shift_start,
+            sh.end_time as shift_end,
             cs.schedule_date as latest_schedule_date,
             cs.zoom_link as latest_zoom_link
      FROM classes cl
      LEFT JOIN teachers t ON cl.teacher_id = t.id
      LEFT JOIN subprograms s ON cl.subprogram_id = s.id
      LEFT JOIN programs p ON s.program_id = p.id
+     LEFT JOIN shifts sh ON cl.shift_id = sh.id
      LEFT JOIN class_schedules cs ON cl.id = cs.class_id
        AND cs.schedule_date = (
          SELECT MAX(schedule_date) FROM class_schedules
@@ -59,6 +69,12 @@ export const getClassById = async (id) => {
      WHERE cl.id = ?`,
     [id]
   );
+  return rows[0] || null;
+};
+
+// GET class by Name (for uniqueness check)
+export const getClassByName = async (name) => {
+  const [rows] = await dbp.query("SELECT * FROM classes WHERE class_name = ?", [name]);
   return rows[0] || null;
 };
 
@@ -88,7 +104,7 @@ export const getClassesByTeacherId = async (teacher_id) => {
 };
 
 // UPDATE class
-export const updateClassById = async (id, { class_name, subprogram_id, description, teacher_id, type }) => {
+export const updateClassById = async (id, { class_name, subprogram_id, description, teacher_id, shift_id }) => {
   const updates = [];
   const values = [];
 
@@ -108,9 +124,9 @@ export const updateClassById = async (id, { class_name, subprogram_id, descripti
     updates.push("teacher_id = ?");
     values.push(teacher_id || null);
   }
-  if (type !== undefined) {
-    updates.push("type = ?");
-    values.push(type);
+  if (shift_id !== undefined) {
+    updates.push("shift_id = ?");
+    values.push(shift_id || null);
   }
 
   if (updates.length === 0) {

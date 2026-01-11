@@ -24,6 +24,7 @@ import attendanceRoutes from "./routes/attendanceRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
 import materialRoutes from "./routes/materialRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import shiftRoutes from "./routes/shiftRoutes.js";
 
 const app = express();
 
@@ -79,6 +80,9 @@ app.use("/api/admins", adminRoutes);
 
 // ⬇️ Register User Routes
 app.use("/api/users", userRoutes);
+
+// ⬇️ Register Shift Routes
+app.use("/api/shifts", shiftRoutes);
 
 // ⬇️ Register Assignment Routes
 app.use("/api/assignments", assignmentRoutes);

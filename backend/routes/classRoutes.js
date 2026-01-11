@@ -28,8 +28,8 @@ router.get("/all-schedules", verifyToken, getAllClassSchedules); // Get all sche
 router.get("/course/:course_id", getClassesByCourseId);
 router.get("/:id", getClass);
 router.post("/", createClass);
-router.post("/create-for-subprogram", createClassesForSubprogram); // Create morning and night classes for a single subprogram
-router.post("/create-for-all-subprograms", createClassesForAllSubprograms); // Create morning and night classes for ALL subprograms
+router.post("/create-for-subprogram", createClassesForSubprogram);
+router.post("/create-for-all-subprograms", createClassesForAllSubprograms);
 router.put("/:id", updateClass);
 router.delete("/:id", deleteClass);
 

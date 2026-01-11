@@ -6,10 +6,16 @@ import * as Subprogram from "../models/subprogramModel.js";
 export const createClass = async (req, res) => {
   try {
     console.log("Create Class Body:", req.body);
-    const { class_name, description, subprogram_id, teacher_id, type } = req.body;
+    const { class_name, description, subprogram_id, teacher_id, shift_id } = req.body;
 
     if (!class_name) {
       return res.status(400).json({ error: "Class name is required" });
+    }
+
+    // Check for uniqueness
+    const existing = await Class.getClassByName(class_name);
+    if (existing) {
+      return res.status(400).json({ error: `Class name "${class_name}" already exists. Please choose a unique name.` });
     }
 
     const classItem = await Class.createClass({
@@ -17,7 +23,7 @@ export const createClass = async (req, res) => {
       description,
       subprogram_id,
       teacher_id,
-      type
+      shift_id
     });
 
     res.status(201).json({ message: "Class created", class: classItem });
@@ -83,6 +89,14 @@ export const updateClass = async (req, res) => {
     const existing = await Class.getClassById(id);
 
     if (!existing) return res.status(404).json({ error: "Not found" });
+
+    // If name is changing, check for uniqueness
+    if (req.body.class_name && req.body.class_name !== existing.class_name) {
+      const duplicate = await Class.getClassByName(req.body.class_name);
+      if (duplicate) {
+        return res.status(400).json({ error: `Class name "${req.body.class_name}" is already taken.` });
+      }
+    }
 
     await Class.updateClassById(id, req.body);
 
@@ -204,7 +218,7 @@ export const createClassesForAllSubprograms = async (req, res) => {
 
     // Get all subprograms
     const allSubprograms = await Subprogram.getAllSubprograms();
-    
+
     if (allSubprograms.length === 0) {
       return res.status(404).json({ error: "No subprograms found" });
     }

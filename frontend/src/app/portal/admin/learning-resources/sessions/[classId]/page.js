@@ -28,11 +28,12 @@ export default function ClassSessionsPage() {
     const [sessionRows, setSessionRows] = useState([]);
 
     const getDefaultTimes = () => {
-        if (!classDetails?.type) return { start: "", end: "" };
-        const type = classDetails.type.toLowerCase();
-        if (type.includes("morning")) return { start: "08:00", end: "10:00" };
-        if (type.includes("afternoon")) return { start: "16:00", end: "18:00" };
-        if (type.includes("night")) return { start: "20:00", end: "22:00" };
+        if (classDetails?.shift_start && classDetails?.shift_end) {
+            return {
+                start: classDetails.shift_start.substring(0, 5),
+                end: classDetails.shift_end.substring(0, 5)
+            };
+        }
         return { start: "", end: "" };
     };
 
@@ -298,8 +299,13 @@ export default function ClassSessionsPage() {
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500 mb-1">Class *</label>
-                                    <div className="text-lg font-semibold text-gray-800 border rounded-lg px-4 py-2 bg-gray-50 w-full min-w-[300px]">
-                                        {classDetails ? `${classDetails.class_name}${classDetails.type ? ` (${classDetails.type})` : ''}` : 'Loading Class...'}
+                                    <div className="text-lg font-semibold text-gray-800 border rounded-lg px-4 py-2 bg-gray-50 w-full min-w-[300px] flex items-center justify-between">
+                                        <span>{classDetails ? classDetails.class_name : 'Loading Class...'}</span>
+                                        {classDetails?.shift_name && (
+                                            <span className="text-sm font-medium bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+                                                {classDetails.shift_name} - {classDetails.shift_session}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                                 <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
@@ -375,7 +381,9 @@ export default function ClassSessionsPage() {
                                                             type="time"
                                                             value={row.startTime}
                                                             onChange={(e) => handleRowChange(index, "startTime", e.target.value)}
-                                                            className="w-full text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-blue-600"
+                                                            readOnly={!!classDetails?.shift_start}
+                                                            className={`w-full text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-blue-600 font-semibold ${classDetails?.shift_start ? 'bg-gray-50 cursor-not-allowed border-dashed' : ''}`}
+                                                            title={classDetails?.shift_start ? "Time is locked to Shift Schedule" : ""}
                                                         />
                                                     </td>
                                                     <td className="px-4 py-3">
@@ -383,7 +391,9 @@ export default function ClassSessionsPage() {
                                                             type="time"
                                                             value={row.endTime}
                                                             onChange={(e) => handleRowChange(index, "endTime", e.target.value)}
-                                                            className="w-full text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-blue-600"
+                                                            readOnly={!!classDetails?.shift_end}
+                                                            className={`w-full text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-blue-600 font-semibold ${classDetails?.shift_end ? 'bg-gray-50 cursor-not-allowed border-dashed' : ''}`}
+                                                            title={classDetails?.shift_end ? "Time is locked to Shift Schedule" : ""}
                                                         />
                                                     </td>
                                                     {!editingSession && (

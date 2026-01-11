@@ -1,94 +1,73 @@
 // controllers/classScheduleController.js
-import * as ClassSchedule from "../models/classScheduleModel.js";
+import * as ClassScheduleModel from "../models/classScheduleModel.js";
 
-// CREATE class schedule
 export const createClassSchedule = async (req, res) => {
-  try {
-    const { class_id } = req.params;
-    const { schedule_date, zoom_link, start_time, end_time, title } = req.body;
+    try {
+        const { class_id } = req.params;
+        const { session_title, zoom_link, schedule_date, start_time, end_time } = req.body;
 
-    if (!class_id || !schedule_date) {
-      return res.status(400).json({ error: "Class ID and schedule date are required" });
+        // Support bulk create if body is array (optional, based on frontend)
+        if (Array.isArray(req.body)) {
+            const results = await Promise.all(req.body.map(item =>
+                ClassScheduleModel.createClassSchedule({ ...item, class_id })
+            ));
+            return res.status(201).json({ message: "Schedules created", ids: results });
+        }
+
+        const id = await ClassScheduleModel.createClassSchedule({
+            class_id, session_title, zoom_link, schedule_date, start_time, end_time
+        });
+        res.status(201).json({ id, message: "Schedule created successfully" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    const scheduleItem = await ClassSchedule.createClassSchedule({
-      class_id,
-      schedule_date,
-      zoom_link,
-      start_time,
-      end_time,
-      title
-    });
-
-    res.status(201).json({ message: "Class schedule created", schedule: scheduleItem });
-  } catch (err) {
-    console.error("❌ Create class schedule error:", err);
-    res.status(500).json({ error: "Server error: " + err.message });
-  }
 };
 
-// GET all schedules for a class
 export const getClassSchedules = async (req, res) => {
-  try {
-    const { class_id } = req.params;
-    const schedules = await ClassSchedule.getClassSchedules(class_id);
-    res.json(schedules);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
+    try {
+        const { class_id } = req.params;
+        const schedules = await ClassScheduleModel.getClassSchedulesByClassId(class_id);
+        res.status(200).json(schedules);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
-// GET all schedules (Admin)
 export const getAllClassSchedules = async (req, res) => {
-  try {
-    const schedules = await ClassSchedule.getAllClassSchedules();
-    res.json(schedules);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
+    try {
+        const schedules = await ClassScheduleModel.getAllClassSchedules();
+        res.status(200).json(schedules);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
-// UPDATE class schedule
 export const updateClassSchedule = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const existing = await ClassSchedule.getScheduleById(id);
-
-    if (!existing) return res.status(404).json({ error: "Schedule not found" });
-
-    await ClassSchedule.updateClassSchedule(id, req.body);
-
-    const updated = await ClassSchedule.getScheduleById(id);
-    res.json({ message: "Updated", schedule: updated });
-  } catch (err) {
-    console.error("Update class schedule error:", err);
-    res.status(500).json({ error: "Server error: " + err.message });
-  }
+    try {
+        const { id } = req.params;
+        await ClassScheduleModel.updateClassSchedule(id, req.body);
+        res.status(200).json({ message: "Schedule updated successfully" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
-// DELETE class schedule
 export const deleteClassSchedule = async (req, res) => {
-  try {
-    const { id } = req.params;
-    await ClassSchedule.deleteClassSchedule(id);
-    res.json({ message: "Class schedule deleted" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
+    try {
+        const { id } = req.params;
+        await ClassScheduleModel.deleteClassSchedule(id);
+        res.status(200).json({ message: "Schedule deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
-// GET schedules for student's classes (calendar view)
 export const getStudentSchedules = async (req, res) => {
-  try {
-    const { userId } = req.user; // Student ID from JWT
-
-    const schedules = await ClassSchedule.getSchedulesForStudent(userId);
-    res.json(schedules);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
+    try {
+        const student_id = req.user.id; // From verifyToken
+        const schedules = await ClassScheduleModel.getStudentSchedules(student_id);
+        res.status(200).json(schedules);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
