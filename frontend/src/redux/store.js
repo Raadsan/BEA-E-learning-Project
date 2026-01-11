@@ -24,6 +24,7 @@ import { freezingApi } from "../redux/api/freezingApi.js";
 import { timetableApi } from "../redux/api/timetableApi.js";
 import { eventApi } from "../redux/api/eventApi.js";
 import { shiftApi } from "../redux/api/shiftApi.js";
+import { uploadApi } from "../redux/api/uploadApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -52,6 +53,7 @@ export const store = configureStore({
     [timetableApi.reducerPath]: timetableApi.reducer,
     [eventApi.reducerPath]: eventApi.reducer,
     [shiftApi.reducerPath]: shiftApi.reducer,
+    [uploadApi.reducerPath]: uploadApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -79,6 +81,7 @@ export const store = configureStore({
       freezingApi.middleware,
       timetableApi.middleware,
       eventApi.middleware,
-      shiftApi.middleware
+      shiftApi.middleware,
+      uploadApi.middleware
     ),
 });

@@ -15,10 +15,25 @@ export default function PlacementTestPage() {
     skip: !user.id && !user.student_id,
   });
 
-  // Find the active test (for now, just the first one)
-  const activeTest = tests?.find(t => t.status === 'active') || tests?.[0];
+  // Determine the active test (deterministically random for each student)
+  const activeTest = React.useMemo(() => {
+    if (!tests || tests.length === 0) return null;
+    const activeTests = tests.filter(t => t.status === 'active');
+    if (activeTests.length === 0) return tests[0];
 
-  const hasTakenTest = results?.find(r => r.test_id === (activeTest?.id || activeTest?.test_id));
+    // Simple deterministic hash based on student_id to pick a test
+    const studentId = user.id || user.student_id || "guest";
+    let hash = 0;
+    for (let i = 0; i < studentId.toString().length; i++) {
+      hash = (hash << 5) - hash + studentId.toString().charCodeAt(i);
+      hash |= 0; // Convert to 32bit integer
+    }
+
+    const index = Math.abs(hash) % activeTests.length;
+    return activeTests[index];
+  }, [tests, user.id, user.student_id]);
+
+  const hasTakenTest = results?.find(r => r.student_id === (user.id || user.student_id)); // Check for any placement test taken by this student
 
   React.useEffect(() => {
     if (hasTakenTest) {

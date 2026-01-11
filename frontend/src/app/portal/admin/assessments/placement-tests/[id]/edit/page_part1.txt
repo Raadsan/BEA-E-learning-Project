@@ -1,0 +1,146 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useGetPlacementTestByIdQuery, useUpdatePlacementTestMutation } from "@/redux/api/placementTestApi";
+import AdminHeader from "@/components/AdminHeader";
+import { useToast } from "@/components/Toast";
+import Loader from "@/components/Loader";
+import { v4 as uuidv4 } from "uuid";
+
+export default function EditPlacementTestPage() {
+    const router = useRouter();
+    const { id } = useParams();
+    const { showToast } = useToast();
+
+    // Fetch existing test data
+    const { data: test, isLoading: isFetching, error } = useGetPlacementTestByIdQuery(id);
+    const [updateTest, { isLoading: isUpdating }] = useUpdatePlacementTestMutation();
+
+    const [testData, setTestData] = useState({
+        title: "",
+        description: "",
+        duration_minutes: 60,
+        status: "active",
+    });
+
+    const [questions, setQuestions] = useState([]);
+    const [editingIndex, setEditingIndex] = useState(null);
+    const [questionType, setQuestionType] = useState("mcq");
+
+    // MCQ state
+    const [currentMCQ, setCurrentMCQ] = useState({
+        id: uuidv4(),
+        type: "mcq",
+        questionText: "",
+        options: ["", ""],
+        correctOption: 0,
+        points: 5,
+    });
+
+    // Passage state
+    const [currentPassage, setCurrentPassage] = useState({
+        id: uuidv4(),
+        type: "passage",
+        passageText: "",
+        subQuestions: [],
+        points: 0,
+    });
+
+    // Essay state
+    const [currentEssay, setCurrentEssay] = useState({
+        id: uuidv4(),
+        type: "essay",
+        title: "",
+        description: "",
+        maxWords: 250,
+        points: 10,
+    });
+
+    // Populate form when data fetches
+    useEffect(() => {
+        if (test) {
+            setTestData({
+                title: test.title,
+                description: test.description || "",
+                duration_minutes: test.duration_minutes,
+                status: test.status,
+            });
+            // Ensure questions is an array if fetched
+            setQuestions(Array.isArray(test.questions) ? test.questions : []);
+        }
+    }, [test]);
+
+    const handleTestChange = (e) => {
+        setTestData({ ...testData, [e.target.name]: e.target.value });
+    };
+
+    const addToTestList = () => {
+        let q = null;
+        if (questionType === "mcq") {
+            if (!currentMCQ.questionText || currentMCQ.options.some(o => !o)) {
+                return showToast("Fill all MCQ fields", "error");
+            }
+            q = { ...currentMCQ };
+        } else if (questionType === "passage") {
+            if (!currentPassage.passageText || currentPassage.subQuestions.length === 0) {
+                return showToast("Add passage text and sub-questions", "error");
+            }
+            const totalPoints = currentPassage.subQuestions.reduce((acc, sq) => acc + (parseInt(sq.points) || 0), 0);
+            q = { ...currentPassage, points: totalPoints };
+        } else if (questionType === "essay") {
+            if (!currentEssay.title) {
+                return showToast("Add essay title", "error");
+            }
+            q = { ...currentEssay };
+        }
+
+        if (editingIndex !== null) {
+            const updated = [...questions];
+            updated[editingIndex] = q;
+            setQuestions(updated);
+            setEditingIndex(null);
+            showToast("Question updated", "success");
+        } else {
+            setQuestions([...questions, q]);
+            showToast("Question added", "success");
+        }
+
+        // Reset
+        if (questionType === "mcq") setCurrentMCQ({ id: uuidv4(), type: "mcq", questionText: "", options: ["", ""], correctOption: 0, points: 5 });
+        else if (questionType === "passage") setCurrentPassage({ id: uuidv4(), type: "passage", passageText: "", subQuestions: [], points: 0 });
+        else setCurrentEssay({ id: uuidv4(), type: "essay", title: "", description: "", maxWords: 250, points: 10 });
+    };
+
+    const handleEdit = (idx) => {
+        const q = questions[idx];
+        setQuestionType(q.type);
+        if (q.type === "mcq") setCurrentMCQ(q);
+        else if (q.type === "passage") setCurrentPassage(q);
+        else setCurrentEssay(q);
+        setEditingIndex(idx);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (questions.length === 0) {
+            showToast("Please add at least one question.", "error");
+            return;
+        }
+
+        try {
+            await updateTest({ id, ...testData, questions }).unwrap();
+            showToast("Test updated successfully!", "success");
+            router.push("/portal/admin/assessments/placement-tests");
+        } catch (err) {
+            showToast("Failed to update test.", "error");
+            console.error(err);
+        }
+    };
+
+    const totalMarks = questions.reduce((acc, q) => acc + (parseInt(q.points) || 0), 0);
+
+    if (isFetching) return <div className="flex justify-center items-center h-screen"><Loader /></div>;
+    if (error) return <div className="p-8 text-center text-red-500">Error loading test details.</div>;
+
+    return (

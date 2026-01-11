@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useGetProficiencyTestsQuery, useDeleteProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
 import AdminHeader from "@/components/AdminHeader";
 import { useRouter } from "next/navigation";
@@ -93,12 +92,12 @@ export default function ProficiencyTestsPage() {
                         <div>
                             <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Proficiency Tests</h1>
                             <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                Manage and view all English proficiency tests.
+                                Manage and view all available proficiency tests.
                             </p>
                         </div>
                         <button
                             onClick={handleCreateClick}
-                            className="bg-[#010080] hover:bg-[#000066] text-white px-6 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-lg shadow-blue-900/20 font-medium"
+                            className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-semibold shadow-sm`}
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -135,7 +134,7 @@ export default function ProficiencyTestsPage() {
                                 </svg>
                             </div>
                             <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No Proficiency Tests Yet</h3>
-                            <p className="text-gray-500 max-w-sm mx-auto mb-6">Create your first proficiency test to assess English language skills.</p>
+                            <p className="text-gray-500 max-w-sm mx-auto mb-6">Create your first proficiency test to start assessing student levels.</p>
                             <button
                                 onClick={handleCreateClick}
                                 className="text-[#010080] font-medium hover:underline"
@@ -154,13 +153,10 @@ export default function ProficiencyTestsPage() {
                                     description={test.description}
                                     onClick={() => handleView(null, test.id)}
                                     topActions={
-                                        <>
+                                        <div className="flex items-center gap-3">
                                             <button
                                                 onClick={(e) => handleView(e, test.id)}
-                                                className={`p-2 rounded-lg transition-colors ${isDark
-                                                    ? 'text-green-400 hover:bg-green-900/20'
-                                                    : 'text-green-600 hover:bg-green-50'
-                                                    }`}
+                                                className="text-green-600 hover:text-green-800 transition-colors"
                                                 title="View Details"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,10 +166,7 @@ export default function ProficiencyTestsPage() {
                                             </button>
                                             <button
                                                 onClick={(e) => handleEdit(e, test.id)}
-                                                className={`p-2 rounded-lg transition-colors ${isDark
-                                                    ? 'text-blue-400 hover:bg-blue-900/20'
-                                                    : 'text-blue-600 hover:bg-blue-50'
-                                                    }`}
+                                                className="text-blue-600 hover:text-blue-800 transition-colors"
                                                 title="Edit Test"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,17 +175,14 @@ export default function ProficiencyTestsPage() {
                                             </button>
                                             <button
                                                 onClick={(e) => handleDelete(e, test.id)}
-                                                className={`p-2 rounded-lg transition-colors ${isDark
-                                                    ? 'text-red-400 hover:bg-red-900/20'
-                                                    : 'text-red-600 hover:bg-red-50'
-                                                    }`}
+                                                className="text-red-600 hover:text-red-800 transition-colors"
                                                 title="Delete Test"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
                                             </button>
-                                        </>
+                                        </div>
                                     }
                                     details={[
                                         {
@@ -202,17 +192,6 @@ export default function ProficiencyTestsPage() {
                                         {
                                             icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
                                             text: `${test.questions?.length || 0} Questions`
-                                        },
-                                        {
-                                            icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
-                                            text: (
-                                                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${test.level === 'Advanced'
-                                                        ? (isDark ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700')
-                                                        : (isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700')
-                                                    }`}>
-                                                    {test.level || 'Intermediate'}
-                                                </span>
-                                            )
                                         }
                                     ]}
                                 />

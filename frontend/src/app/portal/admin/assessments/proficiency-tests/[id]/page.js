@@ -1,294 +1,258 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useGetProficiencyTestByIdQuery, useDeleteProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
+import { useMemo } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useGetProficiencyTestByIdQuery } from "@/redux/api/proficiencyTestApi";
 import AdminHeader from "@/components/AdminHeader";
-import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
-import { useDarkMode } from "@/context/ThemeContext";
 
-export default function ViewProficiencyTestPage() {
-    const params = useParams();
+export default function ProficiencyTestDetailsPage() {
     const router = useRouter();
-    const { showToast } = useToast();
-    const { isDark } = useDarkMode();
-    const { data: test, isLoading, error } = useGetProficiencyTestByIdQuery(params.id);
-    const [deleteTest] = useDeleteProficiencyTestMutation();
+    const { id } = useParams();
+    const { data: test, isLoading, error } = useGetProficiencyTestByIdQuery(id);
 
-    const handleEdit = () => {
-        router.push(`/portal/admin/assessments/proficiency-tests/${params.id}/edit`);
-    };
+    // Normalize and Group Questions into 5 Parts
+    const questionsByPart = useMemo(() => {
+        if (!test || !test.questions) return { 1: [], 2: [], 3: [], 4: [], 5: [] };
 
-    const handleDelete = async () => {
-        if (confirm("Are you sure you want to delete this proficiency test? This action cannot be undone.")) {
-            try {
-                await deleteTest(params.id).unwrap();
-                showToast("Proficiency test deleted successfully", "success");
-                router.push("/portal/admin/assessments/proficiency-tests");
-            } catch (err) {
-                showToast("Failed to delete test", "error");
+        const fetchedQuestions = Array.isArray(test.questions) ? test.questions.map((q, idx) => {
+            let normalized = { ...q };
+            if (normalized.type === 'multiple_choice') normalized.type = 'mcq';
+
+            // Support legacy MCQ property names
+            if (normalized.type === 'mcq') {
+                normalized.questionText = normalized.questionText || normalized.question || "";
+                if (normalized.correct_answer && normalized.options) {
+                    normalized.correctOption = normalized.options.indexOf(normalized.correct_answer);
+                    if (normalized.correctOption === -1) normalized.correctOption = 0;
+                }
             }
-        }
-    };
 
-    const handleBack = () => {
-        router.push("/portal/admin/assessments/proficiency-tests");
-    };
+            // Normalizing Passage
+            if (normalized.type === 'passage') {
+                normalized.passageText = normalized.passageText || normalized.passage || normalized.questionText || normalized.question || "";
+                if (!normalized.part) normalized.part = 2;
+            }
 
-    if (isLoading) {
-        return (
-            <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-                <AdminHeader />
-                <main className="flex-1 flex items-center justify-center">
-                    <Loader />
-                </main>
-            </div>
-        );
-    }
+            // Normalizing Essay
+            if (normalized.type === 'essay') {
+                normalized.title = normalized.title || normalized.questionText || normalized.question || "";
+                if (!normalized.part) normalized.part = 3;
+            }
 
-    if (error || !test) {
-        return (
-            <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-                <AdminHeader />
-                <main className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            Test Not Found
-                        </h2>
-                        <button
-                            onClick={handleBack}
-                            className="bg-[#010080] hover:bg-[#000066] text-white px-6 py-2 rounded-lg"
-                        >
-                            Back to Tests
-                        </button>
-                    </div>
-                </main>
-            </div>
-        );
-    }
+            // Normalizing Audio
+            if (normalized.type === 'audio') {
+                normalized.title = normalized.title || normalized.question || "Listening Exercise";
+                if (!normalized.part) normalized.part = 5;
+            }
 
-    // Parse questions if they're stored as JSON string
-    const questions = typeof test.questions === 'string' ? JSON.parse(test.questions) : test.questions;
-    const totalPoints = questions?.reduce((sum, q) => sum + (q.points || 1), 0) || 0;
+            // Handle Parts for MCQ if missing
+            if (normalized.type === 'mcq' && !normalized.part) {
+                normalized.part = (idx > (test.questions.length / 2)) ? 4 : 1;
+            }
+
+            return normalized;
+        }) : [];
+
+        return {
+            1: fetchedQuestions.filter(q => q.part === 1),
+            2: fetchedQuestions.filter(q => q.part === 2),
+            3: fetchedQuestions.filter(q => q.part === 3),
+            4: fetchedQuestions.filter(q => q.part === 4),
+            5: fetchedQuestions.filter(q => q.part === 5)
+        };
+    }, [test]);
+
+    if (isLoading) return <div className="flex justify-center items-center h-screen bg-white"><Loader /></div>;
+    if (error) return <div className="p-8 text-center text-red-500 bg-gray-50 min-h-screen pt-28 font-bold uppercase tracking-widest">Error loading test details.</div>;
+    if (!test) return null;
+
+    const totalMarks = (Array.isArray(test.questions) ? test.questions : []).reduce((acc, q) => acc + (parseInt(q.points) || 1), 0);
 
     return (
-        <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="min-h-screen bg-gray-50 text-gray-800">
             <AdminHeader />
-            <main className="flex-1 overflow-y-auto mt-6 pt-20">
-                <div className="w-full px-8 py-6 max-w-6xl mx-auto">
-                    {/* Header Section */}
-                    <div className="mb-6">
+            <main className="w-full px-4 md:px-12 pt-28 pb-12 animate-in fade-in duration-500">
+
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                    <div>
                         <button
-                            onClick={handleBack}
-                            className={`flex items-center gap-2 mb-4 ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+                            onClick={() => router.back()}
+                            className="text-gray-500 hover:text-[#010080] flex items-center gap-2 transition-all font-medium text-xs mb-3"
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                            Back to Proficiency Tests
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                            Back to List
                         </button>
-
-                        <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                        {test.title}
-                                    </h1>
-                                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${test.status === 'active'
-                                            ? (isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700')
-                                            : (isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-600')
-                                        }`}>
-                                        {test.status === 'active' ? 'Active' : test.status === 'inactive' ? 'Inactive' : 'Archived'}
-                                    </span>
-                                </div>
-                                {test.description && (
-                                    <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                        {test.description}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={handleEdit}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 transition-colors font-medium"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                    Edit Test
-                                </button>
-                                <button
-                                    onClick={handleDelete}
-                                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 transition-colors font-medium"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                    Delete
-                                </button>
-                            </div>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-2xl font-bold text-gray-900">{test.title}</h1>
+                            <span className="bg-[#010080] text-white px-2.5 py-1 rounded text-[10px] font-semibold uppercase tracking-wider">{test.level}</span>
                         </div>
+                        <p className="text-gray-500 mt-1 text-sm">{test.description || "Proficiency Test Assessment"}</p>
                     </div>
 
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                        <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-                            <div className="flex items-center gap-3">
-                                <div className="p-3 bg-purple-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Questions</p>
-                                    <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                        {questions?.length || 0}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-                            <div className="flex items-center gap-3">
-                                <div className="p-3 bg-blue-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Duration</p>
-                                    <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                        {test.duration_minutes} min
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-                            <div className="flex items-center gap-3">
-                                <div className="p-3 bg-green-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Points</p>
-                                    <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                        {totalPoints}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-                            <div className="flex items-center gap-3">
-                                <div className="p-3 bg-orange-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Created</p>
-                                    <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                        {new Date(test.created_at).toLocaleDateString()}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Questions Section */}
-                    <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-                        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            Test Questions
-                        </h2>
-
-                        <div className="space-y-6">
-                            {questions?.map((question, index) => (
-                                <div
-                                    key={index}
-                                    className={`p-6 rounded-lg border-2 ${isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'}`}
-                                >
-                                    {/* Question Header */}
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${isDark ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700'}`}>
-                                                Question {index + 1}
-                                            </span>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
-                                                {question.type === 'multiple_choice' && 'Multiple Choice'}
-                                                {question.type === 'direct_answer' && 'Direct Answer'}
-                                                {question.type === 'essay' && 'Essay'}
-                                            </span>
-                                        </div>
-                                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700'}`}>
-                                            {question.points} {question.points === 1 ? 'point' : 'points'}
-                                        </span>
-                                    </div>
-
-                                    {/* Question Text */}
-                                    <p className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                        {question.question}
-                                    </p>
-
-                                    {/* Multiple Choice Options */}
-                                    {question.type === 'multiple_choice' && (
-                                        <div className="space-y-2">
-                                            <p className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                Options:
-                                            </p>
-                                            {question.options?.map((option, optIndex) => (
-                                                <div
-                                                    key={optIndex}
-                                                    className={`flex items-center gap-3 p-3 rounded-lg ${option === question.correct_answer
-                                                            ? (isDark ? 'bg-green-900/20 border-2 border-green-600' : 'bg-green-50 border-2 border-green-500')
-                                                            : (isDark ? 'bg-gray-700' : 'bg-white border border-gray-300')
-                                                        }`}
-                                                >
-                                                    {option === question.correct_answer && (
-                                                        <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                                        </svg>
-                                                    )}
-                                                    <span className={`${option === question.correct_answer ? 'font-semibold' : ''} ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                                        {option}
-                                                    </span>
-                                                    {option === question.correct_answer && (
-                                                        <span className="ml-auto text-xs font-semibold text-green-600">
-                                                            Correct Answer
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Direct Answer */}
-                                    {question.type === 'direct_answer' && question.correct_answer && (
-                                        <div className={`p-4 rounded-lg ${isDark ? 'bg-green-900/20 border-2 border-green-600' : 'bg-green-50 border-2 border-green-500'}`}>
-                                            <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                Expected Answer:
-                                            </p>
-                                            <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                                {question.correct_answer}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {/* Essay Note */}
-                                    {question.type === 'essay' && (
-                                        <div className={`p-4 rounded-lg ${isDark ? 'bg-blue-900/20 border border-blue-600' : 'bg-blue-50 border border-blue-300'}`}>
-                                            <p className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                                                📝 This is an essay question. Students will write a paragraph response that will be manually graded.
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => router.push(`/portal/admin/assessments/proficiency-tests/${id}/edit`)}
+                            className="bg-[#010080] hover:bg-[#000066] text-white px-5 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm font-semibold text-sm"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            Edit Test
+                        </button>
                     </div>
                 </div>
+
+                <div className="space-y-6">
+                    {/* Test Specifications Card */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h2 className="text-base font-bold text-gray-900 border-b border-gray-100 pb-3 mb-5 flex items-center gap-2">
+                            Test Specifications
+                        </h2>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Status</p>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${test.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                    {test.status}
+                                </span>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Duration</p>
+                                <p className="text-base font-bold text-gray-900">{test.duration_minutes} <span className="text-xs font-normal text-gray-400">Min</span></p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Questions</p>
+                                <p className="text-base font-bold text-gray-900">{test.questions?.length || 0} <span className="text-xs font-normal text-gray-400">Items</span></p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Total Points</p>
+                                <p className="text-base font-bold text-[#010080]">{totalMarks}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* All 5 Parts Rendering */}
+                    {[1, 2, 3, 4, 5].map((pNum) => (
+                        <div key={pNum} className="space-y-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-[#010080] text-white flex items-center justify-center font-bold text-sm">
+                                    {pNum}
+                                </div>
+                                <h3 className="text-lg font-bold text-gray-900">
+                                    {pNum === 1 ? 'Part 1: Basic Structure (MCQ)' :
+                                        pNum === 2 ? 'Part 2: Comprehension (Passage)' :
+                                            pNum === 3 ? 'Part 3: Written Ability (Essay)' :
+                                                pNum === 4 ? 'Part 4: Final Assessment (MCQ)' :
+                                                    'Part 5: Audio Interpretation (Listening)'}
+                                </h3>
+                            </div>
+
+                            <div className="space-y-4">
+                                {questionsByPart[pNum].length === 0 ? (
+                                    <div className="p-8 text-center bg-white rounded-xl border border-dashed border-gray-200 text-gray-400 text-xs font-medium">
+                                        No items configured for this section.
+                                    </div>
+                                ) : (
+                                    questionsByPart[pNum].map((q, idx) => (
+                                        <div key={q.id || idx} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm relative group overflow-hidden">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-bold text-[#010080] bg-blue-50 px-2.5 py-1 rounded uppercase tracking-wide border border-blue-100">
+                                                        {q.type}
+                                                    </span>
+                                                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Item {idx + 1}</span>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-sm font-bold text-[#010080]">{q.points} pt{q.points !== 1 ? 's' : ''}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* MCQ Rendering */}
+                                            {q.type === 'mcq' && (
+                                                <div className="space-y-4">
+                                                    <h4 className="text-base font-bold text-gray-900 leading-snug">{q.questionText}</h4>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                        {q.options?.map((opt, oIdx) => (
+                                                            <div key={oIdx} className={`flex items-center gap-3 p-3.5 rounded-lg border transition-all ${oIdx === q.correctOption ? 'bg-green-50 border-green-500' : 'bg-gray-50 border-transparent hover:bg-white hover:border-gray-200'}`}>
+                                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${oIdx === q.correctOption ? 'bg-green-600 border-green-600' : 'bg-white border-gray-200'}`}>
+                                                                    {oIdx === q.correctOption && <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                                                                </div>
+                                                                <span className={`text-sm font-semibold ${oIdx === q.correctOption ? 'text-green-900' : 'text-gray-600'}`}>{opt}</span>
+                                                                {oIdx === q.correctOption && <span className="ml-auto text-[8px] font-bold uppercase text-green-700 bg-green-200 px-1.5 py-0.5 rounded">Correct</span>}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Passage Rendering */}
+                                            {q.type === 'passage' && (
+                                                <div className="space-y-6">
+                                                    <div className="bg-gray-50 border border-gray-100 p-5 rounded-lg leading-relaxed text-gray-600 text-sm italic">
+                                                        "{q.passageText}"
+                                                    </div>
+                                                    <div className="space-y-5">
+                                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-50 pb-1">Questions:</p>
+                                                        {q.subQuestions?.map((sq, sIdx) => (
+                                                            <div key={sIdx} className="pl-4 border-l-2 border-blue-100 space-y-3">
+                                                                <p className="text-sm font-bold text-gray-900">{sIdx + 1}. {sq.questionText}</p>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {sq.options?.map((opt, oi) => (
+                                                                        <span key={oi} className={`text-[10px] font-semibold px-3 py-1.5 rounded-lg border ${oi === sq.correctOption ? 'bg-green-100 border-green-300 text-green-800' : 'bg-white border-gray-100 text-gray-500'}`}>
+                                                                            {opt} {oi === sq.correctOption && "✓"}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Essay Rendering */}
+                                            {q.type === 'essay' && (
+                                                <div className="space-y-4">
+                                                    <h4 className="text-lg font-bold text-gray-900">{q.title}</h4>
+                                                    <div className="p-6 bg-gray-50 rounded-lg border border-gray-100">
+                                                        <p className="text-sm text-gray-700 leading-relaxed italic">{q.description || "No instructions provided."}</p>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase">
+                                                        <span>Subjective Grading</span>
+                                                        <span>Limit: <span className="text-[#010080]">{q.maxWords || 250} words</span></span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Audio Rendering */}
+                                            {q.type === 'audio' && (
+                                                <div className="space-y-5">
+                                                    <h4 className="text-lg font-bold text-gray-900">{q.title}</h4>
+                                                    <div className="bg-gray-800 p-4 rounded-xl flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-full bg-[#010080] flex items-center justify-center text-white shrink-0">
+                                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" /></svg>
+                                                        </div>
+                                                        <audio controls className="h-8 flex-1 opacity-90">
+                                                            <source src={q.audioUrl?.startsWith('/') ? `http://localhost:5000${q.audioUrl}` : q.audioUrl} type="audio/mpeg" />
+                                                            Your browser does not support the audio element.
+                                                        </audio>
+                                                    </div>
+                                                    <div className="p-5 bg-white border border-gray-100 rounded-lg">
+                                                        <p className="text-xs text-gray-800 italic text-center">"{q.description || "Listen and summarize."}"</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <style jsx>{`
+                    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+                `}</style>
             </main>
         </div>
     );

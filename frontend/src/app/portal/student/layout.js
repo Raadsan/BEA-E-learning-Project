@@ -27,6 +27,7 @@ function StudentLayoutContent({ children }) {
           "/portal/student/",
           "/portal/student/profile",
           "/portal/student/payments",
+          "/portal/student/placement-test",
         ];
 
         const isAllowed = allowedPaths.some((path) =>
