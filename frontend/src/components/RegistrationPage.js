@@ -27,7 +27,7 @@ export default function RegistrationPage() {
     email: "",
     phone: "",
     age: "",
-    gender: "",
+    sex: "",
     residency_country: "",
     residency_city: "",
     chosen_program: "",
@@ -155,7 +155,7 @@ export default function RegistrationPage() {
         email: formData.email,
         phone: formData.phone || null,
         age: formData.age ? parseInt(formData.age) : null,
-        gender: formData.gender || null,
+        sex: formData.sex || null,
         residency_country: formData.residency_country || null,
         residency_city: formData.residency_city || null,
         chosen_program: programs.find(p => p.id === formData.chosen_program)?.title || null,
@@ -296,7 +296,7 @@ export default function RegistrationPage() {
         residency_city: formData.residency_city || null,
         chosen_program: programs.find(p => p.id === formData.chosen_program)?.title || null,
         password: formData.password,
-        gender: formData.gender || null,
+        sex: formData.sex || null,
         // Include parent information if applicable
         ...(showParentSection && {
           parent_name: formData.parent_name || null,
@@ -672,16 +672,16 @@ export default function RegistrationPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Gender <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Sex <span className="text-red-500">*</span></label>
                       <div className="relative">
                         <select
-                          name="gender"
-                          value={formData.gender}
+                          name="sex"
+                          value={formData.sex}
                           onChange={handleChange}
                           className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-md bg-white text-gray-800 outline-none appearance-none focus:ring-2 focus:ring-blue-200"
                           required
                         >
-                          <option value="">Select gender</option>
+                          <option value="">Select sex</option>
                           <option value="Male">Male</option>
                           <option value="Female">Female</option>
                         </select>

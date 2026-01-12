@@ -15,7 +15,7 @@ import {
 } from "@/redux/api/ieltsToeflApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
-import { City } from "country-state-city";
+import { Country, City } from "country-state-city";
 
 // Extracted Components
 import StudentForm from "./components/StudentForm";
@@ -48,10 +48,12 @@ export default function StudentsPage() {
 
     // Form Data State
     const [formData, setFormData] = useState({
-        full_name: "", email: "", phone: "", age: "", gender: "", residency_country: "",
+        full_name: "", email: "", phone: "", age: "", sex: "Male", residency_country: "",
         residency_city: "", chosen_program: "", chosen_subprogram: "", password: "",
         confirmPassword: "", parent_name: "", parent_email: "", parent_phone: "",
         parent_relation: "", parent_res_county: "", parent_res_city: "",
+        funding_status: "Paid", sponsorship_package: "",
+        funding_amount: "", funding_month: "", scholarship_percentage: "",
     });
 
     // API Hooks
@@ -73,8 +75,17 @@ export default function StudentsPage() {
     const [rejectIeltsStudent, { isLoading: isRejectingIelts }] = useRejectIeltsToeflStudentMutation();
 
     // Helper values
-    const cities = formData.residency_country ? City.getCitiesOfCountry(formData.residency_country) : [];
-    const parentCities = formData.parent_res_county ? City.getCitiesOfCountry(formData.parent_res_county) : [];
+    const cities = (() => {
+        if (!formData.residency_country) return [];
+        const country = Country.getAllCountries().find(c => c.name === formData.residency_country);
+        return country ? City.getCitiesOfCountry(country.isoCode) : [];
+    })();
+
+    const parentCities = (() => {
+        if (!formData.parent_res_county) return [];
+        const country = Country.getAllCountries().find(c => c.name === formData.parent_res_county);
+        return country ? City.getCitiesOfCountry(country.isoCode) : [];
+    })();
     const showParentInfo = formData.age && parseInt(formData.age) < 18;
 
     // Merge and format students
@@ -94,10 +105,12 @@ export default function StudentsPage() {
     const handleAddStudent = () => {
         setEditingStudent(null);
         setFormData({
-            full_name: "", email: "", phone: "", age: "", gender: "", residency_country: "",
+            full_name: "", email: "", phone: "", age: "", sex: "Male", residency_country: "",
             residency_city: "", chosen_program: "", chosen_subprogram: "", password: "",
             confirmPassword: "", parent_name: "", parent_email: "", parent_phone: "",
             parent_relation: "", parent_res_county: "", parent_res_city: "",
+            funding_status: "Paid", sponsorship_package: "",
+            funding_amount: "", funding_month: "", scholarship_percentage: "",
         });
         setIsModalOpen(true);
     };
@@ -106,12 +119,17 @@ export default function StudentsPage() {
         setEditingStudent(student);
         setFormData({
             full_name: student.full_name || "", email: student.email || "", phone: student.phone || "",
-            age: student.age || "", gender: student.gender || "", residency_country: student.residency_country || "",
+            age: student.age || "", sex: student.sex || "Male", residency_country: student.residency_country || "",
             residency_city: student.residency_city || "", chosen_program: student.chosen_program || "",
             chosen_subprogram: student.chosen_subprogram || "", password: "", confirmPassword: "",
             parent_name: student.parent_name || "", parent_email: student.parent_email || "",
             parent_phone: student.parent_phone || "", parent_relation: student.parent_relation || "",
             parent_res_county: student.parent_res_county || "", parent_res_city: student.parent_res_city || "",
+            funding_status: student.funding_status || "Paid",
+            sponsorship_package: student.sponsorship_package || "",
+            funding_amount: student.funding_amount || "",
+            funding_month: student.funding_month || "",
+            scholarship_percentage: student.scholarship_percentage || "",
         });
         setIsModalOpen(true);
     };
@@ -225,6 +243,7 @@ export default function StudentsPage() {
         { key: "email", label: "Email" },
         { key: "phone", label: "Phone", render: (row) => row.phone || "N/A" },
         { key: "age", label: "Age", render: (row) => row.age || "N/A" },
+        { key: "sex", label: "Sex" },
         { key: "chosen_program", label: "Program" },
         {
             key: "approval_status", label: "Status",

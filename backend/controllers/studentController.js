@@ -22,7 +22,12 @@ export const createStudent = async (req, res) => {
       parent_res_county,
       parent_res_city,
       class_id,
-      gender
+      sex,
+      funding_status,
+      sponsorship_package,
+      funding_amount,
+      funding_month,
+      scholarship_percentage
     } = req.body;
 
     // Validate required fields
@@ -56,7 +61,7 @@ export const createStudent = async (req, res) => {
       email,
       phone,
       age,
-      gender,
+      sex,
       residency_country,
       residency_city,
       chosen_program,
@@ -68,7 +73,12 @@ export const createStudent = async (req, res) => {
       parent_relation,
       parent_res_county,
       parent_res_city,
-      class_id
+      class_id,
+      funding_status,
+      sponsorship_package,
+      funding_amount,
+      funding_month,
+      scholarship_percentage
     });
 
     console.log('✅ Student created with ID:', student?.student_id);
@@ -130,6 +140,31 @@ export const createStudent = async (req, res) => {
         }
       } catch (err) {
         console.error('❌ Error saving payment record:', err);
+      }
+    } else if (funding_status && funding_status !== 'Unpaid') {
+      // Manual creation by admin with a funding status
+      console.log('📝 Creating automatic payment record for funding_status:', funding_status);
+      try {
+        const paymentData = {
+          student_id: student.student_id,
+          method: funding_status === 'Sponsorship' ? 'sponsorship' : (funding_status.includes('Scholarship') ? 'scholarship' : 'cash/admin'),
+          provider_transaction_id: `ADMIN_${Date.now()}`,
+          amount: funding_amount || 0,
+          currency: 'USD',
+          status: funding_status === 'Partial Scholarship' ? 'partial' : 'paid',
+          raw_response: { note: `Automatically created for ${funding_status}`, month: funding_month },
+          payer_phone: phone || null,
+          program_id: null // Admin can update this later if needed
+        };
+
+        if (funding_status === 'Full Scholarship') {
+          paymentData.amount = 0;
+        }
+
+        const payment = await createPayment(paymentData);
+        console.log('✅ Automatic payment record created:', payment.id);
+      } catch (err) {
+        console.error('❌ Error creating automatic payment record:', err);
       }
     }
 
@@ -363,11 +398,11 @@ export const getStudentProgress = async (req, res) => {
   }
 };
 
-// GET GENDER DISTRIBUTION
-export const getGenderDistribution = async (req, res) => {
+// GET SEX DISTRIBUTION
+export const getSexDistribution = async (req, res) => {
   try {
     const { program_id, class_id } = req.query;
-    const students = await Student.getGenderDistribution(program_id, class_id);
+    const students = await Student.getSexDistribution(program_id, class_id);
 
     res.json({
       success: true,

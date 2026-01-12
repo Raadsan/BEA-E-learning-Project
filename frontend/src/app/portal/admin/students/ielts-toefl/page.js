@@ -69,11 +69,11 @@ export default function IELTSTOEFLStudentsPage() {
       ),
     },
     {
-      key: "gender",
-      label: "Gender",
+      key: "sex",
+      label: "Sex",
       width: "100px",
       render: (row) => (
-        <span className="text-gray-700 dark:text-gray-300">{row.gender}</span>
+        <span className="text-gray-700 dark:text-gray-300">{row.sex}</span>
       ),
     },
     {

@@ -22,7 +22,9 @@ const fileFilter = (req, file, cb) => {
     // Accept audio, images, and pdfs
     if (file.mimetype.startsWith('audio/') ||
         file.mimetype.startsWith('image/') ||
-        file.mimetype === 'application/pdf') {
+        file.mimetype === 'application/pdf' ||
+        file.mimetype === 'application/msword' ||
+        file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
         cb(null, true);
     } else {
         cb(new Error('Invalid file type. Only Audio, Images, and PDFs are allowed.'), false);

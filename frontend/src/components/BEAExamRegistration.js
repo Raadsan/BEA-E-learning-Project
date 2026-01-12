@@ -17,7 +17,7 @@ const countriesData = {
 export default function BEAExamRegistration({ isOpen, onClose, examType = "proficiency" }) {
   const { isDarkMode } = useTheme();
   const [cities, setCities] = useState([]);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     firstName: '',
@@ -25,7 +25,7 @@ export default function BEAExamRegistration({ isOpen, onClose, examType = "profi
     email: '',
     phone: '',
     age: '',
-    gender: '',
+    sex: '',
     country: '',
     city: '',
     examDate: '',
@@ -66,11 +66,11 @@ export default function BEAExamRegistration({ isOpen, onClose, examType = "profi
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      
+
       {/* Modal Content */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Close Button */}
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 text-white hover:text-gray-200 z-10"
         >
@@ -117,14 +117,14 @@ export default function BEAExamRegistration({ isOpen, onClose, examType = "profi
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          
+
           {/* Section 1: Personal Information */}
           <div className="border-b border-gray-200 pb-5">
             <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
               <span className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-bold text-gray-700">1</span>
               Personal Information
             </h3>
-            
+
             {/* Name Row */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
@@ -156,12 +156,12 @@ export default function BEAExamRegistration({ isOpen, onClose, examType = "profi
                 <input type="number" name="age" value={formData.age} onChange={handleChange} placeholder="Age" min="5" max="100" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-gray-800 text-sm" required />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Gender</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Sex</label>
                 <div className="relative">
-                  <select name="gender" value={formData.gender} onChange={handleChange} className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-gray-800 text-sm bg-white appearance-none cursor-pointer" required>
+                  <select name="sex" value={formData.sex} onChange={handleChange} className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-gray-800 text-sm bg-white appearance-none cursor-pointer" required>
                     <option value="">Select</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
                   </select>
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -214,24 +214,24 @@ export default function BEAExamRegistration({ isOpen, onClose, examType = "profi
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Exam Date</label>
-                <input 
-                  type="date" 
-                  name="examDate" 
-                  value={formData.examDate} 
-                  onChange={handleChange} 
+                <input
+                  type="date"
+                  name="examDate"
+                  value={formData.examDate}
+                  onChange={handleChange}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-gray-800 text-sm bg-white" 
-                  required 
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-gray-800 text-sm bg-white"
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Exam Time</label>
                 <div className="relative">
-                  <select 
-                    name="examTime" 
-                    value={formData.examTime} 
-                    onChange={handleChange} 
-                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-gray-800 text-sm bg-white appearance-none cursor-pointer" 
+                  <select
+                    name="examTime"
+                    value={formData.examTime}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-gray-800 text-sm bg-white appearance-none cursor-pointer"
                     required
                   >
                     <option value="">Select time</option>
@@ -252,8 +252,8 @@ export default function BEAExamRegistration({ isOpen, onClose, examType = "profi
           </div>
 
           {/* Submit Button */}
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg"
             style={{ backgroundColor: '#010080' }}
           >

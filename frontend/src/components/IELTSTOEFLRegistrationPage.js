@@ -28,7 +28,7 @@ export default function IELTSTOEFLRegistrationPage() {
     email: "",
     phone: "",
     age: "",
-    gender: "",
+    sex: "",
     country: "",
     city: "",
     chosen_program: "",
@@ -207,7 +207,7 @@ export default function IELTSTOEFLRegistrationPage() {
         password: formData.password,
         chosen_program: formData.chosen_program,
         age: parseInt(formData.age),
-        gender: formData.gender.charAt(0).toUpperCase() + formData.gender.slice(1).toLowerCase(),
+        sex: formData.sex.charAt(0).toUpperCase() + formData.sex.slice(1).toLowerCase(),
         residency_country: formData.country,
         residency_city: formData.city,
         exam_type: formData.examType.toUpperCase(),
@@ -377,12 +377,12 @@ export default function IELTSTOEFLRegistrationPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Gender <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Sex <span className="text-red-500">*</span></label>
                       <div className="relative">
-                        <select name="gender" value={formData.gender} onChange={handleChange} className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-blue-100 appearance-none bg-white" required>
+                        <select name="sex" value={formData.sex} onChange={handleChange} className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-blue-100 appearance-none bg-white" required>
                           <option value="">Select</option>
-                          <option value="male">Male</option>
-                          <option value="female">Female</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
                         </select>
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>

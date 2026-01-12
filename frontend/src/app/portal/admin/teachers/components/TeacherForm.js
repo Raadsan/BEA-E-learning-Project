@@ -3,6 +3,7 @@
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { Country } from 'country-state-city';
+import CountrySelect from '@/components/CountrySelect';
 
 export default function TeacherForm({
     isOpen,
@@ -14,7 +15,8 @@ export default function TeacherForm({
     handleSubmit,
     isDark,
     isCreating,
-    isUpdating
+    isUpdating,
+    cities = []
 }) {
     if (!isOpen) return null;
 
@@ -141,15 +143,11 @@ export default function TeacherForm({
                                 <label htmlFor="country" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                     Country
                                 </label>
-                                <input
-                                    type="text"
-                                    id="country"
-                                    name="country"
+                                <CountrySelect
                                     value={formData.country}
-                                    onChange={handleInputChange}
-                                    placeholder="e.g. Somalia"
-                                    className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
-                                        }`}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, country: val, city: "" }))}
+                                    isDark={isDark}
+                                    placeholder="Select country"
                                 />
                             </div>
 
@@ -157,16 +155,22 @@ export default function TeacherForm({
                                 <label htmlFor="city" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                     City
                                 </label>
-                                <input
-                                    type="text"
-                                    id="city"
-                                    name="city"
-                                    value={formData.city}
-                                    onChange={handleInputChange}
-                                    placeholder="e.g. Mogadishu"
-                                    className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
-                                        }`}
-                                />
+                                <div className="relative">
+                                    <select
+                                        id="city"
+                                        name="city"
+                                        value={formData.city}
+                                        onChange={handleInputChange}
+                                        disabled={!formData.country}
+                                        className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500 bg-[url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20fill%3D%27none%27%20viewBox%3D%270%200%2024%2024%27%20stroke%3D%27%239ca3af%27%3E%3Cpath%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20stroke-width%3D%272%27%20d%3D%27M19%209l-7%207-7-7%27%2F%3E%3C%2Fsvg%3E")] bg-[length:1.25rem_1.25rem] bg-[right_1rem_center] bg-no-repeat' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600 bg-[url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20fill%3D%27none%27%20viewBox%3D%270%200%2024%2024%27%20stroke%3D%27%236b7280%27%3E%3Cpath%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20stroke-width%3D%272%27%20d%3D%27M19%209l-7%207-7-7%27%2F%3E%3C%2Fsvg%3E")] bg-[length:1.25rem_1.25rem] bg-[right_1rem_center] bg-no-repeat'
+                                            }`}
+                                    >
+                                        <option value="">Select city</option>
+                                        {cities.map((city, idx) => (
+                                            <option key={idx} value={city.name}>{city.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
 
                             <div>

@@ -23,10 +23,11 @@ export const getPaymentsForStudent = async (studentId) => {
     `SELECT pay.id, pay.student_id, pay.amount, pay.currency, pay.status, 
             pay.method as payment_method, pay.created_at as payment_date, 
             pay.provider_transaction_id, pay.payer_phone,
-            p.title as program_name,
+            COALESCE(p.title, s.chosen_program) as program_name,
             COALESCE(pay.raw_response, '') as description
      FROM payments pay 
      LEFT JOIN programs p ON pay.program_id = p.id 
+     LEFT JOIN students s ON pay.student_id = s.student_id
      WHERE pay.student_id = ? 
      ORDER BY pay.created_at DESC`,
     [studentId]
@@ -39,10 +40,11 @@ export const getAllPayments = async () => {
     `SELECT pay.id, pay.student_id, pay.amount, pay.currency, pay.status, 
             pay.method as payment_method, pay.created_at as payment_date, 
             pay.provider_transaction_id, pay.payer_phone,
-            p.title as program_name,
+            COALESCE(p.title, s.chosen_program) as program_name,
             COALESCE(pay.raw_response, '') as description
      FROM payments pay 
      LEFT JOIN programs p ON pay.program_id = p.id 
+     LEFT JOIN students s ON pay.student_id = s.student_id
      ORDER BY pay.created_at DESC`
   );
   return rows;

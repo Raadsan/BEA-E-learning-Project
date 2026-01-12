@@ -8,6 +8,7 @@ import {
     submitPlacementTest,
     getStudentPlacementResults,
     getAllPlacementResults,
+    gradePlacementTest,
 } from "../controllers/placementTestController.js";
 import { verifyToken } from "../controllers/authController.js";
 
@@ -19,6 +20,7 @@ router.get("/", verifyToken, getAllPlacementTests);
 router.get("/:id", verifyToken, getPlacementTestById);
 router.get("/results/all", verifyToken, getAllPlacementResults);
 router.get("/results/:studentId", verifyToken, getStudentPlacementResults);
+router.put("/results/:resultId/grade", verifyToken, gradePlacementTest);
 router.put("/:id", verifyToken, updatePlacementTest);
 router.delete("/:id", verifyToken, deletePlacementTest);
 

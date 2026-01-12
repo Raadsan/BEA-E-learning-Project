@@ -20,7 +20,7 @@ export default function StudentSettingsPage() {
         email: "",
         phone: "",
         age: "",
-        gender: "",
+        sex: "",
         residency_country: "",
         residency_city: "",
         password: "",
@@ -37,7 +37,7 @@ export default function StudentSettingsPage() {
                 email: user.email || "",
                 phone: user.phone || "",
                 age: user.age || "",
-                gender: user.gender || "",
+                sex: user.sex || "",
                 residency_country: user.residency_country || "",
                 residency_city: user.residency_city || "",
                 password: "",
@@ -74,7 +74,7 @@ export default function StudentSettingsPage() {
                 email: formData.email,
                 phone: formData.phone,
                 age: formData.age,
-                gender: formData.gender,
+                sex: formData.sex,
                 residency_country: formData.residency_country,
                 residency_city: formData.residency_city,
             };
@@ -107,7 +107,7 @@ export default function StudentSettingsPage() {
                 email: user.email || "",
                 phone: user.phone || "",
                 age: user.age || "",
-                gender: user.gender || "",
+                sex: user.sex || "",
                 residency_country: user.residency_country || "",
                 residency_city: user.residency_city || "",
                 password: "",
@@ -258,11 +258,11 @@ export default function StudentSettingsPage() {
 
                                     <div>
                                         <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                            Gender
+                                            Sex
                                         </label>
                                         <select
-                                            name="gender"
-                                            value={formData.gender}
+                                            name="sex"
+                                            value={formData.sex}
                                             onChange={handleInputChange}
                                             disabled={!isEditing}
                                             className={`w-full px-4 py-2.5 rounded-lg border transition-colors ${isEditing
@@ -270,10 +270,9 @@ export default function StudentSettingsPage() {
                                                 : `${isDark ? 'bg-gray-750 border-gray-700 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-600'} cursor-not-allowed`
                                                 }`}
                                         >
-                                            <option value="">Select Gender</option>
+                                            <option value="">Select Sex</option>
                                             <option value="Male">Male</option>
                                             <option value="Female">Female</option>
-                                            <option value="Other">Other</option>
                                         </select>
                                     </div>
                                 </div>

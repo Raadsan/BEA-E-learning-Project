@@ -1,10 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/AdminHeader";
 import DataTable from "@/components/DataTable";
 import { useGetAllPlacementResultsQuery } from "@/redux/api/placementTestApi";
 
 export default function PlacementResultsPage() {
+    const router = useRouter();
     const { data: results, isLoading, error } = useGetAllPlacementResultsQuery();
 
     const columns = [
@@ -21,20 +23,23 @@ export default function PlacementResultsPage() {
             key: "percentage",
             label: "Score",
             render: (row) => (
-                <span className="font-semibold text-gray-900 dark:text-white">
-                    {Math.round(row.percentage)}%
-                </span>
+                <div className="flex flex-col">
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                        {Math.round(row.percentage)}%
+                    </span>
+                    {row.status === 'pending_review' && (
+                        <span className="text-[10px] text-yellow-600 font-bold uppercase tracking-tight">Partial</span>
+                    )}
+                </div>
             ),
         },
         {
             key: "recommended_level",
             label: "Level",
             render: (row) => {
-                const level = row.recommended_level || (
-                    row.percentage >= 80 ? "Advanced" :
-                        row.percentage >= 50 ? "Intermediate" :
-                            "Beginner"
-                );
+                const level = row.recommended_level;
+
+                if (!level) return <span className="text-xs text-gray-400 font-medium italic">Evaluating...</span>;
 
                 const levelColors = {
                     "Advanced": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
@@ -52,22 +57,22 @@ export default function PlacementResultsPage() {
             key: "recommended_course",
             label: "Recommended Course",
             render: (row) => {
-                const level = row.recommended_level || (
-                    row.percentage >= 80 ? "Advanced" :
-                        row.percentage >= 50 ? "Intermediate" :
-                            "Beginner"
-                );
+                const level = row.recommended_level;
+                if (!level) return <span className="text-gray-400">-</span>;
                 return `${level} English`;
             }
         },
         {
             key: "status",
             label: "Status",
-            render: (row) => (
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                    {row.status || 'Completed'}
-                </span>
-            ),
+            render: (row) => {
+                const isPending = row.status === 'pending_review';
+                return (
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${isPending ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                        {isPending ? 'Pending Review' : (row.status || 'Completed')}
+                    </span>
+                )
+            },
         },
         {
             key: "actions",
@@ -75,6 +80,7 @@ export default function PlacementResultsPage() {
             render: (row) => (
                 <div className="flex gap-2">
                     <button
+                        onClick={() => router.push(`/portal/admin/assessments/placement-tests/results/${row.id}`)}
                         className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
                         title="View Details"
                     >

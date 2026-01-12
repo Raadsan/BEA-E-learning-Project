@@ -136,9 +136,9 @@ export default function ClassStudentsPage() {
       label: "Phone",
     },
     {
-      key: "gender",
-      label: "Gender",
-      render: (row) => row.gender ? row.gender.charAt(0).toUpperCase() + row.gender.slice(1) : "N/A",
+      key: "sex",
+      label: "Sex",
+      render: (row) => row.sex ? row.sex.charAt(0).toUpperCase() + row.sex.slice(1) : "N/A",
     },
     {
       key: "age",

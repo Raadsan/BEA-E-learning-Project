@@ -104,15 +104,16 @@ export default function StudentDetailPage() {
     { label: "Date", key: "payment_date", render: (row) => row.payment_date ? new Date(row.payment_date).toLocaleDateString() : "-" },
     { label: "Amount", key: "amount", render: (row) => `$${row.amount || 0}` },
     { label: "Method", key: "payment_method" },
-    { label: "Status", key: "status", render: (row) => (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-        row.status === 'completed' ? 'bg-green-100 text-green-800' :
-        row.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-        'bg-red-100 text-red-800'
-      }`}>
-        {row.status || 'Pending'}
-      </span>
-    )}
+    {
+      label: "Status", key: "status", render: (row) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === 'completed' ? 'bg-green-100 text-green-800' :
+            row.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-red-100 text-red-800'
+          }`}>
+          {row.status || 'Pending'}
+        </span>
+      )
+    }
   ];
 
   if (loading) {
@@ -176,11 +177,10 @@ export default function StudentDetailPage() {
                   {student.email} • {student.phone || 'No phone'}
                 </p>
               </div>
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                student.approval_status === 'approved' ? 'bg-green-100 text-green-800' :
-                student.approval_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-red-100 text-red-800'
-              }`}>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${student.approval_status === 'approved' ? 'bg-green-100 text-green-800' :
+                  student.approval_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                }`}>
                 {student.approval_status || 'Pending'}
               </div>
             </div>
@@ -193,11 +193,10 @@ export default function StudentDetailPage() {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === tab
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === tab
                       ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
                       : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-                  }`}
+                    }`}
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
@@ -225,8 +224,8 @@ export default function StudentDetailPage() {
                     <span>{student.phone || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Gender:</span>
-                    <span>{student.gender ? student.gender.charAt(0).toUpperCase() + student.gender.slice(1) : 'N/A'}</span>
+                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Sex:</span>
+                    <span>{student.sex ? student.sex.charAt(0).toUpperCase() + student.sex.slice(1) : 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Age:</span>

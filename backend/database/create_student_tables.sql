@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS students (
   email VARCHAR(255) NOT NULL UNIQUE,
   phone VARCHAR(50) NOT NULL,
   age INT NOT NULL,
-  gender ENUM('Male', 'Female', 'Other') NOT NULL,
+  sex ENUM('Male', 'Female') NOT NULL DEFAULT 'Male',
   country VARCHAR(100) NOT NULL,
   city VARCHAR(100) NOT NULL,
   program_id INT NOT NULL,

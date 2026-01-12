@@ -122,22 +122,21 @@ export default function StudentForm({
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="gender" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                    <label htmlFor="sex" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
                                         }`}>
-                                        Gender
+                                        Sex
                                     </label>
                                     <select
-                                        id="gender"
-                                        name="gender"
-                                        value={formData.gender}
+                                        id="sex"
+                                        name="sex"
+                                        value={formData.sex}
                                         onChange={handleInputChange}
+                                        required
                                         className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'
                                             }`}
                                     >
-                                        <option value="">Select Gender</option>
                                         <option value="Male">Male</option>
                                         <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
                                     </select>
                                 </div>
 
@@ -291,6 +290,177 @@ export default function StudentForm({
                                             }`}
                                     />
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Funding Information Section */}
+                        <div className={`p-5 rounded-xl border-2 ${isDark ? 'bg-green-900/10 border-green-700/30' : 'bg-green-50/30 border-green-100'
+                            }`}>
+                            <h3 className={`text-lg font-bold mb-6 flex items-center gap-2 ${isDark ? 'text-green-400' : 'text-green-600'
+                                }`}>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Funding Information
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                <div>
+                                    <label htmlFor="funding_status" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                        }`}>
+                                        Funding Status
+                                    </label>
+                                    <select
+                                        id="funding_status"
+                                        name="funding_status"
+                                        value={formData.funding_status}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 focus:border-green-600'
+                                            }`}
+                                    >
+                                        <option value="Paid">Paid</option>
+                                        <option value="Full Scholarship">Full Scholarship</option>
+                                        <option value="Partial Scholarship">Partial Scholarship</option>
+                                        <option value="Sponsorship">Sponsorship</option>
+                                    </select>
+                                </div>
+
+                                {formData.funding_status === 'Sponsorship' && (
+                                    <>
+                                        <div>
+                                            <label htmlFor="sponsorship_package" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                Sponsorship Package
+                                            </label>
+                                            <select
+                                                id="sponsorship_package"
+                                                name="sponsorship_package"
+                                                value={formData.sponsorship_package}
+                                                onChange={handleInputChange}
+                                                required={formData.funding_status === 'Sponsorship'}
+                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 focus:border-green-600'
+                                                    }`}
+                                            >
+                                                <option value="">Select Package</option>
+                                                <option value="1 Month">1 Month</option>
+                                                <option value="3 Months">3 Months</option>
+                                                <option value="6 Months">6 Months</option>
+                                                <option value="1 Year">1 Year</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label htmlFor="funding_amount" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                Amount Paid ($)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                id="funding_amount"
+                                                name="funding_amount"
+                                                value={formData.funding_amount}
+                                                onChange={handleInputChange}
+                                                required={formData.funding_status === 'Sponsorship'}
+                                                placeholder="Enter amount"
+                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                    }`}
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.funding_status === 'Paid' && (
+                                    <>
+                                        <div>
+                                            <label htmlFor="funding_amount" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                Amount Paid ($)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                id="funding_amount"
+                                                name="funding_amount"
+                                                value={formData.funding_amount}
+                                                onChange={handleInputChange}
+                                                required={formData.funding_status === 'Paid'}
+                                                placeholder="Enter amount"
+                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                    }`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="funding_month" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                Month Paid For
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="funding_month"
+                                                name="funding_month"
+                                                value={formData.funding_month}
+                                                onChange={handleInputChange}
+                                                required={formData.funding_status === 'Paid'}
+                                                placeholder="e.g., January 2026"
+                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                    }`}
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.funding_status === 'Partial Scholarship' && (
+                                    <>
+                                        <div>
+                                            <label htmlFor="scholarship_percentage" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                Scholarship Percentage (%)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                id="scholarship_percentage"
+                                                name="scholarship_percentage"
+                                                value={formData.scholarship_percentage}
+                                                onChange={handleInputChange}
+                                                required={formData.funding_status === 'Partial Scholarship'}
+                                                min="1"
+                                                max="99"
+                                                placeholder="Enter percentage"
+                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                    }`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="funding_amount" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                Amount Paid ($)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                id="funding_amount"
+                                                name="funding_amount"
+                                                value={formData.funding_amount}
+                                                onChange={handleInputChange}
+                                                placeholder="Enter amount paid"
+                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                    }`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="funding_month" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                Month Paid For
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="funding_month"
+                                                name="funding_month"
+                                                value={formData.funding_month}
+                                                onChange={handleInputChange}
+                                                placeholder="e.g., January 2026"
+                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                    }`}
+                                            />
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
 

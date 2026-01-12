@@ -7,6 +7,7 @@ import { useGetStudentsQuery, useUpdateStudentMutation } from "@/redux/api/stude
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
+import { useGetShiftsQuery } from "@/redux/api/shiftApi";
 import { useGetSessionRequestsQuery } from "@/redux/api/sessionRequestApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
@@ -18,6 +19,7 @@ export default function GeneralStudentsPage() {
   const { data: subprograms = [] } = useGetSubprogramsQuery();
   const { data: classes = [] } = useGetClassesQuery();
   const { data: programs = [] } = useGetProgramsQuery();
+  const { data: shifts = [] } = useGetShiftsQuery();
   const { data: sessionRequests = [] } = useGetSessionRequestsQuery();
   const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
 
@@ -25,7 +27,9 @@ export default function GeneralStudentsPage() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [studentToAssign, setStudentToAssign] = useState(null);
   const [selectedClassId, setSelectedClassId] = useState("");
-  const [selectedType, setSelectedType] = useState("");
+  const [selectedLevelId, setSelectedLevelId] = useState("");
+  const [selectedShiftName, setSelectedShiftName] = useState("");
+  const [selectedSessionType, setSelectedSessionType] = useState("");
 
   // Modal state for status toggle
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
@@ -43,7 +47,7 @@ export default function GeneralStudentsPage() {
     email: "",
     phone: "",
     age: "",
-    gender: "",
+    sex: "",
     residency_country: "",
     residency_city: "",
     parent_name: "",
@@ -103,7 +107,18 @@ export default function GeneralStudentsPage() {
   const handleOpenAssignModal = (student) => {
     setStudentToAssign(student);
     setSelectedClassId(student.class_id?.toString() || "");
-    setSelectedType("");
+    setSelectedLevelId(student.chosen_subprogram?.toString() || "");
+
+    // Find shift details from class if exists
+    if (student.class_id) {
+      const cls = classes.find(c => c.id == student.class_id);
+      setSelectedShiftName(cls?.shift_name || "");
+      setSelectedSessionType(cls?.shift_session || "");
+    } else {
+      setSelectedShiftName("");
+      setSelectedSessionType("");
+    }
+
     setIsAssignModalOpen(true);
   };
 
@@ -112,7 +127,9 @@ export default function GeneralStudentsPage() {
     setIsAssignModalOpen(false);
     setStudentToAssign(null);
     setSelectedClassId("");
-    setSelectedType("");
+    setSelectedLevelId("");
+    setSelectedShiftName("");
+    setSelectedSessionType("");
   };
 
   // Handle assigning class (with auto-subprogram)
@@ -128,9 +145,9 @@ export default function GeneralStudentsPage() {
       const subprogramId = selectedClass?.subprogram_id || null;
 
       await updateStudent({
-        id: studentToAssign.id,
+        id: studentToAssign.student_id,
         class_id: parseInt(selectedClassId),
-        chosen_subprogram: subprogramId
+        chosen_subprogram: parseInt(selectedLevelId)
       }).unwrap();
 
       showToast("Class assigned successfully!", "success");
@@ -171,7 +188,7 @@ export default function GeneralStudentsPage() {
       email: student.email || "",
       phone: student.phone || "",
       age: student.age || "",
-      gender: student.gender || "",
+      sex: student.sex || "",
       residency_country: student.residency_country || "",
       residency_city: student.residency_city || "",
       parent_name: student.parent_name || "",
@@ -207,7 +224,7 @@ export default function GeneralStudentsPage() {
       email: "",
       phone: "",
       age: "",
-      gender: "",
+      sex: "",
       residency_country: "",
       residency_city: "",
       parent_name: "",
@@ -230,12 +247,12 @@ export default function GeneralStudentsPage() {
 
     try {
       await updateStudent({
-        id: editingStudent.id,
+        id: editingStudent.student_id,
         full_name: editFormData.full_name,
         email: editFormData.email,
         phone: editFormData.phone,
         age: editFormData.age ? parseInt(editFormData.age) : null,
-        gender: editFormData.gender,
+        sex: editFormData.sex,
         residency_country: editFormData.residency_country,
         residency_city: editFormData.residency_city,
         parent_name: editFormData.parent_name,
@@ -275,7 +292,7 @@ export default function GeneralStudentsPage() {
 
     try {
       await updateStudent({
-        id: studentToToggleStatus.id,
+        id: studentToToggleStatus.student_id,
         approval_status: newDbStatus
       }).unwrap();
       showToast("Status updated successfully!", "success");
@@ -509,10 +526,35 @@ export default function GeneralStudentsPage() {
         </div>
       </main>
 
-      {/* Assign Class Modal */}
       {isAssignModalOpen && studentToAssign && (() => {
-        // Get all classes for the student's program
-        const programClasses = classes.filter(c => c.program_name === studentToAssign.chosen_program);
+        // Get subprograms for student's program
+        const studentProgram = programs.find(p => p.title === studentToAssign.chosen_program);
+        // 1. Available Levels (Subprograms) for the student's program
+        const availableLevels = studentProgram
+          ? subprograms.filter(sp => sp.program_id === studentProgram.id)
+          : [];
+
+        // 2. Shifts available for the selected Level
+        // We find which shifts actually have classes for the selected level and program
+        const classesForProgram = classes.filter(cls => cls.program_name === studentToAssign.chosen_program);
+
+        const shiftsForLevel = selectedLevelId
+          ? classesForProgram.filter(cls => cls.subprogram_id == selectedLevelId)
+          : [];
+
+        const uniqueShiftNames = [...new Set(shiftsForLevel.map(cls => cls.shift_name))].filter(Boolean);
+
+        // 3. Sessions available for the selected Level and Shift Name
+        const sessionsForShift = selectedShiftName
+          ? shiftsForLevel.filter(cls => cls.shift_name === selectedShiftName)
+          : [];
+
+        const availableSessions = [...new Set(sessionsForShift.map(cls => cls.shift_session))].filter(Boolean);
+
+        // 4. Final Class list filtered by all criteria
+        const filteredClasses = selectedSessionType
+          ? sessionsForShift.filter(cls => cls.shift_session === selectedSessionType)
+          : [];
 
         return (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -521,11 +563,14 @@ export default function GeneralStudentsPage() {
               aria-hidden="true"
               onClick={handleCloseAssignModal}
             />
-            <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-y-auto border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className={`relative w-full max-w-lg rounded-xl shadow-2xl overflow-y-auto border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`} style={{ maxHeight: '90vh' }}>
               <div className={`sticky top-0 z-10 px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                  {studentToAssign.email}
-                </h3>
+                <div className="flex flex-col">
+                  <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                    Assign to Class
+                  </h3>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{studentToAssign.student_id}</p>
+                </div>
                 <button
                   onClick={handleCloseAssignModal}
                   className={`p-1 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
@@ -537,18 +582,40 @@ export default function GeneralStudentsPage() {
               </div>
 
               <div className="p-6 text-left">
+                {/* Student Information Section */}
+                <div className={`p-4 rounded-xl mb-6 border-2 ${isDark ? 'bg-blue-900/10 border-blue-800' : 'bg-blue-50/50 border-blue-100'}`}>
+                  <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                    <div>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Full Name</p>
+                      <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{studentToAssign.full_name}</p>
+                    </div>
+                    <div>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Program</p>
+                      <p className={`text-sm font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{studentToAssign.chosen_program}</p>
+                    </div>
+                    <div>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Current Class</p>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {getClassName(studentToAssign.class_id) || 'Not Assigned'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Subprogram</p>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {subprograms.find(sp => sp.id == studentToAssign.chosen_subprogram)?.subprogram_name || 'None'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Session Change Request Alert */}
                 {(() => {
                   const pendingRequest = sessionRequests.find(
                     r => r.student_id === studentToAssign.student_id && r.status === 'pending'
                   );
-                  const rejectedRequest = !pendingRequest && sessionRequests.find(
-                    r => r.student_id === studentToAssign.student_id && r.status === 'rejected'
-                  );
-
                   if (pendingRequest) {
                     return (
-                      <div className={`p-3 rounded-lg mb-4 border-l-4 ${isDark ? 'bg-yellow-900/20 border-yellow-600' : 'bg-yellow-50 border-yellow-400'}`}>
+                      <div className={`p-3 rounded-lg mb-6 border-l-4 ${isDark ? 'bg-yellow-900/20 border-yellow-600' : 'bg-yellow-50 border-yellow-400'}`}>
                         <div className="flex items-start gap-2">
                           <div className={`p-1 rounded-full ${isDark ? 'bg-yellow-900/40 text-yellow-500' : 'bg-yellow-100 text-yellow-600'}`}>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -557,173 +624,126 @@ export default function GeneralStudentsPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className={`text-xs font-bold mb-1 ${isDark ? 'text-yellow-500' : 'text-yellow-800'}`}>Pending Session Change</h4>
-                            <div className="flex items-center gap-3 text-xs">
+                            <div className="flex items-center gap-2 text-xs">
                               <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Wants:</span>
                               <span className={`font-bold ${isDark ? 'text-yellow-400' : 'text-yellow-700'}`}>{pendingRequest.requested_session_type}</span>
-                              <span className={`ml-auto text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{new Date(pendingRequest.created_at).toLocaleDateString()}</span>
-                            </div>
-                            <p className={`text-[11px] mt-1 italic ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>"{pendingRequest.reason}"</p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  if (rejectedRequest) {
-                    return (
-                      <div className={`p-3 rounded-lg mb-4 border-l-4 ${isDark ? 'bg-red-900/20 border-red-600' : 'bg-red-50 border-red-400'}`}>
-                        <div className="flex items-start gap-2">
-                          <div className={`p-1 rounded-full ${isDark ? 'bg-red-900/40 text-red-500' : 'bg-red-100 text-red-600'}`}>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className={`text-xs font-bold mb-1 ${isDark ? 'text-red-500' : 'text-red-800'}`}>Request Rejected</h4>
-                            <div className="flex items-center gap-2 text-xs mb-1">
-                              <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Wanted:</span>
-                              <span className={`font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{rejectedRequest.requested_session_type}</span>
-                            </div>
-                            <div className={`text-[11px] space-y-1`}>
-                              <p className={`italic ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>"{rejectedRequest.reason}"</p>
-                              <p className={`font-medium ${isDark ? 'text-red-400' : 'text-red-700'}`}>
-                                <span className="font-bold">Admin:</span> {rejectedRequest.admin_response || 'No reason given'}
-                              </p>
                             </div>
                           </div>
                         </div>
                       </div>
                     );
                   }
-
                   return null;
                 })()}
 
-                {/* Student Information Section */}
-                <div className={`p-4 rounded-xl mb-6 border-2 ${isDark ? 'bg-blue-900/10 border-blue-800' : 'bg-blue-50/50 border-blue-100'}`}>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Student Name</p>
-                      <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{studentToAssign.full_name}</p>
-                    </div>
-                    <div>
-                      <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Email Address</p>
-                      <p className={`font-medium truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`} title={studentToAssign.email}>{studentToAssign.email}</p>
-                    </div>
-                    <div>
-                      <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Current Class</p>
-                      <p className={`font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                        {getClassName(studentToAssign.class_id) || 'Not Assigned'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Current Shift</p>
-                      <p className={`font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                        {(() => {
-                          const currentCls = classes.find(c => c.id == studentToAssign.class_id);
-                          return currentCls?.type ? currentCls.type.charAt(0).toUpperCase() + currentCls.type.slice(1) : 'None';
-                        })()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Student Program Info */}
+                {/* Level Selection (FIRST) */}
                 <div className="mb-4">
-                  <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Target Program:</p>
-                  <p className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                    {studentToAssign.chosen_program}
-                  </p>
-                </div>
-
-                {/* Type Selection */}
-                <div className="mb-4">
-                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Select Class Type
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Select Class Type (Level)
                   </label>
-                  <div className="flex gap-2">
-                    {['morning', 'afternoon', 'night'].map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => {
-                          setSelectedType(type);
-                          setSelectedClassId(""); // Reset class selection
-                        }}
-                        className={`flex-1 px-3 py-2 rounded-lg border font-medium transition-all ${selectedType === type
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : isDark
-                            ? 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
-                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                          }`}
-                      >
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </button>
+                  <select
+                    value={selectedLevelId}
+                    onChange={(e) => {
+                      setSelectedLevelId(e.target.value);
+                      setSelectedShiftName("");
+                      setSelectedSessionType("");
+                      setSelectedClassId("");
+                    }}
+                    className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white'}`}
+                  >
+                    <option value="">Select Level</option>
+                    {availableLevels.map((lvl) => (
+                      <option key={lvl.id} value={lvl.id}>
+                        {lvl.subprogram_name}
+                      </option>
                     ))}
+                  </select>
+                </div>
+
+                {/* Shift & Session Selection - Parallel (SECOND) */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Select Shift
+                    </label>
+                    <select
+                      value={selectedShiftName}
+                      disabled={!selectedLevelId}
+                      onChange={(e) => {
+                        setSelectedShiftName(e.target.value);
+                        setSelectedSessionType("");
+                        setSelectedClassId("");
+                      }}
+                      className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white'} disabled:opacity-50`}
+                    >
+                      <option value="">Select Shift</option>
+                      {uniqueShiftNames.map((name) => (
+                        <option key={name} value={name}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Session
+                    </label>
+                    <select
+                      value={selectedSessionType}
+                      disabled={!selectedShiftName}
+                      onChange={(e) => {
+                        setSelectedSessionType(e.target.value);
+                        setSelectedClassId("");
+                      }}
+                      className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white'} disabled:opacity-50`}
+                    >
+                      <option value="">Select Session</option>
+                      {availableSessions.map((session) => (
+                        <option key={session} value={session}>
+                          {session}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
-                {programClasses.length === 0 ? (
-                  <div className={`p-4 rounded-lg mb-4 ${isDark ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-yellow-50 border border-yellow-200'}`}>
-                    <p className={`text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
-                      No classes available for "{studentToAssign.chosen_program}". Please create classes first.
+                {/* Class Selection (THIRD) */}
+                <div className="mb-8">
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Select Class
+                  </label>
+                  <select
+                    value={selectedClassId}
+                    disabled={!selectedSessionType}
+                    onChange={(e) => setSelectedClassId(e.target.value)}
+                    className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white'} disabled:opacity-50`}
+                  >
+                    <option value="">Select a class</option>
+                    {filteredClasses.map((cls) => (
+                      <option key={cls.id} value={cls.id}>
+                        {cls.class_name}
+                      </option>
+                    ))}
+                  </select>
+                  {filteredClasses.length === 0 && selectedLevelId && selectedShiftName && selectedSessionType && (
+                    <p className="text-xs text-red-500 mt-2 font-medium italic">
+                      No matching classes found
                     </p>
-                  </div>
-                ) : !selectedType ? (
-                  <div className={`p-4 rounded-lg mb-4 ${isDark ? 'bg-blue-900/20 border border-blue-700' : 'bg-blue-50 border border-blue-200'}`}>
-                    <p className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>
-                      Please select a class type above to view available classes.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    {/* Class Selection */}
-                    <div className="mb-6">
-                      <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                        Select Class
-                      </label>
-                      <select
-                        value={selectedClassId}
-                        onChange={(e) => setSelectedClassId(e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white'}`}
-                      >
-                        <option value="">Select a class</option>
-                        {programClasses
-                          .filter(cls => {
-                            // If type column exists and is set, filter by type; otherwise show all classes
-                            if (cls.type && selectedType) {
-                              return cls.type === selectedType;
-                            }
-                            return true; // Show all classes if type column doesn't exist or no type selected
-                          })
-                          .map((cls) => (
-                            <option key={cls.id} value={cls.id}>
-                              {cls.class_name} ({cls.subprogram_name || 'No subprogram'})
-                            </option>
-                          ))}
-                      </select>
-                      {programClasses.filter(cls => cls.type === selectedType).length === 0 && (
-                        <div className={`p-4 rounded-lg mt-2 ${isDark ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-yellow-50 border border-yellow-200'}`}>
-                          <p className={`text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
-                            This shift have no class
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
+                  )}
+                </div>
 
                 {/* Buttons */}
                 <div className="flex gap-3">
                   <button
                     onClick={handleCloseAssignModal}
-                    className={`flex-1 px-4 py-2.5 rounded-lg border font-semibold transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                    className={`flex-1 px-4 py-3 rounded-xl border font-bold text-sm transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleAssignClass}
-                    disabled={isUpdating || !selectedClassId}
-                    className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isUpdating || !selectedClassId || !selectedLevelId}
+                    className="flex-1 px-4 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUpdating ? "Assigning..." : "Assign Class"}
                   </button>
@@ -786,8 +806,8 @@ export default function GeneralStudentsPage() {
                     <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.age || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Gender</p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.gender || 'N/A'}</p>
+                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Sex</p>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.sex || 'N/A'}</p>
                   </div>
                   <div>
                     <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Country</p>
@@ -936,17 +956,16 @@ export default function GeneralStudentsPage() {
                       />
                     </div>
                     <div>
-                      <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Gender</label>
+                      <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Sex</label>
                       <select
-                        name="gender"
-                        value={editFormData.gender}
+                        name="sex"
+                        value={editFormData.sex}
                         onChange={handleEditInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+                        className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                       >
-                        <option value="">Select Gender</option>
+                        <option value="">Select Sex</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
-                        <option value="Other">Other</option>
                       </select>
                     </div>
                     <div>

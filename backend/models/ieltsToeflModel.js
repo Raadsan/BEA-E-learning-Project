@@ -6,7 +6,7 @@ const dbp = db.promise();
 // Create Student
 export const createStudent = async (data) => {
     const {
-        first_name, last_name, email, phone, password, chosen_program, age, gender,
+        first_name, last_name, email, phone, password, chosen_program, age, sex,
         residency_country, residency_city, exam_type, verification_method,
         certificate_institution, certificate_date, certificate_document,
         exam_booking_date, exam_booking_time, status
@@ -16,7 +16,7 @@ export const createStudent = async (data) => {
 
     const query = `
     INSERT INTO IELTSTOEFL (
-      student_id, first_name, last_name, email, phone, password, chosen_program, age, gender,
+      student_id, first_name, last_name, email, phone, password, chosen_program, age, sex,
       residency_country, residency_city, exam_type, verification_method,
       certificate_institution, certificate_date, certificate_document,
       exam_booking_date, exam_booking_time, status
@@ -25,7 +25,7 @@ export const createStudent = async (data) => {
 
     const values = [
         student_id,
-        first_name, last_name, email, phone, password, chosen_program, age, gender,
+        first_name, last_name, email, phone, password, chosen_program, age, sex,
         residency_country, residency_city, exam_type, verification_method,
         certificate_institution || null, certificate_date || null, certificate_document || null,
         exam_booking_date || null, exam_booking_time || null, status || 'Pending'

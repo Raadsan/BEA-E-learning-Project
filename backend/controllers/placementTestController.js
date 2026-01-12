@@ -75,6 +75,8 @@ export const submitPlacementTest = async (req, res) => {
         let score = 0;
         let total_possible_points = 0;
 
+        let hasEssay = false;
+
         testQuestions.forEach(q => {
             if (q.type === 'passage') {
                 (q.subQuestions || []).forEach(subQ => {
@@ -93,13 +95,9 @@ export const submitPlacementTest = async (req, res) => {
                     score += (parseInt(q.points) || 1);
                 }
             } else if (q.type === 'essay') {
+                hasEssay = true;
                 total_possible_points += (parseInt(q.points) || 0);
                 // Essay logic: for now, we just record the answer. 
-                // In a real scenario, this might need manual grading.
-                // If you want to give automatic points for word count or just presence:
-                if (answers[q.id] && answers[q.id].length > 10) {
-                    // score += (parseInt(q.points) || 0); // Optional auto-grade
-                }
             }
         });
 
@@ -109,6 +107,12 @@ export const submitPlacementTest = async (req, res) => {
         if (percentage >= 80) recommended_level = "Advanced";
         else if (percentage >= 50) recommended_level = "Intermediate";
 
+        let status = 'completed';
+        if (hasEssay) {
+            status = 'pending_review';
+            recommended_level = null; // Cannot determine level yet
+        }
+
         const result = await PlacementTest.saveTestResult({
             student_id,
             test_id,
@@ -117,7 +121,7 @@ export const submitPlacementTest = async (req, res) => {
             percentage,
             recommended_level,
             answers,
-            status: 'completed'
+            status: status
         });
 
         res.status(201).json(result);
@@ -140,6 +144,42 @@ export const getAllPlacementResults = async (req, res) => {
     try {
         const results = await PlacementTest.getAllResults();
         res.status(200).json(results);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const gradePlacementTest = async (req, res) => {
+    try {
+        const { resultId } = req.params;
+        const { essayMarks, feedbackFile } = req.body;
+
+        const results = await PlacementTest.getAllResults();
+        const result = results.find(r => r.id === parseInt(resultId));
+
+        if (!result) return res.status(404).json({ error: "Result not found" });
+
+        // Calculate new score
+        const newScore = result.score + (parseInt(essayMarks) || 0);
+        // Recalculate based on total questions (assuming points were already summed correctly during test creation/submission)
+        // Wait, total_questions in the DB is actually "total_possible_points". Let's assume that's correct from submission time.
+        const percentage = (newScore / result.total_questions) * 100;
+
+        let recommended_level = "Beginner";
+        if (percentage >= 80) recommended_level = "Advanced";
+        else if (percentage >= 50) recommended_level = "Intermediate";
+
+        // Update DB Result
+        await PlacementTest.updateTestResult(resultId, {
+            score: newScore,
+            percentage,
+            recommended_level,
+            status: 'completed',
+            essay_marks: essayMarks,
+            feedback_file: feedbackFile
+        });
+
+        res.status(200).json({ message: "Grading completed", newScore, recommended_level });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

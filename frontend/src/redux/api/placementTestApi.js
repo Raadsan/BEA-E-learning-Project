@@ -45,6 +45,14 @@ export const placementTestApi = createApi({
             query: () => "/results/all",
             providesTags: ["PlacementResult"],
         }),
+        gradePlacementTest: builder.mutation({
+            query: ({ resultId, ...data }) => ({
+                url: `/results/${resultId}/grade`,
+                method: "PUT",
+                body: data,
+            }),
+            invalidatesTags: ["PlacementResult"],
+        }),
         createPlacementTest: builder.mutation({
             query: (newTest) => ({
                 url: "/",
@@ -77,6 +85,7 @@ export const {
     useSubmitPlacementTestMutation,
     useGetStudentPlacementResultsQuery,
     useGetAllPlacementResultsQuery,
+    useGradePlacementTestMutation,
     useCreatePlacementTestMutation,
     useUpdatePlacementTestMutation,
     useDeletePlacementTestMutation,

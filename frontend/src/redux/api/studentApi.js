@@ -106,13 +106,13 @@ export const studentApi = createApi({
       },
     }),
 
-    // GET GENDER DISTRIBUTION
-    getGenderDistribution: builder.query({
+    // GET SEX DISTRIBUTION
+    getSexDistribution: builder.query({
       query: ({ program_id, class_id } = {}) => {
         const params = new URLSearchParams();
         if (program_id) params.append("program_id", program_id);
         if (class_id) params.append("class_id", class_id);
-        return `/gender-distribution?${params.toString()}`;
+        return `/sex-distribution?${params.toString()}`;
       },
       providesTags: ["Students"],
       transformResponse: (response) => {
@@ -168,7 +168,7 @@ export const {
   useApproveStudentMutation,
   useRejectStudentMutation,
   useGetStudentProgressQuery,
-  useGetGenderDistributionQuery,
+  useGetSexDistributionQuery,
   useGetTopStudentsQuery,
   useGetStudentLocationsQuery,
 } = studentApi;

@@ -53,7 +53,7 @@ export default function ResultsPage() {
         {/* Simple Results Summary */}
         <div className="bg-white p-10 rounded-xl border border-gray-200 text-center space-y-4">
           <h1 className="text-2xl font-semibold text-gray-900">Placement Test Results</h1>
-          <p className="text-gray-500 text-sm">Review your performance and recommended level below.</p>
+          <p className="text-gray-500 text-sm">Review your performance and test evaluation below.</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
             <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 flex flex-col items-center">
@@ -64,10 +64,17 @@ export default function ResultsPage() {
               <span className="text-[10px] font-bold text-gray-400 uppercase">Accuracy</span>
               <span className="text-xl font-semibold text-gray-900 mt-1">{Math.round(result.percentage)}%</span>
             </div>
-            <div className="p-4 rounded-lg bg-[#010080] text-white flex flex-col items-center">
-              <span className="text-[10px] font-bold opacity-70 uppercase">Recommended Level</span>
-              <span className="text-xl font-semibold mt-1">{result.recommended_level}</span>
-            </div>
+            {result.status === 'completed' ? (
+              <div className="p-4 rounded-lg bg-green-50 border border-green-100 flex flex-col items-center">
+                <span className="text-[10px] font-bold text-green-600 uppercase">Status</span>
+                <span className="text-xl font-semibold text-green-700 mt-1">Completed</span>
+              </div>
+            ) : (
+              <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-100 flex flex-col items-center">
+                <span className="text-[10px] font-bold text-yellow-600 uppercase">Status</span>
+                <span className="text-lg font-semibold text-yellow-700 mt-1">Pending Review</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -82,7 +89,7 @@ export default function ResultsPage() {
                   <span className="text-[10px] font-bold text-blue-600 uppercase">Question {i + 1} • {q.type}</span>
                   <span className="text-xs text-gray-400 mt-0.5">{q.points || 0} Marks</span>
                 </div>
-                {q.type !== 'essay' && (
+                {q.type === 'mcq' && (
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${studentAnswers[q.id] === q.options[q.correctOption] ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
                     {studentAnswers[q.id] === q.options[q.correctOption] ? 'Correct' : 'Incorrect'}
                   </span>
@@ -135,10 +142,43 @@ export default function ResultsPage() {
                   <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600 leading-relaxed font-normal">
                     {studentAnswers[q.id] || "No response."}
                   </div>
-                  <div className="flex justify-between items-center text-[10px] text-gray-400">
-                    <p className="font-normal">Pending manual review.</p>
-                    <span className="font-semibold">{q.points || 0} Marks</span>
-                  </div>
+
+                  {result.status === 'completed' ? (
+                    <div className="flex flex-col gap-3 mt-4">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-bold text-green-600 uppercase px-2 py-0.5 bg-green-50 rounded">Graded</span>
+                        <span className="font-bold text-gray-900">{result.essay_marks || 0} / {q.points || 0} Marks</span>
+                      </div>
+                      {result.feedback_file && (
+                        <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all hover:shadow-md ${typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? 'bg-blue-900/10 border-blue-800' : 'bg-blue-50/50 border-blue-100'}`}>
+                          <div className="flex items-center gap-2">
+                            <div className="p-2 rounded-lg bg-blue-100">
+                              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Teacher Feedback</span>
+                              <span className="text-[10px] text-blue-600/70">Graded Essay File</span>
+                            </div>
+                          </div>
+                          <a
+                            href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${result.feedback_file}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm"
+                          >
+                            Download
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center text-[10px] text-gray-400 mt-2">
+                      <p className="font-normal italic">Pending manual review by BEA academic team.</p>
+                      <span className="font-semibold">{q.points || 0} Marks</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -32,10 +32,14 @@ export default function SessionChangePage() {
       const currentClass = classes.find(c => c.id == user.class_id);
 
       if (currentClass) {
-        // Set current session name
+        // Set current session name - Combine Shift and Session Type
+        const currentSessionLabel = currentClass.shift_name && currentClass.shift_session
+          ? `${currentClass.shift_name} - ${currentClass.shift_session}`
+          : currentClass.shift_session || currentClass.shift_name || "N/A";
+
         setFormData(prev => ({
           ...prev,
-          currentSession: currentClass.type
+          currentSession: currentSessionLabel
         }));
 
         // Filter classes with same subprogram_id
@@ -67,14 +71,15 @@ export default function SessionChangePage() {
       // Find current class details
       const currentClass = classes.find(c => c.id == user.class_id);
 
-      // Find a class that matches the requested session type (from available sessions)
-      const requestedClass = availableSessions.find(c => c.type === formData.requestedSession);
+      // Find a class that matches the requested session ID 
+      const requestedClass = availableSessions.find(c => c.id.toString() === formData.requestedSession);
+      const requestedSessionType = requestedClass ? `${requestedClass.shift_name} - ${requestedClass.shift_session}` : formData.requestedSession;
 
       // Submit to dedicated Session Request API
       await createSessionRequest({
         current_class_id: currentClass ? currentClass.id : null,
         requested_class_id: requestedClass ? requestedClass.id : null,
-        requested_session_type: formData.requestedSession,
+        requested_session_type: requestedSessionType,
         reason: formData.reason
       }).unwrap();
 
@@ -109,7 +114,11 @@ export default function SessionChangePage() {
       label: "Current Session",
       render: (row) => (
         <div>
-          <div className="font-medium text-sm">{row.current_session_type || "N/A"}</div>
+          <div className="font-medium text-sm">
+            {row.current_shift_name && row.current_session_type
+              ? `${row.current_shift_name} - ${row.current_session_type}`
+              : row.current_session_type || row.requested_session_type || "N/A"}
+          </div>
           {row.current_class_name && (
             <div className={`text-xs ${textSub}`}>{row.current_class_name}</div>
           )}
@@ -120,7 +129,11 @@ export default function SessionChangePage() {
       label: "Requested Session",
       render: (row) => (
         <div>
-          <div className="font-medium text-sm text-blue-600 dark:text-blue-400">{row.requested_session_type}</div>
+          <div className="font-medium text-sm text-blue-600 dark:text-blue-400">
+            {row.requested_shift_name && row.requested_class_type
+              ? `${row.requested_shift_name} - ${row.requested_class_type}`
+              : row.requested_session_type || "N/A"}
+          </div>
           {row.requested_class_name && (
             <div className={`text-xs ${textSub}`}>{row.requested_class_name}</div>
           )}
@@ -177,7 +190,7 @@ export default function SessionChangePage() {
             <button
               onClick={() => {
                 setSubmitted(false);
-                setFormData({ currentSession: formData.currentSession, requestedSession: "", reason: "" });
+                setFormData({ currentSession: formData.currentSession || "", requestedSession: "", reason: "" });
               }}
               className="mt-6 px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm font-medium transition-colors hover:bg-gray-300 dark:hover:bg-gray-600"
             >
@@ -220,10 +233,11 @@ export default function SessionChangePage() {
                 {isLoadingClasses ? (
                   <option disabled>Loading available sessions...</option>
                 ) : availableSessions.length > 0 ? (
-                  // Get unique types from available sessions
-                  [...new Set(availableSessions.map(s => s.type).filter(Boolean))].map(type => (
-                    <option key={type} value={type}>
-                      {type}
+                  availableSessions.map(cls => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.shift_name && cls.shift_session
+                        ? `${cls.shift_name} - ${cls.shift_session}`
+                        : cls.shift_session || cls.shift_name || "Unknown Session"}
                     </option>
                   ))
                 ) : (

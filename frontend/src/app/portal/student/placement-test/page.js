@@ -139,7 +139,7 @@ export default function PlacementTestPage() {
             ) : (
               <button
                 onClick={() => router.push(`/portal/student/placement-test/take?id=${activeTest.id}`)}
-                className="px-12 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 w-full max-w-xs"
+                className="px-12 py-3 bg-[#010080] hover:bg-[#000060] text-white font-medium rounded-xl transition-all shadow-lg hover:shadow-blue-900/20 w-full max-w-xs"
               >
                 Start Placement Test
               </button>

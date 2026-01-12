@@ -7,6 +7,7 @@ import { useGetTeachersQuery, useCreateTeacherMutation, useUpdateTeacherMutation
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import { Country, City } from "country-state-city";
 
 // Extracted Components
 import TeacherForm from "./components/TeacherForm";
@@ -41,6 +42,12 @@ export default function TeachersPage() {
     highest_qualification: "", years_experience: "", bio: "", portfolio_link: "",
     skills: "", hire_date: "", password: "", confirmPassword: "",
   });
+
+  const cities = (() => {
+    if (!formData.country) return [];
+    const country = Country.getAllCountries().find(c => c.name === formData.country);
+    return country ? City.getCitiesOfCountry(country.isoCode) : [];
+  })();
 
   const handleAddTeacher = () => {
     setEditingTeacher(null);
@@ -162,7 +169,7 @@ export default function TeachersPage() {
     <>
       <AdminHeader />
       <main className="flex-1 mt-20 bg-gray-50"><div className="w-full px-8 py-6"><DataTable title="Teachers" columns={columns} data={teachers} onAddClick={handleAddTeacher} showAddButton={true} /></div></main>
-      <TeacherForm isOpen={isModalOpen} onClose={handleCloseModal} editingTeacher={editingTeacher} formData={formData} setFormData={setFormData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} isDark={isDark} isCreating={isCreating} isUpdating={isUpdating} />
+      <TeacherForm isOpen={isModalOpen} onClose={handleCloseModal} editingTeacher={editingTeacher} formData={formData} setFormData={setFormData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} isDark={isDark} isCreating={isCreating} isUpdating={isUpdating} cities={cities} />
       <TeacherViewModal isOpen={isViewModalOpen} onClose={handleCloseViewModal} teacher={viewingTeacher} isDark={isDark} getAssignedClasses={getAssignedClasses} />
       <TeacherConfirmationModal isOpen={confirmationModal.isOpen} onClose={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))} title={confirmationModal.title} message={confirmationModal.message} onConfirm={confirmationModal.onConfirm} isLoading={confirmationModal.isLoading} isDark={isDark} />
     </>

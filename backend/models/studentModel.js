@@ -9,7 +9,7 @@ export const createStudent = async ({
   email,
   phone,
   age,
-  gender,
+  sex,
   residency_country,
   residency_city,
   chosen_program,
@@ -20,7 +20,12 @@ export const createStudent = async ({
   parent_phone,
   parent_relation,
   parent_res_county,
-  parent_res_city
+  parent_res_city,
+  funding_status,
+  sponsorship_package,
+  funding_amount,
+  funding_month,
+  scholarship_percentage
 }) => {
   // Generate unique student ID
   const student_id = await generateStudentId('students');
@@ -30,17 +35,18 @@ export const createStudent = async ({
 
   const [result] = await dbp.query(
     `INSERT INTO students (
-      student_id, full_name, email, phone, age, gender, residency_country, residency_city,
+      student_id, full_name, email, phone, age, sex, residency_country, residency_city,
       chosen_program, chosen_subprogram, password, parent_name, parent_email, parent_phone,
-      parent_relation, parent_res_county, parent_res_city
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      parent_relation, parent_res_county, parent_res_city, funding_status, sponsorship_package,
+      funding_amount, funding_month, scholarship_percentage
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       student_id,
       full_name,
       email,
       phone || null,
       age || null,
-      gender || null,
+      sex || null,
       residency_country || null,
       residency_city || null,
       chosen_program || null,
@@ -51,7 +57,12 @@ export const createStudent = async ({
       parent_phone || null,
       parent_relation || null,
       parent_res_county || null,
-      parent_res_city || null
+      parent_res_city || null,
+      funding_status || 'Paid',
+      sponsorship_package || 'None',
+      funding_amount || null,
+      funding_month || null,
+      scholarship_percentage || null
     ]
   );
 
@@ -63,9 +74,10 @@ export const createStudent = async ({
 export const getAllStudents = async () => {
   try {
     const [rows] = await dbp.query(
-      `SELECT s.student_id, s.full_name, s.email, s.phone, s.age, s.gender, s.residency_country, s.residency_city, 
+      `SELECT s.student_id, s.full_name, s.email, s.phone, s.age, s.sex, s.residency_country, s.residency_city, 
        s.chosen_program, s.chosen_subprogram, s.parent_name, s.parent_email, s.parent_phone, 
        s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, 
+       s.funding_status, s.sponsorship_package, s.funding_amount, s.funding_month, s.scholarship_percentage,
        s.created_at, s.updated_at, c.class_name
        FROM students s
        LEFT JOIN classes c ON s.class_id = c.id
@@ -102,7 +114,7 @@ export const updateStudentById = async (id, {
   email,
   phone,
   age,
-  gender,
+  sex,
   residency_country,
   residency_city,
   chosen_program,
@@ -115,7 +127,12 @@ export const updateStudentById = async (id, {
   parent_res_county,
   parent_res_city,
   class_id,
-  approval_status
+  approval_status,
+  funding_status,
+  sponsorship_package,
+  funding_amount,
+  funding_month,
+  scholarship_percentage
 }) => {
   const updates = [];
   const values = [];
@@ -136,9 +153,9 @@ export const updateStudentById = async (id, {
     updates.push("age = ?");
     values.push(age);
   }
-  if (gender !== undefined) {
-    updates.push("gender = ?");
-    values.push(gender);
+  if (sex !== undefined) {
+    updates.push("sex = ?");
+    values.push(sex);
   }
   if (residency_country !== undefined) {
     updates.push("residency_country = ?");
@@ -192,6 +209,26 @@ export const updateStudentById = async (id, {
   if (approval_status !== undefined) {
     updates.push("approval_status = ?");
     values.push(approval_status);
+  }
+  if (funding_status !== undefined) {
+    updates.push("funding_status = ?");
+    values.push(funding_status);
+  }
+  if (sponsorship_package !== undefined) {
+    updates.push("sponsorship_package = ?");
+    values.push(sponsorship_package);
+  }
+  if (funding_amount !== undefined) {
+    updates.push("funding_amount = ?");
+    values.push(funding_amount);
+  }
+  if (funding_month !== undefined) {
+    updates.push("funding_month = ?");
+    values.push(funding_month);
+  }
+  if (scholarship_percentage !== undefined) {
+    updates.push("scholarship_percentage = ?");
+    values.push(scholarship_percentage);
   }
 
   if (updates.length === 0) {
@@ -285,9 +322,9 @@ export const updateStudentProgramName = async (oldName, newName) => {
   return result.affectedRows;
 };
 
-// GET GENDER DISTRIBUTION
-export const getGenderDistribution = async (program_id, class_id) => {
-  let query = `SELECT gender, COUNT(*) as count FROM students`;
+// GET SEX DISTRIBUTION
+export const getSexDistribution = async (program_id, class_id) => {
+  let query = `SELECT sex, COUNT(*) as count FROM students`;
   const params = [];
   const conditions = [];
 
@@ -307,14 +344,14 @@ export const getGenderDistribution = async (program_id, class_id) => {
     query += ` WHERE ${conditions.join(" AND ")}`;
   }
 
-  query += ` GROUP BY gender`;
+  query += ` GROUP BY sex`;
 
   const [rows] = await dbp.query(query, params);
 
   // Calculate percentages
   const total = rows.reduce((sum, row) => sum + row.count, 0);
   return rows.map(row => ({
-    gender: row.gender || 'Not Specified',
+    sex: row.sex || 'Not Specified',
     count: row.count,
     percentage: total > 0 ? Math.round((row.count / total) * 100) : 0
   }));
@@ -402,9 +439,10 @@ export const getStudentLocations = async (program_id) => {
 // GET STUDENTS BY CLASS ID
 export const getStudentsByClassId = async (classId) => {
   const [rows] = await dbp.query(
-    `SELECT s.student_id, s.full_name, s.email, s.phone, s.age, s.gender, s.residency_country, s.residency_city, 
+    `SELECT s.id, s.student_id, s.full_name, s.email, s.phone, s.age, s.sex, s.residency_country, s.residency_city, 
      s.chosen_program, s.chosen_subprogram, s.parent_name, s.parent_email, s.parent_phone, 
      s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, 
+     s.funding_status, s.sponsorship_package, s.funding_amount, s.funding_month, s.scholarship_percentage,
      s.created_at, s.updated_at
      FROM students s
      WHERE s.class_id = ? AND s.approval_status = 'approved'

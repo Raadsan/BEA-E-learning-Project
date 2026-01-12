@@ -1,10 +1,21 @@
 "use client";
 
 import AdminHeader from "@/components/AdminHeader";
-import { useGetAllPaymentsQuery } from "@/redux/api/paymentApi";
-import { useGetAllPlacementResultsQuery } from "@/redux/api/placementTestApi";
-import DataTable from "@/components/DataTable";
+import { useGetProgramsQuery } from "@/redux/api/programApi";
+import { useGetStudentsQuery } from "@/redux/api/studentApi";
+import { useGetTeachersQuery } from "@/redux/api/teacherApi";
+import { useGetClassesQuery } from "@/redux/api/classApi";
+
+
 import UpcomingEventsList from "@/components/UpcomingEventsList";
+import WeeklyAttendanceChart from "@/components/WeeklyAttendanceChart";
+import SexDistributionChart from "@/components/GenderDistributionChart";
+import LearningHoursChart from "@/components/LearningHoursChart";
+import AssignmentCompletionChart from "@/components/AssignmentCompletionChart";
+import PerformanceClustersChart from "@/components/PerformanceClustersChart";
+import StudentLocationsMap from "@/components/StudentLocationsMap";
+import ProgramPieChart from "@/components/ProgramPieChart";
+import StarStudentsList from "@/components/StarStudentsList";
 
 export default function AdminDashboard() {
   // Fetch data from APIs
@@ -12,8 +23,6 @@ export default function AdminDashboard() {
   const { data: studentsData, isLoading: studentsLoading } = useGetStudentsQuery();
   const { data: teachersData, isLoading: teachersLoading } = useGetTeachersQuery();
   const { data: classesData, isLoading: classesLoading } = useGetClassesQuery();
-  const { data: paymentsData, isLoading: paymentsLoading } = useGetAllPaymentsQuery();
-  const { data: resultsData, isLoading: resultsLoading } = useGetAllPlacementResultsQuery();
 
   // Extract counts
   const totalPrograms = Array.isArray(programsData) ? programsData.length : 0;
@@ -27,18 +36,7 @@ export default function AdminDashboard() {
   const classesArray = Array.isArray(classesData) ? classesData : [];
   const totalClasses = classesArray.length;
 
-  const paymentsArray = Array.isArray(paymentsData) ? paymentsData : [];
-  const resultsArray = Array.isArray(resultsData) ? resultsData : [];
-
   // New Admin metrics
-  const pendingStudents = studentsArray.filter(s => s.approval_status !== 'approved');
-  const totalPending = pendingStudents.length;
-
-  const unpaidStudents = studentsArray.filter(s => {
-    const hasPaid = paymentsArray.some(p => p.student_id === s.student_id && (p.status === 'paid' || p.status === 'completed'));
-    return !hasPaid;
-  });
-  const totalUnpaid = unpaidStudents.length;
 
   // Calculate Growth Logic
   const calculateGrowth = (data) => {
@@ -237,41 +235,6 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Pending Students Card */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-transform hover:-translate-y-1 duration-300">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm font-medium mb-1">Pending Students</p>
-                  <h3 className="text-3xl font-bold text-orange-600 mb-2">
-                    {studentsLoading ? "..." : totalPending}
-                  </h3>
-                  <p className="text-xs text-gray-400">Waiting for approval</p>
-                </div>
-                <div className="p-3 bg-orange-50 rounded-lg">
-                  <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0012 3c1.223 0 2.39.218 3.476.618M12 12a3 3 0 100-6 3 3 0 000 6zm6.203 1.951A10.005 10.005 0 0112 21c-4.478 0-8.268-2.943-9.542-7" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* Unpaid Students Card */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-transform hover:-translate-y-1 duration-300">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm font-medium mb-1">Unpaid Admissions</p>
-                  <h3 className="text-3xl font-bold text-red-600 mb-2">
-                    {studentsLoading ? "..." : totalUnpaid}
-                  </h3>
-                  <p className="text-xs text-gray-400">Payment not confirmed</p>
-                </div>
-                <div className="p-3 bg-red-50 rounded-lg">
-                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Charts Section */}
@@ -279,8 +242,8 @@ export default function AdminDashboard() {
             {/* Total Attendance Chart */}
             <WeeklyAttendanceChart programs={programsData} classes={classesData} />
 
-            {/* Gender Distribution */}
-            <GenderDistributionChart programs={programsData} classes={classesData} />
+            {/* Sex Distribution */}
+            <SexDistributionChart programs={programsData} classes={classesData} />
           </div>
 
           {/* Learning Hours and Assignment Completion */}
@@ -310,78 +273,6 @@ export default function AdminDashboard() {
             </div>
 
             <UpcomingEventsList />
-          </div>
-          {/* Recent Registrations & Progress Tracking */}
-          <div className="mb-8 bg-white rounded-2xl shadow-md p-8 border border-gray-100">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 leading-tight">Recent Registrations</h2>
-                <p className="text-sm text-gray-500 mt-1">Status of new students, payments and placement tests</p>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <DataTable
-                columns={[
-                  {
-                    key: "full_name",
-                    label: "Student Name",
-                    render: (row) => (
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-gray-900">{row.full_name}</span>
-                        <span className="text-[10px] text-gray-400 font-mono">{row.student_id}</span>
-                      </div>
-                    )
-                  },
-                  {
-                    key: "chosen_program",
-                    label: "Program",
-                    render: (row) => <span className="text-sm font-medium text-gray-600">{row.chosen_program || "N/A"}</span>
-                  },
-                  {
-                    key: "payment_status",
-                    label: "Payment",
-                    render: (row) => {
-                      const payment = paymentsArray.find(p => p.student_id === row.student_id);
-                      const isPaid = payment && (payment.status === 'paid' || payment.status === 'completed');
-                      return (
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isPaid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                          {isPaid ? 'Paid' : 'Pending'}
-                        </span>
-                      );
-                    }
-                  },
-                  {
-                    key: "placement_test",
-                    label: "Placement Test",
-                    render: (row) => {
-                      const result = resultsArray.find(r => r.student_id === row.student_id);
-                      return (
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${result ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
-                          {result ? `Completed (${result.total_score} pts)` : 'Not Started'}
-                        </span>
-                      );
-                    }
-                  },
-                  {
-                    key: "approval",
-                    label: "Approval",
-                    render: (row) => (
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${row.approval_status === 'approved' ? 'bg-indigo-100 text-indigo-700' : 'bg-orange-100 text-orange-700'}`}>
-                        {row.approval_status}
-                      </span>
-                    )
-                  },
-                  {
-                    key: "created_at",
-                    label: "Date",
-                    render: (row) => <span className="text-xs text-gray-500">{new Date(row.created_at).toLocaleDateString()}</span>
-                  }
-                ]}
-                data={studentsArray.slice(0, 10)} // Show latest 10
-                searchPlaceholder="Filter registrations..."
-              />
-            </div>
           </div>
 
           {/* Star Students - Full Width */}

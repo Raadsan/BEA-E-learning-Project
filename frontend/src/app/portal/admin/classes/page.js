@@ -170,7 +170,7 @@ export default function ClassesPage() {
         </div>
       ),
     },
-  ], [isDeleting]);
+  ], [isDeleting, handleView, handleAssign, handleEdit, handleDelete]);
 
   if (isLoading) return <><AdminHeader /><main className="flex-1 mt-20 pt-12 text-center text-gray-600">Loading classes...</main></>;
   if (isError) return <><AdminHeader /><main className="flex-1 mt-20 pt-12 text-center text-red-600">Error: {error?.data?.error || "Unknown error"}</main></>;

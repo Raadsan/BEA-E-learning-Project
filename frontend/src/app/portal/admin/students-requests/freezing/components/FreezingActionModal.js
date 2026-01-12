@@ -69,8 +69,8 @@ export default function FreezingActionModal({
                                         <p className="text-sm font-bold text-gray-700 dark:text-gray-200">{studentDetail.age || "34"}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[11px] font-semibold text-gray-400 uppercase mb-1.5">Gender</p>
-                                        <p className="text-sm font-bold text-gray-700 dark:text-gray-200">{studentDetail.gender || "Female"}</p>
+                                        <p className="text-[11px] font-semibold text-gray-400 uppercase mb-1.5">Sex</p>
+                                        <p className="text-sm font-bold text-gray-700 dark:text-gray-200">{studentDetail.sex || "Female"}</p>
                                     </div>
                                     <div>
                                         <p className="text-[11px] font-semibold text-gray-400 uppercase mb-1.5">Country</p>

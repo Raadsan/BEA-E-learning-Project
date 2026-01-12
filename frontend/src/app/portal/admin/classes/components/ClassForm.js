@@ -17,7 +17,10 @@ export default function ClassForm({
     teachers,
     shifts
 }) {
-    if (!isOpen) return null;
+    // Group shifts by name to allow side-by-side selection if needed, 
+    // but the user asked for "side by side shift and session dropdowns". 
+    // In our DB, one Shift record has both name and session.
+    // I will show two dropdowns: one for Shift Name, and then filter the Sessions.
 
     // Group shifts by name to allow side-by-side selection if needed, 
     // but the user asked for "side by side shift and session dropdowns". 
@@ -59,6 +62,8 @@ export default function ClassForm({
         if (!formData.shift_id) return null;
         return shifts.find(s => s.id == formData.shift_id);
     }, [shifts, formData.shift_id]);
+
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50">

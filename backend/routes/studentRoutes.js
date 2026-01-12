@@ -9,7 +9,7 @@ import {
   approveStudent,
   rejectStudent,
   getStudentProgress,
-  getGenderDistribution,
+  getSexDistribution,
   getTopStudents,
   getStudentLocations
 } from "../controllers/studentController.js";
@@ -21,7 +21,7 @@ const router = express.Router();
 // ---------- STUDENT ROUTES ----------
 // IMPORTANT: More specific routes must come before generic :id routes
 router.get("/progress", verifyToken, getStudentProgress);
-router.get("/gender-distribution", verifyToken, getGenderDistribution);
+router.get("/sex-distribution", verifyToken, getSexDistribution);
 router.get("/top-students", verifyToken, getTopStudents);
 router.get("/locations", verifyToken, getStudentLocations);
 router.post("/", createStudent);

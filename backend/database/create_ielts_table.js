@@ -2,8 +2,8 @@
 import db from "../database/dbconfig.js";
 
 const createTable = async () => {
-    try {
-        const createTableQuery = `
+  try {
+    const createTableQuery = `
       CREATE TABLE IF NOT EXISTS IELTSTOEFL (
         id INT AUTO_INCREMENT PRIMARY KEY,
         first_name VARCHAR(255) NOT NULL,
@@ -11,7 +11,7 @@ const createTable = async () => {
         email VARCHAR(255) NOT NULL,
         phone VARCHAR(50),
         age INT,
-        gender VARCHAR(20),
+        sex ENUM('Male', 'Female') DEFAULT 'Male',
         residency_country VARCHAR(255),
         residency_city VARCHAR(255),
         exam_type ENUM('IELTS', 'TOEFL') NOT NULL,
@@ -27,13 +27,13 @@ const createTable = async () => {
       )
     `;
 
-        await db.promise().query(createTableQuery);
-        console.log("✅ IELTSTOEFL table created successfully");
-        process.exit(0);
-    } catch (error) {
-        console.error("❌ Error creating table:", error);
-        process.exit(1);
-    }
+    await db.promise().query(createTableQuery);
+    console.log("✅ IELTSTOEFL table created successfully");
+    process.exit(0);
+  } catch (error) {
+    console.error("❌ Error creating table:", error);
+    process.exit(1);
+  }
 };
 
 createTable();

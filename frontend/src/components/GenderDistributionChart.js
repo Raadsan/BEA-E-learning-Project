@@ -2,30 +2,29 @@
 
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { useGetGenderDistributionQuery } from '@/redux/api/studentApi';
+import { useGetSexDistributionQuery } from '@/redux/api/studentApi';
 
 const COLORS = {
     'Male': '#3b82f6',
     'Female': '#ec4899',
-    'Other': '#8b5cf6',
     'Not Specified': '#6b7280'
 };
 
-const GenderDistributionChart = ({ programs = [], classes = [] }) => {
+const SexDistributionChart = ({ programs = [], classes = [] }) => {
     const [selectedProgram, setSelectedProgram] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
 
-    const { data: genderData, isLoading } = useGetGenderDistributionQuery({
+    const { data: sexData, isLoading } = useGetSexDistributionQuery({
         program_id: selectedProgram,
         class_id: selectedClass
     });
 
-    const chartData = genderData || [];
+    const chartData = sexData || [];
 
     return (
         <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
             <div className="flex flex-col mb-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Gender</h3>
+                <h3 className="text-lg font-bold text-gray-800 mb-4">Sex</h3>
                 <div className="flex gap-2 mb-4">
                     <select
                         value={selectedProgram}
@@ -81,20 +80,20 @@ const GenderDistributionChart = ({ programs = [], classes = [] }) => {
                                 cx="50%"
                                 cy="50%"
                                 labelLine={true}
-                                label={({ gender, percentage }) => `${gender}: ${percentage}%`}
+                                label={({ sex, percentage }) => `${sex}: ${percentage}%`}
                                 outerRadius={120}
                                 fill="#8884d8"
                                 dataKey="count"
-                                nameKey="gender"
+                                nameKey="sex"
                             >
                                 {chartData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[entry.gender] || COLORS['Not Specified']} />
+                                    <Cell key={`cell-${index}`} fill={COLORS[entry.sex] || COLORS['Not Specified']} />
                                 ))}
                             </Pie>
                             <Tooltip
                                 formatter={(value, name, props) => [
                                     `${value} students (${props.payload.percentage}%)`,
-                                    props.payload.gender
+                                    props.payload.sex
                                 ]}
                             />
                             <Legend
@@ -112,4 +111,4 @@ const GenderDistributionChart = ({ programs = [], classes = [] }) => {
     );
 };
 
-export default GenderDistributionChart;
+export default SexDistributionChart;
