@@ -1,15 +1,18 @@
 
-import db from "./dbconfig.js";
 import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
 
+dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
+
+const { default: db } = await import("./dbconfig.js");
 const dbp = db.promise();
-const artifactPath = "C:\\Users\\Raadsan Tech\\.gemini\\antigravity\\brain\\464f053b-2eaa-44e5-99be-08135c643bb3\\db_inspection.md";
+const artifactPath = "C:\\Users\\Raadsan Tech\\.gemini\\antigravity\\brain\\d813b5ff-61fd-4433-90e0-64792fba00bc\\db_inspection.md";
 
 async function inspect() {
     try {
         let output = "# Database Inspection\n\n";
-        const tables = ['students', 'classes', 'session_change_requests', 'shifts', 'payments'];
+        const tables = ['course_work_submissions'];
 
         for (const table of tables) {
             output += `## Table: ${table}\n\n`;

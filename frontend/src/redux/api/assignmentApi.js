@@ -9,18 +9,20 @@ export const assignmentApi = createApi({
             if (token) {
                 headers.set("Authorization", `Bearer ${token}`);
             }
-            headers.set("Content-Type", "application/json");
+            // Do NOT set Content-Type: application/json if we are sending FormData
+            // The browser will automatically set it with the correct boundary
             return headers;
         },
     }),
     tagTypes: ["Assignments"],
     endpoints: (builder) => ({
         getAssignments: builder.query({
-            query: ({ program_id, class_id, type } = {}) => {
+            query: ({ program_id, class_id, type, created_by } = {}) => {
                 const params = new URLSearchParams();
                 if (program_id) params.append("program_id", program_id);
                 if (class_id) params.append("class_id", class_id);
                 if (type) params.append("type", type);
+                if (created_by) params.append("created_by", created_by);
                 return `/?${params.toString()}`;
             },
             providesTags: ["Assignments"],
@@ -79,11 +81,22 @@ export const assignmentApi = createApi({
             query: ({ id, type }) => `/submissions/${id}?type=${type}`,
             providesTags: ["Assignments"],
         }),
+        getAllSubmissions: builder.query({
+            query: ({ type, subprogram_id, program_id, class_id } = {}) => {
+                const params = new URLSearchParams();
+                if (type) params.append("type", type);
+                if (subprogram_id) params.append("subprogram_id", subprogram_id);
+                if (program_id) params.append("program_id", program_id);
+                if (class_id) params.append("class_id", class_id);
+                return `/all-submissions?${params.toString()}`;
+            },
+            providesTags: ["Assignments"],
+        }),
         gradeSubmission: builder.mutation({
-            query: ({ id, ...body }) => ({
+            query: ({ id, formData }) => ({
                 url: `/grade/${id}`,
                 method: "PUT",
-                body,
+                body: formData,
             }),
             invalidatesTags: ["Assignments"],
         }),
@@ -99,5 +112,6 @@ export const {
     useDeleteAssignmentMutation,
     useSubmitAssignmentMutation,
     useGetAssignmentSubmissionsQuery,
+    useGetAllSubmissionsQuery,
     useGradeSubmissionMutation,
 } = assignmentApi;

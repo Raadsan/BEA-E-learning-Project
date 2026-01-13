@@ -92,6 +92,7 @@ export const getClassesByTeacherId = async (teacher_id) => {
   const [rows] = await dbp.query(
     `SELECT cl.*, 
             s.subprogram_name,
+            s.program_id,
             p.title as program_name
      FROM classes cl 
      LEFT JOIN subprograms s ON cl.subprogram_id = s.id 

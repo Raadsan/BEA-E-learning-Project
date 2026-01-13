@@ -25,6 +25,7 @@ import announcementRoutes from "./routes/announcementRoutes.js";
 import materialRoutes from "./routes/materialRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import shiftRoutes from "./routes/shiftRoutes.js";
+import fileRoutes from "./routes/fileRoutes.js";
 
 const app = express();
 
@@ -33,7 +34,11 @@ app.use(cors()); // Enable CORS for all routes
 app.use(express.json());
 
 // Serve uploaded images
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads"), {
+  setHeaders: (res, filePath) => {
+    res.setHeader('Content-Disposition', 'inline');
+  }
+}));
 
 // Home route
 app.get("/", (req, res) => {
@@ -125,6 +130,9 @@ app.use("/api/timetables", timetableRoutes);
 // ⬇️ Register Event Routes (Monthly Calendar)
 import eventRoutes from "./routes/eventRoutes.js";
 app.use("/api/events", eventRoutes);
+
+// ⬇️ Register File Routes (Downloads)
+app.use("/api/files", fileRoutes);
 
 
 // Server start

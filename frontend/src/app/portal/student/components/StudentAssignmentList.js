@@ -25,6 +25,7 @@ export default function StudentAssignmentList({ type, title }) {
     const [quizAnswers, setQuizAnswers] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
     const timerRef = useRef(null);
 
     // Timer logic
@@ -91,6 +92,12 @@ export default function StudentAssignmentList({ type, title }) {
             return;
         }
 
+        // Show confirmation modal for manual submissions
+        if (!auto) {
+            setShowConfirmModal(true);
+            return;
+        }
+
         if (!auto && isQuiz && !overrideContent) {
             const questions = typeof selectedAssignment.questions === 'string'
                 ? JSON.parse(selectedAssignment.questions)
@@ -108,7 +115,7 @@ export default function StudentAssignmentList({ type, title }) {
             await submitAssignment({
                 assignment_id: selectedAssignment.id,
                 content: contentToSubmit,
-                type: type // Pass type for multi-table routing
+                type: type
             }).unwrap();
             setView("list");
             setSubmissionContent("");
@@ -118,6 +125,75 @@ export default function StudentAssignmentList({ type, title }) {
             showToast(err.data?.error || "Failed to submit work", "error");
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleDownloadEssay = () => {
+        if (!submissionContent) return;
+
+        const date = new Date().toLocaleDateString();
+        const studentName = user?.name || "Student";
+
+        // Create doc content (HTML structure) matching placement test style
+        const htmlContent = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'><title>Essay Response</title></head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h1 style="color: #010080;">${selectedAssignment?.title || 'Essay Submission'} - My Response</h1>
+                <p><strong>Student:</strong> ${studentName}</p>
+                <p><strong>Date:</strong> ${date}</p>
+                <hr/>
+                <h2 style="font-size: 16px;">Assignment: ${selectedAssignment?.title}</h2>
+                <br/>
+                <h3>My Answer:</h3>
+                <div style="white-space: pre-wrap;">${submissionContent}</div>
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob(['\ufeff', htmlContent], {
+            type: 'application/msword'
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${studentName.replace(/\s+/g, '_')}_Essay_Submission.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleDownloadFeedbackFile = async (fileUrl) => {
+        if (!fileUrl) return;
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`http://localhost:5000/api/files/download/${fileUrl}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) throw new Error("Failed to download file");
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            // Extract original filename if possible (after the unique suffix)
+            const fileNameParts = fileUrl.split('-');
+            const displayFileName = fileNameParts.length > 2 ? fileNameParts.slice(2).join('-') : fileUrl;
+
+            a.download = displayFileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            showToast("Download started", "success");
+        } catch (error) {
+            console.error("Download error:", error);
+            showToast("Failed to download file. Please try again.", "error");
         }
     };
 
@@ -276,27 +352,51 @@ export default function StudentAssignmentList({ type, title }) {
                             </div>
                         </div>
 
-                        {selectedAssignment.feedback && (
-                            <div className={`mt-6 p-4 rounded-xl border border-dashed ${isDark ? 'bg-blue-900/10 border-blue-800/40' : 'bg-blue-50/50 border-blue-200'}`}>
-                                <h4 className="text-[10px] font-bold text-blue-600 mb-2 uppercase tracking-widest">Instructor Feedback</h4>
-                                <p className="text-sm italic font-medium text-slate-700 dark:text-slate-300">"{selectedAssignment.feedback}"</p>
+                        {selectedAssignment.submission_status === 'graded' && (
+                            <div className={`mt-6 p-6 rounded-2xl border ${isDark ? 'bg-gray-800/40 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-5 pb-4 border-b border-gray-100 dark:border-gray-700/50">
+                                    <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Assessment Results</h4>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Earned Score:</span>
+                                        <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                                            {selectedAssignment.score} / {selectedAssignment.total_points}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {selectedAssignment.feedback && (
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Instructor Feedback</span>
+                                            <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                {selectedAssignment.feedback}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {selectedAssignment.feedback_file_url && (
+                                        <div className="pt-2">
+                                            <button
+                                                onClick={() => handleDownloadFeedbackFile(selectedAssignment.feedback_file_url)}
+                                                className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border text-sm font-medium transition-all
+                                                    ${isDark
+                                                        ? 'bg-blue-600/10 border-blue-500/20 text-blue-400 hover:bg-blue-600/20'
+                                                        : 'bg-white border-blue-100 text-blue-600 hover:bg-blue-50 shadow-sm'
+                                                    }`}
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                                Download Feedback Document
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
 
-                    {isClosed && (
-                        <div className={`p-6 rounded-2xl border flex items-center gap-4 ${isDark ? 'bg-green-900/10 border-green-800/30 text-green-400' : 'bg-green-50 border-green-100 text-green-700'}`}>
-                            <div className="p-2 bg-green-500 text-white rounded-lg shadow-md">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p className="font-bold text-lg leading-tight">Work Recorded</p>
-                                <p className="text-xs font-medium opacity-70">This workspace is currently locked. Grading version is pinned.</p>
-                            </div>
-                        </div>
-                    )}
+
                 </div>
 
                 {/* Writing Area / Quiz Area */}
@@ -349,58 +449,98 @@ export default function StudentAssignmentList({ type, title }) {
                         </div>
                     ) : (
                         <div className="relative">
+                            {/* Word Count & Download Row */}
+                            <div className="flex justify-between items-center mb-4">
+                                <div className={`px-3 py-1.5 rounded-lg text-xs font-medium ${getWordCount(submissionContent) < (selectedAssignment?.word_count || 0)
+                                    ? (isDark ? 'bg-amber-900/40 text-amber-400' : 'bg-amber-100 text-amber-700')
+                                    : (isDark ? 'bg-emerald-900/40 text-emerald-400' : 'bg-emerald-100 text-emerald-700')
+                                    }`}>
+                                    {getWordCount(submissionContent)} Words
+                                    {selectedAssignment?.word_count ? <span className="opacity-60 ml-1">/ {selectedAssignment.word_count}</span> : ''}
+                                </div>
+
+                            </div>
+
                             <textarea
-                                className={`w-full h-[500px] p-8 border-2 rounded-2xl shadow-sm focus:ring-4 focus:ring-blue-500/5 focus:outline-none transition-all resize-none text-lg font-medium leading-relaxed ${isDark ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-600' : 'bg-white border-gray-100 text-gray-800 placeholder-gray-400'
-                                    } ${isClosed ? 'opacity-80 cursor-not-allowed border-dashed' : 'hover:border-gray-200'}`}
-                                placeholder="Provide your written response here..."
+                                className={`w-full h-[500px] p-6 border rounded-lg focus:outline-none focus:border-blue-500 transition-all resize-none ${isDark ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'}`}
+                                placeholder="Write your response here..."
                                 value={submissionContent}
                                 onChange={(e) => !isClosed && setSubmissionContent(e.target.value)}
-                                disabled={isClosed}
+                                readOnly={isClosed}
+                                spellCheck={false}
+                                autoComplete="off"
+                                autoCorrect="off"
+                                onPaste={(e) => !isClosed && e.preventDefault()}
+                                onCopy={(e) => e.preventDefault()}
+                                onCut={(e) => !isClosed && e.preventDefault()}
                             />
-                            <div className={`absolute bottom-6 right-6 px-4 py-2 rounded-xl text-xs font-bold border-2 transition-all ${getWordCount(submissionContent) < (selectedAssignment?.word_count || 0)
-                                ? (isDark ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-amber-50 text-amber-600 border-amber-100')
-                                : (isDark ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border-emerald-100')
-                                }`}>
-                                {getWordCount(submissionContent)} WORDS
-                                {selectedAssignment?.word_count ? <span className="opacity-40 ml-1">/ {selectedAssignment.word_count} TARGET</span> : ''}
-                            </div>
                         </div>
                     )}
 
                     {!isClosed && (
-                        <div className="flex justify-center mt-12 mb-20">
+                        <div className="flex justify-end mt-6">
                             <button
-                                onClick={() => handleFinalSubmit(false)}
-                                className={`px-12 py-4 rounded-xl font-bold text-sm text-white transition-all shadow-lg active:scale-[0.98] ${submitting ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'
+                                onClick={() => setShowConfirmModal(true)}
+                                className={`px-8 py-3 rounded-lg font-semibold text-sm transition-colors ${submitting ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-[#010080] hover:bg-blue-800 text-white'
                                     }`}
                                 disabled={submitting}
                             >
-                                {submitting ? 'Processing...' : 'Complete & Submit Review'}
+                                {submitting ? 'Submitting...' : 'Submit'}
                             </button>
                         </div>
                     )}
+
+                    {/* Confirmation Modal */}
+                    {showConfirmModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowConfirmModal(false)} />
+                            <div className={`relative w-full max-w-md rounded-lg shadow-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
+                                <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Confirm Submission</h3>
+                                <p className={`text-sm mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Are you sure you want to submit your work? You won't be able to edit it after submission.
+                                </p>
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        onClick={() => setShowConfirmModal(false)}
+                                        className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowConfirmModal(false);
+                                            handleFinalSubmit(true);
+                                        }}
+                                        className="px-4 py-2 rounded-lg bg-[#010080] hover:bg-blue-800 text-white font-semibold text-sm transition-colors"
+                                    >
+                                        Yes, Submit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            </div>
+            </div >
         );
     }
 
     return (
-        <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-[#0f172a] text-white' : 'bg-gray-50 text-gray-900'}`}>
-            <div className="w-full mx-auto mb-12">
-                <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+        <div className={`min-h-screen transition-colors p-8 pt-24 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+            <div className="mb-8">
+                <h1 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {title}
                 </h1>
-                <p className={`text-lg font-medium max-w-2xl opacity-60 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                    Access your {title.toLowerCase()} assignments, track your progress, and submit your entries for review.
+                <p className={`text-sm opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Access your {title.toLowerCase()} assignments and submit your work.
                 </p>
             </div>
 
             {!assignments || assignments.filter(t => t.status !== 'inactive').length === 0 ? (
-                <div className={`w-full p-20 rounded-3xl border-2 border-dashed text-center ${isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-white border-gray-200'}`}>
-                    <p className="text-xl font-medium text-gray-400">No active {title.toLowerCase()} assignments assigned to you yet.</p>
+                <div className={`p-16 rounded-lg border-2 border-dashed text-center ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <p className="text-lg text-gray-400">No active {title.toLowerCase()} assignments yet.</p>
                 </div>
             ) : (
-                <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {assignments.filter(t => t.status !== 'inactive').map((task) => {
                         const isGraded = task.submission_status === 'graded';
                         const isSubmitted = task.submission_status === 'submitted';
@@ -409,65 +549,56 @@ export default function StudentAssignmentList({ type, title }) {
                             <div
                                 key={task.id}
                                 onClick={() => handleOpenWorkspace(task)}
-                                className={`group p-8 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between ${isDark ? 'bg-slate-900 border-slate-800 hover:border-blue-500/50 hover:bg-slate-800/80 shadow-lg' : 'bg-white border-gray-100 hover:border-blue-200 hover:shadow-xl shadow-sm'
+                                className={`p-5 rounded-lg border transition-all cursor-pointer flex flex-col ${isDark ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-blue-300'
                                     }`}
                             >
-                                <div>
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div className={`p-3 rounded-xl ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
-                                            <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg border ${isGraded ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
-                                            isSubmitted ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                                                'bg-amber-100 text-amber-700 border-amber-200'
-                                            }`}>
-                                            {task.submission_status || 'Pending'}
-                                        </span>
-                                    </div>
-
-                                    <h3 className={`text-xl font-bold mb-4 tracking-tight group-hover:text-blue-600 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                        {task.title}
-                                    </h3>
-
-                                    <div className="space-y-3 mb-8">
-                                        <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
-                                            <svg className="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                            {task.due_date ? new Date(task.due_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Continuous'}
-                                        </div>
-
-                                        {isGraded ? (
-                                            <div className="flex items-center gap-3 text-emerald-600 text-sm font-bold">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 12l2 2 4-4" /></svg>
-                                                Grade: {task.score} / {task.total_points}
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
-                                                <svg className="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                                </svg>
-                                                {task.total_points} Points
-                                            </div>
-                                        )}
-                                    </div>
+                                {/* Header */}
+                                <div className="flex justify-between items-start mb-3">
+                                    <span className={`text-xs font-medium uppercase tracking-wide opacity-50 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        {type === 'writing_task' ? 'Writing Task' : 'Assignment'}
+                                    </span>
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isGraded ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
+                                        isSubmitted ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' :
+                                            'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
+                                        }`}>
+                                        {task.submission_status || 'Pending'}
+                                    </span>
                                 </div>
 
-                                <button
-                                    className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${isSubmitted || isGraded
-                                        ? (isDark ? 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700' : 'bg-gray-50 text-gray-500 border border-gray-100 hover:bg-gray-100')
-                                        : 'bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 hover:scale-[1.02]'
-                                        }`}
-                                >
-                                    {isSubmitted || isGraded ? 'Review Work' : 'Start Task'}
+                                {/* Title */}
+                                <h3 className={`text-lg font-bold mb-3 line-clamp-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                    {task.title}
+                                </h3>
+
+                                {/* Meta Info */}
+                                <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2">
+                                    <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        <span>{task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No Due Date'}</span>
+                                    </div>
+
+                                    {isGraded ? (
+                                        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" /></svg>
+                                            <span>Score: {task.score}/{task.total_points}</span>
+                                        </div>
+                                    ) : (
+                                        <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                                            <span>{task.total_points} Points</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Action Button */}
+                                <button className={`mt-4 w-full py-2 rounded-lg text-xs font-semibold transition-colors ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}>
+                                    {isGraded ? 'View Results' : isSubmitted ? 'View Submission' : 'Start Task'}
                                 </button>
                             </div>
                         );
                     })}
                 </div>
             )}
-        </div>
+        </div >
     );
 }

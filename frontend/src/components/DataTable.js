@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 const DEFAULT_MIN_COLUMN_WIDTH = "120px";
 
-const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true, customActions }) => {
+const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true, customActions, emptyMessage }) => {
   const tableRef = useRef(null);
   const [hasHorizontalScroll, setHasHorizontalScroll] = useState(false);
 
@@ -181,7 +181,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                     colSpan={columns.length}
                     className="px-4 py-8 text-center text-gray-500 dark:text-gray-300"
                   >
-                    No data found.
+                    {emptyMessage || "No data found."}
                   </td>
                 </tr>
               )}
