@@ -14,6 +14,7 @@ import {
   getStudentLocations
 } from "../controllers/studentController.js";
 import { verifyToken } from "../controllers/authController.js";
+import { upload } from "../controllers/uploadController.js";
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ router.get("/", getStudents);
 router.patch("/:id/approve", approveStudent);
 router.patch("/:id/reject", rejectStudent);
 router.get("/:id", getStudent);
-router.put("/:id", updateStudent);
+router.put("/:id", upload.single("profile_picture"), updateStudent);
 router.delete("/:id", deleteStudent);
 
 export default router;

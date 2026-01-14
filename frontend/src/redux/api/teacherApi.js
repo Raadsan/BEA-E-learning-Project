@@ -9,7 +9,6 @@ export const teacherApi = createApi({
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
-      headers.set("Content-Type", "application/json");
       return headers;
     },
   }),
@@ -58,11 +57,25 @@ export const teacherApi = createApi({
       invalidatesTags: ["Teachers"],
     }),
     updateTeacher: builder.mutation({
-      query: ({ id, ...body }) => ({
-        url: `/${id}`,
-        method: "PUT",
-        body,
-      }),
+      query: (data) => {
+        let id;
+        let body;
+
+        if (data instanceof FormData) {
+          id = data.get("id");
+          body = data;
+        } else {
+          const { id: dataId, ...rest } = data;
+          id = dataId;
+          body = rest;
+        }
+
+        return {
+          url: `/${id}`,
+          method: "PUT",
+          body,
+        };
+      },
       invalidatesTags: ["Teachers"],
     }),
     deleteTeacher: builder.mutation({

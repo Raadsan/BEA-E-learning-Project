@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
@@ -27,6 +27,13 @@ export default function AdminProfilePage() {
         newPassword: "",
         confirmPassword: "",
     });
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         console.log("Admin Profile - authData:", authData);
@@ -43,8 +50,22 @@ export default function AdminProfilePage() {
                 newPassword: "",
                 confirmPassword: "",
             });
+            setSelectedImage(null);
+            setImagePreview(null);
         }
     }, [currentAdmin, authData]);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setSelectedImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -63,25 +84,32 @@ export default function AdminProfilePage() {
                 showToast("Current password is required to set a new password", "error");
                 return;
             }
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+            if (!passwordRegex.test(formData.newPassword)) {
+                showToast("New password must be at least 6 characters and include uppercase, lowercase, number, and symbol", "error");
+                return;
+            }
         }
 
         try {
-            const updateData = {
-                username: currentAdmin.username,
-                email: formData.email,
-                first_name: formData.first_name,
-                last_name: formData.last_name,
-                phone: formData.phone || "",
-                bio: formData.bio || "",
-            };
+            const submitData = new FormData();
+            submitData.append("id", currentAdmin.id);
+            submitData.append("email", formData.email);
+            submitData.append("first_name", formData.first_name);
+            submitData.append("last_name", formData.last_name);
+            submitData.append("phone", formData.phone || "");
+            submitData.append("bio", formData.bio || "");
 
             if (formData.newPassword) {
-                updateData.currentPassword = formData.currentPassword;
-                updateData.newPassword = formData.newPassword;
-                updateData.password = formData.newPassword;
+                submitData.append("currentPassword", formData.currentPassword);
+                submitData.append("password", formData.newPassword);
             }
 
-            await updateAdmin({ id: currentAdmin.id, ...updateData }).unwrap();
+            if (selectedImage) {
+                submitData.append("profile_picture", selectedImage);
+            }
+
+            await updateAdmin(submitData).unwrap();
             showToast("Profile updated successfully!", "success");
             setIsEditing(false);
             refetch();
@@ -92,6 +120,8 @@ export default function AdminProfilePage() {
                 newPassword: "",
                 confirmPassword: "",
             }));
+            setSelectedImage(null);
+            setImagePreview(null);
         } catch (error) {
             console.error("Failed to update profile:", error);
             showToast(error?.data?.message || "Failed to update profile", "error");
@@ -110,6 +140,8 @@ export default function AdminProfilePage() {
                 newPassword: "",
                 confirmPassword: "",
             });
+            setSelectedImage(null);
+            setImagePreview(null);
         }
         setIsEditing(false);
     };
@@ -143,15 +175,32 @@ export default function AdminProfilePage() {
                             <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6">
 
                                 {/* Avatar */}
-                                <div className="relative">
-                                    <div className={`w-32 h-32 rounded-full flex items-center justify-center text-4xl font-bold shadow-2xl border-4 ${isDark ? "bg-slate-700 text-blue-400 border-slate-800" : "bg-blue-50 text-blue-600 border-white"}`}>
-                                        {currentAdmin?.profile_image ? (
-                                            <img src={`http://localhost:5000${currentAdmin.profile_image}`} alt="Profile" className="w-full h-full rounded-full object-cover" />
+                                <div className="relative group">
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleImageChange}
+                                        accept="image/*"
+                                        className="hidden"
+                                    />
+                                    <div
+                                        className={`w-32 h-32 rounded-full flex items-center justify-center text-4xl font-bold shadow-2xl border-4 overflow-hidden relative ${isDark ? "bg-slate-700 text-blue-400 border-slate-800" : "bg-blue-600 text-white border-white"} ${isEditing ? "cursor-pointer" : ""}`}
+                                        onClick={() => isEditing && fileInputRef.current?.click()}
+                                    >
+                                        {imagePreview ? (
+                                            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                        ) : currentAdmin?.profile_image || currentAdmin?.profile_picture ? (
+                                            <img src={(currentAdmin.profile_image || currentAdmin.profile_picture).startsWith('http') ? (currentAdmin.profile_image || currentAdmin.profile_picture) : `http://localhost:5000${currentAdmin.profile_image || currentAdmin.profile_picture}`} alt="Profile" className="w-full h-full object-cover" />
                                         ) : (
                                             getInitials(currentAdmin?.full_name || "AD")
                                         )}
+
+                                        {isEditing && (
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <CameraIcon className="w-8 h-8 text-white" />
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 border-4 border-white dark:border-slate-800 rounded-full"></div>
                                 </div>
 
                                 {/* Name & Basic Info */}
@@ -199,12 +248,12 @@ export default function AdminProfilePage() {
                                 {isEditing ? (
                                     <>
                                         <div>
-                                            <label className={`text-xs font-medium mb-1 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Email Address</label>
-                                            <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
+                                            <label className={`text-xs font-medium mb-1.5 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Email Address</label>
+                                            <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={`w-full px-4 py-3 rounded-lg border text-sm transition-all focus:ring-2 focus:ring-blue-500/20 ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
                                         </div>
                                         <div>
-                                            <label className={`text-xs font-medium mb-1 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Phone Number</label>
-                                            <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
+                                            <label className={`text-xs font-medium mb-1.5 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Phone Number</label>
+                                            <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className={`w-full px-4 py-3 rounded-lg border text-sm transition-all focus:ring-2 focus:ring-blue-500/20 ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
                                         </div>
                                     </>
                                 ) : (
@@ -225,35 +274,82 @@ export default function AdminProfilePage() {
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className={`text-xs font-medium mb-1 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>First Name</label>
-                                                <input type="text" name="first_name" value={formData.first_name} onChange={handleInputChange} className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
+                                                <label className={`text-xs font-medium mb-1.5 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>First Name</label>
+                                                <input type="text" name="first_name" value={formData.first_name} onChange={handleInputChange} className={`w-full px-4 py-3 rounded-lg border text-sm transition-all focus:ring-2 focus:ring-blue-500/20 ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
                                             </div>
                                             <div>
-                                                <label className={`text-xs font-medium mb-1 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Last Name</label>
-                                                <input type="text" name="last_name" value={formData.last_name} onChange={handleInputChange} className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
+                                                <label className={`text-xs font-medium mb-1.5 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Last Name</label>
+                                                <input type="text" name="last_name" value={formData.last_name} onChange={handleInputChange} className={`w-full px-4 py-3 rounded-lg border text-sm transition-all focus:ring-2 focus:ring-blue-500/20 ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className={`text-xs font-medium mb-1 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Bio</label>
-                                            <textarea name="bio" value={formData.bio} onChange={handleInputChange} rows={3} className={`w-full px-3 py-2 rounded-lg border text-sm resize-none ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
+                                            <label className={`text-xs font-medium mb-1.5 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Bio</label>
+                                            <textarea name="bio" value={formData.bio} onChange={handleInputChange} rows={3} className={`w-full px-4 py-3 rounded-lg border text-sm resize-none transition-all focus:ring-2 focus:ring-blue-500/20 ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
                                         </div>
 
-                                        {/* Password Change */}
-                                        <div className="pt-4 border-t border-slate-700">
-                                            <h4 className={`text-sm font-bold mb-3 ${isDark ? "text-white" : "text-gray-900"}`}>Change Password (Optional)</h4>
-                                            <div className="space-y-3">
+                                        <div className="pt-6 border-t border-slate-700">
+                                            <h4 className={`text-sm font-bold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>Change Password (Optional)</h4>
+                                            <div className="space-y-4">
                                                 <div>
-                                                    <label className={`text-xs font-medium mb-1 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Current Password</label>
-                                                    <input type="password" name="currentPassword" value={formData.currentPassword} onChange={handleInputChange} className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
+                                                    <label className={`text-xs font-medium mb-1.5 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Current Password</label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type={showCurrentPassword ? "text" : "password"}
+                                                            name="currentPassword"
+                                                            value={formData.currentPassword}
+                                                            onChange={handleInputChange}
+                                                            placeholder="Current password"
+                                                            className={`w-full px-4 py-3 rounded-lg border text-sm transition-all focus:ring-2 focus:ring-blue-500/20 ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                        >
+                                                            {showCurrentPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className={`text-xs font-medium mb-1 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>New Password</label>
-                                                        <input type="password" name="newPassword" value={formData.newPassword} onChange={handleInputChange} className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
+                                                        <label className={`text-xs font-medium mb-1.5 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>New Password</label>
+                                                        <div className="relative">
+                                                            <input
+                                                                type={showNewPassword ? "text" : "password"}
+                                                                name="newPassword"
+                                                                value={formData.newPassword}
+                                                                onChange={handleInputChange}
+                                                                placeholder="Min 6 chars + symbols"
+                                                                className={`w-full px-4 py-3 rounded-lg border text-sm transition-all focus:ring-2 focus:ring-blue-500/20 ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                            >
+                                                                {showNewPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                     <div>
-                                                        <label className={`text-xs font-medium mb-1 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Confirm Password</label>
-                                                        <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`} />
+                                                        <label className={`text-xs font-medium mb-1.5 block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Confirm Password</label>
+                                                        <div className="relative">
+                                                            <input
+                                                                type={showConfirmPassword ? "text" : "password"}
+                                                                name="confirmPassword"
+                                                                value={formData.confirmPassword}
+                                                                onChange={handleInputChange}
+                                                                placeholder="Confirm password"
+                                                                className={`w-full px-4 py-3 rounded-lg border text-sm transition-all focus:ring-2 focus:ring-blue-500/20 ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                            >
+                                                                {showConfirmPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -339,4 +435,16 @@ const BookIcon = () => (
 
 const EditIcon = (props) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
+);
+
+const EyeIcon = ({ size = 24 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+);
+
+const EyeOffIcon = ({ size = 24 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+);
+
+const CameraIcon = (props) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
 );

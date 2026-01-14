@@ -43,7 +43,7 @@ export default function AdminHeader() {
 
         {/* Right Side Controls */}
         <div className="flex items-center gap-4">
-          
+
 
           {/* Theme Toggle */}
           <button
@@ -84,21 +84,17 @@ export default function AdminHeader() {
               onClick={() => setIsOpen(!isOpen)}
               className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors group focus:outline-none"
             >
-              {currentAdmin?.profile_image ? (
+              {(currentAdmin?.profile_image || currentAdmin?.profile_picture) ? (
                 <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors">
-                  <Image
-                    src={`http://localhost:5000${currentAdmin.profile_image}`}
+                  <img
+                    src={(currentAdmin.profile_image || currentAdmin.profile_picture).startsWith('http') ? (currentAdmin.profile_image || currentAdmin.profile_picture) : `http://localhost:5000${currentAdmin.profile_image || currentAdmin.profile_picture}`}
                     alt={currentAdmin.first_name || currentAdmin.username || "Admin"}
-                    width={40}
-                    height={40}
                     className="w-full h-full object-cover"
                   />
                 </div>
               ) : (
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors">
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors text-white font-bold text-sm">
+                  {currentAdmin?.full_name?.split(' ').map((n) => n[0]).join('').toUpperCase().substring(0, 2) || currentAdmin?.username?.substring(0, 2).toUpperCase() || "AD"}
                 </div>
               )}
               <div className="flex flex-col items-start">

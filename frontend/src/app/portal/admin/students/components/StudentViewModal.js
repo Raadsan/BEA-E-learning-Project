@@ -139,6 +139,15 @@ export default function StudentViewModal({
                                         : 'Not assigned'}
                                 </p>
                             </div>
+                            {viewingStudent.sponsor_name && (
+                                <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'} md:col-span-2`}>
+                                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                        }`}>Sponsor Name</label>
+                                    <p className={`text-base font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                        {viewingStudent.sponsor_name}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 

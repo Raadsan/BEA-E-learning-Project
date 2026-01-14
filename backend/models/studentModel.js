@@ -25,21 +25,19 @@ export const createStudent = async ({
   sponsorship_package,
   funding_amount,
   funding_month,
-  scholarship_percentage
+  scholarship_percentage,
+  sponsor_name
 }) => {
   // Generate unique student ID
   const student_id = await generateStudentId('students');
-
-  // No hashing, use plain text as requested
-  const hashedPassword = password;
 
   const [result] = await dbp.query(
     `INSERT INTO students (
       student_id, full_name, email, phone, age, sex, residency_country, residency_city,
       chosen_program, chosen_subprogram, password, parent_name, parent_email, parent_phone,
       parent_relation, parent_res_county, parent_res_city, funding_status, sponsorship_package,
-      funding_amount, funding_month, scholarship_percentage
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      funding_amount, funding_month, scholarship_percentage, sponsor_name
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       student_id,
       full_name,
@@ -51,7 +49,7 @@ export const createStudent = async ({
       residency_city || null,
       chosen_program || null,
       chosen_subprogram || null,
-      hashedPassword,
+      password,
       parent_name || null,
       parent_email || null,
       parent_phone || null,
@@ -62,7 +60,8 @@ export const createStudent = async ({
       sponsorship_package || 'None',
       funding_amount || null,
       funding_month || null,
-      scholarship_percentage || null
+      scholarship_percentage || null,
+      sponsor_name || null
     ]
   );
 
@@ -78,6 +77,8 @@ export const getAllStudents = async () => {
        s.chosen_program, s.chosen_subprogram, s.parent_name, s.parent_email, s.parent_phone, 
        s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, 
        s.funding_status, s.sponsorship_package, s.funding_amount, s.funding_month, s.scholarship_percentage,
+       s.sponsor_name,
+       s.profile_picture,
        s.created_at, s.updated_at, c.class_name
        FROM students s
        LEFT JOIN classes c ON s.class_id = c.id
@@ -93,7 +94,7 @@ export const getAllStudents = async () => {
 // GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT student_id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, created_at, updated_at FROM students WHERE student_id = ?",
+    "SELECT student_id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, sponsor_name, profile_picture, created_at, updated_at FROM students WHERE student_id = ?",
     [id]
   );
   return rows[0] || null;
@@ -132,7 +133,9 @@ export const updateStudentById = async (id, {
   sponsorship_package,
   funding_amount,
   funding_month,
-  scholarship_percentage
+  scholarship_percentage,
+  sponsor_name,
+  profile_picture
 }) => {
   const updates = [];
   const values = [];
@@ -174,7 +177,6 @@ export const updateStudentById = async (id, {
     values.push(chosen_subprogram);
   }
   if (password !== undefined && password.trim() !== "") {
-    // No hashing, use plain text as requested
     updates.push("password = ?");
     values.push(password);
   }
@@ -230,6 +232,14 @@ export const updateStudentById = async (id, {
     updates.push("scholarship_percentage = ?");
     values.push(scholarship_percentage);
   }
+  if (sponsor_name !== undefined) {
+    updates.push("sponsor_name = ?");
+    values.push(sponsor_name);
+  }
+  if (profile_picture !== undefined) {
+    updates.push("profile_picture = ?");
+    values.push(profile_picture);
+  }
 
   if (updates.length === 0) {
     return 0;
@@ -278,6 +288,7 @@ export const getStudentProgressByTeacher = async (teacherId) => {
       s.phone,
       s.chosen_program,
       s.chosen_subprogram,
+      s.sponsor_name,
       s.class_id,
       c.class_name,
       COALESCE(SUM(a.hour1 + a.hour2), 0) as total_attended,
@@ -288,7 +299,7 @@ export const getStudentProgressByTeacher = async (teacherId) => {
     LEFT JOIN classes c ON s.class_id = c.id
     LEFT JOIN attendance a ON s.student_id = a.student_id AND c.id = a.class_id
     WHERE c.teacher_id = ?
-    GROUP BY s.student_id, s.full_name, s.email, s.phone, s.chosen_program, s.chosen_subprogram, s.class_id, c.class_name
+    GROUP BY s.student_id, s.full_name, s.email, s.phone, s.chosen_program, s.chosen_subprogram, s.sponsor_name, s.class_id, c.class_name
     ORDER BY s.full_name ASC`,
     [teacherId]
   );
@@ -443,6 +454,7 @@ export const getStudentsByClassId = async (classId) => {
      s.chosen_program, s.chosen_subprogram, s.parent_name, s.parent_email, s.parent_phone, 
      s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, 
      s.funding_status, s.sponsorship_package, s.funding_amount, s.funding_month, s.scholarship_percentage,
+     s.sponsor_name,
      s.created_at, s.updated_at
      FROM students s
      WHERE s.class_id = ? AND s.approval_status = 'approved'

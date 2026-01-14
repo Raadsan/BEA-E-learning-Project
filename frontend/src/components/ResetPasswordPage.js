@@ -12,9 +12,10 @@ export default function ResetPasswordPage() {
 
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -25,8 +26,9 @@ export default function ResetPasswordPage() {
             return;
         }
 
-        if (password.length < 8) {
-            setError("Password must be at least 8 characters");
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+        if (!passwordRegex.test(password)) {
+            setError("Password must be at least 6 characters and include uppercase, lowercase, number, and symbol (@$!%*?&)");
             return;
         }
 
@@ -123,14 +125,14 @@ export default function ResetPasswordPage() {
                                             onChange={(e) => setPassword(e.target.value)}
                                             className="w-full pl-4 pr-12 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                                             required
-                                            placeholder="At least 8 characters"
+                                            placeholder="Min 6 chars + Upper/Lower/Num/Sym"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
                                             className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
                                         >
-                                            {showPassword ? "Hide" : "Show"}
+                                            {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
                                         </button>
                                     </div>
                                 </div>
@@ -140,14 +142,23 @@ export default function ResetPasswordPage() {
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Confirm Password
                                     </label>
-                                    <input
-                                        type="password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full px-4 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        required
-                                        placeholder="Re-enter your password"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            className="w-full pl-4 pr-12 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                            required
+                                            placeholder="Re-enter your password"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+                                        >
+                                            {showConfirmPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Error Message */}
@@ -194,3 +205,11 @@ export default function ResetPasswordPage() {
         </div>
     );
 }
+
+const EyeIcon = ({ size = 24 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+);
+
+const EyeOffIcon = ({ size = 24 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45( -5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+);

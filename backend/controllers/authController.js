@@ -4,6 +4,12 @@ import * as Teacher from "../models/teacherModel.js";
 import * as Admin from "../models/adminModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
+import { validatePassword, passwordPolicyMessage } from "../utils/passwordValidator.js";
+import db from "../database/dbconfig.js";
+
+const dbp = db.promise();
 
 // Generate JWT Token
 const generateToken = (userId, role, email) => {
@@ -76,6 +82,7 @@ export const login = async (req, res) => {
             residency_city: user.residency_city || null,
             chosen_program: user.chosen_program,
             chosen_subprogram: user.chosen_subprogram,
+            sponsor_name: user.sponsor_name,
             approval_status: user.approval_status || null,
             class_id: user.class_id || null
           };
@@ -101,10 +108,12 @@ export const login = async (req, res) => {
       });
     }
 
-    // Verify password (plain text as requested)
+    // Verify password (using bcrypt hashing)
     console.log("[Login Debug] User found, verifying password...");
 
-    if (password !== user.password) {
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
       console.log("[Login Debug] Password verification failed");
       return res.status(401).json({
         success: false,
@@ -210,8 +219,10 @@ export const getCurrentUser = async (req, res) => {
             residency_city: user.residency_city || null,
             chosen_program: user.chosen_program,
             chosen_subprogram: user.chosen_subprogram,
+            sponsor_name: user.sponsor_name,
             approval_status: user.approval_status || null,
             class_id: user.class_id || null,
+            profile_picture: user.profile_picture || null,
             created_at: user.created_at || null
           };
         }
@@ -225,7 +236,12 @@ export const getCurrentUser = async (req, res) => {
             full_name: user.full_name,
             email: user.email,
             role: 'teacher',
+            phone: user.phone,
+            country: user.country,
+            city: user.city,
             specialization: user.specialization,
+            bio: user.bio,
+            profile_picture: user.profile_picture || null,
             status: user.status
           };
         }
@@ -267,5 +283,135 @@ export const isAdmin = async (req, res, next) => {
       success: false,
       error: "Authorization failed"
     });
+  }
+};
+// FORGOT PASSWORD
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, error: "Email is required" });
+    }
+
+    // Find user in any table
+    let user = await Admin.getAdminByEmail(email) ||
+      await Teacher.getTeacherByEmail(email) ||
+      await Student.getStudentByEmail(email);
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetExpires = new Date(Date.now() + 3600000); // 1 hour from now
+
+    // Update user based on their ID type
+    const userId = user.id || user.student_id;
+    const table = user.role === 'admin' ? 'admins' : (user.role === 'teacher' ? 'teachers' : 'students');
+    const idField = user.student_id ? 'student_id' : 'id';
+
+    await dbp.query(
+      `UPDATE ${table} SET reset_password_token = ?, reset_password_expires = ? WHERE ${idField} = ?`,
+      [resetToken, resetExpires, userId]
+    );
+
+    // Send email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/reset-password/${resetToken}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Request - BEA',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
+          <h2 style="color: #010080; text-align: center;">Password Reset Request</h2>
+          <p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p>
+          <p>Please click on the following link, or paste this into your browser to complete the process within one hour of receiving it:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" style="background-color: #010080; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+          </div>
+          <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #777; text-align: center;">BEA English Academy</p>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`[Auth] Reset email sent to ${email}`);
+
+    res.json({ success: true, message: "Reset link sent to your email" });
+
+  } catch (err) {
+    console.error("❌ Forgot password error:", err);
+    res.status(500).json({ success: false, error: "Server error: " + err.message });
+  }
+};
+
+// RESET PASSWORD
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ success: false, error: "New password is required" });
+    }
+
+    if (!validatePassword(password)) {
+      return res.status(400).json({ success: false, error: passwordPolicyMessage });
+    }
+
+    // Find user by token and check expiry
+    const queries = [
+      { table: 'admins', idField: 'id' },
+      { table: 'teachers', idField: 'id' },
+      { table: 'students', idField: 'student_id' }
+    ];
+
+    let foundUser = null;
+    let userTable = null;
+
+    for (const q of queries) {
+      const [rows] = await dbp.query(
+        `SELECT * FROM ${q.table} WHERE reset_password_token = ? AND reset_password_expires > NOW()`,
+        [token]
+      );
+      if (rows.length > 0) {
+        foundUser = rows[0];
+        userTable = q;
+        break;
+      }
+    }
+
+    if (!foundUser) {
+      return res.status(400).json({ success: false, error: "Password reset token is invalid or has expired" });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Update user
+    await dbp.query(
+      `UPDATE ${userTable.table} SET password = ?, reset_password_token = NULL, reset_password_expires = NULL WHERE ${userTable.idField} = ?`,
+      [hashedPassword, foundUser[userTable.idField]]
+    );
+
+    res.json({ success: true, message: "Password has been updated successfully" });
+
+  } catch (err) {
+    console.error("❌ Reset password error:", err);
+    res.status(500).json({ success: false, error: "Server error: " + err.message });
   }
 };

@@ -4,16 +4,14 @@ const dbp = db.promise();
 
 export const getAllUsers = async (req, res) => {
     try {
-        // Fetch all admins
-        const [admins] = await dbp.query("SELECT id, first_name, last_name, email, password, role, created_at FROM admins");
+        // Fetch    // Admins
+        const [admins] = await dbp.query("SELECT id, first_name, last_name, email, role, created_at FROM admins");
 
-        // Fetch all teachers
-        const [teachers] = await dbp.query("SELECT id, full_name, email, password, created_at FROM teachers");
+        // Teachers
+        const [teachers] = await dbp.query("SELECT id, full_name, email, created_at FROM teachers");
 
-        // Fetch all students (both regular and IELTS/TOEFL)
-        // Basic students
-        // Basic students
-        const [students] = await dbp.query("SELECT student_id, full_name, email, password, approval_status as status, created_at FROM students");
+        // Students
+        const [students] = await dbp.query("SELECT student_id, full_name, email, approval_status as status, created_at FROM students");
         // IELTS students could be fetched too if needed, but for now focusing on main tables or maybe combining them.
         // Let's stick to the main tables requested: Admin, Teacher, Student.
 
@@ -24,7 +22,6 @@ export const getAllUsers = async (req, res) => {
             full_name: `${user.first_name} ${user.last_name}`,
             email: user.email,
             role: 'admin',
-            password: user.password,
             user_type: 'admin',
             status: 'active',
             created_at: user.created_at
@@ -36,7 +33,6 @@ export const getAllUsers = async (req, res) => {
             full_name: user.full_name,
             email: user.email,
             role: 'teacher',
-            password: user.password,
             user_type: 'teacher',
             status: 'active',
             created_at: user.created_at
@@ -48,7 +44,6 @@ export const getAllUsers = async (req, res) => {
             full_name: user.full_name,
             email: user.email,
             role: 'student',
-            password: user.password,
             user_type: 'student',
             status: user.status || 'pending',
             created_at: user.created_at

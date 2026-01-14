@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 
 import { Country } from "country-state-city";
 import PhoneInput from "react-phone-input-2";
@@ -23,6 +24,9 @@ export default function StudentForm({
     isUpdating,
     isUpdatingIelts
 }) {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     if (!isOpen) return null;
 
     return (
@@ -81,7 +85,7 @@ export default function StudentForm({
                                         onChange={handleInputChange}
                                         required
                                         placeholder="Enter full name"
-                                        className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
                                             }`}
                                     />
                                 </div>
@@ -98,7 +102,7 @@ export default function StudentForm({
                                         onChange={handleInputChange}
                                         required
                                         placeholder="example@gmail.com"
-                                        className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
                                             }`}
                                     />
                                 </div>
@@ -117,7 +121,7 @@ export default function StudentForm({
                                         onChange={handleInputChange}
                                         min="1"
                                         placeholder="Enter age"
-                                        className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
                                             }`}
                                     />
                                 </div>
@@ -132,7 +136,7 @@ export default function StudentForm({
                                         value={formData.sex}
                                         onChange={handleInputChange}
                                         required
-                                        className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'
+                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'
                                             }`}
                                     >
                                         <option value="Male">Male</option>
@@ -166,7 +170,7 @@ export default function StudentForm({
                                         name="residency_city"
                                         value={formData.residency_city}
                                         onChange={handleInputChange}
-                                        className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'
+                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'
                                             }`}
                                         disabled={!formData.residency_country}
                                     >
@@ -243,7 +247,7 @@ export default function StudentForm({
                                         name="chosen_program"
                                         value={formData.chosen_program}
                                         onChange={handleInputChange}
-                                        className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'
+                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'
                                             }`}
                                     >
                                         <option value="">Select Program</option>
@@ -261,34 +265,52 @@ export default function StudentForm({
                                         }`}>
                                         {editingStudent ? 'New Password' : 'Password'} {!editingStudent && <span className="text-red-500">*</span>}
                                     </label>
-                                    <input
-                                        type="password"
-                                        id="password"
-                                        name="password"
-                                        value={formData.password}
-                                        onChange={handleInputChange}
-                                        required={!editingStudent}
-                                        placeholder={editingStudent ? "Leave blank to keep current" : "Enter password"}
-                                        className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
-                                            }`}
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            id="password"
+                                            name="password"
+                                            value={formData.password}
+                                            onChange={handleInputChange}
+                                            required={!editingStudent}
+                                            placeholder={editingStudent ? "Leave blank to keep current" : "Enter password"}
+                                            className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                                                }`}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        >
+                                            {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <label htmlFor="confirmPassword" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
                                         }`}>
                                         Confirm {editingStudent ? 'New ' : ''}Password {!editingStudent && <span className="text-red-500">*</span>}
                                     </label>
-                                    <input
-                                        type="password"
-                                        id="confirmPassword"
-                                        name="confirmPassword"
-                                        value={formData.confirmPassword}
-                                        onChange={handleInputChange}
-                                        required={!editingStudent || !!formData.password}
-                                        placeholder="Confirm password"
-                                        className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
-                                            }`}
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            id="confirmPassword"
+                                            name="confirmPassword"
+                                            value={formData.confirmPassword}
+                                            onChange={handleInputChange}
+                                            required={!editingStudent || !!formData.password}
+                                            placeholder={editingStudent ? "Repeat new password" : "Repeat password"}
+                                            className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                                                }`}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        >
+                                            {showConfirmPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -327,6 +349,23 @@ export default function StudentForm({
                                 {formData.funding_status === 'Sponsorship' && (
                                     <>
                                         <div>
+                                            <label htmlFor="sponsor_name" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                Sponsor Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="sponsor_name"
+                                                name="sponsor_name"
+                                                value={formData.sponsor_name || ''}
+                                                onChange={handleInputChange}
+                                                required={formData.funding_status === 'Sponsorship'}
+                                                placeholder="Enter sponsor name"
+                                                className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                    }`}
+                                            />
+                                        </div>
+                                        <div>
                                             <label htmlFor="sponsorship_package" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
                                                 }`}>
                                                 Sponsorship Package
@@ -360,7 +399,7 @@ export default function StudentForm({
                                                 onChange={handleInputChange}
                                                 required={formData.funding_status === 'Sponsorship'}
                                                 placeholder="Enter amount"
-                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
                                                     }`}
                                             />
                                         </div>
@@ -382,7 +421,7 @@ export default function StudentForm({
                                                 onChange={handleInputChange}
                                                 required={formData.funding_status === 'Paid'}
                                                 placeholder="Enter amount"
-                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
                                                     }`}
                                             />
                                         </div>
@@ -399,7 +438,7 @@ export default function StudentForm({
                                                 onChange={handleInputChange}
                                                 required={formData.funding_status === 'Paid'}
                                                 placeholder="e.g., January 2026"
-                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
                                                     }`}
                                             />
                                         </div>
@@ -423,7 +462,7 @@ export default function StudentForm({
                                                 min="1"
                                                 max="99"
                                                 placeholder="Enter percentage"
-                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
                                                     }`}
                                             />
                                         </div>
@@ -439,7 +478,7 @@ export default function StudentForm({
                                                 value={formData.funding_amount}
                                                 onChange={handleInputChange}
                                                 placeholder="Enter amount paid"
-                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
                                                     }`}
                                             />
                                         </div>
@@ -455,7 +494,7 @@ export default function StudentForm({
                                                 value={formData.funding_month}
                                                 onChange={handleInputChange}
                                                 placeholder="e.g., January 2026"
-                                                className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
+                                                className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-600'
                                                     }`}
                                             />
                                         </div>
@@ -514,7 +553,7 @@ export default function StudentForm({
                                             value={formData.parent_name}
                                             onChange={handleInputChange}
                                             placeholder="Enter parent full name"
-                                            className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-purple-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-purple-600'
+                                            className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-purple-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-purple-600'
                                                 }`}
                                         />
                                     </div>
@@ -530,7 +569,7 @@ export default function StudentForm({
                                             value={formData.parent_email}
                                             onChange={handleInputChange}
                                             placeholder="parent@example.com"
-                                            className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-purple-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-purple-600'
+                                            className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-purple-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-purple-600'
                                                 }`}
                                         />
                                     </div>
@@ -603,7 +642,7 @@ export default function StudentForm({
                                             value={formData.parent_relation}
                                             onChange={handleInputChange}
                                             placeholder="e.g., Father, Mother, Guardian"
-                                            className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-purple-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-purple-600'
+                                            className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-purple-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-purple-600'
                                                 }`}
                                         />
                                     </div>
@@ -678,3 +717,11 @@ export default function StudentForm({
         </div>
     );
 }
+
+const EyeIcon = ({ size = 20 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+);
+
+const EyeOffIcon = ({ size = 20 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+);

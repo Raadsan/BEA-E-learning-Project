@@ -1,4 +1,6 @@
 import * as ieltsToeflModel from "../models/ieltsToeflModel.js";
+import bcrypt from "bcryptjs";
+import { validatePassword, passwordPolicyMessage } from "../utils/passwordValidator.js";
 
 export const getAllIeltsStudents = async (req, res) => {
     try {
@@ -12,6 +14,14 @@ export const getAllIeltsStudents = async (req, res) => {
 
 export const createIeltsStudent = async (req, res) => {
     try {
+        const { password } = req.body;
+        if (password) {
+            if (!validatePassword(password)) {
+                return res.status(400).json({ success: false, error: passwordPolicyMessage });
+            }
+            const salt = await bcrypt.genSalt(10);
+            req.body.password = await bcrypt.hash(password, salt);
+        }
         const student = await ieltsToeflModel.createStudent(req.body);
         res.status(201).json({ success: true, student });
     } catch (error) {
@@ -35,6 +45,16 @@ export const getIeltsStudent = async (req, res) => {
 
 export const updateIeltsStudent = async (req, res) => {
     try {
+        const { password } = req.body;
+        if (password) {
+            if (!validatePassword(password)) {
+                return res.status(400).json({ success: false, error: passwordPolicyMessage });
+            }
+            const salt = await bcrypt.genSalt(10);
+            req.body.password = await bcrypt.hash(password, salt);
+        } else {
+            delete req.body.password;
+        }
         const affectedRows = await ieltsToeflModel.updateStudent(req.params.id, req.body);
         if (affectedRows === 0) {
             return res.status(404).json({ success: false, error: "Student not found or no changes made" });

@@ -130,6 +130,14 @@ export default function TeachersPage() {
       if (formData.password && formData.password !== formData.confirmPassword) {
         showToast("Passwords do not match", "error"); return;
       }
+
+      if (formData.password && editingTeacher) {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+        if (!passwordRegex.test(formData.password)) {
+          showToast("Password must be at least 6 characters and include uppercase, lowercase, number, and symbol", "error");
+          return;
+        }
+      }
       const submitData = { ...formData }; delete submitData.confirmPassword;
       if (submitData.hire_date) submitData.hire_date = new Date(submitData.hire_date).toISOString().split('T')[0];
       if (submitData.years_experience) submitData.years_experience = parseInt(submitData.years_experience);

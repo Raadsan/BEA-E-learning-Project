@@ -100,6 +100,13 @@ export default function AdminsPage() {
     if (formData.password && formData.password !== formData.confirmPassword) {
       showToast("Passwords do not match", "error"); return;
     }
+    if (formData.password && editingAdmin) {
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+      if (!passwordRegex.test(formData.password)) {
+        showToast("Password must be at least 6 characters and include uppercase, lowercase, number, and symbol", "error");
+        return;
+      }
+    }
     try {
       const payload = { ...formData };
       if (editingAdmin && !payload.password) { delete payload.password; delete payload.confirmPassword; }

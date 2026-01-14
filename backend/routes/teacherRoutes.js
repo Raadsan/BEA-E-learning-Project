@@ -11,6 +11,7 @@ import {
   getTeacherPrograms
 } from "../controllers/teacherController.js";
 import { verifyToken } from "../controllers/authController.js";
+import { upload } from "../controllers/uploadController.js";
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ router.get("/programs", verifyToken, getTeacherPrograms);
 router.get("/", getTeachers);
 router.get("/:id", getTeacher);
 router.post("/", createTeacher);
-router.put("/:id", updateTeacher);
+router.put("/:id", upload.single("profile_picture"), updateTeacher);
 router.delete("/:id", deleteTeacher);
 
 export default router;

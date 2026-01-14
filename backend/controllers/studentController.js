@@ -1,6 +1,7 @@
-// controllers/studentController.js
 import * as Student from "../models/studentModel.js";
 import { createPayment } from '../models/paymentModel.js';
+import bcrypt from "bcryptjs";
+import { validatePassword, passwordPolicyMessage } from "../utils/passwordValidator.js";
 
 // CREATE STUDENT
 export const createStudent = async (req, res) => {
@@ -38,6 +39,7 @@ export const createStudent = async (req, res) => {
       });
     }
 
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -56,6 +58,10 @@ export const createStudent = async (req, res) => {
       });
     }
 
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const student = await Student.createStudent({
       full_name,
       email,
@@ -66,7 +72,7 @@ export const createStudent = async (req, res) => {
       residency_city,
       chosen_program,
       chosen_subprogram,
-      password,
+      password: hashedPassword,
       parent_name,
       parent_email,
       parent_phone,
@@ -249,7 +255,26 @@ export const updateStudent = async (req, res) => {
       }
     }
 
-    await Student.updateStudentById(id, req.body);
+    const updateData = { ...req.body };
+
+    // Handle file upload
+    if (req.file) {
+      updateData.profile_picture = `/uploads/${req.file.filename}`;
+    }
+
+    // Hash password if being updated
+    if (updateData.password) {
+      if (!validatePassword(updateData.password)) {
+        return res.status(400).json({ success: false, error: passwordPolicyMessage });
+      }
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(updateData.password, salt);
+    } else {
+      delete updateData.confirmPassword;
+      delete updateData.password;
+    }
+
+    await Student.updateStudentById(id, updateData);
     const updated = await Student.getStudentById(id);
 
     res.json({

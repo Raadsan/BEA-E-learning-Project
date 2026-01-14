@@ -1,6 +1,7 @@
-// controllers/teacherController.js
 import * as Teacher from "../models/teacherModel.js";
 import * as Class from "../models/classModel.js";
+import bcrypt from "bcryptjs";
+import { validatePassword, passwordPolicyMessage } from "../utils/passwordValidator.js";
 
 // CREATE TEACHER
 export const createTeacher = async (req, res) => {
@@ -25,14 +26,16 @@ export const createTeacher = async (req, res) => {
       return res.status(400).json({ error: "Full name, email, and password are required" });
     }
 
+
     // Check if email already exists
     const existingTeacher = await Teacher.getTeacherByEmail(email);
     if (existingTeacher) {
       return res.status(400).json({ error: "Email already exists" });
     }
 
-    // No hashing, use plain text as requested
-    const hashedPassword = password;
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     const teacher = await Teacher.createTeacher({
       full_name,
@@ -95,7 +98,22 @@ export const updateTeacher = async (req, res) => {
 
     const updateData = { ...req.body };
 
-    // No hashing, use plain text as requested
+    // Handle file upload
+    if (req.file) {
+      updateData.profile_picture = `/uploads/${req.file.filename}`;
+    }
+
+    // Hash password if being updated
+    if (updateData.password) {
+      if (!validatePassword(updateData.password)) {
+        return res.status(400).json({ error: passwordPolicyMessage });
+      }
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(updateData.password, salt);
+    } else {
+      delete updateData.confirmPassword;
+      delete updateData.password;
+    }
 
     await Teacher.updateTeacherById(id, updateData);
 

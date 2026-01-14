@@ -7,25 +7,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { useGetAnnouncementsQuery } from "@/redux/api/announcementApi";
 import { useGetNotificationsQuery } from "@/redux/api/notificationApi";
+import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 
 export default function StudentHeader() {
   const { isDark, toggleDarkMode } = useDarkMode();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [currentStudent, setCurrentStudent] = useState(null);
+
+  // Use Redux hook for reactive user data
+  const { data: currentStudent } = useGetCurrentUserQuery();
 
   // Notification Logic
   const { data: notifications = [] } = useGetNotificationsQuery(undefined, { pollingInterval: 30000 });
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
-
-  // Cleanup legacy announcement logic if not needed, or keep alongside
-  // For now, focusing on the new notification system like Admin.
-
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    setCurrentStudent(user);
-  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -97,21 +92,17 @@ export default function StudentHeader() {
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors group focus:outline-none"
               >
-                {currentStudent?.profile_image ? (
+                {currentStudent?.profile_picture ? (
                   <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors">
-                    <Image
-                      src={`http://localhost:5000${currentStudent.profile_image}`}
+                    <img
+                      src={currentStudent.profile_picture.startsWith('http') ? currentStudent.profile_picture : `http://localhost:5000${currentStudent.profile_picture}`}
                       alt={currentStudent.full_name || "Student"}
-                      width={40}
-                      height={40}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors">
-                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                    </svg>
+                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors text-white font-bold text-sm">
+                    {currentStudent?.full_name?.split(' ').map((n) => n[0]).join('').toUpperCase().substring(0, 2) || "ST"}
                   </div>
                 )}
                 <div className="flex flex-col items-start translate-y-0.5">

@@ -9,7 +9,6 @@ export const adminApi = createApi({
             if (token) {
                 headers.set("Authorization", `Bearer ${token}`);
             }
-            headers.set("Content-Type", "application/json");
             return headers;
         },
     }),
@@ -32,11 +31,25 @@ export const adminApi = createApi({
             invalidatesTags: ["Admins"],
         }),
         updateAdmin: builder.mutation({
-            query: ({ id, ...body }) => ({
-                url: `/${id}`,
-                method: "PUT",
-                body,
-            }),
+            query: (data) => {
+                let id;
+                let body;
+
+                if (data instanceof FormData) {
+                    id = data.get("id");
+                    body = data;
+                } else {
+                    const { id: dataId, ...rest } = data;
+                    id = dataId;
+                    body = rest;
+                }
+
+                return {
+                    url: `/${id}`,
+                    method: "PUT",
+                    body,
+                };
+            },
             invalidatesTags: (result, error, { id }) => [{ type: "Admins", id }, "Admins", "Auth"],
         }),
         deleteAdmin: builder.mutation({

@@ -54,6 +54,7 @@ export default function StudentsPage() {
         parent_relation: "", parent_res_county: "", parent_res_city: "",
         funding_status: "Paid", sponsorship_package: "",
         funding_amount: "", funding_month: "", scholarship_percentage: "",
+        sponsor_name: "",
     });
 
     // API Hooks
@@ -111,6 +112,7 @@ export default function StudentsPage() {
             parent_relation: "", parent_res_county: "", parent_res_city: "",
             funding_status: "Paid", sponsorship_package: "",
             funding_amount: "", funding_month: "", scholarship_percentage: "",
+            sponsor_name: "",
         });
         setIsModalOpen(true);
     };
@@ -130,6 +132,7 @@ export default function StudentsPage() {
             funding_amount: student.funding_amount || "",
             funding_month: student.funding_month || "",
             scholarship_percentage: student.scholarship_percentage || "",
+            sponsor_name: student.sponsor_name || "",
         });
         setIsModalOpen(true);
     };
@@ -157,6 +160,14 @@ export default function StudentsPage() {
             if (formData.password && formData.password !== formData.confirmPassword) {
                 showToast("Passwords do not match", "error");
                 return;
+            }
+
+            if (formData.password && editingStudent) {
+                const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+                if (!passwordRegex.test(formData.password)) {
+                    showToast("Password must be at least 6 characters and include uppercase, lowercase, number, and symbol", "error");
+                    return;
+                }
             }
             const { confirmPassword, ...submitData } = formData;
             submitData.age = submitData.age ? parseInt(submitData.age) : null;

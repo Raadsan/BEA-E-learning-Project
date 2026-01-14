@@ -49,7 +49,7 @@ export const createTeacher = async ({
 // GET all teachers
 export const getAllTeachers = async () => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, status, created_at, updated_at FROM teachers ORDER BY created_at DESC"
+    "SELECT id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, status, profile_picture, created_at, updated_at FROM teachers ORDER BY created_at DESC"
   );
   return rows;
 };
@@ -57,7 +57,7 @@ export const getAllTeachers = async () => {
 // GET teacher by ID
 export const getTeacherById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, status, created_at, updated_at FROM teachers WHERE id = ?",
+    "SELECT id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, status, profile_picture, created_at, updated_at FROM teachers WHERE id = ?",
     [id]
   );
   return rows[0] || null;
@@ -84,7 +84,8 @@ export const updateTeacherById = async (id, {
   skills,
   hire_date,
   password,
-  status
+  status,
+  profile_picture
 }) => {
   const updates = [];
   const values = [];
@@ -144,6 +145,10 @@ export const updateTeacherById = async (id, {
   if (status !== undefined) {
     updates.push("status = ?");
     values.push(status);
+  }
+  if (profile_picture !== undefined) {
+    updates.push("profile_picture = ?");
+    values.push(profile_picture);
   }
 
   if (updates.length === 0) {
