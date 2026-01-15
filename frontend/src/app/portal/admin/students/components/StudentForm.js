@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Country } from "country-state-city";
 import PhoneInput from "react-phone-input-2";
@@ -22,10 +22,51 @@ export default function StudentForm({
     viewingPayments,
     isCreating,
     isUpdating,
-    isUpdatingIelts
+    isUpdatingIelts,
+    paymentPackages = []
 }) {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    // Auto-calculate funding amount
+    useEffect(() => {
+        if (!formData.chosen_program) return;
+
+        const selectedProgram = programs.find(p => p.title === formData.chosen_program);
+        const programPrice = selectedProgram ? Number(selectedProgram.price) : 0;
+
+        let calculatedAmount = formData.funding_amount;
+
+        if (formData.funding_status === "Paid") {
+            calculatedAmount = programPrice.toString();
+        } else if (formData.funding_status === "Full Scholarship") {
+            calculatedAmount = "0";
+        } else if (formData.funding_status === "Partial Scholarship") {
+            if (formData.scholarship_percentage) {
+                const percentage = Number(formData.scholarship_percentage) || 0;
+                calculatedAmount = (programPrice * (1 - percentage / 100)).toFixed(2);
+            }
+        } else if (formData.funding_status === "Sponsorship") {
+            if (formData.sponsorship_package) {
+                const pkg = paymentPackages.find(p => p.package_name === formData.sponsorship_package);
+                const duration = pkg ? Number(pkg.duration_months) : 1;
+                calculatedAmount = (programPrice * duration).toFixed(2);
+            }
+        }
+
+        // Only update if it actually changed and we have valid data
+        if (calculatedAmount !== formData.funding_amount) {
+            setFormData(prev => ({ ...prev, funding_amount: calculatedAmount }));
+        }
+    }, [
+        formData.chosen_program,
+        formData.funding_status,
+        formData.sponsorship_package,
+        formData.scholarship_percentage,
+        programs,
+        paymentPackages,
+        setFormData
+    ]);
 
     if (!isOpen) return null;
 
@@ -246,7 +287,11 @@ export default function StudentForm({
                                         id="chosen_program"
                                         name="chosen_program"
                                         value={formData.chosen_program}
-                                        onChange={handleInputChange}
+                                        onChange={(e) => {
+                                            handleInputChange(e);
+                                            // Reset sponsorship package if program changes
+                                            setFormData(prev => ({ ...prev, sponsorship_package: "" }));
+                                        }}
                                         className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'
                                             }`}
                                     >
@@ -335,7 +380,13 @@ export default function StudentForm({
                                         id="funding_status"
                                         name="funding_status"
                                         value={formData.funding_status}
-                                        onChange={handleInputChange}
+                                        onChange={(e) => {
+                                            handleInputChange(e);
+                                            // Reset sponsorship package if switching funding status
+                                            if (e.target.value !== 'Sponsorship') {
+                                                setFormData(prev => ({ ...prev, sponsorship_package: "" }));
+                                            }
+                                        }}
                                         className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 focus:border-green-600'
                                             }`}
                                     >
@@ -368,22 +419,27 @@ export default function StudentForm({
                                         <div>
                                             <label htmlFor="sponsorship_package" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
                                                 }`}>
-                                                Sponsorship Package
+                                                Sponsorship Package <span className="text-red-500">*</span>
+                                                {!formData.chosen_program && <span className="text-[10px] font-normal ml-2 text-orange-500">(Select Program First)</span>}
                                             </label>
                                             <select
                                                 id="sponsorship_package"
                                                 name="sponsorship_package"
                                                 value={formData.sponsorship_package}
                                                 onChange={handleInputChange}
+                                                disabled={!formData.chosen_program}
                                                 required={formData.funding_status === 'Sponsorship'}
                                                 className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 focus:border-green-600'
-                                                    }`}
+                                                    } ${!formData.chosen_program ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             >
-                                                <option value="">Select Package</option>
-                                                <option value="1 Month">1 Month</option>
-                                                <option value="3 Months">3 Months</option>
-                                                <option value="6 Months">6 Months</option>
-                                                <option value="1 Year">1 Year</option>
+                                                <option value="">{formData.chosen_program ? "Select Package" : "--- Select Program First ---"}</option>
+                                                {paymentPackages
+                                                    .filter(pkg => pkg.programs?.some(prog => prog.title === formData.chosen_program))
+                                                    .map((pkg) => (
+                                                        <option key={pkg.id} value={pkg.package_name}>
+                                                            {pkg.package_name} ({pkg.duration_months} Months)
+                                                        </option>
+                                                    ))}
                                             </select>
                                         </div>
                                         <div>

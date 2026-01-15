@@ -1,0 +1,372 @@
+[
+  {
+    "id": "WAAFI-1768480199857",
+    "method": "waafi",
+    "payerPhone": "612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 15:29:59.297",
+      "responseId": "",
+      "responseCode": "5032",
+      "errorCode": "E10017",
+      "responseMsg": "Your request is missing (timestamp) parameter. Please check again"
+    },
+    "createdAt": "2026-01-15T12:29:59.857Z"
+  },
+  {
+    "id": "WAAFI-1768480205792",
+    "method": "waafi",
+    "payerPhone": "612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 15:30:05.24",
+      "responseId": "",
+      "responseCode": "5032",
+      "errorCode": "E10017",
+      "responseMsg": "Your request is missing (timestamp) parameter. Please check again"
+    },
+    "createdAt": "2026-01-15T12:30:05.792Z"
+  },
+  {
+    "id": "WAAFI-1768480389697",
+    "method": "waafi",
+    "payerPhone": "612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 15:33:09.125",
+      "responseId": "",
+      "responseCode": "5032",
+      "errorCode": "E10017",
+      "responseMsg": "Your request is missing (timestamp) parameter. Please check again"
+    },
+    "createdAt": "2026-01-15T12:33:09.697Z"
+  },
+  {
+    "id": "WAAFI-1768480553456",
+    "method": "waafi",
+    "payerPhone": "612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 15:35:52.913",
+      "responseId": "1768480552159",
+      "responseCode": "5032",
+      "errorCode": "E10017",
+      "responseMsg": "Your request is missing (apiUserId) parameter. Please check again",
+      "params": {
+        "description": "Wrong value set for parameter [apiUserId]. Should be an Integer type."
+      }
+    },
+    "createdAt": "2026-01-15T12:35:53.456Z"
+  },
+  {
+    "id": "WAAFI-1768480595014",
+    "method": "waafi",
+    "payerPhone": "612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 15:36:34.478",
+      "responseId": "1768480593706",
+      "responseCode": "5032",
+      "errorCode": "E10017",
+      "responseMsg": "Your request is missing (apiUserId) parameter. Please check again",
+      "params": {
+        "description": "Wrong value set for parameter [apiUserId]. Should be an Integer type."
+      }
+    },
+    "createdAt": "2026-01-15T12:36:35.015Z"
+  },
+  {
+    "id": "WAAFI-1768480752305",
+    "method": "waafi",
+    "payerPhone": "612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 15:39:11.743",
+      "responseId": "1768480751163",
+      "responseCode": "5032",
+      "errorCode": "E10017",
+      "responseMsg": "Your request is missing (apiUserId) parameter. Please check again",
+      "params": {
+        "description": "Wrong value set for parameter [apiUserId]. Should be an Integer type."
+      }
+    },
+    "createdAt": "2026-01-15T12:39:12.305Z"
+  },
+  {
+    "id": "WAAFI-1768480761833",
+    "method": "waafi",
+    "payerPhone": "612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 15:39:21.292",
+      "responseId": "1768480760699",
+      "responseCode": "5032",
+      "errorCode": "E10017",
+      "responseMsg": "Your request is missing (apiUserId) parameter. Please check again",
+      "params": {
+        "description": "Wrong value set for parameter [apiUserId]. Should be an Integer type."
+      }
+    },
+    "createdAt": "2026-01-15T12:39:21.833Z"
+  },
+  {
+    "id": "WAAFI-1768480985376",
+    "method": "waafi",
+    "payerPhone": "252612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 15:43:04.728",
+      "responseId": "1768480983939",
+      "responseCode": "5032",
+      "errorCode": "E10017",
+      "responseMsg": "Your request is missing (invoiceId) parameter. Please check again",
+      "params": {
+        "description": "Missing mandatory parameter [invoiceId]."
+      }
+    },
+    "createdAt": "2026-01-15T12:43:05.376Z"
+  },
+  {
+    "id": "WAAFI-1768481001302",
+    "method": "waafi",
+    "payerPhone": "0612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 15:43:20.738",
+      "responseId": "1768481000130",
+      "responseCode": "5032",
+      "errorCode": "E10017",
+      "responseMsg": "Your request is missing (invoiceId) parameter. Please check again",
+      "params": {
+        "description": "Missing mandatory parameter [invoiceId]."
+      }
+    },
+    "createdAt": "2026-01-15T12:43:21.302Z"
+  },
+  {
+    "id": "WAAFI-1768481068618",
+    "method": "waafi",
+    "payerPhone": "0612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 15:44:28.029",
+      "responseId": "1768481067213",
+      "responseCode": "5038",
+      "errorCode": "E10214A",
+      "responseMsg": "You are not authorized to access the requested resource"
+    },
+    "createdAt": "2026-01-15T12:44:28.618Z"
+  },
+  {
+    "id": "WAAFI-1768481075582",
+    "method": "waafi",
+    "payerPhone": "0612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 15:44:35.021",
+      "responseId": "1768481074144",
+      "responseCode": "5038",
+      "errorCode": "E10214A",
+      "responseMsg": "You are not authorized to access the requested resource"
+    },
+    "createdAt": "2026-01-15T12:44:35.582Z"
+  },
+  {
+    "id": "WAAFI-1768482686963",
+    "method": "waafi",
+    "payerPhone": "252612853122",
+    "programId": 30,
+    "amount": 10,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 16:11:26.374",
+      "responseId": "1768482685664",
+      "responseCode": "5038",
+      "errorCode": "E10214A",
+      "responseMsg": "You are not authorized to access the requested resource"
+    },
+    "createdAt": "2026-01-15T13:11:26.963Z"
+  },
+  {
+    "id": "WAAFI-1768483311505",
+    "method": "waafi",
+    "payerPhone": "252612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 16:21:55.263",
+      "responseId": "WAAFI-1768483311505",
+      "responseCode": "5206",
+      "errorCode": "E10205",
+      "responseMsg": "Payment Failed (Haraaga xisaabtaadu kuguma filna, mobile No: 252612853122)",
+      "params": {
+        "orderId": "65340287",
+        "description": "Haraaga xisaabtaadu kuguma filna, mobile No: 252612853122"
+      }
+    },
+    "createdAt": "2026-01-15T13:21:55.919Z"
+  },
+  {
+    "id": "WAAFI-1768483321438",
+    "method": "waafi",
+    "payerPhone": "252612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 16:22:05.177",
+      "responseId": "WAAFI-1768483321438",
+      "responseCode": "5206",
+      "errorCode": "E10205",
+      "responseMsg": "Payment Failed (Haraaga xisaabtaadu kuguma filna, mobile No: 252612853122)",
+      "params": {
+        "orderId": "65340295",
+        "description": "Haraaga xisaabtaadu kuguma filna, mobile No: 252612853122"
+      }
+    },
+    "createdAt": "2026-01-15T13:22:05.836Z"
+  },
+  {
+    "id": "WAAFI-1768483366862",
+    "method": "waafi",
+    "payerPhone": "252612853122",
+    "programId": 30,
+    "amount": 10,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 16:22:54.62",
+      "responseId": "WAAFI-1768483366862",
+      "responseCode": "5206",
+      "errorCode": "E10205",
+      "responseMsg": "Payment Failed (Haraaga xisaabtaadu kuguma filna, mobile No: 252612853122)",
+      "params": {
+        "orderId": "65340348",
+        "description": "Haraaga xisaabtaadu kuguma filna, mobile No: 252612853122"
+      }
+    },
+    "createdAt": "2026-01-15T13:22:55.170Z"
+  },
+  {
+    "id": "WAAFI-1768483400622",
+    "method": "waafi",
+    "payerPhone": "252612853122",
+    "programId": 30,
+    "amount": 10,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 16:23:41.246",
+      "responseId": "WAAFI-1768483400622",
+      "responseCode": "5310",
+      "errorCode": "5310",
+      "responseMsg": "RCS_USER_REJECTED",
+      "params": {
+        "orderId": "65340377",
+        "description": "Customer rejected payment"
+      }
+    },
+    "createdAt": "2026-01-15T13:23:41.891Z"
+  },
+  {
+    "id": "WAAFI-1768483430246",
+    "method": "waafi",
+    "payerPhone": "252612853122",
+    "programId": 4,
+    "amount": 120,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 16:23:53.607",
+      "responseId": "WAAFI-1768483430246",
+      "responseCode": "5206",
+      "errorCode": "E10205",
+      "responseMsg": "Payment Failed (Haraaga xisaabtaadu kuguma filna, mobile No: 252612853122)",
+      "params": {
+        "orderId": "65340422",
+        "description": "Haraaga xisaabtaadu kuguma filna, mobile No: 252612853122"
+      }
+    },
+    "createdAt": "2026-01-15T13:23:54.180Z"
+  },
+  {
+    "id": "EVC-1768483444485",
+    "method": "evc",
+    "studentEmail": "faysalmaxameddahir@gmail.com",
+    "programId": 4,
+    "amount": 120,
+    "accountNumber": "252612853122",
+    "status": "paid",
+    "createdAt": "2026-01-15T13:24:04.485Z"
+  },
+  {
+    "id": "EVC-1768483444961",
+    "method": "evc",
+    "studentEmail": "faysalmaxameddahir@gmail.com",
+    "programId": 4,
+    "amount": 120,
+    "accountNumber": "252612853122",
+    "status": "paid",
+    "createdAt": "2026-01-15T13:24:04.961Z"
+  },
+  {
+    "id": "WAAFI-1768483767318",
+    "method": "waafi",
+    "payerPhone": "612853122",
+    "programId": 1,
+    "amount": 10,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 16:29:46.618",
+      "responseId": "WAAFI-1768483767318",
+      "responseCode": "5310",
+      "errorCode": "5310",
+      "responseMsg": "RCS_USER_REJECTED",
+      "params": {
+        "orderId": "65340746",
+        "description": "Customer rejected payment"
+      }
+    },
+    "createdAt": "2026-01-15T13:29:47.259Z"
+  },
+  {
+    "id": "WAAFI-1768483823732",
+    "method": "waafi",
+    "payerPhone": "612853122",
+    "programId": 1,
+    "amount": 10,
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-15 16:30:34.308",
+      "responseId": "WAAFI-1768483823732",
+      "responseCode": "5310",
+      "errorCode": "5310",
+      "responseMsg": "RCS_USER_REJECTED",
+      "params": {
+        "orderId": "65340801",
+        "description": "Customer rejected payment"
+      }
+    },
+    "createdAt": "2026-01-15T13:30:34.881Z"
+  }
+]

@@ -15,6 +15,7 @@ export default function StudentDashboard() {
     const { isDark } = useDarkMode();
     const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
     const [approvalStatus, setApprovalStatus] = useState('pending');
+    const [isPaid, setIsPaid] = useState(true);
 
     // Fetch Attendance Stats
     const { data: attendanceStats, isLoading: attendanceLoading } = useGetAttendanceStatsQuery(
@@ -43,6 +44,17 @@ export default function StudentDashboard() {
     useEffect(() => {
         if (user && user.approval_status) {
             setApprovalStatus(user.approval_status);
+
+            // Check payment status
+            if (user.approval_status === 'approved' && user.paid_until) {
+                const expiryDate = new Date(user.paid_until);
+                const today = new Date();
+                expiryDate.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0);
+                setIsPaid(expiryDate >= today);
+            } else if (user.approval_status !== 'approved') {
+                setIsPaid(true); // Don't show expiration if not even approved yet
+            }
         }
     }, [user]);
 
@@ -155,30 +167,55 @@ export default function StudentDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Content Area */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Ready to keep learning Banner */}
-                        <div className={`rounded-xl p-8 ${isDark ? 'bg-[#010080]' : 'bg-[#010080]'} text-white relative overflow-hidden`}>
-                            <div className="absolute inset-0 opacity-10">
-                                <div className="absolute top-4 right-4 w-16 h-16 bg-white rounded-lg"></div>
-                                <div className="absolute top-20 right-20 w-12 h-12 bg-white rounded-full"></div>
-                                <div className="absolute bottom-8 left-8 w-20 h-20 bg-white rounded-lg"></div>
-                                <div className="absolute bottom-20 left-24 w-14 h-14 bg-white rounded-full"></div>
-                                <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-white rounded-lg"></div>
+                        {/* Conditional Learning/Expiry Banner */}
+                        {isPaid ? (
+                            <div className={`rounded-xl p-8 bg-[#010080] text-white relative overflow-hidden`}>
+                                <div className="absolute inset-0 opacity-10">
+                                    <div className="absolute top-4 right-4 w-16 h-16 bg-white rounded-lg"></div>
+                                    <div className="absolute top-20 right-20 w-12 h-12 bg-white rounded-full"></div>
+                                    <div className="absolute bottom-8 left-8 w-20 h-20 bg-white rounded-lg"></div>
+                                    <div className="absolute bottom-20 left-24 w-14 h-14 bg-white rounded-full"></div>
+                                    <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-white rounded-lg"></div>
+                                </div>
+                                <div className="relative z-10">
+                                    <h2 className="text-3xl font-bold mb-3">Ready to keep learning?</h2>
+                                    <p className="text-blue-100 mb-6 max-w-2xl">
+                                        Master your skills with BEA E-learning. Your progress is saved and waiting for you to continue your journey.
+                                    </p>
+                                    <div className="flex gap-4">
+                                        <Link href="/portal/student/my-courses" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors">
+                                            Resume Last Course
+                                        </Link>
+                                        <Link href="/portal/student/browse-courses" className="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg font-medium transition-colors">
+                                            Explore New Courses
+                                        </Link>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="relative z-10">
-                                <h2 className="text-3xl font-bold mb-3">Ready to keep learning?</h2>
-                                <p className="text-blue-100 mb-6 max-w-2xl">
-                                    Master your skills with BEA E-learning. Your progress is saved and waiting for you to continue your journey.
-                                </p>
-                                <div className="flex gap-4">
-                                    <Link href="/portal/student/my-courses" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-colors">
-                                        Resume Last Course
-                                    </Link>
-                                    <Link href="/portal/student/browse-courses" className="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg font-semibold transition-colors">
-                                        Explore New Courses
+                        ) : (
+                            <div className={`rounded-xl p-8 bg-gradient-to-br from-[#f6d365] to-[#fda085] text-gray-900 relative overflow-hidden shadow-2xl border border-white/20`}>
+                                <div className="absolute top-0 right-0 p-4 opacity-20">
+                                    <svg className="w-48 h-48 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                                    </svg>
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <span className="bg-white/40 px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-widest border border-white/50 shadow-sm text-amber-900">Urgent: Account Locked</span>
+                                    </div>
+                                    <h2 className="text-3xl font-bold mb-3 text-gray-900 tracking-tight">Access Period Expired</h2>
+                                    <p className="text-gray-800 mb-8 max-w-2xl text-lg font-medium leading-relaxed opacity-90">
+                                        Your premium access has ended. Renew your subscription now to unlock your courses and continue your learning journey.
+                                    </p>
+                                    <Link
+                                        href="/portal/student/payments/upgrade"
+                                        className="inline-flex items-center gap-2 px-10 py-4 bg-[#010080] text-white hover:bg-blue-900 rounded-xl font-normal transition-all transform hover:scale-105 shadow-xl uppercase tracking-wider text-sm border-b-4 border-blue-900 active:border-b-0 active:translate-y-1"
+                                    >
+                                        <span>Upgrade & Continue</span>
                                     </Link>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Summary Cards */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

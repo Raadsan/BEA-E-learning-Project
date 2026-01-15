@@ -22,6 +22,16 @@ export default function StudentHeader() {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
+  // Calculate payment status
+  let isPaid = true;
+  if (currentStudent?.approval_status === 'approved' && currentStudent?.paid_until) {
+    const expiryDate = new Date(currentStudent.paid_until);
+    const today = new Date();
+    expiryDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    isPaid = expiryDate >= today;
+  }
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -31,6 +41,7 @@ export default function StudentHeader() {
   return (
     <header className={`sticky top-0 z-40 border-b transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
       }`}>
+      {/* Expiry Banner Removed as per request (Main alert is now on Dashboard) */}
       <div className="w-full mx-auto px-4 lg:px-6 xl:px-8 py-4">
         <div className="flex items-center justify-between">
           {/* Search Bar - Left Side */}
@@ -105,29 +116,33 @@ export default function StudentHeader() {
                     {currentStudent?.full_name?.split(' ').map((n) => n[0]).join('').toUpperCase().substring(0, 2) || "ST"}
                   </div>
                 )}
-                <div className="flex flex-col items-start translate-y-0.5">
-                  <span className="font-semibold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">
-                    {currentStudent?.full_name?.split(' ')[0] || "Student"}
-                  </span>
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500 -mt-0.5">
-                    Student Account
-                  </span>
-                </div>
-                <svg className={`w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+
+                {isPaid && (
+                  <>
+                    <div className="flex flex-col items-start translate-y-0.5">
+                      <span className="font-semibold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">
+                        {currentStudent?.full_name?.split(' ')[0] || "Student"}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500 -mt-0.5">
+                        Student Account
+                      </span>
+                    </div>
+                    <svg className={`w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </>
+                )}
               </button>
 
               {/* Dropdown Menu */}
               {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 py-1 z-50 animate-in fade-in zoom-in duration-200">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 py-1 z-50 animate-in fade-in zoom-in duration-200">
                   <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                     <p className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mb-0.5">Signed in as</p>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                       {currentStudent?.full_name || "Student"}
                     </p>
                   </div>
-
                   <div className="py-1">
                     <button
                       onClick={() => {
@@ -142,7 +157,6 @@ export default function StudentHeader() {
                       My Profile
                     </button>
                   </div>
-
                   <div className="border-t border-gray-100 dark:border-gray-700 py-1">
                     <button
                       onClick={handleLogout}

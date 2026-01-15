@@ -26,7 +26,8 @@ export const createStudent = async ({
   funding_amount,
   funding_month,
   scholarship_percentage,
-  sponsor_name
+  sponsor_name,
+  paid_until
 }) => {
   // Generate unique student ID
   const student_id = await generateStudentId('students');
@@ -36,8 +37,8 @@ export const createStudent = async ({
       student_id, full_name, email, phone, age, sex, residency_country, residency_city,
       chosen_program, chosen_subprogram, password, parent_name, parent_email, parent_phone,
       parent_relation, parent_res_county, parent_res_city, funding_status, sponsorship_package,
-      funding_amount, funding_month, scholarship_percentage, sponsor_name
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      funding_amount, funding_month, scholarship_percentage, sponsor_name, paid_until
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       student_id,
       full_name,
@@ -61,7 +62,8 @@ export const createStudent = async ({
       funding_amount || null,
       funding_month || null,
       scholarship_percentage || null,
-      sponsor_name || null
+      sponsor_name || null,
+      paid_until || null
     ]
   );
 
@@ -76,9 +78,10 @@ export const getAllStudents = async () => {
       `SELECT s.student_id, s.full_name, s.email, s.phone, s.age, s.sex, s.residency_country, s.residency_city, 
        s.chosen_program, s.chosen_subprogram, s.parent_name, s.parent_email, s.parent_phone, 
        s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, 
-       s.funding_status, s.sponsorship_package, s.funding_amount, s.funding_month, s.scholarship_percentage,
+       s.funding_status, s.sponsorship_package,       s.funding_amount, s.funding_month, s.scholarship_percentage,
        s.sponsor_name,
        s.profile_picture,
+       s.paid_until,
        s.created_at, s.updated_at, c.class_name
        FROM students s
        LEFT JOIN classes c ON s.class_id = c.id
@@ -94,7 +97,7 @@ export const getAllStudents = async () => {
 // GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT student_id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, sponsor_name, profile_picture, created_at, updated_at FROM students WHERE student_id = ?",
+    "SELECT student_id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, sponsor_name, profile_picture, paid_until, created_at, updated_at FROM students WHERE student_id = ?",
     [id]
   );
   return rows[0] || null;
@@ -135,7 +138,8 @@ export const updateStudentById = async (id, {
   funding_month,
   scholarship_percentage,
   sponsor_name,
-  profile_picture
+  profile_picture,
+  paid_until
 }) => {
   const updates = [];
   const values = [];
@@ -239,6 +243,10 @@ export const updateStudentById = async (id, {
   if (profile_picture !== undefined) {
     updates.push("profile_picture = ?");
     values.push(profile_picture);
+  }
+  if (paid_until !== undefined) {
+    updates.push("paid_until = ?");
+    values.push(paid_until);
   }
 
   if (updates.length === 0) {

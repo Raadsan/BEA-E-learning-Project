@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useGetStudentPaymentsQuery } from "@/redux/api/paymentApi";
@@ -31,6 +33,7 @@ const IconDownload = () => (
 
 export default function StudentPaymentsPage() {
   const { isDark } = useDarkMode();
+  const router = useRouter();
   const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
   const { data: payments = [], isLoading: paymentsLoading } = useGetStudentPaymentsQuery(user?.id, {
     skip: !user?.id,
@@ -39,6 +42,16 @@ export default function StudentPaymentsPage() {
   const totalPaid = payments
     .filter((p) => p.status === "paid" || p.status === "completed")
     .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+  // Calculate payment status
+  let isPaid = true;
+  if (user?.approval_status === 'approved' && user?.paid_until) {
+    const expiryDate = new Date(user.paid_until);
+    const today = new Date();
+    expiryDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    isPaid = expiryDate >= today;
+  }
 
   // Stats for the summary boxes (Refined design)
   const stats = [
@@ -51,17 +64,83 @@ export default function StudentPaymentsPage() {
     },
     {
       title: "Enrolled Program",
-      value: payments[0]?.program_name || user?.chosen_program || "None",
+      value: user?.chosen_program || "None",
       icon: <IconBook />,
       color: "bg-purple-100",
       textColor: "text-purple-600"
     },
     {
-      title: "Recent Status",
-      value: payments[0]?.status ? (payments[0].status.charAt(0).toUpperCase() + payments[0].status.slice(1)) : "Clean",
+      title: "Account Status",
+      value: isPaid ? "Active" : "Expired",
       icon: <IconCheck />,
-      color: "bg-green-100",
-      textColor: "text-green-600"
+      color: isPaid ? "bg-green-100" : "bg-red-100",
+      textColor: isPaid ? "text-green-600" : "text-red-600"
+    }
+  ];
+
+  const columns = [
+    {
+      key: "created_at",
+      label: "Date",
+      render: (row) => (
+        <span className="font-medium opacity-70">
+          {row.created_at ? new Date(row.created_at).toLocaleDateString() : "-"}
+        </span>
+      )
+    },
+    {
+      key: "method",
+      label: "Method",
+      render: (row) => (
+        <span className={`px-2 py-1 rounded text-[10px] uppercase font-bold tracking-widest ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-500'}`}>
+          {row.method || "N/A"}
+        </span>
+      )
+    },
+    {
+      key: "program_name",
+      label: "Program",
+      render: (row) => (
+        <span className="font-semibold text-blue-600 dark:text-blue-400">
+          {row.program_name || "Enrollment Fee"}
+        </span>
+      )
+    },
+    {
+      key: "amount",
+      label: "Amount Paid",
+      render: (row) => (
+        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+          ${Number(row.amount || 0).toFixed(2)}
+        </span>
+      )
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (row) => {
+        const status = row.status || "pending";
+        return (
+          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${status === "paid" || status === "completed"
+            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+            }`}>
+            {status}
+          </span>
+        );
+      }
+    },
+    {
+      key: "action",
+      label: "Receipt",
+      render: () => (
+        <button
+          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-all"
+          title="Download Invoice"
+        >
+          <IconDownload />
+        </button>
+      )
     }
   ];
 
@@ -82,13 +161,24 @@ export default function StudentPaymentsPage() {
     <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="w-full">
         {/* Header */}
-        <div className="mb-12">
-          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Payment History
-          </h1>
-          <p className={`text-lg font-medium opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            View and manage your academic financial transactions and receipts
-          </p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div>
+            <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Payment History
+            </h1>
+            <p className={`text-lg font-medium opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              View and manage your academic financial transactions and receipts
+            </p>
+          </div>
+
+          {!isPaid && (
+            <button
+              onClick={() => router.push("/portal/student/payments/upgrade")}
+              className="px-8 py-4 bg-[#010080] text-white hover:bg-blue-900 rounded-xl font-normal shadow-xl uppercase tracking-wider text-sm border-b-4 border-blue-900 active:border-b-0 active:translate-y-1 transition-all"
+            >
+              Upgrade Plan Now
+            </button>
+          )}
         </div>
 
         {/* Stats Cards */}
@@ -103,10 +193,10 @@ export default function StudentPaymentsPage() {
                   <span className={stat.textColor}>{stat.icon}</span>
                 </div>
                 <div>
-                  <p className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                     {stat.title}
                   </p>
-                  <p className={`text-2xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <p className={`text-xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {stat.value}
                   </p>
                 </div>
@@ -116,88 +206,16 @@ export default function StudentPaymentsPage() {
         </div>
 
         {/* Table Container */}
-        <div className={`rounded-2xl shadow-sm overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-[#010080] text-white">
-                <tr>
-                  <Th>Program</Th>
-                  <Th>Fee</Th>
-                  <Th>Paid</Th>
-                  <Th>Method</Th>
-                  <Th>Status</Th>
-                  <Th>Date</Th>
-                  <Th>Action</Th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
-                {payments.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 italic font-medium">
-                      No transaction history available.
-                    </td>
-                  </tr>
-                ) : (
-                  payments.map((p) => (
-                    <tr key={p.id} className={`transition-colors ${isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-50'}`}>
-                      <Td>
-                        <div className="font-bold text-sm text-blue-600 dark:text-blue-400">
-                          {p.program_name || "Enrollment Fee"}
-                        </div>
-                      </Td>
-                      <Td className="opacity-60 font-medium">${Number(p.amount || 0).toFixed(2)}</Td>
-                      <Td>
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                          ${Number(p.amount || 0).toFixed(2)}
-                        </span>
-                      </Td>
-                      <Td>
-                        <span className={`px-2 py-1 rounded text-[10px] uppercase font-black tracking-widest ${isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
-                          {p.method || "N/A"}
-                        </span>
-                      </Td>
-                      <Td>
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${p.status === "paid" || p.status === "completed"
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                          }`}>
-                          {p.status ? p.status : "Pending"}
-                        </span>
-                      </Td>
-                      <Td className="font-medium opacity-60">{p.created_at ? new Date(p.created_at).toLocaleDateString() : "-"}</Td>
-                      <Td>
-                        <button
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-all"
-                          title="Download Invoice"
-                        >
-                          <IconDownload />
-                        </button>
-                      </Td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+        <div className="w-full">
+          <DataTable
+            title="Transaction Logs"
+            columns={columns}
+            data={payments}
+            showAddButton={false}
+            emptyMessage="No transaction history available."
+          />
         </div>
       </div>
     </div>
-  );
-}
-
-function Th({ children }) {
-  return (
-    <th className="px-6 py-5 uppercase text-[10px] font-black tracking-widest">
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className = "" }) {
-  const { isDark } = useDarkMode();
-  return (
-    <td className={`px-6 py-5 whitespace-nowrap text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'} ${className}`}>
-      {children}
-    </td>
   );
 }

@@ -1,19 +1,22 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { updateStudentById, getStudentByEmail } from '../models/studentModel.js';
+import { getPaymentPackageById } from '../models/paymentPackageModel.js';
+import { sendWaafiPayment } from '../utils/waafiPayment.js';
 
-const LOG_DIR = path.join(process.cwd(), 'payments');
-const LOG_FILE = path.join(LOG_DIR, 'payments.log.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const LOG_DIR = path.join(__dirname, '../logs');
+const LOG_FILE = path.join(LOG_DIR, 'payments.json');
 
 function ensureLogDir() {
-  try {
-    if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR);
-    if (!fs.existsSync(LOG_FILE)) fs.writeFileSync(LOG_FILE, '[]', 'utf-8');
-  } catch (e) {
-    console.error('Failed to ensure payments log directory', e);
-  }
+  if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
+  if (!fs.existsSync(LOG_FILE)) fs.writeFileSync(LOG_FILE, '[]', 'utf-8');
 }
 
-function writeLog(entry) {
+export function writeLog(entry) {
   try {
     ensureLogDir();
     const raw = fs.readFileSync(LOG_FILE, 'utf-8');
@@ -25,114 +28,109 @@ function writeLog(entry) {
   }
 }
 
-export const createEvcPayment = (req, res) => {
-  const { student, programId, amount, accountNumber } = req.body || {};
-  if (!student || !programId || !amount || !accountNumber) {
-    return res.status(400).json({ error: 'Missing payment data' });
+// Helper to extend subscription
+async function extendSubscription(studentEmail, packageId) {
+  try {
+    const student = await getStudentByEmail(studentEmail);
+    const pkg = await getPaymentPackageById(packageId);
+
+    if (!student || !pkg) return false;
+
+    const durationMonths = parseInt(pkg.duration_months) || 1;
+    let currentPaidUntil = student.paid_until ? new Date(student.paid_until) : new Date();
+
+    // If student is already expired, start from now. Otherwise, extend from current expiry.
+    const baseDate = currentPaidUntil > new Date() ? currentPaidUntil : new Date();
+    const newPaidUntil = new Date(baseDate.setMonth(baseDate.getMonth() + durationMonths));
+
+    await updateStudentById(student.student_id, {
+      paid_until: newPaidUntil.toISOString().slice(0, 19).replace('T', ' '),
+      funding_status: 'Paid',
+      funding_amount: pkg.amount,
+      funding_month: new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
+    });
+
+    return true;
+  } catch (err) {
+    console.error('Failed to extend subscription:', err);
+    return false;
   }
+}
 
-  // Simulate contacting EVC/Waafi provider and returning a transaction id
+export const createEvcPayment = async (req, res) => {
+  const { student, programId, amount, accountNumber } = req.body || {};
+  if (!student || !amount) return res.status(400).json({ success: false, error: 'Missing data' });
+
+  // Simulate success
   const transactionId = `EVC-${Date.now()}`;
-
   const entry = { id: transactionId, method: 'evc', studentEmail: student.email, programId, amount, accountNumber, status: 'paid', createdAt: new Date().toISOString() };
   writeLog(entry);
 
-  // Return success - in real integration you would call the provider's API here
+  // Extend subscription
+  await extendSubscription(student.email, programId);
+
   res.json({ success: true, transactionId });
 };
 
-export { writeLog };
-
 export const createBankPayment = (req, res) => {
   const { student, programId, amount, accountNumber } = req.body || {};
-  if (!student || !programId || !amount) {
-    return res.status(400).json({ error: 'Missing payment data' });
-  }
+  if (!student || !amount) return res.status(400).json({ success: false, error: 'Missing data' });
 
   const transactionId = `BANK-${Date.now()}`;
   const entry = { id: transactionId, method: 'bank', studentEmail: student.email, programId, amount, accountNumber: accountNumber || null, status: 'pending', createdAt: new Date().toISOString() };
   writeLog(entry);
 
-  // Bank transfers are usually manual; we mark as pending
-  res.json({ success: true, transactionId });
+  // Note: We DO NOT extend subscription for Bank transfers until an admin confirms it.
+  res.json({ success: true, transactionId, message: 'Transfer recorded. Pending verification.' });
 };
 
 export const createWaafiPayment = async (req, res) => {
-  const { payerPhone, amount, currency = 'USD', programId, description } = req.body || {};
-  console.log('[Waafi] incoming request body ->', req.body);
-  if (!payerPhone || !amount || !programId) {
-    console.warn('[Waafi] Missing required fields', { payerPhone, amount, programId });
-    return res.status(400).json({ error: 'Missing waafi payment data (payerPhone, amount, programId required)' });
-  }
+  const { payerPhone, amount, currency = 'USD', programId, description, studentEmail } = req.body || {};
+  console.log('[Waafi] incoming payment request ->', req.body);
+
+  if (!payerPhone || !amount) return res.status(400).json({ success: false, error: 'Missing payerPhone or amount' });
 
   try {
-    // Build payload expected by Waafi (using provided schema)
-    const payload = {
-      schemaVersion: '1.0',
-      requestId: String(Date.now()),
-      timestamp: new Date().toISOString(),
-      channelName: 'WEB',
-      serviceName: 'API_PURCHASE',
-      serviceParams: {
-        merchantUid: process.env.WAAFI_MERCHANT_UID || 'M0910291',
-        apiUserId: process.env.WAAFI_API_USER_ID || '1000416',
-        apiKey: process.env.WAAFI_API_KEY || 'API-675418888AHX',
-        paymentMethod: 'mwallet_account',
-        payerInfo: {
-          accountNo: payerPhone
-        },
-        transactionInfo: {
-          referenceId: `REF-${Date.now()}`,
-          invoiceId: `INV-${Date.now()}`,
-          amount: amount,
-          currency: currency,
-          description: description || 'Application fee'
-        }
-      }
-    };
+    const transactionId = `WAAFI-${Date.now()}`;
 
-    const WAAPI = process.env.WAAFI_ENDPOINT || 'https://api.waafipay.net/asm';
-    console.log('[Waafi] sending to WAAPI ->', WAAPI, payload);
-
-    // POST to Waafi
-    const resp = await fetch(WAAPI, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    // Call centralized utility
+    const json = await sendWaafiPayment({
+      transactionId,
+      accountNo: payerPhone,
+      amount,
+      description: description || 'BEA Payment'
     });
 
-    const json = await resp.json().catch(() => ({}));
-    console.log('[Waafi] response status ->', resp.status, 'body ->', json);
+    console.log('[Waafi] response body ->', json);
 
-    // For logging
-    const transactionId = json?.transactionId || `WAAFI-${Date.now()}`;
+    writeLog({ id: transactionId, method: 'waafi', payerPhone, programId, amount, response: json, createdAt: new Date().toISOString() });
 
-    const entry = { id: transactionId, method: 'waafi', payerPhone, programId, amount, response: json, createdAt: new Date().toISOString() };
-    writeLog(entry);
-
-    // Interpret Waafi response codes and decide next action
+    // Interpret Waafi response codes
     const respCode = json?.responseCode || json?.code || null;
     const respMsg = json?.responseMsg || json?.message || null;
 
-    // If response indicates insufficient balance (e.g., 5206/E10205), return a clear error
+    // Error handling
     if (respCode === '5206' || json?.errorCode === 'E10205' || (typeof respMsg === 'string' && /insufficient|haraaga/i.test(respMsg))) {
-      return res.status(400).json({ success: false, error: respMsg || 'Insufficient balance' , raw: json });
+      return res.status(400).json({ success: false, error: respMsg || 'Insufficient balance', raw: json });
     }
 
-    // If provider indicates a PIN/OTP step is required, signal frontend to ask for PIN
-    const needsPin = json?.requiresPin || json?.challenge || (respCode && respCode.toString().startsWith('1')) || (json?.status && json.status.toLowerCase() === 'pending');
-    if (needsPin) {
-      return res.json({ success: true, requiresPin: true, transactionId, raw: json });
-    }
-
-    // Otherwise consider success only if provider signals success
-    const success = (respCode && (respCode === '0000' || respCode === '0')) || (json?.status && ['success','ok'].includes(json.status.toLowerCase()));
+    // Success check (Waafi uses 2001 for success in some versions, or 0000)
+    const success = (respCode === '0000' || respCode === '0' || respCode === '2001') ||
+      (json?.status && ['success', 'ok', 'paid'].includes(json.status.toLowerCase()));
 
     if (!success) {
+      // Check if PIN is required
+      const needsPin = json?.requiresPin || json?.challenge || (respCode && respCode.toString().startsWith('1')) || (json?.status && json.status.toLowerCase() === 'pending');
+      if (needsPin) {
+        return res.json({ success: true, requiresPin: true, transactionId, raw: json });
+      }
       return res.status(400).json({ success: false, error: respMsg || 'Payment failed', raw: json });
     }
 
     // Successful immediate payment
+    if (studentEmail) {
+      await extendSubscription(studentEmail, programId);
+    }
     res.json({ success: true, transactionId, raw: json });
   } catch (err) {
     console.error('Waafi error', err);

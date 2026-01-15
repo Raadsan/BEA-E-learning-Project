@@ -70,14 +70,14 @@ export default function AdminSidebar() {
       } else {
         setOpenSubSection(null);
       }
-    } else if (pathname?.startsWith("/portal/admin/finance")) {
-      setOpenSection('finance');
-      if (pathname?.includes('payments')) {
-        setOpenSubSection('payments');
+    } else if (pathname?.startsWith("/portal/admin/payments")) {
+      setOpenSection('payments');
+      if (pathname === '/portal/admin/payments/packages') {
+        setOpenSubSection('paymentPackages');
       } else {
         setOpenSubSection(null);
       }
-    } else if (pathname?.startsWith("/portal/admin/communication")) {
+    } else if (pathname?.startsWith("/portal/admin/finance")) {
       setOpenSection('communication');
       setOpenSubSection(null);
     } else if (pathname?.includes("students-requests")) {
@@ -558,12 +558,41 @@ export default function AdminSidebar() {
 
           {/* Payments */}
           <li>
-            <Link href="/portal/admin/payments" className={getMenuItemClasses("/portal/admin/payments")} style={getActiveStyle("/portal/admin/payments")}>
-              <svg className={getIconClasses("/portal/admin/payments")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <button
+              onClick={() => toggleSection('payments')}
+              className={getDropdownButtonClasses('payments')}
+              style={getDropdownButtonStyle('payments')}
+            >
+              <div className="flex items-center gap-3">
+                <svg className={`w-5 h-5 ${openSection === 'payments' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className={`font-medium text-sm ${openSection === 'payments' ? 'text-white' : 'text-gray-100'}`}>Payments</span>
+              </div>
+              <svg className={`w-4 h-4 ${openSection === 'payments' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'payments' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
-              <span className={getTextClasses("/portal/admin/payments")}>Payments</span>
-            </Link>
+            </button>
+            {openSection === 'payments' && (
+              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                <li>
+                  <Link href="/portal/admin/payments/packages" className={getSubMenuItemClasses("/portal/admin/payments/packages")} style={getSubActiveStyle("/portal/admin/payments/packages")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/payments/packages") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span className={isActive("/portal/admin/payments/packages") ? 'text-white' : 'text-gray-100'}>Payment Packages</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/payments/history" className={getSubMenuItemClasses("/portal/admin/payments/history")} style={getSubActiveStyle("/portal/admin/payments/history")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/payments/history") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/payments/history") ? 'text-white' : 'text-gray-100'}>Payment History</span>
+                  </Link>
+                </li>
+              </ul>
+            )}
           </li>
 
           {/* Reports & Analytics */}

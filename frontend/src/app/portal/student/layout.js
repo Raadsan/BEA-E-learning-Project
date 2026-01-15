@@ -13,29 +13,58 @@ function StudentLayoutContent({ children }) {
   const router = useRouter();
   const { data: user, isLoading } = useGetCurrentUserQuery();
   const [isApproved, setIsApproved] = useState(false);
+  const [isPaid, setIsPaid] = useState(true);
 
   useEffect(() => {
     if (user && user.approval_status) {
-      setIsApproved(user.approval_status === 'approved');
+      const approved = user.approval_status === 'approved';
+      setIsApproved(approved);
 
-      // If not approved and trying to access restricted pages, redirect to dashboard.
-      // Pending students can only visit: dashboard, profile, and payment history.
-      if (user.approval_status !== 'approved' && typeof window !== 'undefined') {
+      // Check payment status if approved
+      let paid = true;
+      if (approved && user.paid_until) {
+        const expiryDate = new Date(user.paid_until);
+        const today = new Date();
+        // Set both to midnight for accurate day comparison
+        expiryDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        paid = expiryDate >= today;
+      }
+      setIsPaid(paid);
+
+      // Restriction Logic
+      if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
-        const allowedPaths = [
+        const baseAllowedPaths = [
           "/portal/student",
           "/portal/student/",
           "/portal/student/profile",
           "/portal/student/payments",
+          "/portal/student/payments/upgrade",
+          "/portal/student/payments/upgrade/checkout",
           "/portal/student/placement-test",
+          "/portal/student/my-certification",
+          "/portal/student/student-support",
+          "/portal/student/policies",
         ];
 
-        const isAllowed = allowedPaths.some((path) =>
-          currentPath === path || currentPath.startsWith(path + "/")
-        );
-
-        if (!isAllowed) {
-          router.replace("/portal/student");
+        // If NOT approved, can only visit baseAllowedPaths
+        if (!approved) {
+          const isAllowed = baseAllowedPaths.some((path) =>
+            currentPath === path || currentPath.startsWith(path + "/")
+          );
+          if (!isAllowed) {
+            router.replace("/portal/student");
+          }
+        }
+        // If approved but NOT paid, can also only visit baseAllowedPaths
+        else if (!paid) {
+          const isAllowed = baseAllowedPaths.some((path) =>
+            currentPath === path || currentPath.startsWith(path + "/")
+          );
+          if (!isAllowed) {
+            router.replace("/portal/student");
+          }
         }
       }
     }
@@ -49,8 +78,8 @@ function StudentLayoutContent({ children }) {
       className="flex h-screen transition-colors"
       style={isDark ? { background: 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)' } : { backgroundColor: '#f3f4f6' }}
     >
-      {/* Sidebar - Always visible, but items depend on approval status */}
-      <StudentSidebar isApproved={isApproved} />
+      {/* Sidebar - Always visible, but items depend on approval and payment status */}
+      <StudentSidebar isApproved={isApproved} isPaid={isPaid} />
 
       {/* Main Content Area */}
       <div className={`flex-1 flex flex-col ml-80`}>

@@ -74,7 +74,7 @@ export default function Header() {
   return (
     <header className={`sticky top-0 z-50 shadow-sm transition-colors duration-300 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`} style={{ fontFamily: 'var(--font-opensans)' }}>
       {/* Top Blue Line Container */}
-      <div className="w-full h-11 bg-[#010080]"></div>
+      <div className="w-full h-8 bg-[#010080]"></div>
       <div className={`container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         {/* First Row: Logo, Search, Icons */}
         <div className={`flex items-center justify-between pt-10 pb-8 -mt-0 h-12 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>

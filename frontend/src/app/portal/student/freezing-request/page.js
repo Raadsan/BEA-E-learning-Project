@@ -86,8 +86,8 @@ export default function FreezingRequestPage() {
   ];
 
   return (
-    <div className={`min-h-screen transition-colors px-8 pb-20 ${bg}`}>
-      <div className="py-6 space-y-8">
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+      <div className="w-full space-y-8">
         {/* Header */}
         <div className={`p-6 rounded-xl shadow ${card}`}>
           <h1 className="text-2xl font-bold mb-2">Freezing Request</h1>

@@ -147,8 +147,8 @@ export default function StudentProfilePage() {
   }
 
   return (
-    <div className={`min-h-screen pb-20 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
-      <div className="mx-auto px-6 sm:px-10 py-8">
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
+      <div className="w-full">
 
         {/* Main Profile Card */}
         <div className={`rounded-2xl shadow-xl overflow-hidden backdrop-blur-md border ${isDark ? "bg-slate-800/90 border-slate-700" : "bg-white/95 border-gray-100"}`}>

@@ -7,6 +7,7 @@ import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
+import { useGetPaymentPackagesQuery } from "@/redux/api/paymentPackageApi";
 import {
     useGetIeltsToeflStudentsQuery,
     useDeleteIeltsToeflStudentMutation,
@@ -63,6 +64,7 @@ export default function StudentsPage() {
     const { data: programs = [] } = useGetProgramsQuery();
     const { data: allSubprograms = [] } = useGetSubprogramsQuery();
     const { data: classes = [] } = useGetClassesQuery();
+    const { data: paymentPackages = [] } = useGetPaymentPackagesQuery();
 
     // Mutations
     const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
@@ -289,7 +291,25 @@ export default function StudentsPage() {
                 <DataTable title="Student Management" columns={columns} data={mergedStudents} onAddClick={handleAddStudent} showAddButton={true} />
             </main>
 
-            <StudentForm isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} editingStudent={editingStudent} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} handleSubmit={handleSubmit} isDark={isDark} programs={programs} cities={cities} showParentInfo={showParentInfo} parentCities={parentCities} viewingPayments={viewingPayments} isCreating={isCreating} isUpdating={isUpdating} isUpdatingIelts={isUpdatingIelts} />
+            <StudentForm
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                editingStudent={editingStudent}
+                formData={formData}
+                handleInputChange={handleInputChange}
+                setFormData={setFormData}
+                handleSubmit={handleSubmit}
+                isDark={isDark}
+                programs={programs}
+                paymentPackages={paymentPackages}
+                cities={cities}
+                showParentInfo={showParentInfo}
+                parentCities={parentCities}
+                viewingPayments={viewingPayments}
+                isCreating={isCreating}
+                isUpdating={isUpdating}
+                isUpdatingIelts={isUpdatingIelts}
+            />
             <StudentViewModal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} viewingStudent={viewingStudent} viewingPayments={viewingPayments} isDark={isDark} />
             <StudentApprovalModal isOpen={isApprovalModalOpen} onClose={() => setIsApprovalModalOpen(false)} student={studentToApprove} onApprove={handleApprove} onReject={handleReject} isApproving={isApproving} isRejecting={isRejecting} isDark={isDark} />
             <AssignClassModal isOpen={isAssignClassModalOpen} onClose={() => setIsAssignClassModalOpen(false)} assigningStudent={assigningStudent} selectedClassId={selectedClassId} setSelectedClassId={setSelectedClassId} handleSubmit={handleAssignClassSubmit} isUpdating={isUpdating} isUpdatingIelts={isUpdatingIelts} classes={classes} isDark={isDark} />

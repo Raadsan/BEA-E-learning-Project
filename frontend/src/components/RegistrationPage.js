@@ -52,7 +52,7 @@ export default function RegistrationPage() {
   const formRef = useRef(null);
 
   // Payment specific state for Step 3
-  const [paymentMethod, setPaymentMethod] = useState('mwallet_account'); // 'evc' or 'bank'
+  const [paymentMethod, setPaymentMethod] = useState('waafi');
   const [paymentAccountNumber, setPaymentAccountNumber] = useState('');
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState(null);
@@ -236,60 +236,38 @@ export default function RegistrationPage() {
     setIsPaying(true);
 
     try {
-      const requestId = `req_${Date.now()}`;
-      const invoiceId = `inv_${Date.now()}`;
-
-      const payload = {
-        schemaVersion: "1.0",
-        requestId: requestId,
-        timestamp: new Date().toISOString(),
-        channelName: "WEB",
-        serviceName: "API_PURCHASE",
-        serviceParams: {
-          merchantUid: "M0910291",
-          apiUserId: "1000416",
-          apiKey: "API-675418888AHX",
-          paymentMethod: "mwallet_account", // 'mwallet_account' or 'evc'
-          payerInfo: {
-            accountNo: paymentAccountNumber.replace(/\s+/g, '') // Phone number for mobile wallet
-          },
-          transactionInfo: {
-            referenceId: requestId,
-            invoiceId: invoiceId,
-            amount: APPLICATION_FEE,
-            currency: "USD",
-            description: `Application fee for ${programs.find(p => p.id === formData.chosen_program)?.title || 'program'}`
-          }
-        }
-      };
-
-      console.log('Sending payment request to Waafi...', payload);
-
-      const res = await fetch('https://api.waafipay.net/asm', {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
+      const res = await fetch(`${baseUrl}/api/payments/waafi`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-MERCHANT-ID': 'M0910291' // Add if required
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          payerPhone: paymentAccountNumber.replace(/\s+/g, ''),
+          amount: APPLICATION_FEE,
+          programId: formData.chosen_program,
+          studentEmail: formData.email,
+          description: `Application fee for ${programs.find(p => p.id === formData.chosen_program)?.title || 'program'}`
+        }),
       });
 
       const response = await res.json();
-      console.log('Waafi API Response:', response);
+      console.log('Backend Payment Response:', response);
+
+      if (response.requiresPin) {
+        setWaafiTransactionId(response.transactionId);
+        setRequiresPin(true);
+        showToast("Please enter the PIN on your phone.", "info");
+        return;
+      }
 
       // Handle successful response
-      if (response.responseCode === '2001' ||
-        response.responseMsg === 'SUCCESS' ||
-        (response.serviceParams && response.serviceParams.status === 'SUCCESS')) {
-
-        const transactionId = response.serviceParams?.transactionId || `WAAFI_${requestId}`;
+      if (response.success) {
+        const transactionId = response.transactionId || `WAAFI_${Date.now()}`;
         console.log('Payment successful, saving student...');
-        await handleSaveStudent(transactionId, response); // Pass the full response for logging
-
+        await handleSaveStudent(transactionId, response.raw); // Pass the full response for logging
       } else {
-        const errorMsg = response.responseMsg ||
-          response.message ||
-          'Payment failed';
+        const errorMsg = response.error || 'Payment failed';
         throw new Error(errorMsg);
       }
 
@@ -1021,44 +999,29 @@ export default function RegistrationPage() {
 
                   <p className="text-sm text-gray-600 mb-3">Payment method <span className="text-red-500">*</span></p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('evc')}
-                      className={`flex items-center justify-between p-4 rounded-lg border ${paymentMethod === 'evc' ? 'bg-blue-50 border-green-600' : 'bg-white border-gray-200'}`}
-                    >
+                  <div className="border border-blue-100 rounded-md p-4 bg-blue-50 mb-4">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold">EVC - Waafi</p>
-                        <p className="text-xs text-gray-500 mt-1">Instant mobile payment</p>
+                        <p className="text-sm text-gray-600">Application fee</p>
+                        <p className="text-2xl font-semibold" style={{ color: '#010080' }}>${APPLICATION_FEE.toFixed(2)}</p>
                       </div>
-                      <div className="text-sm font-semibold">${APPLICATION_FEE.toFixed(2)}</div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('bank')}
-                      className={`flex items-center justify-between p-4 rounded-lg border ${paymentMethod === 'bank' ? 'bg-blue-50 border-green-600' : 'bg-white border-gray-200'}`}
-                    >
-                      <div>
-                        <p className="font-semibold">Bank Transfer</p>
-                        <p className="text-xs text-gray-500 mt-1">Manual transfer (confirm later)</p>
+                      <div className="flex items-center gap-2">
+                        <div className="p-1 px-2 bg-emerald-500 rounded text-white font-bold text-[10px]">WAF</div>
+                        <span className="text-xs font-medium text-gray-500">Waafi Mobile</span>
                       </div>
-                      <div className="text-sm font-semibold">${APPLICATION_FEE.toFixed(2)}</div>
-                    </button>
+                    </div>
                   </div>
 
-                  {/* If EVC selected, show account number field */}
-                  {paymentMethod === 'evc' && (
-                    <div className="mt-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Account Number</label>
-                      <input
-                        type="text"
-                        value={paymentAccountNumber}
-                        onChange={(e) => setPaymentAccountNumber(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
-                      />
-                    </div>
-                  )}
+                  <div className="mt-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Account Number</label>
+                    <input
+                      type="text"
+                      value={paymentAccountNumber}
+                      onChange={(e) => setPaymentAccountNumber(e.target.value)}
+                      placeholder="061XXXXXXX"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
 
                   {paymentError && <div className="text-red-600 text-sm mt-3">{paymentError}</div>}
 
@@ -1094,10 +1057,10 @@ export default function RegistrationPage() {
                     </div>
 
                     <div className="p-4 bg-white border rounded-lg flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-md ${'bg-red-100'}`} />
+                      <div className={`w-10 h-10 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs`}>WAF</div>
                       <div>
                         <h4 className="font-semibold">Payment Information</h4>
-                        <p className="text-sm text-gray-600">Payment method: {paymentMethod === 'evc' ? 'EVC - Waafi' : 'Bank Transfer'}</p>
+                        <p className="text-sm text-gray-600">Payment method: Waafi Mobile</p>
                         <p className="text-sm text-gray-600">Application fee: ${APPLICATION_FEE.toFixed(2)}</p>
                         <p className="text-sm text-gray-600">Account: {paymentAccountNumber}</p>
                       </div>

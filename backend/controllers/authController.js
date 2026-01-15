@@ -84,7 +84,8 @@ export const login = async (req, res) => {
             chosen_subprogram: user.chosen_subprogram,
             sponsor_name: user.sponsor_name,
             approval_status: user.approval_status || null,
-            class_id: user.class_id || null
+            class_id: user.class_id || null,
+            paid_until: user.paid_until || null
           };
         }
       }
@@ -223,6 +224,7 @@ export const getCurrentUser = async (req, res) => {
             approval_status: user.approval_status || null,
             class_id: user.class_id || null,
             profile_picture: user.profile_picture || null,
+            paid_until: user.paid_until || null,
             created_at: user.created_at || null
           };
         }

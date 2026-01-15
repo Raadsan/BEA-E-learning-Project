@@ -41,7 +41,37 @@ export const paymentApi = createApi({
                 return response;
             },
         }),
+        createEvcPayment: builder.mutation({
+            query: (body) => ({
+                url: "/evc",
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: ["Payments"],
+        }),
+        createBankPayment: builder.mutation({
+            query: (body) => ({
+                url: "/bank",
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: ["Payments"],
+        }),
+        createWaafiPayment: builder.mutation({
+            query: (body) => ({
+                url: "/waafi",
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: ["Payments"],
+        }),
     }),
 });
 
-export const { useGetStudentPaymentsQuery, useGetAllPaymentsQuery } = paymentApi;
+export const {
+    useGetStudentPaymentsQuery,
+    useGetAllPaymentsQuery,
+    useCreateEvcPaymentMutation,
+    useCreateBankPaymentMutation,
+    useCreateWaafiPaymentMutation
+} = paymentApi;

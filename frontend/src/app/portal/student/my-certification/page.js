@@ -11,8 +11,8 @@ export default function MyCertificationPage() {
   const card = isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900";
 
   return (
-    <div className={`min-h-screen transition-colors px-8 ${bg}`}>
-      <div className="py-6">
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+      <div className="w-full">
         <div className={`mb-6 p-6 rounded-xl shadow ${card}`}>
           <h1 className="text-2xl font-bold mb-2">My Certification</h1>
           <p className={isDark ? "text-gray-300" : "text-gray-600"}>

@@ -25,6 +25,7 @@ import { timetableApi } from "../redux/api/timetableApi.js";
 import { eventApi } from "../redux/api/eventApi.js";
 import { shiftApi } from "../redux/api/shiftApi.js";
 import { uploadApi } from "../redux/api/uploadApi.js";
+import { paymentPackageApi } from "../redux/api/paymentPackageApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -54,6 +55,7 @@ export const store = configureStore({
     [eventApi.reducerPath]: eventApi.reducer,
     [shiftApi.reducerPath]: shiftApi.reducer,
     [uploadApi.reducerPath]: uploadApi.reducer,
+    [paymentPackageApi.reducerPath]: paymentPackageApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -82,6 +84,7 @@ export const store = configureStore({
       timetableApi.middleware,
       eventApi.middleware,
       shiftApi.middleware,
-      uploadApi.middleware
+      uploadApi.middleware,
+      paymentPackageApi.middleware
     ),
 });

@@ -20,6 +20,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import assignmentRoutes from "./routes/assignmentRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import paymentPackageRoutes from "./routes/paymentPackageRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
 import materialRoutes from "./routes/materialRoutes.js";
@@ -94,6 +95,9 @@ app.use("/api/assignments", assignmentRoutes);
 
 // ⬇️ Register Payment Routes
 app.use("/api/payments", paymentRoutes);
+
+// ⬇️ Register Payment Package Routes
+app.use("/api/payment-packages", paymentPackageRoutes);
 
 // ⬇️ Register Attendance Routes
 app.use("/api/attendance", attendanceRoutes);

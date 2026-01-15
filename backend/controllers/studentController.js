@@ -62,6 +62,20 @@ export const createStudent = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Initial paid_until calculation
+    let initialPaidUntil = null;
+    if (funding_status && funding_status !== 'Unpaid') {
+      const now = new Date();
+      if (funding_status === 'Sponsorship' && sponsorship_package !== 'None') {
+        // We'll approximate months as 30 days for simplicity
+        // In a real app we might fetch the package details to get the exact months
+        // For now let's default to 1 month and handle sponsorship packages later if needed
+        initialPaidUntil = new Date(now.setDate(now.getDate() + 30));
+      } else {
+        initialPaidUntil = new Date(now.setDate(now.getDate() + 30));
+      }
+    }
+
     const student = await Student.createStudent({
       full_name,
       email,
@@ -84,7 +98,8 @@ export const createStudent = async (req, res) => {
       sponsorship_package,
       funding_amount,
       funding_month,
-      scholarship_percentage
+      scholarship_percentage,
+      paid_until: initialPaidUntil
     });
 
     console.log('✅ Student created with ID:', student?.student_id);
@@ -110,8 +125,15 @@ export const createStudent = async (req, res) => {
         const payment = await createPayment(paymentData);
         console.log('✅ Payment record created successfully:', payment.id);
 
-        // mark student awaiting admin approval
-        await Student.updateApprovalStatus(student.student_id, 'pending');
+        // Update paid_until and mark student awaiting admin approval
+        const currentPaidUntil = student.paid_until ? new Date(student.paid_until) : new Date();
+        const baseDate = currentPaidUntil > new Date() ? currentPaidUntil : new Date();
+        const newPaidUntil = new Date(baseDate.setDate(baseDate.getDate() + 30));
+
+        await Student.updateStudentById(student.student_id, {
+          approval_status: 'pending',
+          paid_until: newPaidUntil
+        });
         updatedStudent = await Student.getStudentById(student.student_id);
 
         // Notify admin that a new paid application is pending approval
