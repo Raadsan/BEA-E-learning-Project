@@ -6,20 +6,27 @@ export const markAttendance = async (data) => {
   const { class_id, student_id, date, hour1, hour2 } = data;
 
   // Upsert: Insert or Update if exists
+  // Values: 0 = Absent, 1 = Present, 2 = Excused
+
+  // Calculate excused count for the column
+  const excusedCount = (hour1 === 2 ? 1 : 0) + (hour2 === 2 ? 1 : 0);
+
   const query = `
-    INSERT INTO attendance (class_id, student_id, date, hour1, hour2)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO attendance (class_id, student_id, date, hour1, hour2, excuse)
+    VALUES (?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
     hour1 = VALUES(hour1),
-    hour2 = VALUES(hour2)
+    hour2 = VALUES(hour2),
+    excuse = VALUES(excuse)
   `;
 
   const [result] = await dbp.query(query, [
     class_id,
     student_id,
     date,
-    hour1 ? 1 : 0,
-    hour2 ? 1 : 0
+    hour1, // Pass explicit value (0, 1, or 2)
+    hour2,
+    excusedCount
   ]);
 
   return result;
@@ -61,6 +68,10 @@ export const getAttendanceStats = async (filters) => {
   const { class_id, program_id, startDate, endDate, period } = filters;
 
   // Base query for attendance counts
+  // Count as attended if they were PRESENT (1) for at least one hour.
+  // Excused (2) does NOT count as attended for this specific stat if we stick to "Present vs Absent" logic, 
+  // or we can count it separately. Usually stats show "Attendance Rate" which implies being there.
+  // Adjusting logic: Only count if hour1=1 or hour2=1.
   let query = `
     SELECT 
       MIN(DATE(a.date)) as date,
@@ -128,8 +139,10 @@ export const getTotalStudents = async (filters) => {
 };
 
 export const getStudentLearningHours = async (studentId, startDate) => {
+  // Only sum if hour is 1 (Present)
   const query = `
-      SELECT date, (hour1 + hour2) as hours 
+      SELECT date, 
+      ((CASE WHEN hour1 = 1 THEN 1 ELSE 0 END) + (CASE WHEN hour2 = 1 THEN 1 ELSE 0 END)) as hours 
       FROM attendance 
       WHERE student_id = ? AND date >= ?
       ORDER BY date ASC
@@ -139,8 +152,9 @@ export const getStudentLearningHours = async (studentId, startDate) => {
 };
 
 export const getStudentLearningHoursSummary = async (studentId) => {
+  // Only sum if hour is 1 (Present)
   const query = `
-      SELECT SUM(hour1 + hour2) as total_hours 
+      SELECT SUM((CASE WHEN hour1 = 1 THEN 1 ELSE 0 END) + (CASE WHEN hour2 = 1 THEN 1 ELSE 0 END)) as total_hours 
       FROM attendance 
       WHERE student_id = ?
   `;
@@ -151,6 +165,7 @@ export const getStudentLearningHoursSummary = async (studentId) => {
 export const getAggregateLearningHours = async (filters) => {
   const { class_id, program_id, startDate, endDate, period } = filters;
 
+  // Only sum if hour is 1 (Present)
   let query = `
     SELECT 
       MIN(DATE(a.date)) as date,
@@ -158,7 +173,7 @@ export const getAggregateLearningHours = async (filters) => {
       ${period === 'yearly' ? 'MAX(YEAR(a.date)) as label,' : ''}
       ${period === 'weekly' ? 'MAX(DATE_FORMAT(DATE_SUB(a.date, INTERVAL WEEKDAY(a.date) DAY), "%b %d")) as label,' : ''}
       ${period === 'daily' ? 'MAX(DAYNAME(a.date)) as label,' : ''}
-      SUM(a.hour1 + a.hour2) as hours
+      SUM((CASE WHEN a.hour1 = 1 THEN 1 ELSE 0 END) + (CASE WHEN a.hour2 = 1 THEN 1 ELSE 0 END)) as hours
     FROM attendance a
     JOIN classes c ON a.class_id = c.id
     WHERE a.date BETWEEN ? AND ?

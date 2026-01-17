@@ -24,11 +24,22 @@ export default function AttendancePage() {
 
   // Calculate attendance statistics
   const stats = records.reduce((acc, record) => {
-    const h1 = record.hour1 ? 1 : 0;
-    const h2 = record.hour2 ? 1 : 0;
+    // 0 = Absent, 1 = Present, 2 = Excused
+    const h1 = record.hour1 === 1 ? 1 : 0;
+    const h2 = record.hour2 === 1 ? 1 : 0;
+    const h1Excused = record.hour1 === 2 ? 1 : 0;
+    const h2Excused = record.hour2 === 2 ? 1 : 0;
+
     acc.totalDays += 1;
     acc.presentHours += (h1 + h2);
-    acc.absentHours += (2 - (h1 + h2));
+    // Explicitly calculate absent: Not Present AND Not Excused
+    // Total possible hours per day is 2.
+    // Absent means hour is 0.
+    const h1Absent = record.hour1 === 0 ? 1 : 0;
+    const h2Absent = record.hour2 === 0 ? 1 : 0;
+
+    acc.absentHours += (h1Absent + h2Absent);
+    // We can also track excused hours if we want, but for now just don't count them as absent
     return acc;
   }, { totalDays: 0, presentHours: 0, absentHours: 0 });
 
@@ -46,8 +57,11 @@ export default function AttendancePage() {
       label: "Hour One",
       key: "hour1",
       render: (row) => (
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.hour1 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {row.hour1 ? "Present" : "Absent"}
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.hour1 === 1 ? 'bg-green-100 text-green-700' :
+            row.hour1 === 2 ? 'bg-orange-100 text-orange-700' :
+              'bg-red-100 text-red-700'
+          }`}>
+          {row.hour1 === 1 ? "Present" : row.hour1 === 2 ? "Excused" : "Absent"}
         </span>
       )
     },
@@ -55,8 +69,11 @@ export default function AttendancePage() {
       label: "Hour Two",
       key: "hour2",
       render: (row) => (
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.hour2 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {row.hour2 ? "Present" : "Absent"}
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.hour2 === 1 ? 'bg-green-100 text-green-700' :
+            row.hour2 === 2 ? 'bg-orange-100 text-orange-700' :
+              'bg-red-100 text-red-700'
+          }`}>
+          {row.hour2 === 1 ? "Present" : row.hour2 === 2 ? "Excused" : "Absent"}
         </span>
       )
     }

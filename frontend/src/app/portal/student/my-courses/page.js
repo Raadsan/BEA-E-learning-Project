@@ -78,15 +78,6 @@ export default function MyCoursesPage() {
     }
   }, [userLoading, classLoading, subprogramsLoading]);
 
-  // Calculate progress for each subprogram (placeholder)
-  const calculateProgress = (subprogramId) => {
-    // If it's the active subprogram, calculate based on courses
-    if (subprogramId == studentClass?.subprogram_id && courses.length > 0) {
-      return 72; // Mock progress
-    }
-    return 0; // Locked subprograms have 0% progress
-  };
-
   // Handle subprogram click - navigate to course overview
   const handleSubprogramClick = (subprogram) => {
     const isActive = studentClass && (subprogram.id == studentClass.subprogram_id);
@@ -95,14 +86,14 @@ export default function MyCoursesPage() {
     }
   };
 
-  const bg = isDark ? "bg-gray-900" : "bg-gray-100";
-  const card = isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900";
+  const bg = isDark ? "bg-gray-900" : "bg-gray-50";
+  const card = isDark ? "bg-gray-800 text-white border-gray-700" : "bg-white text-gray-900 border-gray-100";
 
   if (loading) {
     return (
       <div className={`min-h-screen transition-colors ${bg}`}>
-        <div className="py-6">
-          <div className={`p-6 rounded-xl shadow ${card}`}>
+        <div className="py-6 w-full px-6 sm:px-10">
+          <div className={`p-6 rounded-xl shadow-sm border ${card}`}>
             <p className={isDark ? "text-gray-300" : "text-gray-600"}>Loading...</p>
           </div>
         </div>
@@ -113,8 +104,8 @@ export default function MyCoursesPage() {
   if (!studentClass || !studentProgram) {
     return (
       <div className={`min-h-screen transition-colors ${bg}`}>
-        <div className="py-6">
-          <div className={`p-6 rounded-xl shadow ${card}`}>
+        <div className="py-6 w-full px-6 sm:px-10">
+          <div className={`p-6 rounded-xl shadow-sm border ${card}`}>
             <p className={isDark ? "text-gray-400" : "text-gray-600"}>
               You have not been assigned to any class yet.
             </p>
@@ -124,232 +115,146 @@ export default function MyCoursesPage() {
     );
   }
 
-  // Get program image from database
-  const getProgramImage = () => {
-    if (!studentProgram?.image) return '/images/book1.jpg';
-
-    // If image path starts with /, use it directly with backend URL
-    if (studentProgram.image.startsWith('/')) {
-      return `http://localhost:5000${studentProgram.image}`;
-    }
-    // If image path doesn't start with /, add it
-    if (studentProgram.image.startsWith('http')) {
-      return studentProgram.image;
-    }
-    return `http://localhost:5000/${studentProgram.image}`;
-  };
-
-  const programImage = getProgramImage();
-
   return (
     <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
       <div className="w-full">
         {/* Header */}
         <div className="mb-12">
-          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
+          <h1 className={`text-4xl font-bold tracking-tight mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
             My Courses
           </h1>
-          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-            Available Courses
+          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+            Track your progress and access your study materials.
           </p>
         </div>
 
-        {/* Main Program Card */}
-        <div className={`mb-8 rounded-xl shadow-lg overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-50"} border ${isDark ? "border-gray-700" : "border-gray-200"}`}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-            {/* Left Section - Program Card with Image */}
-            <div className={`lg:col-span-1 ${isDark ? "bg-gray-700" : "bg-gray-100"} p-6 relative overflow-hidden`}>
-              <div className="relative h-full min-h-[300px] flex flex-col items-center justify-center">
+        <div className="flex flex-col gap-12">
+
+          {/* Top Section: Levels (Left) & Image (Right) - 50/50 split */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-stretch">
+
+            {/* Left Column - Subprograms (Pillar Chart Style) */}
+            <div className="flex flex-col gap-4">
+              <h2 className={`text-xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
+                Program Levels
+              </h2>
+              {subprogramsLoading ? (
+                <p className="text-gray-500">Loading levels...</p>
+              ) : (
+                <div className="flex flex-row gap-4 h-[500px] items-end px-2 overflow-x-auto pb-4">
+                  {subprogramsData.map((subprogram, index) => {
+                    const isActive = studentClass && (subprogram.id == studentClass.subprogram_id);
+
+                    // Graduated Height: Min 25%, Max 100%
+                    const total = subprogramsData.length || 1;
+                    const heightPercent = 25 + ((index / (total - 1 || 1)) * 75);
+
+                    return (
+                      <div
+                        key={subprogram.id}
+                        onClick={() => handleSubprogramClick(subprogram)}
+                        className="group flex flex-col items-center gap-3 flex-1 min-w-[80px] cursor-pointer transition-all duration-300 hover:-translate-y-2 h-full justify-end"
+                      >
+                        {/* The Pillar */}
+                        <div
+                          className={`
+                              w-full rounded-t-2xl border-x border-t transition-all duration-500 relative
+                              flex flex-col justify-end items-center p-2
+                              ${isActive
+                              ? "bg-green-600 border-green-500 shadow-xl shadow-green-600/20 z-10 scale-105"
+                              : isDark ? "bg-gray-800 border-gray-700 opacity-60" : "bg-gray-200 border-gray-300 opacity-60"
+                            }
+                            `}
+                          style={{ height: `${heightPercent}%`, minHeight: '100px' }}
+                        >
+                          {/* Icon/Indicator */}
+                          <div className="mb-4">
+                            {isActive ? (
+                              <div className="w-10 h-10 rounded-full bg-white text-green-600 flex items-center justify-center shadow-lg">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            ) : (
+                              <span className={`text-2xl font-bold opacity-20 ${isDark ? "text-white" : "text-black"}`}>
+                                {index + 1}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Vertical Label */}
+                          <span className={`text-[10px] font-bold uppercase tracking-widest -rotate-90 mb-8 whitespace-nowrap ${isActive ? "text-white" : "opacity-40"}`}>
+                            {isActive ? "Current Level" : `Level ${index + 1}`}
+                          </span>
+                        </div>
+
+                        {/* Title below pillar */}
+                        <div className="text-center w-full px-1">
+                          <h3 className={`text-xs font-bold truncate ${isDark ? "text-white" : "text-gray-900"} ${isActive ? "opacity-100" : "opacity-60"}`}>
+                            {subprogram.subprogram_name}
+                          </h3>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Right Column - Image (Matching Height) */}
+            <div className="flex flex-col gap-4">
+              <h2 className={`text-xl font-bold mb-2 opacity-0 select-none`}>Spacing</h2>
+              <div className={`relative w-full h-[500px] rounded-3xl overflow-hidden shadow-sm border ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
                 <Image
-                  src={programImage}
-                  alt={studentProgram.title}
+                  src="/images/My courses.jpg"
+                  alt="My Courses"
                   fill
-                  className="object-cover "
+                  className="object-contain p-8"
+                  priority
                   unoptimized
                 />
-
               </div>
             </div>
 
-            {/* Right Section - Course Details */}
-            <div className={`lg:col-span-2 ${isDark ? "bg-gray-800" : "bg-white"} p-8`}>
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
-                    {studentProgram.title}
-                  </h3>
-                  <p className={`text-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                    {studentProgram.title}
-                  </p>
-                </div>
-                <div className="bg-[#010080] text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                  </svg>
-                  <span className="font-semibold">In Progress</span>
-                </div>
-              </div>
-
-
-              {/* Activity Info */}
-              <div className="flex items-center gap-6 text-sm">
-                <div className="flex items-center gap-2">
-                  <svg className={`w-5 h-5 ${isDark ? "text-gray-400" : "text-gray-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className={isDark ? "text-gray-400" : "text-gray-600"}>
-                    Last activity: 4 days ago
-                  </span>
-                </div>
-                <div>
-                  <span className={isDark ? "text-gray-400" : "text-gray-600"}>
-                    {subprogramsData.length} courses available
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
+
+          {/* Bottom Section: My Classes */}
+          <div className="mt-8">
+            <div className="mb-8 border-b pb-4 border-gray-100 dark:border-gray-700">
+              <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
+                My Classes
+              </h2>
+              <p className={`text-sm opacity-60 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                Courses available in your current level: {studentSubprogram?.subprogram_name}.
+              </p>
+            </div>
+
+            {courses.length === 0 ? (
+              <div className={`p-12 rounded-2xl border-2 border-dashed text-center ${isDark ? "bg-gray-800/20 border-gray-700" : "bg-gray-50 border-gray-200"}`}>
+                <p className="text-gray-400">No courses found.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {courses.map((course) => (
+                  <div key={course.id} className={`p-5 rounded-2xl border shadow-sm transition-all hover:shadow-md ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-600">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                      </div>
+                      <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">{course.code || "Course"}</span>
+                    </div>
+                    <h3 className={`text-base font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>{course.course_name}</h3>
+                    <p className={`text-xs opacity-60 line-clamp-2 mb-4 ${isDark ? "text-gray-400" : "text-gray-500"}`}>{course.description || "Access your course materials."}</p>
+                    <button onClick={() => router.push(`/portal/student/my-courses/${studentClass?.subprogram_id}`)} className="text-xs font-bold text-blue-600 hover:underline">View Course</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
-
-        {/* Subprograms as Course Cards */}
-        {subprogramsLoading ? (
-          <div className={`p-6 rounded-xl shadow ${card} text-center`}>
-            <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading courses...</p>
-          </div>
-        ) : subprogramsData.length === 0 ? (
-          <div className={`p-6 rounded-xl shadow ${card} text-center`}>
-            <p className={isDark ? "text-gray-400" : "text-gray-600"}>No courses available.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {subprogramsData.map((subprogram, index) => {
-              const isActive = studentClass && (subprogram.id == studentClass.subprogram_id);
-              const isLocked = !isActive;
-              const progress = calculateProgress(subprogram.id);
-              const totalLessons = subprogram.id == studentClass?.subprogram_id ? courses.length : 0;
-              const completedLessons = Math.floor((progress / 100) * totalLessons);
-
-              // Define some nice gradients for cards
-              const gradients = [
-                "from-blue-600 to-indigo-700",
-                "from-emerald-500 to-teal-700",
-                "from-amber-400 to-orange-600",
-                "from-purple-500 to-indigo-600",
-                "from-rose-500 to-pink-600",
-                "from-cyan-500 to-blue-600"
-              ];
-              const gradient = gradients[index % gradients.length];
-
-              return (
-                <div
-                  key={subprogram.id}
-                  onClick={() => handleSubprogramClick(subprogram)}
-                  className={`group relative rounded-2xl overflow-hidden transition-all duration-500 border-2 ${isLocked
-                    ? `${isDark ? "bg-gray-800/40 border-gray-700/50" : "bg-gray-100 border-gray-200"} grayscale opacity-80 cursor-not-allowed`
-                    : `${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"} cursor-pointer hover:shadow-2xl hover:border-[#010080]/30 hover:-translate-y-2`
-                    }`}
-                >
-                  {/* Top Decorative Section with Icon */}
-                  <div className={`relative h-32 flex items-center justify-center overflow-hidden bg-gradient-to-br ${gradient}`}>
-                    {/* Abstract Background Patterns */}
-                    <div className="absolute inset-0 opacity-20">
-                      <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/30 blur-2xl"></div>
-                      <div className="absolute -left-4 -bottom-4 w-20 h-20 rounded-full bg-black/20 blur-xl"></div>
-                    </div>
-
-                    <div className={`relative z-10 transition-transform duration-500 ${!isLocked && "group-hover:scale-110"}`}>
-                      <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-xl">
-                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                      </div>
-                    </div>
-
-                    {/* Status Badges */}
-                    <div className="absolute top-4 right-4">
-                      {isActive && (
-                        <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg flex items-center gap-1.5 ${progress === 100
-                          ? "bg-green-500 text-white"
-                          : "bg-white text-[#010080]"
-                          }`}>
-                          <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${progress === 100 ? "bg-white" : "bg-[#010080]"}`}></div>
-                          {progress === 100 ? "Completed" : "Active"}
-                        </div>
-                      )}
-                      {isLocked && (
-                        <div className="p-1.5 bg-black/20 backdrop-blur-sm rounded-full border border-white/10 text-white/80">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Content Section */}
-                  <div className="p-6">
-                    <div className="mb-4">
-                      <h3 className={`text-xl font-bold mb-2 line-clamp-1 transition-colors ${isLocked
-                        ? (isDark ? "text-gray-500" : "text-gray-400")
-                        : (isDark ? "text-white group-hover:text-[#4F46E5]" : "text-gray-900 group-hover:text-[#010080]")
-                        }`}>
-                        {subprogram.subprogram_name}
-                      </h3>
-                      <p className={`text-sm line-clamp-2 leading-relaxed ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                        {subprogram.description || "Master the concepts and build practical skills with this comprehensive course module."}
-                      </p>
-                    </div>
-
-                    {/* Progress & Lessons Info */}
-                    {!isLocked && (
-                      <div className="space-y-3 mb-6">
-                        <div className="flex justify-between items-end text-xs font-semibold">
-                          <span className={isDark ? "text-gray-400" : "text-gray-600"}>
-                            {totalLessons > 0 ? `${completedLessons}/${totalLessons} Lessons` : "0 Lessons"}
-                          </span>
-                          <span className="text-[#010080] dark:text-indigo-400">{progress}%</span>
-                        </div>
-                        <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? "bg-gray-700" : "bg-gray-100"}`}>
-                          <div
-                            className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-1000 ease-out`}
-                            style={{ width: `${progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Action Button */}
-                    {isActive ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/portal/student/my-courses/${subprogram.id}`);
-                        }}
-                        className={`w-full group/btn relative flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all duration-300 overflow-hidden ${isDark
-                          ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                          : "bg-[#010080] text-white hover:bg-[#010080]/90 shadow-[0_4px_14px_0_rgba(1,0,128,0.39)]"
-                          }`}
-                      >
-                        <span className="relative z-10 transition-transform duration-300 group-hover/btn:-translate-x-1">View Course</span>
-                        <svg className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                        </svg>
-                      </button>
-                    ) : (
-                      <div className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-dashed font-medium text-sm transition-colors ${isDark ? "border-gray-700 text-gray-500" : "border-gray-200 text-gray-400"
-                        }`}>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        <span>Course Locked</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
     </div>
   );

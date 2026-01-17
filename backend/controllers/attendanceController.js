@@ -21,12 +21,22 @@ export const saveAttendance = async (req, res) => {
 
         // Process each student's attendance
         const promises = Object.entries(attendanceData).map(async ([studentId, status]) => {
+            if (!status) return; // Skip if status is null/undefined
+
+            // Safety check for invalid IDs (Object.entries converts keys to strings)
+            if (studentId === 'undefined' || studentId === 'null' || !studentId) {
+                console.warn(`Skipping invalid studentId: ${studentId}`);
+                return;
+            }
+
+            console.log(`Processing attendance for studentId: ${studentId}`); // DEBUG LOG
+
             await Attendance.markAttendance({
                 class_id,
                 student_id: studentId,
                 date,
-                hour1: status.hour1,
-                hour2: status.hour2
+                hour1: status.hour1 ?? 0,
+                hour2: status.hour2 ?? 0
             });
         });
 
@@ -35,7 +45,8 @@ export const saveAttendance = async (req, res) => {
         res.json({ message: "Attendance saved successfully" });
     } catch (err) {
         console.error("Save attendance error:", err);
-        res.status(500).json({ error: "Server error" });
+        // Return the actual error message for debugging
+        res.status(500).json({ error: err.message || "Server error" });
     }
 };
 
@@ -63,12 +74,12 @@ export const getAttendance = async (req, res) => {
 
         const records = await Attendance.getAttendance(classId, date);
 
-        // Transform to frontend format: { studentId: { hour1: bool, hour2: bool } }
+        // Transform to frontend format: { studentId: { hour1: int, hour2: int } }
         const formatted = {};
         records.forEach(record => {
             formatted[record.student_id] = {
-                hour1: !!record.hour1,
-                hour2: !!record.hour2
+                hour1: record.hour1, // 0-Absent, 1-Present, 2-Excused
+                hour2: record.hour2
             };
         });
 
