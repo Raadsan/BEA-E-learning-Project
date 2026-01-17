@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import AdminHeader from "@/components/AdminHeader";
+
 import { useGetClassQuery, useGetClassSchedulesQuery, useCreateClassScheduleMutation, useUpdateClassScheduleMutation, useDeleteClassScheduleMutation } from "@/redux/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
@@ -86,8 +86,7 @@ export default function ClassDetailPage() {
   if (classLoading) {
     return (
       <>
-        <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-gray-600 dark:text-gray-400">Loading class details...</p>
@@ -101,8 +100,7 @@ export default function ClassDetailPage() {
   if (!classItem) {
     return (
       <>
-        <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-red-600 dark:text-red-400">Class not found</p>
@@ -115,9 +113,7 @@ export default function ClassDetailPage() {
 
   return (
     <>
-      <AdminHeader />
-
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+      <main className="flex-1 overflow-y-auto bg-gray-50">
         <div className="w-full px-8 py-6">
           {/* Class Header */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
@@ -129,12 +125,11 @@ export default function ClassDetailPage() {
                   <span>Program: {classItem.program_name}</span>
                   <span>Subprogram: {classItem.subprogram_name}</span>
                   <span>Teacher: {classItem.teacher_name || "Not assigned"}</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    classItem.type === 'morning' ? 'bg-yellow-100 text-yellow-800' :
-                    classItem.type === 'afternoon' ? 'bg-orange-100 text-orange-800' :
-                    classItem.type === 'night' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${classItem.type === 'morning' ? 'bg-yellow-100 text-yellow-800' :
+                      classItem.type === 'afternoon' ? 'bg-orange-100 text-orange-800' :
+                        classItem.type === 'night' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                    }`}>
                     {classItem.type}
                   </span>
                 </div>

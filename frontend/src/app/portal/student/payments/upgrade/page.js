@@ -32,7 +32,7 @@ export default function UpgradePaymentPage() {
     };
 
     return (
-        <div className={`min-h-screen transition-colors pt-12 pb-20 w-full px-6 sm:px-10 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+        <div className={`min-h-screen transition-colors pt-8 pb-20 w-full px-6 sm:px-10 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
             <div className="w-full">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
@@ -58,8 +58,10 @@ export default function UpgradePaymentPage() {
                     {studentPackages.map((pkg) => (
                         <div
                             key={pkg.id}
-                            className={`relative flex flex-col p-8 rounded-2xl border transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700 hover:border-blue-500/50' : 'bg-white border-gray-200 hover:border-gray-300 shadow-sm'
-                                }`}
+                            className={`relative flex flex-col p-8 rounded-2xl border transition-all duration-500 min-h-[580px] ${isDark
+                                ? 'bg-gray-800 border-gray-700 hover:border-blue-500/50'
+                                : 'bg-white border-gray-200 hover:border-blue-100 shadow-sm'
+                                } hover:-translate-y-4 hover:shadow-2xl hover:z-10`}
                         >
                             <div className="mb-6">
                                 <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>

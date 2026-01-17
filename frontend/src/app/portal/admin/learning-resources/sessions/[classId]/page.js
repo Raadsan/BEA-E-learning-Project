@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useGetClassSchedulesQuery, useGetClassQuery } from "@/redux/api/classApi";
 import { useCreateClassScheduleMutation, useUpdateClassScheduleMutation } from "@/redux/api/classApi";
@@ -266,8 +266,7 @@ export default function ClassSessionsPage() {
 
     return (
         <>
-            <AdminHeader />
-            <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors mt-20">
+            <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
                 <div className="w-full px-8 py-6">
                     <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

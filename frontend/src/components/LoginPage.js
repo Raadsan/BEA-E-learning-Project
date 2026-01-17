@@ -144,15 +144,7 @@ export default function LoginPage() {
       {/* Right Side - Login Form */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 bg-gray-50">
         {/* Go Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4 self-start"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          <span className="text-sm font-medium">Go Back</span>
-        </button>
+
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="md:hidden text-center mb-6 sm:mb-8">
@@ -292,17 +284,7 @@ export default function LoginPage() {
           </form>
 
           {/* Back to Home */}
-          <div className="text-center mt-6">
-            <Link
-              href="/"
-              className="text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to Home
-            </Link>
-          </div>
+
         </div>
       </div>
     </div>

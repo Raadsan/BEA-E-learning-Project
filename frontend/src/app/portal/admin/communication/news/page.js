@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import {
@@ -200,8 +200,7 @@ export default function NewsPage() {
 
     return (
         <>
-            <AdminHeader />
-            <main className="flex-1 overflow-y-auto bg-gray-50 pt-20 transition-colors">
+            <div className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
                 <div className="w-full px-8 py-6">
                     <DataTable
                         title="News & Events"
@@ -212,7 +211,7 @@ export default function NewsPage() {
                         isLoading={isLoading}
                     />
                 </div>
-            </main>
+            </div>
 
             {/* Add/Edit Modal */}
             {isModalOpen && (

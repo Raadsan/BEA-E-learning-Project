@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
 import { useGetIeltsToeflStudentsQuery } from "@/redux/api/ieltsToeflApi";
@@ -119,8 +119,7 @@ export default function ProgramStudentsPage() {
     if (isProgramsLoading) {
         return (
             <>
-                <AdminHeader />
-                <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 p-6">
+                <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
                     <div className="flex justify-center items-center h-64">Loading Programs...</div>
                 </main>
             </>
@@ -129,8 +128,7 @@ export default function ProgramStudentsPage() {
 
     return (
         <>
-            <AdminHeader />
-            <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
+            <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
                 <div className="w-full px-8 py-6">
 
                     <div className="mb-6">

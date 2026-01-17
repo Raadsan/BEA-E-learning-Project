@@ -6,14 +6,21 @@ import StudentHeader from "./StudentHeader";
 import { DarkModeProvider, useDarkMode } from "@/context/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 function StudentLayoutContent({ children }) {
   const { isDark } = useDarkMode();
   const router = useRouter();
+  const pathname = usePathname();
   const { data: user, isLoading } = useGetCurrentUserQuery();
   const [isApproved, setIsApproved] = useState(false);
   const [isPaid, setIsPaid] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    // Close sidebar on route change for mobile
+    setIsSidebarOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (user && user.approval_status) {
@@ -70,21 +77,26 @@ function StudentLayoutContent({ children }) {
     }
   }, [user, router]);
 
-  // We remove the full-page "isLoading" blocker to provide an "Admin-style" loading experience. 
-  // This ensures the sidebar and header stay visible while navigation happens.
-
   return (
     <div
-      className="flex h-screen transition-colors"
+      className="flex h-screen transition-colors overflow-hidden"
       style={isDark ? { background: 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)' } : { backgroundColor: '#f3f4f6' }}
     >
-      {/* Sidebar - Always visible, but items depend on approval and payment status */}
-      <StudentSidebar isApproved={isApproved} isPaid={isPaid} />
+      {/* Sidebar - Always visible on desktop, toggleable on mobile */}
+      <StudentSidebar isApproved={isApproved} isPaid={isPaid} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      {/* Sidebar Overlay for Mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[45] lg:hidden backdrop-blur-sm"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col ml-80`}>
-        <StudentHeader />
-        <main className="flex-1 overflow-y-auto">
+      <div className={`flex-1 flex flex-col lg:ml-80 ml-0 transition-all duration-300 min-w-0 h-full`}>
+        <StudentHeader onMenuClick={() => setIsSidebarOpen(true)} />
+        <main className="flex-1 overflow-y-auto w-full">
           <div className="w-full">
             {children}
           </div>

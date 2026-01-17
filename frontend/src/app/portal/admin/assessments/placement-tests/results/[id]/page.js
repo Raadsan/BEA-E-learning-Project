@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import AdminHeader from "@/components/AdminHeader";
+
 import { useGetAllPlacementResultsQuery, useGetPlacementTestByIdQuery, useGradePlacementTestMutation } from "@/redux/api/placementTestApi";
 import { useToast } from "@/components/Toast";
 
@@ -127,8 +127,7 @@ export default function AdminResultDetailsPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <AdminHeader title="Result Details" />
-            <main className="pt-28 pb-12 px-8 w-full">
+            <div className="py-6 px-8 w-full">
 
                 {/* Header Actions */}
                 <button
@@ -404,7 +403,8 @@ export default function AdminResultDetailsPage() {
                     ))}
                 </div>
 
-            </main>
+            </div>
+
         </div>
     );
 }

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useGetProficiencyTestByIdQuery } from "@/redux/api/proficiencyTestApi";
-import AdminHeader from "@/components/AdminHeader";
+
 import Loader from "@/components/Loader";
 
 export default function ProficiencyTestDetailsPage() {
@@ -71,8 +71,7 @@ export default function ProficiencyTestDetailsPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 text-gray-800">
-            <AdminHeader />
-            <main className="w-full px-4 md:px-12 pt-28 pb-12 animate-in fade-in duration-500">
+            <div className="w-full px-4 md:px-12 py-12 animate-in fade-in duration-500">
 
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
@@ -253,7 +252,7 @@ export default function ProficiencyTestDetailsPage() {
                     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
                 `}</style>
-            </main>
+            </div>
         </div>
     );
 }

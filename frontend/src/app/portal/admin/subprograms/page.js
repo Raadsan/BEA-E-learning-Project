@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useGetSubprogramsQuery, useCreateSubprogramMutation, useUpdateSubprogramMutation, useDeleteSubprogramMutation } from "@/redux/api/subprogramApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
@@ -169,13 +169,12 @@ export default function SubprogramsPage() {
     },
   ];
 
-  if (isLoading) return <><AdminHeader /><main className="flex-1 bg-gray-50 mt-20"><div className="w-full px-8 py-6 text-center py-12 text-gray-600">Loading subprograms...</div></main></>;
-  if (isError) return <><AdminHeader /><main className="flex-1 bg-gray-50 mt-20"><div className="w-full px-8 py-6 text-center py-12 text-red-600">Error: {error?.data?.error || "Unknown error"}</div></main></>;
+  if (isLoading) return <main className="flex-1 bg-gray-50"><div className="w-full px-8 py-6 text-center py-12 text-gray-600">Loading subprograms...</div></main>;
+  if (isError) return <main className="flex-1 bg-gray-50"><div className="w-full px-8 py-6 text-center py-12 text-red-600">Error: {error?.data?.error || "Unknown error"}</div></main>;
 
   return (
     <>
-      <AdminHeader />
-      <main className="flex-1 bg-gray-50 mt-20">
+      <main className="flex-1 bg-gray-50">
         <div className="w-full px-8 py-6">
           <DataTable title="Subprogram Management" columns={columns} data={subprograms} onAddClick={handleAddSubprogram} showAddButton={true} />
         </div>

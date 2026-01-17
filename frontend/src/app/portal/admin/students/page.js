@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation, useApproveStudentMutation, useRejectStudentMutation } from "@/redux/api/studentApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
@@ -282,12 +282,11 @@ export default function StudentsPage() {
         },
     ];
 
-    if (isLoading) return <><AdminHeader /><main className="flex-1 flex items-center justify-center p-20"><p>Loading students...</p></main></>;
+    if (isLoading) return <main className="flex-1 flex items-center justify-center p-20 p-6"><p>Loading students...</p></main>;
 
     return (
         <>
-            <AdminHeader />
-            <main className="flex-1 min-w-0 flex flex-col bg-gray-50 pt-25 px-4 sm:px-8 py-6 ">
+            <main className="flex-1 min-w-0 flex flex-col bg-gray-50 px-4 sm:px-8 py-6 ">
                 <DataTable title="Student Management" columns={columns} data={mergedStudents} onAddClick={handleAddStudent} showAddButton={true} />
             </main>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 
 export default function OutstandingFeesPage() {
@@ -100,11 +100,10 @@ export default function OutstandingFeesPage() {
       key: "status",
       label: "Status",
       render: (row) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          row.status === "Overdue" 
-            ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" 
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === "Overdue"
+            ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
             : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-        }`}>
+          }`}>
           {row.status}
         </span>
       ),
@@ -138,8 +137,7 @@ export default function OutstandingFeesPage() {
 
   return (
     <>
-      <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
+      <div className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
         <div className="w-full px-8 py-6">
           <DataTable
             title="Outstanding / Overdue Fees"
@@ -148,7 +146,7 @@ export default function OutstandingFeesPage() {
             showAddButton={false}
           />
         </div>
-      </main>
+      </div>
     </>
   );
 }

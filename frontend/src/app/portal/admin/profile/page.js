@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useUpdateAdminMutation } from "@/redux/api/adminApi";
@@ -153,19 +153,17 @@ export default function AdminProfilePage() {
     if (isLoading) {
         return (
             <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-                <AdminHeader />
-                <main className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center">
                     <Loader />
-                </main>
+                </div>
+
             </div>
         );
     }
 
     return (
         <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-            <AdminHeader />
-
-            <main className={`flex-1 overflow-y-auto pt-20 pb-20 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
+            <div className={`flex-1 overflow-y-auto pb-20 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
                 <div className="mx-auto px-6 sm:px-10 py-8">
 
                     {/* Main Profile Card */}
@@ -368,7 +366,7 @@ export default function AdminProfilePage() {
                         </div>
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

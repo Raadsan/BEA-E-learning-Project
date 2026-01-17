@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useGetAllPaymentsQuery } from "@/redux/api/paymentApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
@@ -133,8 +133,7 @@ export default function PaymentHistoryPage() {
     if (isLoading) {
         return (
             <>
-                <AdminHeader />
-                <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+                <main className="flex-1 overflow-y-auto bg-gray-50">
                     <div className="w-full px-6 py-6">
                         <div className="text-center py-12">
                             <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading payments...</p>
@@ -148,8 +147,7 @@ export default function PaymentHistoryPage() {
     if (isError) {
         return (
             <>
-                <AdminHeader />
-                <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+                <main className="flex-1 overflow-y-auto bg-gray-50">
                     <div className="w-full px-6 py-6">
                         <div className="text-center py-12">
                             <p className="text-red-600 dark:text-red-400">Error loading payments. Please try again.</p>
@@ -162,8 +160,7 @@ export default function PaymentHistoryPage() {
 
     return (
         <>
-            <AdminHeader />
-            <main className={`flex-1 overflow-y-auto mt-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+            <main className={`flex-1 overflow-y-auto ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
                 <div className="w-full px-6 py-6">
                     {/* Page Header */}
                     <div className="mb-6">

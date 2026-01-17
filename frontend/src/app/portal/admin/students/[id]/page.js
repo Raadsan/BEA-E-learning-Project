@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import AdminHeader from "@/components/AdminHeader";
+
 import { useDarkMode } from "@/context/ThemeContext";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import DataTable from "@/components/DataTable";
@@ -107,8 +107,8 @@ export default function StudentDetailPage() {
     {
       label: "Status", key: "status", render: (row) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === 'completed' ? 'bg-green-100 text-green-800' :
-            row.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-red-100 text-red-800'
+          row.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-red-100 text-red-800'
           }`}>
           {row.status || 'Pending'}
         </span>
@@ -119,8 +119,7 @@ export default function StudentDetailPage() {
   if (loading) {
     return (
       <>
-        <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className={`text-gray-600 dark:text-gray-400`}>Loading student details...</p>
@@ -134,8 +133,7 @@ export default function StudentDetailPage() {
   if (error || !student) {
     return (
       <>
-        <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className={`text-red-600 dark:text-red-400`}>{error || "Student not found"}</p>
@@ -154,8 +152,7 @@ export default function StudentDetailPage() {
 
   return (
     <>
-      <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 mt-20">
+      <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
         <div className="w-full px-8 py-6">
           {/* Back Button */}
           <button
@@ -178,8 +175,8 @@ export default function StudentDetailPage() {
                 </p>
               </div>
               <div className={`px-3 py-1 rounded-full text-sm font-medium ${student.approval_status === 'approved' ? 'bg-green-100 text-green-800' :
-                  student.approval_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
+                student.approval_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-red-100 text-red-800'
                 }`}>
                 {student.approval_status || 'Pending'}
               </div>
@@ -194,8 +191,8 @@ export default function StudentDetailPage() {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === tab
-                      ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
-                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                     }`}
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}

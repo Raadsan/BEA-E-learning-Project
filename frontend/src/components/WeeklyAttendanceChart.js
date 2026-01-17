@@ -63,7 +63,7 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                             setSelectedProgram(e.target.value);
                             setSelectedClass(''); // Reset class
                         }}
-                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                        className="w-full sm:w-auto px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
                         <option value="">All Programs</option>
                         {programs.length > 0 ? (
@@ -79,7 +79,7 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                     <select
                         value={timeFrame}
                         onChange={(e) => setTimeFrame(e.target.value)}
-                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                        className="w-full sm:w-auto px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
                         <option value="Today">Today</option>
                         <option value="Daily">Daily (Last 7 Days)</option>
@@ -89,7 +89,7 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                     <select
                         value={selectedClass}
                         onChange={(e) => setSelectedClass(e.target.value)}
-                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                        className="w-full sm:w-auto px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
                         <option value="">All Classes</option>
                         {classes
@@ -102,6 +102,7 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                         }
                     </select>
                 </div>
+
             </div>
 
             <div className="flex-1 min-h-[300px] w-full relative">

@@ -13,7 +13,7 @@ import {
 } from "@/redux/api/assignmentApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
-import TeacherHeader from "../../TeacherHeader";
+
 import DataTable from "@/components/DataTable";
 
 export default function CourseWorkPage() {
@@ -274,8 +274,7 @@ export default function CourseWorkPage() {
 
     return (
         <div className={`min-h-screen transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
-            <TeacherHeader />
-            <main className="flex-1 overflow-y-auto px-8 py-6 pt-24 bg-gray-100 dark:bg-gray-900 transition-colors">
+            <main className="flex-1 overflow-y-auto px-8 py-6 bg-gray-100 dark:bg-gray-900 transition-colors">
                 <div className="w-full max-w-full mx-auto">
                     {/* Header */}
                     <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">

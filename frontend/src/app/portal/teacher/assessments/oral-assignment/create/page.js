@@ -10,7 +10,7 @@ import {
     useGetAssignmentsQuery
 } from "@/redux/api/assignmentApi";
 import { useToast } from "@/components/Toast";
-import TeacherHeader from "@/app/portal/teacher/TeacherHeader";
+
 import { useDarkMode } from "@/context/ThemeContext";
 
 function OralAssignmentCreateContent() {
@@ -175,8 +175,7 @@ function OralAssignmentCreateContent() {
 
     return (
         <div className={`min-h-screen transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
-            <TeacherHeader />
-            <main className="pt-24 pb-20 px-6 sm:px-10 max-w-5xl mx-auto">
+            <div className="w-full pb-20 px-6 sm:px-10 max-w-5xl mx-auto">
                 <div className="flex items-center gap-4 mb-8">
                     <button
                         onClick={() => router.back()}
@@ -372,7 +371,7 @@ function OralAssignmentCreateContent() {
                         </button>
                     </div>
                 </form>
-            </main>
+            </div>
         </div>
     );
 }

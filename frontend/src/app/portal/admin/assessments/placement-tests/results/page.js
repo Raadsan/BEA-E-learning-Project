@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useGetAllPlacementResultsQuery } from "@/redux/api/placementTestApi";
 
@@ -104,8 +104,7 @@ export default function PlacementResultsPage() {
 
     return (
         <>
-            <AdminHeader title="Placement Results" />
-            <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors min-h-screen">
+            <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors min-h-screen">
                 <div className="w-full px-8 py-6">
                     <div className="mb-6">
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Placement Test Results</h1>

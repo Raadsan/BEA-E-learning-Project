@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import {
   useGetMaterialsQuery,
@@ -227,8 +227,7 @@ export default function CourseMaterialsPage() {
   if (materialsLoading) {
     return (
       <>
-        <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <div className="w-full px-6 py-6 flex justify-center">
             <Loader />
           </div>
@@ -239,9 +238,7 @@ export default function CourseMaterialsPage() {
 
   return (
     <>
-      <AdminHeader />
-
-      <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 mt-20">
+      <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
         <div className="w-full px-8 py-6">
           <DataTable
             title="Course Materials"
@@ -251,7 +248,7 @@ export default function CourseMaterialsPage() {
             showAddButton={true}
           />
         </div>
-      </main>
+      </div>
 
       {/* Add/Edit Material Modal */}
       {isModalOpen && (

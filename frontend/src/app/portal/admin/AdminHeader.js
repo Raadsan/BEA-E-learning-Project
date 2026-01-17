@@ -8,7 +8,7 @@ import Image from "next/image";
 
 import { useGetNotificationsQuery } from "@/redux/api/notificationApi";
 
-export default function AdminHeader() {
+export default function AdminHeader({ onMenuClick }) {
   const { isDark, toggleDarkMode } = useDarkMode();
   const router = useRouter();
   const { data: currentAdmin } = useGetCurrentUserQuery();
@@ -22,17 +22,27 @@ export default function AdminHeader() {
   };
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-8 py-4 transition-colors fixed top-0 left-80 right-0 z-40">
-      <div className="flex items-center justify-between">
-        {/* Search Bar - Left Side */}
-        <div className="relative flex-1 max-w-md">
+    <header className={`bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 lg:px-8 py-4 transition-all fixed top-0 lg:left-80 left-0 right-0 z-40`}>
+      <div className="flex items-center justify-between gap-4">
+        {/* Mobile Menu Button - Left Side */}
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-2 -ml-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        {/* Search Bar - Hidden on small screens */}
+        <div className="relative flex-1 max-w-md hidden sm:block">
           <input
             type="text"
             placeholder="Search Course..."
-            className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400"
+            className="pl-10 pr-4 py-1.5 w-full border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 text-sm"
           />
           <svg
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -97,24 +107,13 @@ export default function AdminHeader() {
                   {currentAdmin?.full_name?.split(' ').map((n) => n[0]).join('').toUpperCase().substring(0, 2) || currentAdmin?.username?.substring(0, 2).toUpperCase() || "AD"}
                 </div>
               )}
-              <div className="flex flex-col items-start">
-                <span className="font-semibold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">
-                  {currentAdmin?.full_name?.split(' ')[0] || currentAdmin?.username || "Admin"}
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {currentAdmin?.role === 'superadmin' ? 'Super Admin' : 'Administrator'}
-                </span>
-              </div>
-              <svg className={`w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
             </button>
 
             {/* Dropdown Menu */}
             {isOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 py-1 z-50 animate-in fade-in zoom-in duration-200">
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Signed in as</p>
+                  <p className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mb-0.5">Signed in as</p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                     {currentAdmin?.full_name || "Admin"}
                   </p>
@@ -138,8 +137,8 @@ export default function AdminHeader() {
                 <div className="border-t border-gray-100 dark:border-gray-700 py-1">
                   <button
                     onClick={() => {
-                      // Implement logout logic here
-                      console.log("Logout clicked");
+                      // Handled by sidebar logout or direct router.push if needed
+                      router.push("/auth/login");
                       setIsOpen(false);
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"

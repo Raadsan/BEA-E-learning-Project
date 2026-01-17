@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function TeacherHeader() {
+export default function TeacherHeader({ onMenuClick }) {
   const { isDark, toggleDarkMode } = useDarkMode();
   const router = useRouter();
   const { data: currentUser } = useGetCurrentUserQuery();
@@ -20,10 +20,20 @@ export default function TeacherHeader() {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-8 py-4 transition-colors fixed top-0 left-80 right-0 z-40">
-      <div className="flex items-center justify-between">
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 lg:px-8 py-4 transition-colors fixed top-0 left-0 lg:left-80 right-0 z-40">
+      <div className="flex items-center justify-between gap-4">
+        {/* Hamburger Menu - Mobile Only */}
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-2 -ml-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
         {/* Search Bar - Left Side */}
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 max-w-md hidden md:block">
           <input
             type="text"
             placeholder="Search Course..."
@@ -92,17 +102,6 @@ export default function TeacherHeader() {
                   {currentUser?.full_name?.split(' ').map((n) => n[0]).join('').toUpperCase().substring(0, 2) || "TC"}
                 </div>
               )}
-              <div className="flex flex-col items-start text-left">
-                <span className="font-semibold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">
-                  {currentUser?.full_name?.split(' ')[0] || currentUser?.username || "Teacher"}
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                  {currentUser?.role || "Teacher"}
-                </span>
-              </div>
-              <svg className={`w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
             </button>
 
             {/* Dropdown Menu */}

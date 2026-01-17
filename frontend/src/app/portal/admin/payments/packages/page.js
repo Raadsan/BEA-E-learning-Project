@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
@@ -145,8 +145,7 @@ export default function PaymentPackagesPage() {
 
     return (
         <>
-            <AdminHeader />
-            <main className={`flex-1 overflow-y-auto mt-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+            <main className={`flex-1 overflow-y-auto ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
                 <div className="w-full px-8 py-6">
                     {/* Header Section */}
                     <div className="flex justify-between items-center mb-6">
@@ -174,9 +173,9 @@ export default function PaymentPackagesPage() {
                         {packages.map((pkg) => (
                             <div
                                 key={pkg.id}
-                                className={`relative flex flex-col p-8 rounded-2xl border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 min-h-[480px] ${isDark
-                                    ? 'bg-gray-800 border-gray-700 hover:border-blue-500'
-                                    : 'bg-white border-gray-100 hover:border-[#010080]'
+                                className={`relative flex flex-col p-8 rounded-2xl border-2 transition-all duration-500 hover:shadow-2xl hover:-translate-y-4 hover:z-10 min-h-[580px] ${isDark
+                                    ? 'bg-gray-800 border-gray-700 hover:border-gray-600'
+                                    : 'bg-white border-gray-100 hover:border-gray-300'
                                     }`}
                             >
                                 {pkg.status === 'inactive' && (

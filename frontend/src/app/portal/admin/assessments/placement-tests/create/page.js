@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCreatePlacementTestMutation } from "@/redux/api/placementTestApi";
-import AdminHeader from "@/components/AdminHeader";
+
 import { useToast } from "@/components/Toast";
 import { v4 as uuidv4 } from "uuid";
 import { useDarkMode } from "@/context/ThemeContext";
@@ -182,11 +182,10 @@ export default function CreatePlacementTestPage() {
 
   return (
     <div className="flex-1 min-h-screen bg-gray-100 flex flex-col text-gray-800">
-      <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors mt-6">
+      <div className="flex-1 overflow-y-auto bg-gray-50 transition-colors mt-6">
         <div className="w-full px-8 py-6">
           {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-20">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
               <button
                 onClick={() => router.back()}
@@ -693,7 +692,8 @@ export default function CreatePlacementTestPage() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
+
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar { width: 3px; }

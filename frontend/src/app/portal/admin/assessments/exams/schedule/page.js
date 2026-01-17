@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 
 export default function ExamSchedulePage() {
@@ -68,11 +68,10 @@ export default function ExamSchedulePage() {
       key: "status",
       label: "Status",
       render: (row) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          row.status === "Scheduled" 
-            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" 
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === "Scheduled"
+            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
             : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-        }`}>
+          }`}>
           {row.status}
         </span>
       ),
@@ -106,8 +105,7 @@ export default function ExamSchedulePage() {
 
   return (
     <>
-      <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
+      <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
         <div className="w-full px-8 py-6">
           <DataTable
             title="Test / Exam Schedule"

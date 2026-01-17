@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useGetStudentsQuery, useUpdateStudentMutation } from "@/redux/api/studentApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
@@ -482,8 +482,7 @@ export default function GeneralStudentsPage() {
   if (isLoading) {
     return (
       <>
-        <AdminHeader />
-        <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 pt-20 transition-colors">
+        <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 transition-colors">
           <div className="flex-1 w-full max-w-full px-4 sm:px-8 py-6 flex items-center justify-center">
             <div className="text-center">
               <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading students...</p>
@@ -497,8 +496,7 @@ export default function GeneralStudentsPage() {
   if (isError) {
     return (
       <>
-        <AdminHeader />
-        <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 pt-20 transition-colors">
+        <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 transition-colors">
           <div className="flex-1 w-full max-w-full px-4 sm:px-8 py-6 flex items-center justify-center">
             <div className="text-center">
               <p className="text-red-600 dark:text-red-400">Error loading students: {error?.data?.error || "Unknown error"}</p>
@@ -514,8 +512,7 @@ export default function GeneralStudentsPage() {
 
   return (
     <>
-      <AdminHeader />
-      <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 pt-20 transition-colors">
+      <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 transition-colors">
         <div className="w-full max-w-full px-4 sm:px-8 py-6 min-w-0 flex flex-col">
           <DataTable
             title="General Program Students"

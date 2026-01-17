@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
@@ -433,8 +433,7 @@ export default function TimetablePage() {
 
     return (
         <>
-            <AdminHeader />
-            <main className={`flex-1 overflow-y-auto mt-20 transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+            <main className={`flex-1 overflow-y-auto transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
                 <div className="w-full px-8 py-6">
                     {/* Header */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">

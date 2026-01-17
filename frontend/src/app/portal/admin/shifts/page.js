@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import {
     useGetShiftsQuery,
@@ -148,13 +148,12 @@ export default function ShiftsPage() {
         },
     ];
 
-    if (isLoading) return <><AdminHeader /><main className="flex-1 mt-20 pt-12 text-center text-gray-600">Loading shifts...</main></>;
-    if (isError) return <><AdminHeader /><main className="flex-1 mt-20 pt-12 text-center text-red-600">Error: {error?.data?.error || "Unknown error"}</main></>;
+    if (isLoading) return <main className="flex-1 pt-12 text-center text-gray-600">Loading shifts...</main>;
+    if (isError) return <main className="flex-1 pt-12 text-center text-red-600">Error: {error?.data?.error || "Unknown error"}</main>;
 
     return (
         <>
-            <AdminHeader />
-            <main className={`flex-1 mt-20 min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+            <main className={`flex-1 min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
                 <div className="w-full px-8 py-6">
                     <DataTable
                         title="Shift Management"

@@ -25,7 +25,7 @@ const coursePaths = [
   '/portal/student/my-certification'
 ];
 
-export default function StudentSidebar({ isApproved, isPaid = true }) {
+export default function StudentSidebar({ isApproved, isPaid = true, isOpen, onClose }) {
   const pathname = usePathname();
   const router = useRouter();
   const [logout] = useLogoutMutation();
@@ -107,18 +107,30 @@ export default function StudentSidebar({ isApproved, isPaid = true }) {
   };
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-80 bg-[#010080] border-r border-blue-900 flex flex-col shadow-sm overflow-y-auto z-50">
+    <div className={`fixed left-0 top-0 h-screen w-80 bg-[#010080] border-r border-blue-900 flex flex-col shadow-sm overflow-y-auto transition-transform duration-300 lg:translate-x-0 z-50 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       {/* Logo Section */}
-      <div className="border-b border-blue-900 w-full h-24 relative bg-[#010080] flex items-center justify-center px-4 py-2 flex-shrink-0">
-        <Image
-          src="/images/headerlogo.png"
-          alt="BEA THE BLUEPRINT ENGLISH ACADEMY"
-          width={1024}
-          height={384}
-          className="h-full w-full object-contain max-w-full brightness-0 invert"
-          priority
-          style={{ width: '100%', height: 'auto' }}
-        />
+      <div className="border-b border-blue-900 w-full h-32 lg:h-24 relative bg-[#010080] flex items-center justify-between px-4 py-2 flex-shrink-0">
+        <div className="h-full flex items-center justify-start relative flex-grow overflow-hidden">
+          <Image
+            src="/images/headerlogo.png"
+            alt="BEA THE BLUEPRINT ENGLISH ACADEMY"
+            width={1024}
+            height={384}
+            className="h-full w-auto object-contain object-left brightness-0 invert"
+            priority
+            style={{ width: '100%', height: 'auto' }}
+          />
+        </div>
+
+        {/* Mobile Close Button */}
+        <button
+          onClick={onClose}
+          className="lg:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors flex-shrink-0 ml-4"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* Navigation Menu */}
@@ -342,9 +354,6 @@ export default function StudentSidebar({ isApproved, isPaid = true }) {
                 {/* Academic Content Block - Only if paid */}
                 {isPaid && (
                   <>
-                    <div className="px-4 py-2 mt-4 mb-2">
-                      <p className="text-[10px] uppercase font-black tracking-[0.2em] text-gray-500 opacity-60">Learning Progress</p>
-                    </div>
 
                     {/* My Courses */}
                     <li>
@@ -405,24 +414,8 @@ export default function StudentSidebar({ isApproved, isPaid = true }) {
                   </>
                 )}
 
-                {/* Always visible links, but title is conditional */}
-                {isPaid && (
-                  <div className="px-4 py-2 mt-4 mb-2">
-                    <p className="text-[10px] uppercase font-black tracking-[0.2em] text-gray-500 opacity-60">Help & Support</p>
-                  </div>
-                )}
 
                 <div className={!isPaid ? "mt-4" : ""}>
-                  {/* My Certification */}
-                  <li>
-                    <Link href="/portal/student/my-certification" className={getMenuItemClasses("/portal/student/my-certification")} style={getActiveStyle("/portal/student/my-certification")}>
-                      <svg className={getIconClasses("/portal/student/my-certification")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                      </svg>
-                      <span className={getTextClasses("/portal/student/my-certification")}>My Certification</span>
-                    </Link>
-                  </li>
-
                   {/* Student Support */}
                   <li>
                     <Link href="/portal/student/student-support" className={getMenuItemClasses("/portal/student/student-support")} style={getActiveStyle("/portal/student/student-support")}>
@@ -461,6 +454,6 @@ export default function StudentSidebar({ isApproved, isPaid = true }) {
           <span>Logout</span>
         </button>
       </div>
-    </div>
+    </div >
   );
 }

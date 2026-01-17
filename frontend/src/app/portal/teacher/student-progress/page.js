@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import TeacherHeader from "../TeacherHeader";
+
 import { useGetStudentProgressQuery } from "@/redux/api/studentApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable";
@@ -88,12 +88,9 @@ export default function StudentProgressPage() {
     if (isLoading) {
         return (
             <>
-                <TeacherHeader />
-                <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen pt-24">
-                    <div className="flex justify-center items-center h-96">
-                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-                    </div>
-                </main>
+                <div className="flex justify-center items-center h-96">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+                </div>
             </>
         );
     }
@@ -101,9 +98,8 @@ export default function StudentProgressPage() {
     if (error) {
         return (
             <>
-                <TeacherHeader />
-                <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
-                    <div className="w-full px-8 py-6 pt-24">
+                <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
+                    <div className="w-full px-8 py-6">
                         <div className={`rounded-xl shadow-md p-8 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                             <h2 className="text-xl font-semibold text-red-600 mb-4">Error Loading Student Progress</h2>
                             <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>
@@ -111,7 +107,7 @@ export default function StudentProgressPage() {
                             </p>
                         </div>
                     </div>
-                </main>
+                </div>
             </>
         );
     }
@@ -120,9 +116,8 @@ export default function StudentProgressPage() {
     if (selectedStudent) {
         return (
             <>
-                <TeacherHeader />
-                <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
-                    <div className="w-full px-8 py-6 pt-24">
+                <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
+                    <div className="w-full px-8 py-6">
                         {/* Back Button */}
                         <button
                             onClick={() => setSelectedStudent(null)}
@@ -201,7 +196,7 @@ export default function StudentProgressPage() {
                             </div>
                         </div>
                     </div>
-                </main>
+                </div>
             </>
         );
     }
@@ -209,9 +204,8 @@ export default function StudentProgressPage() {
     // List View
     return (
         <>
-            <TeacherHeader />
-            <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
-                <div className="w-full px-8 py-6 pt-24">
+            <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
+                <div className="w-full px-8 py-6">
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Student Progress</h1>
                         <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -250,7 +244,7 @@ export default function StudentProgressPage() {
                         getRowId={(student) => student.id}
                     />
                 </div>
-            </main>
+            </div>
         </>
     );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import {
@@ -122,8 +122,7 @@ export default function AnnouncementsPage() {
 
   return (
     <>
-      <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 pt-20"><div className="w-full px-8 py-6"><DataTable title="Announcements" columns={columns} data={announcements || []} showAddButton={true} onAddClick={handleAddClick} isLoading={isLoading} /></div></main>
+      <div className="flex-1 overflow-y-auto bg-gray-50"><div className="w-full px-8 py-6"><DataTable title="Announcements" columns={columns} data={announcements || []} showAddButton={true} onAddClick={handleAddClick} isLoading={isLoading} /></div></div>
       <AnnouncementForm isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} editingAnnouncement={editingAnnouncement} formData={formData} setFormData={setFormData} handleSubmit={handleSubmit} isDark={isDark} isCreating={isCreating} isUpdating={isUpdating} classes={classes} students={students} />
       <AnnouncementViewModal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} announcement={selectedAnnouncement} isDark={isDark} />
       <AnnouncementConfirmationModal isOpen={confirmationModal.isOpen} onClose={() => setConfirmationModal({ ...confirmationModal, isOpen: false })} title={confirmationModal.title} message={confirmationModal.message} onConfirm={confirmationModal.onConfirm} isLoading={confirmationModal.isLoading} isDark={isDark} />

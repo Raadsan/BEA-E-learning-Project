@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import {
@@ -179,8 +179,7 @@ export default function AdminFreezingRequestsPage() {
 
     return (
         <>
-            <AdminHeader />
-            <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 pt-20 transition-colors dark:bg-gray-900">
+            <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 transition-colors dark:bg-gray-900">
                 <div className="w-full max-w-full px-4 sm:px-8 py-6 min-w-0 flex flex-col">
                     <DataTable
                         title="Course Freezing Requests"

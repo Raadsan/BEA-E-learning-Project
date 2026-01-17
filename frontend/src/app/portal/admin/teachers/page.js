@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useGetTeachersQuery, useCreateTeacherMutation, useUpdateTeacherMutation, useDeleteTeacherMutation } from "@/redux/api/teacherApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
@@ -170,13 +170,12 @@ export default function TeachersPage() {
     },
   ];
 
-  if (isLoading) return <><AdminHeader /><main className="flex-1 mt-20 pt-12 text-center text-gray-600">Loading teachers...</main></>;
-  if (isError) return <><AdminHeader /><main className="flex-1 mt-20 pt-12 text-center text-red-600">Error: {error?.data?.error || "Unknown error"}</main></>;
+  if (isLoading) return <main className="flex-1 p-6 text-center text-gray-600">Loading teachers...</main>;
+  if (isError) return <main className="flex-1 p-6 text-center text-red-600">Error: {error?.data?.error || "Unknown error"}</main>;
 
   return (
     <>
-      <AdminHeader />
-      <main className="flex-1 mt-20 bg-gray-50"><div className="w-full px-8 py-6"><DataTable title="Teachers" columns={columns} data={teachers} onAddClick={handleAddTeacher} showAddButton={true} /></div></main>
+      <main className="flex-1 bg-gray-50"><div className="w-full px-8 py-6"><DataTable title="Teachers" columns={columns} data={teachers} onAddClick={handleAddTeacher} showAddButton={true} /></div></main>
       <TeacherForm isOpen={isModalOpen} onClose={handleCloseModal} editingTeacher={editingTeacher} formData={formData} setFormData={setFormData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} isDark={isDark} isCreating={isCreating} isUpdating={isUpdating} cities={cities} />
       <TeacherViewModal isOpen={isViewModalOpen} onClose={handleCloseViewModal} teacher={viewingTeacher} isDark={isDark} getAssignedClasses={getAssignedClasses} />
       <TeacherConfirmationModal isOpen={confirmationModal.isOpen} onClose={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))} title={confirmationModal.title} message={confirmationModal.message} onConfirm={confirmationModal.onConfirm} isLoading={confirmationModal.isLoading} isDark={isDark} />

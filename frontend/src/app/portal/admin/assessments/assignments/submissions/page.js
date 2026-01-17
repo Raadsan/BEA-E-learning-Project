@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 
 export default function SubmissionStatusPage() {
@@ -118,8 +118,7 @@ export default function SubmissionStatusPage() {
 
   return (
     <>
-      <AdminHeader />
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20 transition-colors">
+      <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
         <div className="w-full px-8 py-6">
           <DataTable
             title="Assignment Submissions"

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useGetClassesQuery, useCreateClassMutation, useUpdateClassMutation, useDeleteClassMutation } from "@/redux/api/classApi";
 import { useGetTeachersQuery } from "@/redux/api/teacherApi";
@@ -172,13 +172,12 @@ export default function ClassesPage() {
     },
   ], [isDeleting, handleView, handleAssign, handleEdit, handleDelete]);
 
-  if (isLoading) return <><AdminHeader /><main className="flex-1 mt-20 pt-12 text-center text-gray-600">Loading classes...</main></>;
-  if (isError) return <><AdminHeader /><main className="flex-1 mt-20 pt-12 text-center text-red-600">Error: {error?.data?.error || "Unknown error"}</main></>;
+  if (isLoading) return <main className="flex-1 pt-12 text-center text-gray-600">Loading classes...</main>;
+  if (isError) return <main className="flex-1 pt-12 text-center text-red-600">Error: {error?.data?.error || "Unknown error"}</main>;
 
   return (
     <>
-      <AdminHeader />
-      <main className="flex-1 mt-20 bg-gray-50"><div className="w-full px-8 py-6"><DataTable title="Class Management" columns={columns} data={classes} onAddClick={handleAddClass} showAddButton={true} /></div></main>
+      <main className="flex-1 overflow-y-auto bg-gray-50"><div className="w-full px-8 py-6"><DataTable title="Class Management" columns={columns} data={classes} onAddClick={handleAddClass} showAddButton={true} /></div></main>
       <ClassForm
         isOpen={isModalOpen}
         onClose={handleCloseModal}

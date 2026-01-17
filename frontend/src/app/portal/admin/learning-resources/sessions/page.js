@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 
@@ -67,8 +67,7 @@ export default function OnlineSessionsPage() {
     if (isLoading) {
         return (
             <>
-                <AdminHeader />
-                <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+                <main className="flex-1 overflow-y-auto bg-gray-50">
                     <div className="w-full px-8 py-6">
                         <div className="text-center py-12">
                             <p className="text-gray-600">Loading classes...</p>
@@ -82,8 +81,7 @@ export default function OnlineSessionsPage() {
     if (isError) {
         return (
             <>
-                <AdminHeader />
-                <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+                <main className="flex-1 overflow-y-auto bg-gray-50">
                     <div className="w-full px-8 py-6">
                         <div className="text-center py-12">
                             <p className="text-red-600">Error loading classes: {error?.data?.error || "Unknown error"}</p>
@@ -96,8 +94,7 @@ export default function OnlineSessionsPage() {
 
     return (
         <>
-            <AdminHeader />
-            <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors mt-20">
+            <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
                 <div className="w-full px-8 py-6">
                     <DataTable
                         title="Online Session Links - Select Class"

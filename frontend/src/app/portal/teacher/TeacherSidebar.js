@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useLogoutMutation } from "@/redux/api/authApi";
 
-export default function TeacherSidebar() {
+export default function TeacherSidebar({ isOpen, onClose }) {
   const pathname = usePathname();
   const router = useRouter();
   const { isDark } = useDarkMode();
@@ -100,18 +100,30 @@ export default function TeacherSidebar() {
   };
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-80 bg-[#010080] border-r border-blue-900 flex flex-col shadow-sm overflow-y-auto z-50">
-      {/* Logo Section - Keeping white background for logo visibility or adjusting? keeping white for now but strictly logo box */}
-      <div className="border-b border-blue-900 w-full h-24 relative bg-[#010080] flex items-center justify-center px-4 py-2 flex-shrink-0">
-        <Image
-          src="/images/headerlogo.png"
-          alt="BEA THE BLUEPRINT ENGLISH ACADEMY"
-          width={1024}
-          height={384}
-          className="h-full w-full object-contain max-w-full brightness-0 invert" // Invert logo to white if possible, or use different logo
-          priority
-          style={{ width: '100%', height: 'auto' }}
-        />
+    <div className={`fixed left-0 top-0 h-screen w-80 bg-[#010080] border-r border-blue-900 flex flex-col shadow-sm overflow-y-auto z-50 transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      {/* Logo Section */}
+      <div className="border-b border-blue-900 w-full h-32 lg:h-24 relative bg-[#010080] flex items-center justify-between px-4 py-2 flex-shrink-0">
+        <div className="h-full flex items-center justify-start relative flex-grow overflow-hidden">
+          <Image
+            src="/images/headerlogo.png"
+            alt="BEA THE BLUEPRINT ENGLISH ACADEMY"
+            width={1024}
+            height={384}
+            className="h-full w-auto object-contain object-left brightness-0 invert"
+            priority
+            style={{width: '100%', height: 'auto' }}
+          />
+        </div>
+
+        {/* Mobile Close Button */}
+        <button
+          onClick={onClose}
+          className="lg:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors flex-shrink-0 ml-4"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* Navigation Menu */}

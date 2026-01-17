@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetNotificationsQuery, useMarkAsReadMutation } from "@/redux/api/notificationApi";
 import Image from "next/image";
-import AdminHeader from "@/components/AdminHeader";
+
 import NotificationDetailsModal from "./components/NotificationDetailsModal";
 
 export default function NotificationsPage() {
@@ -44,8 +44,7 @@ export default function NotificationsPage() {
 
     return (
         <div className={`min-h-screen flex flex-col transition-colors ${bg}`}>
-            <AdminHeader />
-            <main className="flex-1 overflow-y-auto pt-20">
+            <div className="flex-1 overflow-y-auto">
                 <div className="w-full px-8 py-6">
                     <div className="flex items-center justify-between mb-8">
                         <h1 className={`text-3xl font-bold ${textMain}`}>Notifications</h1>
@@ -86,7 +85,8 @@ export default function NotificationsPage() {
                         </div>
                     )}
                 </div>
-            </main>
+            </div>
+
             <NotificationDetailsModal isOpen={!!selectedNotification} onClose={closeModal} notification={selectedNotification} isDark={isDark} formatDate={formatDate} />
         </div>
     );

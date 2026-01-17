@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function ProficiencyTestResultsPage() {
@@ -80,8 +80,7 @@ export default function ProficiencyTestResultsPage() {
 
     return (
         <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-            <AdminHeader />
-            <main className="flex-1 overflow-y-auto mt-6">
+            <div className="flex-1 overflow-y-auto mt-6">
                 <div className="w-full px-8 py-6">
                     {/* Header */}
                     <div className="mb-8 pt-20">
@@ -256,7 +255,7 @@ export default function ProficiencyTestResultsPage() {
                         )}
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

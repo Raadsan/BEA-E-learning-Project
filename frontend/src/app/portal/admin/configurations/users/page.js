@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 
 export default function UsersPage() {
@@ -81,7 +81,7 @@ export default function UsersPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const newUser = {
       id: users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1,
       fullname: formData.fullname,
@@ -92,7 +92,7 @@ export default function UsersPage() {
     };
     setUsers([...users, newUser]);
     handleCloseModal();
-    
+
     return false;
   };
 
@@ -113,13 +113,12 @@ export default function UsersPage() {
       key: "role",
       label: "Role",
       render: (row) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          row.role === "Admin" 
-            ? "bg-purple-100 text-purple-800" 
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.role === "Admin"
+            ? "bg-purple-100 text-purple-800"
             : row.role === "Teacher"
-            ? "bg-blue-100 text-blue-800"
-            : "bg-gray-100 text-gray-800"
-        }`}>
+              ? "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
+          }`}>
           {row.role}
         </span>
       ),
@@ -135,11 +134,10 @@ export default function UsersPage() {
       key: "status",
       label: "Status",
       render: (row) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          row.status === "Active" 
-            ? "bg-green-100 text-green-800" 
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === "Active"
+            ? "bg-green-100 text-green-800"
             : "bg-gray-100 text-gray-800"
-        }`}>
+          }`}>
           {row.status}
         </span>
       ),
@@ -163,9 +161,7 @@ export default function UsersPage() {
 
   return (
     <>
-      <AdminHeader />
-      
-      <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
+      <div className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
         <div className="w-full px-8 py-6">
           <DataTable
             title="Users Management"
@@ -175,23 +171,23 @@ export default function UsersPage() {
             showAddButton={true}
           />
         </div>
-      </main>
+      </div>
 
       {/* Add User Modal */}
       {isModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
           style={{ pointerEvents: 'none' }}
         >
           {/* Light backdrop overlay */}
-          <div 
+          <div
             className="absolute inset-0 bg-black bg-opacity-20"
             onClick={handleBackdropClick}
             style={{ pointerEvents: 'auto' }}
           />
-          
+
           {/* Modal content */}
-          <div 
+          <div
             className="relative bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4 transition-colors"
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: 'auto' }}

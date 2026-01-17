@@ -9,7 +9,7 @@ import { useGetAnnouncementsQuery } from "@/redux/api/announcementApi";
 import { useGetNotificationsQuery } from "@/redux/api/notificationApi";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 
-export default function StudentHeader() {
+export default function StudentHeader({ onMenuClick }) {
   const { isDark, toggleDarkMode } = useDarkMode();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -43,16 +43,26 @@ export default function StudentHeader() {
       }`}>
       {/* Expiry Banner Removed as per request (Main alert is now on Dashboard) */}
       <div className="w-full mx-auto px-4 lg:px-6 xl:px-8 py-4">
-        <div className="flex items-center justify-between">
-          {/* Search Bar - Left Side */}
-          <div className="relative flex-1 max-w-md">
+        <div className="flex items-center justify-between gap-4">
+          {/* Mobile Menu Button - Left Side */}
+          <button
+            onClick={onMenuClick}
+            className="lg:hidden p-2 -ml-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          {/* Search Bar - Hidden on small screens to save space, or use a smaller version */}
+          <div className="relative flex-1 max-w-sm hidden sm:block">
             <input
               type="text"
               placeholder="Search Course..."
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400"
+              className="pl-10 pr-4 py-1.5 w-full border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 text-sm"
             />
             <svg
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -117,21 +127,6 @@ export default function StudentHeader() {
                   </div>
                 )}
 
-                {isPaid && (
-                  <>
-                    <div className="flex flex-col items-start translate-y-0.5">
-                      <span className="font-semibold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">
-                        {currentStudent?.full_name?.split(' ')[0] || "Student"}
-                      </span>
-                      <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500 -mt-0.5">
-                        Student Account
-                      </span>
-                    </div>
-                    <svg className={`w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </>
-                )}
               </button>
 
               {/* Dropdown Menu */}

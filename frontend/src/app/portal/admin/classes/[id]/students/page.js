@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import AdminHeader from "@/components/AdminHeader";
+
 import Modal from "@/components/Modal";
 import DataTable from "@/components/DataTable";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
@@ -187,8 +187,7 @@ export default function ClassStudentsPage() {
   if (classesLoading || studentsLoading) {
     return (
       <>
-        <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-gray-600">Loading class students...</p>
@@ -202,8 +201,7 @@ export default function ClassStudentsPage() {
   if (!currentClass) {
     return (
       <>
-        <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="w-full px-8 py-6">
             <div className="text-center py-12">
               <p className="text-red-600">Class not found</p>
@@ -222,9 +220,7 @@ export default function ClassStudentsPage() {
 
   return (
     <>
-      <AdminHeader />
-
-      <main className="flex-1 overflow-y-auto bg-gray-50 mt-20">
+      <main className="flex-1 overflow-y-auto bg-gray-50">
         <div className="w-full px-8 py-6">
           {/* Class Info Header */}
           <div className="mb-6">

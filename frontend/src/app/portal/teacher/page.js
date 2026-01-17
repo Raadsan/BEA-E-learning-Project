@@ -1,6 +1,6 @@
 "use client";
 
-import TeacherHeader from "./TeacherHeader";
+
 import UpcomingEventsList from "@/components/UpcomingEventsList";
 import React from 'react';
 import { useGetTeacherDashboardStatsQuery } from "@/redux/api/teacherApi";
@@ -43,10 +43,8 @@ export default function TeacherDashboard() {
 
   return (
     <>
-      <TeacherHeader />
-
       {/* Dashboard Content */}
-      <main className="flex-1 overflow-y-auto px-8 py-6 pt-24 bg-gray-50 dark:bg-gray-900 transition-colors">
+      <main className="flex-1 overflow-y-auto p-4 lg:p-8 py-6 bg-gray-50 dark:bg-gray-900 transition-colors">
         <div className="w-full">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Dashboard Overview</h1>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import TeacherHeader from "../TeacherHeader";
+
 import { useGetTeacherQuery, useUpdateTeacherMutation } from "@/redux/api/teacherApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
@@ -101,10 +101,9 @@ export default function TeacherProfilePage() {
     if (isLoading) {
         return (
             <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-                <TeacherHeader />
-                <main className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-                </main>
+                </div>
             </div>
         );
     }
@@ -116,9 +115,7 @@ export default function TeacherProfilePage() {
 
     return (
         <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-            <TeacherHeader />
-
-            <main className={`flex-1 overflow-y-auto pt-20 pb-20 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
+            <div className={`flex-1 overflow-y-auto pb-20 ${isDark ? "bg-[#0f172a]" : "bg-gray-50"}`}>
                 <div className="mx-auto px-6 sm:px-10 py-8">
 
                     {/* Main Profile Card */}
@@ -295,7 +292,7 @@ export default function TeacherProfilePage() {
                         </div>
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

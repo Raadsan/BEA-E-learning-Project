@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import TeacherHeader from "../TeacherHeader";
+
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetTeacherAnnouncementsQuery } from "@/redux/api/announcementApi";
 
@@ -37,8 +37,7 @@ export default function TeacherAnnouncementsPage() {
 
     return (
         <div className={`min-h-screen ${isDark ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} transition-colors duration-200`}>
-            <TeacherHeader />
-            <main className="w-full px-8 py-6 pt-24">
+            <div className="w-full px-8 py-6 pt-24">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold">My Announcements</h1>
                 </div>
@@ -106,7 +105,7 @@ export default function TeacherAnnouncementsPage() {
                         })}
                     </div>
                 )}
-            </main>
-        </div>
+            </div>
+        </div >
     );
 }

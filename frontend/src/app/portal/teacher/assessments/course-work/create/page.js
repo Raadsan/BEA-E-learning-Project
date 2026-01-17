@@ -9,7 +9,7 @@ import {
 } from "@/redux/api/assignmentApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
-import TeacherHeader from "../../../TeacherHeader";
+
 import { useToast } from "@/components/Toast";
 import { useDarkMode } from "@/context/ThemeContext";
 
@@ -157,8 +157,7 @@ export default function CreateCourseWorkPage() {
 
     return (
         <div className={`min-h-screen transition-colors ${isDark ? "bg-[#03002e] text-white" : "bg-gray-100/50 text-gray-900"}`}>
-            <TeacherHeader />
-            <div className="p-4 lg:p-8 pt-24">
+            <div className="p-4 lg:p-8">
                 <div className="max-w-5xl mx-auto">
                     {/* Header Section */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">

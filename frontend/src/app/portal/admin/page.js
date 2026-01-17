@@ -1,6 +1,6 @@
 "use client";
 
-import AdminHeader from "@/components/AdminHeader";
+
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
 import { useGetTeachersQuery } from "@/redux/api/teacherApi";
@@ -110,10 +110,8 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <AdminHeader />
-
       {/* Dashboard Content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50 pt-20">
+      <div className="flex-1 overflow-y-auto bg-gray-50 pt-2">
         <div className="w-full px-8 py-6">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white  mb-2">Dashboard Overview</h1>
 
@@ -280,7 +278,7 @@ export default function AdminDashboard() {
             <StarStudentsList programs={programsData} classes={classesData} />
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }

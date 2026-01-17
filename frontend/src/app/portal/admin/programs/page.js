@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useGetProgramsQuery, useCreateProgramMutation, useUpdateProgramMutation, useDeleteProgramMutation } from "@/redux/api/programApi";
 import { studentApi } from "@/redux/api/studentApi";
@@ -168,13 +168,12 @@ export default function ProgramsPage() {
     },
   ];
 
-  if (isLoading) return <><AdminHeader /><main className="flex-1 pt-20 bg-gray-50 text-center py-12">Loading programs...</main></>;
-  if (isError) return <><AdminHeader /><main className="flex-1 pt-20 bg-gray-50 text-center py-12 text-red-600">Error: {error?.data?.message || "Unknown error"}</main></>;
+  if (isLoading) return <main className="flex-1 bg-gray-50 text-center py-12">Loading programs...</main>;
+  if (isError) return <main className="flex-1 bg-gray-50 text-center py-12 text-red-600">Error: {error?.data?.message || "Unknown error"}</main>;
 
   return (
     <>
-      <AdminHeader />
-      <main className="flex-1 bg-gray-50 pt-20"><div className="w-full px-8 py-6"><DataTable title="Program Management" columns={columns} data={programs} onAddClick={handleAddProgram} showAddButton={true} /></div></main>
+      <main className="flex-1 bg-gray-50"><div className="w-full px-8 py-6"><DataTable title="Program Management" columns={columns} data={programs} onAddClick={handleAddProgram} showAddButton={true} /></div></main>
       <ProgramForm isOpen={isModalOpen} onClose={handleCloseModal} editingProgram={editingProgram} formData={formData} handleInputChange={handleInputChange} handleFileChange={handleFileChange} handleSubmit={handleSubmit} isDark={isDark} isCreating={isCreating} isUpdating={isUpdating} imagePreview={imagePreview} videoPreview={videoPreview} />
       {isViewModalOpen && selectedProgram && (
         <ViewProgramModal program={selectedProgram} onClose={handleCloseViewModal} isDark={isDark} />

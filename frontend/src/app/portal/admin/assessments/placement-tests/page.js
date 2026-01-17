@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useGetPlacementTestsQuery, useDeletePlacementTestMutation } from "@/redux/api/placementTestApi";
-import AdminHeader from "@/components/AdminHeader";
+
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
@@ -94,11 +94,10 @@ export default function PlacementTestsPage() {
 
     return (
         <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-            <AdminHeader />
-            <main className="flex-1 overflow-y-auto mt-6">
+            <div className="flex-1 overflow-y-auto mt-6">
                 <div className="w-full px-8 py-6">
                     {/* Header Section */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-20">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                         <div>
                             <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Placement Tests</h1>
                             <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -209,7 +208,8 @@ export default function PlacementTestsPage() {
                         </div>
                     )}
                 </div>
-            </main>
+            </div>
+
 
             {/* Delete Confirmation Modal */}
             <Modal

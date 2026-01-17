@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 
 export default function ResourcesPage() {
@@ -89,7 +89,7 @@ export default function ResourcesPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const newResource = {
       id: resources.length > 0 ? Math.max(...resources.map((r) => r.id)) + 1 : 1,
       name: formData.name,
@@ -100,7 +100,7 @@ export default function ResourcesPage() {
     };
     setResources([...resources, newResource]);
     handleCloseModal();
-    
+
     return false;
   };
 
@@ -152,11 +152,10 @@ export default function ResourcesPage() {
       key: "status",
       label: "Status",
       render: (row) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          row.status === "Active" 
-            ? "bg-green-100 text-green-800" 
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === "Active"
+            ? "bg-green-100 text-green-800"
             : "bg-gray-100 text-gray-800"
-        }`}>
+          }`}>
           {row.status}
         </span>
       ),
@@ -180,8 +179,8 @@ export default function ResourcesPage() {
 
   return (
     <>
-      <AdminHeader />
-      
+
+
       <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors">
         <div className="w-full px-8 py-6">
           <DataTable
@@ -196,19 +195,19 @@ export default function ResourcesPage() {
 
       {/* Add Resource Modal */}
       {isModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
           style={{ pointerEvents: 'none' }}
         >
           {/* Light backdrop overlay */}
-          <div 
+          <div
             className="absolute inset-0 bg-black bg-opacity-20"
             onClick={handleBackdropClick}
             style={{ pointerEvents: 'auto' }}
           />
-          
+
           {/* Modal content */}
-          <div 
+          <div
             className="relative bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: 'auto' }}

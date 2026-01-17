@@ -25,14 +25,14 @@ const SexDistributionChart = ({ programs = [], classes = [] }) => {
         <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
             <div className="flex flex-col mb-4">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Sex</h3>
-                <div className="flex gap-2 mb-4">
+                <div className="flex gap-2 mb-4 flex-wrap">
                     <select
                         value={selectedProgram}
                         onChange={(e) => {
                             setSelectedProgram(e.target.value);
                             setSelectedClass(''); // Reset class
                         }}
-                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                        className="w-full sm:w-auto px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
                         <option value="">All Programs</option>
                         {programs.length > 0 ? (
@@ -48,7 +48,7 @@ const SexDistributionChart = ({ programs = [], classes = [] }) => {
                     <select
                         value={selectedClass}
                         onChange={(e) => setSelectedClass(e.target.value)}
-                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                        className="w-full sm:w-auto px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
                         <option value="">All Classes</option>
                         {classes

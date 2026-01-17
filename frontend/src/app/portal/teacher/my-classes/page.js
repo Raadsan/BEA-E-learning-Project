@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import TeacherHeader from "../TeacherHeader";
+
 import { useGetTeacherClassesQuery, useGetTeacherProgramsQuery } from "@/redux/api/teacherApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi"; // Import students query
 import { useDarkMode } from "@/context/ThemeContext";
@@ -87,9 +87,8 @@ export default function MyClassesPage() {
 
         return (
             <>
-                <TeacherHeader />
-                <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
-                    <div className="w-full px-8 py-6 pt-16">
+                <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
+                    <div className="w-full px-8 py-6">
                         <button
                             onClick={() => setSelectedClass(null)}
                             className="mb-6 flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
@@ -114,16 +113,15 @@ export default function MyClassesPage() {
                             />
                         </div>
                     </div>
-                </main>
+                </div>
             </>
         );
     }
 
     return (
         <>
-            <TeacherHeader />
-            <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen mt-8">
-                <div className="w-full px-8 py-6 pt-16">
+            <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
+                <div className="w-full px-8 py-6">
                     {/* Header Section */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                         <div>
@@ -227,7 +225,7 @@ export default function MyClassesPage() {
                         </div>
                     )}
                 </div>
-            </main>
+            </div>
         </>
     );
 }

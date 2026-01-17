@@ -1,7 +1,7 @@
 "use client";
 
 import { useGetAttendanceReportQuery, useGetTeacherClassesQuery } from "@/redux/api/teacherApi";
-import TeacherHeader from "../TeacherHeader";
+
 import { useDarkMode } from "@/context/ThemeContext";
 import { useState } from "react";
 
@@ -35,8 +35,7 @@ export default function AttendanceReportPage() {
 
     return (
         <div className={`min-h-screen transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
-            <TeacherHeader />
-            <div className="w-full px-8 py-6 pt-24">
+            <div className="w-full px-8 py-6">
                 <h1 className="text-3xl font-bold mb-8">Attendance Report</h1>
 
                 {/* Filters Row */}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCreateProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
 import { useUploadFileMutation } from "@/redux/api/uploadApi";
-import AdminHeader from "@/components/AdminHeader";
+
 import { useToast } from "@/components/Toast";
 import { v4 as uuidv4 } from "uuid";
 import { useDarkMode } from "@/context/ThemeContext";
@@ -201,8 +201,7 @@ export default function CreateProficiencyTestPage() {
 
     return (
         <div className="flex-1 min-h-screen bg-gray-100 flex flex-col text-gray-800">
-            <AdminHeader />
-            <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors mt-6">
+            <div className="flex-1 overflow-y-auto bg-gray-50 transition-colors mt-6">
                 <div className="w-full px-8 py-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-20">
                         <div>
@@ -744,7 +743,7 @@ export default function CreateProficiencyTestPage() {
                         </div>
                     </div>
                 </div>
-            </main>
+            </div>
 
             <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar { width: 3px; }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useGetProficiencyTestsQuery, useDeleteProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
-import AdminHeader from "@/components/AdminHeader";
+
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
@@ -84,8 +84,7 @@ export default function ProficiencyTestsPage() {
 
     return (
         <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-            <AdminHeader />
-            <main className="flex-1 overflow-y-auto mt-6">
+            <div className="flex-1 overflow-y-auto mt-6">
                 <div className="w-full px-8 py-6">
                     {/* Header Section */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-20">
@@ -199,7 +198,7 @@ export default function ProficiencyTestsPage() {
                         </div>
                     )}
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

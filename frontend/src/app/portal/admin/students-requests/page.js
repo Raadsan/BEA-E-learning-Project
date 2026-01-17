@@ -1,6 +1,6 @@
 "use client";
 
-import AdminHeader from "@/components/AdminHeader";
+
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetSessionRequestsQuery } from "@/redux/api/sessionRequestApi";
@@ -32,8 +32,8 @@ export default function AdminStudentsRequestsPage() {
             key: "status", label: "Status", width: "120px",
             render: (row) => (
                 <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${row.status === 'approved' ? 'bg-green-100 text-green-700' :
-                        row.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                            'bg-yellow-100 text-yellow-700'
+                    row.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                        'bg-yellow-100 text-yellow-700'
                     }`}>
                     {row.status}
                 </span>
@@ -57,8 +57,8 @@ export default function AdminStudentsRequestsPage() {
             key: "status", label: "Status", width: "120px",
             render: (row) => (
                 <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${row.status === 'approved' ? 'bg-green-100 text-green-700' :
-                        row.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                            'bg-yellow-100 text-yellow-700'
+                    row.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                        'bg-yellow-100 text-yellow-700'
                     }`}>
                     {row.status}
                 </span>
@@ -67,9 +67,8 @@ export default function AdminStudentsRequestsPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 transition-colors duration-300">
-            <AdminHeader />
-            <main className="pt-24 px-4 md:px-8 pb-8">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-900 transition-colors duration-300">
+            <div className="w-full px-8 py-6 space-y-12">
                 <div className="max-w-7xl mx-auto space-y-12">
                     <section>
                         <div className="mb-6">
@@ -101,7 +100,8 @@ export default function AdminStudentsRequestsPage() {
                         </div>
                     </section>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
+
     );
 }

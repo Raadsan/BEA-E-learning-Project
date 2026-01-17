@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGetProficiencyTestByIdQuery, useUpdateProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
 import { useUploadFileMutation } from "@/redux/api/uploadApi";
-import AdminHeader from "@/components/AdminHeader";
+
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
 import { v4 as uuidv4 } from "uuid";
@@ -173,15 +173,13 @@ export default function EditProficiencyTestPage() {
 
     if (loadingTest) return (
         <div className="flex-1 min-h-screen flex flex-col bg-gray-50">
-            <AdminHeader />
             <div className="flex-1 flex items-center justify-center"><Loader /></div>
         </div>
     );
 
     return (
         <div className="flex-1 min-h-screen bg-gray-100 flex flex-col text-gray-800">
-            <AdminHeader />
-            <main className="flex-1 overflow-y-auto bg-gray-50 transition-colors mt-6">
+            <div className="flex-1 overflow-y-auto bg-gray-50 transition-colors mt-6">
                 <div className="w-full px-8 py-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-20">
                         <div>
@@ -397,7 +395,7 @@ export default function EditProficiencyTestPage() {
                         </div>
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

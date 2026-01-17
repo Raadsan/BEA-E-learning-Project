@@ -111,7 +111,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                   return (
                     <th
                       key={col.key || i}
-                      className={`px-5 py-4 uppercase text-xs font-medium tracking-wide ${isLast ? (hasHorizontalScroll ? 'sticky right-0 z-40 shadow-[-4px_0_10px_-4px_rgba(0,0,0,0.1)]' : '') : ''}`}
+                      className={`px-5 py-4 uppercase text-xs font-medium tracking-wide ${col.className || ''}`}
                       style={{
                         ...(col.width ? { width: col.width, minWidth: col.width } : { minWidth: DEFAULT_MIN_COLUMN_WIDTH }),
                         backgroundColor: isDark ? '#ffffff' : '#010080'
@@ -161,7 +161,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                     return (
                       <td
                         key={col.key || i}
-                        className={`px-5 py-4 border-b border-gray-200 dark:border-gray-700 ${isLast ? (hasHorizontalScroll ? 'sticky right-0 z-10 shadow-[-4px_0_10px_-4px_rgba(0,0,0,0.1)]' : '') : ''}`}
+                        className={`px-5 py-4 border-b border-gray-200 dark:border-gray-700 ${col.className || ''}`}
                         style={{
                           ...(col.width ? { width: col.width, minWidth: col.width } : { minWidth: DEFAULT_MIN_COLUMN_WIDTH }),
                           backgroundColor: idx % 2 === 0
