@@ -148,60 +148,6 @@ export default function IELTSTOEFLRegistrationPage() {
     setIsPaying(true);
 
     try {
-      const requestId = `req_${Date.now()}`;
-      const invoiceId = `inv_${Date.now()}`;
-
-      // Simulate or call Waafi API if method is 'mwallet_account'
-      if (paymentMethod === 'mwallet_account') {
-        const payload = {
-          schemaVersion: "1.0",
-          requestId: requestId,
-          timestamp: new Date().toISOString(),
-          channelName: "WEB",
-          serviceName: "API_PURCHASE",
-          serviceParams: {
-            merchantUid: "M0910291",
-            apiUserId: "1000416",
-            apiKey: "API-675418888AHX",
-            paymentMethod: "mwallet_account",
-            payerInfo: { accountNo: paymentAccountNumber.replace(/\s+/g, '') },
-            transactionInfo: {
-              referenceId: requestId,
-              invoiceId: invoiceId,
-              amount: APPLICATION_FEE,
-              currency: "USD",
-              description: `Application fee for ${formData.chosen_program}`
-            }
-          }
-        };
-
-        const res = await fetch('https://api.waafipay.net/asm', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-MERCHANT-ID': 'M0910291' },
-          body: JSON.stringify(payload),
-        });
-
-        const response = await res.json();
-        if (response.responseCode === '2001' || response.responseMsg === 'SUCCESS' || (response.serviceParams && response.serviceParams.status === 'SUCCESS')) {
-          const transactionId = response.serviceParams?.transactionId || `WAAFI_${requestId}`;
-          await handleSaveStudent(transactionId, response);
-        } else {
-          throw new Error(response.responseMsg || 'Payment failed');
-        }
-      } else {
-        // Bank transfer - save with a placeholder or manual status
-        await handleSaveStudent(`BANK_${requestId}`, { method: 'bank' });
-      }
-    } catch (err) {
-      setPaymentError(err.message);
-      showToast(`Payment Error: ${err.message}`, "error");
-    } finally {
-      setIsPaying(false);
-    }
-  };
-
-  const handleSaveStudent = async (transactionId, paymentInfo) => {
-    try {
       const payload = {
         first_name: formData.firstName,
         last_name: formData.lastName,
@@ -222,14 +168,13 @@ export default function IELTSTOEFLRegistrationPage() {
         exam_booking_time: formData.examBookingTime || null,
         payment: {
           method: paymentMethod,
-          transactionId: transactionId,
           amount: APPLICATION_FEE,
-          payerPhone: paymentAccountNumber,
-          status: paymentMethod === 'bank' ? 'pending' : 'completed'
+          payerPhone: paymentAccountNumber.replace(/\s+/g, ''),
         }
       };
 
       const response = await createIeltsStudent(payload).unwrap();
+
       if (response.success || response.student) {
         showToast("Registration successful! Redirecting...", "success");
         // Attempt auto-login
@@ -242,8 +187,11 @@ export default function IELTSTOEFLRegistrationPage() {
       } else {
         throw new Error(response.error || 'Registration failed');
       }
-    } catch (error) {
-      showToast(error.message || 'Error completing registration', 'error');
+    } catch (err) {
+      setPaymentError(err.data?.error || err.message || 'Payment failed');
+      showToast(`Error: ${err.data?.error || err.message}`, "error");
+    } finally {
+      setIsPaying(false);
     }
   };
 

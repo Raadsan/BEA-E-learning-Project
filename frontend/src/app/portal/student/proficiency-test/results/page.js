@@ -1,96 +1,180 @@
 "use client";
 
-import StudentHeader from "../../StudentHeader";
-import { useRouter } from "next/navigation";
+import React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useGetStudentProficiencyResultsQuery, useGetProficiencyTestByIdQuery } from "@/redux/api/proficiencyTestApi";
 
-export default function ProficiencyTestResultsPage() {
+export default function ProficiencyResultsPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const resultId = searchParams.get("id");
 
-    // In a real app, this would come from the backend
-    const results = {
-        score: 85,
-        totalPoints: 100,
-        percentage: 85,
-        status: "Passed",
-        submittedAt: new Date().toLocaleString(),
-    };
+    const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
+    const { data: results, isLoading: resultsLoading } = useGetStudentProficiencyResultsQuery(user.id || user.student_id, {
+        skip: !user.id && !user.student_id,
+    });
+
+    // Find the specific result
+    const result = results?.find((r) => r.id.toString() === resultId) || results?.[0];
+
+    // Fetch the test details to show the breakdown
+    const { data: test, isLoading: testLoading } = useGetProficiencyTestByIdQuery(result?.test_id, {
+        skip: !result?.test_id,
+    });
+
+    if (resultsLoading || testLoading) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#010080]"></div>
+            </div>
+        );
+    }
+
+    if (!result || !test) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-gray-50 p-4">
+                <div className="bg-white p-10 rounded-xl shadow-sm border border-gray-200 text-center max-w-md w-full">
+                    <p className="text-gray-900 font-semibold text-lg mb-4">No result data found.</p>
+                    <button onClick={() => router.push("/portal/student/dashboard")} className="px-6 py-2 bg-[#010080] text-white rounded-lg font-medium text-sm">
+                        Back to Dashboard
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    const studentAnswers = typeof result.answers === 'string' ? JSON.parse(result.answers) : (result.answers || {});
+    const testQuestions = typeof test.questions === 'string' ? JSON.parse(test.questions) : (test.questions || []);
 
     return (
-        <>
-            <StudentHeader />
-            <main className="flex-1 overflow-y-auto bg-gray-50">
-                <div className="w-full px-8 pt-6 pb-6 flex items-center justify-center min-h-full">
-                    <div className="bg-white rounded-xl shadow-md p-8 max-w-2xl w-full border border-gray-100">
-                        {/* Success Icon */}
-                        <div className="flex justify-center mb-6">
-                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-                                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
+        <main className="min-h-screen bg-gray-50 py-10 px-4">
+            <div className="max-w-4xl mx-auto space-y-6">
+
+                {/* Simple Results Summary */}
+                <div className="bg-white p-10 rounded-xl border border-gray-200 text-center space-y-4">
+                    <h1 className="text-2xl font-semibold text-gray-900">Proficiency Test Results</h1>
+                    <p className="text-gray-500 text-sm">Review your performance below.</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                        <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 flex flex-col items-center">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase">Score</span>
+                            <span className="text-xl font-semibold text-[#010080] mt-1">{result.score} / {result.total_questions}</span>
+                        </div>
+                        <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 flex flex-col items-center">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase">Accuracy</span>
+                            <span className="text-xl font-semibold text-gray-900 mt-1">{Math.round(result.percentage)}%</span>
+                        </div>
+                        {result.status === 'completed' ? (
+                            <div className="p-4 rounded-lg bg-green-50 border border-green-100 flex flex-col items-center">
+                                <span className="text-[10px] font-bold text-green-600 uppercase">Status</span>
+                                <span className="text-xl font-semibold text-green-700 mt-1">Completed</span>
                             </div>
-                        </div>
-
-                        {/* Title */}
-                        <h1 className="text-3xl font-bold text-gray-900 text-center mb-4">
-                            Test Submitted Successfully!
-                        </h1>
-
-                        {/* Description */}
-                        <p className="text-gray-600 text-center mb-8">
-                            Your proficiency test has been submitted and is being reviewed.
-                        </p>
-
-                        {/* Results Summary */}
-                        <div className="bg-purple-50 rounded-lg p-6 mb-8">
-                            <h2 className="text-lg font-bold text-gray-900 mb-4">Test Summary</h2>
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-700">Submitted At:</span>
-                                    <span className="font-semibold text-gray-900">{results.submittedAt}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-700">Status:</span>
-                                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
-                                        Under Review
-                                    </span>
-                                </div>
+                        ) : (
+                            <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-100 flex flex-col items-center">
+                                <span className="text-[10px] font-bold text-yellow-600 uppercase">Status</span>
+                                <span className="text-lg font-semibold text-yellow-700 mt-1">Pending Review</span>
                             </div>
-                        </div>
-
-                        {/* Information Box */}
-                        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <svg className="h-5 w-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div className="ml-3">
-                                    <p className="text-sm text-blue-700">
-                                        Your test responses have been saved. Essay questions will be manually graded by an instructor. You will be notified once your results are ready.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={() => router.push("/portal/student/dashboard")}
-                                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-                            >
-                                Return to Dashboard
-                            </button>
-                            <button
-                                onClick={() => router.push("/portal/student/proficiency-test")}
-                                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-                            >
-                                View Test Information
-                            </button>
-                        </div>
+                        )}
                     </div>
                 </div>
-            </main>
-        </>
+
+                {/* Question Breakdown Section */}
+                <div className="space-y-4">
+                    <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest px-2">Question Breakdown</h2>
+
+                    {testQuestions.map((q, i) => (
+                        <div key={i} className="bg-white p-6 rounded-xl border border-gray-200">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-blue-600 uppercase">Question {i + 1} • {q.type}</span>
+                                    <span className="text-xs text-gray-400 mt-0.5">{q.points || 0} Marks</span>
+                                </div>
+                                {(q.type === 'mcq' || q.type === 'multiple_choice') && (
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${studentAnswers[q.id] === q.options[q.correctOption] ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                                        {studentAnswers[q.id] === q.options[q.correctOption] ? 'Correct' : 'Incorrect'}
+                                    </span>
+                                )}
+                            </div>
+
+                            {(q.type === 'mcq' || q.type === 'multiple_choice') && (
+                                <div className="space-y-3">
+                                    <p className="text-base font-medium text-gray-800">{q.questionText || q.question}</p>
+                                    <div className="flex flex-col gap-2 mt-4">
+                                        {q.options.map((opt, oi) => {
+                                            const isStudentAnswer = studentAnswers[q.id] === opt;
+                                            const isCorrect = oi === q.correctOption;
+                                            return (
+                                                <div key={oi} className={`px-4 py-2.5 rounded-lg border text-sm flex items-center justify-between ${isCorrect ? 'border-green-100 bg-green-50/20 text-green-700' :
+                                                    isStudentAnswer ? 'border-red-100 bg-red-50/20 text-red-700' : 'border-gray-50 text-gray-600'
+                                                    }`}>
+                                                    <span>{opt}</span>
+                                                    {isCorrect && <span className="text-xs font-bold uppercase tracking-tighter">Answer</span>}
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {q.type === 'passage' && (
+                                <div className="space-y-4">
+                                    <p className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg line-clamp-2">{q.passageText}</p>
+                                    <div className="space-y-4">
+                                        {q.subQuestions.map((sq, si) => (
+                                            <div key={si} className="border-l-2 border-gray-100 pl-4 py-1">
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <p className="text-sm font-medium text-gray-800">{sq.questionText}</p>
+                                                    <span className="text-[10px] text-gray-400">{sq.points || 0} Marks</span>
+                                                </div>
+                                                <div className="flex gap-4 text-xs">
+                                                    <span className="text-gray-500 font-medium">Your: <span className={studentAnswers[sq.id] === sq.options[sq.correctOption] ? 'text-green-600' : 'text-red-500'}>{studentAnswers[sq.id] || 'N/A'}</span></span>
+                                                    <span className="text-gray-500">Correct: <span className="text-green-600">{sq.options[sq.correctOption]}</span></span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {q.type === 'essay' && (
+                                <div className="space-y-3">
+                                    <p className="text-base font-medium text-gray-800">{q.title}</p>
+                                    <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600 leading-relaxed font-normal">
+                                        {studentAnswers[q.id] || "No response."}
+                                    </div>
+
+                                    {result.status === 'completed' ? (
+                                        <div className="flex flex-col gap-3 mt-4">
+                                            <div className="flex justify-between items-center text-xs">
+                                                <span className="font-bold text-green-600 uppercase px-2 py-0.5 bg-green-50 rounded">Graded</span>
+                                                <span className="font-bold text-gray-900">{result.essay_marks || 0} / {q.points || 0} Marks</span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex justify-between items-center text-[10px] text-gray-400 mt-2">
+                                            <p className="font-normal italic">Pending manual review by BEA academic team.</p>
+                                            <span className="font-semibold">{q.points || 0} Marks</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="flex justify-center pt-6">
+                    <button
+                        onClick={() => router.push("/portal/student")}
+                        className="bg-[#010080] text-white px-8 py-2.5 rounded-lg text-sm font-medium shadow-sm transition-all hover:opacity-90 active:scale-[0.98]"
+                    >
+                        Return to Dashboard
+                    </button>
+                </div>
+
+                <footer className="text-center py-8 opacity-40">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">BEA Academic Portal • 2026</p>
+                </footer>
+            </div>
+        </main>
     );
 }

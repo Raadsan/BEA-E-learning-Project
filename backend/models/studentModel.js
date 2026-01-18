@@ -389,8 +389,8 @@ export const getTopStudents = async (limit = 10, program_id, class_id) => {
       c.class_name,
       p.title as program_name,
       COUNT(DISTINCT a.id) as total_sessions,
-      SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) as attended_sessions,
-      ROUND((SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) / COUNT(DISTINCT a.id)) * 100, 2) as attendance_rate,
+      COALESCE(SUM(a.hour1 + a.hour2), 0) as attended_hours,
+      COALESCE(ROUND((SUM(a.hour1 + a.hour2) / (COUNT(DISTINCT a.id) * 2)) * 100, 2), 0) as attendance_rate,
       COALESCE(AVG(asub.score), 0) as avg_assignment_score
     FROM students s
     LEFT JOIN classes c ON s.class_id = c.id

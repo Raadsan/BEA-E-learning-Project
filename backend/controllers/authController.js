@@ -1,7 +1,7 @@
-// controllers/authController.js
 import * as Student from "../models/studentModel.js";
 import * as Teacher from "../models/teacherModel.js";
 import * as Admin from "../models/adminModel.js";
+import * as IeltsStudent from "../models/ieltsToeflModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -37,7 +37,7 @@ export const login = async (req, res) => {
     let userData = null;
     let detectedRole = null;
 
-    // Check all tables to find the user (priority: admin > teacher > student)
+    // Check all tables to find the user (priority: admin > teacher > student > ielts)
     console.log(`[Login Debug] Attempting login for email: ${email}`);
 
     // Check admin first
@@ -87,6 +87,28 @@ export const login = async (req, res) => {
             class_id: user.class_id || null,
             paid_until: user.paid_until || null
           };
+        } else {
+          // CHECK IELTS TABLE
+          user = await IeltsStudent.getStudentByEmail(email);
+          if (user) {
+            console.log("[Login Debug] Found user in IELTS table");
+            detectedRole = 'student';
+            userData = {
+              id: user.student_id,
+              full_name: `${user.first_name} ${user.last_name}`,
+              email: user.email,
+              role: 'student',
+              phone: user.phone || null,
+              residency_country: user.residency_country || null,
+              residency_city: user.residency_city || null,
+              chosen_program: user.chosen_program,
+              exam_type: user.exam_type,
+              verification_method: user.verification_method,
+              approval_status: user.status || 'Pending',
+              is_ielts: true,
+              created_at: user.registration_date
+            };
+          }
         }
       }
     }
@@ -227,6 +249,26 @@ export const getCurrentUser = async (req, res) => {
             paid_until: user.paid_until || null,
             created_at: user.created_at || null
           };
+        } else {
+          // Check IELTS table
+          user = await IeltsStudent.getStudentById(userId);
+          if (user) {
+            user = {
+              id: user.student_id,
+              full_name: `${user.first_name} ${user.last_name}`,
+              email: user.email,
+              role: 'student',
+              phone: user.phone || null,
+              residency_country: user.residency_country || null,
+              residency_city: user.residency_city || null,
+              chosen_program: user.chosen_program,
+              exam_type: user.exam_type,
+              verification_method: user.verification_method,
+              approval_status: user.status || 'Pending',
+              is_ielts: true,
+              created_at: user.registration_date || null
+            };
+          }
         }
         break;
 

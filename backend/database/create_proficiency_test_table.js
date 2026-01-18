@@ -1,7 +1,7 @@
-import db from "../database/dbconfig.js";
+import db from "./dbconfig.js";
 
 const createTableQuery = `
-CREATE TABLE IF NOT EXISTS proficiency_tests (
+CREATE TABLE IF NOT EXISTS professional_tests (
   id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
   description TEXT,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS proficiency_tests (
 const run = async () => {
     try {
         const [result] = await db.promise().query(createTableQuery);
-        console.log("Table 'proficiency_tests' created or already exists.");
+        console.log("Table 'professional_tests' created or already exists.");
         console.log(result);
         process.exit(0);
     } catch (error) {

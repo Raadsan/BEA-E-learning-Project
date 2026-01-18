@@ -9,7 +9,8 @@ export const createStudent = async (data) => {
         first_name, last_name, email, phone, password, chosen_program, age, sex,
         residency_country, residency_city, exam_type, verification_method,
         certificate_institution, certificate_date, certificate_document,
-        exam_booking_date, exam_booking_time, status
+        exam_booking_date, exam_booking_time, status,
+        payment_method, transaction_id, payment_amount, payer_phone
     } = data;
 
     const student_id = await generateStudentId('IELTSTOEFL');
@@ -19,8 +20,9 @@ export const createStudent = async (data) => {
       student_id, first_name, last_name, email, phone, password, chosen_program, age, sex,
       residency_country, residency_city, exam_type, verification_method,
       certificate_institution, certificate_date, certificate_document,
-      exam_booking_date, exam_booking_time, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      exam_booking_date, exam_booking_time, status,
+      payment_method, transaction_id, payment_amount, payer_phone
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
     const values = [
@@ -28,7 +30,8 @@ export const createStudent = async (data) => {
         first_name, last_name, email, phone, password, chosen_program, age, sex,
         residency_country, residency_city, exam_type, verification_method,
         certificate_institution || null, certificate_date || null, certificate_document || null,
-        exam_booking_date || null, exam_booking_time || null, status || 'Pending'
+        exam_booking_date || null, exam_booking_time || null, status || 'Pending',
+        payment_method || null, transaction_id || null, payment_amount || null, payer_phone || null
     ];
 
     const [result] = await dbp.query(query, values);
@@ -40,6 +43,12 @@ export const createStudent = async (data) => {
 export const getAllStudents = async () => {
     const [rows] = await dbp.query("SELECT * FROM IELTSTOEFL ORDER BY registration_date DESC");
     return rows;
+};
+
+// Get Student by Email
+export const getStudentByEmail = async (email) => {
+    const [rows] = await dbp.query("SELECT * FROM IELTSTOEFL WHERE email = ?", [email]);
+    return rows[0];
 };
 
 // Get Student by ID
@@ -65,6 +74,15 @@ export const updateStudent = async (id, data) => {
 export const rejectStudent = async (id) => {
     const [result] = await dbp.query(
         "UPDATE IELTSTOEFL SET status = 'rejected', class_id = NULL WHERE student_id = ?",
+        [id]
+    );
+    return result.affectedRows;
+};
+
+// Approve Student
+export const approveStudent = async (id) => {
+    const [result] = await dbp.query(
+        "UPDATE IELTSTOEFL SET status = 'approved' WHERE student_id = ?",
         [id]
     );
     return result.affectedRows;

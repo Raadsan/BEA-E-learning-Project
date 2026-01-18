@@ -83,7 +83,7 @@ function StudentLayoutContent({ children }) {
       style={isDark ? { background: 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)' } : { backgroundColor: '#f3f4f6' }}
     >
       {/* Sidebar - Always visible on desktop, toggleable on mobile */}
-      <StudentSidebar isApproved={isApproved} isPaid={isPaid} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <StudentSidebar isApproved={isApproved} isPaid={isPaid} user={user} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       {/* Sidebar Overlay for Mobile */}
       {isSidebarOpen && (

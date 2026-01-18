@@ -5,7 +5,8 @@ import {
     getIeltsStudent,
     updateIeltsStudent,
     deleteIeltsStudent,
-    rejectIeltsStudent
+    rejectIeltsStudent,
+    approveIeltsStudent
 } from "../controllers/ieltsToeflController.js";
 
 const router = express.Router();
@@ -15,6 +16,7 @@ router.post("/", createIeltsStudent);
 router.get("/:id", getIeltsStudent);
 router.put("/:id", updateIeltsStudent);
 router.post("/reject/:id", rejectIeltsStudent);
+router.post("/approve/:id", approveIeltsStudent);
 router.delete("/:id", deleteIeltsStudent);
 
 export default router;

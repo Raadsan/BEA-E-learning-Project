@@ -112,7 +112,7 @@ export default function StudentDashboard() {
                     {approvalStatus !== 'approved' && (
                         <div className="mt-4">
                             <div
-                                className={`p-4 rounded-lg flex items-start gap-3 ${approvalStatus === "pending"
+                                className={`p-4 rounded-lg flex items-start gap-3 ${approvalStatus === "pending" || approvalStatus === "Pending"
                                     ? isDark
                                         ? "bg-blue-900/30 border border-blue-700"
                                         : "bg-blue-50 border border-blue-200"
@@ -122,7 +122,7 @@ export default function StudentDashboard() {
                                     }`}
                             >
                                 <svg
-                                    className={`w-8 h-8 ${approvalStatus === "pending"
+                                    className={`w-8 h-8 ${approvalStatus === "pending" || approvalStatus === "Pending"
                                         ? "text-blue-600"
                                         : "text-red-600"
                                         }`}
@@ -135,28 +135,35 @@ export default function StudentDashboard() {
                                         strokeLinejoin="round"
                                         strokeWidth={2}
                                         d={
-                                            approvalStatus === "pending"
+                                            approvalStatus === "pending" || approvalStatus === "Pending"
                                                 ? "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                                 : "M6 18L18 6M6 6l12 12"
                                         }
                                     />
                                 </svg>
-                                <div>
-                                    <h2
-                                        className={`text-base font-semibold ${isDark ? "text-white" : "text-gray-900"
-                                            }`}
-                                    >
-                                        {approvalStatus === "pending"
+                                <div className="flex-1">
+                                    <h2 className={`text-base font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+                                        {approvalStatus === "pending" || approvalStatus === "Pending"
                                             ? "Your registration is pending approval"
                                             : "Account access is restricted"}
                                     </h2>
-                                    <p
-                                        className={`text-sm mt-1 ${isDark ? "text-gray-300" : "text-gray-600"
-                                            }`}
-                                    >
-                                        {approvalStatus === "pending"
-                                            ? "Thank you for registering! Your account is under review by our administrators. You will be notified once it has been approved and full features are unlocked."
-                                            : "Your registration has been reviewed. Please contact the administration team for more information about your account status."}
+                                    <p className={`text-sm mt-1 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+                                        {user?.is_ielts ? (
+                                            user.verification_method === 'Certificate' ? (
+                                                "Thank you for uploading your certificate. Our academic team is currently verifying it. You will be notified once your placement is confirmed."
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    <p>You have selected to take a proficiency exam. Please complete the assessment to finalize your registration.</p>
+                                                    <Link href="/portal/student/ielts-exam" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-bold">
+                                                        Start Proficiency Exam
+                                                    </Link>
+                                                </div>
+                                            )
+                                        ) : (
+                                            approvalStatus === "pending" || approvalStatus === "Pending"
+                                                ? "Thank you for registering! Your account is under review by our administrators. You will be notified once it has been approved and full features are unlocked."
+                                                : "Your registration has been reviewed. Please contact the administration team for more information about your account status."
+                                        )}
                                     </p>
                                 </div>
                             </div>

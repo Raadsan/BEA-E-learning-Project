@@ -45,6 +45,18 @@ export const proficiencyTestApi = createApi({
             }),
             invalidatesTags: ['ProficiencyTest'],
         }),
+        submitProficiencyTest: builder.mutation({
+            query: (data) => ({
+                url: '/proficiency-tests/submit',
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['ProficiencyTest'],
+        }),
+        getStudentProficiencyResults: builder.query({
+            query: (studentId) => `/proficiency-tests/student/${studentId}/results`,
+            providesTags: ['ProficiencyTest'],
+        }),
     }),
 });
 
@@ -54,4 +66,6 @@ export const {
     useCreateProficiencyTestMutation,
     useUpdateProficiencyTestMutation,
     useDeleteProficiencyTestMutation,
+    useSubmitProficiencyTestMutation,
+    useGetStudentProficiencyResultsQuery,
 } = proficiencyTestApi;

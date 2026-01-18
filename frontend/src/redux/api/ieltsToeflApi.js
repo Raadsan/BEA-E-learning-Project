@@ -63,6 +63,13 @@ export const ieltsToeflApi = createApi({
             }),
             invalidatesTags: ["IELTS_TOEFL"],
         }),
+        approveIeltsToeflStudent: builder.mutation({
+            query: (id) => ({
+                url: `/approve/${id}`,
+                method: "POST",
+            }),
+            invalidatesTags: ["IELTS_TOEFL"],
+        }),
     }),
 });
 
@@ -73,4 +80,5 @@ export const {
     useUpdateIeltsToeflStudentMutation,
     useDeleteIeltsToeflStudentMutation,
     useRejectIeltsToeflStudentMutation,
+    useApproveIeltsToeflStudentMutation,
 } = ieltsToeflApi;
