@@ -7,7 +7,6 @@ import {
     useSubmitProficiencyTestMutation,
     useGetStudentProficiencyResultsQuery
 } from "@/redux/api/proficiencyTestApi";
-import { toast, Toaster } from 'react-hot-toast';
 
 export default function TakeProficiencyTestPage() {
     const router = useRouter();
@@ -30,13 +29,12 @@ export default function TakeProficiencyTestPage() {
     const [timeRemaining, setTimeRemaining] = useState(null);
     const [showSubmitModal, setShowSubmitModal] = useState(false);
 
-    // Parse and shuffle questions
     const questions = useMemo(() => {
         if (!test) return [];
         let fetchedQuestions = typeof test.questions === "string" ? JSON.parse(test.questions) : test.questions;
         if (!Array.isArray(fetchedQuestions)) return [];
 
-        // Deterministic shuffle helper (same as placement test)
+        // Deterministic shuffle helper
         const deterministicShuffle = (array, seed) => {
             let m = array.length, t, i;
             while (m) {
@@ -71,10 +69,13 @@ export default function TakeProficiencyTestPage() {
         const shuffled = [];
         [1, 2, 3, 4].forEach(p => {
             if (parts[p].length > 0) {
+                // Shuffle questions within the part
                 const shuffledPart = deterministicShuffle([...parts[p]], baseSeed + p);
 
+                // Shuffle options for MCQ questions within this part
                 const finalPart = shuffledPart.map((q, idx) => {
                     if ((q.type === 'mcq' || q.type === 'multiple_choice') && Array.isArray(q.options)) {
+                        // Use a unique seed for each question's options based on baseSeed, part, and question index (relative to shuffled part)
                         const optionsSeed = baseSeed + (p * 100) + idx;
                         return {
                             ...q,
@@ -83,12 +84,14 @@ export default function TakeProficiencyTestPage() {
                     }
                     if (q.type === 'passage' && Array.isArray(q.subQuestions)) {
                         const subSeed = baseSeed + (p * 200) + idx;
+                        // Shuffle the sub-questions themselves first
                         const shuffledSubs = deterministicShuffle([...q.subQuestions], subSeed);
+
                         const finalSubQuestions = shuffledSubs.map((sq, sqIdx) => {
                             if (Array.isArray(sq.options)) {
                                 return {
                                     ...sq,
-                                    options: deterministicShuffle([...sq.options], subSeed + sqIdx)
+                                    options: deterministicShuffle([...sq.options], subSeed + sqIdx) // Use combined seed for options
                                 };
                             }
                             return sq;
@@ -128,17 +131,12 @@ export default function TakeProficiencyTestPage() {
         setAnswers(prev => ({ ...prev, [qId]: value }));
     };
 
-    const handleSubmit = async () => {
-        if (!user) return;
-
-        // Validation: Check if all questions are answered
-        const unanswered = questions.filter(q => !answers[q.id]);
-        if (unanswered.length > 0) {
-            toast.error(`Please answer all questions before submitting. (${unanswered.length} remaining)`);
+    const performSubmit = async (silent = false) => {
+        if (!silent) {
+            setShowSubmitModal(true);
             return;
         }
-
-        setShowSubmitModal(true);
+        await handleConfirmSubmit();
     };
 
     const handleConfirmSubmit = async () => {
@@ -150,7 +148,7 @@ export default function TakeProficiencyTestPage() {
             }).unwrap();
             router.push(`/portal/student/proficiency-test/results?id=${result.id}`);
         } catch (err) {
-            alert(err.data?.error || "Failed to submit. Please try again.");
+            alert("Failed to submit. Please try again.");
         }
         setShowSubmitModal(false);
     };
@@ -159,8 +157,12 @@ export default function TakeProficiencyTestPage() {
 
     const currentQ = questions[currentQuestionIdx];
     const isLast = currentQuestionIdx === questions.length - 1;
+
+    // Part Calculation
     const currentPart = currentQ?.part || 1;
     const currentPartQuestions = questions.filter(q => (q.part || 1) === currentPart);
+
+    // Calculate question index relative to part
     const currentQuestionInPartIdx = currentPartQuestions.findIndex(q => q.id === currentQ.id) + 1;
 
     const handleNext = () => {
@@ -172,6 +174,7 @@ export default function TakeProficiencyTestPage() {
             }
         }
 
+        // MAIN QUESTION NAVIGATION
         const nextIdx = currentQuestionIdx + 1;
         if (nextIdx >= questions.length) return;
 
@@ -179,6 +182,7 @@ export default function TakeProficiencyTestPage() {
 
         // Check boundary crossing
         if (nextPart !== currentPart) {
+            // Validate all questions in the current part
             const isComplete = currentPartQuestions.every(q => {
                 if (q.type === 'passage' && Array.isArray(q.subQuestions)) {
                     return q.subQuestions.every(sq => answers[sq.id]);
@@ -193,7 +197,7 @@ export default function TakeProficiencyTestPage() {
         }
 
         setCurrentQuestionIdx(nextIdx);
-        setCurrentSubQuestionIdx(0);
+        setCurrentSubQuestionIdx(0); // Reset for next question
     };
 
     const handlePrevious = () => {
@@ -207,6 +211,7 @@ export default function TakeProficiencyTestPage() {
 
         const prevQ = questions[prevIdx];
         setCurrentQuestionIdx(prevIdx);
+        // If going back to a passage, go to its last sub-question? Or first?
         if (prevQ.type === 'passage' && Array.isArray(prevQ.subQuestions)) {
             setCurrentSubQuestionIdx(prevQ.subQuestions.length - 1);
         } else {
@@ -214,18 +219,17 @@ export default function TakeProficiencyTestPage() {
         }
     };
 
+
     const formatTime = (s) => {
         if (s === null) return "00:00";
         const m = Math.floor(s / 60);
         return `${m}:${(s % 60).toString().padStart(2, "0")}`;
     };
 
-    // Helper to get essay/question description if available or just title
-    const getQuestionText = (q) => q.questionText || q.question || q.title;
-
     return (
         <main className="min-h-screen bg-gray-50 py-10 px-4">
             <div className="w-full px-8">
+                {/* Simple Header */}
                 <div className="bg-white p-8 rounded-xl border border-gray-200 mb-6 flex justify-between items-center shadow-sm">
                     <div className="space-y-1">
                         <h1 className="text-xl font-semibold text-gray-900">{test.title}</h1>
@@ -236,6 +240,7 @@ export default function TakeProficiencyTestPage() {
                     </div>
                 </div>
 
+                {/* Question Area */}
                 <div className="bg-white p-10 rounded-xl border border-gray-200 min-h-[450px] shadow-sm">
                     <div className="flex justify-between items-center mb-10 pb-4 border-b">
                         <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
@@ -263,6 +268,8 @@ export default function TakeProficiencyTestPage() {
                             <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-sm text-gray-700 leading-relaxed font-normal">
                                 {currentQ.passageText}
                             </div>
+
+                            {/* Render ONLY current sub-question */}
                             <div className="space-y-10">
                                 {(() => {
                                     const sq = currentQ.subQuestions[currentSubQuestionIdx];
@@ -281,6 +288,13 @@ export default function TakeProficiencyTestPage() {
                                                     </label>
                                                 ))}
                                             </div>
+                                            {sq.type === "essay" && (
+                                                <div className="flex justify-between items-center text-[10px] text-gray-400 mt-2">
+                                                    <p className="font-normal">Pending manual review.</p>
+                                                    <span className="font-semibold">{sq.points || 0} Marks</span>
+                                                </div>
+                                            )}
+
                                             <div className="flex justify-between items-center pt-4">
                                                 <span className="text-xs text-gray-400 font-medium">
                                                     Sub-question {currentSubQuestionIdx + 1} of {currentQ.subQuestions.length}
@@ -295,11 +309,19 @@ export default function TakeProficiencyTestPage() {
 
                     {currentQ?.type === "essay" && (
                         <div className="space-y-6">
-                            <h2 className="text-xl font-semibold text-gray-900">{getQuestionText(currentQ)}</h2>
+                            <h2 className="text-xl font-semibold text-gray-900">{currentQ.title}</h2>
                             <p className="text-sm text-gray-600 font-medium leading-relaxed">{currentQ.description}</p>
                             <textarea
                                 value={answers[currentQ.id] || ""}
                                 onChange={e => handleAnswerChange(currentQ.id, e.target.value)}
+                                onPaste={(e) => { e.preventDefault(); }}
+                                onCopy={(e) => { e.preventDefault(); }}
+                                onCut={(e) => { e.preventDefault(); }}
+                                spellCheck={false}
+                                autoCorrect="off"
+                                autoCapitalize="off"
+                                autoComplete="off"
+                                data-gramm="false"
                                 className="w-full p-6 border rounded-xl min-h-[400px] focus:border-[#010080] outline-none bg-gray-50 focus:bg-white transition-all text-sm font-normal"
                                 placeholder="Type your response here..."
                             />
@@ -307,6 +329,7 @@ export default function TakeProficiencyTestPage() {
                     )}
                 </div>
 
+                {/* Navigation */}
                 <div className="flex justify-between items-center mt-12 mb-20 px-2">
                     <button
                         onClick={handlePrevious}
@@ -326,7 +349,7 @@ export default function TakeProficiencyTestPage() {
                             </button>
                         ) : (
                             <button
-                                onClick={() => handleSubmit()}
+                                onClick={() => performSubmit()}
                                 disabled={isSubmitting}
                                 className="bg-green-600 text-white px-12 py-3 rounded-xl text-sm font-semibold shadow-lg hover:bg-green-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
                             >
@@ -337,6 +360,13 @@ export default function TakeProficiencyTestPage() {
                 </div>
             </div>
 
+            <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+      `}</style>
+
+            {/* Submit Confirmation Modal */}
             {showSubmitModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-100 animate-in zoom-in-95 duration-200">
@@ -348,7 +378,7 @@ export default function TakeProficiencyTestPage() {
                             </div>
                             <h3 className="text-xl font-bold text-gray-900 mb-2">Submit Test?</h3>
                             <p className="text-gray-600 mb-6">
-                                Are you sure you want to submit your answers? This action cannot be undone.
+                                Are you sure you want to submit your answers for <span className="font-semibold text-[#010080]">{test?.title}</span>? This action cannot be undone.
                             </p>
                             <div className="flex gap-3">
                                 <button

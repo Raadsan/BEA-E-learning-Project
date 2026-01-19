@@ -94,9 +94,10 @@ export const submitProficiencyTest = async (req, res) => {
         let recommended_level = "Standard";
         if (percentage >= 80) recommended_level = "Advanced";
 
-        let status = 'completed';
+        // Map status to DB ENUM ('pending', 'graded', 'reviewed')
+        let status = 'graded'; // Default to graded if auto-scored (MCQ)
         if (hasEssay) {
-            status = 'pending_review';
+            status = 'pending'; // Needs manual review
             recommended_level = null;
         }
 
@@ -132,6 +133,43 @@ export const getAllProficiencyResults = async (req, res) => {
     try {
         const results = await ProficiencyTest.getAllResults();
         res.status(200).json(results);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const gradeProficiencyTest = async (req, res) => {
+    try {
+        const { resultId } = req.params;
+        const { essayMarks, feedbackFile } = req.body;
+
+        const results = await ProficiencyTest.getAllResults();
+        const result = results.find(r => r.id === parseInt(resultId));
+
+        if (!result) return res.status(404).json({ error: "Result not found" });
+
+        // Calculate new score: Current MCQ score + Essay Marks
+        const newScore = result.score + (parseInt(essayMarks) || 0);
+
+        // Recalculate percentage
+        const totalPoints = result.total_points || result.total_questions;
+        const percentage = totalPoints > 0 ? (newScore / totalPoints) * 100 : 0;
+
+        // Determine level (Generic logic, can be customized)
+        let recommended_level = "Standard";
+        if (percentage >= 80) recommended_level = "Advanced";
+
+        // Update DB Result
+        // Note: proficiency_test_results table does not have 'percentage' or 'recommended_level' columns
+        // We only update score, status, and feedback
+
+        await ProficiencyTest.updateTestResult(resultId, {
+            score: newScore,
+            status: 'reviewed', // Mark as reviewed after grading
+            feedback: feedbackFile
+        });
+
+        res.status(200).json({ message: "Grading completed", newScore, recommended_level });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

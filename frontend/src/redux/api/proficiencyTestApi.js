@@ -57,6 +57,18 @@ export const proficiencyTestApi = createApi({
             query: (studentId) => `/proficiency-tests/student/${studentId}/results`,
             providesTags: ['ProficiencyTest'],
         }),
+        gradeProficiencyTest: builder.mutation({
+            query: ({ resultId, ...patch }) => ({
+                url: `/proficiency-tests/results/${resultId}/grade`,
+                method: 'PUT',
+                body: patch,
+            }),
+            invalidatesTags: ['ProficiencyTest'],
+        }),
+        getAllProficiencyResults: builder.query({
+            query: () => '/proficiency-tests/results/all',
+            providesTags: ['ProficiencyTest'],
+        }),
     }),
 });
 
@@ -68,4 +80,6 @@ export const {
     useDeleteProficiencyTestMutation,
     useSubmitProficiencyTestMutation,
     useGetStudentProficiencyResultsQuery,
+    useGradeProficiencyTestMutation,
+    useGetAllProficiencyResultsQuery,
 } = proficiencyTestApi;

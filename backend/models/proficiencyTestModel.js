@@ -2,7 +2,7 @@ import db from "../database/dbconfig.js";
 
 const dbp = db.promise();
 
-const createProficiencyTest = async ({
+export const createProficiencyTest = async ({
     title,
     description,
     duration_minutes,
@@ -57,16 +57,18 @@ export const saveTestResult = async ({
 }) => {
     const [result] = await dbp.query(
         `INSERT INTO proficiency_test_results 
-     (student_id, test_id, score, total_points, percentage, recommended_level, answers, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [student_id, test_id, score, total_questions, percentage, recommended_level, JSON.stringify(answers), status]
+     (student_id, test_id, score, total_points, answers, status)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+        [student_id, test_id, score, total_questions, JSON.stringify(answers), status]
     );
-    return { id: result.insertId, student_id, test_id, score, percentage, status };
+    return { id: result.insertId, student_id, test_id, score, total_points: total_questions, status };
 };
 
 export const getResultsByStudent = async (studentId) => {
     const [rows] = await dbp.query(
-        "SELECT * FROM proficiency_test_results WHERE student_id = ? ORDER BY created_at DESC",
+        `SELECT *, 
+        (score / NULLIF(total_points, 0) * 100) as percentage 
+        FROM proficiency_test_results WHERE student_id = ? ORDER BY submitted_at DESC`,
         [studentId]
     );
     return rows;
@@ -74,11 +76,13 @@ export const getResultsByStudent = async (studentId) => {
 
 export const getAllResults = async () => {
     const [rows] = await dbp.query(
-        `SELECT r.*, s.full_name, s.student_id as student_code, t.title as test_title 
+        `SELECT r.*, 
+         (r.score / NULLIF(r.total_points, 0) * 100) as percentage,
+         s.full_name, s.student_id as student_code, t.title as test_title 
          FROM proficiency_test_results r 
          LEFT JOIN students s ON r.student_id = s.student_id 
          LEFT JOIN professional_tests t ON r.test_id = t.id 
-         ORDER BY r.created_at DESC`
+         ORDER BY r.submitted_at DESC`
     );
     return rows;
 };

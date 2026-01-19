@@ -7,6 +7,7 @@ import {
     deleteProficiencyTest,
     submitProficiencyTest,
     getStudentProficiencyResults,
+    gradeProficiencyTest,
 } from "../controllers/proficiencyTestController.js";
 import { verifyToken } from "../controllers/authController.js";
 
@@ -21,5 +22,6 @@ router.delete("/:id", verifyToken, deleteProficiencyTest);
 // Results Routes
 router.post("/submit", verifyToken, submitProficiencyTest);
 router.get("/student/:studentId/results", verifyToken, getStudentProficiencyResults);
+router.put("/results/:resultId/grade", verifyToken, gradeProficiencyTest);
 
 export default router;
