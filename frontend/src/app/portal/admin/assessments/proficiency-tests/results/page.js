@@ -13,7 +13,7 @@ export default function ProficiencyTestResultsPage() {
         {
             key: "student_name",
             label: "Student Name",
-            render: (row) => row.full_name || row.student_name || "Unknown Student"
+            render: (row) => row.name || row.full_name || "Unknown Student"
         },
         {
             key: "submitted_at",

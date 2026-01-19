@@ -61,6 +61,14 @@ export default function EditProficiencyTestPage() {
             const rawQuestions = Array.isArray(test.questions) ? test.questions : [];
             const normalized = rawQuestions.map((q, idx) => {
                 let norm = { ...q, id: q.id || uuidv4() };
+                if (Array.isArray(norm.options)) norm.options = [...norm.options];
+                if (Array.isArray(norm.subQuestions)) {
+                    norm.subQuestions = norm.subQuestions.map(sq => ({
+                        ...sq,
+                        options: Array.isArray(sq.options) ? [...sq.options] : []
+                    }));
+                }
+
                 if (norm.type === 'multiple_choice') norm.type = 'mcq';
 
                 // Compatibility for legacy property names
@@ -243,7 +251,7 @@ export default function EditProficiencyTestPage() {
 
                                 {steps[currentStep - 1].type === 'mcq' && (
                                     <div className="space-y-5">
-                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Question Text</label><textarea value={currentMCQ.questionText} onChange={e => setCurrentMCQ({ ...currentMCQ, questionText: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="2" /></div>
+                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Question Text</label><textarea value={currentMCQ.questionText || ""} onChange={e => setCurrentMCQ({ ...currentMCQ, questionText: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="2" /></div>
                                         <div><label className="block text-sm font-bold text-gray-700 mb-2">Points</label><input type="number" value={currentMCQ.points} onChange={e => setCurrentMCQ({ ...currentMCQ, points: parseInt(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
                                         <div className="space-y-3">
                                             <label className="block text-sm font-bold text-gray-700">Options</label>
@@ -261,12 +269,16 @@ export default function EditProficiencyTestPage() {
 
                                 {steps[currentStep - 1].type === 'passage' && (
                                     <div className="space-y-5">
-                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Passage Text</label><textarea value={currentPassage.passageText} onChange={e => setCurrentPassage({ ...currentPassage, passageText: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="6" /></div>
+                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Passage Text</label><textarea value={currentPassage.passageText || ""} onChange={e => setCurrentPassage({ ...currentPassage, passageText: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="6" /></div>
                                         <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                                             <div className="flex justify-between items-center mb-4"><span className="text-sm font-bold text-gray-700 uppercase">Sub-Questions</span><button onClick={() => { const sub = { id: uuidv4(), questionText: "", options: ["", ""], correctOption: 0, points: 2 }; setCurrentPassage({ ...currentPassage, subQuestions: [...currentPassage.subQuestions, sub] }); }} className="bg-[#010080] text-white px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all active:scale-95">+ Add MCQ sub</button></div>
                                             {currentPassage.subQuestions.map((sq, i) => (
                                                 <div key={i} className="p-4 rounded-xl bg-white border border-blue-100 space-y-3 mb-3">
-                                                    <input value={sq.questionText} onChange={e => { const next = [...currentPassage.subQuestions]; next[i].questionText = e.target.value; setCurrentPassage({ ...currentPassage, subQuestions: next }); }} className="w-full text-sm font-bold outline-none border-b border-gray-50 pb-2" placeholder="Sub-question text..." />
+                                                    <input value={sq.questionText} onChange={e => {
+                                                        const next = [...currentPassage.subQuestions];
+                                                        next[i] = { ...next[i], questionText: e.target.value };
+                                                        setCurrentPassage({ ...currentPassage, subQuestions: next });
+                                                    }} className="w-full text-sm font-bold outline-none border-b border-gray-50 pb-2" placeholder="Sub-question text..." />
                                                     <div className="space-y-2">
                                                         {sq.options.map((o, oi) => (
                                                             <div key={oi} className="flex items-center gap-2">
@@ -276,7 +288,11 @@ export default function EditProficiencyTestPage() {
                                                         ))}
                                                     </div>
                                                     <div className="flex justify-between items-center pt-2">
-                                                        <div className="flex items-center gap-2 font-bold text-[10px]"><span className="text-gray-400">PTS:</span><input type="number" value={sq.points} onChange={e => { const next = [...currentPassage.subQuestions]; next[i].points = parseInt(e.target.value) || 0; setCurrentPassage({ ...currentPassage, subQuestions: next }); }} className="w-10 border-b border-gray-200 text-center outline-none" /></div>
+                                                        <div className="flex items-center gap-2 font-bold text-[10px]"><span className="text-gray-400">PTS:</span><input type="number" value={sq.points} onChange={e => {
+                                                            const next = [...currentPassage.subQuestions];
+                                                            next[i] = { ...next[i], points: parseInt(e.target.value) || 0 };
+                                                            setCurrentPassage({ ...currentPassage, subQuestions: next });
+                                                        }} className="w-10 border-b border-gray-200 text-center outline-none" /></div>
                                                         <button onClick={() => { const next = currentPassage.subQuestions.filter((_, idx) => idx !== i); setCurrentPassage({ ...currentPassage, subQuestions: next }); }} className="text-[10px] text-red-500 font-bold">REMOVE</button>
                                                     </div>
                                                 </div>
@@ -288,8 +304,8 @@ export default function EditProficiencyTestPage() {
 
                                 {steps[currentStep - 1].type === 'essay' && (
                                     <div className="space-y-5">
-                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Title</label><input value={currentEssay.title} onChange={e => setCurrentEssay({ ...currentEssay, title: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
-                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Prompt</label><textarea value={currentEssay.description} onChange={e => setCurrentEssay({ ...currentEssay, description: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="4" /></div>
+                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Title</label><input value={currentEssay.title || ""} onChange={e => setCurrentEssay({ ...currentEssay, title: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
+                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Prompt</label><textarea value={currentEssay.description || ""} onChange={e => setCurrentEssay({ ...currentEssay, description: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="4" /></div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div><label className="block text-sm font-semibold text-gray-700 mb-1">Max Words</label><input type="number" value={currentEssay.maxWords} onChange={e => setCurrentEssay({ ...currentEssay, maxWords: parseInt(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
                                             <div><label className="block text-sm font-semibold text-gray-700 mb-1">Points</label><input type="number" value={currentEssay.points} onChange={e => setCurrentEssay({ ...currentEssay, points: parseInt(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
@@ -300,12 +316,12 @@ export default function EditProficiencyTestPage() {
 
                                 {steps[currentStep - 1].type === 'audio' && (
                                     <div className="space-y-5">
-                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Audio Title</label><input value={currentAudio.title} onChange={e => setCurrentAudio({ ...currentAudio, title: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
+                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Audio Title</label><input value={currentAudio.title || ""} onChange={e => setCurrentAudio({ ...currentAudio, title: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 mb-2">Audio MP3/Stream URL / Upload</label>
                                             <div className="flex gap-2">
                                                 <input
-                                                    value={currentAudio.audioUrl}
+                                                    value={currentAudio.audioUrl || ""}
                                                     onChange={e => setCurrentAudio({ ...currentAudio, audioUrl: e.target.value })}
                                                     className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
                                                     placeholder="https://example.com/audio.mp3"
@@ -344,7 +360,7 @@ export default function EditProficiencyTestPage() {
                                                 </div>
                                             )}
                                         </div>
-                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Writing Instructions</label><textarea value={currentAudio.description} onChange={e => setCurrentAudio({ ...currentAudio, description: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="3" /></div>
+                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Writing Instructions</label><textarea value={currentAudio.description || ""} onChange={e => setCurrentAudio({ ...currentAudio, description: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="3" /></div>
                                         <div><label className="block text-sm font-bold text-gray-700 mb-2">Points</label><input type="number" value={currentAudio.points} onChange={e => setCurrentAudio({ ...currentAudio, points: parseInt(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
                                         <button onClick={addToTestList} className="w-full bg-[#010080] text-white py-3 rounded-lg font-bold">Save Audio</button>
                                     </div>

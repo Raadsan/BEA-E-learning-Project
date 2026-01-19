@@ -21,11 +21,11 @@ export default function AdminProficiencyResultDetailsPage() {
 
     const [gradeProficiencyTest] = useGradeProficiencyTestMutation();
     const [essayMarks, setEssayMarks] = useState({});
-    const [feedbackFile, setFeedbackFile] = useState(null);
+    const [feedbackFiles, setFeedbackFiles] = useState({ essay: null, audio: null });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { showToast } = useToast();
 
-    const handleFileUpload = async (e) => {
+    const handleFileUpload = async (e, type) => {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -46,8 +46,8 @@ export default function AdminProficiencyResultDetailsPage() {
 
             const data = await res.json();
             if (data.url) {
-                setFeedbackFile(data.url);
-                showToast("File uploaded successfully", "success");
+                setFeedbackFiles(prev => ({ ...prev, [type]: data.url }));
+                showToast(`${type === 'essay' ? 'Essay' : 'Audio'} feedback uploaded`, "success");
             }
         } catch (err) {
             console.error("Upload failed", err);
@@ -57,7 +57,8 @@ export default function AdminProficiencyResultDetailsPage() {
 
     const handleGradeSubmit = async () => {
         // Validation: Check if any essay mark exceeds the question's points
-        const essayQuestions = questions.filter(q => q.type === 'essay');
+        // Validation: Check if any essay/audio mark exceeds the question's points
+        const essayQuestions = questions.filter(q => q.type === 'essay' || q.type === 'audio');
         for (const q of essayQuestions) {
             const mark = parseInt(essayMarks[q.id]);
             if (mark > q.points) {
@@ -74,14 +75,19 @@ export default function AdminProficiencyResultDetailsPage() {
             await gradeProficiencyTest({
                 resultId: id,
                 essayMarks: totalEssayMarks,
-                feedbackFile
+                essayFeedbackFile: feedbackFiles.essay,
+                audioFeedbackFile: feedbackFiles.audio
             }).unwrap();
 
             showToast("Grading completed successfully!", "success");
             // Optional: Refresh data or redirect?
         } catch (err) {
-            console.error("Grading failed", err);
-            showToast("Grading failed. Please try again.", "error");
+            console.error("Grading failed - Full error:", err);
+            console.error("Error message:", err?.message);
+            console.error("Error data:", err?.data);
+            console.error("Error status:", err?.status);
+            const errorMsg = err?.data?.error || err?.message || "Unknown error occurred";
+            showToast(`Grading failed: ${errorMsg}`, "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -105,7 +111,7 @@ export default function AdminProficiencyResultDetailsPage() {
             <head><meta charset='utf-8'><title>Essay Response</title></head>
             <body style="font-family: Arial, sans-serif; line-height: 1.6;">
                 <h1 style="color: #010080;">${test.title} - Essay Response</h1>
-                <p><strong>Student:</strong> ${result.full_name || result.student_name}</p>
+                <p><strong>Student:</strong> ${result.name || result.full_name || result.student_name}</p>
                 <p><strong>Date:</strong> ${new Date(result.submitted_at || result.created_at).toLocaleDateString()}</p>
                 <hr/>
                 <h2 style="font-size: 16px;">Question: ${questionTitle}</h2>
@@ -120,14 +126,14 @@ export default function AdminProficiencyResultDetailsPage() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        const studentName = result.full_name || result.student_name || "Student";
+        const studentName = result.name || result.full_name || result.student_name || "Student";
         link.download = `${studentName.replace(/\s+/g, '_')}_Essay.doc`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
 
-    const isGraded = result.status === 'graded' || result.status === 'reviewed';
+    const isGraded = result.status === 'graded' || result.status === 'reviewed' || result.status === 'completed';
     const isPending = result.status === 'pending';
 
     return (
@@ -152,7 +158,7 @@ export default function AdminProficiencyResultDetailsPage() {
                         </div>
                         <div className="flex items-center gap-4">
                             <span className={`px-4 py-1.5 rounded-full text-sm font-bold uppercase ${isPending ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
-                                {isPending ? 'Pending Review' : result.status}
+                                {isPending ? 'Pending Review' : (result.status === 'completed' ? 'Completed' : result.status)}
                             </span>
                         </div>
                     </div>
@@ -186,35 +192,36 @@ export default function AdminProficiencyResultDetailsPage() {
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Left: Review & Upload */}
+                            {/* Left: Uploads */}
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-3">1. Review Student Responses</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {questions.filter(q => q.type === 'essay').map((q, idx) => (
-                                            <button
-                                                key={q.id}
-                                                onClick={() => handleDownloadDoc(q.title, studentAnswers[q.id] || "No response.")}
-                                                className="flex items-center gap-2 px-3 py-2 bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 rounded-lg text-xs font-semibold transition-colors"
-                                            >
-                                                <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" /></svg>
-                                                Download Essay {idx + 1}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-3">2. Upload Corrected File</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-3">1. Upload Correct Essay Feedback</label>
                                     <input
                                         type="file"
                                         accept=".doc,.docx,.pdf"
-                                        onChange={handleFileUpload}
+                                        onChange={(e) => handleFileUpload(e, 'essay')}
+                                        className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer mb-2"
+                                    />
+                                    {feedbackFiles.essay && (
+                                        <div className="flex items-center gap-2 text-green-600 mb-4">
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
+                                            <span className="text-xs font-bold">Essay Feedback Uploaded</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-3">2. Upload Correct Audio Feedback</label>
+                                    <input
+                                        type="file"
+                                        accept=".mp3,.wav,.m4a,.doc,.docx,.pdf"
+                                        onChange={(e) => handleFileUpload(e, 'audio')}
                                         className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                                     />
-                                    {feedbackFile && (
+                                    {feedbackFiles.audio && (
                                         <div className="mt-2 flex items-center gap-2 text-green-600">
                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
-                                            <span className="text-xs font-bold">File link updated</span>
+                                            <span className="text-xs font-bold">Audio Feedback Uploaded</span>
                                         </div>
                                     )}
                                 </div>
@@ -224,7 +231,7 @@ export default function AdminProficiencyResultDetailsPage() {
                             <div className="space-y-4">
                                 <label className="block text-sm font-semibold text-gray-700 mb-3">3. Assign Marks</label>
                                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
-                                    {questions.filter(q => q.type === 'essay').map((q) => (
+                                    {questions.filter(q => q.type === 'essay' || q.type === 'audio').map((q) => (
                                         <div key={q.id} className="flex items-center justify-between gap-4">
                                             <span className="text-xs text-gray-600 font-medium truncate flex-1">{q.title}</span>
                                             <div className="flex items-center gap-2">
@@ -268,21 +275,69 @@ export default function AdminProficiencyResultDetailsPage() {
 
                 {/* Grading Result - ONLY for Graded/Reviewed with feedback */}
                 {isGraded && result.feedback && (
-                    <div className="bg-green-50 p-6 rounded-xl border border-green-200 shadow-sm mb-8 flex justify-between items-center">
+                    <div className="bg-green-50 p-6 rounded-xl border border-green-200 shadow-sm mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
                         <div>
                             <h3 className="text-green-800 font-bold">Grading Completed</h3>
-                            {/* Note: Marks display here is tricky if we don't store essay marks separately clearly in result object apart from total score update */}
-                            <p className="text-sm text-green-700 mt-1">Status: <strong>{result.status}</strong></p>
+                            <p className="text-sm text-green-700 mt-1">Status: <strong className="capitalize">{result.status}</strong></p>
                         </div>
-                        <a
-                            href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${result.feedback}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-4 py-2 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-bold hover:bg-green-50"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                            Download Corrected File
-                        </a>
+                        <div className="flex gap-3 flex-wrap">
+                            {(() => {
+                                try {
+                                    // Try to parse feedback as JSON
+                                    const feedback = JSON.parse(result.feedback);
+                                    if (typeof feedback === 'object' && feedback !== null) {
+                                        return (
+                                            <>
+                                                {feedback.essay && (
+                                                    <a
+                                                        href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${feedback.essay}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                        </svg>
+                                                        Download Essay Feedback
+                                                    </a>
+                                                )}
+                                                {feedback.audio && (
+                                                    <a
+                                                        href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${feedback.audio}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                        </svg>
+                                                        Download Audio Feedback
+                                                    </a>
+                                                )}
+                                                {!feedback.essay && !feedback.audio && (
+                                                    <span className="text-sm italic text-gray-500">No feedback files attached.</span>
+                                                )}
+                                            </>
+                                        );
+                                    }
+                                } catch (e) {
+                                    // Fallback for old simple string feedback
+                                    return (
+                                        <a
+                                            href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${result.feedback}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                            Download Feedback
+                                        </a>
+                                    );
+                                }
+                            })()}
+                        </div>
                     </div>
                 )}
 
@@ -363,7 +418,7 @@ export default function AdminProficiencyResultDetailsPage() {
                             )}
 
                             {/* Essay Logic */}
-                            {q.type === 'essay' && (
+                            {q?.type === 'essay' && (
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-start">
                                         <div>
@@ -385,23 +440,41 @@ export default function AdminProficiencyResultDetailsPage() {
                                             {studentAnswers[q.id] || <span className="italic text-gray-400">No response submitted.</span>}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 mt-4 justify-between border-t border-gray-100 pt-4">
-                                        {isPending ? (
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
-                                                    <span className="text-xs font-bold text-yellow-600 uppercase">Pending Review</span>
+                                </div>
+                            )}
+
+                            {/* Audio Logic */}
+                            {q.type === 'audio' && (
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex-1 mr-4">
+                                            <h3 className="text-lg font-bold text-gray-900">{q.title}</h3>
+                                            <div className="mt-2 flex items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100 w-full">
+                                                <div className="w-8 h-8 flex-shrink-0 bg-[#010080] rounded-full flex items-center justify-center text-white">
+                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" /></svg>
                                                 </div>
-                                                <div className="flex items-center gap-2 opacity-50">
-                                                    <span className="text-xs text-gray-400 italic">Enter marks in grading section above</span>
-                                                </div>
+                                                <audio controls className="h-8 w-full flex-1">
+                                                    <source src={q.audioUrl?.startsWith('http') ? q.audioUrl : `http://localhost:5000${q.audioUrl}`} />
+                                                    Your browser does not support the audio element.
+                                                </audio>
                                             </div>
-                                        ) : (
-                                            <div className="flex items-center gap-2">
-                                                <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                                                <span className="text-xs font-bold text-green-600 uppercase">{result.status}</span>
-                                            </div>
-                                        )}
+                                            <p className="text-sm text-gray-500 mt-2">{q.description}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => handleDownloadDoc(q.title, studentAnswers[q.id] || "No response.")}
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors border border-blue-200"
+                                            title="Download Answer"
+                                        >
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" /></svg>
+                                            Download Word
+                                        </button>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-xs font-bold text-[#010080] uppercase mb-2">Student Response (Audio Transcription / Answer):</p>
+                                        <div className="p-5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 leading-relaxed font-serif shadow-inner min-h-[100px]">
+                                            {studentAnswers[q.id] || <span className="italic text-gray-400">No response submitted.</span>}
+                                        </div>
                                     </div>
                                 </div>
                             )}

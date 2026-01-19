@@ -141,15 +141,39 @@ export const getAllProficiencyResults = async (req, res) => {
 export const gradeProficiencyTest = async (req, res) => {
     try {
         const { resultId } = req.params;
-        const { essayMarks, feedbackFile } = req.body;
+        const { essayMarks, essayFeedbackFile, audioFeedbackFile, feedbackFile } = req.body;
 
         const results = await ProficiencyTest.getAllResults();
         const result = results.find(r => r.id === parseInt(resultId));
 
         if (!result) return res.status(404).json({ error: "Result not found" });
 
-        // Calculate new score: Current MCQ score + Essay Marks
-        const newScore = result.score + (parseInt(essayMarks) || 0);
+        // Fetch the original test to recalculate MCQ/Passage scores correctly (Base Score)
+        // This ensures idempotency: We always start from the auto-graded score + new essay marks
+        const test = await ProficiencyTest.getProficiencyTestById(result.test_id);
+        const questions = typeof test.questions === 'string' ? JSON.parse(test.questions) : test.questions;
+        const studentAnswers = typeof result.answers === 'string' ? JSON.parse(result.answers) : result.answers;
+
+        let mcqScore = 0;
+
+        questions.forEach(q => {
+            if (q.type === 'mcq' || q.type === 'multiple_choice') {
+                if (studentAnswers[q.id] === q.options[q.correctOption]) {
+                    mcqScore += (q.points || 0);
+                }
+            } else if (q.type === 'passage') {
+                q.subQuestions?.forEach(sq => {
+                    if (studentAnswers[sq.id] === sq.options[sq.correctOption]) {
+                        mcqScore += (sq.points || 0);
+                    }
+                });
+            }
+            // Essay/Audio are manual, so they add 0 to the base auto-graded score
+        });
+
+        // Add Manual Marks
+        const manualScore = parseFloat(essayMarks) || 0;
+        const newScore = mcqScore + manualScore;
 
         // Recalculate percentage
         const totalPoints = result.total_points || result.total_questions;
@@ -159,18 +183,26 @@ export const gradeProficiencyTest = async (req, res) => {
         let recommended_level = "Standard";
         if (percentage >= 80) recommended_level = "Advanced";
 
-        // Update DB Result
-        // Note: proficiency_test_results table does not have 'percentage' or 'recommended_level' columns
-        // We only update score, status, and feedback
+        // Logic for feedback
+        let feedbackData = feedbackFile;
+        if (essayFeedbackFile || audioFeedbackFile) {
+            feedbackData = JSON.stringify({
+                essay: essayFeedbackFile || null,
+                audio: audioFeedbackFile || null
+            });
+        }
 
         await ProficiencyTest.updateTestResult(resultId, {
             score: newScore,
-            status: 'reviewed', // Mark as reviewed after grading
-            feedback: feedbackFile
+            status: 'completed', // Explicitly set to completed as requested
+            feedback: feedbackData
         });
+
 
         res.status(200).json({ message: "Grading completed", newScore, recommended_level });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error("❌ Grading error:", error);
+        console.error("Error stack:", error.stack);
+        res.status(500).json({ error: error.message || "Grading failed" });
     }
 };

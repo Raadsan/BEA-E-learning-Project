@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
 import { useDarkMode } from "@/context/ThemeContext";
+import Modal from "@/components/Modal";
+import { useState } from "react";
 
 const InfoCard = ({ title, description, details, topActions, isDark, onClick, status }) => (
     <div
@@ -56,19 +58,28 @@ export default function ProficiencyTestsPage() {
     const { data: tests, isLoading, error } = useGetProficiencyTestsQuery();
     const [deleteTest] = useDeleteProficiencyTestMutation();
 
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [testToDelete, setTestToDelete] = useState(null);
+
     const handleCreateClick = () => {
         router.push("/portal/admin/assessments/proficiency-tests/create");
     };
 
-    const handleDelete = async (e, id) => {
+    const handleDeleteClick = (e, id) => {
         e.stopPropagation();
-        if (confirm("Are you sure you want to delete this test?")) {
-            try {
-                await deleteTest(id).unwrap();
-                showToast("Test deleted successfully", "success");
-            } catch (err) {
-                showToast("Failed to delete test", "error");
-            }
+        setTestToDelete(id);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!testToDelete) return;
+        try {
+            await deleteTest(testToDelete).unwrap();
+            showToast("Test deleted successfully", "success");
+            setShowDeleteModal(false);
+            setTestToDelete(null);
+        } catch (err) {
+            showToast("Failed to delete test", "error");
         }
     };
 
@@ -87,13 +98,13 @@ export default function ProficiencyTestsPage() {
             <div className="flex-1 overflow-y-auto mt-6">
                 <div className="w-full px-8 py-6">
                     {/* Header Section */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-20">
-                        <div>
-                            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Proficiency Tests</h1>
-                            <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                Manage and view all available proficiency tests.
-                            </p>
-                        </div>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+
+                        <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Proficiency Tests</h1>
+                        <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                            Manage and view all available proficiency tests.
+                        </p>
+
                         <button
                             onClick={handleCreateClick}
                             className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-semibold shadow-sm`}
@@ -173,7 +184,7 @@ export default function ProficiencyTestsPage() {
                                                 </svg>
                                             </button>
                                             <button
-                                                onClick={(e) => handleDelete(e, test.id)}
+                                                onClick={(e) => handleDeleteClick(e, test.id)}
                                                 className="text-red-600 hover:text-red-800 transition-colors"
                                                 title="Delete Test"
                                             >
@@ -199,6 +210,34 @@ export default function ProficiencyTestsPage() {
                     )}
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                title="Delete Test"
+                size="sm"
+            >
+                <div>
+                    <p className={`text-base leading-relaxed mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        Are you sure you want to delete this proficiency test? This action will permanently remove the test and all associated student results.
+                    </p>
+                    <div className="flex justify-end gap-3">
+                        <button
+                            onClick={() => setShowDeleteModal(false)}
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmDelete}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors"
+                        >
+                            Delete Test
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

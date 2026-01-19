@@ -327,6 +327,39 @@ export default function TakeProficiencyTestPage() {
                             />
                         </div>
                     )}
+
+                    {currentQ?.type === "audio" && (
+                        <div className="space-y-6">
+                            <h2 className="text-xl font-semibold text-gray-900">{currentQ.title}</h2>
+
+                            <div className="bg-gray-100 p-3 rounded-xl flex items-center gap-4">
+                                <div className="w-10 h-10 flex-shrink-0 bg-[#010080] rounded-full flex items-center justify-center text-white">
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" /></svg>
+                                </div>
+                                <audio controls className="w-full flex-1 h-8">
+                                    <source src={currentQ.audioUrl?.startsWith('http') ? currentQ.audioUrl : `http://localhost:5000${currentQ.audioUrl}`} />
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
+
+                            <p className="text-sm text-gray-600 font-medium leading-relaxed">{currentQ.description}</p>
+
+                            <textarea
+                                value={answers[currentQ.id] || ""}
+                                onChange={e => handleAnswerChange(currentQ.id, e.target.value)}
+                                onPaste={(e) => { e.preventDefault(); }}
+                                onCopy={(e) => { e.preventDefault(); }}
+                                onCut={(e) => { e.preventDefault(); }}
+                                spellCheck={false}
+                                autoCorrect="off"
+                                autoCapitalize="off"
+                                autoComplete="off"
+                                data-gramm="false"
+                                className="w-full p-6 border rounded-xl min-h-[300px] focus:border-[#010080] outline-none bg-gray-50 focus:bg-white transition-all text-sm font-normal"
+                                placeholder="Listen to the audio and type your response here..."
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* Navigation */}

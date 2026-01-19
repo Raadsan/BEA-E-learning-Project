@@ -64,7 +64,7 @@ export default function ProficiencyResultsPage() {
                             <span className="text-[10px] font-bold text-gray-400 uppercase">Accuracy</span>
                             <span className="text-xl font-semibold text-gray-900 mt-1">{Math.round(result.percentage)}%</span>
                         </div>
-                        {result.status === 'graded' || result.status === 'reviewed' ? (
+                        {result.status === 'graded' || result.status === 'reviewed' || result.status === 'completed' ? (
                             <div className="p-4 rounded-lg bg-green-50 border border-green-100 flex flex-col items-center">
                                 <span className="text-[10px] font-bold text-green-600 uppercase">Status</span>
                                 <span className="text-xl font-semibold text-green-700 mt-1">Completed</span>
@@ -77,6 +77,80 @@ export default function ProficiencyResultsPage() {
                         )}
                     </div>
                 </div>
+
+                {/* Feedback Section - Show when test is completed and feedback exists */}
+                {(result.status === 'completed' || result.status === 'graded' || result.status === 'reviewed') && result.feedback && (
+                    <div className="bg-green-50 p-6 rounded-xl border border-green-200 shadow-sm">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <h3 className="text-green-800 font-bold text-lg flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Feedback Available
+                                </h3>
+                                <p className="text-sm text-green-700 mt-1">
+                                    Your instructor has provided feedback on your test.
+                                </p>
+                            </div>
+                            <div className="flex gap-3 flex-wrap">
+                                {(() => {
+                                    try {
+                                        // Try to parse feedback as JSON for separate essay/audio files
+                                        const feedback = JSON.parse(result.feedback);
+                                        if (typeof feedback === 'object' && feedback !== null) {
+                                            return (
+                                                <>
+                                                    {feedback.essay && (
+                                                        <a
+                                                            href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${feedback.essay}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                            </svg>
+                                                            Download Essay Feedback
+                                                        </a>
+                                                    )}
+                                                    {feedback.audio && (
+                                                        <a
+                                                            href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${feedback.audio}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                            </svg>
+                                                            Download Audio Feedback
+                                                        </a>
+                                                    )}
+                                                </>
+                                            );
+                                        }
+                                    } catch (e) {
+                                        // Fallback for old simple string feedback
+                                        return (
+                                            <a
+                                                href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${result.feedback}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                </svg>
+                                                Download Feedback
+                                            </a>
+                                        );
+                                    }
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Question Breakdown Section */}
                 <div className="space-y-4">
