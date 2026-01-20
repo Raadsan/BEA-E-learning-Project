@@ -340,100 +340,100 @@ export default function MyCoursesPage() {
 
             </>
           ) : (
-            /* === OTHER PROGRAMS LAYOUT (NEW DESIGN) === */
-            <div className="flex flex-col gap-12">
-              {/* 1. Main Program Card (Split Design) */}
-              <div className={`mb-8 rounded-2xl shadow-lg overflow-hidden ${isDark ? "bg-gray-800" : "bg-white"} border ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+            /* === OTHER PROGRAMS LAYOUT (PREMIUM CARD DESIGN) === */
+            <div className="flex flex-col gap-8">
+              {/* Main Program Card */}
+              <div className={`mb-8 rounded-xl shadow-lg overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-50"} border ${isDark ? "border-gray-700" : "border-gray-200"}`}>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-                  {/* Left Section - Image (1/3) */}
-                  <div className={`lg:col-span-1 ${isDark ? "bg-gray-700" : "bg-gray-100"} relative min-h-[300px]`}>
-                    <Image
-                      src={programImage}
-                      alt={studentProgram.program_name}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
+                  {/* Left Section - Program Card with Image */}
+                  <div className={`lg:col-span-1 ${isDark ? "bg-gray-700" : "bg-gray-100"} p-6 relative overflow-hidden`}>
+                    <div className="relative h-full min-h-[300px] flex flex-col items-center justify-center">
+                      <Image
+                        src={programImage}
+                        alt={studentProgram.program_name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
                   </div>
 
-                  {/* Right Section - Course Details (2/3) */}
-                  <div className={`lg:col-span-2 p-8 flex flex-col justify-center`}>
-                    <div className="flex items-start justify-between mb-8">
+                  {/* Right Section - Course Details */}
+                  <div className={`lg:col-span-2 ${isDark ? "bg-gray-800" : "bg-white"} p-8`}>
+                    <div className="flex items-start justify-between mb-4">
                       <div>
-                        <div className="mb-4">
-                          <p className="text-[10px] uppercase tracking-[0.2em] opacity-40 mb-1 font-normal italic">Project Name</p>
-                          <h3 className={`text-4xl font-normal leading-tight ${isDark ? "text-white" : "text-gray-900"}`}>
-                            {studentProgram.program_name}
-                          </h3>
-                        </div>
-                        <div>
-                          <p className="text-[10px] uppercase tracking-[0.2em] opacity-40 mb-1 font-normal">Program Name</p>
-                          <p className={`text-lg font-normal opacity-60 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                            {studentProgram.program_name}
-                          </p>
-                        </div>
+                        <h3 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
+                          {studentProgram.title || studentProgram.program_name}
+                        </h3>
+                        <p className={`text-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                          {studentProgram.title || studentProgram.program_name}
+                        </p>
                       </div>
-                      <div className="bg-[#010080] text-white px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2">
+                      <div className="bg-[#010080] text-white px-4 py-2 rounded-lg flex items-center gap-2">
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
                         </svg>
-                        <span className="text-sm font-normal">In Progress</span>
+                        <span className="font-semibold">In Progress</span>
                       </div>
                     </div>
 
-                    {/* Meta Stats */}
-                    <div className="flex items-center gap-8 text-sm opacity-60">
+                    {/* Activity Info */}
+                    <div className="flex items-center gap-6 text-sm">
                       <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg className={`w-5 h-5 ${isDark ? "text-gray-400" : "text-gray-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span className="font-normal">Last activity: 4 days ago</span>
+                        <span className={isDark ? "text-gray-400" : "text-gray-600"}>
+                          Last activity: 4 days ago
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                        <span className="font-normal">{subprogramsData.length} courses available</span>
+                      <div>
+                        <span className={isDark ? "text-gray-400" : "text-gray-600"}>
+                          {subprogramsData.length} courses available
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* 2. Subprograms Grid (Modules) */}
+              {/* Subprograms as Course Cards */}
               {subprogramsLoading ? (
-                <div className={`p-12 text-center rounded-2xl ${card}`}>
-                  <p className="opacity-40">Loading courses...</p>
+                <div className={`p-6 rounded-xl shadow ${card} text-center`}>
+                  <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading courses...</p>
                 </div>
               ) : subprogramsData.length === 0 ? (
-                <div className={`p-12 text-center rounded-2xl ${card}`}>
-                  <p className="opacity-40">No courses available.</p>
+                <div className={`p-6 rounded-xl shadow ${card} text-center`}>
+                  <p className={isDark ? "text-gray-400" : "text-gray-600"}>No courses available.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                   {subprogramsData.map((subprogram, index) => {
                     const currentSubId = studentClass?.subprogram_id || user?.chosen_subprogram;
                     const isActive = Number(subprogram.id) === Number(currentSubId);
+                    const isLocked = !isActive;
                     const progress = calculateProgress(subprogram.id);
-                    const isCompleted = progress === 100;
-                    const isLocked = !isActive && !isCompleted;
-
-                    const gradient = gradients[index % gradients.length];
                     const coursesInSub = filteredCourses.filter(c => Number(c.subprogram_id) === Number(subprogram.id));
                     const totalLessons = coursesInSub.length;
                     const completedLessons = Math.floor((progress / 100) * totalLessons);
 
+                    const gradient = gradients[index % gradients.length];
+
                     return (
                       <div
                         key={subprogram.id}
-                        onClick={() => !isLocked && router.push(`/portal/student/my-courses/${subprogram.id}`)}
-                        className={`group relative rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 ${isLocked
+                        onClick={() => {
+                          if (!isLocked) {
+                            router.push(`/portal/student/my-courses/${subprogram.id}`);
+                          }
+                        }}
+                        className={`group relative rounded-2xl overflow-hidden transition-all duration-500 border-2 ${isLocked
                           ? `${isDark ? "bg-gray-800/40 border-gray-700/50" : "bg-gray-100 border-gray-200"} grayscale opacity-80 cursor-not-allowed`
                           : `${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"} cursor-pointer hover:shadow-2xl hover:border-[#010080]/30 hover:-translate-y-2`
                           }`}
                       >
-                        {/* Top Gradient Section */}
-                        <div className={`relative h-40 flex items-center justify-center overflow-hidden bg-gradient-to-br ${gradient}`}>
+                        {/* Top Decorative Section with Icon */}
+                        <div className={`relative h-32 flex items-center justify-center overflow-hidden bg-gradient-to-br ${gradient}`}>
                           <div className="absolute inset-0 opacity-20">
                             <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/30 blur-2xl"></div>
                             <div className="absolute -left-4 -bottom-4 w-20 h-20 rounded-full bg-black/20 blur-xl"></div>
@@ -441,21 +441,25 @@ export default function MyCoursesPage() {
 
                           <div className={`relative z-10 transition-transform duration-500 ${!isLocked && "group-hover:scale-110"}`}>
                             <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-xl">
-                              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                               </svg>
                             </div>
                           </div>
 
-                          {/* Status Badge */}
-                          <div className="absolute top-5 right-5">
-                            {!isLocked ? (
-                              <div className={`px-3 py-1.5 rounded-full text-[9px] font-normal uppercase tracking-widest shadow-lg flex items-center gap-1.5 ${isCompleted ? "bg-green-500 text-white" : "bg-white text-gray-900"}`}>
-                                <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isCompleted ? "bg-white" : "bg-blue-600"}`}></div>
-                                {isCompleted ? "Completed" : "Active"}
+                          {/* Status Badges */}
+                          <div className="absolute top-4 right-4">
+                            {isActive && (
+                              <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg flex items-center gap-1.5 ${progress === 100
+                                ? "bg-green-500 text-white"
+                                : "bg-white text-[#010080]"
+                                }`}>
+                                <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${progress === 100 ? "bg-white" : "bg-[#010080]"}`}></div>
+                                {progress === 100 ? "Completed" : "Active"}
                               </div>
-                            ) : (
-                              <div className="p-2 bg-black/20 backdrop-blur-sm rounded-full border border-white/10 text-white/80">
+                            )}
+                            {isLocked && (
+                              <div className="p-1.5 bg-black/20 backdrop-blur-sm rounded-full border border-white/10 text-white/80">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
@@ -464,29 +468,32 @@ export default function MyCoursesPage() {
                           </div>
                         </div>
 
-                        {/* Card Content */}
-                        <div className="p-8">
-                          <div className="mb-6">
-                            <h4 className={`text-xl font-normal mb-2 line-clamp-1 transition-colors ${!isLocked ? (isDark ? "text-white group-hover:text-blue-400" : "text-gray-900 group-hover:text-[#010080]") : "text-gray-400"}`}>
+                        {/* Content Section */}
+                        <div className="p-6">
+                          <div className="mb-4">
+                            <h3 className={`text-xl font-bold mb-2 line-clamp-1 transition-colors ${isLocked
+                              ? (isDark ? "text-gray-500" : "text-gray-400")
+                              : (isDark ? "text-white group-hover:text-[#4F46E5]" : "text-gray-900 group-hover:text-[#010080]")
+                              }`}>
                               {subprogram.subprogram_name}
-                            </h4>
-                            <p className="text-xs font-normal opacity-40 leading-relaxed line-clamp-2">
-                              {subprogram.description || "Comprehensive module focused on master-level skills and practical applications."}
+                            </h3>
+                            <p className={`text-sm line-clamp-2 leading-relaxed ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                              {subprogram.description || "Master the concepts and build practical skills with this comprehensive course module."}
                             </p>
                           </div>
 
-                          {/* Progress bar */}
+                          {/* Progress & Lessons Info */}
                           {!isLocked && (
-                            <div className="mb-8">
-                              <div className="flex justify-between items-end mb-2">
-                                <span className="text-[10px] font-normal opacity-40 uppercase tracking-widest">
+                            <div className="space-y-3 mb-6">
+                              <div className="flex justify-between items-end text-xs font-semibold">
+                                <span className={isDark ? "text-gray-400" : "text-gray-600"}>
                                   {totalLessons > 0 ? `${completedLessons}/${totalLessons} Lessons` : "0 Lessons"}
                                 </span>
-                                <span className="text-xs font-normal text-blue-600">{progress}%</span>
+                                <span className="text-[#010080] dark:text-indigo-400">{progress}%</span>
                               </div>
-                              <div className={`h-1.5 w-full rounded-full overflow-hidden ${isDark ? "bg-gray-700" : "bg-gray-100"}`}>
+                              <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? "bg-gray-700" : "bg-gray-100"}`}>
                                 <div
-                                  className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-1000`}
+                                  className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-1000 ease-out`}
                                   style={{ width: `${progress}%` }}
                                 ></div>
                               </div>
@@ -494,21 +501,25 @@ export default function MyCoursesPage() {
                           )}
 
                           {/* Action Button */}
-                          {!isLocked ? (
+                          {isActive ? (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 router.push(`/portal/student/my-courses/${subprogram.id}`);
                               }}
-                              className={`w-full py-4 rounded-2xl font-normal text-sm transition-all duration-300 flex items-center justify-center gap-2 group/btn ${isDark ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-[#010080] text-white hover:bg-[#010080]/90"} shadow-xl`}
+                              className={`w-full group/btn relative flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all duration-300 overflow-hidden ${isDark
+                                ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                                : "bg-[#010080] text-white hover:bg-[#010080]/90 shadow-[0_4px_14px_0_rgba(1,0,128,0.39)]"
+                                }`}
                             >
-                              <span>View Course</span>
-                              <svg className="w-5 h-5 transition-transform duration-300 group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <span className="relative z-10 transition-transform duration-300 group-hover/btn:-translate-x-1">View Course</span>
+                              <svg className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                               </svg>
                             </button>
                           ) : (
-                            <div className={`w-full py-4 rounded-2xl border border-dashed font-normal text-sm flex items-center justify-center gap-2 opacity-40 ${isDark ? "border-gray-700" : "border-gray-200"}`}>
+                            <div className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-dashed font-medium text-sm transition-colors ${isDark ? "border-gray-700 text-gray-500" : "border-gray-200 text-gray-400"
+                              }`}>
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                               </svg>
@@ -523,8 +534,10 @@ export default function MyCoursesPage() {
               )}
             </div>
           )}
+        </div>
 
-          {/* My Enrolled Classes - Flat View (Always visible at bottom for all programs) */}
+        {/* My Enrolled Classes - Only visible for 8-level General program */}
+        {isGeneralProgram && (
           <div id="my-classes-section" className="mt-10 px-6 sm:px-10 pb-20">
             <div className="mb-6">
               <h2 className={`text-3xl font-normal ${isDark ? "text-white" : "text-gray-900"}`}>
@@ -649,7 +662,7 @@ export default function MyCoursesPage() {
               })()}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
