@@ -26,6 +26,7 @@ import { eventApi } from "../redux/api/eventApi.js";
 import { shiftApi } from "../redux/api/shiftApi.js";
 import { uploadApi } from "../redux/api/uploadApi.js";
 import { paymentPackageApi } from "../redux/api/paymentPackageApi.js";
+import { academicCalendarApi } from "../redux/api/academicCalendarApi.js";
 
 export const store = configureStore({
   reducer: {
@@ -56,6 +57,7 @@ export const store = configureStore({
     [shiftApi.reducerPath]: shiftApi.reducer,
     [uploadApi.reducerPath]: uploadApi.reducer,
     [paymentPackageApi.reducerPath]: paymentPackageApi.reducer,
+    [academicCalendarApi.reducerPath]: academicCalendarApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -85,6 +87,7 @@ export const store = configureStore({
       eventApi.middleware,
       shiftApi.middleware,
       uploadApi.middleware,
-      paymentPackageApi.middleware
+      paymentPackageApi.middleware,
+      academicCalendarApi.middleware
     ),
 });

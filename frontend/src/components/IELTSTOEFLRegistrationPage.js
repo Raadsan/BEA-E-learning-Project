@@ -39,8 +39,8 @@ export default function IELTSTOEFLRegistrationPage() {
     certificateInstitution: "",
     certificateDate: "",
     certificateDocument: "",
-    examBookingDate: "",
-    examBookingTime: "",
+    exam_booking_date: "",
+    exam_booking_time: "",
     termsAccepted: false,
   });
 
@@ -164,8 +164,8 @@ export default function IELTSTOEFLRegistrationPage() {
         certificate_institution: formData.certificateInstitution || null,
         certificate_date: formData.certificateDate || null,
         certificate_document: formData.certificateDocument || null,
-        exam_booking_date: formData.examBookingDate || null,
-        exam_booking_time: formData.examBookingTime || null,
+        exam_booking_date: formData.exam_booking_date || null,
+        exam_booking_time: formData.exam_booking_time || null,
         payment: {
           method: paymentMethod,
           amount: APPLICATION_FEE,
@@ -317,7 +317,13 @@ export default function IELTSTOEFLRegistrationPage() {
                     <div className="relative">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
                       <PhoneInput
-                        country="so"
+                        country={(() => {
+                          if (formData.country) {
+                            const c = Country.getAllCountries().find(c => c.name === formData.country);
+                            return c ? c.isoCode.toLowerCase() : 'us';
+                          }
+                          return 'us';
+                        })()}
                         value={formData.phone}
                         onChange={val => setFormData(prev => ({ ...prev, phone: val }))}
                         enableSearch={true}
@@ -416,7 +422,7 @@ export default function IELTSTOEFLRegistrationPage() {
                   <div className="space-y-3">
                     {/* Option 1: Certificate */}
                     <div className={`border rounded-xl transition-all ${formData.hasCertificate === 'yes' ? 'border-[#010080] ring-1 ring-[#010080]/10' : 'border-gray-200'}`}>
-                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, hasCertificate: 'yes', examBookingDate: '', examBookingTime: '' }))} className={`w-full p-4 flex items-center justify-between rounded-t-xl transition-colors ${formData.hasCertificate === 'yes' ? 'bg-[#010080] text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}>
+                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, hasCertificate: 'yes', exam_booking_date: '', exam_booking_time: '' }))} className={`w-full p-4 flex items-center justify-between rounded-t-xl transition-colors ${formData.hasCertificate === 'yes' ? 'bg-[#010080] text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}>
                         <span className="flex items-center gap-3">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           <span className="text-sm font-bold">I Have a Certificate</span>
@@ -460,22 +466,13 @@ export default function IELTSTOEFLRegistrationPage() {
                       </button>
                       {formData.hasCertificate === 'no' && (
                         <div className="p-4 border-t border-gray-100 space-y-4 bg-gray-50 rounded-b-xl">
-                          <p className="text-[11px] text-gray-500">Book a date for your assessment exam at our center.</p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Exam Date</label>
-                              <input type="date" name="examBookingDate" value={formData.examBookingDate} onChange={handleChange} className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm outline-none" required />
+                          <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                            <div className="text-blue-600 mt-0.5">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
-                            <div>
-                              <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Preferred Time</label>
-                              <select name="examBookingTime" value={formData.examBookingTime} onChange={handleChange} className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm outline-none bg-white appearance-none" required>
-                                <option value="">Select Time</option>
-                                <option value="09:00 AM">09:00 AM</option>
-                                <option value="11:00 AM">11:00 AM</option>
-                                <option value="02:00 PM">02:00 PM</option>
-                                <option value="04:00 PM">04:00 PM</option>
-                              </select>
-                            </div>
+                            <p className="text-xs text-blue-700 leading-relaxed font-medium">
+                              You will be scheduled for a proficiency test at our center. Our admissions team will contact you to confirm your assessment date and time after your registration is processed.
+                            </p>
                           </div>
                         </div>
                       )}

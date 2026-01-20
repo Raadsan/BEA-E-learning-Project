@@ -17,4 +17,25 @@ router.put('/:id', verifyToken, isAdmin, timetableController.updateEntry);
 // Delete entry (Admin only)
 router.delete('/:id', verifyToken, isAdmin, timetableController.deleteEntry);
 
+// ===== WEEKLY SCHEDULE ROUTES (for long-term programs) =====
+
+// Get weekly schedule for a subprogram (authenticated users can view)
+router.get('/weekly/:subprogramId', verifyToken, timetableController.getWeeklySchedule);
+
+// Create weekly entry (Admin only)
+router.post('/weekly', verifyToken, isAdmin, timetableController.createWeeklyEntry);
+
+// Bulk create weekly entries (Admin only)
+router.post('/weekly/bulk', verifyToken, isAdmin, timetableController.bulkCreateWeeklyEntries);
+
+// Update weekly entry (Admin only)
+router.put('/weekly/:id', verifyToken, isAdmin, timetableController.updateWeeklyEntry);
+
+// Delete weekly entry (Admin only)
+router.delete('/weekly/:id', verifyToken, isAdmin, timetableController.deleteWeeklyEntry);
+
+// Delete all weekly entries for a subprogram (Admin only)
+router.delete('/weekly/subprogram/:subprogramId', verifyToken, isAdmin, timetableController.deleteAllWeeklyBySubprogram);
+
 export default router;
+

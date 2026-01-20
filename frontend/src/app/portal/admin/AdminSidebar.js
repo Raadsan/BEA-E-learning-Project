@@ -663,10 +663,10 @@ export default function AdminSidebar({ isOpen, onClose }) {
 
 
         </ul>
-      </nav>
+      </nav >
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-blue-900 mt-auto">
+      < div className="p-4 border-t border-blue-900 mt-auto" >
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-all duration-200 font-medium"
@@ -676,7 +676,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
           </svg>
           <span>Logout</span>
         </button>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
