@@ -50,7 +50,7 @@ export default function CheckoutPage() {
     };
 
     const handlePayment = async () => {
-        if (!selectedPackage) return;
+        if (!selectedPackage || isProcessing) return;
         if (!phone) {
             showToast("Please enter your mobile number", "error");
             return;

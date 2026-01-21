@@ -1,5 +1,6 @@
 // models/teacherModel.js
 import db from "../database/dbconfig.js";
+import { generateTeacherId } from "../utils/idGenerator.js";
 
 const dbp = db.promise();
 
@@ -19,13 +20,16 @@ export const createTeacher = async ({
   hire_date,
   password
 }) => {
+  const teacher_id = await generateTeacherId();
+
   const [result] = await dbp.query(
     `INSERT INTO teachers (
-      full_name, email, phone, country, city, specialization,
+      teacher_id, full_name, email, phone, country, city, specialization,
       highest_qualification, years_experience, bio, portfolio_link,
       skills, hire_date, password
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
+      teacher_id,
       full_name,
       email,
       phone,
@@ -49,7 +53,7 @@ export const createTeacher = async ({
 // GET all teachers
 export const getAllTeachers = async () => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, status, profile_picture, created_at, updated_at FROM teachers ORDER BY created_at DESC"
+    "SELECT id, teacher_id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, status, profile_picture, created_at, updated_at FROM teachers ORDER BY created_at DESC"
   );
   return rows;
 };
@@ -57,7 +61,7 @@ export const getAllTeachers = async () => {
 // GET teacher by ID
 export const getTeacherById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, status, profile_picture, created_at, updated_at FROM teachers WHERE id = ?",
+    "SELECT id, teacher_id, full_name, email, phone, country, city, specialization, highest_qualification, years_experience, bio, portfolio_link, skills, hire_date, status, profile_picture, created_at, updated_at FROM teachers WHERE id = ?",
     [id]
   );
   return rows[0] || null;

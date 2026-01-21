@@ -1,0 +1,49 @@
+[2026-01-21T06:48:12.050Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"description":"Student Package for Feysal Mohamed","studentEmail":"feysalmaxameddahir@gmail.com"}
+[2026-01-21T06:48:12.051Z] Generated transactionId: WAAFI-1768978092051
+[2026-01-21T06:48:12.052Z] Waafi response: {"responseCode":"2001","responseMsg":"SUCCESS","serviceParams":{"status":"SUCCESS","transactionId":"SIM-WAAFI-1768978092052","referenceId":"WAAFI-1768978092051"}}
+[2026-01-21T06:48:12.053Z] Payment successful. Extending subscription...
+[2026-01-21T06:48:12.054Z] Extending subscription for feysalmaxameddahir@gmail.com, package 1
+[2026-01-21T06:52:00.102Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T06:52:00.103Z] Generated transactionId: WAAFI-1768978320103
+[2026-01-21T06:52:05.447Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T06:52:05.448Z] Generated transactionId: WAAFI-1768978325448
+[2026-01-21T06:53:10.067Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 09:53:08.568","responseId":"WAAFI-1768978325448","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65712253","description":"Customer rejected payment"}}
+[2026-01-21T06:53:10.071Z] Payment not successful. Code: 5310, Msg: RCS_USER_REJECTED
+[2026-01-21T06:59:40.559Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T06:59:40.560Z] Generated transactionId: WAAFI-1768978780560
+[2026-01-21T06:59:51.883Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 09:59:50.12","responseId":"WAAFI-1768978780560","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65712665","description":"Customer rejected payment"}}
+[2026-01-21T06:59:52.350Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T06:59:52.351Z] Generated transactionId: WAAFI-1768978792351
+[2026-01-21T07:00:57.011Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 10:00:55.586","responseId":"WAAFI-1768978792351","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65712672","description":"Customer rejected payment"}}
+[2026-01-21T07:01:08.677Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T07:01:08.678Z] Generated transactionId: WAAFI-1768978868678
+[2026-01-21T07:01:18.312Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 10:01:16.838","responseId":"WAAFI-1768978868678","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65712738","description":"Customer rejected payment"}}
+[2026-01-21T07:01:18.745Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T07:01:18.746Z] Generated transactionId: WAAFI-1768978878746
+[2026-01-21T07:02:22.916Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 10:02:21.435","responseId":"WAAFI-1768978878746","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65712748","description":"Customer rejected payment"}}
+[2026-01-21T07:11:24.350Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T07:11:24.351Z] Generated transactionId: WAAFI-1768979484351
+[2026-01-21T07:11:35.789Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 10:11:34.299","responseId":"WAAFI-1768979484351","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65713391","description":"Customer rejected payment"}}
+[2026-01-21T07:11:36.289Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T07:11:36.289Z] Generated transactionId: WAAFI-1768979496289
+[2026-01-21T07:12:40.600Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 10:12:39.16","responseId":"WAAFI-1768979496289","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65713413","description":"Customer rejected payment"}}
+[2026-01-21T07:22:35.728Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T07:22:35.729Z] Generated transactionId: WAAFI-1768980155729
+[2026-01-21T07:22:44.775Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 10:22:43.321","responseId":"WAAFI-1768980155729","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65714083","description":"Customer rejected payment"}}
+[2026-01-21T07:22:45.278Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T07:22:45.278Z] Generated transactionId: WAAFI-1768980165278
+[2026-01-21T07:23:49.386Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 10:23:47.89","responseId":"WAAFI-1768980165278","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65714087","description":"Customer rejected payment"}}
+[2026-01-21T07:29:54.749Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T07:29:54.750Z] Generated transactionId: WAAFI-1768980594750
+[2026-01-21T07:30:04.477Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 10:30:03.058","responseId":"WAAFI-1768980594750","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65714484","description":"Customer rejected payment"}}
+[2026-01-21T07:30:04.480Z] Payment not successful. Code: 5310, Msg: RCS_USER_REJECTED
+[2026-01-21T07:30:12.429Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T07:30:12.431Z] Generated transactionId: WAAFI-1768980612431
+[2026-01-21T07:30:55.958Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":1,"studentEmail":"faysalmaxameddahir@gmail.com","description":"Student Package for Feysal Mohamed"}
+[2026-01-21T07:30:55.959Z] Generated transactionId: WAAFI-1768980655959
+[2026-01-21T07:31:05.612Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 10:31:04.162","responseId":"WAAFI-1768980655959","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65714549","description":"Customer rejected payment"}}
+[2026-01-21T07:31:05.617Z] Payment not successful. Code: 5310, Msg: RCS_USER_REJECTED
+[2026-01-21T08:01:30.627Z] Incoming Waafi Request Body: {"payerPhone":"612853122","amount":10,"programId":27,"studentEmail":"faysar@gmail.com","description":"Application fee for 8-Level General English Course for Adults"}
+[2026-01-21T08:01:30.628Z] Generated transactionId: WAAFI-1768982490628
+[2026-01-21T08:01:44.102Z] Waafi response: {"schemaVersion":"1.0","timestamp":"2026-01-21 11:01:42.659","responseId":"WAAFI-1768982490628","responseCode":"5310","errorCode":"5310","responseMsg":"RCS_USER_REJECTED","params":{"orderId":"65716437","description":"Customer rejected payment"}}
+[2026-01-21T08:01:44.105Z] Payment not successful. Code: 5310, Msg: RCS_USER_REJECTED

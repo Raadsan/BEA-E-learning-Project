@@ -13,7 +13,7 @@ export const createStudent = async (data) => {
         payment_method, transaction_id, payment_amount, payer_phone
     } = data;
 
-    const student_id = await generateStudentId('IELTSTOEFL');
+    const student_id = await generateStudentId('IELTSTOEFL', chosen_program);
 
     const query = `
     INSERT INTO IELTSTOEFL (

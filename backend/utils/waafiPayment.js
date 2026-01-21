@@ -60,7 +60,7 @@ export const sendWaafiPayment = async ({ transactionId, accountNo, amount, descr
   console.log("Sending WaafiPay Payload (SIMULATED):", JSON.stringify(payload, null, 2));
 
   try {
-    /* 
+
     // REAL API CALL - Commented out for simulation
     const response = await fetch("https://api.waafipay.net/asm", {
       method: "POST",
@@ -72,12 +72,13 @@ export const sendWaafiPayment = async ({ transactionId, accountNo, amount, descr
 
     const data = await response.json().catch(() => ({}));
     return data;
-    */
+
 
     // Simulated Success Response
     return {
-      responseCode: "2001",
+      responseCode: "0000",
       responseMsg: "SUCCESS",
+      status: "SUCCESS",
       serviceParams: {
         status: "SUCCESS",
         transactionId: `SIM-WAAFI-${Date.now()}`,

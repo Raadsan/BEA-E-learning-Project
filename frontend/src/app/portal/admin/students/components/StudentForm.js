@@ -23,10 +23,43 @@ export default function StudentForm({
     isCreating,
     isUpdating,
     isUpdatingIelts,
+    isCreatingIelts,
     paymentPackages = []
 }) {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isUploadingFile, setIsUploadingFile] = useState(false);
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setIsUploadingFile(true);
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${baseUrl}/api/upload`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formDataUpload
+            });
+
+            const data = await res.json();
+            if (res.ok && data.url) {
+                setFormData(prev => ({ ...prev, certificate_document: data.url }));
+            } else {
+                alert(data.error || "Upload failed");
+            }
+        } catch (err) {
+            console.error("Upload error:", err);
+            alert("Failed to upload file");
+        } finally {
+            setIsUploadingFile(false);
+        }
+    };
 
     // Auto-calculate funding amount
     useEffect(() => {
@@ -359,6 +392,123 @@ export default function StudentForm({
                                 </div>
                             </div>
                         </div>
+
+                        {/* IELTS / TOEFL Specific Details */}
+                        {formData.chosen_program && (formData.chosen_program.toUpperCase().includes("IELTS") || formData.chosen_program.toUpperCase().includes("TOEFL")) && (
+                            <div className={`p-5 rounded-xl border-2 ${isDark ? 'bg-indigo-900/10 border-indigo-700/30' : 'bg-indigo-50/30 border-indigo-100'
+                                }`}>
+                                <h3 className={`text-lg font-bold mb-6 flex items-center gap-2 ${isDark ? 'text-indigo-400' : 'text-indigo-600'
+                                    }`}>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    IELTS / TOEFL Assessment Details
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                    <div>
+                                        <label htmlFor="verification_method" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                            }`}>
+                                            Verification Method
+                                        </label>
+                                        <select
+                                            id="verification_method"
+                                            name="verification_method"
+                                            value={formData.verification_method}
+                                            onChange={handleInputChange}
+                                            className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-indigo-500' : 'bg-white border-gray-200 text-gray-900 focus:border-indigo-600'
+                                                }`}
+                                        >
+                                            <option value="Proficiency Exam">Take Proficiency Exam</option>
+                                            <option value="Certificate">Have Certificate</option>
+                                        </select>
+                                    </div>
+
+                                    {formData.verification_method === 'Certificate' ? (
+                                        <>
+                                            <div>
+                                                <label htmlFor="certificate_institution" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                                    }`}>
+                                                    Certificate Institution
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="certificate_institution"
+                                                    name="certificate_institution"
+                                                    value={formData.certificate_institution}
+                                                    onChange={handleInputChange}
+                                                    placeholder="e.g., British Council, IDP"
+                                                    className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-indigo-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-indigo-600'
+                                                        }`}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="certificate_date" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                                    }`}>
+                                                    Certificate Date
+                                                </label>
+                                                <input
+                                                    type="date"
+                                                    id="certificate_date"
+                                                    name="certificate_date"
+                                                    value={formData.certificate_date}
+                                                    onChange={handleInputChange}
+                                                    className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-indigo-500' : 'bg-white border-gray-200 text-gray-900 focus:border-indigo-600'
+                                                        }`}
+                                                />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <label className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                                    }`}>
+                                                    Upload Certificate Document (PDF/Image)
+                                                </label>
+                                                <div className="flex items-center gap-4">
+                                                    <input
+                                                        type="file"
+                                                        id="certificate_document"
+                                                        onChange={handleFileUpload}
+                                                        accept=".pdf,image/*"
+                                                        className="hidden"
+                                                    />
+                                                    <label
+                                                        htmlFor="certificate_document"
+                                                        className={`px-4 py-2 rounded-lg cursor-pointer border-2 border-dashed transition-all flex items-center gap-2 ${isDark
+                                                            ? 'bg-gray-800 border-gray-600 text-gray-400 hover:border-indigo-500 hover:text-indigo-400'
+                                                            : 'bg-gray-50 border-gray-300 text-gray-500 hover:border-indigo-600 hover:text-indigo-600'
+                                                            }`}
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                                        </svg>
+                                                        {isUploadingFile ? "Uploading..." : formData.certificate_document ? "Change Document" : "Select File"}
+                                                    </label>
+                                                    {formData.certificate_document && (
+                                                        <span className="text-sm text-green-500 flex items-center gap-1">
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                            Uploaded: {formData.certificate_document.split('/').pop()}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="md:col-span-2">
+                                            <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-white border-gray-200 text-gray-600'}`}>
+                                                <div className="flex items-center gap-3">
+                                                    <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <p className="text-sm">
+                                                        Students opting for the **Proficiency Exam** will be contacted by the admissions team to schedule their test date and time.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Funding Information Section */}
                         <div className={`p-5 rounded-xl border-2 ${isDark ? 'bg-green-900/10 border-green-700/30' : 'bg-green-50/30 border-green-100'
@@ -762,10 +912,10 @@ export default function StudentForm({
                         </button>
                         <button
                             type="submit"
-                            disabled={isCreating || isUpdating || isUpdatingIelts}
+                            disabled={isCreating || isUpdating || isUpdatingIelts || isCreatingIelts}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isCreating || isUpdating ? "Saving..." : editingStudent ? "Update Student" : "Add Student"}
+                            {isCreating || isUpdating || isCreatingIelts ? "Saving..." : editingStudent ? "Update Student" : "Add Student"}
                         </button>
                     </div>
                 </form>

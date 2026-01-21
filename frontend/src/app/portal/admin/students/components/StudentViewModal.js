@@ -148,6 +148,54 @@ export default function StudentViewModal({
                                     </p>
                                 </div>
                             )}
+
+                            {/* IELTS/TOEFL Assessment Details */}
+                            {viewingStudent.chosen_program && (viewingStudent.chosen_program.toUpperCase().includes("IELTS") || viewingStudent.chosen_program.toUpperCase().includes("TOEFL")) && (
+                                <>
+                                    <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                                        <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                            }`}>Verification Method</label>
+                                        <p className={`text-base font-medium ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                                            {viewingStudent.verification_method || 'N/A'}
+                                        </p>
+                                    </div>
+                                    {viewingStudent.verification_method === 'Certificate' && (
+                                        <>
+                                            <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                                                <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                                    }`}>Institution</label>
+                                                <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                                                    {viewingStudent.certificate_institution || 'N/A'}
+                                                </p>
+                                            </div>
+                                            <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                                                <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                                    }`}>Certificate Date</label>
+                                                <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                                                    {viewingStudent.certificate_date ? new Date(viewingStudent.certificate_date).toLocaleDateString() : 'N/A'}
+                                                </p>
+                                            </div>
+                                            {viewingStudent.certificate_document && (
+                                                <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'} md:col-span-2`}>
+                                                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                                        }`}>Certificate Document</label>
+                                                    <a
+                                                        href={viewingStudent.certificate_document.startsWith('http') ? viewingStudent.certificate_document : `${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${viewingStudent.certificate_document}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-500 hover:text-blue-600 flex items-center gap-2 mt-1"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                        View / Download Certificate
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </>
+                            )}
                         </div>
                     </div>
 

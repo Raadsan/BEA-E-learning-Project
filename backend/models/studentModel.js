@@ -30,7 +30,7 @@ export const createStudent = async ({
   paid_until
 }) => {
   // Generate unique student ID
-  const student_id = await generateStudentId('students');
+  const student_id = await generateStudentId('students', chosen_program);
 
   const [result] = await dbp.query(
     `INSERT INTO students (

@@ -12,7 +12,8 @@ import {
     useGetIeltsToeflStudentsQuery,
     useDeleteIeltsToeflStudentMutation,
     useUpdateIeltsToeflStudentMutation,
-    useRejectIeltsToeflStudentMutation
+    useRejectIeltsToeflStudentMutation,
+    useCreateIeltsToeflStudentMutation
 } from "@/redux/api/ieltsToeflApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
@@ -56,6 +57,10 @@ export default function StudentsPage() {
         funding_status: "Paid", sponsorship_package: "",
         funding_amount: "", funding_month: "", scholarship_percentage: "",
         sponsor_name: "",
+        verification_method: "Proficiency Exam",
+        certificate_institution: "",
+        certificate_date: "",
+        certificate_document: "",
     });
 
     // API Hooks
@@ -76,6 +81,7 @@ export default function StudentsPage() {
     const [deleteIeltsStudent, { isLoading: isDeletingIelts }] = useDeleteIeltsToeflStudentMutation();
     const [updateIeltsStudent, { isLoading: isUpdatingIelts }] = useUpdateIeltsToeflStudentMutation();
     const [rejectIeltsStudent, { isLoading: isRejectingIelts }] = useRejectIeltsToeflStudentMutation();
+    const [createIeltsStudent, { isLoading: isCreatingIelts }] = useCreateIeltsToeflStudentMutation();
 
     // Helper values
     const cities = (() => {
@@ -115,6 +121,10 @@ export default function StudentsPage() {
             funding_status: "Paid", sponsorship_package: "",
             funding_amount: "", funding_month: "", scholarship_percentage: "",
             sponsor_name: "",
+            verification_method: "Proficiency Exam",
+            certificate_institution: "",
+            certificate_date: "",
+            certificate_document: "",
         });
         setIsModalOpen(true);
     };
@@ -135,6 +145,10 @@ export default function StudentsPage() {
             funding_month: student.funding_month || "",
             scholarship_percentage: student.scholarship_percentage || "",
             sponsor_name: student.sponsor_name || "",
+            verification_method: student.verification_method || "Proficiency Exam",
+            certificate_institution: student.certificate_institution || "",
+            certificate_date: student.certificate_date || "",
+            certificate_document: student.certificate_document || "",
         });
         setIsModalOpen(true);
     };
@@ -183,7 +197,25 @@ export default function StudentsPage() {
                 showToast("Student updated successfully!", "success");
             } else {
                 if (!submitData.password) { showToast("Password is required", "error"); return; }
-                await createStudent(submitData).unwrap();
+
+                const isIeltsToefl = submitData.chosen_program && (submitData.chosen_program.toUpperCase().includes("IELTS") || submitData.chosen_program.toUpperCase().includes("TOEFL"));
+
+                if (isIeltsToefl) {
+                    // Map full_name to first/last name for IELTS model
+                    const names = submitData.full_name.trim().split(" ");
+                    const first_name = names[0];
+                    const last_name = names.slice(1).join(" ") || "Student";
+
+                    await createIeltsStudent({
+                        ...submitData,
+                        first_name,
+                        last_name,
+                        exam_type: submitData.chosen_program.toUpperCase(),
+                        status: 'Pending'
+                    }).unwrap();
+                } else {
+                    await createStudent(submitData).unwrap();
+                }
                 showToast("Student created successfully!", "success");
             }
             setIsModalOpen(false);
@@ -305,9 +337,9 @@ export default function StudentsPage() {
                 showParentInfo={showParentInfo}
                 parentCities={parentCities}
                 viewingPayments={viewingPayments}
-                isCreating={isCreating}
                 isUpdating={isUpdating}
                 isUpdatingIelts={isUpdatingIelts}
+                isCreatingIelts={isCreatingIelts}
             />
             <StudentViewModal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} viewingStudent={viewingStudent} viewingPayments={viewingPayments} isDark={isDark} />
             <StudentApprovalModal isOpen={isApprovalModalOpen} onClose={() => setIsApprovalModalOpen(false)} student={studentToApprove} onApprove={handleApprove} onReject={handleReject} isApproving={isApproving} isRejecting={isRejecting} isDark={isDark} />
