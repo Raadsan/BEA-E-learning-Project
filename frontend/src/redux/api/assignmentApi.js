@@ -9,8 +9,6 @@ export const assignmentApi = createApi({
             if (token) {
                 headers.set("Authorization", `Bearer ${token}`);
             }
-            // Do NOT set Content-Type: application/json if we are sending FormData
-            // The browser will automatically set it with the correct boundary
             return headers;
         },
     }),

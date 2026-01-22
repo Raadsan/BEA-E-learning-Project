@@ -50,18 +50,31 @@ export default function UpdateTestPage({ params: paramsPromise }) {
     useEffect(() => {
         if (existingTest) {
             setTestData({
-                title: existingTest.title,
-                description: existingTest.description,
+                title: existingTest.title || "",
+                description: existingTest.description || "",
                 due_date: existingTest.due_date ? new Date(existingTest.due_date).toISOString().split('T')[0] : "",
-                class_id: existingTest.class_id,
-                program_id: existingTest.program_id,
-                total_points: existingTest.total_points,
+                class_id: existingTest.class_id || "",
+                program_id: existingTest.program_id || "",
+                total_points: existingTest.total_points || 0,
                 status: existingTest.status || "active",
                 duration: existingTest.duration || 60,
             });
-            const q = typeof existingTest.questions === 'string'
-                ? JSON.parse(existingTest.questions)
-                : (existingTest.questions || []);
+            let q;
+            try {
+                q = typeof existingTest.questions === 'string'
+                    ? JSON.parse(existingTest.questions)
+                    : (existingTest.questions || []);
+            } catch (e) {
+                q = [];
+            }
+
+            // If it's the new format (object with papers), redirect to the new editor
+            if (!Array.isArray(q)) {
+                showToast("Redirecting to Standard Exam Editor...", "info");
+                router.replace(`/portal/teacher/assessments/tests/create?id=${id}`);
+                return;
+            }
+
             setQuestions(q);
         }
     }, [existingTest]);

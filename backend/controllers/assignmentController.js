@@ -187,8 +187,14 @@ export const getAssignments = async (req, res) => {
             }
 
             if (class_id) {
-                query += ` AND a.class_id = ?`;
-                params.push(class_id);
+                // For tables that support subprogram_id, we fetch assignments for the class OR the class's subprogram (where class_id is NULL)
+                if (['tests', 'oral_assignments', 'course_work'].includes(table)) {
+                    query += ` AND (a.class_id = ? OR (a.class_id IS NULL AND a.subprogram_id = (SELECT subprogram_id FROM classes WHERE id = ?)))`;
+                    params.push(class_id, class_id);
+                } else {
+                    query += ` AND a.class_id = ?`;
+                    params.push(class_id);
+                }
             }
 
             if (program_id) {
@@ -222,7 +228,8 @@ export const createAssignment = async (req, res) => {
     try {
         const {
             title, description, class_id, program_id, subprogram_id, unit, type, due_date,
-            total_points, status, word_count, duration, submission_format, requirements, questions
+            total_points, status, word_count, duration, submission_format, requirements, questions,
+            start_date, end_date
         } = req.body;
         const userId = req.user.userId;
 
@@ -250,8 +257,61 @@ export const createAssignment = async (req, res) => {
             columns.push('word_count', 'requirements');
             values.push(word_count || null, requirements || null);
         } else if (type === 'test' || type === 'oral_assignment') {
-            columns.push('duration', 'questions');
-            values.push(duration || null, questions ? JSON.stringify(questions) : null);
+            columns.push('duration', 'questions', 'subprogram_id');
+
+            // Handle file uploads for questions (e.g., Paper 3 Listening)
+            let processedQuestions = questions ? (typeof questions === 'string' ? JSON.parse(questions) : questions) : [];
+
+            if (req.files && Array.isArray(req.files) && processedQuestions.length > 0) {
+                req.files.forEach(file => {
+                    // Check if any question expects this file based onoriginalname or fieldname
+                    // Ideally, frontend should send a mapping, but for now we can iterate
+                    // Or better, processedQuestions can have a 'temp_id' matching the file
+                    // For simplicity, let's assume we match recursively or via a flat structure if easier.
+                    // But questions is complex. Helper function needed?
+
+                    // Simple approach: Frontend tags question with "audioFileIndex".
+                    // We find that question and set "audioFile" = filename.
+
+                    const assignFile = (qList) => {
+                        qList.forEach(q => {
+                            if (q.audioFileIndex !== undefined && parseInt(q.audioFileIndex) < req.files.length) {
+                                // Only assign if it matches the current file's index in the array
+                                // Note: this relies on order. A better way is matching fieldname if possible.
+                                // But fieldname in array upload is just "files".
+
+                                // Actually better: Frontend sends `audioFileIndex` = "0", "1", etc.
+                                // And we map `req.files[index].filename`.
+                            }
+                        });
+                    };
+
+                    // Let's iterate questions and map indices
+                });
+
+                // Correct logic: Iterate questions, look for audioFileIndex
+                const updateQuestionsWithFiles = (items) => {
+                    return items.map(item => {
+                        if (item.audioFileIndex !== undefined && req.files[item.audioFileIndex]) {
+                            item.audioFile = req.files[item.audioFileIndex].filename;
+                            delete item.audioFileIndex; // cleanup
+                        }
+                        // If explicit questions array inside a paper section
+                        if (item.questions && Array.isArray(item.questions)) {
+                            item.questions = updateQuestionsWithFiles(item.questions);
+                        }
+                        return item;
+                    });
+                };
+                processedQuestions = updateQuestionsWithFiles(processedQuestions);
+            }
+
+            values.push(duration || null, JSON.stringify(processedQuestions), subprogram_id || null);
+
+            if (type === 'test') {
+                columns.push('start_date', 'end_date');
+                values.push(start_date || null, end_date || null);
+            }
         } else if (type === 'course_work') {
             columns.push('submission_format', 'questions', 'subprogram_id', 'unit');
             values.push(submission_format || null, questions ? JSON.stringify(questions) : null, subprogram_id || null, unit || null);
@@ -278,8 +338,9 @@ export const updateAssignment = async (req, res) => {
     try {
         const { id } = req.params;
         const {
-            title, description, class_id, program_id, type, due_date,
-            total_points, status, word_count, duration, submission_format, requirements, questions
+            title, description, class_id, program_id, subprogram_id, type, due_date,
+            total_points, status, word_count, duration, submission_format, requirements, questions,
+            start_date, end_date
         } = req.body;
 
         const safeStatus = (status || 'active').toLowerCase();
@@ -307,11 +368,32 @@ export const updateAssignment = async (req, res) => {
             updateParts.push('word_count = ?', 'requirements = ?');
             values.push(word_count || null, requirements || null);
         } else if (type === 'test' || type === 'oral_assignment') {
-            updateParts.push('duration = ?', 'questions = ?');
-            const processedQuestions = questions
-                ? (typeof questions === 'string' ? questions : JSON.stringify(questions))
-                : null;
-            values.push(duration || null, processedQuestions);
+            updateParts.push('duration = ?', 'questions = ?', 'subprogram_id = ?');
+
+            let processedQuestions = questions ? (typeof questions === 'string' ? JSON.parse(questions) : questions) : [];
+
+            if (req.files && Array.isArray(req.files) && processedQuestions.length > 0) {
+                const updateQuestionsWithFiles = (items) => {
+                    return items.map(item => {
+                        if (item.audioFileIndex !== undefined && req.files[item.audioFileIndex]) {
+                            item.audioFile = req.files[item.audioFileIndex].filename;
+                            delete item.audioFileIndex;
+                        }
+                        if (item.questions && Array.isArray(item.questions)) {
+                            item.questions = updateQuestionsWithFiles(item.questions);
+                        }
+                        return item;
+                    });
+                };
+                processedQuestions = updateQuestionsWithFiles(processedQuestions);
+            }
+
+            values.push(duration || null, JSON.stringify(processedQuestions), subprogram_id || null);
+
+            if (type === 'test') {
+                updateParts.push('start_date = ?', 'end_date = ?');
+                values.push(start_date || null, end_date || null);
+            }
         } else if (type === 'course_work') {
             updateParts.push('submission_format = ?', 'questions = ?');
             // Check if questions is already a string to avoid double stringification
@@ -331,7 +413,12 @@ export const updateAssignment = async (req, res) => {
         res.json({ message: "Assignment updated successfully" });
     } catch (error) {
         console.error("Error updating assignment:", error);
-        // Log more detail for debugging
+        // Debugging: Write error to file
+        try {
+            const fs = await import('fs');
+            fs.appendFileSync('error.log', new Date().toISOString() + ' - ' + JSON.stringify(error, Object.getOwnPropertyNames(error)) + '\n');
+        } catch (e) { console.error("Failed to write to log", e); }
+
         if (error.sql) console.error("Failed SQL:", error.sql);
         res.status(500).json({ error: "Failed to update assignment" });
     }

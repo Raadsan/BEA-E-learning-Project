@@ -29,30 +29,33 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    // Accept only specific document types
-    const allowedTypes = /doc|docx|pdf|txt/;
+    // Accept specific document and audio types
+    const allowedTypes = /doc|docx|pdf|txt|mp3|wav|m4a|mpeg/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype) ||
         file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-        file.mimetype === 'application/msword';
+        file.mimetype === 'application/msword' ||
+        file.mimetype.startsWith('audio/');
 
     if (extname && (mimetype || file.mimetype === 'text/plain')) {
         return cb(null, true);
     } else {
-        cb(new Error('Only .doc, .docx, .pdf, and .txt files are allowed'));
+        cb(new Error('Only docs and audio files are allowed'));
     }
 };
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for audio
     fileFilter: fileFilter
 });
 
 // Routes
 router.get("/", verifyToken, getAssignments);
-router.post('/create', verifyToken, createAssignment);
-router.put('/update/:id', verifyToken, updateAssignment);
+// Enable file upload for assignment creation (for audio in Paper 3)
+router.post('/create', verifyToken, upload.array('files'), createAssignment);
+// Enable file upload for assignment update
+router.put('/update/:id', verifyToken, upload.array('files'), updateAssignment);
 router.delete('/delete/:id', verifyToken, deleteAssignment);
 router.post('/submit', verifyToken, upload.single('file'), submitAssignment);
 router.get("/stats", verifyToken, getAssignmentStats);
