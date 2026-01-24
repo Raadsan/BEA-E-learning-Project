@@ -27,6 +27,7 @@ import materialRoutes from "./routes/materialRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import shiftRoutes from "./routes/shiftRoutes.js";
 import fileRoutes from "./routes/fileRoutes.js";
+import { startReminderWorker } from "./workers/proficiencyReminderWorker.js";
 
 const app = express();
 
@@ -138,6 +139,9 @@ app.use("/api/events", eventRoutes);
 // ⬇️ Register File Routes (Downloads)
 app.use("/api/files", fileRoutes);
 
+
+// Start Background Workers
+startReminderWorker();
 
 // Server start
 const PORT = process.env.PORT || 5000;

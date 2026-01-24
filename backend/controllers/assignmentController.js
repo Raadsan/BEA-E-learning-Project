@@ -153,9 +153,15 @@ const tableMapping = {
 // Get all assignments with filtering across one or more tables
 export const getAssignments = async (req, res) => {
     try {
-        const { class_id, program_id, type, created_by } = req.query;
+        let { class_id, program_id, subprogram_id, type, created_by } = req.query;
         const userId = req.user.userId;
         const role = req.user.role;
+
+        // Cast numeric IDs to numbers to avoid type mismatch issues in MySQL
+        if (class_id) class_id = Number(class_id);
+        if (program_id && !isNaN(Number(program_id))) program_id = Number(program_id);
+        if (subprogram_id) subprogram_id = Number(subprogram_id);
+        if (created_by) created_by = Number(created_by);
 
         // If a specific type is requested, only query that table
         // Otherwise, we'd need to UNION ALL, but for now we focus on the current UI usage
@@ -169,13 +175,20 @@ export const getAssignments = async (req, res) => {
             const subTable = tableMapping[t]?.sub;
             if (!table) continue;
 
+            // Determine join logic for subprograms based on table type
+            const hasSubprogramColumn = ['tests', 'oral_assignments', 'course_work'].includes(table);
+            const subprogramJoinCondition = hasSubprogramColumn
+                ? 'sp.id = COALESCE(a.subprogram_id, c.subprogram_id)'
+                : 'sp.id = c.subprogram_id';
+
             let query = `
-                SELECT a.*, '${t}' as type, c.class_name, p.title as program_name, t.full_name as teacher_name,
+                SELECT a.*, '${t}' as type, c.class_name, p.title as program_name, sp.subprogram_name, t.full_name as teacher_name,
                 (SELECT COUNT(*) FROM ${subTable} WHERE assignment_id = a.id) as submission_count
                 ${role === 'student' ? `, s.status as submission_status, s.content as student_content, s.score, s.feedback, s.file_url, s.feedback_file_url, s.submission_date` : ''}
                 FROM ${table} a
                 LEFT JOIN classes c ON a.class_id = c.id
                 LEFT JOIN programs p ON a.program_id = p.id
+                LEFT JOIN subprograms sp ON ${subprogramJoinCondition}
                 LEFT JOIN teachers t ON a.created_by = t.id
                 ${role === 'student' ? `LEFT JOIN ${subTable} s ON a.id = s.assignment_id AND s.student_id = ?` : ''}
                 WHERE 1=1
@@ -186,20 +199,58 @@ export const getAssignments = async (req, res) => {
                 params.push(userId);
             }
 
-            if (class_id) {
-                // For tables that support subprogram_id, we fetch assignments for the class OR the class's subprogram (where class_id is NULL)
-                if (['tests', 'oral_assignments', 'course_work'].includes(table)) {
-                    query += ` AND (a.class_id = ? OR (a.class_id IS NULL AND a.subprogram_id = (SELECT subprogram_id FROM classes WHERE id = ?)))`;
-                    params.push(class_id, class_id);
-                } else {
-                    query += ` AND a.class_id = ?`;
-                    params.push(class_id);
-                }
-            }
+            if (role === 'student' && (class_id || subprogram_id || program_id)) {
+                // For students: Show assignments for their Class OR their Subprogram OR their Program+Subprogram
+                let conditions = [];
+                let vals = [];
 
-            if (program_id) {
-                query += ` AND a.program_id = ?`;
-                params.push(program_id);
+                if (class_id) {
+                    // Existing logic for class-based assignments (direct or inherited subprogram)
+                    if (['tests', 'oral_assignments', 'course_work'].includes(table)) {
+                        conditions.push(`(a.class_id = ? OR (a.class_id IS NULL AND a.subprogram_id = (SELECT subprogram_id FROM classes WHERE id = ?)))`);
+                        vals.push(class_id, class_id);
+                    } else {
+                        conditions.push(`a.class_id = ?`);
+                        vals.push(class_id);
+                    }
+                }
+
+                // For tests/oral/coursework: match by program_id + subprogram_id OR just subprogram_id
+                if (subprogram_id && ['tests', 'oral_assignments', 'course_work'].includes(table)) {
+                    if (program_id) {
+                        // Match by both program_id AND subprogram_id (for tests created with both)
+                        conditions.push(`(a.program_id = ? AND a.subprogram_id = ? AND a.class_id IS NULL)`);
+                        vals.push(program_id, subprogram_id);
+                    } else {
+                        // Match by subprogram_id alone (for tests created with just subprogram)
+                        conditions.push(`(a.subprogram_id = ? AND a.class_id IS NULL)`);
+                        vals.push(subprogram_id);
+                    }
+                }
+
+                if (conditions.length > 0) {
+                    query += ` AND (${conditions.join(' OR ')})`;
+                    params.push(...vals);
+                }
+            } else {
+                // Admin/Teacher: Strict filtering (AND)
+                if (class_id) {
+                    if (['tests', 'oral_assignments', 'course_work'].includes(table)) {
+                        query += ` AND (a.class_id = ? OR (a.class_id IS NULL AND a.subprogram_id = (SELECT subprogram_id FROM classes WHERE id = ?)))`;
+                        params.push(class_id, class_id);
+                    } else {
+                        query += ` AND a.class_id = ?`;
+                        params.push(class_id);
+                    }
+                }
+
+                if (program_id) {
+                    query += ` AND a.program_id = ?`;
+                    params.push(program_id);
+                }
+
+                // Note: Admin/Teacher currently don't filter BY subprogram_id explicitly in this block yet, 
+                // but if they did, it would be strictly AND. We leave program_id logic here.
             }
 
             if (created_by) {
@@ -207,6 +258,8 @@ export const getAssignments = async (req, res) => {
                 params.push(created_by);
             }
 
+            console.log("Executing query:", query);
+            console.log("With params:", params);
             const [rows] = await dbp.query(query, params);
             // Inject type back since it might not be in the table itself anymore
             const rowsWithType = rows.map(r => ({ ...r, type: t }));
@@ -218,8 +271,13 @@ export const getAssignments = async (req, res) => {
 
         res.json(allAssignments);
     } catch (error) {
-        console.error("Error fetching assignments:", error);
-        res.status(500).json({ error: "Failed to fetch assignments" });
+        console.error("❌ Error fetching assignments:", error);
+        res.status(500).json({
+            error: "Failed to fetch assignments",
+            message: error.message,
+            sql: error.sql,
+            stack: error.stack
+        });
     }
 };
 

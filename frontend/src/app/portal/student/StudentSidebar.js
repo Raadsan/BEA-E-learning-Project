@@ -335,21 +335,50 @@ export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen
               </Link>
             </li>
 
-            {/* Placement / Proficiency Test (Visible to all students) */}
-            <li>
-              <Link
-                href={user?.is_ielts ? "/portal/student/proficiency-test" : "/portal/student/placement-test"}
-                className={getMenuItemClasses(user?.is_ielts ? "/portal/student/proficiency-test" : "/portal/student/placement-test")}
-                style={getActiveStyle(user?.is_ielts ? "/portal/student/proficiency-test" : "/portal/student/placement-test")}
-              >
-                <svg className={getIconClasses(user?.is_ielts ? "/portal/student/proficiency-test" : "/portal/student/placement-test")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                </svg>
-                <span className={getTextClasses(user?.is_ielts ? "/portal/student/proficiency-test" : "/portal/student/placement-test")}>
-                  {user?.is_ielts ? "Proficiency Test" : "Placement Test"}
-                </span>
-              </Link>
-            </li>
+            {/* Placement / Proficiency Test (Visible if required by program) */}
+            {(() => {
+              const prog = user?.chosen_program?.toString().toLowerCase() || "";
+              const sub = user?.chosen_subprogram_name?.toString().toLowerCase() || "";
+
+              const needsPlacement = prog.includes("general english") || prog.includes("gep") || (prog.includes("academic writing") && sub.includes("level 1"));
+              const needsProficiency = prog.includes("specific purposes") || prog.includes("esp") || prog.includes("ielts") || prog.includes("toefl") || (prog.includes("academic writing") && (sub.includes("level 2") || sub.includes("level 3")));
+
+              if (needsPlacement) {
+                return (
+                  <li>
+                    <Link
+                      href="/portal/student/placement-test"
+                      className={getMenuItemClasses("/portal/student/placement-test")}
+                      style={getActiveStyle("/portal/student/placement-test")}
+                    >
+                      <svg className={getIconClasses("/portal/student/placement-test")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                      </svg>
+                      <span className={getTextClasses("/portal/student/placement-test")}>Placement Test</span>
+                    </Link>
+                  </li>
+                );
+              }
+
+              if (needsProficiency) {
+                return (
+                  <li>
+                    <Link
+                      href="/portal/student/proficiency-test"
+                      className={getMenuItemClasses("/portal/student/proficiency-test")}
+                      style={getActiveStyle("/portal/student/proficiency-test")}
+                    >
+                      <svg className={getIconClasses("/portal/student/proficiency-test")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                      </svg>
+                      <span className={getTextClasses("/portal/student/proficiency-test")}>Proficiency Test</span>
+                    </Link>
+                  </li>
+                );
+              }
+
+              return null;
+            })()}
 
             {isApproved && (
               <>

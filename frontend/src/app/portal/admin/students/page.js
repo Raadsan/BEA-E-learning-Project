@@ -50,7 +50,7 @@ export default function StudentsPage() {
 
     // Form Data State
     const [formData, setFormData] = useState({
-        full_name: "", email: "", phone: "", age: "", sex: "Male", residency_country: "",
+        full_name: "", first_name: "", last_name: "", email: "", phone: "", age: "", sex: "Male", residency_country: "",
         residency_city: "", chosen_program: "", chosen_subprogram: "", password: "",
         confirmPassword: "", parent_name: "", parent_email: "", parent_phone: "",
         parent_relation: "", parent_res_county: "", parent_res_city: "",
@@ -104,9 +104,13 @@ export default function StudentsPage() {
             approval_status: (s.approval_status || 'pending').toLowerCase()
         })),
         ...ieltsStudents.map(s => ({
-            ...s, full_name: `${s.first_name} ${s.last_name}`, chosen_program: s.exam_type,
-            approval_status: (s.status || 'pending').toLowerCase(), original_id: s.id,
-            id: s.id, type: 'ielts', class_name: s.class_id ? classes.find(c => c.id == s.class_id)?.class_name : null
+            ...s, full_name: `${s.first_name} ${s.last_name}`,
+            chosen_program: s.chosen_program || s.exam_type,
+            approval_status: (s.status || 'pending').toLowerCase(),
+            original_id: s.student_id, // Use student_id instead of id
+            id: s.student_id,           // Consistent with regular students
+            type: 'ielts',
+            class_name: s.class_id ? classes.find(c => c.id == s.class_id)?.class_name : null
         }))
     ];
 
@@ -114,7 +118,7 @@ export default function StudentsPage() {
     const handleAddStudent = () => {
         setEditingStudent(null);
         setFormData({
-            full_name: "", email: "", phone: "", age: "", sex: "Male", residency_country: "",
+            full_name: "", first_name: "", last_name: "", email: "", phone: "", age: "", sex: "Male", residency_country: "",
             residency_city: "", chosen_program: "", chosen_subprogram: "", password: "",
             confirmPassword: "", parent_name: "", parent_email: "", parent_phone: "",
             parent_relation: "", parent_res_county: "", parent_res_city: "",
@@ -132,7 +136,10 @@ export default function StudentsPage() {
     const handleEdit = (student) => {
         setEditingStudent(student);
         setFormData({
-            full_name: student.full_name || "", email: student.email || "", phone: student.phone || "",
+            full_name: student.full_name || "",
+            first_name: student.first_name || (student.full_name ? student.full_name.split(' ')[0] : ""),
+            last_name: student.last_name || (student.full_name ? student.full_name.split(' ').slice(1).join(' ') : ""),
+            email: student.email || "", phone: student.phone || "",
             age: student.age || "", sex: student.sex || "Male", residency_country: student.residency_country || "",
             residency_city: student.residency_city || "", chosen_program: student.chosen_program || "",
             chosen_subprogram: student.chosen_subprogram || "", password: "", confirmPassword: "",
@@ -192,8 +199,15 @@ export default function StudentsPage() {
 
             if (editingStudent) {
                 const updateId = editingStudent.type === 'ielts' ? editingStudent.original_id : editingStudent.student_id;
-                if (editingStudent.type === 'ielts') await updateIeltsStudent({ id: updateId, ...submitData }).unwrap();
-                else await updateStudent({ id: updateId, ...submitData }).unwrap();
+                if (editingStudent.type === 'ielts') {
+                    const ieltsUpdateData = {
+                        ...submitData,
+                        exam_type: submitData.chosen_program ? submitData.chosen_program.toUpperCase() : undefined
+                    };
+                    await updateIeltsStudent({ id: updateId, ...ieltsUpdateData }).unwrap();
+                } else {
+                    await updateStudent({ id: updateId, ...submitData }).unwrap();
+                }
                 showToast("Student updated successfully!", "success");
             } else {
                 if (!submitData.password) { showToast("Password is required", "error"); return; }
@@ -201,15 +215,10 @@ export default function StudentsPage() {
                 const isIeltsToefl = submitData.chosen_program && (submitData.chosen_program.toUpperCase().includes("IELTS") || submitData.chosen_program.toUpperCase().includes("TOEFL"));
 
                 if (isIeltsToefl) {
-                    // Map full_name to first/last name for IELTS model
-                    const names = submitData.full_name.trim().split(" ");
-                    const first_name = names[0];
-                    const last_name = names.slice(1).join(" ") || "Student";
-
                     await createIeltsStudent({
                         ...submitData,
-                        first_name,
-                        last_name,
+                        first_name: submitData.first_name || (submitData.full_name ? submitData.full_name.split(" ")[0] : ""),
+                        last_name: submitData.last_name || (submitData.full_name ? submitData.full_name.split(" ").slice(1).join(" ") : "Student"),
                         exam_type: submitData.chosen_program.toUpperCase(),
                         status: 'Pending'
                     }).unwrap();

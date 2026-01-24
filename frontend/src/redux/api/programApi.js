@@ -5,7 +5,7 @@ export const programApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5000/api/programs",
     prepareHeaders: (headers) => {
-      headers.set("Content-Type", "application/json");
+      // Let the browser set the Content-Type for FormData (multipart/form-data)
       return headers;
     },
   }),

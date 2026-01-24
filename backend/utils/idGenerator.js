@@ -37,7 +37,7 @@ export const generateStudentId = async (tableName, programName = "") => {
     const [rows] = await dbp.query(
         `SELECT student_id FROM ${tableName} 
          WHERE student_id LIKE ? 
-         ORDER BY id DESC LIMIT 1`,
+         ORDER BY student_id DESC LIMIT 1`,
         [`${lookupPrefix}%`]
     );
 
@@ -75,7 +75,7 @@ export const generateTeacherId = async () => {
     const [rows] = await dbp.query(
         `SELECT teacher_id FROM teachers 
          WHERE teacher_id LIKE ? 
-         ORDER BY id DESC LIMIT 1`,
+         ORDER BY teacher_id DESC LIMIT 1`,
         [`${lookupPrefix}%`]
     );
 

@@ -146,23 +146,56 @@ export default function StudentForm({
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                                 {/* Row 1: Name | Email */}
-                                <div>
-                                    <label htmlFor="full_name" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                                        }`}>
-                                        Full Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="full_name"
-                                        name="full_name"
-                                        value={formData.full_name}
-                                        onChange={handleInputChange}
-                                        required
-                                        placeholder="Enter full name"
-                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
-                                            }`}
-                                    />
-                                </div>
+                                {(editingStudent?.type === 'ielts' || (formData.chosen_program && (formData.chosen_program.toUpperCase().includes("IELTS") || formData.chosen_program.toUpperCase().includes("TOEFL")))) ? (
+                                    <>
+                                        <div>
+                                            <label htmlFor="first_name" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                First Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="first_name"
+                                                name="first_name"
+                                                value={formData.first_name || ""}
+                                                onChange={handleInputChange}
+                                                required
+                                                placeholder="Enter first name"
+                                                className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'}`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="last_name" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Last Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="last_name"
+                                                name="last_name"
+                                                value={formData.last_name || ""}
+                                                onChange={handleInputChange}
+                                                required
+                                                placeholder="Enter last name"
+                                                className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'}`}
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div>
+                                        <label htmlFor="full_name" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Full Name <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="full_name"
+                                            name="full_name"
+                                            value={formData.full_name}
+                                            onChange={handleInputChange}
+                                            required
+                                            placeholder="Enter full name"
+                                            className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'}`}
+                                        />
+                                    </div>
+                                )}
                                 <div>
                                     <label htmlFor="email" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
                                         }`}>

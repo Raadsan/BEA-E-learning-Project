@@ -4,15 +4,15 @@ import db from "../database/dbconfig.js";
 const dbp = db.promise();
 
 
-export const createProgram = async ({ image, video, title, description, status, price, discount }) => {
+export const createProgram = async ({ image, video, curriculum_file, title, description, status, price, discount }) => {
   // Default status to 'active' if not provided
   const programStatus = status || 'active';
   const programPrice = price || 0.00;
   const programDiscount = discount || 0.00;
 
   const [result] = await dbp.query(
-    "INSERT INTO programs (image, video, title, description, status, price, discount) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    [image, video, title, description, programStatus, programPrice, programDiscount]
+    "INSERT INTO programs (image, video, curriculum_file, title, description, status, price, discount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    [image, video, curriculum_file, title, description, programStatus, programPrice, programDiscount]
   );
 
   const [newProgram] = await dbp.query("SELECT * FROM programs WHERE id = ?", [result.insertId]);
@@ -36,7 +36,7 @@ export const getProgramById = async (id) => {
 };
 
 // UPDATE program
-export const updateProgramById = async (id, { image, video, title, description, status, price, discount }) => {
+export const updateProgramById = async (id, { image, video, curriculum_file, title, description, status, price, discount }) => {
   // Build dynamic update query
   const updates = [];
   const values = [];
@@ -48,6 +48,10 @@ export const updateProgramById = async (id, { image, video, title, description, 
   if (video !== undefined) {
     updates.push("video = ?");
     values.push(video);
+  }
+  if (curriculum_file !== undefined) {
+    updates.push("curriculum_file = ?");
+    values.push(curriculum_file);
   }
   if (title !== undefined) {
     updates.push("title = ?");

@@ -137,7 +137,26 @@ export const updateIeltsStudent = async (req, res) => {
         } else {
             delete req.body.password;
         }
-        const affectedRows = await ieltsToeflModel.updateStudent(req.params.id, req.body);
+
+        // Define valid columns for IELTSTOEFL table to prevent "Unknown column" errors
+        const validColumns = [
+            'first_name', 'last_name', 'email', 'phone', 'age', 'sex',
+            'residency_country', 'residency_city', 'exam_type', 'verification_method',
+            'certificate_institution', 'certificate_date', 'certificate_document',
+            'exam_booking_date', 'exam_booking_time', 'status', 'password',
+            'payment_method', 'transaction_id', 'payment_amount', 'payer_phone', 'class_id',
+            'funding_status', 'funding_amount', 'funding_month', 'paid_until', 'chosen_program'
+        ];
+
+        const updateData = {};
+        Object.keys(req.body).forEach(key => {
+            if (validColumns.includes(key)) {
+                // Convert empty strings to null for optional database columns (dates, ints, etc)
+                updateData[key] = (req.body[key] === "" || req.body[key] === undefined) ? null : req.body[key];
+            }
+        });
+
+        const affectedRows = await ieltsToeflModel.updateStudent(req.params.id, updateData);
         if (affectedRows === 0) {
             return res.status(404).json({ success: false, error: "Student not found or no changes made" });
         }

@@ -7,6 +7,9 @@ import { useGetAttendanceStatsQuery } from "@/redux/api/attendanceApi";
 import { useGetLearningHoursSummaryQuery } from "@/redux/api/learningHoursApi";
 import { useGetTopStudentsQuery, useGetStudentProgressQuery } from "@/redux/api/studentApi";
 import { useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
+import { useGetProgramQuery } from "@/redux/api/programApi";
+import { useGetStudentPlacementResultsQuery } from "@/redux/api/placementTestApi";
+import { useGetStudentProficiencyResultsQuery } from "@/redux/api/proficiencyTestApi";
 import Link from "next/link";
 import UpcomingEventsList from "@/components/UpcomingEventsList";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -16,6 +19,7 @@ export default function StudentDashboard() {
     const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
     const [approvalStatus, setApprovalStatus] = useState('pending');
     const [isPaid, setIsPaid] = useState(true);
+    const [timeLeftProficiency, setTimeLeftProficiency] = useState({ hours: 24, minutes: 0 });
 
     // Fetch Attendance Stats
     const { data: attendanceStats, isLoading: attendanceLoading } = useGetAttendanceStatsQuery(
@@ -35,11 +39,159 @@ export default function StudentDashboard() {
     // Fetch Student Progress for "Continue Learning"
     const { data: progressData, isLoading: progressLoading } = useGetStudentProgressQuery();
 
-    // Fetch Subprograms to potentially recommend (For You)
     const { data: subprograms = [] } = useGetSubprogramsByProgramIdQuery(
         user?.chosen_program,
         { skip: !user?.chosen_program }
     );
+
+    // Fetch Program Details for Information/Download
+    const { data: programDetails } = useGetProgramQuery(user?.chosen_program, {
+        skip: !user?.chosen_program
+    });
+
+    // Fetch Assessment Results for Pending State
+    const { data: placementResults } = useGetStudentPlacementResultsQuery(user?.id || user?.student_id, {
+        skip: !user || approvalStatus === 'approved'
+    });
+    const { data: proficiencyResults } = useGetStudentProficiencyResultsQuery(user?.id || user?.student_id, {
+        skip: !user || approvalStatus === 'approved'
+    });
+
+    const hasCompletedPlacement = placementResults && placementResults.length > 0;
+    const hasCompletedProficiency = proficiencyResults && proficiencyResults.length > 0;
+
+    // EXACT Mapping Logic from Curriculum Image
+    const getAssessmentType = () => {
+        const prog = user?.chosen_program?.toString().toLowerCase() || "";
+        const sub = user?.chosen_subprogram_name?.toString().toLowerCase() || ""; // Assuming name is available or we check ID
+
+        // 1. Placement Test Required
+        if (prog.includes("general english") || prog.includes("gep")) return "placement";
+        if (prog.includes("academic writing") && sub.includes("level 1")) return "placement";
+
+        // 2. Proficiency Test Required
+        if (prog.includes("specific purposes") || prog.includes("esp")) return "proficiency";
+        if (prog.includes("ielts") || prog.includes("toefl")) return "proficiency";
+        if (prog.includes("academic writing") && (sub.includes("level 2") || sub.includes("level 3"))) return "proficiency";
+
+        // 3. No Test Required
+        if (prog.includes("soft skills") || prog.includes("workplace training")) return "none";
+        if (prog.includes("digital literacy") || prog.includes("virtual communication")) return "none";
+
+        // Default Fallback
+        return "none";
+    };
+
+    const assessmentType = getAssessmentType();
+
+    // Determine what to show in the pending block
+    const getPendingInfo = () => {
+        // 24-Hour Expiry Logic (with 5-minute grace period)
+        const getSafeDate = (dateStr) => {
+            if (!dateStr) return null;
+            // Ensure ISO format with Z if missing, to treat as UTC from backend
+            const isoStr = dateStr.includes('T') ? dateStr : dateStr.replace(' ', 'T');
+            const finalStr = isoStr.includes('Z') || isoStr.includes('+') ? isoStr : `${isoStr}Z`;
+            return new Date(finalStr);
+        };
+
+        const regDate = getSafeDate(user?.created_at || user?.registration_date);
+        const now = new Date();
+        const hoursSinceReg = regDate ? (now - regDate) / (1000 * 60 * 60) : 0;
+
+        // 5-minute grace period
+        const deadlineHours = 24.0833;
+        const isExpired = hoursSinceReg > deadlineHours;
+        const hoursRemaining = regDate ? Math.max(0, 24 - hoursSinceReg) : 24;
+
+        if (assessmentType === "placement") {
+            if (hasCompletedPlacement) {
+                return {
+                    title: "Placement Test Completed",
+                    description: "Thank you for completing your placement test. Our academic team is reviewing your results to assign you to the correct level.",
+                    icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
+                    type: "completed"
+                };
+            }
+            return {
+                title: "Placement Test Required",
+                description: "To finalize your registration, please complete the Official BEA Placement Test.",
+                link: "/portal/student/placement-test",
+                btnText: "Start Placement Test",
+                icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
+                type: "action"
+            };
+        }
+
+        if (assessmentType === "proficiency") {
+            if (hasCompletedProficiency) {
+                return {
+                    title: "Proficiency Test Completed",
+                    description: "Your proficiency results are under review. You will be notified once your program enrollment is finalized.",
+                    icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
+                    type: "completed"
+                };
+            }
+
+            if (isExpired) {
+                return {
+                    title: "Proficiency Test Window Expired",
+                    description: "You were required to enter the exam within 24 hours of registration. This window has now closed and you are blocked from entry. Please contact administration.",
+                    icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z",
+                    type: "blocked"
+                };
+            }
+
+            return {
+                title: `Proficiency Test Required`,
+                description: "Initial registration requires you to complete the Proficiency Test within 24 hours. Click anywhere on this banner to begin.",
+                link: "/portal/student/ielts-exam",
+                icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+                type: "action",
+                isCountdown: true
+            };
+        }
+
+        // Default Pending Case
+        return {
+            title: "Registration Pending Approval",
+            description: "Thank you for registering! Your account is currently under review by our administrators. You will have full access once approved.",
+            icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+            type: "pending"
+        };
+    };
+
+    // Proficiency Countdown Timer
+    useEffect(() => {
+        if (assessmentType === 'proficiency' && !hasCompletedProficiency) {
+            const updateTimer = () => {
+                const getSafeDate = (dateStr) => {
+                    if (!dateStr) return null;
+                    const isoStr = dateStr.includes('T') ? dateStr : dateStr.replace(' ', 'T');
+                    const finalStr = isoStr.includes('Z') || isoStr.includes('+') ? isoStr : `${isoStr}Z`;
+                    return new Date(finalStr);
+                };
+
+                const regDate = getSafeDate(user?.created_at || user?.registration_date);
+                if (!regDate) return;
+
+                const now = new Date();
+                const diffMs = (24 * 60 * 60 * 1000) - (now - regDate);
+                const totalMinutes = Math.max(0, Math.floor(diffMs / (1000 * 60)));
+
+                setTimeLeftProficiency({
+                    hours: Math.floor(totalMinutes / 60),
+                    minutes: totalMinutes % 60
+                });
+            };
+
+            updateTimer();
+            const interval = setInterval(updateTimer, 30000); // Update every 30s
+            return () => clearInterval(interval);
+        }
+    }, [user, assessmentType, hasCompletedProficiency]);
+
+    const pendingInfo = getPendingInfo();
 
     useEffect(() => {
         if (user && user.approval_status) {
@@ -112,63 +264,51 @@ export default function StudentDashboard() {
                     {approvalStatus !== 'approved' && (
                         <div className="mt-4">
                             <div
-                                className={`p-4 rounded-lg flex items-start gap-3 ${approvalStatus === "pending" || approvalStatus === "Pending"
-                                    ? isDark
-                                        ? "bg-blue-900/30 border border-blue-700"
-                                        : "bg-blue-50 border border-blue-200"
-                                    : isDark
-                                        ? "bg-red-900/30 border border-red-700"
-                                        : "bg-red-50 border border-red-200"
+                                onClick={() => pendingInfo.link && router.push(pendingInfo.link)}
+                                className={`p-5 rounded-2xl flex items-start gap-4 transition-all ${pendingInfo.type === 'action'
+                                    ? isDark ? 'bg-blue-600/10 border-2 border-blue-500/50 hover:bg-blue-600/20 cursor-pointer' : 'bg-blue-50 border-2 border-blue-100 hover:bg-blue-100 cursor-pointer'
+                                    : pendingInfo.type === 'blocked'
+                                        ? 'bg-red-600/10 border-2 border-red-500/50'
+                                        : isDark ? 'bg-gray-800/50 border border-gray-700' : 'bg-gray-50 border border-gray-100'
                                     }`}
                             >
-                                <svg
-                                    className={`w-8 h-8 ${approvalStatus === "pending" || approvalStatus === "Pending"
-                                        ? "text-blue-600"
-                                        : "text-red-600"
-                                        }`}
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d={
-                                            approvalStatus === "pending" || approvalStatus === "Pending"
-                                                ? "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                : "M6 18L18 6M6 6l12 12"
-                                        }
-                                    />
-                                </svg>
-                                <div className="flex-1">
-                                    <h2 className={`text-base font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-                                        {approvalStatus === "pending" || approvalStatus === "Pending"
-                                            ? "Your registration is pending approval"
-                                            : "Account access is restricted"}
-                                    </h2>
-                                    <p className={`text-sm mt-1 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
-                                        {user?.is_ielts ? (
-                                            user.verification_method === 'Certificate' ? (
-                                                "Thank you for uploading your certificate. Our academic team is currently verifying it. You will be notified once your placement is confirmed."
-                                            ) : (
-                                                <div className="space-y-3">
-                                                    <p>You have selected to take a proficiency exam. Please complete the assessment to finalize your registration.</p>
-                                                    <Link href="/portal/student/ielts-exam" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-bold">
-                                                        Start Proficiency Exam
-                                                    </Link>
-                                                </div>
-                                            )
-                                        ) : (
-                                            approvalStatus === "pending" || approvalStatus === "Pending"
-                                                ? "Thank you for registering! Your account is under review by our administrators. You will be notified once it has been approved and full features are unlocked."
-                                                : "Your registration has been reviewed. Please contact the administration team for more information about your account status."
-                                        )}
-                                    </p>
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${pendingInfo.type === 'action' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                                    : pendingInfo.type === 'blocked' ? 'bg-red-600 text-white shadow-lg shadow-red-500/30'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
+                                    }`}>
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={pendingInfo.icon} />
+                                    </svg>
                                 </div>
+                                <div className="flex-1 pr-4">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h2 className={`text-lg font-bold ${pendingInfo.type === 'blocked' ? 'text-red-500' : isDark ? "text-white" : "text-gray-900"} mb-1`}>
+                                                {pendingInfo.title}
+                                            </h2>
+                                            <p className={`text-sm font-medium leading-relaxed ${pendingInfo.type === 'blocked' ? 'text-red-400' : isDark ? "text-gray-300" : "text-gray-600"}`}>
+                                                {pendingInfo.description}
+                                            </p>
+                                        </div>
+                                        {pendingInfo.isCountdown && (
+                                            <div className="text-right">
+                                                <div className={`text-2xl font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                                    {timeLeftProficiency.hours}h {timeLeftProficiency.minutes}m
+                                                </div>
+                                                <div className="text-[10px] font-bold uppercase tracking-widest opacity-40">Time Left to Enter</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                {pendingInfo.type === 'completed' && (
+                                    <div className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest self-center">
+                                        Submitted
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
+
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -299,6 +439,42 @@ export default function StudentDashboard() {
 
                     {/* Right Sidebar */}
                     <div className="space-y-6">
+                        {/* Program Curriculum Download Section */}
+                        {programDetails?.curriculum_file && (
+                            <div className={`p-6 rounded-2xl border transition-all shadow-md ${isDark ? 'bg-blue-900/10 border-blue-800' : 'bg-blue-50 border-blue-200'
+                                }`}>
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isDark ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-600 text-white'
+                                            }`}>
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className={`text-sm font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
+                                            Program Curriculum
+                                        </h3>
+                                    </div>
+                                    <p className={`text-xs font-medium leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                                        Download the official program guide and curriculum for {programDetails.title}.
+                                    </p>
+                                    <a
+                                        href={`http://localhost:5000${programDetails.curriculum_file}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${isDark
+                                            ? 'bg-blue-600 text-white hover:bg-blue-500'
+                                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                                            }`}
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        Download Program Guide
+                                    </a>
+                                </div>
+                            </div>
+                        )}
                         {/* Attendance Chart */}
                         <div className={`rounded-xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
                             <div className="flex items-center justify-between mb-4">
@@ -335,7 +511,7 @@ export default function StudentDashboard() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

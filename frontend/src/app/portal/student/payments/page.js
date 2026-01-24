@@ -5,6 +5,7 @@ import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useGetStudentPaymentsQuery } from "@/redux/api/paymentApi";
+import Loader from "@/components/Loader";
 
 // Icon Components for consistent look
 const IconDollar = () => (
@@ -147,12 +148,7 @@ export default function StudentPaymentsPage() {
   if (userLoading || paymentsLoading) {
     return (
       <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col items-center justify-center h-[40vh]">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-xs font-bold tracking-wide opacity-50 uppercase">Loading Records...</p>
-          </div>
-        </div>
+        <Loader fullPage />
       </div>
     );
   }

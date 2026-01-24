@@ -31,6 +31,8 @@ export default function AssignmentManager({ type, title, description }) {
     const [gradingSubmission, setGradingSubmission] = useState(null);
     const [gradeData, setGradeData] = useState({ score: "", feedback: "" });
     const [feedbackFile, setFeedbackFile] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
 
     // Scroll Lock when Modal is open
     useEffect(() => {
@@ -169,14 +171,19 @@ export default function AssignmentManager({ type, title, description }) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleDeleteClick = async (id) => {
-        if (window.confirm("Are you sure you want to delete this?")) {
-            try {
-                await deleteAssignment({ id, type }).unwrap();
-                showToast("Assignment deleted successfully", "success");
-            } catch (err) {
-                showToast("Failed to delete", "error");
-            }
+    const handleDeleteClick = (id) => {
+        setDeleteId(id);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await deleteAssignment({ id: deleteId, type }).unwrap();
+            showToast("Assignment deleted successfully", "success");
+            setShowDeleteModal(false);
+            setDeleteId(null);
+        } catch (err) {
+            showToast("Failed to delete", "error");
         }
     };
 
@@ -346,9 +353,19 @@ export default function AssignmentManager({ type, title, description }) {
                 render: (row) => (
                     <div className="flex flex-col">
                         <span className="font-semibold text-gray-900 dark:text-white">{row.title}</span>
-                        <span className="text-[11px] text-gray-500 uppercase">{row.class_name}</span>
+                        <span className="text-[11px] text-gray-500 uppercase">{row.class_name || "General"}</span>
                     </div>
                 )
+            },
+            {
+                key: "program",
+                label: "Program",
+                render: (row) => <span className="text-sm opacity-80">{row.program_name || "N/A"}</span>
+            },
+            {
+                key: "subprogram",
+                label: "Subprogram",
+                render: (row) => <span className="text-sm opacity-80">{row.subprogram_name || "N/A"}</span>
             },
         ];
 
@@ -360,12 +377,22 @@ export default function AssignmentManager({ type, title, description }) {
 
         baseColumns.push(
             {
-                label: "Due Date",
-                render: (row) => (
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {row.due_date ? new Date(row.due_date).toLocaleDateString() : "N/A"}
-                    </span>
-                )
+                label: "Date Range/Due",
+                render: (row) => {
+                    const start = row.start_date ? new Date(row.start_date).toLocaleDateString() : null;
+                    const end = row.end_date ? new Date(row.end_date).toLocaleDateString() : null;
+                    const due = row.due_date ? new Date(row.due_date).toLocaleDateString() : null;
+
+                    if (start && end) {
+                        return (
+                            <div className="flex flex-col">
+                                <span className="text-xs font-semibold text-gray-500">From: {start}</span>
+                                <span className="text-xs font-semibold text-gray-500">To: {end}</span>
+                            </div>
+                        );
+                    }
+                    return <span className="text-sm text-gray-600 dark:text-gray-400">{due || "N/A"}</span>;
+                }
             },
             {
                 label: "Points",
@@ -388,13 +415,13 @@ export default function AssignmentManager({ type, title, description }) {
                     <div className="flex gap-2">
                         <button
                             onClick={() => handleStatusToggle(row)}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${row.status === 'inactive'
-                                ? 'bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 hover:bg-amber-200'
-                                : 'bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800 hover:bg-emerald-200'
+                            className={`p-1.5 rounded-lg transition-all ${row.status === 'inactive'
+                                ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20'
+                                : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
                                 }`}
+                            title={row.status === 'inactive' ? "Activate" : "Deactivate"}
                         >
-                            <div className={`w-2 h-2 rounded-full animate-pulse ${row.status === 'inactive' ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
-                            {row.status || 'active'}
+                            <div className={`w-3 h-3 rounded-full ${row.status === 'inactive' ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
                         </button>
                         <button
                             onClick={() => handleViewSubmissions(row)}
@@ -551,13 +578,18 @@ export default function AssignmentManager({ type, title, description }) {
                                         <div
                                             key={assignment.id}
                                             onClick={() => handleViewSubmissions(assignment)}
-                                            className={`p-5 rounded-xl border transition-all cursor-pointer flex flex-col hover:shadow-md ${isDark ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-blue-300'}`}
+                                            className={`relative p-5 rounded-xl border transition-all cursor-pointer flex flex-col hover:shadow-md ${isDark ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-blue-300'}`}
                                         >
-                                            {/* Header */}
-                                            <div className="flex justify-between items-start mb-3 gap-2">
-                                                <span className={`text-xs font-bold uppercase tracking-wide opacity-60 truncate ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                    {assignment.class_name}
-                                                </span>
+                                            {/* 1. Exam Name/Title */}
+                                            <div className="flex justify-between items-start mb-4 gap-3">
+                                                <div className="flex flex-col gap-1 w-full">
+                                                    <span className={`text-[10px] uppercase font-bold tracking-wide opacity-50 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                        {assignment.class_name || "General"}
+                                                    </span>
+                                                    <h3 className={`text-lg font-bold leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                                        {assignment.title}
+                                                    </h3>
+                                                </div>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleStatusToggle(assignment); }}
                                                     className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${assignment.status === 'inactive'
@@ -569,49 +601,70 @@ export default function AssignmentManager({ type, title, description }) {
                                                 </button>
                                             </div>
 
-                                            {/* Title */}
-                                            <h3 className={`text-lg font-bold mb-3 line-clamp-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                                {assignment.title}
-                                            </h3>
-
-                                            {/* Meta Info */}
-                                            <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
-                                                <div className={`flex items-center gap-2 text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                                    <span>{assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : 'No Due Date'}</span>
+                                            {/* 2. Program | Subprogram (Parallel) */}
+                                            <div className="grid grid-cols-2 gap-4 mb-3 pb-3 border-b border-gray-100 dark:border-gray-700/50">
+                                                <div className="flex flex-col">
+                                                    <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Program</span>
+                                                    <span className={`text-sm font-semibold truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                        {assignment.program_name || "N/A"}
+                                                    </span>
                                                 </div>
-                                                <div className="flex items-center justify-between text-xs">
-                                                    <div className={`flex items-center gap-2 font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                                                        <span>{assignment.total_points} Points</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md">
-                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                                                        <span>{assignment.submission_count || 0}</span>
-                                                    </div>
+                                                <div className="flex flex-col">
+                                                    <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Subprogram</span>
+                                                    <span className={`text-sm font-semibold truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                        {assignment.subprogram_name || "N/A"}
+                                                    </span>
                                                 </div>
                                             </div>
 
-                                            {/* Action Buttons */}
-                                            <div className="flex gap-3 mt-5">
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleEditClick(assignment); }}
-                                                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 hover:shadow-sm text-gray-700'}`}
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleDeleteClick(assignment.id); }}
-                                                    className="flex-1 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 hover:shadow-md hover:shadow-red-900/20 text-white text-sm font-semibold transition-all flex items-center justify-center gap-2"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                    Delete
-                                                </button>
+                                            {/* 3. Start Date | End Date (Parallel) */}
+                                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                                <div className="flex flex-col">
+                                                    <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Start Date</span>
+                                                    <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                        {assignment.start_date ? new Date(assignment.start_date).toLocaleDateString() : (assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : 'N/A')}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>End Date</span>
+                                                    <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                        {assignment.end_date ? new Date(assignment.end_date).toLocaleDateString() : 'N/A'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* 4. Points & Actions */}
+                                            <div className="mt-auto pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                                                <div className="flex flex-col">
+                                                    <span className={`text-[10px] uppercase font-bold opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Points</span>
+                                                    <span className={`font-bold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{assignment.total_points}</span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md text-xs mr-2">
+                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                                        <span>{assignment.submission_count || 0}</span>
+                                                    </div>
+
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleEditClick(assignment); }}
+                                                        className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                        title="Edit"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleDeleteClick(assignment.id); }}
+                                                        className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                        title="Delete"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -1121,6 +1174,39 @@ export default function AssignmentManager({ type, title, description }) {
                         </div>
                     )}
                 </div>
+                {/* Delete Confirmation Modal */}
+                {showDeleteModal && (
+                    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
+                        <div className={`relative w-full max-w-md p-6 rounded-2xl shadow-2xl transform transition-all scale-100 ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
+                            <div className="text-center">
+                                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
+                                    <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-lg font-bold mb-2">Delete Assignment?</h3>
+                                <p className="text-sm opacity-70 mb-6">
+                                    Are you sure you want to delete this assignment? This action cannot be undone.
+                                </p>
+                                <div className="flex gap-3 justify-center">
+                                    <button
+                                        onClick={() => setShowDeleteModal(false)}
+                                        className={`px-5 py-2.5 rounded-xl font-medium transition-colors ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={confirmDelete}
+                                        className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium shadow-lg shadow-red-600/20 transition-all active:scale-95"
+                                    >
+                                        Yes, Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main >
         </div >
     );

@@ -15,10 +15,11 @@ export const assignmentApi = createApi({
     tagTypes: ["Assignments"],
     endpoints: (builder) => ({
         getAssignments: builder.query({
-            query: ({ program_id, class_id, type, created_by } = {}) => {
+            query: ({ program_id, class_id, subprogram_id, type, created_by } = {}) => {
                 const params = new URLSearchParams();
                 if (program_id) params.append("program_id", program_id);
                 if (class_id) params.append("class_id", class_id);
+                if (subprogram_id) params.append("subprogram_id", subprogram_id);
                 if (type) params.append("type", type);
                 if (created_by) params.append("created_by", created_by);
                 return `/?${params.toString()}`;

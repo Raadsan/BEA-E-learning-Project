@@ -30,8 +30,14 @@ const fileFilter = (req, file, cb) => {
     cb(null, true);
   } else if (file.mimetype.startsWith("video/")) {
     cb(null, true);
+  } else if (
+    file.mimetype === "application/pdf" ||
+    file.mimetype === "application/msword" ||
+    file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) {
+    cb(null, true);
   } else {
-    cb(new Error("Only image or video files allowed"), false);
+    cb(new Error("Only images, videos, PDF, or Word documents are allowed"), false);
   }
 };
 

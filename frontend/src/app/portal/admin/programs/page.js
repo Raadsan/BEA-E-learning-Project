@@ -30,7 +30,7 @@ export default function ProgramsPage() {
   });
 
   const [formData, setFormData] = useState({
-    title: "", description: "", status: "active", image: null, video: null, price: "", discount: "",
+    title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "",
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
@@ -44,11 +44,12 @@ export default function ProgramsPage() {
     ...program,
     image: program.image ? `http://localhost:5000${program.image}` : null,
     video: program.video ? `http://localhost:5000${program.video}` : null,
+    curriculum_file: program.curriculum_file ? `http://localhost:5000${program.curriculum_file}` : null,
   })) || [];
 
   const handleAddProgram = () => {
     setEditingProgram(null);
-    setFormData({ title: "", description: "", status: "active", image: null, video: null, price: "", discount: "" });
+    setFormData({ title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "" });
     setImagePreview(null); setVideoPreview(null);
     setIsModalOpen(true);
   };
@@ -57,7 +58,8 @@ export default function ProgramsPage() {
     setEditingProgram(program);
     setFormData({
       title: program.title || "", description: program.description || "",
-      status: program.status || "active", image: null, video: null,
+      status: program.status || "active", image: null, video: null, curriculum: null,
+      curriculum_file: program.curriculum_file || null,
       price: program.price || "", discount: program.discount || "",
     });
     setImagePreview(program.image || null); setVideoPreview(program.video || null);
@@ -78,7 +80,7 @@ export default function ProgramsPage() {
           setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "blue" });
         } catch (error) {
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
-          alert("Failed to update status.");
+          console.error("Failed to update status:", error);
         }
       },
       isLoading: false, confirmButtonColor: "blue"
@@ -95,7 +97,7 @@ export default function ProgramsPage() {
           setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "red" });
         } catch (error) {
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
-          alert("Failed to delete program.");
+          console.error("Failed to delete program:", error);
         }
       },
       isLoading: false, confirmButtonColor: "red"
@@ -107,7 +109,7 @@ export default function ProgramsPage() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false); setEditingProgram(null);
-    setFormData({ title: "", description: "", status: "active", image: null, video: null, price: "", discount: "" });
+    setFormData({ title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "" });
     setImagePreview(null); setVideoPreview(null);
   };
 
@@ -138,6 +140,7 @@ export default function ProgramsPage() {
       if (!editingProgram || formData.status !== editingProgram.status) submitFormData.append("status", formData.status);
       if (formData.image) submitFormData.append("image", formData.image);
       if (formData.video) submitFormData.append("video", formData.video);
+      if (formData.curriculum) submitFormData.append("curriculum", formData.curriculum);
       submitFormData.append("price", formData.price || 0);
       submitFormData.append("discount", formData.discount || 0);
 
@@ -148,7 +151,7 @@ export default function ProgramsPage() {
         await createProgram(submitFormData).unwrap();
       }
       handleCloseModal();
-    } catch (error) { alert("Failed to save program."); }
+    } catch (error) { console.error("Failed to save program:", error); }
   };
 
   const columns = [

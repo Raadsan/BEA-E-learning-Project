@@ -6,7 +6,7 @@ import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from "@/redux/api
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useToast } from "@/components/Toast";
 
-import StudentTestWorkspace from "./StudentTestWorkspace";
+import StudentTestWorkspace from "../tests/components/StudentTestWorkspace";
 
 export default function StudentAssignmentList({ type, title }) {
     const { isDark } = useDarkMode();
@@ -14,8 +14,10 @@ export default function StudentAssignmentList({ type, title }) {
     const { data: user } = useGetCurrentUserQuery();
     const { data: assignments, isLoading } = useGetAssignmentsQuery({
         class_id: user?.class_id,
+        program_id: user?.chosen_program,
+        subprogram_id: user?.chosen_subprogram,
         type: type
-    }, { skip: !user?.class_id });
+    }, { skip: !user });
 
     const [submitAssignment] = useSubmitAssignmentMutation();
 

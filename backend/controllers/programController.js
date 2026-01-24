@@ -10,11 +10,13 @@ export const createProgram = async (req, res) => {
     // Process uploaded files
     const files = req.files || [];
 
-    // Main program image and video
+    // Main program image, video and curriculum file
     const imageFile = files.find(f => f.fieldname === 'image');
     const videoFile = files.find(f => f.fieldname === 'video');
+    const curriculumFile = files.find(f => f.fieldname === 'curriculum');
     const image = imageFile ? `/uploads/${imageFile.filename}` : null;
     const video = videoFile ? `/uploads/${videoFile.filename}` : null;
+    const curriculum_file = curriculumFile ? `/uploads/${curriculumFile.filename}` : null;
 
     // Handle both JSON and multipart/form-data
     let title, description, status, price, discount;
@@ -41,6 +43,7 @@ export const createProgram = async (req, res) => {
     const program = await Program.createProgram({
       image,
       video,
+      curriculum_file,
       title,
       description,
       status,
@@ -92,9 +95,10 @@ export const updateProgram = async (req, res) => {
     // Process uploaded files
     const files = req.files || [];
 
-    // Main program image and video
+    // Main program image, video and curriculum file
     const imageFile = files.find(f => f.fieldname === 'image');
     const videoFile = files.find(f => f.fieldname === 'video');
+    const curriculumFile = files.find(f => f.fieldname === 'curriculum');
 
     // DELETE OLD IMAGE IF NEW ONE COMES
     if (imageFile && existing.image) {
@@ -110,8 +114,16 @@ export const updateProgram = async (req, res) => {
       if (fs.existsSync(oldVideoPath)) fs.unlinkSync(oldVideoPath);
     }
 
+    // DELETE OLD CURRICULUM IF NEW ONE COMES
+    if (curriculumFile && existing.curriculum_file) {
+      const rel = existing.curriculum_file.replace(/^[/\\]+/, "");
+      const oldCurriculumPath = path.join(process.cwd(), rel);
+      if (fs.existsSync(oldCurriculumPath)) fs.unlinkSync(oldCurriculumPath);
+    }
+
     const image = imageFile ? `/uploads/${imageFile.filename}` : undefined;
     const video = videoFile ? `/uploads/${videoFile.filename}` : undefined;
+    const curriculum_file = curriculumFile ? `/uploads/${curriculumFile.filename}` : undefined;
 
     // Handle both JSON and multipart/form-data
     let title, description, status, price, discount;
@@ -134,6 +146,7 @@ export const updateProgram = async (req, res) => {
     await Program.updateProgramById(id, {
       image,
       video,
+      curriculum_file,
       title,
       description,
       status,
@@ -175,6 +188,13 @@ export const deleteProgram = async (req, res) => {
       const rel = existing.video.replace(/^[/\\]+/, "");
       const videoPath = path.join(process.cwd(), rel);
       if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
+    }
+
+    // DELETE CURRICULUM
+    if (existing.curriculum_file) {
+      const rel = existing.curriculum_file.replace(/^[/\\]+/, "");
+      const currPath = path.join(process.cwd(), rel);
+      if (fs.existsSync(currPath)) fs.unlinkSync(currPath);
     }
 
     await Program.deleteProgramById(id);
