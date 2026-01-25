@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 const DEFAULT_MIN_COLUMN_WIDTH = "120px";
 
-const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true, customActions, emptyMessage }) => {
+const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true, customActions, emptyMessage, customHeaderLeft }) => {
   const tableRef = useRef(null);
   const [hasHorizontalScroll, setHasHorizontalScroll] = useState(false);
 
@@ -89,7 +89,8 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                 </option>
               ))}
             </select>
-            <span className="text-sm text-gray-600 dark:text-gray-300 ml-1"> entries</span>
+            <span className="text-sm text-gray-600 dark:text-gray-300 ml-1 mr-4"> entries</span>
+            {customHeaderLeft}
           </div>
           <input
             type="text"

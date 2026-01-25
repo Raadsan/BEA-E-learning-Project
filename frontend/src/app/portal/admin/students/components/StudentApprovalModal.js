@@ -8,7 +8,10 @@ export default function StudentApprovalModal({
     onReject,
     isApproving,
     isRejecting,
-    isDark
+    isDark,
+    classes = [],
+    selectedClassId,
+    setSelectedClassId
 }) {
     if (!isOpen || !student) return null;
 
@@ -54,6 +57,25 @@ export default function StudentApprovalModal({
                         }`}>
                         <p>Give him approve or reject for this student application.</p>
                     </div>
+
+                    {/* Class Selection Dropdown (Added for integrated approval) */}
+                    {onApprove && setSelectedClassId && (
+                        <div className="mb-6 space-y-2">
+                            <label className={`block text-xs font-bold uppercase tracking-widest ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Assign to Class (Optional)
+                            </label>
+                            <select
+                                value={selectedClassId || ""}
+                                onChange={(e) => setSelectedClassId(e.target.value)}
+                                className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                            >
+                                <option value="">No Class Assigned</option>
+                                {classes.map(cls => (
+                                    <option key={cls.id} value={cls.id}>{cls.class_name} ({cls.program_name})</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     <div className="flex gap-3">
                         <button

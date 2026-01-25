@@ -26,6 +26,7 @@ import StudentApprovalModal from "./components/StudentApprovalModal";
 import SubprogramsModal from "./components/SubprogramsModal";
 import AssignClassModal from "./components/AssignClassModal";
 import AssignSubprogramModal from "./components/AssignSubprogramModal";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 export default function StudentsPage() {
     const { isDark } = useDarkMode();
@@ -38,6 +39,8 @@ export default function StudentsPage() {
     const [isAssignSubprogramModalOpen, setIsAssignSubprogramModalOpen] = useState(false);
     const [isAssignClassModalOpen, setIsAssignClassModalOpen] = useState(false);
     const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [studentToDelete, setStudentToDelete] = useState(null);
 
     // Selection States
     const [selectedProgramForSubprograms, setSelectedProgramForSubprograms] = useState(null);
@@ -235,10 +238,23 @@ export default function StudentsPage() {
         const targetStudent = student || studentToApprove;
         if (!targetStudent) return;
         try {
-            if (targetStudent.type === 'ielts') await updateIeltsStudent({ id: targetStudent.original_id, status: 'approved' }).unwrap();
-            else await approveStudent(targetStudent.id).unwrap();
+            if (targetStudent.type === 'ielts') {
+                if (selectedClassId) {
+                    await updateIeltsStudent({ id: targetStudent.original_id, class_id: selectedClassId, status: 'approved' }).unwrap();
+                } else {
+                    await updateIeltsStudent({ id: targetStudent.original_id, status: 'approved' }).unwrap();
+                }
+            } else {
+                if (selectedClassId) {
+                    await updateStudent({ id: targetStudent.id, class_id: selectedClassId, approval_status: 'approved' }).unwrap();
+                } else {
+                    await approveStudent(targetStudent.id).unwrap();
+                }
+            }
             showToast("Student approved!", "success");
             setIsApprovalModalOpen(false);
+            setStudentToApprove(null);
+            setSelectedClassId(""); // Reset selection
             refetch(); refetchIelts();
         } catch (error) { showToast("Failed to approve.", "error"); }
     };
@@ -255,16 +271,30 @@ export default function StudentsPage() {
         } catch (error) { showToast("Failed to reject.", "error"); }
     };
 
-    const handleDelete = async (id) => {
-        const studentToDelete = mergedStudents.find(s => s.id === id);
+    const handleDeleteClick = (id) => {
+        const student = mergedStudents.find(s => s.id === id);
+        if (student) {
+            setStudentToDelete(student);
+            setIsDeleteModalOpen(true);
+        }
+    };
+
+    const handleConfirmDelete = async () => {
         if (!studentToDelete) return;
-        if (window.confirm("Are you sure?")) {
-            try {
-                if (studentToDelete.type === 'ielts') await deleteIeltsStudent(studentToDelete.original_id).unwrap();
-                else await deleteStudent(id).unwrap();
-                showToast("Deleted successfully!", "success");
-                refetch(); refetchIelts();
-            } catch (error) { showToast("Failed to delete.", "error"); }
+
+        try {
+            if (studentToDelete.type === 'ielts') {
+                await deleteIeltsStudent(studentToDelete.original_id).unwrap();
+            } else {
+                await deleteStudent(studentToDelete.id).unwrap();
+            }
+            showToast("Deleted successfully!", "success");
+            refetch();
+            refetchIelts();
+            setIsDeleteModalOpen(false);
+            setStudentToDelete(null);
+        } catch (error) {
+            showToast("Failed to delete.", "error");
         }
     };
 
@@ -317,7 +347,7 @@ export default function StudentsPage() {
                     <button onClick={() => handleView(row)} className="text-green-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
                     <button onClick={() => handleEdit(row)} className="text-blue-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
                     {/* <button onClick={() => { setAssigningStudent(row); setSelectedClassId(row.class_id || ""); setIsAssignClassModalOpen(true); }} className="text-indigo-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></button> */}
-                    <button onClick={() => handleDelete(row.id)} className="text-red-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                    <button onClick={() => handleDeleteClick(row.id)} className="text-red-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                 </div>
             ),
         },
@@ -351,10 +381,33 @@ export default function StudentsPage() {
                 isCreatingIelts={isCreatingIelts}
             />
             <StudentViewModal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} viewingStudent={viewingStudent} viewingPayments={viewingPayments} isDark={isDark} />
-            <StudentApprovalModal isOpen={isApprovalModalOpen} onClose={() => setIsApprovalModalOpen(false)} student={studentToApprove} onApprove={handleApprove} onReject={handleReject} isApproving={isApproving} isRejecting={isRejecting} isDark={isDark} />
+            <StudentApprovalModal
+                isOpen={isApprovalModalOpen}
+                onClose={() => { setIsApprovalModalOpen(false); setStudentToApprove(null); setSelectedClassId(""); }}
+                student={studentToApprove}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                isApproving={isApproving}
+                isRejecting={isRejecting}
+                isDark={isDark}
+                classes={classes}
+                selectedClassId={selectedClassId}
+                setSelectedClassId={setSelectedClassId}
+            />
             <AssignClassModal isOpen={isAssignClassModalOpen} onClose={() => setIsAssignClassModalOpen(false)} assigningStudent={assigningStudent} selectedClassId={selectedClassId} setSelectedClassId={setSelectedClassId} handleSubmit={handleAssignClassSubmit} isUpdating={isUpdating} isUpdatingIelts={isUpdatingIelts} classes={classes} isDark={isDark} />
             <AssignSubprogramModal isOpen={isAssignSubprogramModalOpen} onClose={() => setIsAssignSubprogramModalOpen(false)} assigningStudent={assigningStudent} programs={programs} allSubprograms={allSubprograms} handleSubmit={handleAssignSubprogramSubmit} isUpdating={isUpdating} isDark={isDark} />
             {isSubprogramsModalOpen && <SubprogramsModal program={selectedProgramForSubprograms} onClose={() => setIsSubprogramsModalOpen(false)} isDark={isDark} />}
+
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                title="Delete Student"
+                message={`Are you sure you want to delete ${studentToDelete?.full_name}? This action cannot be undone.`}
+                confirmText="Delete"
+                isDanger={true}
+                isLoading={isDeleting || isDeletingIelts}
+            />
         </>
     );
 }

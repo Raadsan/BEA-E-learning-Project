@@ -16,7 +16,18 @@ export const getAllIeltsStudents = async (req, res) => {
 
 export const createIeltsStudent = async (req, res) => {
     try {
-        const { password, payment } = req.body;
+        const { email, chosen_program, password, payment } = req.body;
+
+        // 0. Check for existing registration for this program
+        const existing = await ieltsToeflModel.getAllStudents();
+        const alreadyRegistered = existing.find(s => s.email === email && s.chosen_program === chosen_program);
+
+        if (alreadyRegistered) {
+            return res.status(400).json({
+                success: false,
+                error: `You are already registered for the ${chosen_program} program.`
+            });
+        }
 
         // 1. Validate Password
         if (password) {
@@ -103,6 +114,21 @@ export const createIeltsStudent = async (req, res) => {
             } catch (err) {
                 console.error("❌ Failed to record bank payment in payments table:", err);
             }
+        } else if (student && req.body.funding_status === 'Paid') {
+            // Record ADMIN created manual payment
+            try {
+                await createPayment({
+                    ielts_student_id: student.id,
+                    method: 'cash', // Default to cash/manual for admin entry
+                    amount: req.body.funding_amount,
+                    status: 'paid',
+                    month_paid_for: req.body.funding_month,
+                    program_id: req.body.chosen_program
+                });
+                console.log(`✅ Admin manual payment synced for IELTS student ${student.student_id}`);
+            } catch (err) {
+                console.error("❌ Failed to record admin manual payment:", err);
+            }
         }
 
         res.status(201).json({ success: true, student });
@@ -145,7 +171,8 @@ export const updateIeltsStudent = async (req, res) => {
             'certificate_institution', 'certificate_date', 'certificate_document',
             'exam_booking_date', 'exam_booking_time', 'status', 'password',
             'payment_method', 'transaction_id', 'payment_amount', 'payer_phone', 'class_id',
-            'funding_status', 'funding_amount', 'funding_month', 'paid_until', 'chosen_program'
+            'funding_status', 'funding_amount', 'funding_month', 'paid_until', 'chosen_program',
+            'expiry_date'
         ];
 
         const updateData = {};
@@ -165,6 +192,37 @@ export const updateIeltsStudent = async (req, res) => {
     } catch (error) {
         console.error("Error updating IELTS/TOEFL student:", error);
         res.status(500).json({ success: false, error: "Failed to update student" });
+    }
+};
+
+export const extendIeltsDeadline = async (req, res) => {
+    try {
+        const { durationMinutes } = req.body;
+        const affectedRows = await ieltsToeflModel.extendDeadline(req.params.id, durationMinutes || 1440);
+        if (affectedRows === 0) {
+            return res.status(404).json({ success: false, error: "Student not found" });
+        }
+        res.status(200).json({ success: true, message: `Deadline extended by ${durationMinutes || 1440} minutes successfully` });
+    } catch (error) {
+        console.error("Error extending IELTS/TOEFL deadline:", error);
+        res.status(500).json({ success: false, error: "Failed to extend deadline" });
+    }
+};
+
+export const assignIeltsClass = async (req, res) => {
+    try {
+        const { classId } = req.body;
+        if (!classId) {
+            return res.status(400).json({ success: false, error: "Class ID is required" });
+        }
+        const affectedRows = await ieltsToeflModel.assignToClass(req.params.id, classId);
+        if (affectedRows === 0) {
+            return res.status(404).json({ success: false, error: "Student not found" });
+        }
+        res.status(200).json({ success: true, message: "Student assigned to class successfully" });
+    } catch (error) {
+        console.error("Error assigning class to IELTS/TOEFL student:", error);
+        res.status(500).json({ success: false, error: "Failed to assign student to class" });
     }
 };
 

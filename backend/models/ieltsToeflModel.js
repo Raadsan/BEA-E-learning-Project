@@ -21,8 +21,9 @@ export const createStudent = async (data) => {
       residency_country, residency_city, exam_type, verification_method,
       certificate_institution, certificate_date, certificate_document,
       exam_booking_date, exam_booking_time, status,
-      payment_method, transaction_id, payment_amount, payer_phone
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      payment_method, transaction_id, payment_amount, payer_phone,
+      expiry_date
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
   `;
 
     const values = [
@@ -41,19 +42,19 @@ export const createStudent = async (data) => {
 
 // Get All Students
 export const getAllStudents = async () => {
-    const [rows] = await dbp.query("SELECT * FROM IELTSTOEFL ORDER BY registration_date DESC");
+    const [rows] = await dbp.query("SELECT *, (expiry_date < NOW()) as is_expired FROM IELTSTOEFL ORDER BY registration_date DESC");
     return rows;
 };
 
 // Get Student by Email
 export const getStudentByEmail = async (email) => {
-    const [rows] = await dbp.query("SELECT * FROM IELTSTOEFL WHERE email = ?", [email]);
+    const [rows] = await dbp.query("SELECT *, (expiry_date < NOW()) as is_expired FROM IELTSTOEFL WHERE email = ?", [email]);
     return rows[0];
 };
 
 // Get Student by ID
 export const getStudentById = async (id) => {
-    const [rows] = await dbp.query("SELECT * FROM IELTSTOEFL WHERE student_id = ?", [id]);
+    const [rows] = await dbp.query("SELECT *, (expiry_date < NOW()) as is_expired FROM IELTSTOEFL WHERE student_id = ?", [id]);
     return rows[0];
 };
 
@@ -67,6 +68,24 @@ export const updateStudent = async (id, data) => {
     if (keys.length === 0) return 0;
 
     const [result] = await dbp.query(`UPDATE IELTSTOEFL SET ${updates} WHERE student_id = ?`, values);
+    return result.affectedRows;
+};
+
+// Extend Deadline by custom duration (minutes or hours converted to minutes)
+export const extendDeadline = async (id, durationMinutes = 1440) => {
+    const [result] = await dbp.query(
+        "UPDATE IELTSTOEFL SET expiry_date = DATE_ADD(NOW(), INTERVAL ? MINUTE), is_extended = TRUE, admin_expiry_notified = FALSE, reminder_sent = FALSE WHERE student_id = ?",
+        [durationMinutes, id]
+    );
+    return result.affectedRows;
+};
+
+// Assign to Class (sets status to approved and sets class_id)
+export const assignToClass = async (id, classId) => {
+    const [result] = await dbp.query(
+        "UPDATE IELTSTOEFL SET status = 'approved', class_id = ? WHERE student_id = ?",
+        [classId, id]
+    );
     return result.affectedRows;
 };
 

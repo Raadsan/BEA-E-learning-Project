@@ -12,7 +12,8 @@ const db = mysql.createPool({
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  timezone: '+00:00'
 });
 
 // Disable ONLY_FULL_GROUP_BY to prevent strict mode errors

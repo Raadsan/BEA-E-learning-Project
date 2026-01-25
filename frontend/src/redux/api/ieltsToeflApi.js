@@ -70,6 +70,22 @@ export const ieltsToeflApi = createApi({
             }),
             invalidatesTags: ["IELTS_TOEFL"],
         }),
+        extendIeltsDeadline: builder.mutation({
+            query: ({ id, durationMinutes }) => ({
+                url: `/extend-deadline/${id}`,
+                method: "POST",
+                body: { durationMinutes }
+            }),
+            invalidatesTags: ["IELTS_TOEFL"],
+        }),
+        assignIeltsClass: builder.mutation({
+            query: ({ id, classId }) => ({
+                url: `/assign-class/${id}`,
+                method: "POST",
+                body: { classId }
+            }),
+            invalidatesTags: ["IELTS_TOEFL"],
+        }),
     }),
 });
 
@@ -81,4 +97,6 @@ export const {
     useDeleteIeltsToeflStudentMutation,
     useRejectIeltsToeflStudentMutation,
     useApproveIeltsToeflStudentMutation,
+    useExtendIeltsDeadlineMutation,
+    useAssignIeltsClassMutation,
 } = ieltsToeflApi;

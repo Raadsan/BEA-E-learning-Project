@@ -10,16 +10,19 @@ import { useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
 import { useGetProgramQuery } from "@/redux/api/programApi";
 import { useGetStudentPlacementResultsQuery } from "@/redux/api/placementTestApi";
 import { useGetStudentProficiencyResultsQuery } from "@/redux/api/proficiencyTestApi";
+import { useGetIeltsToeflStudentQuery } from "@/redux/api/ieltsToeflApi";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import UpcomingEventsList from "@/components/UpcomingEventsList";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function StudentDashboard() {
+    const router = useRouter();
     const { isDark } = useDarkMode();
     const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
     const [approvalStatus, setApprovalStatus] = useState('pending');
     const [isPaid, setIsPaid] = useState(true);
-    const [timeLeftProficiency, setTimeLeftProficiency] = useState({ hours: 24, minutes: 0 });
+    const [timeLeftProficiency, setTimeLeftProficiency] = useState({ minutes: 0, seconds: 0, isExpired: false });
 
     // Fetch Attendance Stats
     const { data: attendanceStats, isLoading: attendanceLoading } = useGetAttendanceStatsQuery(
@@ -49,17 +52,6 @@ export default function StudentDashboard() {
         skip: !user?.chosen_program
     });
 
-    // Fetch Assessment Results for Pending State
-    const { data: placementResults } = useGetStudentPlacementResultsQuery(user?.id || user?.student_id, {
-        skip: !user || approvalStatus === 'approved'
-    });
-    const { data: proficiencyResults } = useGetStudentProficiencyResultsQuery(user?.id || user?.student_id, {
-        skip: !user || approvalStatus === 'approved'
-    });
-
-    const hasCompletedPlacement = placementResults && placementResults.length > 0;
-    const hasCompletedProficiency = proficiencyResults && proficiencyResults.length > 0;
-
     // EXACT Mapping Logic from Curriculum Image
     const getAssessmentType = () => {
         const prog = user?.chosen_program?.toString().toLowerCase() || "";
@@ -84,6 +76,20 @@ export default function StudentDashboard() {
 
     const assessmentType = getAssessmentType();
 
+    // Fetch Assessment Results for Pending State
+    const { data: placementResults } = useGetStudentPlacementResultsQuery(user?.id || user?.student_id, {
+        skip: !user || approvalStatus === 'approved'
+    });
+    const { data: results } = useGetStudentProficiencyResultsQuery(user?.id || user?.student_id, {
+        skip: !user || approvalStatus === 'approved'
+    });
+
+    const { data: ieltsInfo } = useGetIeltsToeflStudentQuery(user?.id || user?.student_id, {
+        skip: !user || assessmentType !== 'proficiency' || approvalStatus === 'approved'
+    });
+
+    const hasCompletedPlacement = placementResults && placementResults.length > 0;
+    const hasCompletedProficiency = results && results.length > 0;
     // Determine what to show in the pending block
     const getPendingInfo = () => {
         // 24-Hour Expiry Logic (with 5-minute grace period)
@@ -95,16 +101,15 @@ export default function StudentDashboard() {
             return new Date(finalStr);
         };
 
-        const regDate = getSafeDate(user?.created_at || user?.registration_date);
+        const student = ieltsInfo?.student;
+        const expiryDate = student?.expiry_date ? new Date(student.expiry_date) : null;
         const now = new Date();
-        const hoursSinceReg = regDate ? (now - regDate) / (1000 * 60 * 60) : 0;
-
-        // 5-minute grace period
-        const deadlineHours = 24.0833;
-        const isExpired = hoursSinceReg > deadlineHours;
-        const hoursRemaining = regDate ? Math.max(0, 24 - hoursSinceReg) : 24;
+        // A student is blocked/expired IF they haven't been extended by an admin yet
+        // OR if their extended window has actually passed.
+        const isExpired = (!student || !student.is_extended) || (expiryDate ? now > expiryDate : true);
 
         if (assessmentType === "placement") {
+            // ... (keep placement logic same or update if needed)
             if (hasCompletedPlacement) {
                 return {
                     title: "Placement Test Completed",
@@ -136,7 +141,7 @@ export default function StudentDashboard() {
             if (isExpired) {
                 return {
                     title: "Proficiency Test Window Expired",
-                    description: "You were required to enter the exam within 24 hours of registration. This window has now closed and you are blocked from entry. Please contact administration.",
+                    description: "Your authorized window to enter the exam has closed. Please contact administration if you need extra time to start.",
                     icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z",
                     type: "blocked"
                 };
@@ -144,7 +149,7 @@ export default function StudentDashboard() {
 
             return {
                 title: `Proficiency Test Required`,
-                description: "Initial registration requires you to complete the Proficiency Test within 24 hours. Click anywhere on this banner to begin.",
+                description: "Initial registration requires you to complete the Proficiency Test. Click here to start before your window expires.",
                 link: "/portal/student/ielts-exam",
                 icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
                 type: "action",
@@ -163,33 +168,26 @@ export default function StudentDashboard() {
 
     // Proficiency Countdown Timer
     useEffect(() => {
-        if (assessmentType === 'proficiency' && !hasCompletedProficiency) {
+        const student = ieltsInfo?.student;
+        if (assessmentType === 'proficiency' && !hasCompletedProficiency && student?.expiry_date) {
             const updateTimer = () => {
-                const getSafeDate = (dateStr) => {
-                    if (!dateStr) return null;
-                    const isoStr = dateStr.includes('T') ? dateStr : dateStr.replace(' ', 'T');
-                    const finalStr = isoStr.includes('Z') || isoStr.includes('+') ? isoStr : `${isoStr}Z`;
-                    return new Date(finalStr);
-                };
-
-                const regDate = getSafeDate(user?.created_at || user?.registration_date);
-                if (!regDate) return;
-
+                const expiry = new Date(student.expiry_date);
                 const now = new Date();
-                const diffMs = (24 * 60 * 60 * 1000) - (now - regDate);
-                const totalMinutes = Math.max(0, Math.floor(diffMs / (1000 * 60)));
+                const diffMs = expiry - now;
+                const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
 
                 setTimeLeftProficiency({
-                    hours: Math.floor(totalMinutes / 60),
-                    minutes: totalMinutes % 60
+                    minutes: Math.floor(totalSeconds / 60),
+                    seconds: totalSeconds % 60,
+                    isExpired: totalSeconds <= 0
                 });
             };
 
             updateTimer();
-            const interval = setInterval(updateTimer, 30000); // Update every 30s
+            const interval = setInterval(updateTimer, 1000);
             return () => clearInterval(interval);
         }
-    }, [user, assessmentType, hasCompletedProficiency]);
+    }, [ieltsInfo, assessmentType, hasCompletedProficiency]);
 
     const pendingInfo = getPendingInfo();
 
@@ -293,7 +291,7 @@ export default function StudentDashboard() {
                                         {pendingInfo.isCountdown && (
                                             <div className="text-right">
                                                 <div className={`text-2xl font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                                                    {timeLeftProficiency.hours}h {timeLeftProficiency.minutes}m
+                                                    {timeLeftProficiency.minutes}m {timeLeftProficiency.seconds}s
                                                 </div>
                                                 <div className="text-[10px] font-bold uppercase tracking-widest opacity-40">Time Left to Enter</div>
                                             </div>

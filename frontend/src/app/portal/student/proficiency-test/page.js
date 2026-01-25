@@ -3,7 +3,9 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
+import { toast } from "react-hot-toast";
 import { useGetProficiencyTestsQuery, useGetStudentProficiencyResultsQuery } from "@/redux/api/proficiencyTestApi";
+import { useGetIeltsToeflStudentQuery } from "@/redux/api/ieltsToeflApi";
 
 export default function ProficiencyTestPage() {
     const router = useRouter();
@@ -11,9 +13,34 @@ export default function ProficiencyTestPage() {
     const { data: tests, isLoading: testsLoading } = useGetProficiencyTestsQuery();
 
     const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
-    const { data: results, isLoading: resultsLoading } = useGetStudentProficiencyResultsQuery(user.id || user.student_id, {
-        skip: !user.id && !user.student_id,
+    const studentId = user.id || user.student_id;
+
+    const { data: results, isLoading: resultsLoading } = useGetStudentProficiencyResultsQuery(studentId, {
+        skip: !studentId,
     });
+
+    const { data: studentInfo, isLoading: studentLoading } = useGetIeltsToeflStudentQuery(studentId, {
+        skip: !studentId,
+    });
+
+    const [windowTimeLeft, setWindowTimeLeft] = React.useState(null);
+
+    // Entry window countdown logic
+    React.useEffect(() => {
+        const student = studentInfo?.student;
+        if (!student?.expiry_date) return;
+
+        const calculateTime = () => {
+            const expiry = new Date(student.expiry_date);
+            const now = new Date();
+            const diff = Math.max(0, Math.floor((expiry - now) / 1000));
+            setWindowTimeLeft(diff);
+        };
+
+        calculateTime();
+        const timer = setInterval(calculateTime, 1000);
+        return () => clearInterval(timer);
+    }, [studentInfo]);
 
     // Determine the active test
     const activeTest = React.useMemo(() => {
@@ -33,7 +60,22 @@ export default function ProficiencyTestPage() {
         }
     }, [hasTakenTest, router]);
 
-    const isLoading = testsLoading || resultsLoading || (hasTakenTest && true);
+    // Hook Order Fix: Compute window state and refs early
+    const isWindowExpired = (!studentInfo?.student || !studentInfo.student.is_extended) || (windowTimeLeft === 0);
+    const prevExpiredRef = React.useRef(isWindowExpired);
+
+    React.useEffect(() => {
+        if (prevExpiredRef.current === true && isWindowExpired === false) {
+            toast.success("Extra time granted! You can now start your proficiency test.", {
+                duration: 6000,
+                icon: '⏳',
+                style: { fontWeight: 'bold', border: '2px solid #10b981' }
+            });
+        }
+        prevExpiredRef.current = isWindowExpired;
+    }, [isWindowExpired]);
+
+    const isLoading = testsLoading || resultsLoading || studentLoading || (hasTakenTest && true);
 
     if (isLoading) {
         return (
@@ -56,11 +98,42 @@ export default function ProficiencyTestPage() {
     // Parse questions if they are a string
     const questionsList = typeof activeTest.questions === 'string' ? JSON.parse(activeTest.questions) : activeTest.questions;
 
+    const formatWindowTime = (seconds) => {
+        if (seconds === null) return "Calculating...";
+        if (seconds <= 0) return "Expired";
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s.toString().padStart(2, "0")}`;
+    };
+
     return (
         <main className={`flex-1 overflow-y-auto ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <div className="w-full px-8 pt-6 pb-6 flex items-center justify-center min-h-full">
                 <div className={`rounded-3xl shadow-lg p-12 max-w-2xl w-full border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
                     }`}>
+
+                    {/* Window Status Banner */}
+                    <div className={`mb-8 p-4 rounded-2xl flex items-center justify-between border-2 transition-all ${isWindowExpired
+                        ? 'bg-red-50 border-red-100 text-red-600'
+                        : windowTimeLeft < 120
+                            ? 'bg-amber-50 border-amber-100 text-amber-600 animate-pulse'
+                            : 'bg-green-50 border-green-100 text-green-600'
+                        }`}>
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isWindowExpired ? 'bg-red-100' : 'bg-white/50'}`}>
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">Entry Window</p>
+                                <p className="text-sm font-bold">{isWindowExpired ? "Access Blocked" : "Time to Start"}</p>
+                            </div>
+                        </div>
+                        <div className="text-xl font-mono font-black">
+                            {formatWindowTime(windowTimeLeft)}
+                        </div>
+                    </div>
 
                     {/* Header Icon */}
                     <div className="flex justify-center mb-6">
@@ -96,22 +169,33 @@ export default function ProficiencyTestPage() {
                             Test Instructions
                         </h2>
                         <ul className={`space-y-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                            <li className="flex items-start gap-3">
-                                <span className="text-blue-600 mt-1">•</span>
-                                <span>Read each question carefully before answering</span>
-                            </li>
-                            <li className="flex items-start gap-3">
-                                <span className="text-blue-600 mt-1">•</span>
-                                <span>You can navigate between questions using the navigation buttons</span>
-                            </li>
-                            <li className="flex items-start gap-3">
-                                <span className="text-blue-600 mt-1">•</span>
-                                <span>Make sure to answer all questions before submitting</span>
-                            </li>
-                            <li className="flex items-start gap-3">
-                                <span className="text-blue-600 mt-1">•</span>
-                                <span>The test must be completed in one session</span>
-                            </li>
+                            {isWindowExpired ? (
+                                <li className="flex items-start gap-3 p-4 bg-red-100 rounded-xl text-red-700 font-bold">
+                                    <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                    </svg>
+                                    <span>YOUR ENTRY WINDOW HAS EXPIRED. YOU CANNOT START THE TEST NOW. PLEASE CONTACT ADMINISTRATION FOR EXTRA TIME.</span>
+                                </li>
+                            ) : (
+                                <>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-blue-600 mt-1">•</span>
+                                        <span>Read each question carefully before answering</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-blue-600 mt-1">•</span>
+                                        <span>You can navigate between questions using the navigation buttons</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-blue-600 mt-1">•</span>
+                                        <span>Make sure to answer all questions before submitting</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-blue-600 mt-1">•</span>
+                                        <span>The test must be completed in one session</span>
+                                    </li>
+                                </>
+                            )}
                         </ul>
                     </div>
 
@@ -131,9 +215,13 @@ export default function ProficiencyTestPage() {
                         ) : (
                             <button
                                 onClick={() => router.push(`/portal/student/proficiency-test/take?id=${activeTest.id}`)}
-                                className="px-12 py-3 bg-[#010080] hover:bg-[#000060] text-white font-medium rounded-xl transition-all shadow-lg hover:shadow-blue-900/20 w-full max-w-xs"
+                                disabled={isWindowExpired}
+                                className={`px-12 py-3 font-bold rounded-xl transition-all shadow-lg w-full max-w-xs ${isWindowExpired
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                                    : 'bg-[#010080] hover:bg-[#000060] text-white hover:shadow-blue-900/20 active:scale-95'
+                                    }`}
                             >
-                                Start Proficiency Test
+                                {isWindowExpired ? "Entry Blocked" : "Start Proficiency Test"}
                             </button>
                         )}
                     </div>

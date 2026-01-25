@@ -49,12 +49,14 @@ export const createStudent = async (req, res) => {
       });
     }
 
-    // Check if email already exists
-    const existingStudent = await Student.getStudentByEmail(email);
-    if (existingStudent) {
+    // Check if email already exists for THIS program
+    const existingStudents = await Student.getAllStudents();
+    const alreadyRegistered = existingStudents.find(s => s.email === email && s.chosen_program === chosen_program);
+
+    if (alreadyRegistered) {
       return res.status(400).json({
         success: false,
-        error: "Email already exists"
+        error: `You are already registered for the ${chosen_program} program.`
       });
     }
 

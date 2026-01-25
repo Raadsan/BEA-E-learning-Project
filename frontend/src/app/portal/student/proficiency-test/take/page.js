@@ -9,6 +9,7 @@ import {
     useSubmitProficiencyTestMutation,
     useGetStudentProficiencyResultsQuery
 } from "@/redux/api/proficiencyTestApi";
+import { useGetIeltsToeflStudentQuery } from "@/redux/api/ieltsToeflApi";
 
 export default function TakeProficiencyTestPage() {
     const { isDark } = useDarkMode();
@@ -93,23 +94,27 @@ export default function TakeProficiencyTestPage() {
         return shuffled;
     }, [test, user.id, user.student_id]);
 
+    const { data: studentInfo, isLoading: studentLoading } = useGetIeltsToeflStudentQuery(user.id || user.student_id, {
+        skip: !user.id && !user.student_id,
+    });
+
     useEffect(() => {
-        if (results && testId) {
+        const student = studentInfo?.student;
+        if (results && testId && student) {
             const alreadyTaken = results.find(r => r.test_id === parseInt(testId));
             if (alreadyTaken) router.replace(`/portal/student/proficiency-test/results?id=${alreadyTaken.id}`);
 
-            // 24-Hour Expiry Protection (Enforced even if they bypass instructions)
-            const regDate = user?.created_at ? new Date(user.created_at) : null;
-            if (regDate && !alreadyTaken) {
+            // Enforced Entry Window Protection (Uses IELTSTOEFL.expiry_date)
+            if (student.expiry_date && !alreadyTaken) {
                 const now = new Date();
-                const hoursSinceReg = (now - regDate) / (1000 * 60 * 60);
-                if (hoursSinceReg > 24.0833) { // 24h + 5min grace period
-                    alert("Your 24-hour test window has expired. Please contact administration.");
+                const expiry = new Date(student.expiry_date);
+                if (now > expiry) {
+                    alert("Your test entry window has expired. Please contact administration for extra time.");
                     router.replace("/portal/student");
                 }
             }
         }
-    }, [results, testId, router, user.id, user.student_id, user.created_at]);
+    }, [results, testId, router, studentInfo]);
 
     useEffect(() => {
         if (test?.duration_minutes && timeRemaining === null) {

@@ -99,11 +99,12 @@ export default function ProficiencyTestsPage() {
                 <div className="w-full px-8 py-6">
                     {/* Header Section */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-
-                        <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Proficiency Tests</h1>
-                        <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                            Manage and view all available proficiency tests.
-                        </p>
+                        <div>
+                            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Proficiency Tests</h1>
+                            <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Manage and view all available proficiency tests.
+                            </p>
+                        </div>
 
                         <button
                             onClick={handleCreateClick}
