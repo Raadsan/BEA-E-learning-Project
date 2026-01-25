@@ -283,6 +283,14 @@ export default function AdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/students/ielts-toefl") ? 'text-white' : 'text-gray-100'}>IELTS / TOEFL Students</span>
                   </Link>
                 </li>
+                <li>
+                  <Link href="/portal/admin/students/proficiency-only" className={getSubMenuItemClasses("/portal/admin/students/proficiency-only")} style={getSubActiveStyle("/portal/admin/students/proficiency-only")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/students/proficiency-only") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/students/proficiency-only") ? 'text-white' : 'text-gray-100'}>Proficiency Test Only</span>
+                  </Link>
+                </li>
               </ul>
             )}
           </li>

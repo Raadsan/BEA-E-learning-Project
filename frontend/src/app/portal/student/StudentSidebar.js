@@ -341,7 +341,8 @@ export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen
               const sub = user?.chosen_subprogram_name?.toString().toLowerCase() || "";
 
               const needsPlacement = prog.includes("general english") || prog.includes("gep") || (prog.includes("academic writing") && sub.includes("level 1"));
-              const needsProficiency = prog.includes("specific purposes") || prog.includes("esp") || prog.includes("ielts") || prog.includes("toefl") || (prog.includes("academic writing") && (sub.includes("level 2") || sub.includes("level 3")));
+              const needsProficiency = prog.includes("proficiency test") || prog.includes("specific purposes") || prog.includes("esp") || prog.includes("ielts") || prog.includes("toefl") || (prog.includes("academic writing") && (sub.includes("level 2") || sub.includes("level 3")));
+              const isProficiencyOnly = prog.trim() === "proficiency test";
 
               if (needsPlacement) {
                 return (
@@ -382,8 +383,8 @@ export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen
 
             {isApproved && (
               <>
-                {/* Academic Content Block - Only if paid */}
-                {isPaid && (
+                {/* Academic Content Block - Only if paid and NOT proficiency only */}
+                {isPaid && !isProficiencyOnly && (
                   <>
 
                     {/* My Courses */}
@@ -458,14 +459,16 @@ export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen
                   </li>
 
                   {/* Policies */}
-                  <li>
-                    <Link href="/portal/student/policies" className={getMenuItemClasses("/portal/student/policies")} style={getActiveStyle("/portal/student/policies")}>
-                      <svg className={getIconClasses("/portal/student/policies")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span className={getTextClasses("/portal/student/policies")}>Policies</span>
-                    </Link>
-                  </li>
+                  {!isProficiencyOnly && (
+                    <li>
+                      <Link href="/portal/student/policies" className={getMenuItemClasses("/portal/student/policies")} style={getActiveStyle("/portal/student/policies")}>
+                        <svg className={getIconClasses("/portal/student/policies")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className={getTextClasses("/portal/student/policies")}>Policies</span>
+                      </Link>
+                    </li>
+                  )}
                 </div>
               </>
             )}

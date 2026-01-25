@@ -61,10 +61,13 @@ export default function LoginPage() {
           window.location.href = "/portal/teacher";
         } else if (role === "student") {
           window.location.href = "/portal/student";
+        } else if (role === "proficiency_student") {
+          window.location.href = "/portal/student/proficiency-test";
         } else {
           console.warn("Unknown role, redirecting to home");
           window.location.href = "/";
         }
+
       } else {
         console.error("Login failed - no user data:", result);
       }

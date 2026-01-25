@@ -1,148 +1,66 @@
-import dotenv from "dotenv";
-dotenv.config(); // MUST be first
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { startReminderWorker } from './workers/proficiencyReminderWorker.js';
 
-import express from "express";
-import path from "path";
-import cors from "cors";
-import db from "./database/dbconfig.js";
-import programRoutes from "./routes/programRoutes.js";
-import contactRoutes from "./routes/contactRoutes.js";
-import studentRoutes from "./routes/studentRoutes.js";
-import teacherRoutes from "./routes/teacherRoutes.js";
-import subprogramRoutes from "./routes/subprogramRoutes.js";
-import courseRoutes from "./routes/courseRoutes.js";
-import classRoutes from "./routes/classRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
-import placementTestRoutes from "./routes/placementTestRoutes.js";
-import proficiencyTestRoutes from "./routes/proficiencyTestRoutes.js";
-import ieltsToeflRoutes from "./routes/ieltsToeflRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import assignmentRoutes from "./routes/assignmentRoutes.js";
-import paymentRoutes from "./routes/paymentRoutes.js";
-import paymentPackageRoutes from "./routes/paymentPackageRoutes.js";
-import attendanceRoutes from "./routes/attendanceRoutes.js";
-import announcementRoutes from "./routes/announcementRoutes.js";
-import materialRoutes from "./routes/materialRoutes.js";
-import uploadRoutes from "./routes/uploadRoutes.js";
-import shiftRoutes from "./routes/shiftRoutes.js";
-import fileRoutes from "./routes/fileRoutes.js";
-import { startReminderWorker } from "./workers/proficiencyReminderWorker.js";
+// Route Imports
+import authRoutes from './routes/authRoutes.js';
+import studentRoutes from './routes/studentRoutes.js';
+import teacherRoutes from './routes/teacherRoutes.js';
+import ieltsToeflRoutes from './routes/ieltsToeflRoutes.js';
+import proficiencyTestRoutes from './routes/proficiencyTestRoutes.js'; // The exam itself
+import proficiencyTestOnlyRoutes from './routes/proficiencyTestOnlyRoutes.js'; // The new candidate registration
+import placementTestRoutes from './routes/placementTestRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import programRoutes from './routes/programRoutes.js';
+import subprogramRoutes from './routes/subprogramRoutes.js';
+import classRoutes from './routes/classRoutes.js';
+import sessionRequestRoutes from './routes/sessionRequestRoutes.js';
+import announcementRoutes from './routes/announcementRoutes.js';
+import eventRoutes from './routes/eventRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors()); // Enable CORS for all routes
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded images
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads"), {
-  setHeaders: (res, filePath) => {
-    res.setHeader('Content-Disposition', 'inline');
-  }
-}));
+// Uploads static serve
+app.use('/uploads', express.static('uploads'));
 
-// Home route
-app.get("/", (req, res) => {
-  res.send("Backend is Running...");
+// Routes Mounting
+app.use('/api/auth', authRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/teachers', teacherRoutes);
+app.use('/api/ielts-toefl', ieltsToeflRoutes);
+app.use('/api/proficiency-tests', proficiencyTestRoutes); // Exam management
+app.use('/api/proficiency-test-only', proficiencyTestOnlyRoutes); // New "Certificate Only" candidates
+app.use('/api/placement-tests', placementTestRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/programs', programRoutes);
+app.use('/api/subprograms', subprogramRoutes);
+app.use('/api/classes', classRoutes);
+app.use('/api/session-requests', sessionRequestRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/admin', adminRoutes);
+
+// Root Route
+app.get('/', (req, res) => {
+    res.send('BEA E-Learning Backend is running');
 });
 
+// Start Server
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 
-
-// ⬇️ Register Programs Routes
-app.use("/api/programs", programRoutes);
-
-// ⬇️ Register Contact Routes (Save to DB + Send Email)
-app.use("/api/contact", contactRoutes);
-
-// ⬇️ Register Student Routes (Registration + Management)
-app.use("/api/students", studentRoutes);
-
-// ⬇️ Register Teacher Routes
-app.use("/api/teachers", teacherRoutes);
-
-// ⬇️ Register Subprogram Routes
-app.use("/api/subprograms", subprogramRoutes);
-
-// ⬇️ Register Course Routes
-app.use("/api/courses", courseRoutes);
-
-// ⬇️ Register Class Routes
-app.use("/api/classes", classRoutes);
-
-// ⬇️ Register Auth Routes (Login, etc.)
-app.use("/api/auth", authRoutes);
-
-// ⬇️ Register Placement Test Routes
-app.use("/api/placement-tests", placementTestRoutes);
-
-// ⬇️ Register Proficiency Test Routes
-app.use("/api/proficiency-tests", proficiencyTestRoutes);
-
-// ⬇️ Register IELTS/TOEFL Routes
-app.use("/api/ielts-toefl", ieltsToeflRoutes);
-
-// ⬇️ Register Admin Routes
-app.use("/api/admins", adminRoutes);
-
-// ⬇️ Register User Routes
-app.use("/api/users", userRoutes);
-
-// ⬇️ Register Shift Routes
-app.use("/api/shifts", shiftRoutes);
-
-// ⬇️ Register Assignment Routes
-app.use("/api/assignments", assignmentRoutes);
-
-// ⬇️ Register Payment Routes
-app.use("/api/payments", paymentRoutes);
-
-// ⬇️ Register Payment Package Routes
-app.use("/api/payment-packages", paymentPackageRoutes);
-
-// ⬇️ Register Attendance Routes
-app.use("/api/attendance", attendanceRoutes);
-
-// ⬇️ Register Announcement Routes
-app.use("/api/announcements", announcementRoutes);
-
-// ⬇️ Register News/Events Routes
-import newsRoutes from "./routes/newsRoutes.js";
-app.use("/api/news", newsRoutes);
-
-// ⬇️ Register Material Routes
-app.use("/api/materials", materialRoutes);
-
-// ⬇️ Register Upload Routes
-app.use("/api/uploads", uploadRoutes);
-
-// ⬇️ Register Notification Routes
-import notificationRoutes from "./routes/notificationRoutes.js";
-app.use("/api/notifications", notificationRoutes);
-
-// ⬇️ Register Session Request Routes
-import sessionRequestRoutes from "./routes/sessionRequestRoutes.js";
-app.use("/api/session-requests", sessionRequestRoutes);
-
-// ⬇️ Register Freezing Request Routes
-import freezingRoutes from "./routes/freezingRoutes.js";
-app.use("/api/freezing-requests", freezingRoutes);
-
-// ⬇️ Register Timetable Routes
-import timetableRoutes from "./routes/timetableRoutes.js";
-app.use("/api/timetables", timetableRoutes);
-
-// ⬇️ Register Event Routes (Monthly Calendar)
-import eventRoutes from "./routes/eventRoutes.js";
-app.use("/api/events", eventRoutes);
-
-// ⬇️ Register File Routes (Downloads)
-app.use("/api/files", fileRoutes);
-
-
-// Start Background Workers
-startReminderWorker();
-
-// Server start
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}`));
+    // Start Background Workers
+    startReminderWorker();
+});

@@ -11,7 +11,8 @@ const programAcronyms = {
     "IELTS and TOEFL Test Preparation Courses": "IELTOEF",
     "Soft Skills and Workplace Training Programs": "SSWTP",
     "BEA Academic Writing Program": "AWP",
-    "Digital Literacy and Virtual Communication": "DLVCS"
+    "Digital Literacy and Virtual Communication": "DLVCS",
+    "Proficiency Test Only": "PROFI"
 };
 
 /**

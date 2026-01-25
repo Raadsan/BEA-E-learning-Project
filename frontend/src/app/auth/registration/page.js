@@ -1,6 +1,8 @@
-import RegistrationPage from "@/components/RegistrationPage";
+import ProficiencyTestRegistration from "@/components/ProficiencyTestRegistration";
+
 
 export default function Registration() {
-  return <RegistrationPage />;
+  return <ProficiencyTestRegistration />;
+
 }
 

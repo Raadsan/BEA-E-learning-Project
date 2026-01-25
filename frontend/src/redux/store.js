@@ -1,93 +1,102 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { programApi } from "../redux/api/programApi.js";
-import { studentApi } from "../redux/api/studentApi.js";
-import { teacherApi } from "../redux/api/teacherApi.js";
-import { subprogramApi } from "../redux/api/subprogramApi.js";
-import { courseApi } from "../redux/api/courseApi.js";
-import { classApi } from "../redux/api/classApi.js";
-import { attendanceApi } from "../redux/api/attendanceApi.js";
-import { authApi } from "../redux/api/authApi.js";
-import { placementTestApi } from "../redux/api/placementTestApi.js";
-import { proficiencyTestApi } from "../redux/api/proficiencyTestApi.js";
-import { adminApi } from "../redux/api/adminApi.js";
-import { ieltsToeflApi } from "../redux/api/ieltsToeflApi.js";
-import { userApi } from "../redux/api/userApi.js";
-import { assignmentApi } from "../redux/api/assignmentApi.js";
-import { learningHoursApi } from "../redux/api/learningHoursApi.js";
-import { paymentApi } from "../redux/api/paymentApi.js";
-import { materialApi } from "../redux/api/materialApi.js";
-import { announcementApi } from "../redux/api/announcementApi.js";
-import { newsApi } from "../redux/api/newsApi.js";
-import { notificationApi } from "../redux/api/notificationApi.js";
-import { sessionRequestApi } from "../redux/api/sessionRequestApi.js";
-import { freezingApi } from "../redux/api/freezingApi.js";
-import { timetableApi } from "../redux/api/timetableApi.js";
-import { eventApi } from "../redux/api/eventApi.js";
-import { shiftApi } from "../redux/api/shiftApi.js";
-import { uploadApi } from "../redux/api/uploadApi.js";
-import { paymentPackageApi } from "../redux/api/paymentPackageApi.js";
-import { academicCalendarApi } from "../redux/api/academicCalendarApi.js";
+import { authApi } from "./api/authApi";
+import { userApi } from "./api/userApi";
+import { announcementApi } from "./api/announcementApi";
+import { eventApi } from "./api/eventApi";
+import { courseApi } from "./api/courseApi";
+import { classApi } from "./api/classApi";
+import { studentApi } from "./api/studentApi";
+import { teacherApi } from "./api/teacherApi";
+import { programApi } from "./api/programApi";
+import { subprogramApi } from "./api/subprogramApi";
+import { academicCalendarApi } from "./api/academicCalendarApi";
+import { timetableApi } from "./api/timetableApi";
+import { assignmentApi } from "./api/assignmentApi";
+import { notificationApi } from "./api/notificationApi";
+import { paymentApi } from "./api/paymentApi";
+import { paymentPackageApi } from "./api/paymentPackageApi";
+// import { fileApi } from "./api/fileApi"; 
+import { uploadApi } from "./api/uploadApi";
+import { freezingApi } from "./api/freezingApi";
+import { newsApi } from "./api/newsApi";
+// import { contactApi } from "./api/contactApi"; 
+import { attendanceApi } from "./api/attendanceApi";
+import { ieltsToeflApi } from "./api/ieltsToeflApi";
+import { materialApi } from "./api/materialApi";
+import { sessionRequestApi } from "./api/sessionRequestApi";
+import { adminApi } from "./api/adminApi";
+import { proficiencyTestApi } from "./api/proficiencyTestApi";
+import { proficiencyTestOnlyApi } from "./api/proficiencyTestOnlyApi";
+import { placementTestApi } from "./api/placementTestApi";
+import { learningHoursApi } from "./api/learningHoursApi";
+import { shiftApi } from "./api/shiftApi";
 
 export const store = configureStore({
-  reducer: {
-    [programApi.reducerPath]: programApi.reducer,
-    [studentApi.reducerPath]: studentApi.reducer,
-    [teacherApi.reducerPath]: teacherApi.reducer,
-    [subprogramApi.reducerPath]: subprogramApi.reducer,
-    [courseApi.reducerPath]: courseApi.reducer,
-    [classApi.reducerPath]: classApi.reducer,
-    [attendanceApi.reducerPath]: attendanceApi.reducer,
-    [authApi.reducerPath]: authApi.reducer,
-    [placementTestApi.reducerPath]: placementTestApi.reducer,
-    [proficiencyTestApi.reducerPath]: proficiencyTestApi.reducer,
-    [adminApi.reducerPath]: adminApi.reducer,
-    [ieltsToeflApi.reducerPath]: ieltsToeflApi.reducer,
-    [userApi.reducerPath]: userApi.reducer,
-    [assignmentApi.reducerPath]: assignmentApi.reducer,
-    [learningHoursApi.reducerPath]: learningHoursApi.reducer,
-    [paymentApi.reducerPath]: paymentApi.reducer,
-    [materialApi.reducerPath]: materialApi.reducer,
-    [announcementApi.reducerPath]: announcementApi.reducer,
-    [newsApi.reducerPath]: newsApi.reducer,
-    [notificationApi.reducerPath]: notificationApi.reducer,
-    [sessionRequestApi.reducerPath]: sessionRequestApi.reducer,
-    [freezingApi.reducerPath]: freezingApi.reducer,
-    [timetableApi.reducerPath]: timetableApi.reducer,
-    [eventApi.reducerPath]: eventApi.reducer,
-    [shiftApi.reducerPath]: shiftApi.reducer,
-    [uploadApi.reducerPath]: uploadApi.reducer,
-    [paymentPackageApi.reducerPath]: paymentPackageApi.reducer,
-    [academicCalendarApi.reducerPath]: academicCalendarApi.reducer,
-  },
-  middleware: (getDefault) =>
-    getDefault().concat(
-      programApi.middleware,
-      studentApi.middleware,
-      teacherApi.middleware,
-      subprogramApi.middleware,
-      courseApi.middleware,
-      classApi.middleware,
-      attendanceApi.middleware,
-      authApi.middleware,
-      placementTestApi.middleware,
-      proficiencyTestApi.middleware,
-      adminApi.middleware,
-      ieltsToeflApi.middleware,
-      userApi.middleware,
-      assignmentApi.middleware,
-      learningHoursApi.middleware,
-      paymentApi.middleware,
-      newsApi.middleware,
-      materialApi.middleware,
-      announcementApi.middleware,
-      notificationApi.middleware,
-      sessionRequestApi.middleware,
-      freezingApi.middleware,
-      timetableApi.middleware,
-      eventApi.middleware,
-      shiftApi.middleware,
-      uploadApi.middleware,
-      paymentPackageApi.middleware,
-      academicCalendarApi.middleware
-    ),
+    reducer: {
+        [authApi.reducerPath]: authApi.reducer,
+        [userApi.reducerPath]: userApi.reducer,
+        [announcementApi.reducerPath]: announcementApi.reducer,
+        [eventApi.reducerPath]: eventApi.reducer,
+        [courseApi.reducerPath]: courseApi.reducer,
+        [classApi.reducerPath]: classApi.reducer,
+        [studentApi.reducerPath]: studentApi.reducer,
+        [teacherApi.reducerPath]: teacherApi.reducer,
+        [programApi.reducerPath]: programApi.reducer,
+        [subprogramApi.reducerPath]: subprogramApi.reducer,
+        [academicCalendarApi.reducerPath]: academicCalendarApi.reducer,
+        [timetableApi.reducerPath]: timetableApi.reducer,
+        [assignmentApi.reducerPath]: assignmentApi.reducer,
+        [notificationApi.reducerPath]: notificationApi.reducer,
+        [paymentApi.reducerPath]: paymentApi.reducer,
+        [paymentPackageApi.reducerPath]: paymentPackageApi.reducer,
+        // [fileApi.reducerPath]: fileApi.reducer,
+        [uploadApi.reducerPath]: uploadApi.reducer,
+        [freezingApi.reducerPath]: freezingApi.reducer,
+        [newsApi.reducerPath]: newsApi.reducer,
+        // [contactApi.reducerPath]: contactApi.reducer,
+        [attendanceApi.reducerPath]: attendanceApi.reducer,
+        [ieltsToeflApi.reducerPath]: ieltsToeflApi.reducer,
+        [materialApi.reducerPath]: materialApi.reducer,
+        [sessionRequestApi.reducerPath]: sessionRequestApi.reducer,
+        [adminApi.reducerPath]: adminApi.reducer,
+        [proficiencyTestApi.reducerPath]: proficiencyTestApi.reducer,
+        [proficiencyTestOnlyApi.reducerPath]: proficiencyTestOnlyApi.reducer,
+        [placementTestApi.reducerPath]: placementTestApi.reducer,
+        [learningHoursApi.reducerPath]: learningHoursApi.reducer,
+        [shiftApi.reducerPath]: shiftApi.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware().concat(
+            authApi.middleware,
+            userApi.middleware,
+            announcementApi.middleware,
+            eventApi.middleware,
+            courseApi.middleware,
+            classApi.middleware,
+            studentApi.middleware,
+            teacherApi.middleware,
+            programApi.middleware,
+            subprogramApi.middleware,
+            academicCalendarApi.middleware,
+            timetableApi.middleware,
+            assignmentApi.middleware,
+            notificationApi.middleware,
+            paymentApi.middleware,
+            paymentPackageApi.middleware,
+            // fileApi.middleware,
+            uploadApi.middleware,
+            freezingApi.middleware,
+            newsApi.middleware,
+            // contactApi.middleware,
+            attendanceApi.middleware,
+            ieltsToeflApi.middleware,
+            materialApi.middleware,
+            sessionRequestApi.middleware,
+            adminApi.middleware,
+            proficiencyTestApi.middleware,
+            proficiencyTestOnlyApi.middleware,
+            placementTestApi.middleware,
+            learningHoursApi.middleware,
+            shiftApi.middleware
+        ),
 });

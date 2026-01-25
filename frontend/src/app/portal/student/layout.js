@@ -24,7 +24,7 @@ function StudentLayoutContent({ children }) {
 
   useEffect(() => {
     if (user && user.approval_status) {
-      const approved = user.approval_status === 'approved';
+      const approved = user.approval_status.toLowerCase() === 'approved';
       setIsApproved(approved);
 
       // Check payment status if approved
@@ -108,9 +108,10 @@ function StudentLayoutContent({ children }) {
 
 export default function StudentLayout({ children }) {
   return (
-    <ProtectedRoute allowedRoles={['student']}>
+    <ProtectedRoute allowedRoles={['student', 'proficiency_student']}>
       <DarkModeProvider>
         <StudentLayoutContent>
+
           {children}
         </StudentLayoutContent>
       </DarkModeProvider>

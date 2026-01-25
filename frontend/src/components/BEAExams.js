@@ -112,11 +112,11 @@ export default function BEAExams() {
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       {/* Hero Section */}
-      <section 
+      <section
         ref={sectionRefs.hero}
         className="relative flex items-center justify-center overflow-hidden"
         style={{
-          background: isDarkMode 
+          background: isDarkMode
             ? 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)'
             : 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)',
           height: '170px'
@@ -137,12 +137,12 @@ export default function BEAExams() {
             <p className={`leading-relaxed text-base sm:text-lg ${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               As an Educational Institution, we believe every learner&apos;s journey begins with understanding their true level of English proficiency. To ensure every student receives the most effective and personalized learning experience, BEA employs two key assessments — the BEA Placement Test and the BEA Proficiency Test.
             </p>
-            
+
             {/* Call to Action */}
             <p className={`font-serif text-base sm:text-lg font-semibold ${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s', color: isDarkMode ? '#ffffff' : '#010080' }}>
               To learn more about BEA Exams, check the two tables below
             </p>
-            
+
             {/* Test Listings */}
             <div className="space-y-12 mt-12">
               {/* Placement Test Table */}
@@ -150,7 +150,7 @@ export default function BEAExams() {
                 <h2 className={`text-2xl sm:text-3xl font-bold mb-6 ${visibleSections.placement ? 'animate-fade-in-left' : 'opacity-0'}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                   1. BEA PLACEMENT TEST
                 </h2>
-                
+
                 <div className={`overflow-hidden border ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'} ${visibleSections.placement ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -166,13 +166,12 @@ export default function BEAExams() {
                       </thead>
                       <tbody>
                         {placementData.map((item, index) => (
-                          <tr 
-                            key={index} 
-                            className={`transition-colors ${isDarkMode ? 'border-b border-[#1a1a3e]' : 'border-b border-gray-200'} ${
-                              isDarkMode 
-                                ? (index % 2 === 0 ? "bg-[#050040]" : "bg-[#03002e]/50")
-                                : (index % 2 === 0 ? "bg-white" : "bg-blue-50/30")
-                            }`}
+                          <tr
+                            key={index}
+                            className={`transition-colors ${isDarkMode ? 'border-b border-[#1a1a3e]' : 'border-b border-gray-200'} ${isDarkMode
+                              ? (index % 2 === 0 ? "bg-[#050040]" : "bg-[#03002e]/50")
+                              : (index % 2 === 0 ? "bg-white" : "bg-blue-50/30")
+                              }`}
                           >
                             <td className={`px-4 sm:px-6 py-5 align-top border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
                               <span className="font-semibold text-xs sm:text-sm" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
@@ -188,27 +187,26 @@ export default function BEAExams() {
                     </table>
                   </div>
                 </div>
-                
+
                 {/* Apply Now Button for Placement Test */}
                 <div className={`text-center mt-6 ${visibleSections.placement ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
                   <Link
                     href="/auth/registration"
-                    className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block header-keep-white ${
-                      isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'
-                    }`}
+                    className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block header-keep-white ${isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'
+                      }`}
                     style={isDarkMode ? { color: '#010080' } : {}}
                   >
                     Apply Now
                   </Link>
                 </div>
               </div>
-              
+
               {/* Proficiency Test Table */}
               <div ref={sectionRefs.proficiency}>
                 <h2 className={`text-2xl sm:text-3xl font-bold mb-6 ${visibleSections.proficiency ? 'animate-fade-in-left' : 'opacity-0'}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                   2. BEA PROFICIENCY TEST
                 </h2>
-                
+
                 <div className={`overflow-hidden border ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'} ${visibleSections.proficiency ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -224,13 +222,12 @@ export default function BEAExams() {
                       </thead>
                       <tbody>
                         {proficiencyData.map((item, index) => (
-                          <tr 
-                            key={index} 
-                            className={`transition-colors ${isDarkMode ? 'border-b border-[#1a1a3e]' : 'border-b border-gray-200'} ${
-                              isDarkMode 
-                                ? (index % 2 === 0 ? "bg-[#050040]" : "bg-[#03002e]/50")
-                                : (index % 2 === 0 ? "bg-white" : "bg-blue-50/30")
-                            }`}
+                          <tr
+                            key={index}
+                            className={`transition-colors ${isDarkMode ? 'border-b border-[#1a1a3e]' : 'border-b border-gray-200'} ${isDarkMode
+                              ? (index % 2 === 0 ? "bg-[#050040]" : "bg-[#03002e]/50")
+                              : (index % 2 === 0 ? "bg-white" : "bg-blue-50/30")
+                              }`}
                           >
                             <td className={`px-4 sm:px-6 py-5 align-top border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
                               <span className="font-semibold text-xs sm:text-sm" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
@@ -246,18 +243,18 @@ export default function BEAExams() {
                     </table>
                   </div>
                 </div>
-                
+
                 {/* Apply Now Button for Proficiency Test */}
                 <div className={`text-center mt-6 ${visibleSections.proficiency ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
-                  <button
-                    onClick={() => handleApplyClick("proficiency")}
-                    className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 header-keep-white ${
-                      isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'
-                    }`}
+                  <Link
+                    href="/auth/registration"
+
+                    className={`px-8 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block header-keep-white ${isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'
+                      }`}
                     style={isDarkMode ? { color: '#010080' } : {}}
                   >
                     Apply Now
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -266,9 +263,9 @@ export default function BEAExams() {
       </section>
 
       {/* BEA Exam Registration Modal */}
-      <BEAExamRegistration 
-        isOpen={showModal} 
-        onClose={() => setShowModal(false)} 
+      <BEAExamRegistration
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
         examType={selectedExamType}
       />
     </div>
