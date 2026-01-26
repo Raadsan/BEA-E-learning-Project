@@ -2,6 +2,9 @@ import * as Student from "../models/studentModel.js";
 import { createPayment } from '../models/paymentModel.js';
 import bcrypt from "bcryptjs";
 import { validatePassword, passwordPolicyMessage } from "../utils/passwordValidator.js";
+import db from "../database/dbconfig.js";
+
+const dbp = db.promise();
 
 // CREATE STUDENT
 export const createStudent = async (req, res) => {
@@ -298,8 +301,87 @@ export const updateStudent = async (req, res) => {
       delete updateData.password;
     }
 
+    const oldClassId = existing.class_id;
+    const newClassId = req.body.class_id;
+
     await Student.updateStudentById(id, updateData);
     const updated = await Student.getStudentById(id);
+
+    // Track class history and migrate data if applicable
+    if (newClassId && newClassId !== oldClassId) {
+      const [newClass] = await dbp.query("SELECT * FROM classes WHERE id = ?", [newClassId]);
+      const subprogramId = newClass[0]?.subprogram_id;
+
+      // 1. Add to history if not exists
+      await dbp.query(
+        "INSERT IGNORE INTO student_class_history (student_id, class_id, subprogram_id, is_active) VALUES (?, ?, ?, 1)",
+        [id, newClassId, subprogramId]
+      );
+
+      // 2. Set other classes of SAME subprogram to inactive
+      await dbp.query(
+        "UPDATE student_class_history SET is_active = 0 WHERE student_id = ? AND subprogram_id = ? AND class_id != ?",
+        [id, subprogramId, newClassId]
+      );
+
+      // 3. ALWAYS migrate assignment submissions when class changes
+      if (oldClassId) {
+        console.log(`[Migration] Class change detected: ${oldClassId} → ${newClassId}. Migrating all student submissions...`);
+
+        const tables = [
+          { main: 'exams', sub: 'exam_submissions' },
+          { main: 'writing_tasks', sub: 'writing_task_submissions' },
+          { main: 'course_work', sub: 'course_work_submissions' },
+          { main: 'oral_assignments', sub: 'oral_assignment_submissions' }
+        ];
+
+        for (const t of tables) {
+          // Find ALL student's submissions in old class
+          const [oldSubs] = await dbp.query(
+            `SELECT s.*, m.title, m.type FROM ${t.sub} s JOIN ${t.main} m ON s.assignment_id = m.id WHERE s.student_id = ? AND m.class_id = ?`,
+            [id, oldClassId]
+          );
+
+          console.log(`[Migration] Found ${oldSubs.length} ${t.sub} in old class ${oldClassId}`);
+
+          for (const sub of oldSubs) {
+            // Try to find matching assignment in new class by title
+            const [newAssign] = await dbp.query(
+              `SELECT id FROM ${t.main} WHERE class_id = ? AND title = ? LIMIT 1`,
+              [newClassId, sub.title]
+            );
+
+            if (newAssign[0]) {
+              // Check if submission already exists in new class
+              const [existingNewSub] = await dbp.query(
+                `SELECT id FROM ${t.sub} WHERE student_id = ? AND assignment_id = ?`,
+                [id, newAssign[0].id]
+              );
+
+              if (!existingNewSub[0]) {
+                // Migrate the submission to the new assignment
+                await dbp.query(
+                  `UPDATE ${t.sub} SET assignment_id = ? WHERE id = ?`,
+                  [newAssign[0].id, sub.id]
+                );
+                console.log(`[Migration] ✅ Migrated ${t.sub} ID ${sub.id} to new assignment ${newAssign[0].id}`);
+              } else {
+                console.log(`[Migration] ⚠️ Submission already exists in new class for assignment "${sub.title}", skipping`);
+              }
+            } else {
+              console.log(`[Migration] ⚠️ No matching assignment found in new class for "${sub.title}"`);
+            }
+          }
+        }
+
+        // Also migrate attendance records
+        const [attendanceResult] = await dbp.query(
+          "UPDATE attendance SET class_id = ? WHERE student_id = ? AND class_id = ?",
+          [newClassId, id, oldClassId]
+        );
+        console.log(`[Migration] ✅ Migrated ${attendanceResult.affectedRows} attendance records`);
+      }
+    }
 
     res.json({
       success: true,
@@ -501,5 +583,83 @@ export const getStudentLocations = async (req, res) => {
       success: false,
       error: "Server error: " + err.message
     });
+  }
+};
+
+// GET MY CLASSES (For Student Grades Dropdown)
+export const getMyClasses = async (req, res) => {
+  try {
+    const studentId = req.user.userId;
+    if (!studentId) {
+      return res.status(400).json({ success: false, error: "Student ID missing from session" });
+    }
+
+    console.log(`[GetMyClasses] Performing deep academic audit for: "${studentId}"`);
+
+    // 1. Fetch Student Profile Basics (For fallback names if class links are broken)
+    const [stdProfile] = await dbp.query(
+      `SELECT chosen_program as program_name, chosen_subprogram as subprogram_name, class_id FROM students WHERE student_id = ? 
+       UNION 
+       SELECT IFNULL(chosen_program, exam_type) as program_name, IFNULL(exam_type, 'IELTS') as subprogram_name, class_id FROM IELTSTOEFL WHERE student_id = ?`,
+      [studentId, studentId]
+    );
+
+    const profile = stdProfile[0] || {};
+
+    const classIds = new Set();
+    const activeClassId = new Set();
+    if (profile.class_id) {
+      classIds.add(profile.class_id);
+      activeClassId.add(profile.class_id);
+    }
+
+    // 2. Discover historical Class IDs
+    const [hist] = await dbp.query("SELECT class_id FROM student_class_history WHERE student_id = ?", [studentId]);
+    hist.forEach(r => classIds.add(r.class_id));
+
+    // 3. Discover Submission Class IDs
+    const subTables = ['exam_submissions', 'writing_task_submissions', 'course_work_submissions', 'oral_assignment_submissions'];
+    const assTables = ['exams', 'writing_tasks', 'course_work', 'oral_assignments'];
+    for (let i = 0; i < subTables.length; i++) {
+      try {
+        const [rows] = await dbp.query(
+          `SELECT DISTINCT a.class_id FROM ${subTables[i]} sub JOIN ${assTables[i]} a ON sub.assignment_id = a.id WHERE sub.student_id = ?`,
+          [studentId]
+        );
+        rows.forEach(r => { if (r.class_id) classIds.add(r.class_id); });
+      } catch (e) { /* skip */ }
+    }
+
+    if (classIds.size === 0) {
+      return res.json({ success: true, classes: [] });
+    }
+
+    // 4. Resolve metadata
+    const idList = Array.from(classIds);
+    const [details] = await dbp.query(
+      `SELECT c.id, c.class_name, c.subprogram_id,
+              COALESCE(s.subprogram_name, ?) as subprogram_name, 
+              COALESCE(p.title, ?) as program_name
+       FROM classes c
+       LEFT JOIN subprograms s ON c.subprogram_id = s.id
+       LEFT JOIN programs p ON s.program_id = p.id
+       WHERE c.id IN (?)`,
+      [profile.subprogram_name || "General", profile.program_name || "General Program", idList]
+    );
+
+    const result = details.map(r => ({
+      ...r,
+      is_active: activeClassId.has(r.id) ? 1 : 0
+    })).sort((a, b) => b.is_active - a.is_active);
+
+    console.log(`[GetMyClasses] FINISH. Found ${result.length} enrollments.`);
+
+    res.json({
+      success: true,
+      classes: result
+    });
+  } catch (err) {
+    console.error("❌ CRITICAL ERROR in getMyClasses:", err);
+    res.status(500).json({ success: false, error: "Academic data resolution failed" });
   }
 };

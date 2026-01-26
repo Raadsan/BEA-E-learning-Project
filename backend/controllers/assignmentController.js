@@ -9,7 +9,7 @@ export const getAssignmentStats = async (req, res) => {
 
         const tables = [
             { main: 'writing_tasks', sub: 'writing_task_submissions', type: 'writing_task' },
-            { main: 'tests', sub: 'test_submissions', type: 'test' },
+            { main: 'exams', sub: 'exam_submissions', type: 'exam' },
             { main: 'oral_assignments', sub: 'oral_assignment_submissions', type: 'oral_assignment' },
             { main: 'course_work', sub: 'course_work_submissions', type: 'course_work' }
         ];
@@ -65,7 +65,7 @@ export const getPerformanceClusters = async (req, res) => {
 
         const tables = [
             { main: 'writing_tasks', sub: 'writing_task_submissions' },
-            { main: 'tests', sub: 'test_submissions' },
+            { main: 'exams', sub: 'exam_submissions' },
             { main: 'oral_assignments', sub: 'oral_assignment_submissions' },
             { main: 'course_work', sub: 'course_work_submissions' }
         ];
@@ -136,9 +136,9 @@ const tableMapping = {
         main: 'writing_tasks',
         sub: 'writing_task_submissions'
     },
-    'test': {
-        main: 'tests',
-        sub: 'test_submissions'
+    'exam': {
+        main: 'exams',
+        sub: 'exam_submissions'
     },
     'oral_assignment': {
         main: 'oral_assignments',
@@ -176,7 +176,7 @@ export const getAssignments = async (req, res) => {
             if (!table) continue;
 
             // Determine join logic for subprograms based on table type
-            const hasSubprogramColumn = ['tests', 'oral_assignments', 'course_work'].includes(table);
+            const hasSubprogramColumn = ['exams', 'oral_assignments', 'course_work'].includes(table);
             const subprogramJoinCondition = hasSubprogramColumn
                 ? 'sp.id = COALESCE(a.subprogram_id, c.subprogram_id)'
                 : 'sp.id = c.subprogram_id';
@@ -206,7 +206,7 @@ export const getAssignments = async (req, res) => {
 
                 if (class_id) {
                     // Existing logic for class-based assignments (direct or inherited subprogram)
-                    if (['tests', 'oral_assignments', 'course_work'].includes(table)) {
+                    if (['exams', 'oral_assignments', 'course_work'].includes(table)) {
                         conditions.push(`(a.class_id = ? OR (a.class_id IS NULL AND a.subprogram_id = (SELECT subprogram_id FROM classes WHERE id = ?)))`);
                         vals.push(class_id, class_id);
                     } else {
@@ -215,15 +215,15 @@ export const getAssignments = async (req, res) => {
                     }
                 }
 
-                // For tests/oral/coursework: match by program_id + subprogram_id OR just subprogram_id
-                if (subprogram_id && ['tests', 'oral_assignments', 'course_work'].includes(table)) {
-                    if (program_id) {
-                        // Match by both program_id AND subprogram_id (for tests created with both)
-                        conditions.push(`(a.program_id = ? AND a.subprogram_id = ? AND a.class_id IS NULL)`);
-                        vals.push(program_id, subprogram_id);
+                // NEW: For subprogram_id query - include ALL assignments from classes in that subprogram
+                if (subprogram_id && !class_id) {
+                    if (['exams', 'oral_assignments', 'course_work'].includes(table)) {
+                        // Include: 1) Subprogram-level assignments, 2) All class-level assignments in this subprogram
+                        conditions.push(`(a.subprogram_id = ? OR c.subprogram_id = ?)`);
+                        vals.push(subprogram_id, subprogram_id);
                     } else {
-                        // Match by subprogram_id alone (for tests created with just subprogram)
-                        conditions.push(`(a.subprogram_id = ? AND a.class_id IS NULL)`);
+                        // For writing_tasks (no subprogram_id column), match by class's subprogram
+                        conditions.push(`c.subprogram_id = ?`);
                         vals.push(subprogram_id);
                     }
                 }
@@ -235,7 +235,7 @@ export const getAssignments = async (req, res) => {
             } else {
                 // Admin/Teacher: Strict filtering (AND)
                 if (class_id) {
-                    if (['tests', 'oral_assignments', 'course_work'].includes(table)) {
+                    if (['exams', 'oral_assignments', 'course_work'].includes(table)) {
                         query += ` AND (a.class_id = ? OR (a.class_id IS NULL AND a.subprogram_id = (SELECT subprogram_id FROM classes WHERE id = ?)))`;
                         params.push(class_id, class_id);
                     } else {
@@ -314,7 +314,7 @@ export const createAssignment = async (req, res) => {
         if (type === 'writing_task') {
             columns.push('word_count', 'requirements');
             values.push(word_count || null, requirements || null);
-        } else if (type === 'test' || type === 'oral_assignment') {
+        } else if (type === 'exam' || type === 'oral_assignment') {
             columns.push('duration', 'questions', 'subprogram_id');
 
             // Handle file uploads for questions (e.g., Paper 3 Listening)
@@ -366,7 +366,7 @@ export const createAssignment = async (req, res) => {
 
             values.push(duration || null, JSON.stringify(processedQuestions), subprogram_id || null);
 
-            if (type === 'test') {
+            if (type === 'exam') {
                 columns.push('start_date', 'end_date');
                 values.push(start_date || null, end_date || null);
             }
@@ -425,7 +425,7 @@ export const updateAssignment = async (req, res) => {
         if (type === 'writing_task') {
             updateParts.push('word_count = ?', 'requirements = ?');
             values.push(word_count || null, requirements || null);
-        } else if (type === 'test' || type === 'oral_assignment') {
+        } else if (type === 'exam' || type === 'oral_assignment') {
             updateParts.push('duration = ?', 'questions = ?', 'subprogram_id = ?');
 
             let processedQuestions = questions ? (typeof questions === 'string' ? JSON.parse(questions) : questions) : [];
@@ -448,7 +448,7 @@ export const updateAssignment = async (req, res) => {
 
             values.push(duration || null, JSON.stringify(processedQuestions), subprogram_id || null);
 
-            if (type === 'test') {
+            if (type === 'exam') {
                 updateParts.push('start_date = ?', 'end_date = ?');
                 values.push(start_date || null, end_date || null);
             }
@@ -533,8 +533,8 @@ export const submitAssignment = async (req, res) => {
         let score = null;
         let finalStatus = 'submitted';
 
-        // Auto-grading for Assignments with Questions (Tests and Course Work)
-        if ((type === 'course_work' || type === 'test') && assignments[0].questions) {
+        // Auto-grading for Assignments with Questions (Exams and Course Work)
+        if ((type === 'course_work' || type === 'exam') && assignments[0].questions) {
             try {
                 const testQuestions = typeof assignments[0].questions === 'string'
                     ? JSON.parse(assignments[0].questions)

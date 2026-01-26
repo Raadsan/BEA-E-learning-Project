@@ -50,16 +50,16 @@ export default function AttendancePage() {
   ];
 
   const columns = [
-    { label: "Program Name", key: "program_name", render: (row) => row.program_name || "General Program" },
-    { label: "Subprogram Name", key: "subprogram_name", render: (row) => row.subprogram_name || "Basic Level" },
+    { label: "Program Name", key: "program_name", render: (row) => row.program_name || row.course_title || "General Program" },
+    { label: "Level / Class", key: "subprogram_name", render: (row) => row.subprogram_name || row.class_name || "Basic Level" },
     { label: "Date", key: "date", render: (row) => row.date ? new Date(row.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) : "-" },
     {
       label: "Hour One",
       key: "hour1",
       render: (row) => (
         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.hour1 === 1 ? 'bg-green-100 text-green-700' :
-            row.hour1 === 2 ? 'bg-orange-100 text-orange-700' :
-              'bg-red-100 text-red-700'
+          row.hour1 === 2 ? 'bg-orange-100 text-orange-700' :
+            'bg-red-100 text-red-700'
           }`}>
           {row.hour1 === 1 ? "Present" : row.hour1 === 2 ? "Excused" : "Absent"}
         </span>
@@ -70,8 +70,8 @@ export default function AttendancePage() {
       key: "hour2",
       render: (row) => (
         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.hour2 === 1 ? 'bg-green-100 text-green-700' :
-            row.hour2 === 2 ? 'bg-orange-100 text-orange-700' :
-              'bg-red-100 text-red-700'
+          row.hour2 === 2 ? 'bg-orange-100 text-orange-700' :
+            'bg-red-100 text-red-700'
           }`}>
           {row.hour2 === 1 ? "Present" : row.hour2 === 2 ? "Excused" : "Absent"}
         </span>

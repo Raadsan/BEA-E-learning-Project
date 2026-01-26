@@ -112,8 +112,8 @@ export default function AssignmentManager({ type, title, description }) {
             router.push('/portal/teacher/assessments/course-work/create');
             return;
         }
-        if (type === 'test') {
-            router.push('/portal/teacher/assessments/tests/create');
+        if (type === 'exam') {
+            router.push('/portal/teacher/assessments/exams/create');
             return;
         }
         if (type === 'oral_assignment') {
@@ -143,8 +143,8 @@ export default function AssignmentManager({ type, title, description }) {
             router.push(`/portal/teacher/assessments/course-work/create?id=${assignment.id}`);
             return;
         }
-        if (type === 'test') {
-            router.push(`/portal/teacher/assessments/tests/update/${assignment.id}`);
+        if (type === 'exam') {
+            router.push(`/portal/teacher/assessments/exams/update/${assignment.id}`);
             return;
         }
         if (type === 'oral_assignment') {
@@ -371,7 +371,7 @@ export default function AssignmentManager({ type, title, description }) {
 
         if (type === 'writing_task') {
             baseColumns.push({ label: "Words", key: "word_count" });
-        } else if (type === 'test' || type === 'oral_assignment') {
+        } else if (type === 'exam' || type === 'oral_assignment') {
             baseColumns.push({ label: "Duration", key: "duration" });
         }
 
@@ -856,7 +856,7 @@ export default function AssignmentManager({ type, title, description }) {
                                                         />
                                                     </div>
 
-                                                    {(type === 'test' || type === 'oral_assignment') && (
+                                                    {(type === 'exam' || type === 'oral_assignment') && (
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Duration (Minutes)</label>
                                                             <input

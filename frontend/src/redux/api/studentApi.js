@@ -171,6 +171,17 @@ export const studentApi = createApi({
         return response;
       },
     }),
+    // GET MY CLASSES (History)
+    getMyClasses: builder.query({
+      query: () => "/my-classes",
+      providesTags: ["Students"],
+      transformResponse: (response) => {
+        if (response.success) {
+          return response.classes;
+        }
+        return response;
+      },
+    }),
   }),
 });
 
@@ -186,5 +197,6 @@ export const {
   useGetSexDistributionQuery,
   useGetTopStudentsQuery,
   useGetStudentLocationsQuery,
+  useGetMyClassesQuery,
 } = studentApi;
 

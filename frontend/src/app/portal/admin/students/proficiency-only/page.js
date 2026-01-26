@@ -8,6 +8,7 @@ import {
     useUpdateCandidateStatusMutation,
     useExtendCandidateDeadlineMutation,
     useDeleteCandidateMutation,
+    useUpdateCandidateMutation,
 } from "@/redux/api/proficiencyTestStudentsApi";
 import { useToast } from "@/components/Toast";
 import Modal from "@/components/Modal";

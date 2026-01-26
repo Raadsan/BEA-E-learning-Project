@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const assignmentApi = createApi({
     reducerPath: "assignmentApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: "http://localhost:5000/api/assignments",
+        baseUrl: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/assignments`,
         prepareHeaders: (headers) => {
             const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {

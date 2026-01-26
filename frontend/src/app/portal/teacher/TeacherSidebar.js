@@ -35,7 +35,7 @@ export default function TeacherSidebar({ isOpen, onClose }) {
       setOpenSection('myClasses');
     } else if (pathname?.includes("writing-tasks") ||
       pathname?.includes("course-work") ||
-      pathname?.includes("tests") ||
+      pathname?.includes("exams") ||
       pathname?.includes("oral-assignment")) {
       setOpenSection('assessments');
     } else {
@@ -111,7 +111,7 @@ export default function TeacherSidebar({ isOpen, onClose }) {
             height={384}
             className="h-full w-auto object-contain object-left brightness-0 invert"
             priority
-            style={{width: '100%', height: 'auto' }}
+            style={{ width: '100%', height: 'auto' }}
           />
         </div>
 
@@ -173,8 +173,8 @@ export default function TeacherSidebar({ isOpen, onClose }) {
 
           {/* Exams */}
           <li>
-            <Link href="/portal/teacher/assessments/tests" className={getMenuItemClasses("/portal/teacher/assessments/tests")} style={getActiveStyle("/portal/teacher/assessments/tests")}>
-              <svg className={getIconClasses("/portal/teacher/assessments/tests")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <Link href="/portal/teacher/assessments/exams" className={getMenuItemClasses("/portal/teacher/assessments/exams")} style={getActiveStyle("/portal/teacher/assessments/exams")}>
+              <svg className={getIconClasses("/portal/teacher/assessments/exams")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="font-medium text-sm">Exams</span>

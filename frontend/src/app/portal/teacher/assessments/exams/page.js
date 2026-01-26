@@ -2,10 +2,10 @@
 
 import AssignmentManager from "../AssignmentManager";
 
-export default function TestsPage() {
+export default function ExamsPage() {
     return (
         <AssignmentManager
-            type="test"
+            type="exam"
             title="Exams"
             description="Schedule and manage formal assessments and exams. Evaluate student progress through comprehensive testing."
         />

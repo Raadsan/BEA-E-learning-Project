@@ -6,14 +6,14 @@ import { useDarkMode } from "@/context/ThemeContext";
 import Loader from "@/components/Loader";
 import { useGetAssignmentsQuery } from "@/redux/api/assignmentApi";
 
-export default function TestResultsPage() {
+export default function ExamResultsPage() {
     const { isDark } = useDarkMode();
     const router = useRouter();
     const searchParams = useSearchParams();
     const testId = searchParams.get("id");
 
     const { data: assignments, isLoading: testsLoading } = useGetAssignmentsQuery({
-        type: 'test'
+        type: 'exam'
     });
 
     const assignment = useMemo(() => {
@@ -73,7 +73,7 @@ export default function TestResultsPage() {
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <button
-                            onClick={() => router.push('/portal/student/tests')}
+                            onClick={() => router.push('/portal/student/exams')}
                             className="px-10 py-4 bg-[#010080] hover:bg-blue-900 text-white rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98]"
                         >
                             Return to Dashboard

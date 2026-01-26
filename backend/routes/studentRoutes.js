@@ -11,7 +11,8 @@ import {
   getStudentProgress,
   getSexDistribution,
   getTopStudents,
-  getStudentLocations
+  getStudentLocations,
+  getMyClasses
 } from "../controllers/studentController.js";
 import { verifyToken } from "../controllers/authController.js";
 import { upload } from "../controllers/uploadController.js";
@@ -25,6 +26,7 @@ router.get("/progress", verifyToken, getStudentProgress);
 router.get("/sex-distribution", verifyToken, getSexDistribution);
 router.get("/top-students", verifyToken, getTopStudents);
 router.get("/locations", verifyToken, getStudentLocations);
+router.get("/my-classes", verifyToken, getMyClasses);
 router.post("/", createStudent);
 router.get("/", getStudents);
 router.patch("/:id/approve", approveStudent);

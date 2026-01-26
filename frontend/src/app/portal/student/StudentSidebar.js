@@ -13,7 +13,7 @@ const coursePaths = [
   '/portal/student/online-sessions',
   '/portal/student/writing-tasks',
   '/portal/student/course-work',
-  '/portal/student/tests',
+  '/portal/student/exams',
   '/portal/student/class-updates',
   '/portal/student/term-cycle-info',
   '/portal/student/student-review',
@@ -256,11 +256,11 @@ export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen
               </Link>
             </li>
             <li>
-              <Link href="/portal/student/tests" className={getMenuItemClasses("/portal/student/tests")} style={getActiveStyle("/portal/student/tests")}>
-                <svg className={getIconClasses("/portal/student/tests")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <Link href="/portal/student/exams" className={getMenuItemClasses("/portal/student/exams")} style={getActiveStyle("/portal/student/exams")}>
+                <svg className={getIconClasses("/portal/student/exams")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
-                <span className={getTextClasses("/portal/student/tests")}>Tests</span>
+                <span className={getTextClasses("/portal/student/exams")}>Exams</span>
               </Link>
             </li>
             <li>

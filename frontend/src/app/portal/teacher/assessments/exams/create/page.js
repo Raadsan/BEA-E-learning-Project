@@ -27,7 +27,7 @@ import {
     CheckCircleIcon
 } from "@heroicons/react/24/outline";
 
-export default function CreateTestPage() {
+export default function CreateExamPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const editId = searchParams.get("id");
@@ -105,7 +105,7 @@ export default function CreateTestPage() {
     const [tempListeningQ, setTempListeningQ] = useState({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, points: 2 });
 
     // Fetch existing if editing
-    const { data: assignments } = useGetAssignmentsQuery({ type: 'test' }, { skip: !editId });
+    const { data: assignments } = useGetAssignmentsQuery({ type: 'exam' }, { skip: !editId });
     const editingAssignment = assignments?.find(a => a.id === parseInt(editId));
 
     useEffect(() => {
@@ -288,7 +288,7 @@ export default function CreateTestPage() {
 
         const payload = {
             ...basicInfo,
-            type: 'test',
+            type: 'exam',
             questions: JSON.stringify(papers),
             total_points: calculateTotal()
         };
@@ -296,12 +296,12 @@ export default function CreateTestPage() {
         try {
             if (editId) {
                 await updateAssignment({ id: editId, ...payload }).unwrap();
-                showToast("Test updated successfully!", "success");
+                showToast("Exam updated successfully!", "success");
             } else {
                 await createAssignment(payload).unwrap(); // Ensure assignmentApi accepts JSON if no file is stuck in Body
                 showToast("Exam created successfully!", "success");
             }
-            router.push("/portal/teacher/assessments/tests");
+            router.push("/portal/teacher/assessments/exams");
         } catch (err) {
             showToast("Failed to save exam.", "error");
             console.error(JSON.stringify(err, null, 2));

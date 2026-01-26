@@ -12,14 +12,14 @@ import { useToast } from "@/components/Toast";
 import { useDarkMode } from "@/context/ThemeContext";
 
 
-export default function UpdateTestPage({ params: paramsPromise }) {
+export default function UpdateExamPage({ params: paramsPromise }) {
     const params = use(paramsPromise);
     const id = params.id;
     const router = useRouter();
     const { showToast } = useToast();
     const { isDark } = useDarkMode();
 
-    const { data: assignments } = useGetAssignmentsQuery({ type: 'test' });
+    const { data: assignments } = useGetAssignmentsQuery({ type: 'exam' });
     const { data: programs } = useGetProgramsQuery();
     const { data: classes } = useGetClassesQuery();
     const [updateAssignment, { isLoading: isUpdating }] = useUpdateAssignmentMutation();
@@ -71,7 +71,7 @@ export default function UpdateTestPage({ params: paramsPromise }) {
             // If it's the new format (object with papers), redirect to the new editor
             if (!Array.isArray(q)) {
                 showToast("Redirecting to Standard Exam Editor...", "info");
-                router.replace(`/portal/teacher/assessments/tests/create?id=${id}`);
+                router.replace(`/portal/teacher/assessments/exams/create?id=${id}`);
                 return;
             }
 
@@ -169,7 +169,7 @@ export default function UpdateTestPage({ params: paramsPromise }) {
         const payload = {
             ...testData,
             due_date: testData.due_date === "" ? null : testData.due_date,
-            type: 'test',
+            type: 'exam',
             questions: questions,
             status: testData.status.toLowerCase()
         };
@@ -177,7 +177,7 @@ export default function UpdateTestPage({ params: paramsPromise }) {
         try {
             await updateAssignment({ id, ...payload }).unwrap();
             showToast("Exam updated successfully!", "success");
-            router.push("/portal/teacher/assessments/tests");
+            router.push("/portal/teacher/assessments/exams");
         } catch (err) {
             showToast(err.data?.error || "Failed to update Exam.", "error");
         }
@@ -198,7 +198,7 @@ export default function UpdateTestPage({ params: paramsPromise }) {
                             </p>
                         </div>
                         <button
-                            onClick={() => router.push("/portal/teacher/assessments/tests")}
+                            onClick={() => router.push("/portal/teacher/assessments/exams")}
                             className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all text-sm font-medium ${isDark ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 shadow-sm'}`}
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

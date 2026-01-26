@@ -6,7 +6,6 @@ import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from "@/redux/api
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useToast } from "@/components/Toast";
 
-import StudentTestWorkspace from "../tests/components/StudentTestWorkspace";
 
 export default function StudentAssignmentList({ type, title }) {
     const { isDark } = useDarkMode();
@@ -32,8 +31,8 @@ export default function StudentAssignmentList({ type, title }) {
 
     // Timer logic
     useEffect(() => {
-        // For 'test' type, the StudentTestWorkspace handles the timer internally to match placement test logic
-        if (view === "workspace" && timeLeft > 0 && !submitting && type !== 'test') {
+        // For 'exam' type, the StudentTestWorkspace handles the timer internally to match placement test logic
+        if (view === "workspace" && timeLeft > 0 && !submitting && type !== 'exam') {
             timerRef.current = setInterval(() => {
                 setTimeLeft((prev) => {
                     if (prev <= 1) {
@@ -285,16 +284,6 @@ export default function StudentAssignmentList({ type, title }) {
 
     if (view === "workspace") {
 
-        if (type === 'test') {
-            return (
-                <StudentTestWorkspace
-                    assignment={selectedAssignment}
-                    onBack={() => setView("list")}
-                    onSubmit={(answers, auto) => handleFinalSubmit(auto, answers)}
-                    submitting={submitting}
-                />
-            );
-        }
 
         const isClosed = selectedAssignment.submission_status === "submitted" || selectedAssignment.submission_status === "graded";
 

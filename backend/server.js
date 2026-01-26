@@ -21,6 +21,10 @@ import announcementRoutes from './routes/announcementRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import newsRoutes from './routes/newsRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import paymentPackageRoutes from './routes/paymentPackageRoutes.js';
+import assignmentRoutes from './routes/assignmentRoutes.js';
+import attendanceRoutes from './routes/attendanceRoutes.js';
+import timetableRoutes from './routes/timetableRoutes.js';
 
 dotenv.config();
 
@@ -53,6 +57,10 @@ app.use('/api/announcements', announcementRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payment-packages', paymentPackageRoutes);
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/timetables', timetableRoutes);
 
 // Root Route
 app.get('/', (req, res) => {

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useGetAssignmentsQuery } from "@/redux/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
-import { useGetClassesQuery } from "@/redux/api/classApi";
+import { useGetMyClassesQuery } from "@/redux/api/studentApi";
 import { useToast } from "@/components/Toast";
 import DataTable from "@/components/DataTable";
 
@@ -12,122 +11,164 @@ export default function GradesPage() {
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
   const { data: user } = useGetCurrentUserQuery();
-  const { data: classes } = useGetClassesQuery();
+  const { data: myClasses, isLoading: classesLoading } = useGetMyClassesQuery();
   const [selectedGrade, setSelectedGrade] = useState(null);
-  const [selectedClassId, setSelectedClassId] = useState("");
+  const [selectedSubprogramName, setSelectedSubprogramName] = useState("");
+  const [assignments, setAssignments] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Default to student's current class
+  // Extract unique levels from myClasses using useMemo to prevent recalculation
+  const levels = useMemo(() => {
+    return myClasses?.reduce((acc, cls) => {
+      if (cls.subprogram_name && !acc.find(l => l.subprogram_name === cls.subprogram_name)) {
+        acc.push({
+          subprogram_id: cls.subprogram_id, // Use actual subprogram_id from class data
+          subprogram_name: cls.subprogram_name,
+          program_name: cls.program_name
+        });
+      }
+      return acc;
+    }, []) || [];
+  }, [myClasses]);
+
+  // Auto-select current level
   useEffect(() => {
-    if (user?.class_id && !selectedClassId) {
-      setSelectedClassId(user.class_id);
+    if (levels.length > 0 && !selectedSubprogramName) {
+      setSelectedSubprogramName(levels[0].subprogram_name);
     }
-  }, [user, selectedClassId]);
+  }, [levels.length, selectedSubprogramName]);
 
-  // Fetch assignments for the selected class
-  const { data: allAssignments, isLoading } = useGetAssignmentsQuery({
-    class_id: selectedClassId
-  }, { skip: !selectedClassId });
+  // Fetch assignments for selected level using subprogram_id
+  useEffect(() => {
+    if (!selectedSubprogramName) return;
 
-  // Filter for graded assignments
-  const grades = allAssignments?.filter(a => a.submission_status === 'graded') || [];
+    const fetchAssignments = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+
+        // Get the subprogram_id for the selected level
+        const selectedLevel = levels.find(l => l.subprogram_name === selectedSubprogramName);
+
+        if (!selectedLevel) {
+          setIsLoading(false);
+          return;
+        }
+
+        // Fetch assignments using subprogram_id parameter
+        const url = `http://localhost:5000/api/assignments?subprogram_id=${selectedLevel.subprogram_id}`;
+
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+
+        let assignmentsList = [];
+        if (Array.isArray(data)) {
+          assignmentsList = data;
+        } else if (data.success && Array.isArray(data.assignments)) {
+          assignmentsList = data.assignments;
+        } else if (data.assignments) {
+          assignmentsList = data.assignments;
+        }
+
+        setAssignments(assignmentsList);
+      } catch (error) {
+        console.error("Error fetching assignments:", error);
+        setAssignments([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAssignments();
+  }, [selectedSubprogramName]);
+
+  // Show ALL assignments returned by the API
+  const grades = assignments || [];
+
+  // Calculate metrics
+  const totalEarnedMarks = grades.reduce((sum, g) => sum + (Number(g.score) || 0), 0);
+  const totalPossibleMarks = grades.reduce((sum, g) => sum + (g.submission_status === 'graded' ? (Number(g.total_points) || 100) : 0), 0);
+  const successRate = totalPossibleMarks > 0 ? Math.round((totalEarnedMarks / totalPossibleMarks) * 100) : 0;
 
   const handleDownloadFeedbackFile = async (fileUrl) => {
     if (!fileUrl) return;
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:5000/api/files/download/${fileUrl}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-
-      if (!response.ok) throw new Error("Failed to download file");
-
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const fileNameParts = fileUrl.split('-');
-      const displayFileName = fileNameParts.length > 2 ? fileNameParts.slice(2).join('-') : fileUrl;
-
-      a.download = displayFileName;
+      a.download = fileUrl.split('/').pop();
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      showToast("Download started", "success");
     } catch (error) {
-      console.error("Download error:", error);
-      showToast("Failed to download file. Please try again.", "error");
+      showToast("Failed to download file", "error");
     }
   };
 
   const columns = [
     {
-      key: "title",
-      label: "Assignment Title",
-      width: "300px",
+      key: 'title',
+      label: 'Assignment Title',
       render: (row) => (
-        <div className="flex flex-col">
-          <span className="font-semibold text-gray-900 dark:text-white">{row.title}</span>
-          {row.unit && <span className="text-[10px] text-blue-600 dark:text-blue-400 uppercase font-bold tracking-tighter">Unit: {row.unit}</span>}
+        <div>
+          <div className={isDark ? 'text-white' : 'text-gray-900'}>{row.title}</div>
+          <div className="text-xs text-gray-500">{row.type}</div>
         </div>
       )
     },
     {
-      key: "type",
-      label: "Type",
-      width: "150px",
-      render: (row) => {
-        const types = {
-          test: { label: "Test", class: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800" },
-          course_work: { label: "Course Work", class: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800" },
-          writing_task: { label: "Writing Task", class: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800" }
-        };
-        const config = types[row.type] || { label: row.type, class: "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700" };
-        return (
-          <span className={`px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-full border ${config.class}`}>
-            {config.label}
-          </span>
-        );
-      }
-    },
-    {
-      key: "score",
-      label: "Grade / Marks",
-      width: "150px",
+      key: 'score',
+      label: 'Grade / Marks',
       render: (row) => (
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{row.score}</span>
-          <span className="text-[10px] font-medium text-gray-400">/ {row.total_points || 100}</span>
+        <div className={isDark ? 'text-white' : 'text-gray-900'}>
+          {row.submission_status === 'graded'
+            ? `${row.score} / ${row.total_points || 100}`
+            : <span className={`text-xs uppercase font-bold px-2 py-1 rounded ${!row.submission_status ? 'text-gray-500 bg-gray-100 dark:bg-gray-800' :
+              row.submission_status === 'submitted' ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30' :
+                'text-blue-500 bg-blue-100 dark:bg-blue-900/30'
+              }`}>
+              {!row.submission_status ? 'Not Submitted' :
+                row.submission_status === 'submitted' ? 'Pending Grading' :
+                  row.submission_status}
+            </span>
+          }
         </div>
       )
     },
     {
-      key: "submission_date",
-      label: "Date Graded",
-      width: "180px",
+      key: 'graded_at',
+      label: 'Date',
       render: (row) => (
-        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-          {row.submission_date ? new Date(row.submission_date).toLocaleDateString(undefined, {
-            month: 'short', day: 'numeric', year: 'numeric'
-          }) : "N/A"}
-        </span>
+        <div className={isDark ? 'text-white' : 'text-gray-900'}>
+          {row.graded_at || row.submission_date
+            ? new Date(row.graded_at || row.submission_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+            : <span className="text-gray-400 text-xs italic">Pending</span>}
+        </div>
       )
     },
     {
-      key: "actions",
-      label: "View Report",
-      width: "120px",
+      key: 'actions',
+      label: 'Action',
       render: (row) => (
         <button
           onClick={() => setSelectedGrade(row)}
-          className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40 transition-all active:scale-95"
-          title="View Detailed Report"
+          className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isDark
+            ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+            : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+            }`}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          <span>View Report</span>
+          <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
       )
@@ -135,137 +176,169 @@ export default function GradesPage() {
   ];
 
   return (
-    <div className={`min-h-screen transition-colors px-10 py-10 pt-24 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
+    <div className={`min-h-screen transition-colors px-6 pt-8 pb-10 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       <div className="w-full max-w-full mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold uppercase tracking-tight">MY ACADEMIC GRADES</h1>
-          <p className="text-sm text-gray-500 mt-1">Review your performance and instructor feedback across all academic levels.</p>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">My Academic Grades</h1>
+          <p className="text-gray-500 dark:text-gray-400">Track your progress and review instructor feedback.</p>
         </div>
 
-        {/* Level Selection Box */}
-        <div className={`p-5 rounded-2xl border mb-8 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
-          <div className="max-w-xs">
-            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Select Your Level / Class</label>
-            <select
-              value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
-              className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500/20 outline-none transition-all ${isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
-            >
-              <option value="">Select Level</option>
-              {classes?.map(cls => (
-                <option key={cls.id} value={cls.id}>{cls.class_name}</option>
-              ))}
-            </select>
+        {/* Academic Summary Dashboard */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Level Selection */}
+          <div className={`col-span-1 p-4 rounded-xl border transition-all ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Select Level</label>
+            <div className="relative">
+              <select
+                value={selectedSubprogramName}
+                onChange={(e) => setSelectedSubprogramName(e.target.value)}
+                className={`w-full appearance-none pl-3 pr-8 py-2 rounded-lg border text-sm font-medium focus:ring-1 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'
+                  }`}
+              >
+                <option value="">{classesLoading ? "Loading..." : "Select Level"}</option>
+                {levels?.map(level => (
+                  <option key={level.subprogram_name} value={level.subprogram_name}>
+                    {level.subprogram_name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Program Info */}
+          <div className={`col-span-1 p-4 rounded-xl border flex flex-col justify-center ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Program</span>
+            <div className={`text-sm font-medium line-clamp-1 ${isDark ? 'text-white' : 'text-black'}`}>
+              {user?.chosen_program || user?.exam_type || "General Program"}
+            </div>
+          </div>
+
+          {/* Cumulative Marks */}
+          <div className={`col-span-1 p-4 rounded-xl border flex flex-col justify-center ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Marks</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className={`text-2xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                {totalEarnedMarks}
+              </span>
+              <span className="text-sm font-medium opacity-40">/ {totalPossibleMarks}</span>
+            </div>
+          </div>
+
+          {/* Success Rate */}
+          <div className={`col-span-1 p-4 rounded-xl border flex flex-col justify-center ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Success Rate</span>
+            <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {successRate}%
+            </div>
           </div>
         </div>
 
-        <DataTable
-          title="Graded Assessments"
-          columns={columns}
-          data={grades}
-          isLoading={isLoading}
-          showAddButton={false}
-          emptyMessage={!selectedClassId ? "Please select a level to view your grades." : "You don't have any graded assessments for this level."}
-        />
-      </div>
+
+        <div className={`rounded-3xl border shadow-sm overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+          <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="text-lg font-bold">Academic Records</h2>
+          </div>
+          <DataTable
+            columns={columns}
+            data={grades}
+            isLoading={isLoading}
+            showAddButton={false}
+            emptyMessage="No assignments found for this level yet."
+            headerClassName="hidden"
+          />
+        </div>
+      </div >
 
       {/* View Modal */}
-      {selectedGrade && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedGrade(null)} />
-          <div className={`relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border flex flex-col max-h-[90vh] ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-            {/* Modal Header */}
-            <div className={`px-8 py-6 border-b flex items-center justify-between ${isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-100 bg-gray-50/50'}`}>
-              <div>
-                <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedGrade.title}</h2>
-                <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase font-bold tracking-widest mt-0.5">Assessment Result Details</p>
-              </div>
-              <button onClick={() => setSelectedGrade(null)} className={`p-2 rounded-xl transition-all ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-8 space-y-8">
-              {/* Score Highlights */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className={`p-6 rounded-2xl border ${isDark ? 'bg-blue-600/5 border-blue-500/10' : 'bg-blue-50 border-blue-100'}`}>
-                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest block mb-2">Earned Marks</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-blue-600 dark:text-blue-400">{selectedGrade.score}</span>
-                    <span className="text-sm font-semibold opacity-40">/ {selectedGrade.total_points || 100}</span>
+      {
+        selectedGrade && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedGrade(null)} />
+            <div className={`relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border flex flex-col max-h-[90vh] ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+              {/* Modal Header */}
+              <div className={`px-8 py-6 border-b flex items-center justify-between ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-100 bg-white'}`}>
+                <div>
+                  <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedGrade.title}</h2>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`text-xs px-2 py-0.5 rounded font-medium ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                      {selectedGrade.type}
+                    </span>
+                    <span className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {selectedGrade.graded_at || selectedGrade.submission_date ? new Date(selectedGrade.graded_at || selectedGrade.submission_date).toLocaleDateString() : ''}
+                    </span>
                   </div>
                 </div>
-                <div className={`p-6 rounded-2xl border ${isDark ? 'bg-green-600/5 border-green-500/10' : 'bg-green-50 border-green-100'}`}>
-                  <span className="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase tracking-widest block mb-2">Percentage</span>
-                  <div className="text-4xl font-bold text-green-600 dark:text-green-400">
-                    {Math.round((selectedGrade.score / (selectedGrade.total_points || 100)) * 100)}%
-                  </div>
-                </div>
+                <button onClick={() => setSelectedGrade(null)} className={`p-2 rounded-xl transition-all ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
-              {/* Feedback Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-4 bg-blue-600 rounded-full" />
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500">Instructor Feedback</h3>
-                </div>
+              {/* Modal Body */}
+              <div className={`flex-1 overflow-y-auto px-8 py-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className="space-y-6">
+                  {/* Score Section */}
+                  <div>
+                    <h3 className={`text-sm uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Your Score</h3>
+                    <div className="flex items-baseline gap-2">
+                      <span className={`text-4xl ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{selectedGrade.score}</span>
+                      <span className={`text-xl ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>/ {selectedGrade.total_points || 100}</span>
+                      <span className={`ml-4 text-2xl ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        ({Math.round((selectedGrade.score / (selectedGrade.total_points || 100)) * 100)}%)
+                      </span>
+                    </div>
+                  </div>
 
-                <div className={`p-6 rounded-2xl border ${isDark ? 'bg-gray-900/30 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
-                  {selectedGrade.feedback ? (
-                    <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                      {selectedGrade.feedback}
+                  {/* Feedback Section */}
+                  {selectedGrade.feedback && (
+                    <div>
+                      <h3 className={`text-sm uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Instructor Feedback</h3>
+                      <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+                        <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>{selectedGrade.feedback}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Feedback File */}
+                  {selectedGrade.feedback_file && (
+                    <div>
+                      <h3 className={`text-sm uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Attached Feedback File</h3>
+                      <button
+                        onClick={() => handleDownloadFeedbackFile(selectedGrade.feedback_file)}
+                        className={`px-4 py-2 rounded-lg transition-all ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
+                      >
+                        Download Feedback File
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Graded Date */}
+                  <div>
+                    <h3 className={`text-sm uppercase tracking-wide mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Graded On</h3>
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>
+                      {selectedGrade.graded_at ? new Date(selectedGrade.graded_at).toLocaleString() : 'N/A'}
                     </p>
-                  ) : (
-                    <p className="text-sm italic opacity-40">No written feedback provided.</p>
-                  )}
-
-                  {selectedGrade.feedback_file_url && (
-                    <button
-                      onClick={() => handleDownloadFeedbackFile(selectedGrade.feedback_file_url)}
-                      className={`mt-6 inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border text-sm font-bold transition-all
-                                                ${isDark
-                          ? 'bg-blue-600/10 border-blue-500/20 text-blue-400 hover:bg-blue-600/20'
-                          : 'bg-white border-blue-100 text-blue-600 hover:bg-blue-50 shadow-sm'
-                        }`}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Download Feedback Document
-                    </button>
-                  )}
+                  </div>
                 </div>
               </div>
 
-              {/* Submission Content */}
-              {selectedGrade.content && (
-                <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-4 bg-blue-600 rounded-full" />
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500">Submitted Content</h3>
-                  </div>
-                  <div className={`p-6 rounded-2xl border text-sm leading-relaxed whitespace-pre-wrap ${isDark ? 'bg-gray-900/50 border-gray-700 text-gray-400' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
-                    {selectedGrade.content}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className={`px-8 py-5 border-t flex justify-end ${isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-100 bg-gray-50/50'}`}>
-              <button
-                onClick={() => setSelectedGrade(null)}
-                className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${isDark ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-              >
-                Close Report
-              </button>
+              {/* Modal Footer */}
+              <div className={`px-8 py-4 border-t ${isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-100 bg-gray-50/50'}`}>
+                <button
+                  onClick={() => setSelectedGrade(null)}
+                  className={`w-full px-4 py-2 rounded-lg transition-all ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'}`}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }
