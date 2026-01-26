@@ -4,9 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/components/Toast";
 import { useTheme } from "@/context/ThemeContext";
-import { useRegisterCandidateMutation } from "@/redux/api/proficiencyTestOnlyApi";
+import { useRegisterCandidateMutation } from "@/redux/api/proficiencyTestStudentsApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useLoginMutation } from "@/redux/api/authApi";
 
@@ -18,6 +18,7 @@ import CountrySelect from "@/components/CountrySelect";
 export default function ProficiencyTestRegistration() {
     const { isDarkMode } = useTheme();
     const router = useRouter();
+    const { showToast } = useToast();
     const [registerCandidate, { isLoading: isCreating }] = useRegisterCandidateMutation();
     const [login] = useLoginMutation();
 
@@ -86,28 +87,28 @@ export default function ProficiencyTestRegistration() {
     const validateStep = () => {
         if (currentStep === 1) {
             if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.phone || !formData.sex || !formData.age) {
-                toast.error("Please fill in all required fields");
+                showToast("Please fill in all required fields", 'error');
                 return false;
             }
             if (formData.password !== formData.confirmPassword) {
-                toast.error("Passwords do not match");
+                showToast("Passwords do not match", 'error');
                 return false;
             }
             const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
             if (!passwordRegex.test(formData.password)) {
-                toast.error("Password must be at least 6 characters and include uppercase, lowercase, number, and symbol");
+                showToast("Password must be at least 6 characters and include uppercase, lowercase, number, and symbol", 'error');
                 return false;
             }
         }
         if (currentStep === 2) {
             if (!formData.educational_level) {
-                toast.error("Please select your education level");
+                showToast("Please select your education level", 'error');
                 return false;
             }
         }
         if (currentStep === 3) {
             if (!formData.reason_essay || formData.reason_essay.length < 50) {
-                toast.error("Please provide a statement of at least 50 characters");
+                showToast("Please provide a statement of at least 50 characters", 'error');
                 return false;
             }
         }
@@ -157,7 +158,7 @@ export default function ProficiencyTestRegistration() {
             const response = await registerCandidate(payload).unwrap();
 
             if (response) {
-                toast.success("Registration successful! Redirecting...");
+                showToast("Registration successful! Redirecting...", 'success');
                 // Auto-login attempt
                 try {
                     await login({ email: formData.email, password: formData.password }).unwrap();
@@ -168,7 +169,7 @@ export default function ProficiencyTestRegistration() {
             }
         } catch (err) {
             setPaymentError(err.data?.error || err.message || 'Registration failed');
-            toast.error(err.data?.error || "Registration failed");
+            showToast(err.data?.error || "Registration failed", 'error');
         } finally {
             setIsPaying(false);
         }

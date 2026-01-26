@@ -1,36 +1,86 @@
-import * as ProficiencyModel from "../models/proficiencyTestOnlyModel.js";
+import * as ProficiencyModel from "../models/proficiencyTestStudentsModel.js";
 import { createPayment } from "../models/paymentModel.js";
+import { sendWaafiPayment } from "../utils/waafiPayment.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 // Register new "Test Only" candidate
 export const registerCandidate = async (req, res) => {
     try {
-        const { password } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const { password, payment } = req.body;
 
+        // 1. Password Processing
+        const hashedPassword = await bcrypt.hash(password, 10);
         const candidateData = {
             ...req.body,
             password: hashedPassword
         };
 
+        // 2. Waafi Payment Processing
+        let transactionId = null;
+        let paymentStatus = 'unpaid';
+        let waafiRawResponse = null;
+
+        if (payment && payment.method === 'mwallet_account') {
+            const waafiResponse = await sendWaafiPayment({
+                transactionId: `PROF-${Date.now()}`,
+                accountNo: payment.payerPhone,
+                amount: payment.amount,
+                description: `Proficiency Test Registration: ${req.body.first_name} ${req.body.last_name}`
+            });
+
+            console.log("Waafi Response for Proficiency:", waafiResponse);
+            waafiRawResponse = waafiResponse;
+
+            const respCode = waafiResponse?.responseCode || waafiResponse?.code;
+            const success = (respCode === '0000' || respCode === '0' || respCode === '2001') ||
+                (waafiResponse?.serviceParams?.status === 'SUCCESS');
+
+            if (!success) {
+                return res.status(400).json({
+                    success: false,
+                    error: waafiResponse?.responseMsg || waafiResponse?.message || "Payment failed"
+                });
+            }
+
+            transactionId = waafiResponse?.serviceParams?.transactionId || `WAAFI-${Date.now()}`;
+            paymentStatus = 'paid';
+            candidateData.payment_status = 'paid';
+        } else if (payment && payment.method === 'bank') {
+            candidateData.payment_status = 'Pending';
+        }
+
+        // 3. Create Candidate
         const result = await ProficiencyModel.createCandidate(candidateData);
 
-        // Record payment in history if payment info is present
-        if (req.body.payment && result.student_id) {
+        // 4. Record payment in history if payment info is present
+        if (result.student_id) {
             try {
-                await createPayment({
-                    student_id: result.student_id,
-                    method: 'waafi',
-                    provider_transaction_id: req.body.payment.transactionId || `REG-${Date.now()}`,
-                    amount: req.body.payment.amount || 0,
-                    currency: 'USD',
-                    status: 'paid',
-                    payer_phone: req.body.payment.payerPhone || null,
-                    program_id: 'Proficiency Test',
-                    raw_response: { note: 'Registration Fee' }
-                });
-                console.log(`✅ Payment recorded for proficiency registration: ${result.student_id}`);
+                if (payment && payment.method === 'mwallet_account') {
+                    await createPayment({
+                        student_id: result.student_id,
+                        method: 'waafi',
+                        provider_transaction_id: transactionId,
+                        amount: payment.amount,
+                        currency: 'USD',
+                        status: 'paid',
+                        payer_phone: payment.payerPhone,
+                        program_id: 'Proficiency Test',
+                        raw_response: { note: 'Registration Fee', ...waafiRawResponse }
+                    });
+                    console.log(`✅ Waafi Payment recorded for proficiency: ${result.student_id}`);
+                } else if (payment && payment.method === 'bank') {
+                    await createPayment({
+                        student_id: result.student_id,
+                        method: 'bank',
+                        amount: payment.amount,
+                        currency: 'USD',
+                        status: 'pending',
+                        program_id: 'Proficiency Test',
+                        raw_response: { note: 'Registration Fee (Bank)' }
+                    });
+                    console.log(`✅ Bank Payment record created for proficiency (Pending): ${result.student_id}`);
+                }
             } catch (payErr) {
                 console.error("❌ Failed to record registration payment:", payErr);
             }

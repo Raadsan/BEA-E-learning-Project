@@ -2,7 +2,7 @@ import * as Student from "../models/studentModel.js";
 import * as Teacher from "../models/teacherModel.js";
 import * as Admin from "../models/adminModel.js";
 import * as IeltsStudent from "../models/ieltsToeflModel.js";
-import * as ProficiencyModel from "../models/proficiencyTestOnlyModel.js";
+import * as ProficiencyModel from "../models/proficiencyTestStudentsModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -407,7 +407,7 @@ export const forgotPassword = async (req, res) => {
       idField = 'student_id';
     } else {
       // Assuming Proficiency
-      table = 'ProficiencyTestOnly'; idField = 'student_id';
+      table = 'ProficiencyTestStudents'; idField = 'student_id';
     }
 
     // Quick fix for table selection for Students/IELTS/Proficiency since specific role might not be set in 'user' from getByEmail
@@ -491,7 +491,7 @@ export const resetPassword = async (req, res) => {
       { table: 'admins', idField: 'id' },
       { table: 'teachers', idField: 'id' },
       { table: 'students', idField: 'student_id' },
-      { table: 'ProficiencyTestOnly', idField: 'student_id' }
+      { table: 'ProficiencyTestStudents', idField: 'student_id' }
     ];
 
     let foundUser = null;

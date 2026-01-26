@@ -20,18 +20,22 @@ export const createPayment = async ({ student_id, ielts_student_id, method, prov
 
 export const getPaymentsForStudent = async (studentId) => {
   const [rows] = await dbp.query(
-    `SELECT pay.id, pay.student_id, pay.amount, pay.currency, pay.status, 
+    `SELECT pay.id, COALESCE(pay.student_id, pay.ielts_student_id) as student_id, pay.amount, pay.currency, pay.status, 
             pay.method as payment_method, pay.created_at as payment_date, 
             pay.provider_transaction_id, pay.payer_phone,
             COALESCE(CONVERT(p.title USING utf8mb4), CONVERT(pay.program_id USING utf8mb4), CONVERT(s.chosen_program USING utf8mb4), CONVERT(it.chosen_program USING utf8mb4), 'Proficiency Test') as program_name,
-            COALESCE(CONVERT(s.full_name USING utf8mb4), CONCAT(CONVERT(it.first_name USING utf8mb4), ' ', CONVERT(it.last_name USING utf8mb4)), CONCAT(CONVERT(pto.first_name USING utf8mb4), ' ', CONVERT(pto.last_name USING utf8mb4))) as student_name,
+            COALESCE(
+              CONVERT(s.full_name USING utf8mb4), 
+              NULLIF(CONCAT_WS(' ', CONVERT(it.first_name USING utf8mb4), CONVERT(it.last_name USING utf8mb4)), ''),
+              NULLIF(CONCAT_WS(' ', CONVERT(pto.first_name USING utf8mb4), CONVERT(pto.last_name USING utf8mb4)), '')
+            ) as student_name,
             COALESCE(pay.raw_response, '') as description
      FROM payments pay 
      LEFT JOIN programs p ON (CONVERT(pay.program_id USING utf8mb4) = CONVERT(p.id USING utf8mb4) OR CONVERT(pay.program_id USING utf8mb4) = CONVERT(p.title USING utf8mb4))
      LEFT JOIN students s ON pay.student_id = s.student_id
      LEFT JOIN programs p2 ON (CONVERT(s.chosen_program USING utf8mb4) = CONVERT(p2.id USING utf8mb4) OR CONVERT(s.chosen_program USING utf8mb4) = CONVERT(p2.title USING utf8mb4))
      LEFT JOIN IELTSTOEFL it ON (pay.student_id = it.student_id OR pay.ielts_student_id = it.student_id)
-     LEFT JOIN ProficiencyTestOnly pto ON pay.student_id = pto.student_id
+     LEFT JOIN ProficiencyTestStudents pto ON pay.student_id = pto.student_id
      WHERE pay.student_id = ? OR pay.ielts_student_id = ?
      ORDER BY pay.created_at DESC`,
     [studentId, studentId]
@@ -41,18 +45,22 @@ export const getPaymentsForStudent = async (studentId) => {
 
 export const getAllPayments = async () => {
   const [rows] = await dbp.query(
-    `SELECT pay.id, pay.student_id, pay.amount, pay.currency, pay.status, 
+    `SELECT pay.id, COALESCE(pay.student_id, pay.ielts_student_id) as student_id, pay.amount, pay.currency, pay.status, 
               pay.method as payment_method, pay.created_at as payment_date, 
               pay.provider_transaction_id, pay.payer_phone,
               COALESCE(CONVERT(p.title USING utf8mb4), CONVERT(p2.title USING utf8mb4), CONVERT(it.chosen_program USING utf8mb4), CONVERT(s.chosen_program USING utf8mb4), CONVERT(pay.program_id USING utf8mb4), 'Proficiency Test') as program_name,
-              COALESCE(CONVERT(s.full_name USING utf8mb4), CONCAT(CONVERT(it.first_name USING utf8mb4), ' ', CONVERT(it.last_name USING utf8mb4)), CONCAT(CONVERT(pto.first_name USING utf8mb4), ' ', CONVERT(pto.last_name USING utf8mb4))) as student_name,
+              COALESCE(
+                CONVERT(s.full_name USING utf8mb4), 
+                NULLIF(CONCAT_WS(' ', CONVERT(it.first_name USING utf8mb4), CONVERT(it.last_name USING utf8mb4)), ''),
+                NULLIF(CONCAT_WS(' ', CONVERT(pto.first_name USING utf8mb4), CONVERT(pto.last_name USING utf8mb4)), '')
+              ) as student_name,
               COALESCE(pay.raw_response, '') as description
        FROM payments pay 
        LEFT JOIN programs p ON (CONVERT(pay.program_id USING utf8mb4) = CONVERT(p.id USING utf8mb4) OR CONVERT(pay.program_id USING utf8mb4) = CONVERT(p.title USING utf8mb4))
        LEFT JOIN students s ON pay.student_id = s.student_id
        LEFT JOIN programs p2 ON (CONVERT(s.chosen_program USING utf8mb4) = CONVERT(p2.id USING utf8mb4) OR CONVERT(s.chosen_program USING utf8mb4) = CONVERT(p2.title USING utf8mb4))
        LEFT JOIN IELTSTOEFL it ON (pay.student_id = it.student_id OR pay.ielts_student_id = it.student_id)
-       LEFT JOIN ProficiencyTestOnly pto ON pay.student_id = pto.student_id
+       LEFT JOIN ProficiencyTestStudents pto ON pay.student_id = pto.student_id
        ORDER BY pay.created_at DESC`
   );
   return rows;

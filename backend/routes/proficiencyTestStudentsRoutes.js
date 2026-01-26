@@ -1,5 +1,5 @@
 import express from "express";
-import * as ProficiencyController from "../controllers/proficiencyTestOnlyController.js";
+import * as ProficiencyController from "../controllers/proficiencyTestStudentsController.js";
 
 const router = express.Router();
 

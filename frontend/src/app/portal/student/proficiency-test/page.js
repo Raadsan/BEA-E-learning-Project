@@ -3,13 +3,15 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/components/Toast";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { useGetProficiencyTestsQuery, useGetStudentProficiencyResultsQuery } from "@/redux/api/proficiencyTestApi";
 import { useGetIeltsToeflStudentQuery } from "@/redux/api/ieltsToeflApi";
 
 export default function ProficiencyTestPage() {
     const router = useRouter();
     const { isDark } = useDarkMode();
+    const { showToast } = useToast();
     const { data: tests, isLoading: testsLoading } = useGetProficiencyTestsQuery();
 
     const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
@@ -68,11 +70,7 @@ export default function ProficiencyTestPage() {
 
     React.useEffect(() => {
         if (prevExpiredRef.current === true && isWindowExpired === false) {
-            toast.success("Extra time granted! You can now start your proficiency test.", {
-                duration: 6000,
-                icon: '⏳',
-                style: { fontWeight: 'bold', border: '2px solid #10b981' }
-            });
+            showToast("Extra time granted! You can now start your proficiency test.", 'success');
         }
         prevExpiredRef.current = isWindowExpired;
     }, [isWindowExpired]);
@@ -82,7 +80,7 @@ export default function ProficiencyTestPage() {
     if (isLoading) {
         return (
             <div className="flex h-screen items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+                <LoadingSpinner />
             </div>
         );
     }

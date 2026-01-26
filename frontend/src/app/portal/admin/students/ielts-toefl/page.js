@@ -14,7 +14,8 @@ import {
 } from "@/redux/api/ieltsToeflApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetSessionRequestsQuery } from "@/redux/api/sessionRequestApi";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/components/Toast";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import Modal from "@/components/Modal";
 import StudentApprovalModal from "../components/StudentApprovalModal";
 
@@ -59,6 +60,7 @@ const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick, isExtended }) 
 
 export default function IELTSTOEFLStudentsPage() {
   const { isDark } = useDarkMode();
+  const { showToast } = useToast();
   const { data: ieltsStudents, isLoading, isError, error } = useGetIeltsToeflStudentsQuery();
   const { data: classes = [] } = useGetClassesQuery();
 
@@ -89,7 +91,7 @@ export default function IELTSTOEFLStudentsPage() {
 
   const handleExtendSubmit = async () => {
     if (!extraTime || isNaN(extraTime)) {
-      toast.error("Please enter a valid number");
+      showToast("Please enter a valid number", 'error');
       return;
     }
 
@@ -97,12 +99,12 @@ export default function IELTSTOEFLStudentsPage() {
 
     try {
       await extendDeadline({ id: selectedForExt.student_id, durationMinutes }).unwrap();
-      toast.success("Extra time added successfully!");
+      showToast("Extra time added successfully!", 'success');
       setIsExtending(false);
       setSelectedForExt(null);
       setExtraTime("");
     } catch (err) {
-      toast.error(err.data?.error || "Failed to extend deadline");
+      showToast(err.data?.error || "Failed to extend deadline", 'error');
     }
   };
 
@@ -114,17 +116,17 @@ export default function IELTSTOEFLStudentsPage() {
       if (selectedClassId) {
         // If a class is selected, use the integrated assignment endpoint
         await assignClass({ id: target.student_id, classId: selectedClassId }).unwrap();
-        toast.success("Student approved and assigned to class!");
+        showToast("Student approved and assigned to class!", 'success');
       } else {
         // Standard approval
         await approveStudent(target.student_id).unwrap();
-        toast.success("Student approved successfully");
+        showToast("Student approved successfully", 'success');
       }
       setIsApprovalModalOpen(false);
       setStudentToApprove(null);
       setSelectedClassId(""); // Reset selection
     } catch (err) {
-      toast.error(err.data?.error || "Action failed");
+      showToast(err.data?.error || "Action failed", 'error');
     }
   };
 
@@ -133,11 +135,11 @@ export default function IELTSTOEFLStudentsPage() {
     if (!target) return;
     try {
       await rejectStudent(target.student_id).unwrap();
-      toast.success("Student rejected successfully");
+      showToast("Student rejected successfully", 'success');
       setIsApprovalModalOpen(false);
       setStudentToApprove(null);
     } catch (err) {
-      toast.error(err.data?.error || "Failed to reject student");
+      showToast(err.data?.error || "Failed to reject student", 'error');
     }
   };
 
@@ -319,8 +321,8 @@ export default function IELTSTOEFLStudentsPage() {
       <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 transition-colors">
         <div className="w-full max-w-full px-4 sm:px-8 py-6 min-w-0 flex flex-col">
           {(isLoading) ? (
-            <div className="flex items-center justify-center py-10">
-              <div className="text-center">Loading...</div>
+            <div className="flex-1 flex items-center justify-center py-20">
+              <LoadingSpinner />
             </div>
           ) : isError ? (
             <div className="flex items-center justify-center py-10">

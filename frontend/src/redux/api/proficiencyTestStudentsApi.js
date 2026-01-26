@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-export const proficiencyTestOnlyApi = createApi({
-    reducerPath: "proficiencyTestOnlyApi",
+export const proficiencyTestStudentsApi = createApi({
+    reducerPath: "proficiencyTestStudentsApi",
     baseQuery: fetchBaseQuery({
         baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
         prepareHeaders: (headers) => {
@@ -15,12 +15,12 @@ export const proficiencyTestOnlyApi = createApi({
     tagTypes: ["Candidates"],
     endpoints: (builder) => ({
         getCandidates: builder.query({
-            query: () => "/api/proficiency-test-only/all",
+            query: () => "/api/proficiency-test-students/all",
             providesTags: ["Candidates"],
         }),
         registerCandidate: builder.mutation({
             query: (data) => ({
-                url: "/api/proficiency-test-only/register",
+                url: "/api/proficiency-test-students/register",
                 method: "POST",
                 body: data,
             }),
@@ -28,7 +28,7 @@ export const proficiencyTestOnlyApi = createApi({
         }),
         updateCandidateStatus: builder.mutation({
             query: ({ id, status }) => ({
-                url: `/api/proficiency-test-only/status/${id}`,
+                url: `/api/proficiency-test-students/status/${id}`,
                 method: "PATCH",
                 body: { status },
             }),
@@ -36,7 +36,7 @@ export const proficiencyTestOnlyApi = createApi({
         }),
         updateCandidate: builder.mutation({
             query: ({ id, data }) => ({
-                url: `/api/proficiency-test-only/update/${id}`,
+                url: `/api/proficiency-test-students/update/${id}`,
                 method: "PATCH",
                 body: data,
             }),
@@ -45,7 +45,7 @@ export const proficiencyTestOnlyApi = createApi({
         extendCandidateDeadline: builder.mutation({
 
             query: ({ id, durationMinutes }) => ({
-                url: `/api/proficiency-test-only/extend/${id}`,
+                url: `/api/proficiency-test-students/extend/${id}`,
                 method: "PATCH",
                 body: { durationMinutes },
             }),
@@ -53,7 +53,7 @@ export const proficiencyTestOnlyApi = createApi({
         }),
         deleteCandidate: builder.mutation({
             query: (id) => ({
-                url: `/api/proficiency-test-only/delete/${id}`,
+                url: `/api/proficiency-test-students/delete/${id}`,
                 method: "DELETE",
             }),
             invalidatesTags: ["Candidates"],
@@ -69,4 +69,4 @@ export const {
     useExtendCandidateDeadlineMutation,
 
     useDeleteCandidateMutation,
-} = proficiencyTestOnlyApi;
+} = proficiencyTestStudentsApi;

@@ -1,20 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const getToken = () => {
-    if (typeof window !== "undefined") {
-        return localStorage.getItem("token");
-    }
-    return null;
-};
-
 export const ieltsToeflApi = createApi({
     reducerPath: "ieltsToeflApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: "http://localhost:5000/api/ielts-toefl",
+        baseUrl: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ielts-toefl`,
         prepareHeaders: (headers) => {
-            const token = getToken();
-            if (token) {
-                headers.set("Authorization", `Bearer ${token}`);
+            const user = JSON.parse(localStorage.getItem("user"));
+            if (user && user.token) {
+                headers.set("Authorization", `Bearer ${user.token}`);
             }
             return headers;
         },

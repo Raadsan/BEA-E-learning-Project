@@ -26,7 +26,7 @@ import { materialApi } from "./api/materialApi";
 import { sessionRequestApi } from "./api/sessionRequestApi";
 import { adminApi } from "./api/adminApi";
 import { proficiencyTestApi } from "./api/proficiencyTestApi";
-import { proficiencyTestOnlyApi } from "./api/proficiencyTestOnlyApi";
+import { proficiencyTestStudentsApi } from "./api/proficiencyTestStudentsApi";
 import { placementTestApi } from "./api/placementTestApi";
 import { learningHoursApi } from "./api/learningHoursApi";
 import { shiftApi } from "./api/shiftApi";
@@ -60,7 +60,7 @@ export const store = configureStore({
         [sessionRequestApi.reducerPath]: sessionRequestApi.reducer,
         [adminApi.reducerPath]: adminApi.reducer,
         [proficiencyTestApi.reducerPath]: proficiencyTestApi.reducer,
-        [proficiencyTestOnlyApi.reducerPath]: proficiencyTestOnlyApi.reducer,
+        [proficiencyTestStudentsApi.reducerPath]: proficiencyTestStudentsApi.reducer,
         [placementTestApi.reducerPath]: placementTestApi.reducer,
         [learningHoursApi.reducerPath]: learningHoursApi.reducer,
         [shiftApi.reducerPath]: shiftApi.reducer,
@@ -94,7 +94,7 @@ export const store = configureStore({
             sessionRequestApi.middleware,
             adminApi.middleware,
             proficiencyTestApi.middleware,
-            proficiencyTestOnlyApi.middleware,
+            proficiencyTestStudentsApi.middleware,
             placementTestApi.middleware,
             learningHoursApi.middleware,
             shiftApi.middleware

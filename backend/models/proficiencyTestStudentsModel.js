@@ -13,11 +13,11 @@ export const createCandidate = async (data) => {
     } = data;
 
     // Generate specialized CRT (Certificate) ID
-    const student_id = await generateStudentId('ProficiencyTestOnly', 'Proficiency Test Only');
+    const student_id = await generateStudentId('ProficiencyTestStudents', 'Proficiency Test Only');
 
 
     const query = `
-    INSERT INTO ProficiencyTestOnly (
+    INSERT INTO ProficiencyTestStudents (
       student_id, first_name, last_name, email, phone, password, 
       educational_level, reason_essay, status, payment_status,
       age, sex, residency_country, residency_city,
@@ -34,25 +34,25 @@ export const createCandidate = async (data) => {
     ];
 
     const [result] = await dbp.query(query, values);
-    const [newCandidate] = await dbp.query("SELECT * FROM ProficiencyTestOnly WHERE student_id = ?", [student_id]);
+    const [newCandidate] = await dbp.query("SELECT * FROM ProficiencyTestStudents WHERE student_id = ?", [student_id]);
     return newCandidate[0];
 };
 
 // Get All Candidates
 export const getAllCandidates = async () => {
-    const [rows] = await dbp.query("SELECT *, (expiry_date < NOW()) as is_expired FROM ProficiencyTestOnly ORDER BY registration_date DESC");
+    const [rows] = await dbp.query("SELECT *, (expiry_date < NOW()) as is_expired FROM ProficiencyTestStudents ORDER BY registration_date DESC");
     return rows;
 };
 
 // Get Candidate by ID
 export const getCandidateById = async (id) => {
-    const [rows] = await dbp.query("SELECT *, (expiry_date < NOW()) as is_expired FROM ProficiencyTestOnly WHERE student_id = ?", [id]);
+    const [rows] = await dbp.query("SELECT *, (expiry_date < NOW()) as is_expired FROM ProficiencyTestStudents WHERE student_id = ?", [id]);
     return rows[0];
 };
 
 // Get Candidate by Email (for Login)
 export const getCandidateByEmail = async (email) => {
-    const [rows] = await dbp.query("SELECT *, (expiry_date < NOW()) as is_expired FROM ProficiencyTestOnly WHERE email = ?", [email]);
+    const [rows] = await dbp.query("SELECT *, (expiry_date < NOW()) as is_expired FROM ProficiencyTestStudents WHERE email = ?", [email]);
     return rows[0];
 };
 
@@ -65,14 +65,14 @@ export const updateCandidate = async (id, data) => {
 
     if (keys.length === 0) return 0;
 
-    const [result] = await dbp.query(`UPDATE ProficiencyTestOnly SET ${updates} WHERE student_id = ?`, values);
+    const [result] = await dbp.query(`UPDATE ProficiencyTestStudents SET ${updates} WHERE student_id = ?`, values);
     return result.affectedRows;
 };
 
 // Extend/Reset Entry window
 export const extendDeadline = async (id, durationMinutes = 30) => {
     const [result] = await dbp.query(
-        "UPDATE ProficiencyTestOnly SET expiry_date = DATE_ADD(NOW(), INTERVAL ? MINUTE), is_extended = TRUE, admin_expiry_notified = FALSE, reminder_sent = FALSE WHERE student_id = ?",
+        "UPDATE ProficiencyTestStudents SET expiry_date = DATE_ADD(NOW(), INTERVAL ? MINUTE), is_extended = TRUE, admin_expiry_notified = FALSE, reminder_sent = FALSE WHERE student_id = ?",
         [durationMinutes, id]
     );
     return result.affectedRows;
@@ -81,7 +81,7 @@ export const extendDeadline = async (id, durationMinutes = 30) => {
 // Approve Candidate
 export const approveCandidate = async (id) => {
     const [result] = await dbp.query(
-        "UPDATE ProficiencyTestOnly SET status = 'Approved' WHERE student_id = ?",
+        "UPDATE ProficiencyTestStudents SET status = 'Approved' WHERE student_id = ?",
         [id]
     );
     return result.affectedRows;
@@ -90,7 +90,7 @@ export const approveCandidate = async (id) => {
 // Reject Candidate
 export const rejectCandidate = async (id) => {
     const [result] = await dbp.query(
-        "UPDATE ProficiencyTestOnly SET status = 'Rejected' WHERE student_id = ?",
+        "UPDATE ProficiencyTestStudents SET status = 'Rejected' WHERE student_id = ?",
         [id]
     );
     return result.affectedRows;
@@ -98,6 +98,6 @@ export const rejectCandidate = async (id) => {
 
 // Delete Candidate
 export const deleteCandidate = async (id) => {
-    const [result] = await dbp.query("DELETE FROM ProficiencyTestOnly WHERE student_id = ?", [id]);
+    const [result] = await dbp.query("DELETE FROM ProficiencyTestStudents WHERE student_id = ?", [id]);
     return result.affectedRows;
 };

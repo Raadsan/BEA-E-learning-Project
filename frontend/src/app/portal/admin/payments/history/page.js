@@ -3,22 +3,45 @@
 import { useState } from "react";
 
 import DataTable from "@/components/DataTable";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { useGetAllPaymentsQuery } from "@/redux/api/paymentApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
+import { useGetIeltsToeflStudentsQuery } from "@/redux/api/ieltsToeflApi";
+import { useGetCandidatesQuery as useGetProficiencyStudentsQuery } from "@/redux/api/proficiencyTestStudentsApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function PaymentHistoryPage() {
     const { isDark } = useDarkMode();
     const { data: payments = [], isLoading, isError } = useGetAllPaymentsQuery();
     const { data: students = [] } = useGetStudentsQuery();
+    const { data: ieltsStudents = [] } = useGetIeltsToeflStudentsQuery();
+    const { data: proficiencyStudents = [] } = useGetProficiencyStudentsQuery();
     const { data: programs = [] } = useGetProgramsQuery();
 
-    // Create a map of student IDs to student objects for quick lookup
-    const studentMap = students.reduce((acc, student) => {
-        if (student.student_id) acc[student.student_id] = student;
-        return acc;
-    }, {});
+    // Create a comprehensive map of student IDs to student objects for quick lookup
+    const studentDataMap = {};
+
+    // Map General Students
+    students.forEach(s => {
+        if (s.student_id) studentDataMap[s.student_id] = s;
+    });
+
+    // Map IELTS Students
+    ieltsStudents.forEach(s => {
+        if (s.student_id) studentDataMap[s.student_id] = {
+            ...s,
+            full_name: `${s.first_name || ''} ${s.last_name || ''}`.trim()
+        };
+    });
+
+    // Map Proficiency Students
+    proficiencyStudents.forEach(s => {
+        if (s.student_id) studentDataMap[s.student_id] = {
+            ...s,
+            full_name: `${s.first_name || ''} ${s.last_name || ''}`.trim()
+        };
+    });
 
     // Create a map of program titles to program objects
     const programMap = programs.reduce((acc, program) => {
@@ -47,7 +70,14 @@ export default function PaymentHistoryPage() {
         {
             key: "student_name",
             label: "Student Name",
-            render: (row) => row.student_name || row.full_name || `Student #${row.student_id}`,
+            render: (row) => {
+                const student = studentDataMap[row.student_id];
+                const name = student?.full_name || row.student_name || row.full_name;
+
+                if (!name && !row.student_id) return <span className="text-gray-400 italic">Unknown Student</span>;
+
+                return name || `Student #${row.student_id}`;
+            },
         },
         {
             key: "program",
@@ -63,10 +93,11 @@ export default function PaymentHistoryPage() {
                 }
 
                 // Priority 3: Try to find from student data if available
-                const student = studentMap[row.student_id];
-                if (student?.chosen_program) {
-                    if (isNaN(student.chosen_program)) return student.chosen_program;
-                    const mapped = programIdToTitleMap[String(student.chosen_program)];
+                const student = studentDataMap[row.student_id];
+                const studentProgram = student?.chosen_program || student?.program; // Handle IELTS/Proficiency
+                if (studentProgram) {
+                    if (isNaN(studentProgram)) return studentProgram;
+                    const mapped = programIdToTitleMap[String(studentProgram)];
                     if (mapped) return mapped;
                 }
 
@@ -172,15 +203,11 @@ export default function PaymentHistoryPage() {
 
     if (isLoading) {
         return (
-            <>
-                <main className="flex-1 overflow-y-auto bg-gray-50">
-                    <div className="w-full px-6 py-6">
-                        <div className="text-center py-12">
-                            <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading payments...</p>
-                        </div>
-                    </div>
-                </main>
-            </>
+            <main className={`flex-1 overflow-y-auto ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+                <div className="h-full flex items-center justify-center">
+                    <LoadingSpinner />
+                </div>
+            </main>
         );
     }
 

@@ -8,9 +8,8 @@ import {
     useUpdateCandidateStatusMutation,
     useExtendCandidateDeadlineMutation,
     useDeleteCandidateMutation,
-    useUpdateCandidateMutation
-} from "@/redux/api/proficiencyTestOnlyApi";
-import { toast, Toaster } from "react-hot-toast";
+} from "@/redux/api/proficiencyTestStudentsApi";
+import { useToast } from "@/components/Toast";
 import Modal from "@/components/Modal";
 
 // Reusing the Live Timer Component logic for consistency
@@ -55,6 +54,7 @@ const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
 
 export default function ProficiencyCandidatesPage() {
     const { isDark } = useDarkMode();
+    const { showToast } = useToast();
     const { data: candidates, isLoading } = useGetCandidatesQuery();
     const [updateStatus] = useUpdateCandidateStatusMutation();
     const [extendWindow] = useExtendCandidateDeadlineMutation();
@@ -72,25 +72,25 @@ export default function ProficiencyCandidatesPage() {
     const handleUpdateStatus = async (id, status) => {
         try {
             await updateStatus({ id, status }).unwrap();
-            toast.success(`Candidate ${status} successfully`);
+            showToast(`Candidate ${status} successfully`, 'success');
         } catch (err) {
-            toast.error("Failed to update status");
+            showToast("Failed to update status", 'error');
         }
     };
 
     const handleExtendSubmit = async () => {
         if (!extraTime || isNaN(extraTime)) {
-            toast.error("Please enter a valid number");
+            showToast("Please enter a valid number", 'error');
             return;
         }
         try {
             await extendWindow({ id: selectedCandidate.student_id, durationMinutes: parseInt(extraTime) }).unwrap();
-            toast.success("Entry window updated!");
+            showToast("Entry window updated!", 'success');
             setExtensionModalOpen(false);
             setExtraTime("");
             setSelectedCandidate(null);
         } catch (err) {
-            toast.error("Failed to extend window");
+            showToast("Failed to extend window", 'error');
         }
     };
 
@@ -116,11 +116,11 @@ export default function ProficiencyCandidatesPage() {
 
         if (editFormData.password) {
             if (editFormData.password !== editFormData.confirmPassword) {
-                toast.error("Passwords do not match");
+                showToast("Passwords do not match", 'error');
                 return;
             }
             if (editFormData.password.length < 6) {
-                toast.error("Password must be at least 6 characters");
+                showToast("Password must be at least 6 characters", 'error');
                 return;
             }
         }
@@ -131,10 +131,10 @@ export default function ProficiencyCandidatesPage() {
 
         try {
             await updateCandidate({ id: selectedCandidate.student_id, data: dataToSubmit }).unwrap();
-            toast.success("Candidate info updated");
+            showToast("Candidate info updated", 'success');
             setEditModalOpen(false);
         } catch (err) {
-            toast.error("Failed to update candidate");
+            showToast("Failed to update candidate", 'error');
         }
     };
 
@@ -232,7 +232,7 @@ export default function ProficiencyCandidatesPage() {
                         onClick={async () => {
                             if (confirm("Are you sure you want to delete this candidate?")) {
                                 await deleteCandidate(row.student_id);
-                                toast.success("Candidate deleted");
+                                showToast("Candidate deleted", 'success');
                             }
                         }}
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
@@ -559,7 +559,6 @@ export default function ProficiencyCandidatesPage() {
                     </button>
                 </div>
             </Modal>
-            <Toaster position="top-right" />
         </main>
     );
 

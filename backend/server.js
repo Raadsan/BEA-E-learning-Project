@@ -9,7 +9,7 @@ import studentRoutes from './routes/studentRoutes.js';
 import teacherRoutes from './routes/teacherRoutes.js';
 import ieltsToeflRoutes from './routes/ieltsToeflRoutes.js';
 import proficiencyTestRoutes from './routes/proficiencyTestRoutes.js'; // The exam itself
-import proficiencyTestOnlyRoutes from './routes/proficiencyTestOnlyRoutes.js'; // The new candidate registration
+import proficiencyTestStudentsRoutes from './routes/proficiencyTestStudentsRoutes.js'; // The new candidate registration
 import placementTestRoutes from './routes/placementTestRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
@@ -41,7 +41,7 @@ app.use('/api/students', studentRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/ielts-toefl', ieltsToeflRoutes);
 app.use('/api/proficiency-tests', proficiencyTestRoutes); // Exam management
-app.use('/api/proficiency-test-only', proficiencyTestOnlyRoutes); // New "Certificate Only" candidates
+app.use('/api/proficiency-test-students', proficiencyTestStudentsRoutes); // New "Certificate Only" candidates
 app.use('/api/placement-tests', placementTestRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);

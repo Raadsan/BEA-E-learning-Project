@@ -87,7 +87,7 @@ export const createIeltsStudent = async (req, res) => {
         if (student && paymentStatus === 'Paid' && transactionId) {
             try {
                 await createPayment({
-                    ielts_student_id: student.id,
+                    ielts_student_id: student.student_id,
                     method: 'waafi',
                     provider_transaction_id: transactionId,
                     amount: req.body.payment_amount,
@@ -105,7 +105,7 @@ export const createIeltsStudent = async (req, res) => {
             // Record pending bank transfer in payments table too
             try {
                 await createPayment({
-                    ielts_student_id: student.id,
+                    ielts_student_id: student.student_id,
                     method: 'bank',
                     amount: req.body.payment_amount,
                     status: 'pending',
@@ -119,7 +119,7 @@ export const createIeltsStudent = async (req, res) => {
             // Record ADMIN created manual payment
             try {
                 await createPayment({
-                    ielts_student_id: student.id,
+                    ielts_student_id: student.student_id,
                     method: 'cash', // Default to cash/manual for admin entry
                     amount: req.body.funding_amount,
                     status: 'paid',
