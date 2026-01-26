@@ -52,16 +52,18 @@ export default function ProficiencyTestPage() {
         return activeTests[0];
     }, [tests]);
 
+    const prog = (user?.chosen_program || user?.program || "").toString().toLowerCase();
+    const isProficiencyOnly = prog.trim() === "proficiency test" || user?.role === 'proficiency_student';
     const hasTakenTest = results?.find(r => r.test_id === activeTest?.id);
 
     React.useEffect(() => {
-        if (hasTakenTest) {
+        if (hasTakenTest && !isProficiencyOnly) {
             router.replace(`/portal/student/proficiency-test/results?id=${hasTakenTest.id}`);
         }
-    }, [hasTakenTest, router]);
+    }, [hasTakenTest, router, isProficiencyOnly]);
 
     // Hook Order Fix: Compute window state and refs early
-    const isWindowExpired = (!studentInfo?.student || !studentInfo.student.is_extended) || (windowTimeLeft === 0);
+    const isWindowExpired = ((!studentInfo?.student || !studentInfo.student.is_extended) || (windowTimeLeft === 0)) && !isProficiencyOnly;
     const prevExpiredRef = React.useRef(isWindowExpired);
 
     React.useEffect(() => {
@@ -112,28 +114,30 @@ export default function ProficiencyTestPage() {
                 <div className={`rounded-3xl shadow-lg p-12 max-w-2xl w-full border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
                     }`}>
 
-                    {/* Window Status Banner */}
-                    <div className={`mb-8 p-4 rounded-2xl flex items-center justify-between border-2 transition-all ${isWindowExpired
-                        ? 'bg-red-50 border-red-100 text-red-600'
-                        : windowTimeLeft < 120
-                            ? 'bg-amber-50 border-amber-100 text-amber-600 animate-pulse'
-                            : 'bg-green-50 border-green-100 text-green-600'
-                        }`}>
-                        <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isWindowExpired ? 'bg-red-100' : 'bg-white/50'}`}>
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                    {/* Window Status Banner - Hide for Proficiency Only Students */}
+                    {!isProficiencyOnly && (
+                        <div className={`mb-8 p-4 rounded-2xl flex items-center justify-between border-2 transition-all ${isWindowExpired
+                            ? 'bg-red-50 border-red-100 text-red-600'
+                            : windowTimeLeft < 120
+                                ? 'bg-amber-50 border-amber-100 text-amber-600 animate-pulse'
+                                : 'bg-green-50 border-green-100 text-green-600'
+                            }`}>
+                            <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isWindowExpired ? 'bg-red-100' : 'bg-white/50'}`}>
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">Entry Window</p>
+                                    <p className="text-sm font-bold">{isWindowExpired ? "Access Blocked" : "Time to Start"}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">Entry Window</p>
-                                <p className="text-sm font-bold">{isWindowExpired ? "Access Blocked" : "Time to Start"}</p>
+                            <div className="text-xl font-mono font-black">
+                                {formatWindowTime(windowTimeLeft)}
                             </div>
                         </div>
-                        <div className="text-xl font-mono font-black">
-                            {formatWindowTime(windowTimeLeft)}
-                        </div>
-                    </div>
+                    )}
 
                     {/* Header Icon */}
                     <div className="flex justify-center mb-6">

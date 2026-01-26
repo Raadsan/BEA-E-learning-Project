@@ -20,9 +20,15 @@ export default function PaymentHistoryPage() {
         return acc;
     }, {});
 
-    // Create a map of program names to program objects
+    // Create a map of program titles to program objects
     const programMap = programs.reduce((acc, program) => {
         acc[program.title] = program;
+        return acc;
+    }, {});
+
+    // Create a map of program IDs (as string) to program titles
+    const programIdToTitleMap = programs.reduce((acc, program) => {
+        if (program.id) acc[String(program.id)] = program.title;
         return acc;
     }, {});
 
@@ -41,30 +47,40 @@ export default function PaymentHistoryPage() {
         {
             key: "student_name",
             label: "Student Name",
-            render: (row) => {
-                const student = studentMap[row.student_id];
-                return student?.full_name || `Student #${row.student_id}`;
-            },
+            render: (row) => row.student_name || row.full_name || `Student #${row.student_id}`,
         },
         {
             key: "program",
             label: "Program",
             render: (row) => {
+                // Priority 1: Check if backend already sent a non-numeric title
+                if (row.program_name && isNaN(row.program_name)) return row.program_name;
+
+                // Priority 2: Try mapping from ID if program_name is a number
+                if (row.program_name && !isNaN(row.program_name)) {
+                    const mappedName = programIdToTitleMap[String(row.program_name)];
+                    if (mappedName) return mappedName;
+                }
+
+                // Priority 3: Try to find from student data if available
                 const student = studentMap[row.student_id];
-                const programName = student?.chosen_program || row.program_name || 'N/A';
-                return <span className="text-sm">{programName}</span>;
+                if (student?.chosen_program) {
+                    if (isNaN(student.chosen_program)) return student.chosen_program;
+                    const mapped = programIdToTitleMap[String(student.chosen_program)];
+                    if (mapped) return mapped;
+                }
+
+                return row.program_name || 'Proficiency Test';
             },
         },
         {
             key: "fee",
             label: "Fee",
-            render: (row) => {
-                const student = studentMap[row.student_id];
-                const programName = student?.chosen_program;
-                const program = programMap[programName];
-                const fee = program?.price || row.amount || '0.00';
-                return <span className="font-semibold text-gray-700 dark:text-gray-300">${fee}</span>;
-            },
+            render: (row) => (
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    ${row.amount || '0.00'}
+                </span>
+            ),
         },
         {
             key: "paid",
@@ -76,11 +92,19 @@ export default function PaymentHistoryPage() {
         {
             key: "payment_method",
             label: "Method",
-            render: (row) => (
-                <span className="uppercase text-xs font-medium px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                    {row.payment_method || 'N/A'}
-                </span>
-            ),
+            render: (row) => {
+                const method = (row.payment_method || '').toLowerCase();
+                let label = row.payment_method || 'N/A';
+                if (method.includes('waafi') || method.includes('mwallet')) label = 'WAAFI';
+                else if (method === 'evc') label = 'EVC';
+                else if (method === 'bank') label = 'BANK';
+
+                return (
+                    <span className="uppercase text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100">
+                        {label}
+                    </span>
+                );
+            }
         },
         {
             key: "status",
@@ -103,6 +127,22 @@ export default function PaymentHistoryPage() {
                         {isPaid ? 'Paid' : status}
                     </span>
                 );
+            },
+        },
+        {
+            key: "description",
+            label: "Type",
+            render: (row) => {
+                if (!row.description || row.description === 'null') return 'Subscription';
+                try {
+                    const desc = typeof row.description === 'string' ? JSON.parse(row.description) : row.description;
+                    if (desc && typeof desc === 'object') {
+                        return desc.note || desc.type || 'Subscription';
+                    }
+                    return row.description;
+                } catch (e) {
+                    return row.description;
+                }
             },
         },
         {

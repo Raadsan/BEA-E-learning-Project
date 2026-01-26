@@ -167,7 +167,7 @@ export default function IELTSTOEFLRegistrationPage() {
         exam_booking_date: formData.exam_booking_date || null,
         exam_booking_time: formData.exam_booking_time || null,
         payment: {
-          method: paymentMethod,
+          method: 'waafi',
           amount: APPLICATION_FEE,
           payerPhone: paymentAccountNumber.replace(/\s+/g, ''),
         }

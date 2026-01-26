@@ -88,13 +88,13 @@ export const createIeltsStudent = async (req, res) => {
             try {
                 await createPayment({
                     ielts_student_id: student.id,
-                    method: 'mwallet_account',
+                    method: 'waafi',
                     provider_transaction_id: transactionId,
                     amount: req.body.payment_amount,
                     status: 'paid',
                     payer_phone: req.body.payer_phone,
-                    raw_response: waafiRawResponse,
-                    program_id: req.body.chosen_program
+                    raw_response: { note: 'Registration Fee', ...waafiRawResponse },
+                    program_id: 'Proficiency Test'
                 });
                 console.log(`✅ Payment synced to payments table for IELTS student ${student.student_id}`);
             } catch (err) {
@@ -109,7 +109,8 @@ export const createIeltsStudent = async (req, res) => {
                     method: 'bank',
                     amount: req.body.payment_amount,
                     status: 'pending',
-                    program_id: req.body.chosen_program
+                    program_id: 'Proficiency Test',
+                    raw_response: { note: 'Registration Fee (Bank)' }
                 });
             } catch (err) {
                 console.error("❌ Failed to record bank payment in payments table:", err);
@@ -123,7 +124,7 @@ export const createIeltsStudent = async (req, res) => {
                     amount: req.body.funding_amount,
                     status: 'paid',
                     month_paid_for: req.body.funding_month,
-                    program_id: req.body.chosen_program
+                    program_id: 'Proficiency Test'
                 });
                 console.log(`✅ Admin manual payment synced for IELTS student ${student.student_id}`);
             } catch (err) {

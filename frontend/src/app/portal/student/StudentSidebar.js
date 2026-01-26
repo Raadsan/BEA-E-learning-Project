@@ -54,11 +54,19 @@ export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen
     }
   }, [pathname, announcements]);
 
+  const prog = (user?.chosen_program || user?.program || "").toString().toLowerCase();
+  const sub = user?.chosen_subprogram_name?.toString().toLowerCase() || "";
+  const isProficiencyOnly = prog.trim() === "proficiency test" || user?.role === 'proficiency_student';
+
   // Auto-detect if we're on a course-related page
   useEffect(() => {
+    if (isProficiencyOnly) {
+      setShowMyCourses(false);
+      return;
+    }
     const isCoursePage = coursePaths.some(path => pathname?.startsWith(path));
     setShowMyCourses(isCoursePage);
-  }, [pathname]);
+  }, [pathname, isProficiencyOnly]);
 
   const isActive = (href) => {
     if (href === "/portal/student") {
@@ -337,12 +345,8 @@ export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen
 
             {/* Placement / Proficiency Test (Visible if required by program) */}
             {(() => {
-              const prog = user?.chosen_program?.toString().toLowerCase() || "";
-              const sub = user?.chosen_subprogram_name?.toString().toLowerCase() || "";
-
               const needsPlacement = prog.includes("general english") || prog.includes("gep") || (prog.includes("academic writing") && sub.includes("level 1"));
-              const needsProficiency = prog.includes("proficiency test") || prog.includes("specific purposes") || prog.includes("esp") || prog.includes("ielts") || prog.includes("toefl") || (prog.includes("academic writing") && (sub.includes("level 2") || sub.includes("level 3")));
-              const isProficiencyOnly = prog.trim() === "proficiency test";
+              const needsProficiency = prog.includes("proficiency test") || prog.includes("specific purposes") || prog.includes("esp") || prog.includes("ielts") || prog.includes("toefl") || (prog.includes("academic writing") && (sub.includes("level 2") || sub.includes("level 3"))) || user?.role === 'proficiency_student';
 
               if (needsPlacement) {
                 return (
@@ -380,6 +384,31 @@ export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen
 
               return null;
             })()}
+
+            {/* Additional items for Proficiency Only students (visible even if not approved) */}
+            {isProficiencyOnly && (
+              <>
+                {/* Student Support */}
+                <li>
+                  <Link href="/portal/student/student-support" className={getMenuItemClasses("/portal/student/student-support")} style={getActiveStyle("/portal/student/student-support")}>
+                    <svg className={getIconClasses("/portal/student/student-support")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/student-support")}>Student Support</span>
+                  </Link>
+                </li>
+
+                {/* My Certification */}
+                <li>
+                  <Link href="/portal/student/my-certification" className={getMenuItemClasses("/portal/student/my-certification")} style={getActiveStyle("/portal/student/my-certification")}>
+                    <svg className={getIconClasses("/portal/student/my-certification")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/my-certification")}>My Certification</span>
+                  </Link>
+                </li>
+              </>
+            )}
 
             {isApproved && (
               <>
@@ -448,15 +477,17 @@ export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen
 
 
                 <div className={!isPaid ? "mt-4" : ""}>
-                  {/* Student Support */}
-                  <li>
-                    <Link href="/portal/student/student-support" className={getMenuItemClasses("/portal/student/student-support")} style={getActiveStyle("/portal/student/student-support")}>
-                      <svg className={getIconClasses("/portal/student/student-support")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                      <span className={getTextClasses("/portal/student/student-support")}>Student Support</span>
-                    </Link>
-                  </li>
+                  {/* Student Support (Only if NOT proficiency only - already handled above) */}
+                  {!isProficiencyOnly && (
+                    <li>
+                      <Link href="/portal/student/student-support" className={getMenuItemClasses("/portal/student/student-support")} style={getActiveStyle("/portal/student/student-support")}>
+                        <svg className={getIconClasses("/portal/student/student-support")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <span className={getTextClasses("/portal/student/student-support")}>Student Support</span>
+                      </Link>
+                    </li>
+                  )}
 
                   {/* Policies */}
                   {!isProficiencyOnly && (

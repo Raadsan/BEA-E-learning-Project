@@ -1,4 +1,5 @@
 import * as ProficiencyModel from "../models/proficiencyTestOnlyModel.js";
+import { createPayment } from "../models/paymentModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -14,6 +15,27 @@ export const registerCandidate = async (req, res) => {
         };
 
         const result = await ProficiencyModel.createCandidate(candidateData);
+
+        // Record payment in history if payment info is present
+        if (req.body.payment && result.student_id) {
+            try {
+                await createPayment({
+                    student_id: result.student_id,
+                    method: 'waafi',
+                    provider_transaction_id: req.body.payment.transactionId || `REG-${Date.now()}`,
+                    amount: req.body.payment.amount || 0,
+                    currency: 'USD',
+                    status: 'paid',
+                    payer_phone: req.body.payment.payerPhone || null,
+                    program_id: 'Proficiency Test',
+                    raw_response: { note: 'Registration Fee' }
+                });
+                console.log(`✅ Payment recorded for proficiency registration: ${result.student_id}`);
+            } catch (payErr) {
+                console.error("❌ Failed to record registration payment:", payErr);
+            }
+        }
+
         res.status(201).json({
             message: "Registration successful",
             candidate: {

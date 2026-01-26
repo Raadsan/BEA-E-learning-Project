@@ -19,6 +19,7 @@ import classRoutes from './routes/classRoutes.js';
 import sessionRequestRoutes from './routes/sessionRequestRoutes.js';
 import announcementRoutes from './routes/announcementRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
+import newsRoutes from './routes/newsRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
@@ -50,6 +51,7 @@ app.use('/api/classes', classRoutes);
 app.use('/api/session-requests', sessionRequestRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/news', newsRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Root Route

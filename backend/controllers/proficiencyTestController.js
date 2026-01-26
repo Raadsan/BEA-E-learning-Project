@@ -54,9 +54,13 @@ export const submitProficiencyTest = async (req, res) => {
         const test = await ProficiencyTest.getProficiencyTestById(test_id);
         if (!test) return res.status(404).json({ error: "Test not found" });
 
+        const student = await Student.getStudentById(student_id);
+        const isProficiencyOnly = student?.chosen_program?.toLowerCase().trim() === 'proficiency test';
+
         const existingResults = await ProficiencyTest.getResultsByStudent(student_id);
         const alreadySubmitted = existingResults.find(r => r.test_id === parseInt(test_id));
-        if (alreadySubmitted) {
+
+        if (alreadySubmitted && !isProficiencyOnly) {
             return res.status(400).json({ error: "You have already submitted this proficiency test." });
         }
 

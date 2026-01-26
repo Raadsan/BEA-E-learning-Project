@@ -118,7 +118,7 @@ export const createStudent = async (req, res) => {
           amount: req.body.payment.amount || 0,
           currency: req.body.payment.currency || 'USD',
           status: 'paid',
-          raw_response: req.body.payment.raw || req.body.payment.rawResponse || null,
+          raw_response: { note: 'Registration Fee', ...(req.body.payment.raw || req.body.payment.rawResponse || {}) },
           payer_phone: req.body.payment.payerPhone || null,
           program_id: req.body.payment.program_id || null
         };

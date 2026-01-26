@@ -22,7 +22,7 @@ export const createCandidate = async (data) => {
       educational_level, reason_essay, status, payment_status,
       age, sex, residency_country, residency_city,
       expiry_date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 100 YEAR))
   `;
 
     const values = [
