@@ -10,6 +10,7 @@ import {
     useGetStudentProficiencyResultsQuery
 } from "@/redux/api/proficiencyTestApi";
 import { useGetIeltsToeflStudentQuery } from "@/redux/api/ieltsToeflApi";
+import { useSendTestReminderEmailMutation } from "@/redux/api/notificationApi";
 
 export default function TakeProficiencyTestPage() {
     const { isDark } = useDarkMode();
@@ -31,7 +32,9 @@ export default function TakeProficiencyTestPage() {
     const [currentSubQuestionIdx, setCurrentSubQuestionIdx] = useState(0);
     const [answers, setAnswers] = useState({});
     const [timeRemaining, setTimeRemaining] = useState(null);
+    const [reminderSent, setReminderSent] = useState(false);
     const [showSubmitModal, setShowSubmitModal] = useState(false);
+    const [sendReminderEmail] = useSendTestReminderEmailMutation();
 
     const questions = useMemo(() => {
         if (!test) return [];
@@ -125,9 +128,20 @@ export default function TakeProficiencyTestPage() {
     useEffect(() => {
         if (timeRemaining === 0) performSubmit(true);
         if (timeRemaining === null || timeRemaining <= 0) return;
+
+        // Send email reminder when 5 minutes 59 seconds remain (359 seconds)
+        if (timeRemaining === 359 && !reminderSent && user.email) {
+            sendReminderEmail({
+                email: user.email,
+                testTitle: test?.title,
+                studentName: user.full_name || user.first_name,
+                remainingTime: "5:59"
+            }).unwrap().then(() => setReminderSent(true)).catch(err => console.error("Failed to send reminder:", err));
+        }
+
         const timer = setInterval(() => setTimeRemaining(p => p - 1), 1000);
         return () => clearInterval(timer);
-    }, [timeRemaining]);
+    }, [timeRemaining, reminderSent, user, test, sendReminderEmail]);
 
     const handleAnswerChange = (qId, value) => {
         setAnswers(prev => ({ ...prev, [qId]: value }));
@@ -166,9 +180,11 @@ export default function TakeProficiencyTestPage() {
     const currentQuestionInPartIdx = currentPartQuestions.findIndex(q => q.id === currentQ.id) + 1;
 
     const formatTime = (s) => {
-        if (s === null) return "00:00";
-        const m = Math.floor(s / 60);
-        return `${m}:${(s % 60).toString().padStart(2, "0")}`;
+        if (s === null) return "00:00:00";
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        const sec = s % 60;
+        return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
     };
 
     const cardBg = isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200 shadow-sm";

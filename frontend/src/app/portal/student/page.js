@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import UpcomingEventsList from "@/components/UpcomingEventsList";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const ProficiencyDashboard = ({ user, results, timeLeft, isDark, router }) => {
+const ProficiencyDashboard = ({ user, results, timeLeft, isExpired, isDark, router }) => {
     const hasCompleted = results && results.length > 0;
     const latestResult = hasCompleted ? results[0] : null;
 
@@ -42,12 +42,31 @@ const ProficiencyDashboard = ({ user, results, timeLeft, isDark, router }) => {
                         <p className={`text-sm mb-6 max-w-lg font-medium leading-relaxed ${isDark ? 'text-blue-200/70' : 'text-blue-700/70'}`}>
                             Assess your English proficiency and earn your certificate. You can start the test at any time.
                         </p>
+
+                        {!hasCompleted && timeLeft && !isExpired && (
+                            <div className={`mb-6 inline-flex items-center gap-3 px-4 py-2 rounded-xl ${isDark ? 'bg-blue-600/20 border border-blue-500/30' : 'bg-white shadow-sm border border-blue-100'}`}>
+                                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div className={`text-sm font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                        {timeLeft.hours > 0 && `${timeLeft.hours}h `}{timeLeft.minutes}m {timeLeft.seconds}s
+                                    </div>
+                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-40">Entry Window Remaining</div>
+                                </div>
+                            </div>
+                        )}
                         <div className="flex flex-wrap justify-center md:justify-start gap-3">
                             <button
                                 onClick={() => router.push('/portal/student/proficiency-test')}
-                                className="px-8 py-3 bg-[#010080] hover:bg-blue-800 text-white rounded-xl font-semibold transition-all active:scale-95 text-sm"
+                                disabled={isExpired}
+                                className={`px-8 py-3 rounded-xl font-semibold transition-all active:scale-95 text-sm ${isExpired
+                                    ? 'bg-red-950/20 text-red-400 border border-red-900/10 cursor-not-allowed'
+                                    : 'bg-[#010080] hover:bg-blue-800 text-white'}`}
                             >
-                                {hasCompleted ? "Retake Test" : "Start Test Now"}
+                                {isExpired ? "Window Expired" : hasCompleted ? "Retake Test" : "Start Test Now"}
                             </button>
                             {hasCompleted && (
                                 <button
@@ -82,9 +101,12 @@ const ProficiencyDashboard = ({ user, results, timeLeft, isDark, router }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Result Card */}
                 <div
-                    onClick={() => router.push('/portal/student/proficiency-test')}
+                    onClick={() => {
+                        if (isExpired) return;
+                        router.push('/portal/student/proficiency-test');
+                    }}
                     className={`group cursor-pointer p-6 rounded-2xl border transition-all hover:border-blue-400 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200 shadow-sm'
-                        }`}
+                        } ${isExpired ? 'opacity-80 grayscale-[0.5]' : ''}`}
                 >
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isDark ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
                         <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,7 +168,7 @@ export default function StudentDashboard() {
     const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
     const [approvalStatus, setApprovalStatus] = useState('pending');
     const [isPaid, setIsPaid] = useState(true);
-    const [timeLeftProficiency, setTimeLeftProficiency] = useState({ minutes: 0, seconds: 0, isExpired: false });
+    const [timeUntilExpiry, setTimeUntilExpiry] = useState({ hours: 0, minutes: 0, seconds: 0, isExpired: false });
 
     // Fetch Attendance Stats
     const { data: attendanceStats, isLoading: attendanceLoading } = useGetAttendanceStatsQuery(
@@ -178,8 +200,13 @@ export default function StudentDashboard() {
 
     // EXACT Mapping Logic from Curriculum Image
     const getAssessmentType = () => {
-        const prog = user?.chosen_program?.toString().toLowerCase() || "";
-        const sub = user?.chosen_subprogram_name?.toString().toLowerCase() || ""; // Assuming name is available or we check ID
+        // Prioritize program title from API details if chosen_program is an ID
+        const programTitle = programDetails?.title || user?.chosen_program || "";
+        const prog = programTitle.toString().toLowerCase();
+
+        // Similarly for subprogram
+        const subName = user?.chosen_subprogram_name || user?.chosen_subprogram || "";
+        const sub = subName.toString().toLowerCase();
 
         // 1. Placement Test Required
         if (prog.includes("general english") || prog.includes("gep")) return "placement";
@@ -199,6 +226,11 @@ export default function StudentDashboard() {
     };
 
     const assessmentType = getAssessmentType();
+    console.log('🔍 Student Dashboard Debug:', {
+        chosen_program: user?.chosen_program,
+        programTitle: programDetails?.title,
+        assessmentType
+    });
 
     // Fetch Assessment Results for Pending State
     const { data: placementResults } = useGetStudentPlacementResultsQuery(user?.id || user?.student_id, {
@@ -217,20 +249,18 @@ export default function StudentDashboard() {
     // Determine what to show in the pending block
     const getPendingInfo = () => {
         // 24-Hour Expiry Logic (with 5-minute grace period)
-        const getSafeDate = (dateStr) => {
+        const getParsedExpiry = (dateStr) => {
             if (!dateStr) return null;
-            // Ensure ISO format with Z if missing, to treat as UTC from backend
-            const isoStr = dateStr.includes('T') ? dateStr : dateStr.replace(' ', 'T');
+            if (dateStr instanceof Date) return dateStr;
+            const isoStr = dateStr.toString().includes('T') ? dateStr.toString() : dateStr.toString().replace(' ', 'T');
             const finalStr = isoStr.includes('Z') || isoStr.includes('+') ? isoStr : `${isoStr}Z`;
-            return new Date(finalStr);
+            const d = new Date(finalStr);
+            return isNaN(d.getTime()) ? null : d;
         };
 
-        const student = ieltsInfo?.student;
-        const expiryDate = student?.expiry_date ? new Date(student.expiry_date) : null;
+        const expiryDate = getParsedExpiry(user?.expiry_date);
         const now = new Date();
-        // A student is blocked/expired ONLY if the expiry date has passed.
-        // We removed (!student.is_extended) because new students are not extended yet but should have access.
-        const isExpired = expiryDate ? now > expiryDate : true;
+        const isExpired = timeUntilExpiry.isExpired;
 
         if (assessmentType === "placement") {
             // ... (keep placement logic same or update if needed)
@@ -242,13 +272,23 @@ export default function StudentDashboard() {
                     type: "completed"
                 };
             }
+            if (isExpired) {
+                return {
+                    title: "Placement Test Window Expired",
+                    description: "Your 24-hour window to enter the placement test has closed. Please contact administration for an extension.",
+                    icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z",
+                    type: "blocked"
+                };
+            }
+
             return {
                 title: "Placement Test Required",
-                description: "To finalize your registration, please complete the Official BEA Placement Test.",
+                description: "To finalize your registration, please complete the Official BEA Placement Test before your window expires.",
                 link: "/portal/student/placement-test",
                 btnText: "Start Placement Test",
                 icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
-                type: "action"
+                type: "action",
+                isCountdown: true
             };
         }
 
@@ -275,7 +315,7 @@ export default function StudentDashboard() {
                 title: `Proficiency Test Required`,
                 description: "Initial registration requires you to complete the Proficiency Test. Click here to start before your window expires.",
                 link: "/portal/student/proficiency-test",
-                icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+                icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
                 type: "action",
                 isCountdown: true
             };
@@ -290,33 +330,59 @@ export default function StudentDashboard() {
         };
     };
 
-    // Proficiency Countdown Timer
+    // Assessment Expiry Countdown Timer
     useEffect(() => {
-        const student = ieltsInfo?.student;
-        if (assessmentType === 'proficiency' && !hasCompletedProficiency && student?.expiry_date) {
+        const expiryDateStr = user?.expiry_date;
+        // Skip countdown for Proficiency-Only students (they have 100yr window)
+        if (isProficiencyOnly) {
+            setTimeUntilExpiry({ hours: 0, minutes: 0, seconds: 0, isExpired: false });
+            return;
+        }
+
+        if ((assessmentType === 'proficiency' && !hasCompletedProficiency) || (assessmentType === 'placement' && !hasCompletedPlacement)) {
+            if (!expiryDateStr) return;
+
             const updateTimer = () => {
-                // Robust date parsing (assume UTC from backend)
-                const dateStr = student.expiry_date;
-                const isoStr = dateStr.includes('T') ? dateStr : dateStr.replace(' ', 'T');
-                const finalStr = isoStr.includes('Z') || isoStr.includes('+') ? isoStr : `${isoStr}Z`;
-                const expiry = new Date(finalStr);
+                const getParsedExpiry = (dateVal) => {
+                    if (!dateVal) return null;
+                    if (dateVal instanceof Date) return dateVal;
+                    const dStr = dateVal.toString();
+                    const isoStr = dStr.includes('T') ? dStr : dStr.replace(' ', 'T');
+                    const finalStr = isoStr.includes('Z') || isoStr.includes('+') ? isoStr : `${isoStr}Z`;
+                    return new Date(finalStr);
+                };
 
+                const expiry = getParsedExpiry(expiryDateStr);
                 const now = new Date();
-                const diffMs = expiry - now;
-                const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
 
-                setTimeLeftProficiency({
-                    minutes: Math.floor(totalSeconds / 60),
-                    seconds: totalSeconds % 60,
-                    isExpired: totalSeconds <= 0
-                });
+                if (expiry && !isNaN(expiry.getTime())) {
+                    const diffMs = expiry - now;
+                    const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
+
+                    console.log('⏰ Timer Debug:', {
+                        expiryStr: expiryDateStr,
+                        parsedExpiry: expiry.toISOString(),
+                        browserNow: now.toISOString(),
+                        diffMs,
+                        totalSeconds
+                    });
+
+                    setTimeUntilExpiry({
+                        hours: Math.floor(totalSeconds / 3600),
+                        minutes: Math.floor((totalSeconds % 3600) / 60),
+                        seconds: totalSeconds % 60,
+                        isExpired: totalSeconds <= 0
+                    });
+                } else {
+                    console.warn('⏰ Timer Debug: Invalid Expiry Date', { expiryDateStr });
+                }
             };
 
             updateTimer();
             const interval = setInterval(updateTimer, 1000);
             return () => clearInterval(interval);
         }
-    }, [ieltsInfo, assessmentType, hasCompletedProficiency]);
+    }, [user, assessmentType, hasCompletedProficiency, hasCompletedPlacement]);
 
     const pendingInfo = getPendingInfo();
 
@@ -389,7 +455,8 @@ export default function StudentDashboard() {
                     <ProficiencyDashboard
                         user={user}
                         results={results}
-                        timeLeft={timeLeftProficiency}
+                        timeLeft={timeUntilExpiry}
+                        isExpired={timeUntilExpiry.isExpired}
                         isDark={isDark}
                         router={router}
                     />
@@ -406,7 +473,10 @@ export default function StudentDashboard() {
                             {approvalStatus !== 'approved' && (
                                 <div className="mt-4">
                                     <div
-                                        onClick={() => pendingInfo.link && router.push(pendingInfo.link)}
+                                        onClick={() => {
+                                            if (pendingInfo.type === 'blocked') return;
+                                            if (pendingInfo.link) router.push(pendingInfo.link);
+                                        }}
                                         className={`p-5 rounded-2xl flex items-start gap-4 transition-all ${pendingInfo.type === 'action'
                                             ? isDark ? 'bg-blue-600/10 border-2 border-blue-500/50 hover:bg-blue-600/20 cursor-pointer' : 'bg-blue-50 border-2 border-blue-100 hover:bg-blue-100 cursor-pointer'
                                             : pendingInfo.type === 'blocked'
@@ -435,7 +505,7 @@ export default function StudentDashboard() {
                                                 {pendingInfo.isCountdown && (
                                                     <div className="text-right">
                                                         <div className={`text-2xl font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                                                            {timeLeftProficiency.minutes}m {timeLeftProficiency.seconds}s
+                                                            {timeUntilExpiry.hours > 0 && `${timeUntilExpiry.hours}h `}{timeUntilExpiry.minutes}m {timeUntilExpiry.seconds}s
                                                         </div>
                                                         <div className="text-[10px] font-bold uppercase tracking-widest opacity-40">Time Left to Enter</div>
                                                     </div>

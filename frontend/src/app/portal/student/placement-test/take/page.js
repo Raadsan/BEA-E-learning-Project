@@ -7,6 +7,7 @@ import {
   useSubmitPlacementTestMutation,
   useGetStudentPlacementResultsQuery
 } from "@/redux/api/placementTestApi";
+import { useSendTestReminderEmailMutation } from "@/redux/api/notificationApi";
 
 export default function TakePlacementTestPage() {
   const router = useRouter();
@@ -22,6 +23,8 @@ export default function TakePlacementTestPage() {
   const { data: results, isLoading: resultsLoading } = useGetStudentPlacementResultsQuery(user.id || user.student_id, {
     skip: !user.id && !user.student_id,
   });
+  const [sendReminderEmail] = useSendTestReminderEmailMutation();
+  const [reminderSent, setReminderSent] = useState(false);
 
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [currentSubQuestionIdx, setCurrentSubQuestionIdx] = useState(0);
@@ -123,9 +126,20 @@ export default function TakePlacementTestPage() {
 
   useEffect(() => {
     if (timeRemaining === null || timeRemaining <= 0) return;
+
+    // Send email reminder when 5 minutes 59 seconds remain (359 seconds)
+    if (timeRemaining === 359 && !reminderSent && user.email) {
+      sendReminderEmail({
+        email: user.email,
+        testTitle: test?.title,
+        studentName: user.full_name || user.first_name,
+        remainingTime: "5:59"
+      }).unwrap().then(() => setReminderSent(true)).catch(err => console.error("Failed to send reminder:", err));
+    }
+
     const timer = setInterval(() => setTimeRemaining(p => p - 1), 1000);
     return () => clearInterval(timer);
-  }, [timeRemaining]);
+  }, [timeRemaining, reminderSent, user, test, sendReminderEmail]);
 
   const handleAnswerChange = (qId, value) => {
     setAnswers(prev => ({ ...prev, [qId]: value }));
@@ -225,9 +239,11 @@ export default function TakePlacementTestPage() {
 
 
   const formatTime = (s) => {
-    if (s === null) return "00:00";
-    const m = Math.floor(s / 60);
-    return `${m}:${(s % 60).toString().padStart(2, "0")}`;
+    if (s === null) return "00:00:00";
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   };
 
   return (

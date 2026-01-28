@@ -7,6 +7,7 @@ import { useToast } from "@/components/Toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useGetProficiencyTestsQuery, useGetStudentProficiencyResultsQuery } from "@/redux/api/proficiencyTestApi";
 import { useGetIeltsToeflStudentQuery } from "@/redux/api/ieltsToeflApi";
+import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 
 export default function ProficiencyTestPage() {
     const router = useRouter();
@@ -14,8 +15,8 @@ export default function ProficiencyTestPage() {
     const { showToast } = useToast();
     const { data: tests, isLoading: testsLoading } = useGetProficiencyTestsQuery();
 
-    const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
-    const studentId = user.id || user.student_id;
+    const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
+    const studentId = user?.id || user?.student_id;
 
     const { data: results, isLoading: resultsLoading } = useGetStudentProficiencyResultsQuery(studentId, {
         skip: !studentId,
@@ -29,11 +30,22 @@ export default function ProficiencyTestPage() {
 
     // Entry window countdown logic
     React.useEffect(() => {
-        const student = studentInfo?.student;
-        if (!student?.expiry_date) return;
+        const expiryDateStr = studentInfo?.student?.expiry_date || user?.expiry_date;
+        if (!expiryDateStr) return;
 
         const calculateTime = () => {
-            const expiry = new Date(student.expiry_date);
+            const getParsedExpiry = (dateVal) => {
+                if (!dateVal) return null;
+                if (dateVal instanceof Date) return dateVal;
+                const dStr = dateVal.toString();
+                const isoStr = dStr.includes('T') ? dStr : dStr.replace(' ', 'T');
+                const finalStr = isoStr.includes('Z') || isoStr.includes('+') ? isoStr : `${isoStr}Z`;
+                return new Date(finalStr);
+            };
+
+            const expiry = getParsedExpiry(expiryDateStr);
+            if (!expiry || isNaN(expiry.getTime())) return;
+
             const now = new Date();
             const diff = Math.max(0, Math.floor((expiry - now) / 1000));
             setWindowTimeLeft(diff);
@@ -42,7 +54,7 @@ export default function ProficiencyTestPage() {
         calculateTime();
         const timer = setInterval(calculateTime, 1000);
         return () => clearInterval(timer);
-    }, [studentInfo]);
+    }, [studentInfo, user]);
 
     // Determine the active test
     const activeTest = React.useMemo(() => {
@@ -75,7 +87,7 @@ export default function ProficiencyTestPage() {
         prevExpiredRef.current = isWindowExpired;
     }, [isWindowExpired]);
 
-    const isLoading = testsLoading || resultsLoading || studentLoading || (hasTakenTest && true);
+    const isLoading = testsLoading || resultsLoading || studentLoading || userLoading || (hasTakenTest && true);
 
     if (isLoading) {
         return (

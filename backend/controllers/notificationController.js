@@ -107,3 +107,41 @@ export const deleteNotification = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 }
+
+// Send automated email reminder for low test time
+import { sendNotification } from "../utils/emailService.js";
+export const sendTestReminderEmail = async (req, res) => {
+    try {
+        const { email, testTitle, studentName, remainingTime = "5:59" } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: "Email is required" });
+        }
+
+        const emailContent = `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; rounded-lg;">
+                <h2 style="color: #d32f2f; border-bottom: 2px solid #d32f2f; padding-bottom: 10px;">🕒 Urgent: Test Time Running Out!</h2>
+                <p>Dear ${studentName || 'Student'},</p>
+                <p>This is an automated reminder that you have <strong>${remainingTime}</strong> remaining for your <strong style="color: #010080;">${testTitle || 'current test'}</strong>.</p>
+                <div style="background-color: #fff4f4; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;">
+                    <p style="margin: 0; color: #d32f2f; font-weight: bold;">Action Required:</p>
+                    <p style="margin: 5px 0 0 0;">Please ensure you complete and submit your answers before the timer reaches zero to ensure your progress is saved.</p>
+                </div>
+                <p>If you have already submitted, please ignore this message.</p>
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+                <p style="font-size: 0.8em; color: #777; text-align: center;">This is an automated priority reminder from BEA English Academy.</p>
+            </div>
+        `;
+
+        await sendNotification({
+            to: email,
+            subject: `URGENT: ${remainingTime} Remaining for ${testTitle || 'Your Test'}`,
+            html: emailContent
+        });
+
+        res.status(200).json({ success: true, message: "Reminder email sent" });
+    } catch (error) {
+        console.error("Error sending test reminder email:", error);
+        res.status(500).json({ error: "Failed to send reminder email" });
+    }
+};

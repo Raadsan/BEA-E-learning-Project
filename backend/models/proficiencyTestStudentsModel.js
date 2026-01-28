@@ -21,7 +21,6 @@ export const createCandidate = async (data) => {
       student_id, first_name, last_name, email, phone, password, 
       educational_level, reason_essay, status, payment_status,
       age, sex, residency_country, residency_city,
-      expiry_date
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 100 YEAR))
   `;
 

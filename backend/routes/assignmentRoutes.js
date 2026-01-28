@@ -29,18 +29,19 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    // Accept specific document and audio types
-    const allowedTypes = /doc|docx|pdf|txt|mp3|wav|m4a|mpeg/;
+    // Accept specific document, audio, and video types
+    const allowedTypes = /doc|docx|pdf|txt|mp3|wav|m4a|mpeg|mp4|webm|mov|avi/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype) ||
         file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
         file.mimetype === 'application/msword' ||
-        file.mimetype.startsWith('audio/');
+        file.mimetype.startsWith('audio/') ||
+        file.mimetype.startsWith('video/');
 
     if (extname && (mimetype || file.mimetype === 'text/plain')) {
         return cb(null, true);
     } else {
-        cb(new Error('Only docs and audio files are allowed'));
+        cb(new Error('Only docs, audio, and video files are allowed'));
     }
 };
 

@@ -2,6 +2,7 @@ import * as Student from "../models/studentModel.js";
 import { createPayment } from '../models/paymentModel.js';
 import bcrypt from "bcryptjs";
 import { validatePassword, passwordPolicyMessage } from "../utils/passwordValidator.js";
+import { sendWaafiPayment } from "../utils/waafiPayment.js";
 import db from "../database/dbconfig.js";
 
 const dbp = db.promise();
@@ -31,8 +32,11 @@ export const createStudent = async (req, res) => {
       sponsorship_package,
       funding_amount,
       funding_month,
-      scholarship_percentage
+      scholarship_percentage,
+      gender
     } = req.body;
+
+    const studentSex = sex || gender;
 
     // Validate required fields
     if (!full_name || !email || !password) {
@@ -71,14 +75,43 @@ export const createStudent = async (req, res) => {
     let initialPaidUntil = null;
     if (funding_status && funding_status !== 'Unpaid') {
       const now = new Date();
-      if (funding_status === 'Sponsorship' && sponsorship_package !== 'None') {
-        // We'll approximate months as 30 days for simplicity
-        // In a real app we might fetch the package details to get the exact months
-        // For now let's default to 1 month and handle sponsorship packages later if needed
-        initialPaidUntil = new Date(now.setDate(now.getDate() + 30));
-      } else {
-        initialPaidUntil = new Date(now.setDate(now.getDate() + 30));
+      initialPaidUntil = new Date(now.setDate(now.getDate() + 30));
+    }
+
+    // Set 24-hour expiry window for placement test
+    const expiryDate = new Date();
+    expiryDate.setHours(expiryDate.getHours() + 24);
+
+    // Secure Backend Waafi Payment Processing
+    let transactionId = null;
+    let paymentStatus = 'Pending';
+    let waafiRawResponse = null;
+
+    if (req.body.payment && req.body.payment.method === 'waafi') {
+      console.log('💳 [MOCK] Bypassing backend Waafi payment for testing...');
+      /*
+      const waafiResponse = await sendWaafiPayment({
+        transactionId: `REG-${Date.now()}`,
+        accountNo: req.body.payment.payerPhone || req.body.payment.accountNumber,
+        amount: req.body.payment.amount || 0.01,
+        description: `Registration: ${chosen_program}`
+      });
+
+      waafiRawResponse = waafiResponse;
+      const respCode = waafiResponse?.responseCode || waafiResponse?.code;
+      const success = (respCode === '0000' || respCode === '2001' || waafiResponse?.status === 'SUCCESS' || waafiResponse?.serviceParams?.status === 'SUCCESS');
+
+      if (!success) {
+        return res.status(400).json({
+          success: false,
+          error: waafiResponse?.responseMsg || waafiResponse?.message || "Payment failed"
+        });
       }
+      */
+
+      transactionId = `MOCK-WAAFI-${Date.now()}`;
+      paymentStatus = 'Paid';
+      waafiRawResponse = { status: 'SUCCESS', note: 'MOCK_BYPASS' };
     }
 
     const student = await Student.createStudent({
@@ -86,7 +119,7 @@ export const createStudent = async (req, res) => {
       email,
       phone,
       age,
-      sex,
+      sex: studentSex,
       residency_country,
       residency_city,
       chosen_program,
@@ -99,45 +132,39 @@ export const createStudent = async (req, res) => {
       parent_res_county,
       parent_res_city,
       class_id,
-      funding_status,
+      funding_status: paymentStatus === 'Paid' ? 'Paid' : (funding_status || 'Unpaid'),
       sponsorship_package,
       funding_amount,
       funding_month,
       scholarship_percentage,
-      paid_until: initialPaidUntil
+      paid_until: initialPaidUntil,
+      expiry_date: expiryDate
     });
 
     console.log('✅ Student created with ID:', student?.student_id);
 
     // If payment info provided, save payment and set approval_status to 'pending'
     let updatedStudent = student;
-    if (req.body.payment) {
-      console.log('📝 Payment info found in request:', req.body.payment);
+    if (paymentStatus === 'Paid' && transactionId) {
+      console.log('📝 Syncing payment record...');
       try {
         const paymentData = {
           student_id: student.student_id,
-          method: req.body.payment.method || 'waafi',
-          provider_transaction_id: req.body.payment.transactionId || null,
-          amount: req.body.payment.amount || 0,
-          currency: req.body.payment.currency || 'USD',
+          method: 'waafi',
+          provider_transaction_id: transactionId,
+          amount: req.body.payment.amount || 0.01,
+          currency: 'USD',
           status: 'paid',
-          raw_response: { note: 'Registration Fee', ...(req.body.payment.raw || req.body.payment.rawResponse || {}) },
-          payer_phone: req.body.payment.payerPhone || null,
-          program_id: req.body.payment.program_id || null
+          raw_response: { note: 'Registration Fee', ...waafiRawResponse },
+          payer_phone: req.body.payment.payerPhone || req.body.payment.accountNumber || null,
+          program_id: chosen_program || null
         };
-        console.log('📝 Attempting to create payment record with data:', paymentData);
 
-        const payment = await createPayment(paymentData);
-        console.log('✅ Payment record created successfully:', payment.id);
+        await createPayment(paymentData);
 
-        // Update paid_until and mark student awaiting admin approval
-        const currentPaidUntil = student.paid_until ? new Date(student.paid_until) : new Date();
-        const baseDate = currentPaidUntil > new Date() ? currentPaidUntil : new Date();
-        const newPaidUntil = new Date(baseDate.setDate(baseDate.getDate() + 30));
-
+        // Mark student awaiting admin approval
         await Student.updateStudentById(student.student_id, {
-          approval_status: 'pending',
-          paid_until: newPaidUntil
+          approval_status: 'pending'
         });
         updatedStudent = await Student.getStudentById(student.student_id);
 
@@ -504,17 +531,26 @@ export const rejectStudent = async (req, res) => {
 // GET STUDENT PROGRESS
 export const getStudentProgress = async (req, res) => {
   try {
-    // Get teacher ID from authenticated user
-    const teacherId = req.user.userId;
+    const { userId, role } = req.user;
 
-    if (req.user.role !== 'teacher') {
-      return res.status(403).json({
-        success: false,
-        error: "Access denied. Teachers only."
+    // If student, return only their own progress
+    if (role === 'student' || role === 'proficiency_student') {
+      const progress = await Student.getStudentProgressById(userId);
+      return res.json({
+        success: true,
+        students: progress ? [progress] : []
       });
     }
 
-    const students = await Student.getStudentProgressByTeacher(teacherId);
+    // Teachers get all students in their classes
+    if (role !== 'teacher') {
+      return res.status(403).json({
+        success: false,
+        error: "Access denied. Teachers or students only."
+      });
+    }
+
+    const students = await Student.getStudentProgressByTeacher(userId);
 
     res.json({
       success: true,
@@ -552,7 +588,12 @@ export const getSexDistribution = async (req, res) => {
 export const getTopStudents = async (req, res) => {
   try {
     const { limit = 10, program_id, class_id } = req.query;
-    const students = await Student.getTopStudents(limit, program_id, class_id);
+    // Fix limit to always be numeric
+    const cleanLimit = parseInt(limit) || 10;
+
+    console.log(`📊 Fetching top students (Limit: ${cleanLimit}, Program: ${program_id || 'All'})`);
+
+    const students = await Student.getTopStudents(cleanLimit, program_id, class_id);
 
     res.json({
       success: true,

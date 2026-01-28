@@ -23,7 +23,7 @@ export const createStudent = async (data) => {
       exam_booking_date, exam_booking_time, status,
       payment_method, transaction_id, payment_amount, payer_phone,
       expiry_date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 1440 MINUTE))
   `;
 
     const values = [

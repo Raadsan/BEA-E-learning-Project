@@ -288,7 +288,7 @@ export const createAssignment = async (req, res) => {
         const {
             title, description, class_id, program_id, subprogram_id, unit, type, due_date,
             total_points, status, word_count, duration, submission_format, requirements, questions,
-            start_date, end_date
+            start_date, end_date, submission_type
         } = req.body;
         const userId = req.user.userId;
 
@@ -370,6 +370,9 @@ export const createAssignment = async (req, res) => {
             if (type === 'exam') {
                 columns.push('start_date', 'end_date');
                 values.push(start_date || null, end_date || null);
+            } else if (type === 'oral_assignment') {
+                columns.push('submission_type');
+                values.push(submission_type || 'audio');
             }
         } else if (type === 'course_work') {
             columns.push('submission_format', 'questions', 'subprogram_id', 'unit');
@@ -399,7 +402,7 @@ export const updateAssignment = async (req, res) => {
         const {
             title, description, class_id, program_id, subprogram_id, type, due_date,
             total_points, status, word_count, duration, submission_format, requirements, questions,
-            start_date, end_date
+            start_date, end_date, submission_type
         } = req.body;
 
         const safeStatus = (status || 'active').toLowerCase();
@@ -452,6 +455,9 @@ export const updateAssignment = async (req, res) => {
             if (type === 'exam') {
                 updateParts.push('start_date = ?', 'end_date = ?');
                 values.push(start_date || null, end_date || null);
+            } else if (type === 'oral_assignment' && submission_type) {
+                updateParts.push('submission_type = ?');
+                values.push(submission_type);
             }
         } else if (type === 'course_work') {
             updateParts.push('submission_format = ?', 'questions = ?');
@@ -511,6 +517,34 @@ export const submitAssignment = async (req, res) => {
 
         if (!assignment_id || !type) {
             return res.status(400).json({ error: "Assignment ID and Type are required" });
+        }
+
+        // Validate file type for oral assignments
+        if (type === 'oral_assignment' && req.file) {
+            const validAudioTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/webm', 'audio/m4a'];
+            const validVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
+            const fileType = req.file.mimetype;
+
+            // Get assignment to check submission_type
+            const [assignment] = await dbp.query(
+                `SELECT submission_type FROM ${tableMapping[type]?.main} WHERE id = ?`,
+                [assignment_id]
+            );
+
+            if (assignment.length > 0) {
+                const submissionType = assignment[0].submission_type || 'audio';
+
+                if (submissionType === 'audio' && !validAudioTypes.includes(fileType)) {
+                    return res.status(400).json({ error: "Invalid file type. Please upload an audio file." });
+                }
+                if (submissionType === 'video' && !validVideoTypes.includes(fileType)) {
+                    return res.status(400).json({ error: "Invalid file type. Please upload a video file." });
+                }
+                // For 'both', accept either audio or video
+                if (submissionType === 'both' && ![...validAudioTypes, ...validVideoTypes].includes(fileType)) {
+                    return res.status(400).json({ error: "Invalid file type. Please upload an audio or video file." });
+                }
+            }
         }
 
         const table = tableMapping[type]?.main;

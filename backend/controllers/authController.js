@@ -86,7 +86,8 @@ export const login = async (req, res) => {
             sponsor_name: user.sponsor_name,
             approval_status: user.approval_status || null,
             class_id: user.class_id || null,
-            paid_until: user.paid_until || null
+            paid_until: user.paid_until || null,
+            expiry_date: user.expiry_date || null
           };
         } else {
           // CHECK IELTS TABLE
@@ -107,6 +108,7 @@ export const login = async (req, res) => {
               verification_method: user.verification_method,
               approval_status: user.status || 'Pending',
               is_ielts: true,
+              expiry_date: user.expiry_date || null,
               created_at: user.registration_date
             };
           } else {
@@ -267,6 +269,7 @@ export const getCurrentUser = async (req, res) => {
             class_id: user.class_id || null,
             profile_picture: user.profile_picture || null,
             paid_until: user.paid_until || null,
+            expiry_date: user.expiry_date || null,
             created_at: user.created_at || null
           };
         } else {
@@ -286,6 +289,7 @@ export const getCurrentUser = async (req, res) => {
               verification_method: user.verification_method,
               approval_status: user.status || 'Pending',
               is_ielts: true,
+              expiry_date: user.expiry_date || null,
               created_at: user.registration_date || null
             };
           }

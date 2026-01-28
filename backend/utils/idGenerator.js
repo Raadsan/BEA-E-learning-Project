@@ -30,15 +30,19 @@ export const generateStudentId = async (tableName, programName = "") => {
     // Get acronym or default to 'GEN'
     const acronym = programAcronyms[programName] || "GEN";
 
-    // Prefix: BEA-ST-[ACRONYM]-[DDMMYY]-
-    const prefix = `BEA-ST-${acronym}-${dd}${mm}${yy}-`;
+    // NEW Format (YYMMDD): BEA-ST-[ACRONYM]-[YYMMDD]-[SEQ]
+    // Better for string sorting and standard practices
+    const dateStr = `${yy}${mm}${dd}`;
+    const prefix = `BEA-ST-${acronym}-${dateStr}-`;
 
     // Query for the highest ID for this PROGRAM regardless of date
+    // Uses numeric sort on the sequence part to avoid lexicographical comparison issues
     const lookupPrefix = `BEA-ST-${acronym}-`;
     const [rows] = await dbp.query(
         `SELECT student_id FROM ${tableName} 
          WHERE student_id LIKE ? 
-         ORDER BY student_id DESC LIMIT 1`,
+         ORDER BY CAST(SUBSTRING_INDEX(student_id, '-', -1) AS UNSIGNED) DESC 
+         LIMIT 1`,
         [`${lookupPrefix}%`]
     );
 
@@ -68,15 +72,17 @@ export const generateTeacherId = async () => {
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yy = String(today.getFullYear()).slice(-2);
 
-    // Prefix: BEA-TC-[DDMMYY]-
-    const prefix = `BEA-TC-${dd}${mm}${yy}-`;
+    // NEW Format (YYMMDD): BEA-TC-[YYMMDD]-[SEQ]
+    const dateStr = `${yy}${mm}${dd}`;
+    const prefix = `BEA-TC-${dateStr}-`;
 
-    // Global lookup for teachers
+    // Global lookup for teachers using numeric sort
     const lookupPrefix = `BEA-TC-`;
     const [rows] = await dbp.query(
         `SELECT teacher_id FROM teachers 
          WHERE teacher_id LIKE ? 
-         ORDER BY teacher_id DESC LIMIT 1`,
+         ORDER BY CAST(SUBSTRING_INDEX(teacher_id, '-', -1) AS UNSIGNED) DESC 
+         LIMIT 1`,
         [`${lookupPrefix}%`]
     );
 

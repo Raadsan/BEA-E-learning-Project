@@ -25,7 +25,7 @@ const coursePaths = [
   '/portal/student/my-certification'
 ];
 
-export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen, onClose }) {
+export default function StudentSidebar({ isApproved, isPaid = true, isTestExpired = false, user, isOpen, onClose }) {
   const pathname = usePathname();
   const router = useRouter();
   const [logout] = useLogoutMutation();
@@ -351,16 +351,25 @@ export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen
               if (needsPlacement) {
                 return (
                   <li>
-                    <Link
-                      href="/portal/student/placement-test"
-                      className={getMenuItemClasses("/portal/student/placement-test")}
-                      style={getActiveStyle("/portal/student/placement-test")}
-                    >
-                      <svg className={getIconClasses("/portal/student/placement-test")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                      </svg>
-                      <span className={getTextClasses("/portal/student/placement-test")}>Placement Test</span>
-                    </Link>
+                    {isTestExpired ? (
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-gray-400 cursor-not-allowed mx-2 bg-red-950/20 border border-red-900/10">
+                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span className="font-medium text-xs">Placement Blocked</span>
+                      </div>
+                    ) : (
+                      <Link
+                        href="/portal/student/placement-test"
+                        className={getMenuItemClasses("/portal/student/placement-test")}
+                        style={getActiveStyle("/portal/student/placement-test")}
+                      >
+                        <svg className={getIconClasses("/portal/student/placement-test")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <span className={getTextClasses("/portal/student/placement-test")}>Placement Test</span>
+                      </Link>
+                    )}
                   </li>
                 );
               }
@@ -368,16 +377,25 @@ export default function StudentSidebar({ isApproved, isPaid = true, user, isOpen
               if (needsProficiency) {
                 return (
                   <li>
-                    <Link
-                      href="/portal/student/proficiency-test"
-                      className={getMenuItemClasses("/portal/student/proficiency-test")}
-                      style={getActiveStyle("/portal/student/proficiency-test")}
-                    >
-                      <svg className={getIconClasses("/portal/student/proficiency-test")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                      </svg>
-                      <span className={getTextClasses("/portal/student/proficiency-test")}>Proficiency Test</span>
-                    </Link>
+                    {isTestExpired ? (
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-gray-400 cursor-not-allowed mx-2 bg-red-950/20 border border-red-900/10">
+                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span className="font-medium text-xs">Proficiency Blocked</span>
+                      </div>
+                    ) : (
+                      <Link
+                        href="/portal/student/proficiency-test"
+                        className={getMenuItemClasses("/portal/student/proficiency-test")}
+                        style={getActiveStyle("/portal/student/proficiency-test")}
+                      >
+                        <svg className={getIconClasses("/portal/student/proficiency-test")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <span className={getTextClasses("/portal/student/proficiency-test")}>Proficiency Test</span>
+                      </Link>
+                    )}
                   </li>
                 );
               }

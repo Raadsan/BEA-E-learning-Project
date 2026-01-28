@@ -92,6 +92,7 @@ export default function OralAssignmentPage() {
         total_points: 100,
         status: "active",
         duration: "",
+        submission_type: "audio", // Audio, video, or both
     });
 
     // Queries
@@ -154,6 +155,7 @@ export default function OralAssignmentPage() {
             total_points: 100,
             status: "active",
             duration: "",
+            submission_type: "audio",
         });
         setIsAdding(!isAdding);
     };
@@ -171,6 +173,7 @@ export default function OralAssignmentPage() {
             total_points: assignment.total_points,
             status: assignment.status || "active",
             duration: assignment.duration || "",
+            submission_type: assignment.submission_type || "audio",
         });
         setIsAdding(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -417,12 +420,14 @@ export default function OralAssignmentPage() {
                     onClick={() => handleDownloadFile(row.file_url)}
                     className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline text-sm"
                 >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                    </svg>
-                    Listen / Download Audio
+                    {row.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                    )}
+                    {row.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? 'View / Download Video' : 'Listen / Download Audio'}
                 </button>
-            ) : "No Audio"
+            ) : "No File"
         },
         {
             label: "Grade",
@@ -521,7 +526,7 @@ export default function OralAssignmentPage() {
                             </div>
                         </div>
 
-                        {/* Student Audio Playback */}
+                        {/* Student Audio/Video Playback */}
                         <div className={`p-8 rounded-2xl shadow-sm border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
                             <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-6 block">Student Submission</span>
                             {gradingSubmission.file_url ? (
@@ -530,19 +535,30 @@ export default function OralAssignmentPage() {
                                         <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
                                             {isLoadingAudio ? (
                                                 <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                            ) : gradingSubmission.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
+                                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                                             ) : (
                                                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             )}
                                         </div>
                                         {gradingAudioUrl ? (
-                                            <audio
-                                                controls
-                                                autoPlay={false}
-                                                className="w-full"
-                                                src={gradingAudioUrl}
-                                            />
+                                            gradingSubmission.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
+                                                <video
+                                                    controls
+                                                    autoPlay={false}
+                                                    className="w-full rounded-lg"
+                                                    src={gradingAudioUrl}
+                                                />
+                                            ) : (
+                                                <audio
+                                                    controls
+                                                    autoPlay={false}
+                                                    className="w-full"
+                                                    src={gradingAudioUrl}
+                                                />
+                                            )
                                         ) : (
-                                            <p className="text-sm opacity-50 italic">Loading audio player...</p>
+                                            <p className="text-sm opacity-50 italic">Loading media player...</p>
                                         )}
                                     </div>
                                     <button
@@ -550,13 +566,13 @@ export default function OralAssignmentPage() {
                                         className="flex items-center gap-2 text-sm text-blue-600 hover:underline font-normal"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                        Download Audio for Offline Review
+                                        Download {gradingSubmission.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? 'Video' : 'Audio'} for Offline Review
                                     </button>
                                 </div>
                             ) : (
                                 <div className="text-center py-12 opacity-50">
                                     <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-                                    <p className="italic">No audio file submitted.</p>
+                                    <p className="italic">No file submitted.</p>
                                 </div>
                             )}
                         </div>
@@ -770,6 +786,20 @@ export default function OralAssignmentPage() {
                                         </select>
                                     </div>
 
+                                    {/* Submission Type */}
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5 opacity-80">Student Upload Type</label>
+                                        <select
+                                            value={formData.submission_type}
+                                            onChange={(e) => setFormData({ ...formData, submission_type: e.target.value })}
+                                            className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
+                                        >
+                                            <option value="audio">Audio Only</option>
+                                            <option value="video">Video Only</option>
+                                            <option value="both">Both (Audio or Video)</option>
+                                        </select>
+                                    </div>
+
                                     {/* Assignment Title & Points */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
@@ -813,7 +843,8 @@ export default function OralAssignmentPage() {
                                     {/* Duration & Due Date */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium mb-1.5 opacity-80">Duration (Minutes)</label>
+                                            <label className="block text-sm font-medium mb-1.5 opacity-80">Recording Duration (Minutes)</label>
+                                            {/* <p className="text-xs mb-2 opacity-60">How long should students record for?</p> */}
                                             <input
                                                 type="number"
                                                 placeholder="Optional"
@@ -834,6 +865,8 @@ export default function OralAssignmentPage() {
                                         </div>
                                     </div>
 
+
+
                                     {/* Status */}
                                     <div>
                                         <label className="block text-sm font-medium mb-1.5 opacity-80">Status</label>
@@ -851,13 +884,13 @@ export default function OralAssignmentPage() {
                                     <button
                                         type="button"
                                         onClick={() => setIsAdding(false)}
-                                        className={`px-5 py-2.5 rounded-xl font-semibold transition-colors ${isDark ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
+                                        className={`px-5 py-2.5 rounded-lg font-normal border ${isDark ? 'text-gray-300 border-gray-600 bg-gray-700' : 'text-gray-700 border-gray-300 bg-white'}`}
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
-                                        className="px-6 py-2.5 rounded-xl bg-[#010080] text-white font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-800 transition-all active:scale-95"
+                                        className="px-6 py-2.5 rounded-lg bg-[#010080] text-white font-normal border border-[#010080]"
                                     >
                                         {editingAssignment ? 'Update Assignment' : 'Create Assignment'}
                                     </button>

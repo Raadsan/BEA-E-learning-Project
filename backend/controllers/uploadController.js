@@ -19,15 +19,16 @@ const storage = multer.diskStorage({
 
 // File filter (optional, but good for security)
 const fileFilter = (req, file, cb) => {
-    // Accept audio, images, and pdfs
+    // Accept audio, video, images, and pdfs
     if (file.mimetype.startsWith('audio/') ||
+        file.mimetype.startsWith('video/') ||
         file.mimetype.startsWith('image/') ||
         file.mimetype === 'application/pdf' ||
         file.mimetype === 'application/msword' ||
         file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
         cb(null, true);
     } else {
-        cb(new Error('Invalid file type. Only Audio, Images, and PDFs are allowed.'), false);
+        cb(new Error('Invalid file type. Only Audio, Video, Images, and PDFs are allowed.'), false);
     }
 };
 

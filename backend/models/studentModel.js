@@ -27,7 +27,10 @@ export const createStudent = async ({
   funding_month,
   scholarship_percentage,
   sponsor_name,
-  paid_until
+  paid_until,
+  expiry_date,
+  reminder_sent,
+  admin_expiry_notified
 }) => {
   // Generate unique student ID
   const student_id = await generateStudentId('students', chosen_program);
@@ -37,8 +40,9 @@ export const createStudent = async ({
       student_id, full_name, email, phone, age, sex, residency_country, residency_city,
       chosen_program, chosen_subprogram, password, parent_name, parent_email, parent_phone,
       parent_relation, parent_res_county, parent_res_city, funding_status, sponsorship_package,
-      funding_amount, funding_month, scholarship_percentage, sponsor_name, paid_until
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      funding_amount, funding_month, scholarship_percentage, sponsor_name, paid_until,
+      expiry_date, reminder_sent, admin_expiry_notified
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       student_id,
       full_name,
@@ -63,7 +67,10 @@ export const createStudent = async ({
       funding_month || null,
       scholarship_percentage || null,
       sponsor_name || null,
-      paid_until || null
+      paid_until || null,
+      expiry_date || null,
+      reminder_sent || 0,
+      admin_expiry_notified || 0
     ]
   );
 
@@ -81,8 +88,9 @@ export const getAllStudents = async () => {
        s.funding_status, s.sponsorship_package,       s.funding_amount, s.funding_month, s.scholarship_percentage,
        s.sponsor_name,
        s.profile_picture,
-       s.paid_until,
-       s.created_at, s.updated_at, c.class_name
+        s.paid_until,
+        s.expiry_date,
+        s.created_at, s.updated_at, c.class_name
        FROM students s
        LEFT JOIN classes c ON s.class_id = c.id
        ORDER BY s.created_at DESC`
@@ -97,7 +105,7 @@ export const getAllStudents = async () => {
 // GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT student_id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, sponsor_name, profile_picture, paid_until, created_at, updated_at FROM students WHERE student_id = ?",
+    "SELECT student_id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, sponsor_name, profile_picture, paid_until, expiry_date, created_at, updated_at FROM students WHERE student_id = ?",
     [id]
   );
   return rows[0] || null;
@@ -139,7 +147,10 @@ export const updateStudentById = async (id, {
   scholarship_percentage,
   sponsor_name,
   profile_picture,
-  paid_until
+  paid_until,
+  expiry_date,
+  reminder_sent,
+  admin_expiry_notified
 }) => {
   const updates = [];
   const values = [];
@@ -248,6 +259,18 @@ export const updateStudentById = async (id, {
     updates.push("paid_until = ?");
     values.push(paid_until);
   }
+  if (expiry_date !== undefined) {
+    updates.push("expiry_date = ?");
+    values.push(expiry_date);
+  }
+  if (reminder_sent !== undefined) {
+    updates.push("reminder_sent = ?");
+    values.push(reminder_sent);
+  }
+  if (admin_expiry_notified !== undefined) {
+    updates.push("admin_expiry_notified = ?");
+    values.push(admin_expiry_notified);
+  }
 
   if (updates.length === 0) {
     return 0;
@@ -330,6 +353,47 @@ export const getStudentProgressByTeacher = async (teacherId) => {
   });
 };
 
+// GET STUDENT PROGRESS BY ID (For individual student dashboard)
+export const getStudentProgressById = async (studentId) => {
+  const [rows] = await dbp.query(
+    `SELECT 
+      s.student_id,
+      s.full_name,
+      s.email,
+      s.phone,
+      s.chosen_program,
+      s.chosen_subprogram,
+      s.sponsor_name,
+      s.class_id,
+      c.class_name,
+      SUM(CASE WHEN a.hour1 = 1 THEN 1 ELSE 0 END + CASE WHEN a.hour2 = 1 THEN 1 ELSE 0 END) as total_attended,
+      COUNT(DISTINCT a.id) * 2 as total_possible,
+      COALESCE(ROUND((SUM(CASE WHEN a.hour1 = 1 THEN 1 ELSE 0 END + CASE WHEN a.hour2 = 1 THEN 1 ELSE 0 END) / (COUNT(DISTINCT a.id) * 2)) * 100, 2), 0) as progress_percentage,
+      MAX(a.date) as last_active
+    FROM students s
+    LEFT JOIN classes c ON s.class_id = c.id
+    LEFT JOIN attendance a ON s.student_id = a.student_id
+    LEFT JOIN programs p ON (s.chosen_program = p.id OR s.chosen_program = p.title COLLATE utf8mb4_unicode_ci)
+    WHERE s.student_id = ?
+    GROUP BY s.student_id, s.full_name, s.email, s.phone, s.chosen_program, s.chosen_subprogram, s.sponsor_name, s.class_id, c.class_name`,
+    [studentId]
+  );
+
+  if (!rows[0]) return null;
+  const student = rows[0];
+
+  let status = 'Inactive';
+  if (student.progress_percentage >= 75) status = 'On Track';
+  else if (student.progress_percentage >= 50) status = 'At Risk';
+
+  return {
+    ...student,
+    status,
+    progress_percentage: student.progress_percentage || 0,
+    last_active: student.last_active || null
+  };
+};
+
 // UPDATE student program name (Sync function)
 export const updateStudentProgramName = async (oldName, newName) => {
   if (!oldName || !newName) return 0;
@@ -349,7 +413,7 @@ export const getSexDistribution = async (program_id, class_id) => {
 
   // Only join if we need to filter by program
   if (program_id) {
-    query += ` LEFT JOIN programs p ON (students.chosen_program = p.id OR students.chosen_program = p.title)`;
+    query += ` LEFT JOIN programs p ON (students.chosen_program = p.id OR students.chosen_program = p.title COLLATE utf8mb4_unicode_ci)`;
     conditions.push(`p.id = ?`);
     params.push(program_id);
   }
@@ -389,12 +453,12 @@ export const getTopStudents = async (limit = 10, program_id, class_id) => {
       c.class_name,
       p.title as program_name,
       COUNT(DISTINCT a.id) as total_sessions,
-      COALESCE(SUM(a.hour1 + a.hour2), 0) as attended_hours,
-      COALESCE(ROUND((SUM(a.hour1 + a.hour2) / (COUNT(DISTINCT a.id) * 2)) * 100, 2), 0) as attendance_rate,
+      SUM(CASE WHEN a.hour1 = 1 THEN 1 ELSE 0 END + CASE WHEN a.hour2 = 1 THEN 1 ELSE 0 END) as attended_hours,
+      COALESCE(ROUND((SUM(CASE WHEN a.hour1 = 1 THEN 1 ELSE 0 END + CASE WHEN a.hour2 = 1 THEN 1 ELSE 0 END) / (COUNT(DISTINCT a.id) * 2)) * 100, 2), 0) as attendance_rate,
       COALESCE(AVG(asub.score), 0) as avg_assignment_score
     FROM students s
     LEFT JOIN classes c ON s.class_id = c.id
-    LEFT JOIN programs p ON (s.chosen_program = p.id OR s.chosen_program = p.title)
+    LEFT JOIN programs p ON (s.chosen_program = p.id OR s.chosen_program = p.title COLLATE utf8mb4_unicode_ci)
     LEFT JOIN attendance a ON s.student_id = a.student_id
     LEFT JOIN assignment_submissions asub ON s.student_id = asub.student_id AND asub.status = 'graded'
     WHERE s.approval_status = 'approved'
@@ -403,7 +467,7 @@ export const getTopStudents = async (limit = 10, program_id, class_id) => {
   const params = [];
 
   if (program_id) {
-    query += ` AND p.id = ?`; // Filter by Program ID (resolved via join)
+    query += ` AND p.id = ?`;
     params.push(program_id);
   }
 
@@ -438,7 +502,7 @@ export const getStudentLocations = async (program_id) => {
       residency_city as city,
       COUNT(*) as student_count
     FROM students s
-    LEFT JOIN programs p ON (s.chosen_program = p.id OR s.chosen_program = p.title)
+    LEFT JOIN programs p ON (s.chosen_program = p.id OR s.chosen_program = p.title COLLATE utf8mb4_unicode_ci)
     WHERE residency_country IS NOT NULL AND residency_country != ''
   `;
 
@@ -463,6 +527,8 @@ export const getStudentsByClassId = async (classId) => {
      s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, 
      s.funding_status, s.sponsorship_package, s.funding_amount, s.funding_month, s.scholarship_percentage,
      s.sponsor_name,
+     s.paid_until,
+     s.expiry_date,
      s.created_at, s.updated_at
      FROM students s
      WHERE s.class_id = ? AND s.approval_status = 'approved'

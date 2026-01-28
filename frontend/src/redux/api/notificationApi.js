@@ -43,6 +43,13 @@ export const notificationApi = createApi({
             }),
             invalidatesTags: ["Notifications"],
         }),
+        sendTestReminderEmail: builder.mutation({
+            query: (data) => ({
+                url: "/notifications/test-reminder",
+                method: "POST",
+                body: data,
+            }),
+        }),
     }),
 });
 
@@ -51,4 +58,5 @@ export const {
     useCreateNotificationMutation,
     useMarkAsReadMutation,
     useDeleteNotificationMutation,
+    useSendTestReminderEmailMutation,
 } = notificationApi;

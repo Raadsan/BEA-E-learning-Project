@@ -42,7 +42,8 @@ function OralAssignmentCreateContent() {
         total_points: 100,
         status: "active",
         duration: 30, // Default 30 mins
-        audioUrl: ""
+        audioUrl: "",
+        submission_type: "audio" // Default to audio
     });
 
     const [audioFile, setAudioFile] = useState(null);
@@ -77,7 +78,8 @@ function OralAssignmentCreateContent() {
                     total_points: assignment.total_points,
                     status: assignment.status || "active",
                     duration: assignment.duration || 30,
-                    audioUrl: loadedAudioUrl
+                    audioUrl: loadedAudioUrl,
+                    submission_type: assignment.submission_type || "audio"
                 });
             }
         }
@@ -155,7 +157,8 @@ function OralAssignmentCreateContent() {
             status: formData.status,
             duration: formData.duration,
             type: 'oral_assignment',
-            questions: JSON.stringify(questionsData)
+            questions: JSON.stringify(questionsData),
+            submission_type: formData.submission_type
         };
 
         try {
@@ -194,14 +197,14 @@ function OralAssignmentCreateContent() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Basic Info Card */}
                     <div className={`p-8 rounded-2xl shadow-sm border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                             <span className="w-2 h-8 rounded-full bg-blue-600"></span>
                             Assignment Details
                         </h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-bold uppercase tracking-wide opacity-70 mb-2">Title</label>
+                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">Title</label>
                                 <input
                                     type="text"
                                     value={formData.title}
@@ -213,7 +216,7 @@ function OralAssignmentCreateContent() {
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-bold uppercase tracking-wide opacity-70 mb-2">Instructions / Prompt</label>
+                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">Instructions / Prompt</label>
                                 <textarea
                                     value={formData.description}
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -224,7 +227,7 @@ function OralAssignmentCreateContent() {
 
                             {/* Audio Upload Section */}
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-bold uppercase tracking-wide opacity-70 mb-2">
+                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">
                                     Audio Prompt (Max 50MB)
                                 </label>
 
@@ -249,13 +252,13 @@ function OralAssignmentCreateContent() {
                                         </div>
                                         <div>
                                             {formData.audioUrl ? (
-                                                <div className="text-green-600 font-bold flex items-center justify-center gap-2">
+                                                <div className="text-green-600 font-medium flex items-center justify-center gap-2">
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                                                     Audio Uploaded Successfully!
                                                 </div>
                                             ) : (
                                                 <div className="text-gray-500">
-                                                    <span className="text-blue-600 font-bold">Click to upload</span> or drag and drop
+                                                    <span className="text-blue-600 font-medium">Click to upload</span> or drag and drop
                                                     <p className="text-xs mt-1">MP3, WAV, M4A supported</p>
                                                 </div>
                                             )}
@@ -272,7 +275,7 @@ function OralAssignmentCreateContent() {
                                             </svg>
                                         </div>
                                         <div className="flex-1">
-                                            <p className="font-bold text-sm">Preview Uploaded Audio</p>
+                                            <p className="font-medium text-sm">Preview Uploaded Audio</p>
                                             <audio controls className="w-full mt-2 h-8">
                                                 <source src={`http://localhost:5000${formData.audioUrl}`} />
                                             </audio>
@@ -281,8 +284,27 @@ function OralAssignmentCreateContent() {
                                 )}
                             </div>
 
+                            {/* Submission Type Selector */}
                             <div>
-                                <label className="block text-sm font-bold uppercase tracking-wide opacity-70 mb-2">Class</label>
+                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">
+                                    Student Upload Type
+                                </label>
+                                <select
+                                    value={formData.submission_type}
+                                    onChange={e => setFormData({ ...formData, submission_type: e.target.value })}
+                                    className={`w-full p-4 rounded-xl border-2 outline-none font-medium transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+                                >
+                                    <option value="audio">Audio Only</option>
+                                    <option value="video">Video Only</option>
+                                    <option value="both">Both (Audio or Video)</option>
+                                </select>
+                                <p className="mt-2 text-xs text-gray-500">
+                                    Select what type of file students can upload for this assignment
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">Class</label>
                                 <select
                                     value={formData.class_id}
                                     onChange={e => setFormData({ ...formData, class_id: e.target.value })}
@@ -295,7 +317,7 @@ function OralAssignmentCreateContent() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold uppercase tracking-wide opacity-70 mb-2">Program</label>
+                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">Program</label>
                                 <select
                                     value={formData.program_id}
                                     onChange={e => setFormData({ ...formData, program_id: e.target.value })}
@@ -307,7 +329,7 @@ function OralAssignmentCreateContent() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold uppercase tracking-wide opacity-70 mb-2">Duration (Minutes)</label>
+                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">Duration (Minutes)</label>
                                 <input
                                     type="number"
                                     value={formData.duration}
@@ -318,7 +340,7 @@ function OralAssignmentCreateContent() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold uppercase tracking-wide opacity-70 mb-2">Points</label>
+                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">Points</label>
                                 <input
                                     type="number"
                                     value={formData.total_points}
@@ -328,7 +350,7 @@ function OralAssignmentCreateContent() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold uppercase tracking-wide opacity-70 mb-2">Due Date</label>
+                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">Due Date</label>
                                 <input
                                     type="date"
                                     value={formData.due_date}
@@ -339,7 +361,7 @@ function OralAssignmentCreateContent() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold uppercase tracking-wide opacity-70 mb-2">Status</label>
+                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">Status</label>
                                 <select
                                     value={formData.status}
                                     onChange={e => setFormData({ ...formData, status: e.target.value })}
@@ -357,14 +379,14 @@ function OralAssignmentCreateContent() {
                         <button
                             type="button"
                             onClick={() => router.back()}
-                            className={`px-8 py-3 rounded-xl font-bold uppercase tracking-widest transition-all ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white border-2 hover:bg-gray-50'}`}
+                            className={`px-8 py-3 rounded-xl font-medium uppercase tracking-widest transition-all ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white border-2 hover:bg-gray-50'}`}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isCreating || isUpdating}
-                            className={`px-8 py-3 rounded-xl bg-blue-600 text-white font-bold uppercase tracking-widest shadow-lg shadow-blue-500/30 hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 ${isCreating || isUpdating ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            className={`px-8 py-3 rounded-xl bg-blue-600 text-white font-medium uppercase tracking-widest shadow-lg shadow-blue-500/30 hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 ${isCreating || isUpdating ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
                             {(isCreating || isUpdating) && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                             {id ? 'Update Assignment' : 'Create Assignment'}

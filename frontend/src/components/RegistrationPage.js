@@ -6,14 +6,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
+import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useCreateStudentMutation } from "@/redux/api/studentApi";
 import { useLoginMutation } from "@/redux/api/authApi";
 import { useToast } from "@/components/Toast";
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 export default function RegistrationPage() {
   const { isDarkMode } = useTheme();
   const router = useRouter();
   const { data: programs = [], isLoading: programsLoading } = useGetProgramsQuery();
+  const { data: subprograms = [] } = useGetSubprogramsQuery();
   const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
   const [login] = useLoginMutation();
   const { showToast } = useToast();
@@ -123,166 +127,43 @@ export default function RegistrationPage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
 
-    // If not final step: handle step-specific behavior
+    // If not final step: handle step-advanced behavior
     if (currentStep < 4) {
-      // Check validity for visible fields
       if (formRef.current && !formRef.current.checkValidity()) {
         formRef.current.reportValidity();
         return;
       }
 
-      // For Payment step, we just collect payment details and advance to Review.
-      // The actual Waafi API call and final persistence happen on Submit (Step 4).
+      const nextStep = Math.min(4, currentStep + 1);
       try {
-        const nextStep = Math.min(4, currentStep + 1);
-        localStorage.setItem('registrationDraft', JSON.stringify({ ...formData, currentStep: nextStep, payment: { method: paymentMethod, accountNumber: paymentAccountNumber } }));
+        localStorage.setItem('registrationDraft', JSON.stringify({
+          ...formData,
+          currentStep: nextStep,
+          payment: { method: paymentMethod, accountNumber: paymentAccountNumber }
+        }));
       } catch (err) {
-        // ignore storage errors
+        // ignore
       }
-      setCurrentStep((s) => Math.min(4, s + 1));
+      setCurrentStep(nextStep);
       return;
     }
 
-    try {
-      // Prepare student data (same as before)
-      const studentData = {
-        full_name: formData.full_name,
-        email: formData.email,
-        phone: formData.phone || null,
-        age: formData.age ? parseInt(formData.age) : null,
-        gender: formData.gender || null,
-        residency_country: formData.residency_country || null,
-        residency_city: formData.residency_city || null,
-        chosen_program: formData.chosen_program || null,
-        password: formData.password,
-        // Parent information (only if age < 18)
-        parent_name: formData.parent_name || null,
-        parent_email: formData.parent_email || null,
-        parent_phone: formData.parent_phone || null,
-        parent_relation: formData.parent_relation || null,
-        parent_res_county: formData.parent_res_county || null,
-        parent_res_city: formData.parent_res_city || null,
-      };
-
-      // Create student account
-      const response = await createStudent(studentData).unwrap();
-
-      // Check if registration was successful
-      if (response.success || response.student) {
-        // Auto-login the student after registration
-        try {
-          const loginResponse = await login({
-            email: formData.email,
-            password: formData.password
-          }).unwrap();
-
-          if (loginResponse.success) {
-            // Success - redirect to student dashboard
-            showToast("Account created successfully! Redirecting to your dashboard...", "success");
-            localStorage.removeItem('registrationDraft');
-            router.push("/portal/student");
-          } else {
-            // If auto-login fails, redirect to login page
-            showToast("Account created successfully! Please login to continue.", "info");
-            localStorage.removeItem('registrationDraft');
-            router.push("/auth/login");
-          }
-        } catch (loginError) {
-          // If auto-login fails, redirect to login page
-          showToast("Account created successfully! Please login to continue.", "info");
-          localStorage.removeItem('registrationDraft');
-          router.push("/auth/login");
-        }
-      } else {
-        showToast(response.error || "Failed to create account. Please try again.", "error");
-      }
-    } catch (error) {
-      console.error("Registration error:", error);
-      // Handle different error formats
-      const errorMessage =
-        error?.data?.error ||
-        error?.data?.message ||
-        error?.message ||
-        "Failed to create account. Please try again.";
-      showToast(errorMessage, "error");
-    }
+    // If Step 4: Call handleFinalSubmit logic
+    handleFinalSubmit();
   };
 
-  // Final submit — perform Waafi payment and only persist student if payment succeeds
+  // Final submit — sends data to backend which handles Waafi payment and account creation
   const handleFinalSubmit = async () => {
     setPaymentError(null);
     setIsPaying(true);
 
     try {
-      const requestId = `req_${Date.now()}`;
-      const invoiceId = `inv_${Date.now()}`;
+      // Find program/subprogram titles for consistent database storage
+      const chosenProgram = programs.find(p => p.id === formData.chosen_program);
+      const chosenSubprogram = subprograms.find(s => s.id === formData.chosen_subprogram);
 
-      const payload = {
-        schemaVersion: "1.0",
-        requestId: requestId,
-        timestamp: new Date().toISOString(),
-        channelName: "WEB",
-        serviceName: "API_PURCHASE",
-        serviceParams: {
-          merchantUid: "M0910291",
-          apiUserId: "1000416",
-          apiKey: "API-675418888AHX",
-          paymentMethod: "mwallet_account", // 'mwallet_account' or 'evc'
-          payerInfo: {
-            accountNo: paymentAccountNumber.replace(/\s+/g, '') // Phone number for mobile wallet
-          },
-          transactionInfo: {
-            referenceId: requestId,
-            invoiceId: invoiceId,
-            amount: APPLICATION_FEE,
-            currency: "USD",
-            description: `Application fee for ${programs.find(p => p.id === formData.chosen_program)?.title || 'program'}`
-          }
-        }
-      };
-
-      console.log('Sending payment request to Waafi...', payload);
-
-      const res = await fetch('https://api.waafipay.net/asm', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-MERCHANT-ID': 'M0910291' // Add if required
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const response = await res.json();
-      console.log('Waafi API Response:', response);
-
-      // Handle successful response
-      if (response.responseCode === '2001' ||
-        response.responseMsg === 'SUCCESS' ||
-        (response.serviceParams && response.serviceParams.status === 'SUCCESS')) {
-
-        const transactionId = response.serviceParams?.transactionId || `WAAFI_${requestId}`;
-        console.log('Payment successful, saving student...');
-        await handleSaveStudent(transactionId, response); // Pass the full response for logging
-
-      } else {
-        const errorMsg = response.responseMsg ||
-          response.message ||
-          'Payment failed';
-        throw new Error(errorMsg);
-      }
-
-    } catch (err) {
-      console.error('Payment process error:', err);
-      setPaymentError(err.message);
-      showToast(`Payment Error: ${err.message}`, "error");
-    } finally {
-      setIsPaying(false);
-    }
-  };
-  const handleSaveStudent = async (transactionId, paymentResponse) => {
-    try {
       // Prepare student data with payment info
       const studentData = {
         full_name: formData.full_name,
@@ -291,7 +172,8 @@ export default function RegistrationPage() {
         age: formData.age ? parseInt(formData.age) : null,
         residency_country: formData.residency_country || null,
         residency_city: formData.residency_city || null,
-        chosen_program: formData.chosen_program || null,
+        chosen_program: chosenProgram ? chosenProgram.title : formData.chosen_program,
+        chosen_subprogram: chosenSubprogram ? chosenSubprogram.subprogram_name : formData.chosen_subprogram,
         password: formData.password,
         gender: formData.gender || null,
         // Include parent information if applicable
@@ -303,22 +185,24 @@ export default function RegistrationPage() {
           parent_res_county: formData.parent_res_county || null,
           parent_res_city: formData.parent_res_city || null,
         }),
-        // Include payment information
+        // Include payment information for backend processing
         payment: {
-          method: paymentMethod,
-          transactionId: transactionId,
-          amount: APPLICATION_FEE,
-          rawResponse: paymentResponse,
+          method: 'waafi',
           payerPhone: paymentAccountNumber,
+          amount: APPLICATION_FEE,
           program_id: formData.chosen_program
         }
       };
 
-      // Create student account
+      console.log('🚀 Sending registration and payment request to backend...');
+
+      // Create student account (backend will call Waafi)
       const response = await createStudent(studentData).unwrap();
 
       // If student creation is successful
       if (response.success || response.student) {
+        showToast("Registration successful! Redirecting...", "success");
+
         // Try to auto-login
         try {
           await login({
@@ -326,77 +210,23 @@ export default function RegistrationPage() {
             password: formData.password
           }).unwrap();
 
-          // Clear draft and redirect to welcome page
+          // Clear draft and redirect to dashboard
           localStorage.removeItem('registrationDraft');
           router.push('/portal/student');
         } catch (loginError) {
           console.error('Auto-login failed:', loginError);
-          // Still proceed to welcome page even if auto-login fails
+          // Redirect to login page if auto-login fails (use /login to match IELTS flow if available, else fallback)
           localStorage.removeItem('registrationDraft');
-          router.push('/portal/student');
+          router.push('/auth/login');
         }
       } else {
         throw new Error(response.error || 'Failed to create student account');
       }
     } catch (error) {
-      console.error('Error saving student:', error);
-      setPaymentError(error.message || 'Failed to complete registration');
-      showToast('Error completing registration. Please contact support.', "error");
-      throw error; // Re-throw to be caught by the calling function
-    }
-  };
-  // Confirm PIN handler extracted to avoid inline complex JSX functions
-  const handleConfirmPin = async () => {
-    if (!pin) return showToast('Please enter the PIN sent to your phone', 'info');
-    setIsPaying(true);
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
-      const res = await fetch(`${baseUrl}/api/payments/waafi/confirm`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transactionId: waafiTransactionId, pin })
-      });
-      const json = await res.json().catch(() => ({}));
-      console.log('Waafi confirm ->', res.status, json);
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || json.message || 'Confirm failed');
-      }
-
-      // Confirm succeeded - create student
-      const studentData = {
-        full_name: formData.full_name,
-        email: formData.email,
-        phone: formData.phone || null,
-        age: formData.age ? parseInt(formData.age) : null,
-        residency_country: formData.residency_country || null,
-        residency_city: formData.residency_city || null,
-        chosen_program: formData.chosen_program || null,
-        password: formData.password,
-        parent_name: formData.parent_name || null,
-        parent_email: formData.parent_email || null,
-        parent_phone: formData.parent_phone || null,
-        parent_relation: formData.parent_relation || null,
-        parent_res_county: formData.parent_res_county || null,
-        parent_res_city: formData.parent_res_city || null,
-        payment: { method: paymentMethod, transactionId: json.transactionId || waafiTransactionId, amount: APPLICATION_FEE }
-      };
-
-      const response = await createStudent(studentData).unwrap();
-      if (response.success || response.student) {
-        try {
-          await login({ email: formData.email, password: formData.password }).unwrap();
-          localStorage.removeItem('registrationDraft');
-          router.push('/portal/student');
-        } catch (e) {
-          localStorage.removeItem('registrationDraft');
-          router.push('/portal/student');
-        }
-      } else {
-        showToast(response.error || 'Failed to create account after payment.', 'error');
-      }
-    } catch (err) {
-      console.error('Confirm error', err);
-      showToast(err.message || 'Confirm failed', "error");
+      console.error('Registration/Payment error:', error);
+      const errorMsg = error?.data?.error || error?.message || 'Failed to complete registration';
+      setPaymentError(errorMsg);
+      showToast(errorMsg, "error");
     } finally {
       setIsPaying(false);
     }
@@ -511,8 +341,8 @@ export default function RegistrationPage() {
             <p className="text-sm text-gray-600">Complete your application in 4 simple steps</p>
           </div>
 
-          {/* Card container to mimic the design */}
-          <div className="bg-white rounded-xl shadow-sm border p-8 mb-6">
+          {/* Card container with better dark mode support */}
+          <div className={`rounded-xl shadow-sm border p-8 mb-6 ${isDarkMode ? 'border-[#1a1a3e] bg-[#050040]' : 'bg-white border-gray-100'}`}>
             {/* Visual Stepper (visual only) */}
             <div className="flex items-center justify-center gap-8 mb-6">
               {[1, 2, 3, 4].map((id) => {
@@ -575,15 +405,17 @@ export default function RegistrationPage() {
                       />
                     </div>
 
-                    <div>
+                    <div className="relative">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                      <input
-                        type="tel"
-                        name="phone"
+                      <PhoneInput
+                        country="so"
                         value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="+252 61-*******"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
+                        onChange={val => setFormData(prev => ({ ...prev, phone: val }))}
+                        enableSearch={true}
+                        separateDialCode={true}
+                        inputStyle={{ width: '100%', height: '48px', fontSize: '14px', borderRadius: '0.375rem', border: '1px solid #e5e7eb', backgroundColor: 'white' }}
+                        containerStyle={{ width: '100%' }}
+                        buttonStyle={{ borderRadius: '0.375rem 0 0 0.375rem', border: '1px solid #e5e7eb', borderRight: 'none' }}
                       />
                     </div>
 
@@ -601,7 +433,7 @@ export default function RegistrationPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Gender <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Sex <span className="text-red-500">*</span></label>
                       <div className="relative">
                         <select
                           name="gender"
@@ -713,15 +545,17 @@ export default function RegistrationPage() {
                           />
                         </div>
 
-                        <div>
+                        <div className="relative">
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Phone</label>
-                          <input
-                            type="tel"
-                            name="parent_phone"
+                          <PhoneInput
+                            country="so"
                             value={formData.parent_phone}
-                            onChange={handleChange}
-                            placeholder="+252 61-*******"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
+                            onChange={val => setFormData(prev => ({ ...prev, parent_phone: val }))}
+                            enableSearch={true}
+                            separateDialCode={true}
+                            inputStyle={{ width: '100%', height: '48px', fontSize: '14px', borderRadius: '0.375rem', border: '1px solid #e5e7eb', backgroundColor: 'white' }}
+                            containerStyle={{ width: '100%' }}
+                            buttonStyle={{ borderRadius: '0.375rem 0 0 0.375rem', border: '1px solid #e5e7eb', borderRight: 'none' }}
                           />
                         </div>
 
@@ -904,25 +738,25 @@ export default function RegistrationPage() {
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('evc')}
-                      className={`flex items-center justify-between p-4 rounded-lg border ${paymentMethod === 'evc' ? 'bg-blue-50 border-green-600' : 'bg-white border-gray-200'}`}
+                      className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${paymentMethod === 'evc' ? 'bg-blue-50 border-green-600' : 'bg-white border-gray-100'}`}
                     >
-                      <div>
-                        <p className="font-semibold">EVC - Waafi</p>
+                      <div className="text-left">
+                        <p className="font-bold text-[#010080]">EVC - Waafi</p>
                         <p className="text-xs text-gray-500 mt-1">Instant mobile payment</p>
                       </div>
-                      <div className="text-sm font-semibold">${APPLICATION_FEE}</div>
+                      <div className="text-sm font-bold text-[#010080]">${APPLICATION_FEE.toFixed(2)}</div>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('bank')}
-                      className={`flex items-center justify-between p-4 rounded-lg border ${paymentMethod === 'bank' ? 'bg-blue-50 border-green-600' : 'bg-white border-gray-200'}`}
+                      className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${paymentMethod === 'bank' ? 'bg-blue-50 border-green-600' : 'bg-white border-gray-100'}`}
                     >
-                      <div>
-                        <p className="font-semibold">Bank Transfer</p>
+                      <div className="text-left">
+                        <p className="font-bold text-[#010080]">Bank Transfer</p>
                         <p className="text-xs text-gray-500 mt-1">Manual transfer (confirm later)</p>
                       </div>
-                      <div className="text-sm font-semibold">${APPLICATION_FEE}</div>
+                      <div className="text-sm font-bold text-[#010080]">${APPLICATION_FEE.toFixed(2)}</div>
                     </button>
                   </div>
 
@@ -950,47 +784,47 @@ export default function RegistrationPage() {
 
               {/* Step 4 - Review & Submit */}
               {currentStep === 4 && (
-                <div>
+                <div className="animate-fadeIn">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Review and Submission</h3>
                   <p className="text-sm text-gray-500 mb-4">Please review your information before submitting your application.</p>
 
                   <div className="space-y-4 mb-4">
                     <div className="p-4 bg-white border rounded-lg flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-md ${'#c7d2fe'}`} />
+                      <div className="w-10 h-10 rounded-md flex-shrink-0" style={{ backgroundColor: '#c7d2fe' }} />
                       <div>
-                        <h4 className="font-semibold">Personal Information</h4>
-                        <p className="text-sm text-gray-600">{formData.full_name || '-'} • {formData.email || '-'} • {formData.phone || '-'}</p>
+                        <h4 className="font-bold text-[#010080]">Personal Information</h4>
+                        <p className="text-sm text-gray-600 font-medium">{formData.full_name || '-'} • {formData.email || '-'} • {formData.phone || '-'}</p>
                         <p className="text-xs text-gray-500 mt-2">{formData.residency_country ? `${formData.residency_country}, ${formData.residency_city}` : '-'}</p>
                       </div>
                     </div>
 
                     <div className="p-4 bg-white border rounded-lg flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-md ${'bg-green-100'}`} />
+                      <div className="w-10 h-10 rounded-md bg-green-100 flex-shrink-0" />
                       <div>
-                        <h4 className="font-semibold">Program Selection</h4>
-                        <p className="text-sm text-gray-600">{programs.find(p => p.id === formData.chosen_program)?.title || '-'}</p>
+                        <h4 className="font-bold text-[#010080]">Program Selection</h4>
+                        <p className="text-sm text-gray-600 font-medium">{programs.find(p => p.id === formData.chosen_program)?.title || '-'}</p>
                       </div>
                     </div>
 
                     <div className="p-4 bg-white border rounded-lg flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-md ${'bg-red-100'}`} />
+                      <div className="w-10 h-10 rounded-md bg-red-100 flex-shrink-0" />
                       <div>
-                        <h4 className="font-semibold">Payment Information</h4>
+                        <h4 className="font-bold text-[#010080]">Payment Information</h4>
                         <p className="text-sm text-gray-600">Payment method: {paymentMethod === 'evc' ? 'EVC - Waafi' : 'Bank Transfer'}</p>
-                        <p className="text-sm text-gray-600">Application fee: ${APPLICATION_FEE}</p>
-                        <p className="text-sm text-gray-600">Account: {paymentAccountNumber}</p>
+                        <p className="text-sm text-gray-600">Application fee: ${APPLICATION_FEE.toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">Account: {paymentAccountNumber || '-'}</p>
                       </div>
                     </div>
 
                     <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-                      <p className="text-sm">By submitting this application, you confirm that all information provided is accurate and complete. You will receive a confirmation email once your application is processed.</p>
+                      <p className="text-sm text-green-800">By submitting this application, you confirm that all information provided is accurate and complete. You will receive a confirmation email once your application is processed.</p>
                     </div>
 
                     {paymentError && (
                       <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
                         <p className="text-sm text-red-700">Payment Error: {paymentError}</p>
                         <div className="mt-2">
-                          <button onClick={() => { setCurrentStep(3); setPaymentError(null); }} className="px-4 py-2 rounded-md bg-gray-200">Change number / Retry</button>
+                          <button onClick={() => { setCurrentStep(3); setPaymentError(null); }} className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 transition-colors text-sm font-medium">Change number / Retry</button>
                         </div>
                       </div>
                     )}

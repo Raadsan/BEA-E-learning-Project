@@ -4,15 +4,17 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetPlacementTestsQuery, useGetStudentPlacementResultsQuery } from "@/redux/api/placementTestApi";
+import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 
 export default function PlacementTestPage() {
   const router = useRouter();
   const { isDark } = useDarkMode();
   const { data: tests, isLoading: testsLoading, error } = useGetPlacementTestsQuery();
 
-  const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
-  const { data: results, isLoading: resultsLoading } = useGetStudentPlacementResultsQuery(user.id || user.student_id, {
-    skip: !user.id && !user.student_id,
+  const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
+  const studentIdForResults = user?.id || user?.student_id;
+  const { data: results, isLoading: resultsLoading } = useGetStudentPlacementResultsQuery(studentIdForResults, {
+    skip: !studentIdForResults,
   });
 
   // Determine the active test (deterministically random for each student)
@@ -41,12 +43,55 @@ export default function PlacementTestPage() {
     }
   }, [hasTakenTest, router]);
 
-  const isLoading = testsLoading || resultsLoading || (hasTakenTest && true);
+  // Check if 24-hour window has expired
+  const isExpired = React.useMemo(() => {
+    if (!user?.expiry_date) return false;
+
+    const getParsedExpiry = (dateVal) => {
+      if (!dateVal) return null;
+      if (dateVal instanceof Date) return dateVal;
+      const dStr = dateVal.toString();
+      const isoStr = dStr.includes('T') ? dStr : dStr.replace(' ', 'T');
+      const finalStr = isoStr.includes('Z') || isoStr.includes('+') ? isoStr : `${isoStr}Z`;
+      const d = new Date(finalStr);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    const expiry = getParsedExpiry(user.expiry_date);
+    if (!expiry) return false;
+    return new Date() > expiry;
+  }, [user?.expiry_date]);
+
+  const isLoading = testsLoading || resultsLoading || userLoading;
 
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (isExpired && !hasTakenTest) {
+    return (
+      <div className="flex h-screen items-center justify-center p-8">
+        <div className={`p-12 rounded-3xl border shadow-xl text-center max-w-lg w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+          <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold mb-4">Entry Window Expired</h2>
+          <p className={`mb-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            Your 24-hour window to enter the placement test has closed. To ensure fairness and security, tests must be taken within the authorized timeframe after registration.
+          </p>
+          <button
+            onClick={() => router.push('/portal/student')}
+            className="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-xl transition-all"
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </div>
     );
   }

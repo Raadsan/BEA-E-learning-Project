@@ -29,9 +29,14 @@ export const getAllPrograms = async () => {
   return rows;
 };
 
-// GET program by ID
+// GET program by ID or Title
 export const getProgramById = async (id) => {
-  const [rows] = await dbp.query("SELECT * FROM programs WHERE id = ?", [id]);
+  // Try by ID first
+  let [rows] = await dbp.query("SELECT * FROM programs WHERE id = ?", [id]);
+  if (rows.length > 0) return rows[0];
+
+  // Try by Title if not found or if ID is a string name
+  [rows] = await dbp.query("SELECT * FROM programs WHERE title = ? COLLATE utf8mb4_unicode_ci", [id]);
   return rows[0] || null;
 };
 

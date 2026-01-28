@@ -97,14 +97,31 @@ export default function StudentAssignmentList({ type, title }) {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 20 * 1024 * 1024) { // 20MB limit
-                showToast("File is too large. Max size is 20MB.", "error");
-                return;
-            }
-            if (!file.type.startsWith('audio/')) {
+           if (file.size > 50 * 1024 * 1024) { // 50MB limit
+    showToast("File is too large. Max size is 50MB.", "error");
+    return;
+}
+
+            // Get submission type from assignment
+            const submissionType = selectedAssignment?.submission_type || 'audio';
+            const fileType = file.type;
+            const isAudio = fileType.startsWith('audio/');
+            const isVideo = fileType.startsWith('video/');
+
+            // Validate based on submission type
+            if (submissionType === 'audio' && !isAudio) {
                 showToast("Please select an audio file.", "error");
                 return;
             }
+            if (submissionType === 'video' && !isVideo) {
+                showToast("Please select a video file.", "error");
+                return;
+            }
+            if (submissionType === 'both' && !isAudio && !isVideo) {
+                showToast("Please select an audio or video file.", "error");
+                return;
+            }
+
             setUploadedFile(file);
             const url = URL.createObjectURL(file);
             setFilePreviewUrl(url);
@@ -461,7 +478,11 @@ export default function StudentAssignmentList({ type, title }) {
                                             Submission Completed
                                         </div>
                                         {selectedAssignment.file_url ? (
-                                            <audio controls className="w-full" src={`http://localhost:5000/api/files/download/${selectedAssignment.file_url}`} />
+                                            selectedAssignment.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
+                                                <video controls className="w-full rounded-lg" src={`http://localhost:5000/api/files/download/${selectedAssignment.file_url}`} />
+                                            ) : (
+                                                <audio controls className="w-full" src={`http://localhost:5000/api/files/download/${selectedAssignment.file_url}`} />
+                                            )
                                         ) : (
                                             <p className="text-sm italic opacity-50">No file submitted.</p>
                                         )}
@@ -472,13 +493,21 @@ export default function StudentAssignmentList({ type, title }) {
                                             <label className={`flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-xl cursor-pointer transition-all ${isDark ? 'bg-gray-800/20 border-gray-700 hover:border-gray-600' : 'bg-gray-50 border-gray-200 hover:border-gray-300'}`}>
                                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                     <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                                                    <p className="mb-2 text-sm text-gray-500 font-normal">Click to upload your audio record</p>
-                                                    <p className="text-xs text-gray-400 font-normal">MP3, WAV, or WEBM (MAX. 20MB)</p>
+                                                    <p className="mb-2 text-sm text-gray-500 font-normal">
+                                                        Click to upload your {selectedAssignment?.submission_type === 'audio' ? 'audio recording' : selectedAssignment?.submission_type === 'video' ? 'video recording' : 'audio or video recording'}
+                                                    </p>
+                                                    <p className="text-xs text-gray-400 font-normal">
+                                                        {selectedAssignment?.submission_type === 'audio' ? 'MP3, WAV, or WEBM (MAX. 20MB)' :
+                                                            selectedAssignment?.submission_type === 'video' ? 'MP4, WEBM, or MOV (MAX. 20MB)' :
+                                                                'Audio or Video Files (MAX. 20MB)'}
+                                                    </p>
                                                 </div>
                                                 <input
                                                     type="file"
                                                     className="hidden"
-                                                    accept="audio/*"
+                                                    accept={selectedAssignment?.submission_type === 'audio' ? 'audio/*' :
+                                                        selectedAssignment?.submission_type === 'video' ? 'video/*' :
+                                                            'audio/*,video/*'}
                                                     onChange={handleFileChange}
                                                     ref={fileInputRef}
                                                 />
@@ -488,18 +517,26 @@ export default function StudentAssignmentList({ type, title }) {
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center">
-                                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+                                                            {uploadedFile.type.startsWith('video/') ? (
+                                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                                            ) : (
+                                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+                                                            )}
                                                         </div>
                                                         <div className="flex flex-col">
-                                                            <span className="text-sm font-medium font-normal truncate max-w-xs">{uploadedFile.name}</span>
-                                                            <span className="text-[10px] text-gray-400 uppercase font-normal">{(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB • Audio File</span>
+                                                            <span className="text-sm font-normal truncate max-w-xs">{uploadedFile.name}</span>
+                                                            <span className="text-[10px] text-gray-400 uppercase font-normal">{(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB • {uploadedFile.type.startsWith('video/') ? 'Video' : 'Audio'} File</span>
                                                         </div>
                                                     </div>
                                                     <button onClick={removeUploadedFile} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 transition-colors">
                                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                                     </button>
                                                 </div>
-                                                <audio controls className="w-full" src={filePreviewUrl} />
+                                                {uploadedFile.type.startsWith('video/') ? (
+                                                    <video controls className="w-full rounded-lg" src={filePreviewUrl} />
+                                                ) : (
+                                                    <audio controls className="w-full" src={filePreviewUrl} />
+                                                )}
                                             </div>
                                         )}
                                     </div>

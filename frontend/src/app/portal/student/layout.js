@@ -16,6 +16,7 @@ function StudentLayoutContent({ children }) {
   const [isApproved, setIsApproved] = useState(false);
   const [isPaid, setIsPaid] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isTestExpired, setIsTestExpired] = useState(false);
 
   useEffect(() => {
     // Close sidebar on route change for mobile
@@ -39,7 +40,40 @@ function StudentLayoutContent({ children }) {
       }
       setIsPaid(paid);
 
-      // Restriction Logic
+      // Check if test window is expired
+      const updateExpiryStatus = () => {
+        // Proficiency-Only students (role: proficiency_student or program: proficiency test) 
+        // are excluded from 24h block.
+        const prog = (user?.chosen_program || user?.program || "").toString().toLowerCase();
+        const isProficiencyOnly = prog.trim() === "proficiency test" || user?.role === 'proficiency_student';
+
+        if (isProficiencyOnly) {
+          setIsTestExpired(false);
+          return;
+        }
+
+        if (user.expiry_date) {
+          const getParsedExpiry = (dateVal) => {
+            if (!dateVal) return null;
+            if (dateVal instanceof Date) return dateVal;
+            const dStr = dateVal.toString();
+            const isoStr = dStr.includes('T') ? dStr : dStr.replace(' ', 'T');
+            const finalStr = isoStr.includes('Z') || isoStr.includes('+') ? isoStr : `${isoStr}Z`;
+            const d = new Date(finalStr);
+            return isNaN(d.getTime()) ? null : d;
+          };
+
+          const expiry = getParsedExpiry(user.expiry_date);
+          if (expiry) {
+            setIsTestExpired(new Date() > expiry);
+          }
+        }
+      };
+
+      updateExpiryStatus();
+      const expiryInterval = setInterval(updateExpiryStatus, 60000); // Check every minute
+
+      // Restriction Logic (keep existing)
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
         const baseAllowedPaths = [
@@ -74,6 +108,8 @@ function StudentLayoutContent({ children }) {
           }
         }
       }
+
+      return () => clearInterval(expiryInterval);
     }
   }, [user, router]);
 
@@ -83,7 +119,14 @@ function StudentLayoutContent({ children }) {
       style={isDark ? { background: 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)' } : { backgroundColor: '#f3f4f6' }}
     >
       {/* Sidebar - Always visible on desktop, toggleable on mobile */}
-      <StudentSidebar isApproved={isApproved} isPaid={isPaid} user={user} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <StudentSidebar
+        isApproved={isApproved}
+        isPaid={isPaid}
+        isTestExpired={isTestExpired}
+        user={user}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
 
       {/* Sidebar Overlay for Mobile */}
       {isSidebarOpen && (
