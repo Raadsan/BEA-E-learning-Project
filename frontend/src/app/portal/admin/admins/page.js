@@ -145,7 +145,17 @@ export default function AdminsPage() {
 
   return (
     <>
-      <div className="flex-1 bg-gray-50"><div className="w-full px-8 py-6"><div className="mb-6"><h1 className="text-2xl font-bold text-gray-800 mb-2">Admins Management</h1><p className="text-gray-600">Manage system administrators and their access</p></div><DataTable title="" columns={columns} data={allUsers || []} showAddButton={true} onAddClick={handleAddClick} /></div></div>
+      <div className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="w-full px-8 py-6">
+          <DataTable
+            title="Admins Management"
+            columns={columns}
+            data={allUsers || []}
+            showAddButton={true}
+            onAddClick={handleAddClick}
+          />
+        </div>
+      </div>
       <AdminForm isOpen={isModalOpen} onClose={handleCloseModal} editingAdmin={editingAdmin} formData={formData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} isDark={isDark} isCreating={isCreating} isUpdating={isUpdating} />
       <AdminConfirmationModal isOpen={confirmationModal.isOpen} onClose={() => setConfirmationModal({ ...confirmationModal, isOpen: false })} title={confirmationModal.title} message={confirmationModal.message} onConfirm={confirmationModal.onConfirm} isLoading={confirmationModal.isLoading} isDark={isDark} />
     </>

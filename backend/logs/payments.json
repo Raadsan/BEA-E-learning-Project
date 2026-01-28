@@ -912,5 +912,68 @@
       }
     },
     "createdAt": "2026-01-21T08:01:44.103Z"
+  },
+  {
+    "id": "WAAFI-1769521184259",
+    "method": "waafi",
+    "payerPhone": "612112932",
+    "programId": 1,
+    "amount": 10,
+    "studentEmail": "faysalmaxameddahir@gmail.com",
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-27 16:39:54.652",
+      "responseId": "WAAFI-1769521184259",
+      "responseCode": "5310",
+      "errorCode": "5310",
+      "responseMsg": "RCS_USER_REJECTED",
+      "params": {
+        "orderId": "66185036",
+        "description": "Customer rejected payment"
+      }
+    },
+    "createdAt": "2026-01-27T13:39:54.100Z"
+  },
+  {
+    "id": "WAAFI-1769524103297",
+    "method": "waafi",
+    "payerPhone": "615758274",
+    "programId": 1,
+    "amount": 10,
+    "studentEmail": "faysalmaxameddahir@gmail.com",
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-27 17:28:28.904",
+      "responseId": "WAAFI-1769524103297",
+      "responseCode": "5206",
+      "errorCode": "E10205",
+      "responseMsg": "Payment Failed (Haraaga xisaabtaadu kuguma filna, mobile No: 252615758274)",
+      "params": {
+        "orderId": "66187936",
+        "description": "Haraaga xisaabtaadu kuguma filna, mobile No: 252615758274"
+      }
+    },
+    "createdAt": "2026-01-27T14:28:28.325Z"
+  },
+  {
+    "id": "WAAFI-1769524131960",
+    "method": "waafi",
+    "payerPhone": "612112932",
+    "programId": 1,
+    "amount": 10,
+    "studentEmail": "faysalmaxameddahir@gmail.com",
+    "response": {
+      "schemaVersion": "1.0",
+      "timestamp": "2026-01-27 17:29:08.882",
+      "responseId": "WAAFI-1769524131960",
+      "responseCode": "5310",
+      "errorCode": "5310",
+      "responseMsg": "RCS_USER_REJECTED",
+      "params": {
+        "orderId": "66187963",
+        "description": "Customer rejected payment"
+      }
+    },
+    "createdAt": "2026-01-27T14:29:08.352Z"
   }
 ]

@@ -1,4 +1,5 @@
 import db from "../database/dbconfig.js";
+import { createNotificationInternal } from "./notificationController.js";
 
 const dbp = db.promise();
 
@@ -505,8 +506,8 @@ export const submitAssignment = async (req, res) => {
         const { assignment_id, content, type } = req.body;
         const student_id = req.user.userId;
 
-        // Get file URL from uploaded file (if any)
-        const file_url = req.file ? req.file.filename : null;
+        // Get file URL from uploaded file (if any) or body
+        const file_url = req.file ? req.file.filename : req.body.file_url || null;
 
         if (!assignment_id || !type) {
             return res.status(400).json({ error: "Assignment ID and Type are required" });
@@ -708,13 +709,6 @@ export const gradeSubmission = async (req, res) => {
 
         if (details.length > 0) {
             const { student_id, title } = details[0];
-
-            // Import dynamically to avoid circular dependency issues if any, or just standard import usage
-            // Since this is a specialized tool usage, I'll rely on the top-level import I'm about to add
-            // But wait, I can't add top-level import in this same block easily if I only target this function.
-            // I'll assume I'll add the import in a separate tool call OR uses a helper.
-
-            const { createNotificationInternal } = await import('./notificationController.js');
 
             await createNotificationInternal({
                 user_id: student_id,

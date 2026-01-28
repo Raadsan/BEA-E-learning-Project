@@ -62,14 +62,14 @@ export const saveTestResult = async ({
     return { id: result.insertId, student_id, test_id, score, total_questions, percentage, recommended_level, status };
 };
 
-export const updateTestResult = async (id, { score, percentage, recommended_level, status, essay_marks, feedback_file }) => {
+export const updateTestResult = async (id, { score, percentage, recommended_level, status, essay_marks, oral_review_marks, feedback_file }) => {
     await dbp.query(
         `UPDATE placement_test_results 
-         SET score = ?, percentage = ?, recommended_level = ?, status = ?, essay_marks = ?, feedback_file = ?
+         SET score = ?, percentage = ?, recommended_level = ?, status = ?, essay_marks = ?, oral_review_marks = ?, feedback_file = ?
          WHERE id = ?`,
-        [score, percentage, recommended_level, status, essay_marks, feedback_file, id]
+        [score, percentage, recommended_level, status, essay_marks, oral_review_marks, feedback_file, id]
     );
-    return { id, score, percentage, recommended_level, status, essay_marks, feedback_file };
+    return { id, score, percentage, recommended_level, status, essay_marks, oral_review_marks, feedback_file };
 };
 
 export const getResultsByStudent = async (student_id) => {

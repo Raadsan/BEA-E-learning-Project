@@ -25,6 +25,13 @@ import paymentPackageRoutes from './routes/paymentPackageRoutes.js';
 import assignmentRoutes from './routes/assignmentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import timetableRoutes from './routes/timetableRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import fileRoutes from './routes/fileRoutes.js';
+import materialRoutes from './routes/materialRoutes.js';
+import courseRoutes from './routes/courseRoutes.js';
+import shiftRoutes from './routes/shiftRoutes.js';
+import freezingRoutes from './routes/freezingRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 
 dotenv.config();
 
@@ -56,11 +63,18 @@ app.use('/api/session-requests', sessionRequestRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/news', newsRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/admins', adminRoutes);
 app.use('/api/payment-packages', paymentPackageRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/timetables', timetableRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/files', fileRoutes);
+app.use('/api/materials', materialRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/shifts', shiftRoutes);
+app.use('/api/freezing-requests', freezingRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 // Root Route
 app.get('/', (req, res) => {

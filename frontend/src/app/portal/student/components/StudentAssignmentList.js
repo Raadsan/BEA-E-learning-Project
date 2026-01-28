@@ -29,6 +29,11 @@ export default function StudentAssignmentList({ type, title }) {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const timerRef = useRef(null);
 
+    // Oral assignment state
+    const [uploadedFile, setUploadedFile] = useState(null);
+    const [filePreviewUrl, setFilePreviewUrl] = useState(null);
+    const fileInputRef = useRef(null);
+
     // Timer logic
     useEffect(() => {
         // For 'exam' type, the StudentTestWorkspace handles the timer internally to match placement test logic
@@ -81,7 +86,36 @@ export default function StudentAssignmentList({ type, title }) {
         if (assignment.duration) {
             setTimeLeft(assignment.duration * 60);
         }
+        // Reset upload state
+        setUploadedFile(null);
+        if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
+        setFilePreviewUrl(null);
+
         setView("workspace");
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 20 * 1024 * 1024) { // 20MB limit
+                showToast("File is too large. Max size is 20MB.", "error");
+                return;
+            }
+            if (!file.type.startsWith('audio/')) {
+                showToast("Please select an audio file.", "error");
+                return;
+            }
+            setUploadedFile(file);
+            const url = URL.createObjectURL(file);
+            setFilePreviewUrl(url);
+        }
+    };
+
+    const removeUploadedFile = () => {
+        setUploadedFile(null);
+        if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
+        setFilePreviewUrl(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     const handleFinalSubmit = async (auto = false, overrideContent = null) => {
@@ -113,11 +147,19 @@ export default function StudentAssignmentList({ type, title }) {
 
         try {
             setSubmitting(true);
-            await submitAssignment({
-                assignment_id: selectedAssignment.id,
-                content: contentToSubmit,
-                type: type
-            }).unwrap();
+
+            const formData = new FormData();
+            formData.append('assignment_id', selectedAssignment.id);
+            formData.append('type', type);
+
+            if (type === 'oral_assignment' && uploadedFile) {
+                formData.append('file', uploadedFile);
+                formData.append('content', 'Audio File Upload');
+            } else {
+                formData.append('content', typeof contentToSubmit === 'object' ? JSON.stringify(contentToSubmit) : contentToSubmit);
+            }
+
+            await submitAssignment(formData).unwrap();
             setView("list");
             setSubmissionContent("");
             setQuizAnswers({});
@@ -328,7 +370,9 @@ export default function StudentAssignmentList({ type, title }) {
                                     Guidelines
                                 </h3>
                                 <p className={`text-base leading-relaxed whitespace-pre-wrap font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                                    {selectedAssignment?.requirements || selectedAssignment?.description || "Follow the standard submission procedures."}
+                                    {type === 'oral_assignment'
+                                        ? (selectedAssignment?.requirements || "Read the passage below and record your voice.")
+                                        : (selectedAssignment?.requirements || selectedAssignment?.description || "Follow the standard submission procedures.")}
                                 </p>
                             </div>
                             <div className="flex flex-wrap gap-3">
@@ -390,9 +434,79 @@ export default function StudentAssignmentList({ type, title }) {
 
                 </div>
 
-                {/* Writing Area / Quiz Area */}
+                {/* Content Area: Questions / Oral / Writing */}
                 <div className="w-full">
-                    {selectedAssignment.questions ? (
+                    {type === 'oral_assignment' ? (
+                        <div className="space-y-6">
+                            {/* Reading Passage Section */}
+                            <div className={`p-8 rounded-2xl shadow-sm border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-blue-100'}`}>
+                                <span className={`text-xs font-semibold uppercase tracking-wider mb-4 block ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                    Reading Passage
+                                </span>
+                                <div className={`text-lg leading-relaxed whitespace-pre-wrap font-normal ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                                    {selectedAssignment.description}
+                                </div>
+                            </div>
+
+                            {/* File Upload Section */}
+                            <div className={`p-8 rounded-2xl shadow-sm border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-blue-50'}`}>
+                                <span className={`text-xs font-semibold uppercase tracking-wider mb-6 block ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                    Your Submission
+                                </span>
+
+                                {isClosed ? (
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex items-center gap-2 text-emerald-500 text-sm font-medium">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                            Submission Completed
+                                        </div>
+                                        {selectedAssignment.file_url ? (
+                                            <audio controls className="w-full" src={`http://localhost:5000/api/files/download/${selectedAssignment.file_url}`} />
+                                        ) : (
+                                            <p className="text-sm italic opacity-50">No file submitted.</p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {!uploadedFile ? (
+                                            <label className={`flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-xl cursor-pointer transition-all ${isDark ? 'bg-gray-800/20 border-gray-700 hover:border-gray-600' : 'bg-gray-50 border-gray-200 hover:border-gray-300'}`}>
+                                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                    <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                                                    <p className="mb-2 text-sm text-gray-500 font-normal">Click to upload your audio record</p>
+                                                    <p className="text-xs text-gray-400 font-normal">MP3, WAV, or WEBM (MAX. 20MB)</p>
+                                                </div>
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    accept="audio/*"
+                                                    onChange={handleFileChange}
+                                                    ref={fileInputRef}
+                                                />
+                                            </label>
+                                        ) : (
+                                            <div className={`p-6 rounded-xl border ${isDark ? 'bg-gray-800/40 border-gray-700' : 'bg-white border-gray-100 shadow-sm'}`}>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center">
+                                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium font-normal truncate max-w-xs">{uploadedFile.name}</span>
+                                                            <span className="text-[10px] text-gray-400 uppercase font-normal">{(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB • Audio File</span>
+                                                        </div>
+                                                    </div>
+                                                    <button onClick={removeUploadedFile} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 transition-colors">
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                    </button>
+                                                </div>
+                                                <audio controls className="w-full" src={filePreviewUrl} />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : (selectedAssignment.questions && (typeof selectedAssignment.questions === 'string' ? (selectedAssignment.questions !== '[]' && selectedAssignment.questions !== '{}') : selectedAssignment.questions.length > 0)) ? (
                         <div className="space-y-6">
                             {(typeof selectedAssignment.questions === 'string' ? JSON.parse(selectedAssignment.questions) : selectedAssignment.questions).map((q, idx) => (
                                 <div key={idx} className={`p-8 rounded-2xl shadow-sm border transition-all ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
@@ -449,7 +563,6 @@ export default function StudentAssignmentList({ type, title }) {
                                     {getWordCount(submissionContent)} Words
                                     {selectedAssignment?.word_count ? <span className="opacity-60 ml-1">/ {selectedAssignment.word_count}</span> : ''}
                                 </div>
-
                             </div>
 
                             <textarea
@@ -467,51 +580,53 @@ export default function StudentAssignmentList({ type, title }) {
                             />
                         </div>
                     )}
+                </div>
 
-                    {!isClosed && (
-                        <div className="flex justify-end mt-6">
-                            <button
-                                onClick={() => setShowConfirmModal(true)}
-                                className={`px-8 py-3 rounded-lg font-semibold text-sm transition-colors ${submitting ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-[#010080] hover:bg-blue-800 text-white'
-                                    }`}
-                                disabled={submitting}
-                            >
-                                {submitting ? 'Submitting...' : 'Submit'}
-                            </button>
-                        </div>
-                    )}
+                {!isClosed && (
+                    <div className="flex justify-end mt-6">
+                        <button
+                            onClick={() => setShowConfirmModal(true)}
+                            className={`px-8 py-3 rounded-lg font-semibold text-sm transition-colors ${submitting || (type === 'oral_assignment' && !uploadedFile)
+                                ? 'bg-gray-400 cursor-not-allowed text-white'
+                                : 'bg-[#010080] hover:bg-blue-800 text-white'
+                                }`}
+                            disabled={submitting || (type === 'oral_assignment' && !uploadedFile)}
+                        >
+                            {submitting ? 'Submitting...' : 'Submit'}
+                        </button>
+                    </div>
+                )}
 
-                    {/* Confirmation Modal */}
-                    {showConfirmModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowConfirmModal(false)} />
-                            <div className={`relative w-full max-w-md rounded-lg shadow-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
-                                <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Confirm Submission</h3>
-                                <p className={`text-sm mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                                    Are you sure you want to submit your work? You won't be able to edit it after submission.
-                                </p>
-                                <div className="flex gap-3 justify-end">
-                                    <button
-                                        onClick={() => setShowConfirmModal(false)}
-                                        className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setShowConfirmModal(false);
-                                            handleFinalSubmit(true);
-                                        }}
-                                        className="px-4 py-2 rounded-lg bg-[#010080] hover:bg-blue-800 text-white font-semibold text-sm transition-colors"
-                                    >
-                                        Yes, Submit
-                                    </button>
-                                </div>
+                {/* Confirmation Modal */}
+                {showConfirmModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowConfirmModal(false)} />
+                        <div className={`relative w-full max-w-md rounded-lg shadow-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
+                            <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Confirm Submission</h3>
+                            <p className={`text-sm mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Are you sure you want to submit your work? You won't be able to edit it after submission.
+                            </p>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => setShowConfirmModal(false)}
+                                    className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowConfirmModal(false);
+                                        handleFinalSubmit(true);
+                                    }}
+                                    className="px-4 py-2 rounded-lg bg-[#010080] hover:bg-blue-800 text-white font-semibold text-sm transition-colors"
+                                >
+                                    Yes, Submit
+                                </button>
                             </div>
                         </div>
-                    )}
-                </div>
-            </div >
+                    </div>
+                )}
+            </div>
         );
     }
 
@@ -546,7 +661,7 @@ export default function StudentAssignmentList({ type, title }) {
                                 {/* Header */}
                                 <div className="flex justify-between items-start mb-3">
                                     <span className={`text-xs font-medium uppercase tracking-wide opacity-50 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                        {type === 'writing_task' ? 'Writing Task' : 'Assignment'}
+                                        {type === 'writing_task' ? 'Writing Task' : type === 'oral_assignment' ? 'Oral Assignment' : 'Assignment'}
                                     </span>
                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isGraded ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
                                         isSubmitted ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' :

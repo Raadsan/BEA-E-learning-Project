@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 import { useGetAllPlacementResultsQuery, useGetPlacementTestByIdQuery, useGradePlacementTestMutation } from "@/redux/api/placementTestApi";
@@ -21,7 +21,58 @@ export default function AdminResultDetailsPage() {
 
     const [gradePlacementTest] = useGradePlacementTestMutation();
     const [essayMarks, setEssayMarks] = useState({});
+    const [oralReviewMarks, setOralReviewMarks] = useState("");
     const [feedbackFile, setFeedbackFile] = useState(null);
+
+    const studentAnswers = result ? (typeof result.answers === 'string' ? JSON.parse(result.answers) : (result.answers || {})) : {};
+    const questions = test ? (typeof test.questions === 'string' ? JSON.parse(test.questions) : (test.questions || [])) : [];
+
+    // Effect to pre-fill marks if already graded
+    useEffect(() => {
+        if (result && questions.length > 0) {
+            setOralReviewMarks(result.oral_review_marks === null || result.oral_review_marks === undefined ? "" : result.oral_review_marks);
+
+            let initialMarks = {};
+
+            // 1. Calculate auto-scores for Passage (as requested)
+            // Plus any other types that might have subquestions
+            questions.forEach(q => {
+                if (q.type === 'passage' || q.type === 'mcq' || q.type === 'multiple_choice') {
+                    const subqs = q.subQuestions || q.subquestions;
+                    if (subqs && Array.isArray(subqs) && subqs.length > 0) {
+                        let pScore = 0;
+                        subqs.forEach(sq => {
+                            if (studentAnswers[sq.id] === sq.options[sq.correctOption]) {
+                                pScore += (parseInt(sq.points) || 1);
+                            }
+                        });
+                        initialMarks[q.id] = pScore;
+                    }
+                }
+            });
+
+            // 2. Overwrite with saved marks from database (including JSON manual marks)
+            if (result.essay_marks) {
+                try {
+                    const parsedMarks = typeof result.essay_marks === 'string'
+                        ? JSON.parse(result.essay_marks)
+                        : result.essay_marks;
+
+                    if (typeof parsedMarks === 'object' && parsedMarks !== null) {
+                        initialMarks = { ...initialMarks, ...parsedMarks };
+                    }
+                } catch (e) {
+                    console.warn("Could not parse essay marks as JSON");
+                }
+            }
+
+            setEssayMarks(initialMarks);
+
+            if (result.feedback_file) {
+                setFeedbackFile(result.feedback_file);
+            }
+        }
+    }, [result, test]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { showToast } = useToast();
 
@@ -73,7 +124,8 @@ export default function AdminResultDetailsPage() {
 
             await gradePlacementTest({
                 resultId: id,
-                essayMarks: totalEssayMarks,
+                essayMarks: essayMarks, // Send the object now
+                oralReviewMarks: oralReviewMarks,
                 feedbackFile
             }).unwrap();
 
@@ -93,10 +145,6 @@ export default function AdminResultDetailsPage() {
     if (!result || !test) {
         return <div className="p-10 text-center">Result not found.</div>;
     }
-
-    const studentAnswers = typeof result.answers === 'string' ? JSON.parse(result.answers) : (result.answers || {});
-    // Test questions might need parsing if string
-    const questions = typeof test.questions === 'string' ? JSON.parse(test.questions) : test.questions;
 
     const handleDownloadDoc = (questionTitle, answerContent) => {
         const content = `
@@ -172,8 +220,8 @@ export default function AdminResultDetailsPage() {
                     </div>
                 </div>
 
-                {/* Grading Section - ONLY for Pending Review */}
-                {result.status === 'pending_review' && (
+                {/* Grading Section - for Pending Review OR editing Completed */}
+                {(result.status === 'pending_review' || result.status === 'completed') && (
                     <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
                         <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                             <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -219,31 +267,46 @@ export default function AdminResultDetailsPage() {
                             <div className="space-y-4">
                                 <label className="block text-sm font-semibold text-gray-700 mb-3">3. Assign Marks</label>
                                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
-                                    {questions.filter(q => q.type === 'essay').map((q) => (
+                                    {questions.filter(q => q.type === 'essay' || q.type === 'passage').map((q) => (
                                         <div key={q.id} className="flex items-center justify-between gap-4">
-                                            <span className="text-xs text-gray-600 font-medium truncate flex-1">{q.title}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter block">{q.type}</span>
+                                                <span className="text-xs text-gray-700 font-semibold truncate block">{q.title || "Question"}</span>
+                                            </div>
                                             <div className="flex items-center gap-2">
                                                 <input
                                                     type="number"
                                                     min="0"
                                                     max={q.points}
                                                     placeholder="0"
-                                                    className="w-16 p-1.5 text-sm border border-gray-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                                                    value={essayMarks[q.id] || ''}
+                                                    className={`w-16 p-1.5 text-sm border rounded-lg text-center font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none ${q.type === 'essay' ? 'border-blue-300 bg-blue-50/20' : 'border-gray-200 bg-gray-50/30'
+                                                        }`}
+                                                    value={essayMarks[q.id] === undefined ? '' : essayMarks[q.id]}
                                                     onChange={(e) => {
-                                                        const val = parseInt(e.target.value);
-                                                        if (val > q.points) {
-                                                            showToast(`Maximum for this question is ${q.points}`, "warning");
-                                                            setEssayMarks(prev => ({ ...prev, [q.id]: q.points }));
-                                                        } else {
-                                                            setEssayMarks(prev => ({ ...prev, [q.id]: e.target.value }));
-                                                        }
+                                                        const val = parseFloat(e.target.value);
+                                                        setEssayMarks(prev => ({ ...prev, [q.id]: e.target.value }));
                                                     }}
                                                 />
-                                                <span className="text-xs text-gray-700 font-bold w-12"> / {q.points} pt</span>
+                                                <span className="text-[10px] text-gray-400 font-bold w-12"> / {q.points} pt</span>
                                             </div>
                                         </div>
                                     ))}
+
+                                    <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-200">
+                                        <span className="text-sm text-blue-800 font-bold flex-1 uppercase tracking-tight">Oral Review Grade</span>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                placeholder="0"
+                                                className="w-16 p-2 text-sm border border-blue-200 bg-blue-50/30 rounded-lg text-center font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                                value={oralReviewMarks}
+                                                onChange={(e) => setOralReviewMarks(e.target.value)}
+                                            />
+                                            <span className="text-xs text-gray-700 font-bold w-12"> / 10 pt</span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="flex justify-end pt-2">
@@ -265,7 +328,10 @@ export default function AdminResultDetailsPage() {
                     <div className="bg-green-50 p-6 rounded-xl border border-green-200 shadow-sm mb-8 flex justify-between items-center">
                         <div>
                             <h3 className="text-green-800 font-bold">Grading Completed</h3>
-                            <p className="text-sm text-green-700 mt-1">Manual marks added: <strong>{result.essay_marks || 0}</strong></p>
+                            <p className="text-sm text-green-700 mt-1">
+                                Essay Marks: <strong>{result.essay_marks || 0}</strong> |
+                                Oral Review: <strong>{result.oral_review_marks || 0}</strong>
+                            </p>
                         </div>
                         <a
                             href={`http://localhost:5000${result.feedback_file}`}

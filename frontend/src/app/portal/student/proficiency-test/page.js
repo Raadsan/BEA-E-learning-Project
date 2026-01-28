@@ -65,7 +65,7 @@ export default function ProficiencyTestPage() {
     }, [hasTakenTest, router, isProficiencyOnly]);
 
     // Hook Order Fix: Compute window state and refs early
-    const isWindowExpired = ((!studentInfo?.student || !studentInfo.student.is_extended) || (windowTimeLeft === 0)) && !isProficiencyOnly;
+    const isWindowExpired = (windowTimeLeft !== null && windowTimeLeft <= 0) && !isProficiencyOnly;
     const prevExpiredRef = React.useRef(isWindowExpired);
 
     React.useEffect(() => {

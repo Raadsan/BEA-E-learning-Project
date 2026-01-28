@@ -203,10 +203,14 @@ export default function CourseWorkPage() {
     const handleGradeSubmit = async (e) => {
         e.preventDefault();
         try {
+            const formData = new FormData();
+            formData.append('score', gradeData.score);
+            formData.append('feedback', gradeData.feedback);
+            formData.append('type', 'course_work');
+
             await gradeSubmission({
                 id: gradingSubmission.id,
-                type: 'course_work',
-                ...gradeData
+                formData: formData
             }).unwrap();
             showToast("Submission graded successfully!", "success");
             setGradingSubmission(null);
@@ -572,6 +576,7 @@ export default function CourseWorkPage() {
                                             href={`http://localhost:5000${gradingSubmission.file_url}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
+                                            download
                                             className="flex items-center gap-4 px-4 py-3 rounded-lg border bg-white dark:bg-gray-800 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors w-full group"
                                         >
                                             <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">

@@ -43,7 +43,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
 
   const startIdx = (currentPage - 1) * entriesPerPage;
   const endIdx = startIdx + entriesPerPage;
-  const totalPages = Math.ceil(filteredData.length / entriesPerPage);
+  const totalPages = Math.ceil((Array.isArray(filteredData) ? filteredData.length : 0) / entriesPerPage);
 
   return (
     <div className="p-4 bg-white dark:bg-[#1a2035] text-gray-900 dark:text-white rounded-xl shadow-md w-full max-w-full min-w-0">
@@ -107,8 +107,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
           <table className="w-full text-left text-sm" style={{ minWidth: 'max-content', borderCollapse: 'separate', borderSpacing: 0 }}>
             <thead className={`${isDark ? 'bg-white text-gray-900' : 'bg-[#010080] text-white'} sticky top-0 z-30`}>
               <tr>
-                {columns.map((col, i) => {
-                  const isLast = i === columns.length - 1;
+                {Array.isArray(columns) && columns.map((col, i) => {
                   return (
                     <th
                       key={col.key || i}
@@ -125,7 +124,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
               </tr>
             </thead>
             <tbody>
-              {filteredData.slice(startIdx, endIdx).map((row, idx) => (
+              {Array.isArray(filteredData) && filteredData.slice(startIdx, endIdx).map((row, idx) => (
                 <tr
                   key={row._id || row.id || idx}
                   className={`${idx % 2 === 0
@@ -133,8 +132,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                     : "bg-gray-50 dark:bg-[#252b40]"
                     } text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2d3447] transition-colors`}
                 >
-                  {columns.map((col, i) => {
-                    const isLast = i === columns.length - 1;
+                  {Array.isArray(columns) && columns.map((col, i) => {
                     const rawValue = col.render
                       ? col.render(row, idx)
                       : col.key
@@ -155,10 +153,6 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                       cellContent = rawValue._id || JSON.stringify(rawValue);
                     }
 
-                    const rowBgClass = idx % 2 === 0
-                      ? "bg-white dark:bg-[#1a2035]"
-                      : "bg-gray-50 dark:bg-[#252b40]";
-
                     return (
                       <td
                         key={col.key || i}
@@ -176,10 +170,10 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                   })}
                 </tr>
               ))}
-              {filteredData.length === 0 && (
+              {(!Array.isArray(filteredData) || filteredData.length === 0) && (
                 <tr>
                   <td
-                    colSpan={columns.length}
+                    colSpan={Array.isArray(columns) ? columns.length : 1}
                     className="px-4 py-8 text-center text-gray-500 dark:text-gray-300"
                   >
                     {emptyMessage || "No data found."}
@@ -195,7 +189,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
       <div className="flex-shrink-0 mt-4">
         <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-300 flex-wrap gap-4">
           <span>
-            {filteredData.length === 0
+            {(!Array.isArray(filteredData) || filteredData.length === 0)
               ? "0 entries"
               : `${startIdx + 1}–${Math.min(endIdx, filteredData.length)} of ${filteredData.length}`}
           </span>
@@ -225,4 +219,3 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
 };
 
 export default DataTable;
-

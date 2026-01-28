@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 import { useGetAllProficiencyResultsQuery, useGetProficiencyTestByIdQuery, useGradeProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
@@ -21,7 +21,71 @@ export default function AdminProficiencyResultDetailsPage() {
 
     const [gradeProficiencyTest] = useGradeProficiencyTestMutation();
     const [essayMarks, setEssayMarks] = useState({});
+    const [oralReviewMarks, setOralReviewMarks] = useState("");
     const [feedbackFiles, setFeedbackFiles] = useState({ essay: null, audio: null });
+
+    const studentAnswers = result ? (typeof result.answers === 'string' ? JSON.parse(result.answers) : (result.answers || {})) : {};
+    const questions = test ? (typeof test.questions === 'string' ? JSON.parse(test.questions) : (test.questions || [])) : [];
+
+    // Pre-fill existing marks if available
+    useEffect(() => {
+        if (result && questions.length > 0) {
+            setOralReviewMarks(result.oral_review_marks === null || result.oral_review_marks === undefined ? "" : result.oral_review_marks);
+
+            let initialMarks = {};
+
+            // 1. Calculate auto-scores for ONLY Listening (as requested)
+            // Plus any other types that might have subquestions
+            questions.forEach(q => {
+                if (q.type === 'listening' || q.type === 'passage' || q.type === 'mcq' || q.type === 'multiple_choice') {
+                    const subqs = q.subQuestions || q.subquestions;
+                    if (subqs && Array.isArray(subqs) && subqs.length > 0) {
+                        let pScore = 0;
+                        subqs.forEach(sq => {
+                            if (studentAnswers[sq.id] === sq.options[sq.correctOption]) {
+                                pScore += (parseInt(sq.points) || 1);
+                            }
+                        });
+                        initialMarks[q.id] = pScore;
+                    } else if (q.type === 'listening') {
+                        // Top level listening question
+                        initialMarks[q.id] = studentAnswers[q.id] === q.options[q.correctOption] ? (parseInt(q.points) || 1) : 0;
+                    }
+                }
+            });
+
+            // 2. Merge with saved manual marks
+            if (result.essay_marks) {
+                try {
+                    const parsedMarks = typeof result.essay_marks === 'string'
+                        ? JSON.parse(result.essay_marks)
+                        : result.essay_marks;
+
+                    if (typeof parsedMarks === 'object' && parsedMarks !== null) {
+                        initialMarks = { ...initialMarks, ...parsedMarks };
+                    }
+                } catch (e) {
+                    console.warn("Could not parse essay marks as JSON");
+                }
+            }
+
+            setEssayMarks(initialMarks);
+
+            try {
+                if (result.feedback) {
+                    const feedback = JSON.parse(result.feedback);
+                    setFeedbackFiles({
+                        essay: feedback.essay || null,
+                        audio: feedback.audio || null
+                    });
+                }
+            } catch (e) {
+                // Fallback for simple feedback
+                if (result.feedback) setFeedbackFiles(prev => ({ ...prev, essay: result.feedback }));
+            }
+        }
+    }, [result, test]);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { showToast } = useToast();
 
@@ -56,7 +120,6 @@ export default function AdminProficiencyResultDetailsPage() {
     };
 
     const handleGradeSubmit = async () => {
-        // Validation: Check if any essay mark exceeds the question's points
         // Validation: Check if any essay/audio mark exceeds the question's points
         const essayQuestions = questions.filter(q => q.type === 'essay' || q.type === 'audio');
         for (const q of essayQuestions) {
@@ -69,23 +132,17 @@ export default function AdminProficiencyResultDetailsPage() {
 
         setIsSubmitting(true);
         try {
-            // Calculate total essay marks awarded
-            const totalEssayMarks = Object.values(essayMarks).reduce((a, b) => a + (parseInt(b) || 0), 0);
-
             await gradeProficiencyTest({
                 resultId: id,
-                essayMarks: totalEssayMarks,
+                essayMarks: essayMarks, // Send the object
+                oralReviewMarks: oralReviewMarks,
                 essayFeedbackFile: feedbackFiles.essay,
                 audioFeedbackFile: feedbackFiles.audio
             }).unwrap();
 
             showToast("Grading completed successfully!", "success");
-            // Optional: Refresh data or redirect?
         } catch (err) {
-            console.error("Grading failed - Full error:", err);
-            console.error("Error message:", err?.message);
-            console.error("Error data:", err?.data);
-            console.error("Error status:", err?.status);
+            console.error("Grading failed", err);
             const errorMsg = err?.data?.error || err?.message || "Unknown error occurred";
             showToast(`Grading failed: ${errorMsg}`, "error");
         } finally {
@@ -100,10 +157,6 @@ export default function AdminProficiencyResultDetailsPage() {
     if (!result || !test) {
         return <div className="p-10 text-center">Result not found.</div>;
     }
-
-    const studentAnswers = typeof result.answers === 'string' ? JSON.parse(result.answers) : (result.answers || {});
-    // Test questions might need parsing if string
-    const questions = typeof test.questions === 'string' ? JSON.parse(test.questions) : test.questions;
 
     const handleDownloadDoc = (questionTitle, answerContent) => {
         const content = `
@@ -183,8 +236,8 @@ export default function AdminProficiencyResultDetailsPage() {
                     </div>
                 </div>
 
-                {/* Grading Section - ONLY for Pending Review */}
-                {isPending && (
+                {/* Grading Section - for Pending Review OR editing Graded/Completed */}
+                {(isPending || isGraded) && (
                     <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
                         <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                             <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -231,32 +284,46 @@ export default function AdminProficiencyResultDetailsPage() {
                             <div className="space-y-4">
                                 <label className="block text-sm font-semibold text-gray-700 mb-3">3. Assign Marks</label>
                                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
-                                    {questions.filter(q => q.type === 'essay' || q.type === 'audio').map((q) => (
+                                    {questions.filter(q => q.type === 'essay' || q.type === 'audio' || q.type === 'listening').map((q) => (
                                         <div key={q.id} className="flex items-center justify-between gap-4">
-                                            <span className="text-xs text-gray-600 font-medium truncate flex-1">{q.title}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter block">{q.type}</span>
+                                                <span className="text-xs text-gray-700 font-semibold truncate block">{q.title || "Question"}</span>
+                                            </div>
                                             <div className="flex items-center gap-2">
                                                 <input
                                                     type="number"
                                                     min="0"
                                                     max={q.points}
                                                     placeholder="0"
-                                                    className="w-16 p-1.5 text-sm border border-gray-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                                                    // Initialize with 0 assuming manual grading starts fresh or could preload old marks if needed
-                                                    value={essayMarks[q.id] || ''}
+                                                    className={`w-16 p-1.5 text-sm border rounded-lg text-center font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none ${(q.type === 'essay' || q.type === 'audio') ? 'border-blue-300 bg-blue-50/20' : 'border-gray-200 bg-gray-50/30'
+                                                        }`}
+                                                    value={essayMarks[q.id] === undefined ? '' : essayMarks[q.id]}
                                                     onChange={(e) => {
-                                                        const val = parseInt(e.target.value);
-                                                        if (val > q.points) {
-                                                            showToast(`Maximum for this question is ${q.points}`, "warning");
-                                                            setEssayMarks(prev => ({ ...prev, [q.id]: q.points }));
-                                                        } else {
-                                                            setEssayMarks(prev => ({ ...prev, [q.id]: e.target.value }));
-                                                        }
+                                                        const val = parseFloat(e.target.value);
+                                                        setEssayMarks(prev => ({ ...prev, [q.id]: e.target.value }));
                                                     }}
                                                 />
-                                                <span className="text-xs text-gray-700 font-bold w-12"> / {q.points} pt</span>
+                                                <span className="text-[10px] text-gray-400 font-bold w-12"> / {q.points} pt</span>
                                             </div>
                                         </div>
                                     ))}
+
+                                    <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-100">
+                                        <span className="text-sm text-blue-800 font-bold flex-1 uppercase tracking-tight">Oral Review Grade</span>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                placeholder="0"
+                                                className="w-16 p-2 text-sm border border-blue-200 bg-blue-50/30 rounded-lg text-center font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                                value={oralReviewMarks}
+                                                onChange={(e) => setOralReviewMarks(e.target.value)}
+                                            />
+                                            <span className="text-xs text-gray-700 font-bold w-12"> / 10 pt</span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="flex justify-end pt-2">
@@ -278,7 +345,10 @@ export default function AdminProficiencyResultDetailsPage() {
                     <div className="bg-green-50 p-6 rounded-xl border border-green-200 shadow-sm mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
                         <div>
                             <h3 className="text-green-800 font-bold">Grading Completed</h3>
-                            <p className="text-sm text-green-700 mt-1">Status: <strong className="capitalize">{result.status}</strong></p>
+                            <p className="text-sm text-green-700 mt-1">
+                                Status: <strong className="capitalize">{result.status}</strong> |
+                                Oral Review: <strong>{result.oral_review_marks || 0}</strong>
+                            </p>
                         </div>
                         <div className="flex gap-3 flex-wrap">
                             {(() => {

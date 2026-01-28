@@ -83,11 +83,27 @@ export default function IELTSTOEFLStudentsPage() {
   const [extraTime, setExtraTime] = useState("");
   const [timeUnit, setTimeUnit] = useState("minutes");
   const [selectedClassId, setSelectedClassId] = useState("");
+  const [studentToDelete, setStudentToDelete] = useState(null);
 
   const filteredStudents = (ieltsStudents || []).filter(student => {
     if (statusFilter === "all") return true;
     return student.status?.toLowerCase() === statusFilter.toLowerCase();
   });
+
+  const handleDeleteClick = (student) => {
+    setStudentToDelete(student);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!studentToDelete) return;
+    try {
+      await deleteStudent(studentToDelete.student_id).unwrap();
+      showToast("Student deleted successfully", 'success');
+      setStudentToDelete(null);
+    } catch (err) {
+      showToast(err.data?.error || "Failed to delete student", 'error');
+    }
+  };
 
   const handleExtendSubmit = async () => {
     if (!extraTime || isNaN(extraTime)) {
@@ -303,7 +319,7 @@ export default function IELTSTOEFLStudentsPage() {
 
           {/* Delete */}
           <button
-            onClick={() => handleDelete(row.student_id)}
+            onClick={() => handleDeleteClick(row)}
             className="text-red-500 hover:text-red-700 transition-colors"
             title="Delete"
           >
@@ -438,6 +454,38 @@ export default function IELTSTOEFLStudentsPage() {
                   className="px-8 py-2.5 bg-[#010080] text-white rounded-lg font-bold hover:opacity-90 active:scale-95 transition-all shadow-md"
                 >
                   Confirm Extra Time
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
+        {/* --- Delete Confirmation Modal --- */}
+        <Modal
+          isOpen={!!studentToDelete}
+          onClose={() => setStudentToDelete(null)}
+          title="Delete Student"
+        >
+          {studentToDelete && (
+            <div className="space-y-6">
+              <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+                <p className="text-sm text-red-800 leading-relaxed">
+                  Are you sure you want to delete <span className="font-bold">{studentToDelete.first_name} {studentToDelete.last_name}</span>?
+                  This action cannot be undone.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  onClick={() => setStudentToDelete(null)}
+                  className="px-6 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="px-8 py-2.5 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 active:scale-95 transition-all shadow-md"
+                >
+                  Yes, Delete
                 </button>
               </div>
             </div>

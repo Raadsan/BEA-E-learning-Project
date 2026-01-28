@@ -152,35 +152,73 @@ export const getAllPlacementResults = async (req, res) => {
 export const gradePlacementTest = async (req, res) => {
     try {
         const { resultId } = req.params;
-        const { essayMarks, feedbackFile } = req.body;
+        const { essayMarks, oralReviewMarks, feedbackFile } = req.body;
 
         const results = await PlacementTest.getAllResults();
         const result = results.find(r => r.id === parseInt(resultId));
 
         if (!result) return res.status(404).json({ error: "Result not found" });
 
-        // Calculate new score
-        const newScore = result.score + (parseInt(essayMarks) || 0);
-        // Recalculate based on total questions (assuming points were already summed correctly during test creation/submission)
-        // Wait, total_questions in the DB is actually "total_possible_points". Let's assume that's correct from submission time.
-        const percentage = (newScore / result.total_questions) * 100;
+        const test = await PlacementTest.getPlacementTestById(result.test_id);
+        const testQuestions = typeof test.questions === 'string' ? JSON.parse(test.questions) : test.questions;
+        const studentAnswers = typeof result.answers === 'string' ? JSON.parse(result.answers) : result.answers;
+
+        const parsedEssayMarks = typeof essayMarks === 'object' ? essayMarks : {};
+        let totalManualScore = 0;
+        let hasEssay = false;
+
+        testQuestions.forEach(q => {
+            if (q.type === 'essay') hasEssay = true;
+
+            // Use manual override if provided
+            if (parsedEssayMarks[q.id] !== undefined && parsedEssayMarks[q.id] !== "" && parsedEssayMarks[q.id] !== null) {
+                totalManualScore += (parseFloat(parsedEssayMarks[q.id]) || 0);
+            } else {
+                // Fallback to auto-calculation for non-essay questions
+                const subqs = q.subQuestions || q.subquestions;
+                if (subqs && Array.isArray(subqs) && subqs.length > 0) {
+                    subqs.forEach(sq => {
+                        if (studentAnswers[sq.id] === sq.options[sq.correctOption]) {
+                            totalManualScore += (parseInt(sq.points) || 1);
+                        }
+                    });
+                } else if (q.type === 'mcq' || q.type === 'multiple_choice') {
+                    if (studentAnswers[q.id] === q.options[q.correctOption]) {
+                        totalManualScore += (parseInt(q.points) || 1);
+                    }
+                }
+            }
+        });
+
+        const manualOralScore = parseFloat(oralReviewMarks) || 0;
+        const newScore = totalManualScore + manualOralScore;
+        const totalPossible = parseInt(result.total_questions) || (testQuestions.length * 1); // Fallback
+        const percentage = (totalPossible > 0) ? (newScore / totalPossible) * 100 : 0;
 
         let recommended_level = "Beginner";
         if (percentage >= 80) recommended_level = "Advanced";
         else if (percentage >= 50) recommended_level = "Intermediate";
+
+        // Status logic: Only 'completed' if both essay and oral are graded
+        const isEssayGraded = !hasEssay || (essayMarks !== "" && essayMarks !== null && essayMarks !== undefined);
+        const isOralGraded = (oralReviewMarks !== "" && oralReviewMarks !== null && oralReviewMarks !== undefined);
+
+        const status = (isEssayGraded && isOralGraded) ? 'completed' : 'pending_review';
 
         // Update DB Result
         await PlacementTest.updateTestResult(resultId, {
             score: newScore,
             percentage,
             recommended_level,
-            status: 'completed',
-            essay_marks: essayMarks,
+            status: status,
+            essay_marks: typeof essayMarks === 'object' ? JSON.stringify(essayMarks) : essayMarks,
+            oral_review_marks: oralReviewMarks === "" ? 0 : oralReviewMarks,
             feedback_file: feedbackFile
         });
 
-        res.status(200).json({ message: "Grading completed", newScore, recommended_level });
+        res.status(200).json({ message: "Grading updated", newScore, status });
     } catch (error) {
+        console.error("Grading error:", error);
         res.status(500).json({ error: error.message });
     }
 };

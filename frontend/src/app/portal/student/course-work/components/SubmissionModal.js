@@ -85,76 +85,43 @@ export default function SubmissionModal({ assignment, onClose, onSuccess }) {
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Submit Work</h3>
-                    <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        {/* X Icon */}
-                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Submit Assignment</h3>
+                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 
-                {/* File Upload Area */}
-                <div
-                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 mb-4 flex flex-col items-center justify-center text-center hover:border-blue-500 transition-colors cursor-pointer bg-gray-50 dark:bg-gray-900/50"
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                >
+                {/* Simplified File Input */}
+                <div className="mb-4">
+                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Upload File</label>
                     <input
                         type="file"
-                        ref={fileInputRef}
                         onChange={handleFileChange}
-                        className="hidden"
+                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         accept=".pdf,.doc,.docx,.txt"
                     />
-
-                    {file ? (
-                        <div className="flex flex-col items-center text-blue-600">
-                            {/* FileText Icon */}
-                            <svg className="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                            <p className="font-semibold text-sm">{file.name}</p>
-                            <p className="text-xs text-gray-500 mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center text-gray-500">
-                            {/* Upload Icon */}
-                            <svg className="w-10 h-10 mb-2 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                            <p className="font-medium text-sm">Click or Drag file to upload</p>
-                            <p className="text-xs opacity-60 mt-1">PDF, Word, or Text files</p>
-                        </div>
-                    )}
+                    {file && <p className="mt-1 text-xs text-green-600">Selected: {file.name}</p>}
                 </div>
 
-                {/* Description Field */}
+                {/* Simple Textarea */}
                 <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description / Notes</label>
+                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Description</label>
                     <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Add any additional details here..."
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all resize-none h-24 text-sm"
+                        placeholder="Optional notes..."
+                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 h-24 text-sm bg-white dark:bg-gray-700 dark:border-gray-600"
                     />
                 </div>
 
-                {/* Submit Button */}
+                {/* Normal Button */}
                 <button
                     onClick={handleSubmit}
                     disabled={uploading || !file}
-                    className={`w-full py-3 rounded-xl font-bold text-lg text-white transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 ${uploading || !file
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/30'
-                        }`}
+                    className={`w-full py-2.5 rounded-md text-sm font-medium text-white transition-colors ${uploading || !file ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
                 >
-                    {uploading ? (
-                        <>Uploading...</>
-                    ) : (
-                        <>
-                            Submit Assignment
-                            {/* CheckCircle Icon */}
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </>
-                    )}
+                    {uploading ? 'Uploading...' : 'Submit'}
                 </button>
-
             </div>
         </div>
     );

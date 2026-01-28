@@ -145,7 +145,7 @@ export const getAllProficiencyResults = async (req, res) => {
 export const gradeProficiencyTest = async (req, res) => {
     try {
         const { resultId } = req.params;
-        const { essayMarks, essayFeedbackFile, audioFeedbackFile, feedbackFile } = req.body;
+        const { essayMarks, oralReviewMarks, essayFeedbackFile, audioFeedbackFile, feedbackFile } = req.body;
 
         const results = await ProficiencyTest.getAllResults();
         const result = results.find(r => r.id === parseInt(resultId));
@@ -157,53 +157,53 @@ export const gradeProficiencyTest = async (req, res) => {
         const test = await ProficiencyTest.getProficiencyTestById(result.test_id);
         const questions = typeof test.questions === 'string' ? JSON.parse(test.questions) : test.questions;
         const studentAnswers = typeof result.answers === 'string' ? JSON.parse(result.answers) : result.answers;
-
-        let mcqScore = 0;
+        const parsedEssayMarks = typeof essayMarks === 'object' ? essayMarks : {};
+        let totalManualScore = 0;
 
         questions.forEach(q => {
-            if (q.type === 'mcq' || q.type === 'multiple_choice') {
-                if (studentAnswers[q.id] === q.options[q.correctOption]) {
-                    mcqScore += (q.points || 0);
-                }
-            } else if (q.type === 'passage') {
-                q.subQuestions?.forEach(sq => {
-                    if (studentAnswers[sq.id] === sq.options[sq.correctOption]) {
-                        mcqScore += (sq.points || 0);
+            // Use manual override if provided
+            if (parsedEssayMarks[q.id] !== undefined && parsedEssayMarks[q.id] !== "" && parsedEssayMarks[q.id] !== null) {
+                totalManualScore += (parseFloat(parsedEssayMarks[q.id]) || 0);
+            } else {
+                // Fallback to auto-calculation
+                const subqs = q.subQuestions || q.subquestions;
+                if (subqs && Array.isArray(subqs) && subqs.length > 0) {
+                    subqs.forEach(sq => {
+                        if (studentAnswers[sq.id] === sq.options[sq.correctOption]) {
+                            totalManualScore += (parseInt(sq.points) || 1);
+                        }
+                    });
+                } else if (q.type === 'mcq' || q.type === 'listening' || q.type === 'multiple_choice') {
+                    if (studentAnswers[q.id] === q.options[q.correctOption]) {
+                        totalManualScore += (parseInt(q.points) || 1);
                     }
-                });
+                }
             }
-            // Essay/Audio are manual, so they add 0 to the base auto-graded score
         });
 
-        // Add Manual Marks
-        const manualScore = parseFloat(essayMarks) || 0;
-        const newScore = mcqScore + manualScore;
+        const oralScore = parseFloat(oralReviewMarks) || 0;
+        const newScore = totalManualScore + oralScore;
 
-        // Recalculate percentage
-        const totalPoints = result.total_points || result.total_questions;
-        const percentage = totalPoints > 0 ? (newScore / totalPoints) * 100 : 0;
+        // Status logic: Only 'completed' if both essay and oral are graded
+        const hasEssay = questions.some(q => q.type === 'essay');
+        const isEssayGraded = !hasEssay || (essayMarks !== "" && essayMarks !== null && essayMarks !== undefined);
+        const isOralGraded = (oralReviewMarks !== "" && oralReviewMarks !== null && oralReviewMarks !== undefined);
 
-        // Determine level (Generic logic, can be customized)
-        let recommended_level = "Standard";
-        if (percentage >= 80) recommended_level = "Advanced";
-
-        // Logic for feedback
-        let feedbackData = feedbackFile;
-        if (essayFeedbackFile || audioFeedbackFile) {
-            feedbackData = JSON.stringify({
-                essay: essayFeedbackFile || null,
-                audio: audioFeedbackFile || null
-            });
-        }
+        const status = (isEssayGraded && isOralGraded) ? 'completed' : 'pending';
 
         await ProficiencyTest.updateTestResult(resultId, {
             score: newScore,
-            status: 'completed', // Explicitly set to completed as requested
-            feedback: feedbackData
+            status: status,
+            essay_marks: typeof essayMarks === 'object' ? JSON.stringify(essayMarks) : essayMarks,
+            oral_review_marks: oralReviewMarks === "" ? 0 : oralReviewMarks,
+            feedback: JSON.stringify({
+                essay: essayFeedbackFile || null,
+                audio: audioFeedbackFile || null
+            })
         });
 
 
-        res.status(200).json({ message: "Grading completed", newScore, recommended_level });
+        res.status(200).json({ message: "Grading updated", newScore, status });
     } catch (error) {
         console.error("❌ Grading error:", error);
         console.error("Error stack:", error.stack);

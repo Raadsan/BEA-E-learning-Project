@@ -92,13 +92,15 @@ export default function UsersPage() {
       key: "status",
       label: "Status",
       render: (row) => {
-        const status = row.status || "active";
+        const status = row.status || "Active";
+        const isActive = status.toLowerCase() === "active";
+
         return (
-          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${status.toLowerCase() === "active" || status.toLowerCase() === 'approved'
+          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${isActive
             ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
             : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
             }`}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {status}
           </span>
         );
       },
@@ -235,12 +237,11 @@ export default function UsersPage() {
                   <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
                     <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
                       }`}>Status</label>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${(viewingUser.status && viewingUser.status.toLowerCase() === 'active') ||
-                      (viewingUser.status && viewingUser.status.toLowerCase() === 'approved')
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                      : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${viewingUser.status?.toLowerCase() === 'active'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                       }`}>
-                      {viewingUser.status || 'N/A'}
+                      {viewingUser.status || 'Active'}
                     </span>
                   </div>
                 </div>

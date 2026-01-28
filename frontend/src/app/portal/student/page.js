@@ -228,9 +228,9 @@ export default function StudentDashboard() {
         const student = ieltsInfo?.student;
         const expiryDate = student?.expiry_date ? new Date(student.expiry_date) : null;
         const now = new Date();
-        // A student is blocked/expired IF they haven't been extended by an admin yet
-        // OR if their extended window has actually passed.
-        const isExpired = (!student || !student.is_extended) || (expiryDate ? now > expiryDate : true);
+        // A student is blocked/expired ONLY if the expiry date has passed.
+        // We removed (!student.is_extended) because new students are not extended yet but should have access.
+        const isExpired = expiryDate ? now > expiryDate : true;
 
         if (assessmentType === "placement") {
             // ... (keep placement logic same or update if needed)
@@ -274,7 +274,7 @@ export default function StudentDashboard() {
             return {
                 title: `Proficiency Test Required`,
                 description: "Initial registration requires you to complete the Proficiency Test. Click here to start before your window expires.",
-                link: "/portal/student/ielts-exam",
+                link: "/portal/student/proficiency-test",
                 icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
                 type: "action",
                 isCountdown: true
@@ -295,7 +295,12 @@ export default function StudentDashboard() {
         const student = ieltsInfo?.student;
         if (assessmentType === 'proficiency' && !hasCompletedProficiency && student?.expiry_date) {
             const updateTimer = () => {
-                const expiry = new Date(student.expiry_date);
+                // Robust date parsing (assume UTC from backend)
+                const dateStr = student.expiry_date;
+                const isoStr = dateStr.includes('T') ? dateStr : dateStr.replace(' ', 'T');
+                const finalStr = isoStr.includes('Z') || isoStr.includes('+') ? isoStr : `${isoStr}Z`;
+                const expiry = new Date(finalStr);
+
                 const now = new Date();
                 const diffMs = expiry - now;
                 const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));

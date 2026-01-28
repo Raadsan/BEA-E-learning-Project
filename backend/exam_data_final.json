@@ -1,0 +1,31 @@
+{
+  "exams": [
+    {
+      "id": 1,
+      "title": "arg",
+      "questions": null
+    },
+    {
+      "id": 2,
+      "title": "wrgt",
+      "questions": "[{\"type\":\"mcq\",\"questionText\":\"wertgtr\",\"options\":[\"qerg\",\"erg\",\"qerg\",\"trhg\"],\"correctOption\":3,\"points\":2},{\"type\":\"true_false\",\"questionText\":\"wterh\",\"options\":[\"True\",\"False\"],\"correctOption\":1,\"points\":1},{\"type\":\"mcq\",\"questionText\":\"rhgt\",\"options\":[\"eyty\",\"cvb\",\"45\",\"3\"],\"correctOption\":1,\"points\":2},{\"type\":\"mcq\",\"questionText\":\"eyjte\",\"options\":[\"tyj\",\"yjt\",\"hng\",\"y\"],\"correctOption\":3,\"points\":2},{\"type\":\"true_false\",\"questionText\":\"eyt35\",\"options\":[\"True\",\"False\"],\"correctOption\":0,\"points\":1}]"
+    },
+    {
+      "id": 3,
+      "title": "final exam",
+      "questions": "{\"paper1\":{\"title\":\"Writing [Paper 1]\",\"editing\":[{\"text\":\"dffd\",\"correction\":\"d\",\"points\":2,\"id\":\"5c4c1b09-62cb-48dc-a476-44ec9e2f62ea\"},{\"text\":\"dddd\",\"correction\":\"d\",\"points\":2,\"id\":\"165972db-0d88-4f4d-bfdf-95a4ad22d491\"},{\"text\":\"ddd\",\"correction\":\"d\",\"points\":2,\"id\":\"ab7d0cf9-f263-4744-aa6c-7b203aa35d3b\"},{\"text\":\"ddd\",\"correction\":\"d\",\"points\":2,\"id\":\"4c581da4-8539-440e-b3b1-42ae5a60dcfb\"},{\"text\":\"dddd\",\"correction\":\"d\",\"points\":2,\"id\":\"0911936a-6ce3-4752-a581-4b71cf3b800e\"}],\"essay\":{\"id\":\"f9fac701-af8e-4a45-b91c-7a67312d268b\",\"prompt\":\"ddddd\",\"points\":30}},\"paper2\":{\"title\":\"Comprehension/Reading [Paper 2]\",\"passage\":\"ffff\",\"questions\":[{\"type\":\"mcq\",\"questionText\":\"ff\",\"options\":[\"dd\",\"dd\",\"dd\",\"dd\"],\"correctOption\":0,\"points\":2,\"id\":\"c1025378-0416-464b-861d-9cdea112456b\"},{\"type\":\"mcq\",\"questionText\":\"dd\",\"options\":[\"d\",\"d\",\"d\",\"d\"],\"correctOption\":0,\"points\":2,\"id\":\"2d23ddb0-88fd-405b-ae5d-aa0920a2579b\"},{\"type\":\"mcq\",\"questionText\":\"dd\",\"options\":[\"d\",\"d\",\"d\",\"d\"],\"correctOption\":0,\"points\":2,\"id\":\"cbe4f84b-8f34-4f61-a33c-15ba7ea7f482\"},{\"type\":\"mcq\",\"questionText\":\"dd\",\"options\":[\"d\",\"d\",\"d\",\"d\"],\"correctOption\":0,\"points\":2,\"id\":\"14a1e61a-e6f2-4511-aacc-73bfdb62a5d1\"},{\"type\":\"mcq\",\"questionText\":\"dd\",\"options\":[\"d\",\"d\",\"d\",\"d\"],\"correctOption\":0,\"points\":2,\"id\":\"22a405d5-74ec-4d3e-92d5-38e5a1a1c53a\"}]},\"paper3\":{\"title\":\"Listening [Paper 3]\",\"audioFile\":\"/uploads/1769080494758-452207878.mp3\",\"audioUrl\":\"/uploads/1769080494758-452207878.mp3\",\"questions\":[{\"type\":\"mcq\",\"questionText\":\"dd\",\"options\":[\"d\",\"d\",\"d\",\"d\"],\"correctOption\":0,\"points\":2,\"id\":\"a7f9af7d-7444-4061-a41a-da54b1109e9b\"},{\"type\":\"true_false\",\"questionText\":\"dddd\",\"options\":[\"\",\"\",\"\",\"\"],\"correctOption\":0,\"points\":2,\"id\":\"eaf11fd7-8c33-4cec-b834-25395e9a913f\"},{\"type\":\"mcq\",\"questionText\":\"ddd\",\"options\":[\"d\",\"d\",\"d\",\"d\"],\"correctOption\":0,\"points\":2,\"id\":\"eba67543-e8a1-48da-817b-f41a7df463cd\"},{\"type\":\"mcq\",\"questionText\":\"dd\",\"options\":[\"d\",\"d\",\"d\",\"d\"],\"correctOption\":0,\"points\":2,\"id\":\"db81c6c7-55ce-4634-bb33-40516a59b589\"},{\"type\":\"mcq\",\"questionText\":\"d\",\"options\":[\"d\",\"d\",\"d\",\"d\"],\"correctOption\":0,\"points\":2,\"id\":\"b394db0d-1b2b-4681-83f6-364741b4bdf2\"}]},\"paper4\":{\"title\":\"Oral/Speaking [Paper 4]\",\"passage\":\"fdefdsvfdssdf\",\"instructions\":\"Record your voice reading this passage.\",\"timeLimit\":10,\"points\":40}}"
+    }
+  ],
+  "submissions": [
+    {
+      "assignment_id": 2,
+      "student_id": "BEA-ST-GEP-231225-102",
+      "content": "{\"0\":\"erg\",\"1\":\"False\",\"2\":\"cvb\",\"3\":\"yjt\",\"4\":\"True\"}"
+    },
+    {
+      "assignment_id": 3,
+      "student_id": "BEA-ST-GEP-120126-107",
+      "content": "{\"p1_editing_5c4c1b09-62cb-48dc-a476-44ec9e2f62ea\":\"d\",\"p1_editing_4c581da4-8539-440e-b3b1-42ae5a60dcfb\":\"d\",\"p1_editing_165972db-0d88-4f4d-bfdf-95a4ad22d491\":\"d\",\"p1_editing_ab7d0cf9-f263-4744-aa6c-7b203aa35d3b\":\"d\",\"p1_editing_0911936a-6ce3-4752-a581-4b71cf3b800e\":\"d\",\"p1_essay\":\"dddddddddddddddddddddddddddddddddddddddddddddddd dddddddddddddddddddddddddddddd dddddddddddddddddddddddddddddddddddd \",\"p2_q_c1025378-0416-464b-861d-9cdea112456b\":\"dd\",\"p2_q_14a1e61a-e6f2-4511-aacc-73bfdb62a5d1\":\"d\",\"p2_q_22a405d5-74ec-4d3e-92d5-38e5a1a1c53a\":\"d\",\"p2_q_2d23ddb0-88fd-405b-ae5d-aa0920a2579b\":\"d\",\"p2_q_cbe4f84b-8f34-4f61-a33c-15ba7ea7f482\":\"d\",\"p3_q_b394db0d-1b2b-4681-83f6-364741b4bdf2\":\"d\",\"p3_q_a7f9af7d-7444-4061-a41a-da54b1109e9b\":\"d\",\"p3_q_eaf11fd7-8c33-4cec-b834-25395e9a913f\":\"\",\"p3_q_db81c6c7-55ce-4634-bb33-40516a59b589\":\"d\",\"p3_q_eba67543-e8a1-48da-817b-f41a7df463cd\":\"d\"}"
+    }
+  ]
+}

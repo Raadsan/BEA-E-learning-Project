@@ -30,9 +30,136 @@ export default function AssignmentManager({ type, title, description }) {
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [gradingSubmission, setGradingSubmission] = useState(null);
     const [gradeData, setGradeData] = useState({ score: "", feedback: "" });
+    const [manualMarks, setManualMarks] = useState({}); // { qId: mark }
     const [feedbackFile, setFeedbackFile] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+    const [gradingAudioUrl, setGradingAudioUrl] = useState(null);
+    const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+
+    // Fetch audio for playback in grading view
+    useEffect(() => {
+        let objectUrl = null;
+        const fetchAudio = async () => {
+            if (view === 'grading' && gradingSubmission?.file_url) {
+                setIsLoadingAudio(true);
+                try {
+                    const token = localStorage.getItem("token");
+                    const response = await fetch(`http://localhost:5000/api/files/download/${gradingSubmission.file_url}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        objectUrl = URL.createObjectURL(blob);
+                        setGradingAudioUrl(objectUrl);
+                    }
+                } catch (error) {
+                    console.error("Error fetching audio preview:", error);
+                } finally {
+                    setIsLoadingAudio(false);
+                }
+            }
+        };
+        fetchAudio();
+        return () => {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+                setGradingAudioUrl(null);
+            }
+        };
+    }, [view, gradingSubmission]);
+
+    // Initialize manual marks when a submission is selected for grading
+    useEffect(() => {
+        if (gradingSubmission) {
+            let initialMarks = {};
+            if (gradingSubmission.essay_marks) {
+                try {
+                    initialMarks = typeof gradingSubmission.essay_marks === 'string'
+                        ? JSON.parse(gradingSubmission.essay_marks)
+                        : gradingSubmission.essay_marks;
+                } catch (e) { console.error("Error parsing essay marks", e); }
+            }
+            // Include oral marks if available
+            if (gradingSubmission.oral_marks) {
+                initialMarks.oral = gradingSubmission.oral_marks;
+            }
+            setManualMarks(initialMarks);
+            setGradeData({
+                score: gradingSubmission.score || "",
+                feedback: gradingSubmission.feedback || ""
+            });
+        }
+    }, [gradingSubmission]);
+
+    // Auto-calculate score when manual marks or gradingSubmission changes
+    useEffect(() => {
+        if (!gradingSubmission || !selectedAssignment?.questions) return;
+
+        const calculateScore = () => {
+            const questions = typeof selectedAssignment.questions === 'string'
+                ? JSON.parse(selectedAssignment.questions)
+                : selectedAssignment.questions;
+
+            const studentAnswers = typeof gradingSubmission.content === 'string'
+                ? JSON.parse(gradingSubmission.content)
+                : gradingSubmission.content;
+
+            let totalAutoScore = 0;
+
+            // Helper to traverse and calculate auto-score
+            const traverseAndScore = (items, prefix = "") => {
+                items.forEach((q, idx) => {
+                    const paperPrefix = prefix || (idx === 0 ? "p1" : idx === 1 ? "p2" : idx === 2 ? "p3" : idx === 3 ? "p4" : `paper${idx + 1}`);
+
+                    if (typeof q === 'object' && !q.type && (q.questions || q.editing || q.essay || q.passage)) {
+                        if (q.questions) traverseAndScore(q.questions, `${paperPrefix}_q_`);
+                        if (q.editing) traverseAndScore(q.editing, `${paperPrefix}_editing_`);
+                        // Essays are manual
+                        return;
+                    }
+
+                    // ForStandalone/Passage sub-questions
+                    const subQs = q.subQuestions || q.subquestions || q.questions || [];
+                    if (subQs.length > 0) {
+                        subQs.forEach((sq, sidx) => {
+                            const qId = sq.id || (prefix ? `${prefix}sub_${sidx}` : `${idx}_${sidx}`);
+                            const normalize = (v) => String(v || "").trim().toLowerCase();
+                            const studentAns = studentAnswers[qId];
+                            const correctAns = sq.options && sq.correctOption !== undefined
+                                ? sq.options[sq.correctOption]
+                                : (sq.correctAnswer || sq.answer);
+
+                            if (normalize(studentAns) === normalize(correctAns) && studentAns) {
+                                totalAutoScore += (parseInt(sq.points) || 1);
+                            }
+                        });
+                    } else if (q.type === 'mcq' || q.type === 'true_false' || !q.type || q.type === 'short_answer') {
+                        const qId = q.id || (prefix ? `${prefix}${q.id || idx}` : idx);
+                        const normalize = (v) => String(v || "").trim().toLowerCase();
+                        const studentAns = studentAnswers[qId];
+                        const correctAns = q.options && q.correctOption !== undefined
+                            ? q.options[q.correctOption]
+                            : (q.correctAnswer || q.answer || q.correction);
+
+                        if (normalize(studentAns) === normalize(correctAns) && studentAns) {
+                            totalAutoScore += (parseInt(q.points) || 1);
+                        }
+                    }
+                });
+            };
+
+            const qList = Array.isArray(questions) ? questions : [questions];
+            traverseAndScore(qList);
+
+            // Add manual marks
+            const totalManualScore = Object.values(manualMarks).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
+
+            setGradeData(prev => ({ ...prev, score: totalAutoScore + totalManualScore }));
+        };
+
+        calculateScore();
+    }, [manualMarks, gradingSubmission, selectedAssignment]);
 
     // Scroll Lock when Modal is open
     useEffect(() => {
@@ -244,6 +371,20 @@ export default function AssignmentManager({ type, title, description }) {
             formData.append('type', type);
             formData.append('score', gradeData.score);
             formData.append('feedback', gradeData.feedback);
+
+            // Separate essay and oral marks for the backend
+            const essayMarks = { ...manualMarks };
+            let oralMarks = 0;
+
+            // Check for known oral keys from Paper 4 sections
+            Object.keys(essayMarks).forEach(key => {
+                if (key.endsWith('_oral')) {
+                    oralMarks = essayMarks[key];
+                }
+            });
+
+            formData.append('essay_marks', JSON.stringify(essayMarks));
+            formData.append('oral_marks', oralMarks);
 
             if (feedbackFile) {
                 formData.append('feedbackFile', feedbackFile);
@@ -574,7 +715,7 @@ export default function AssignmentManager({ type, title, description }) {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                                    {(assignments || []).map((assignment) => (
+                                    {Array.isArray(assignments) && assignments.map((assignment) => (
                                         <div
                                             key={assignment.id}
                                             onClick={() => handleViewSubmissions(assignment)}
@@ -703,7 +844,7 @@ export default function AssignmentManager({ type, title, description }) {
                                                         className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
                                                     >
                                                         <option value="">Select Program</option>
-                                                        {uniquePrograms.map(p => (
+                                                        {Array.isArray(uniquePrograms) && uniquePrograms.map(p => (
                                                             <option key={p.id} value={p.id}>{p.title}</option>
                                                         ))}
                                                     </select>
@@ -720,7 +861,7 @@ export default function AssignmentManager({ type, title, description }) {
                                                         className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
                                                     >
                                                         <option value="">Select Subprogram</option>
-                                                        {filteredSubprograms.map(sp => (
+                                                        {Array.isArray(filteredSubprograms) && filteredSubprograms.map(sp => (
                                                             <option key={sp.id} value={sp.id}>{sp.title}</option>
                                                         ))}
                                                     </select>
@@ -737,7 +878,7 @@ export default function AssignmentManager({ type, title, description }) {
                                                         className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
                                                     >
                                                         <option value="">Select Class</option>
-                                                        {filteredClasses.map(c => (
+                                                        {Array.isArray(filteredClasses) && filteredClasses.map(c => (
                                                             <option key={c.id} value={c.id}>{c.class_name || c.name}</option>
                                                         ))}
                                                     </select>
@@ -767,13 +908,16 @@ export default function AssignmentManager({ type, title, description }) {
                                                     </div>
                                                 </div>
 
-                                                {/* Description */}
+                                                {/* Description / Passage */}
                                                 <div>
-                                                    <label className="block text-sm font-medium mb-1.5 opacity-80">Description</label>
+                                                    <label className="block text-sm font-medium mb-1.5 opacity-80">
+                                                        {type === 'oral_assignment' ? 'Reading Passage / Text' : 'Description'}
+                                                    </label>
                                                     <textarea
-                                                        rows={4}
+                                                        rows={type === 'oral_assignment' ? 6 : 4}
                                                         value={formData.description}
                                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                                        placeholder={type === 'oral_assignment' ? 'Enter the text the student should read...' : 'Enter assignment description...'}
                                                         className={`w-full px-3 py-2 rounded-lg border outline-none transition-all resize-none ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
                                                     />
                                                 </div>
@@ -985,107 +1129,380 @@ export default function AssignmentManager({ type, title, description }) {
                                                 </div>
                                             </div>
 
-                                            <div className={`p-6 rounded-lg border leading-relaxed overflow-auto whitespace-pre-wrap ${isDark ? 'bg-gray-900 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-700'}`} style={{ minHeight: '300px' }}>
-                                                {selectedAssignment.questions ? (
-                                                    <div className="space-y-8">
-                                                        {(typeof selectedAssignment.questions === 'string' ? JSON.parse(selectedAssignment.questions) : selectedAssignment.questions).map((q, idx) => {
-                                                            const studentAnswers = typeof gradingSubmission.content === 'string'
+                                            <div className="space-y-6">
+                                                {/* Assignment Context / Description / Passage */}
+                                                {selectedAssignment.description && (
+                                                    <div className={`p-6 rounded-xl border-l-4 border-blue-600 mb-8 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-blue-50/30 border-blue-600/20'}`}>
+                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 block mb-3">Reading Passage / Instructions</span>
+                                                        <div className={`text-base leading-relaxed whitespace-pre-wrap ${isDark ? 'text-gray-300' : 'text-gray-700 font-medium'}`}>
+                                                            {selectedAssignment.description}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className={`p-6 rounded-lg border leading-relaxed overflow-auto whitespace-pre-wrap ${isDark ? 'bg-gray-900 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-700'}`} style={{ minHeight: '300px' }}>
+                                                    {(() => {
+                                                        let questions = [];
+                                                        try {
+                                                            questions = typeof selectedAssignment.questions === 'string'
+                                                                ? JSON.parse(selectedAssignment.questions)
+                                                                : (selectedAssignment.questions || []);
+
+                                                            // If it's an object but not an array, convert to array
+                                                            if (questions && !Array.isArray(questions) && typeof questions === 'object') {
+                                                                questions = Object.values(questions);
+                                                            }
+                                                        } catch (e) {
+                                                            console.error("Failed to parse questions:", e);
+                                                            questions = [];
+                                                        }
+
+                                                        if (!Array.isArray(questions) || questions.length === 0) {
+                                                            return <p className="text-center opacity-50 py-10">No questions available for this assignment.</p>;
+                                                        }
+
+                                                        let studentAnswers = {};
+                                                        try {
+                                                            studentAnswers = typeof gradingSubmission.content === 'string'
                                                                 ? JSON.parse(gradingSubmission.content)
                                                                 : (gradingSubmission.content || {});
-                                                            const studentAnswer = studentAnswers[idx];
+                                                        } catch (e) {
+                                                            console.error("Failed to parse student content:", e);
+                                                            studentAnswers = {};
+                                                        }
 
-                                                            // Support both index-based and string-based correct answers
-                                                            const correctAnswer = q.options && q.correctOption !== undefined
-                                                                ? q.options[q.correctOption]
-                                                                : (q.correctAnswer || q.answer);
+                                                        const normalize = (val) => String(val || "").trim().toLowerCase();
 
-                                                            const isCorrect = studentAnswer === correctAnswer;
+                                                        return (
+                                                            <div className="space-y-8">
+                                                                {(() => {
+                                                                    const renderQuestionContent = (q, idx, prefix = "") => {
+                                                                        const isPassage = q.type === 'passage' || q.passage;
+                                                                        const isEssay = q.type === 'essay' || q.essay;
+                                                                        const isPaper = typeof q === 'object' && !q.type && (q.editing || q.essay || q.questions || q.passage);
 
-                                                            return (
-                                                                <div key={idx} className={`pb-6 border-b last:border-0 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-                                                                    <div className="flex justify-between items-start mb-4">
-                                                                        <h4 className="font-bold text-lg flex gap-3">
-                                                                            <span className="opacity-30">{idx + 1}.</span>
-                                                                            {q.questionText}
-                                                                        </h4>
-                                                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${isCorrect
-                                                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                                            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                                            }`}>
-                                                                            {isCorrect ? '✓ Correct' : '✗ Incorrect'}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                        <div className={`p-4 rounded-xl border ${isCorrect
-                                                                            ? 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800'
-                                                                            : 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-800'
-                                                                            }`}>
-                                                                            <span className="text-[10px] uppercase font-bold block mb-1 opacity-50">Student's Answer</span>
-                                                                            <p className="font-semibold">{studentAnswer || "No answer provided"}</p>
-                                                                        </div>
-                                                                        {!isCorrect && (
-                                                                            <div className="p-4 rounded-xl border bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800">
-                                                                                <span className="text-[10px] uppercase font-bold block mb-1 opacity-50">Correct Answer</span>
-                                                                                <p className="font-semibold text-blue-700 dark:text-blue-400">{correctAnswer}</p>
+                                                                        // If it's a Paper/Section (detected by sub-keys or explicit structure)
+                                                                        if (isPaper) {
+                                                                            const paperPrefix = prefix || (idx === 0 ? "p1" : idx === 1 ? "p2" : idx === 2 ? "p3" : idx === 3 ? "p4" : `paper${idx + 1}`);
+                                                                            return (
+                                                                                <div key={idx} className="mb-12">
+                                                                                    <h2 className="text-2xl font-normal text-gray-900 dark:text-white mb-6">{q.title || `Section ${idx + 1}`}</h2>
+
+                                                                                    {q.audioUrl && (
+                                                                                        <div className="mb-6 p-4 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                                                                                            <p className="text-[10px] font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Listening Track:</p>
+                                                                                            <audio controls src={q.audioUrl} className="w-full h-8" />
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {q.passage && (
+                                                                                        <div className={`p-5 rounded-lg border mb-8 bg-gray-50/50 dark:bg-gray-900/50 italic text-sm leading-relaxed border-gray-100 dark:border-gray-800 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                                                            <p className="text-[10px] font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Reading Passage:</p>
+                                                                                            {q.passage}
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {q.instructions && (
+                                                                                        <>
+                                                                                            <div className="mb-8 p-5 bg-gray-50/50 border border-gray-200 rounded-lg dark:bg-gray-800/50 dark:border-gray-700">
+                                                                                                <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                                                                                                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Grade</p>
+                                                                                                    <div className="flex items-center gap-2">
+                                                                                                        <input
+                                                                                                            type="number"
+                                                                                                            min="0"
+                                                                                                            max={20}
+                                                                                                            placeholder="0"
+                                                                                                            className={`w-16 p-2 text-sm border rounded-lg text-center font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                                                                                            value={manualMarks[`${paperPrefix}_oral`] || ""}
+                                                                                                            onChange={(e) => setManualMarks(prev => ({ ...prev, [`${paperPrefix}_oral`]: e.target.value }))}
+                                                                                                        />
+                                                                                                        <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">/ 20</span>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div className="space-y-3">
+                                                                                                    <p className="text-[10px] font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">Oral Instructions:</p>
+                                                                                                    <p className="text-sm font-normal text-gray-700 dark:text-gray-300">{q.instructions}</p>
+                                                                                                </div>
+                                                                                            </div>
+
+                                                                                            {/* Student Audio Recording */}
+                                                                                            {gradingSubmission?.file_url && (
+                                                                                                <div className="mb-8 p-5 bg-gray-50/50 border border-gray-200 rounded-lg dark:bg-gray-800/50 dark:border-gray-700">
+                                                                                                    <p className="text-[10px] font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-4">Student Recording:</p>
+                                                                                                    {isLoadingAudio ? (
+                                                                                                        <div className="flex items-center justify-center p-4 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                                                                                                            <div className="flex items-center gap-2 text-gray-500">
+                                                                                                                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                                                                </svg>
+                                                                                                                <span className="text-sm">Loading audio...</span>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    ) : gradingAudioUrl ? (
+                                                                                                        <div className="flex items-center gap-4 p-4 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                                                                                                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
+                                                                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                                                                                                            </div>
+                                                                                                            <div className="flex-1">
+                                                                                                                <audio
+                                                                                                                    controls
+                                                                                                                    className="w-full h-10"
+                                                                                                                    src={gradingAudioUrl}
+                                                                                                                >
+                                                                                                                    Your browser does not support the audio element.
+                                                                                                                </audio>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    ) : (
+                                                                                                        <div className="flex items-center justify-center p-4 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                                                                                                            <span className="text-sm text-gray-500">Unable to load audio</span>
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </>
+                                                                                    )}
+
+                                                                                    <div className="space-y-6">
+                                                                                        {q.editing && q.editing.map((item, eIdx) => (
+                                                                                            renderStandaloneQuestion(item, eIdx, `${paperPrefix}_editing_${item.id || eIdx}`)
+                                                                                        ))}
+                                                                                        {q.essay && (
+                                                                                            renderEssayQuestion(q.essay, idx, `${paperPrefix}_essay`)
+                                                                                        )}
+                                                                                        {q.questions && q.questions.map((item, qIdx) => (
+                                                                                            renderQuestionContent(item, qIdx, `${paperPrefix}_q_${item.id || qIdx}`)
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        }
+
+                                                                        if (isPassage) return renderPassageQuestion(q, idx, prefix);
+                                                                        if (isEssay) return renderEssayQuestion(q, idx, prefix);
+                                                                        return renderStandaloneQuestion(q, idx, prefix);
+                                                                    };
+
+                                                                    const normalize = (val) => String(val || "").trim().toLowerCase();
+
+                                                                    // Define rendering sub-functions inside context to access studentAnswers
+                                                                    const renderStandaloneQuestion = (item, index, customId = null) => {
+                                                                        const qId = customId !== null ? customId : (item.id || index);
+                                                                        const studentAns = studentAnswers[qId] !== undefined ? studentAnswers[qId] : studentAnswers[String(qId)];
+                                                                        const correctAns = item.options && item.correctOption !== undefined
+                                                                            ? item.options[item.correctOption]
+                                                                            : (item.correctAnswer || item.answer || item.correction); // 'correction' for editing tasks
+
+                                                                        const isAutoGradable = item.type === 'mcq' || item.type === 'true_false' || item.type === 'short_answer' || !item.type || item.type === 'multiple_choice' || customId?.includes('editing');
+                                                                        const isCorrect = isAutoGradable && normalize(studentAns) === normalize(correctAns);
+
+                                                                        return (
+                                                                            <div key={index} className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm mb-6">
+                                                                                <div className="flex justify-between items-start mb-4">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <span className="text-[10px] font-medium bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400 px-2 py-0.5 rounded uppercase tracking-wider">{item.type || (customId?.includes('editing') ? 'Editing' : 'Q')}</span>
+                                                                                        <span className="text-xs font-normal text-gray-500 uppercase tracking-tight">Part {index + 1}</span>
+                                                                                    </div>
+                                                                                    <span className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">{item.points || 1} PTS</span>
+                                                                                </div>
+                                                                                <p className="text-sm font-normal text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
+                                                                                    {item.questionText || item.question || item.title || item.text || "Untitled Question"}
+                                                                                </p>
+                                                                                <div className="space-y-3">
+                                                                                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Student Answer:</p>
+                                                                                    {isAutoGradable ? (
+                                                                                        <div className={`p-4 rounded-lg border flex items-center justify-between group transition-all ${isCorrect
+                                                                                            ? 'bg-green-50/50 border-green-100 dark:bg-green-900/10 dark:border-green-800/50'
+                                                                                            : 'bg-red-50/50 border-red-100 dark:bg-red-900/10 dark:border-red-800/50'
+                                                                                            }`}>
+                                                                                            <span className={`text-sm font-normal ${isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                                                                                                {studentAns || "No answer submitted"}
+                                                                                            </span>
+                                                                                            <span className={`px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider ${isCorrect
+                                                                                                ? 'bg-green-100 text-green-700 dark:bg-green-800/50 dark:text-green-300'
+                                                                                                : 'bg-red-100 text-red-700 dark:bg-red-800/50 dark:text-red-300'
+                                                                                                }`}>
+                                                                                                {isCorrect ? 'Correct' : 'Incorrect'}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div className="p-4 rounded-lg border bg-gray-50/30 border-gray-200 dark:bg-gray-800/30 dark:border-gray-700">
+                                                                                            <p className="text-sm font-normal text-gray-700 dark:text-gray-300 italic">{studentAns || "No answer submitted"}</p>
+                                                                                            <div className="mt-3 flex items-center gap-2">
+                                                                                                <span className="h-2 w-2 rounded-full bg-gray-400"></span>
+                                                                                                <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Manual Review Required</span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {(!isCorrect && correctAns) && (
+                                                                                        <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-800">
+                                                                                            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Correct Answer:</p>
+                                                                                            <p className="text-sm font-normal text-gray-800 dark:text-gray-200">{correctAns}</p>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
                                                                             </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <div className="flex justify-between items-center mb-6">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
-                                                                <span className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Essay Content</span>
-                                                            </div>
-                                                            <button
-                                                                onClick={handleDownloadEssay}
-                                                                className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors border border-blue-200"
-                                                                title="Download as Word Document"
-                                                            >
-                                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                                                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
-                                                                </svg>
-                                                                Download Word
-                                                            </button>
-                                                        </div>
-                                                        <div className="text-lg leading-relaxed text-gray-800 dark:text-gray-200">
-                                                            {gradingSubmission.content}
-                                                        </div>
+                                                                        );
+                                                                    };
 
-                                                        {/* Download Student Submission File */}
-                                                        {gradingSubmission.file_url && (
-                                                            <div className="mt-10 pt-8 border-t border-gray-200 dark:border-gray-700">
-                                                                <div className="flex items-center justify-between p-5 rounded-2xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/50">
-                                                                    <div className="flex items-center gap-4">
-                                                                        <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/30">
-                                                                            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                                            </svg>
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 italic">Original Attachment Identified</p>
-                                                                            <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase font-black tracking-tighter">Student Submission File</p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={() => handleDownloadFile(gradingSubmission.file_url)}
-                                                                        className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all shadow-xl shadow-blue-600/20 active:scale-95"
-                                                                    >
-                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                                        </svg>
-                                                                        Download File
-                                                                    </button>
-                                                                </div>
+                                                                    const renderPassageQuestion = (q, idx, prefix = "") => {
+                                                                        const subQuestions = q.subQuestions || q.subquestions || q.questions || [];
+                                                                        return (
+                                                                            <div key={idx} className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm mb-10 overflow-hidden">
+                                                                                <div className="flex justify-between items-start mb-6 pb-4 border-b border-gray-50 dark:border-gray-800">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <span className="text-[10px] font-bold bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 px-2 py-0.5 rounded uppercase tracking-wider">Passage</span>
+                                                                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-tight">Question {idx + 1}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className={`p-5 rounded-lg border mb-8 bg-gray-50/50 dark:bg-gray-900/50 italic text-sm leading-relaxed border-gray-100 dark:border-gray-800 max-h-48 overflow-y-auto ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                                                    {q.passageText || q.passage}
+                                                                                </div>
+                                                                                <div className="pl-4 border-l-2 border-blue-50 dark:border-blue-900/20">
+                                                                                    {subQuestions.map((sq, sidx) => {
+                                                                                        const qId = sq.id || (prefix ? `${prefix}_sub_${sidx}` : `${idx}_${sidx}`);
+                                                                                        const studentAns = studentAnswers[qId] !== undefined ? studentAnswers[qId] : studentAnswers[String(qId)];
+                                                                                        const correctAns = sq.options && sq.correctOption !== undefined
+                                                                                            ? sq.options[sq.correctOption]
+                                                                                            : (sq.correctAnswer || sq.answer);
+                                                                                        const isCorrect = normalize(studentAns) === normalize(correctAns);
+                                                                                        return (
+                                                                                            <div key={sidx} className="space-y-2 mb-6 last:mb-0">
+                                                                                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{sidx + 1}. {sq.questionText || sq.question}</p>
+                                                                                                <div className="flex flex-wrap gap-x-6 gap-y-2 text-[11px] font-bold">
+                                                                                                    <div className="flex gap-2">
+                                                                                                        <span className="text-gray-400 uppercase tracking-tighter">Student Answer:</span>
+                                                                                                        <span className={isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}>{studentAns || 'N/A'}</span>
+                                                                                                    </div>
+                                                                                                    {(!isCorrect && correctAns) && (
+                                                                                                        <div className="flex gap-2">
+                                                                                                            <span className="text-gray-400 uppercase tracking-tighter">Correct:</span>
+                                                                                                            <span className="text-gray-600 dark:text-gray-300 font-medium">{correctAns}</span>
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        );
+                                                                                    })}
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    };
+
+                                                                    const renderEssayQuestion = (q, idx, customId = null) => {
+                                                                        const qId = customId || q.id || idx;
+                                                                        const studentAns = studentAnswers[qId] !== undefined ? studentAnswers[qId] : studentAnswers[String(qId)];
+                                                                        const isGraded = (gradingSubmission?.essay_marks && JSON.parse(gradingSubmission.essay_marks)[qId] !== undefined) || gradingSubmission?.score > 0;
+
+                                                                        const handleDownloadDoc = (questionTitle, answerContent) => {
+                                                                            const htmlReport = `
+                                                                                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                                                                                <head><meta charset='utf-8'><title>Essay Response</title></head>
+                                                                                <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+                                                                                    <h1 style="color: #010080;">${selectedAssignment.title} - Essay Response</h1>
+                                                                                    <p><strong>Student:</strong> ${gradingSubmission.student_name}</p>
+                                                                                    <p><strong>Date:</strong> ${new Date(gradingSubmission.submitted_at).toLocaleDateString()}</p>
+                                                                                    <hr/>
+                                                                                    <h2 style="font-size: 16px;">Question: ${questionTitle}</h2>
+                                                                                    <br/>
+                                                                                    <h3>Student Answer:</h3>
+                                                                                    <div style="white-space: pre-wrap;">${answerContent}</div>
+                                                                                </body>
+                                                                                </html>
+                                                                            `;
+                                                                            const blob = new Blob([htmlReport], { type: 'application/msword' });
+                                                                            const url = URL.createObjectURL(blob);
+                                                                            const link = document.createElement('a');
+                                                                            link.href = url;
+                                                                            link.download = `${gradingSubmission.student_name.replace(/\s+/g, '_')}_Essay.doc`;
+                                                                            document.body.appendChild(link);
+                                                                            link.click();
+                                                                            document.body.removeChild(link);
+                                                                        };
+
+                                                                        return (
+                                                                            <div key={idx} className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm mb-10">
+                                                                                <div className="flex justify-between items-start mb-6">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <span className="text-[10px] font-medium bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400 px-2 py-0.5 rounded uppercase tracking-wider">Essay</span>
+                                                                                        <span className="text-xs font-normal text-gray-500 uppercase tracking-tight">Part {idx + 1}</span>
+                                                                                    </div>
+                                                                                    <button
+                                                                                        onClick={() => handleDownloadDoc(q.title || q.prompt || "Essay Question", studentAns || "No response.")}
+                                                                                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                                                                    >
+                                                                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" /></svg>
+                                                                                        Download Word
+                                                                                    </button>
+                                                                                </div>
+                                                                                <h3 className="text-lg font-normal text-gray-900 dark:text-white mb-2">{q.title || "Essay Question"}</h3>
+                                                                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{q.description || q.prompt}</p>
+
+                                                                                <div className="bg-gray-50/50 dark:bg-gray-800/50 rounded-lg p-5 border border-gray-200 dark:border-gray-700 mb-6">
+                                                                                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                                                                                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Grade</h4>
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <input
+                                                                                                type="number"
+                                                                                                min="0"
+                                                                                                max={q.points || 30}
+                                                                                                placeholder="0"
+                                                                                                className={`w-16 p-2 text-sm border rounded-lg text-center font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                                                                                value={manualMarks[qId] || ""}
+                                                                                                onChange={(e) => setManualMarks(prev => ({ ...prev, [qId]: e.target.value }))}
+                                                                                            />
+                                                                                            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">/ {q.points || 30}</span>
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                    <div className="space-y-3">
+                                                                                        <p className="text-[10px] font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">Student Response:</p>
+                                                                                        <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm leading-relaxed min-h-[150px] whitespace-pre-wrap">
+                                                                                            {studentAns || <span className="italic opacity-40">No response submitted.</span>}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className={`h-2 w-2 rounded-full ${manualMarks[qId] ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                                                                                    <span className={`text-[10px] font-medium uppercase tracking-wider ${manualMarks[qId] ? 'text-green-600' : 'text-gray-500'}`}>
+                                                                                        {manualMarks[qId] ? 'Graded' : 'Pending Review'}
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    };
+
+                                                                    return questions.map((q, idx) => renderQuestionContent(q, idx));
+                                                                })()}
                                                             </div>
-                                                        )}
-                                                    </>
-                                                )}
+                                                        );
+                                                    })()}
+                                                </div>
                                             </div>
+
+                                            {/* Grade Submission Button */}
+                                            {selectedAssignment.questions && (
+                                                <div className={`p-6 rounded-xl border shadow-sm mt-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Ready to Submit Grade?</h4>
+                                                            <p className="text-sm text-gray-500 dark:text-gray-400">Total Score: <span className="font-bold text-blue-600">{gradeData.score || 0}</span> / {selectedAssignment.total_points}</p>
+                                                        </div>
+                                                        <button
+                                                            onClick={handleGradeSubmit}
+                                                            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all flex items-center gap-2 active:scale-95"
+                                                        >
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                            Submit Grade
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {!selectedAssignment.questions && (
