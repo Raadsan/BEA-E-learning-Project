@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import AcademicWritingProgram from "@/components/AcademicWritingProgram";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function AcademicWritingPage() {
   return (
@@ -10,6 +11,7 @@ export default function AcademicWritingPage() {
         <AcademicWritingProgram />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

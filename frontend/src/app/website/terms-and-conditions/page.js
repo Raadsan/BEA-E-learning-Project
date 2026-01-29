@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import TermsAndConditions from "@/components/TermsAndConditions";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export const metadata = {
   title: "Terms and Conditions | BEA - Blueprint English Academy",
@@ -15,6 +16,7 @@ export default function TermsAndConditionsPage() {
         <TermsAndConditions />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

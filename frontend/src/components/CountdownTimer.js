@@ -11,10 +11,37 @@ export default function CountdownTimer() {
     minutes: 0,
     seconds: 0,
   });
-  const [currentTerm, setCurrentTerm] = useState(null);
+  const [nextTerm, setNextTerm] = useState(null);
+  const [mode, setMode] = useState("upcoming"); // "upcoming", "active", or "waiting"
+  const [loading, setLoading] = useState(true);
+  const [timelineData, setTimelineData] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
   const { isDarkMode } = useTheme();
+
+  // Fetch timeline data
+  useEffect(() => {
+    const fetchTimelineData = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/course-timeline");
+        if (!response.ok) throw new Error("Failed to fetch timeline data");
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+          setTimelineData(data);
+        } else {
+          setTimelineData(staticTimelineData);
+        }
+      } catch (err) {
+        console.warn("CountdownTimer: API failed, using static data", err);
+        setTimelineData(staticTimelineData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTimelineData();
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -33,56 +60,83 @@ export default function CountdownTimer() {
     return () => observer.disconnect();
   }, []);
 
-  // Calculate countdown to current term's end date - ONLY when currently in a term
+  // Calculate countdown
   useEffect(() => {
+    if (loading || timelineData.length === 0) return;
+
     const calculateTimeLeft = () => {
-      // Get the current active term
-      const activeTerm = getCurrentTerm();
-      
-      if (!activeTerm) {
-        // Not in any term, show zeros
-        setCurrentTerm(null);
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        return;
-      }
-
-      // We're in a term, countdown to the end date of this term
-      setCurrentTerm(activeTerm);
-      
       const now = new Date();
-      const endDate = parseDate(activeTerm.endDate);
-      endDate.setHours(23, 59, 59, 999); // Set to end of the end date
-      
-      const difference = endDate - now;
+      const currentYear = now.getFullYear();
 
-      if (difference <= 0) {
-        // Term has ended, show zeros
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      // Process all terms to have Date objects
+      const processedTerms = timelineData.map(term => {
+        let startObj, endObj;
+        if (term.startDate && typeof term.startDate === 'string' && term.startDate.includes('/')) {
+          startObj = parseDate(term.startDate);
+          endObj = parseDate(term.endDate);
+        } else {
+          startObj = new Date(term.start_date || term.startDate);
+          endObj = new Date(term.end_date || term.endDate);
+        }
+        endObj.setHours(23, 59, 59, 999);
+        return { ...term, startObj, endObj };
+      });
+
+      // 1. Check if there's an ACTIVE term (Now is between start and end)
+      const active = processedTerms.find(term => now >= term.startObj && now <= term.endObj);
+
+      if (active) {
+        setNextTerm(active);
+        setMode("active");
+
+        const difference = active.endObj - now;
+        updateTimer(difference);
         return;
       }
 
+      // 2. No active term, look for the NEXT upcoming term in the CURRENT year
+      const upcoming = processedTerms
+        .filter(term => term.startObj > now && term.startObj.getFullYear() === currentYear)
+        .sort((a, b) => a.startObj - b.startObj);
+
+      if (upcoming.length > 0) {
+        const next = upcoming[0];
+        setNextTerm(next);
+        setMode("upcoming");
+
+        // No live counting for upcoming terms - keep at zero until it starts
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      } else {
+        // 3. No active or upcoming terms for this year
+        setNextTerm(null);
+        setMode("waiting");
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    const updateTimer = (difference) => {
+      if (difference <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
       const days = Math.floor(difference / (1000 * 60 * 60 * 24));
       const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
       setTimeLeft({ days, hours, minutes, seconds });
     };
 
-    // Calculate immediately
     calculateTimeLeft();
-
-    // Update every second
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [loading, timelineData]);
 
   const renderCircularTimer = (value, label, index) => {
     const isRed = index === 1 || index === 3; // Hours and Seconds are red
     const color = isRed ? '#EF4444' : '#9333EA'; // Red or Purple
     const circumference = 2 * Math.PI * 45; // radius = 45
-    
+
     // Calculate progress based on remaining time
     let progress = 0;
     if (index === 0) { // Days
@@ -94,12 +148,12 @@ export default function CountdownTimer() {
     } else { // Seconds
       progress = (value / 60) * 100;
     }
-    
+
     // Clamp progress between 0 and 100
     progress = Math.min(100, Math.max(0, progress));
-    
+
     return (
-      <div 
+      <div
         className={`flex flex-col items-center ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
         style={{ animationDelay: `${0.1 + index * 0.1}s` }}
       >
@@ -140,7 +194,7 @@ export default function CountdownTimer() {
   };
 
   return (
-    <section 
+    <section
       ref={sectionRef}
       className="py-8 sm:py-12 lg:py-16 relative overflow-hidden"
       style={{
@@ -150,19 +204,19 @@ export default function CountdownTimer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className={`text-center mb-6 sm:mb-8 md:mb-12 ${isVisible ? 'animate-fade-in-down' : 'opacity-0'}`}>
           <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2 sm:mb-3">
-            Next Time Stream Start in
+            {mode === "active" ? "Current Stream Ends in" : "Next Time Stream Start in"}
           </h2>
-          {currentTerm ? (
+          {nextTerm ? (
             <p className="text-white text-sm sm:text-base md:text-lg px-4 sm:px-0">
-              {currentTerm.termSerial} ends on {currentTerm.endDate}
+              {nextTerm.termSerial} {mode === "active" ? "ends" : "starts"} on {mode === "active" ? (nextTerm.endDate || nextTerm.end_date_display || nextTerm.end_date) : (nextTerm.startDate || nextTerm.start_date_display || nextTerm.start_date)}
             </p>
           ) : (
             <p className="text-white text-sm sm:text-base md:text-lg px-4 sm:px-0">
-              No active term
+              {mode === "waiting" ? "Season completed! Waiting for next year's start." : "No upcoming streams scheduled"}
             </p>
           )}
         </div>
-        
+
         {/* White Card with Countdown Timers */}
         <div className={`rounded-xl shadow-lg p-4 sm:p-6 md:p-8 lg:p-12 max-w-4xl mx-auto ${isVisible ? 'animate-scale-in' : 'opacity-0'} ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`} style={{ animationDelay: '0.1s' }}>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-12">

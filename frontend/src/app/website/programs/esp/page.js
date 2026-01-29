@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import ESPProgram from "@/components/ESPProgram";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function ESPProgramPage() {
   return (
@@ -10,6 +11,7 @@ export default function ESPProgramPage() {
         <ESPProgram />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

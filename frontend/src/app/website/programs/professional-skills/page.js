@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import ProfessionalSkillsProgram from "@/components/ProfessionalSkillsProgram";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function ProfessionalSkillsPage() {
   return (
@@ -10,6 +11,7 @@ export default function ProfessionalSkillsPage() {
         <ProfessionalSkillsProgram />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

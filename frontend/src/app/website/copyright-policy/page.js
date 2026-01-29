@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import CopyrightPolicy from "@/components/CopyrightPolicy";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export const metadata = {
   title: "Copyright Policy | BEA - Blueprint English Academy",
@@ -12,9 +13,10 @@ export default function CopyrightPolicyPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow">
-        <CopyrightPolicy />
+        <CopyrightPolicy /> 
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

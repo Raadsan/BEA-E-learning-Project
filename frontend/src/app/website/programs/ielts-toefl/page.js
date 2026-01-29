@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import IELTSTOEFLProgram from "@/components/IELTSTOEFLProgram";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function IELTSTOEFLPage() {
   return (
@@ -10,6 +11,7 @@ export default function IELTSTOEFLPage() {
         <IELTSTOEFLProgram />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

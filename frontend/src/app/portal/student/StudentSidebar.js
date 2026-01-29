@@ -345,8 +345,9 @@ export default function StudentSidebar({ isApproved, isPaid = true, isTestExpire
 
             {/* Placement / Proficiency Test (Visible if required by program) */}
             {(() => {
-              const needsPlacement = prog.includes("general english") || prog.includes("gep") || (prog.includes("academic writing") && sub.includes("level 1"));
-              const needsProficiency = prog.includes("proficiency test") || prog.includes("specific purposes") || prog.includes("esp") || prog.includes("ielts") || prog.includes("toefl") || (prog.includes("academic writing") && (sub.includes("level 2") || sub.includes("level 3"))) || user?.role === 'proficiency_student';
+              // Use the setting from the student's program (or fallback logic if undefined)
+              const needsPlacement = user?.program_test_required === 'placement';
+              const needsProficiency = user?.program_test_required === 'proficiency' || user?.role === 'proficiency_student';
 
               if (needsPlacement) {
                 return (

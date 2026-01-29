@@ -284,6 +284,16 @@ export default function LoginPage() {
                 Sign up
               </Link>
             </p>
+            <p className="text-center text-gray-600 text-sm">
+              Or Back to{" "}
+              <Link
+                href="/"
+                className="font-semibold hover:underline"
+                style={{ color: isDarkMode ? '#ffffff' : '#010080' }}
+              >
+                Home Page
+              </Link>
+            </p>
           </form>
 
           {/* Back to Home */}

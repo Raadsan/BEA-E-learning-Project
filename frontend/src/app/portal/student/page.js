@@ -200,29 +200,15 @@ export default function StudentDashboard() {
 
     // EXACT Mapping Logic from Curriculum Image
     const getAssessmentType = () => {
-        // Prioritize program title from API details if chosen_program is an ID
-        const programTitle = programDetails?.title || user?.chosen_program || "";
-        const prog = programTitle.toString().toLowerCase();
-
-        // Similarly for subprogram
-        const subName = user?.chosen_subprogram_name || user?.chosen_subprogram || "";
-        const sub = subName.toString().toLowerCase();
-
-        // 1. Placement Test Required
-        if (prog.includes("general english") || prog.includes("gep")) return "placement";
-        if (prog.includes("academic writing") && sub.includes("level 1")) return "placement";
-
-        // 2. Proficiency Test Required
-        if (prog.includes("specific purposes") || prog.includes("esp")) return "proficiency";
-        if (prog.includes("ielts") || prog.includes("toefl")) return "proficiency";
-        if (prog.includes("academic writing") && (sub.includes("level 2") || sub.includes("level 3"))) return "proficiency";
-
-        // 3. No Test Required
-        if (prog.includes("soft skills") || prog.includes("workplace training")) return "none";
-        if (prog.includes("digital literacy") || prog.includes("virtual communication")) return "none";
-
-        // Default Fallback
-        return "none";
+        if (!user) return null;
+        if (user.program_test_required && user.program_test_required !== 'none') {
+            return user.program_test_required;
+        }
+        // Fallback for older data or specific cases
+        if (user.chosen_program?.toLowerCase().includes('ielts') || user.chosen_program?.toLowerCase().includes('toefl')) {
+            return 'proficiency';
+        }
+        return 'none';
     };
 
     const assessmentType = getAssessmentType();

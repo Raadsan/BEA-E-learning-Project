@@ -88,8 +88,6 @@ export const createStudent = async (req, res) => {
     let waafiRawResponse = null;
 
     if (req.body.payment && req.body.payment.method === 'waafi') {
-      console.log('💳 [MOCK] Bypassing backend Waafi payment for testing...');
-      /*
       const waafiResponse = await sendWaafiPayment({
         transactionId: `REG-${Date.now()}`,
         accountNo: req.body.payment.payerPhone || req.body.payment.accountNumber,
@@ -107,11 +105,9 @@ export const createStudent = async (req, res) => {
           error: waafiResponse?.responseMsg || waafiResponse?.message || "Payment failed"
         });
       }
-      */
 
-      transactionId = `MOCK-WAAFI-${Date.now()}`;
+      transactionId = waafiResponse?.serviceParams?.transactionId || waafiResponse?.params?.transactionId || `WAAFI-${Date.now()}`;
       paymentStatus = 'Paid';
-      waafiRawResponse = { status: 'SUCCESS', note: 'MOCK_BYPASS' };
     }
 
     const student = await Student.createStudent({

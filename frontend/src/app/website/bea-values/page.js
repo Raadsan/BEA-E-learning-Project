@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import BEAValues from "@/components/BEAValues";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function BEAValuesPage() {
   return (
@@ -10,6 +11,7 @@ export default function BEAValuesPage() {
         <BEAValues />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

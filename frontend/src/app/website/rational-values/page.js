@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import RationalValues from "@/components/RationalValues";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function RationalValuesPage() {
   return (
@@ -10,6 +11,7 @@ export default function RationalValuesPage() {
         <RationalValues />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

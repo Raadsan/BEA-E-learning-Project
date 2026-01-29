@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import StudentCodeOfConduct from "@/components/StudentCodeOfConduct";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export const metadata = {
   title: "Student Code of Conduct | BEA - Blueprint English Academy",
@@ -15,6 +16,7 @@ export default function StudentCodeOfConductPage() {
         <StudentCodeOfConduct />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

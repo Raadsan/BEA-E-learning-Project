@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import CivicValues from "@/components/CivicValues";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function CivicValuesPage() {
   return (
@@ -10,6 +11,7 @@ export default function CivicValuesPage() {
         <CivicValues />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

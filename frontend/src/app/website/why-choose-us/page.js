@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function WhyChooseUsPage() {
   return (
@@ -8,6 +9,7 @@ export default function WhyChooseUsPage() {
       <Header />
       <WhyChooseUs />
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

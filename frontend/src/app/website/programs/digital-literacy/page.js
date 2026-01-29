@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import DigitalLiteracyProgram from "@/components/DigitalLiteracyProgram";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function DigitalLiteracyPage() {
   return (
@@ -10,6 +11,7 @@ export default function DigitalLiteracyPage() {
         <DigitalLiteracyProgram />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

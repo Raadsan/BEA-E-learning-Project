@@ -19,11 +19,11 @@ export const createProgram = async (req, res) => {
     const curriculum_file = curriculumFile ? `/uploads/${curriculumFile.filename}` : null;
 
     // Handle both JSON and multipart/form-data
-    let title, description, status, price, discount;
+    let title, description, status, price, discount, test_required;
 
     if (req.headers['content-type']?.includes('application/json')) {
       // JSON request
-      ({ title, description, status, price, discount } = req.body);
+      ({ title, description, status, price, discount, test_required } = req.body);
     } else {
       // multipart/form-data request
       title = req.body.title;
@@ -31,6 +31,7 @@ export const createProgram = async (req, res) => {
       status = req.body.status;
       price = req.body.price;
       discount = req.body.discount;
+      test_required = req.body.test_required;
     }
 
     if (!title) return res.status(400).json({ error: "Title is required" });
@@ -126,16 +127,17 @@ export const updateProgram = async (req, res) => {
     const curriculum_file = curriculumFile ? `/uploads/${curriculumFile.filename}` : undefined;
 
     // Handle both JSON and multipart/form-data
-    let title, description, status, price, discount;
+    let title, description, status, price, discount, test_required;
 
     if (req.headers['content-type']?.includes('application/json')) {
-      ({ title, description, status, price, discount } = req.body);
+      ({ title, description, status, price, discount, test_required } = req.body);
     } else {
       title = req.body.title;
       description = req.body.description;
       status = req.body.status;
       price = req.body.price;
       discount = req.body.discount;
+      test_required = req.body.test_required;
     }
 
     // Validate status if provided
@@ -151,7 +153,8 @@ export const updateProgram = async (req, res) => {
       description,
       status,
       price,
-      discount
+      discount,
+      test_required
     });
 
     // SYNC: If title changed, update all students who have this program chosen

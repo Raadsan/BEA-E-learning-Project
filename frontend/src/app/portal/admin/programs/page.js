@@ -7,6 +7,7 @@ import DataTable from "@/components/DataTable";
 import { useGetProgramsQuery, useCreateProgramMutation, useUpdateProgramMutation, useDeleteProgramMutation } from "@/redux/api/programApi";
 import { studentApi } from "@/redux/api/studentApi";
 import { useDarkMode } from "@/context/ThemeContext";
+import { useToast } from "@/components/Toast";
 
 // Extracted Components
 import ProgramForm from "./components/ProgramForm";
@@ -16,6 +17,7 @@ import ProgramConfirmationModal from "./components/ProgramConfirmationModal";
 export default function ProgramsPage() {
   const { isDark } = useDarkMode();
   const dispatch = useDispatch();
+  const { showToast } = useToast(); // Hook usage
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState(null);
@@ -30,7 +32,7 @@ export default function ProgramsPage() {
   });
 
   const [formData, setFormData] = useState({
-    title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "",
+    title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none"
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
@@ -49,7 +51,7 @@ export default function ProgramsPage() {
 
   const handleAddProgram = () => {
     setEditingProgram(null);
-    setFormData({ title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "" });
+    setFormData({ title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none" });
     setImagePreview(null); setVideoPreview(null);
     setIsModalOpen(true);
   };
@@ -60,12 +62,13 @@ export default function ProgramsPage() {
       title: program.title || "", description: program.description || "",
       status: program.status || "active", image: null, video: null, curriculum: null,
       curriculum_file: program.curriculum_file || null,
-      price: program.price || "", discount: program.discount || "",
+      price: program.price || "", discount: program.discount || "", test_required: program.test_required || "none"
     });
     setImagePreview(program.image || null); setVideoPreview(program.video || null);
     setIsModalOpen(true);
   };
 
+  // handleStatusToggle
   const handleStatusToggle = (program) => {
     const newStatus = program.status === 'active' ? 'inactive' : 'active';
     setConfirmationModal({
@@ -77,16 +80,19 @@ export default function ProgramsPage() {
           const submitFormData = new FormData();
           submitFormData.append("status", newStatus);
           await updateProgram({ id: program.id, formData: submitFormData }).unwrap();
+          showToast(`Program status updated to ${newStatus}`, "success"); // Toast
           setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "blue" });
         } catch (error) {
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
           console.error("Failed to update status:", error);
+          showToast("Failed to update program status", "error"); // Toast
         }
       },
       isLoading: false, confirmButtonColor: "blue"
     });
   };
 
+  // handleDelete
   const handleDelete = (id) => {
     setConfirmationModal({
       isOpen: true, title: "Delete Program", message: "Are you sure? This action cannot be undone.",
@@ -94,10 +100,12 @@ export default function ProgramsPage() {
         setConfirmationModal(prev => ({ ...prev, isLoading: true }));
         try {
           await deleteProgram(id).unwrap();
+          showToast("Program deleted successfully", "success"); // Toast
           setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "red" });
         } catch (error) {
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
           console.error("Failed to delete program:", error);
+          showToast("Failed to delete program", "error"); // Toast
         }
       },
       isLoading: false, confirmButtonColor: "red"
@@ -109,7 +117,7 @@ export default function ProgramsPage() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false); setEditingProgram(null);
-    setFormData({ title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "" });
+    setFormData({ title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none" });
     setImagePreview(null); setVideoPreview(null);
   };
 
@@ -131,6 +139,7 @@ export default function ProgramsPage() {
     }
   };
 
+  // handleSubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -143,15 +152,21 @@ export default function ProgramsPage() {
       if (formData.curriculum) submitFormData.append("curriculum", formData.curriculum);
       submitFormData.append("price", formData.price || 0);
       submitFormData.append("discount", formData.discount || 0);
+      submitFormData.append("test_required", formData.test_required || "none");
 
       if (editingProgram) {
         await updateProgram({ id: editingProgram.id, formData: submitFormData }).unwrap();
         dispatch(studentApi.util.invalidateTags(["Students"]));
+        showToast("Program updated successfully", "success"); // Toast
       } else {
         await createProgram(submitFormData).unwrap();
+        showToast("Program created successfully", "success"); // Toast
       }
       handleCloseModal();
-    } catch (error) { console.error("Failed to save program:", error); }
+    } catch (error) {
+      console.error("Failed to save program:", error);
+      showToast("Failed to save program", "error"); // Toast
+    }
   };
 
   const columns = [

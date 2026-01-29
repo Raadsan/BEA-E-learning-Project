@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import GeneralEnglishCourse from "@/components/GeneralEnglishCourse";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function GeneralEnglishCoursePage() {
   return (
@@ -10,6 +11,7 @@ export default function GeneralEnglishCoursePage() {
         <GeneralEnglishCourse />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

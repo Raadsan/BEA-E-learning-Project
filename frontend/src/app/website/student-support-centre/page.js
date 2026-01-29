@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import StudentSupportCentre from "@/components/StudentSupportCentre";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export const metadata = {
   title: "Student Support Centre | BEA - Blueprint English Academy",
@@ -15,6 +16,7 @@ export default function StudentSupportCentrePage() {
         <StudentSupportCentre />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

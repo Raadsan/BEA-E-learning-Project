@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import PedagogicalValues from "@/components/PedagogicalValues";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function PedagogicalValuesPage() {
   return (
@@ -9,7 +10,8 @@ export default function PedagogicalValuesPage() {
       <main className="flex-grow">
         <PedagogicalValues />
       </main>
-      <Footer />
+      <Footer />  
+      <WhatsAppButton />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import PaymentRefundPolicy from "@/components/PaymentRefundPolicy";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export const metadata = {
   title: "Payment & Refund Policy | BEA - Blueprint English Academy",
@@ -15,6 +16,7 @@ export default function PaymentRefundPolicyPage() {
         <PaymentRefundPolicy />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

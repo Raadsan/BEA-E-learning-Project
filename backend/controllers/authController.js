@@ -254,6 +254,12 @@ export const getCurrentUser = async (req, res) => {
       case 'student':
         user = await Student.getStudentById(userId);
         if (user) {
+          // Fetch program details to get test_required setting
+          const [programDetails] = await dbp.query(
+            "SELECT test_required FROM programs WHERE title = ?",
+            [user.chosen_program]
+          );
+
           user = {
             id: user.student_id,
             full_name: user.full_name,
@@ -270,7 +276,8 @@ export const getCurrentUser = async (req, res) => {
             profile_picture: user.profile_picture || null,
             paid_until: user.paid_until || null,
             expiry_date: user.expiry_date || null,
-            created_at: user.created_at || null
+            created_at: user.created_at || null,
+            program_test_required: programDetails[0]?.test_required || 'none'
           };
         } else {
           // Check IELTS table

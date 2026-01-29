@@ -201,24 +201,43 @@ export default function ProgramForm({
                         </div>
                     </div>
 
-                    {!editingProgram && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {!editingProgram && (
+                            <div>
+                                <label htmlFor="status" className={`block text-sm font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    Status <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    id="status"
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleInputChange}
+                                    required
+                                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                                >
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        )}
+
                         <div>
-                            <label htmlFor="status" className={`block text-sm font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                Status <span className="text-red-500">*</span>
+                            <label htmlFor="test_required" className={`block text-sm font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                Test Requirement
                             </label>
                             <select
-                                id="status"
-                                name="status"
-                                value={formData.status}
+                                id="test_required"
+                                name="test_required"
+                                value={formData.test_required || "none"}
                                 onChange={handleInputChange}
-                                required
                                 className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                             >
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
+                                <option value="none">None</option>
+                                <option value="placement">Placement Test</option>
+                                <option value="proficiency">Proficiency Test</option>
                             </select>
                         </div>
-                    )}
+                    </div>
 
                     <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 dark:border-gray-700">
                         <button

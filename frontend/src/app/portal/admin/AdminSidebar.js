@@ -533,6 +533,22 @@ export default function AdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/communication/news") ? 'text-white' : 'text-gray-100'}>News & Events</span>
                   </Link>
                 </li>
+                <li>
+                  <Link href="/portal/admin/communication/course-timeline" className={getSubMenuItemClasses("/portal/admin/communication/course-timeline")} style={getSubActiveStyle("/portal/admin/communication/course-timeline")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/course-timeline") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/communication/course-timeline") ? 'text-white' : 'text-gray-100'}>Course Timeline</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/communication/testimonials" className={getSubMenuItemClasses("/portal/admin/communication/testimonials")} style={getSubActiveStyle("/portal/admin/communication/testimonials")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/testimonials") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/communication/testimonials") ? 'text-white' : 'text-gray-100'}>Testimonials</span>
+                  </Link>
+                </li>
               </ul>
             )}
           </li>

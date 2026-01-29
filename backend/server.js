@@ -32,6 +32,8 @@ import courseRoutes from './routes/courseRoutes.js';
 import shiftRoutes from './routes/shiftRoutes.js';
 import freezingRoutes from './routes/freezingRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import courseTimelineRoutes from './routes/courseTimelineRoutes.js';
+import testimonialsRoutes from './routes/testimonialsRoutes.js';
 
 dotenv.config();
 
@@ -75,6 +77,8 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/freezing-requests', freezingRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/course-timeline', courseTimelineRoutes);
+app.use('/api/testimonials', testimonialsRoutes);
 
 // Root Route
 app.get('/', (req, res) => {

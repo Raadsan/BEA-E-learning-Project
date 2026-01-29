@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import BEAExams from "@/components/BEAExams";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function ExamsPage() {
   return (
@@ -10,6 +11,7 @@ export default function ExamsPage() {
         <BEAExams />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

@@ -2,12 +2,86 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
-import { timelineData } from "@/data/timelineData";
+import { timelineData as staticTimelineData } from "@/data/timelineData";
 
 export default function CourseTimeline() {
   const [isVisible, setIsVisible] = useState(false);
+  const [timelineData, setTimelineData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [years, setYears] = useState([]);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const sectionRef = useRef(null);
   const { isDarkMode } = useTheme();
+
+  // Fetch timeline data from API, fallback to static data only if API completely fails
+  useEffect(() => {
+    const fetchTimelineData = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/course-timeline");
+        if (!response.ok) throw new Error("Failed to fetch timeline data");
+        const data = await response.json();
+
+        let finalData = [];
+        // Use database data if available, otherwise use static data
+        if (data && data.length > 0) {
+          finalData = data;
+          console.log("✅ Timeline data loaded from database");
+        } else {
+          finalData = staticTimelineData;
+          console.log("⚠️ Database empty, using static data");
+        }
+
+        setTimelineData(finalData);
+
+        // Extract unique years and sort them
+        const extractedYears = [...new Set(finalData.map(item => {
+          const dateStr = item.startDate || item.start_date;
+          if (dateStr && dateStr.includes('/')) {
+            return dateStr.split('/')[2];
+          }
+          return new Date(dateStr).getFullYear().toString();
+        }))].sort((a, b) => a - b);
+
+        setYears(extractedYears);
+
+        // If current year is not in the data, default to the first available year
+        const currentYearStr = new Date().getFullYear().toString();
+        if (!extractedYears.includes(currentYearStr) && extractedYears.length > 0) {
+          setSelectedYear(extractedYears[0]);
+        }
+
+        setError(null);
+      } catch (err) {
+        console.warn("⚠️ API failed, using static data:", err.message);
+        setTimelineData(staticTimelineData);
+
+        const extractedYears = [...new Set(staticTimelineData.map(item => item.startDate.split('/')[2]))].sort((a, b) => a - b);
+        setYears(extractedYears);
+        setError(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTimelineData();
+  }, []);
+
+  // Filter data when selectedYear or timelineData changes
+  useEffect(() => {
+    const filtered = timelineData.filter(item => {
+      const dateStr = item.startDate || item.start_date;
+      let itemYear;
+      if (dateStr && dateStr.includes('/')) {
+        itemYear = dateStr.split('/')[2];
+      } else {
+        itemYear = new Date(dateStr).getFullYear().toString();
+      }
+      return itemYear === selectedYear;
+    });
+    setFilteredData(filtered);
+  }, [selectedYear, timelineData]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -32,80 +106,97 @@ export default function CourseTimeline() {
         <div className="max-w-5xl mx-auto">
           <div className={`mb-8 sm:mb-10 text-center ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
-              Course Timeline
+              Course Timeline {new Date().getFullYear()}
             </h2>
             <p className={`text-base sm:text-lg ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
-              Plan ahead with our comprehensive course calendar. All courses include recorded sessions if you miss a live class.
+              Plan ahead with our comprehensive {new Date().getFullYear()} course calendar. All courses include recorded sessions if you miss a live class.
             </p>
           </div>
-          
+
           <div className={`overflow-hidden border ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'} ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
-            <div className="overflow-x-auto">
-              <table className="w-full" style={{ tableLayout: 'fixed' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#dc2626' }}>
-                    <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-white border-r border-red-700" style={{ width: '25%' }}>
-                      Term Serial Number
-                    </th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-white border-r border-red-700" style={{ width: '25%' }}>
-                      Start Date
-                    </th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-white border-r border-red-700" style={{ width: '25%' }}>
-                      End Date
-                    </th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-white" style={{ width: '25%' }}>
-                      Holidays
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {timelineData.map((item, index) => (
-                    <tr 
-                      key={index} 
-                      className={`transition-colors ${isDarkMode ? 'border-b border-[#1a1a3e]' : 'border-b border-gray-200'} ${
-                        isDarkMode 
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+              </div>
+            ) : error ? (
+              <div className="p-8 text-center">
+                <p className={`text-lg ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+                  Unable to load timeline data. Please try again later.
+                </p>
+              </div>
+            ) : filteredData.length === 0 ? (
+              <div className="p-8 text-center">
+                <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  No timeline data available for {new Date().getFullYear()}.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full" style={{ tableLayout: 'fixed' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#dc2626' }}>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-white border-r border-red-700" style={{ width: '25%' }}>
+                        Term Serial Number
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-white border-r border-red-700" style={{ width: '25%' }}>
+                        Start Date
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-white border-r border-red-700" style={{ width: '25%' }}>
+                        End Date
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-white" style={{ width: '25%' }}>
+                        Holidays
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredData.map((item, index) => (
+                      <tr
+                        key={index}
+                        className={`transition-colors ${isDarkMode ? 'border-b border-[#1a1a3e]' : 'border-b border-gray-200'} ${isDarkMode
                           ? (index % 2 === 0 ? "bg-[#050040]" : "bg-[#03002e]/50")
                           : (index % 2 === 0 ? "bg-white" : "bg-blue-50/30")
-                      } ${isDarkMode ? 'hover:bg-[#060050]' : 'hover:bg-blue-50'}`}
-                    >
-                      <td className={`px-4 sm:px-6 py-4 whitespace-nowrap border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
-                        <span className={`font-bold text-xs sm:text-sm ${isDarkMode ? 'text-white' : 'text-blue-900'}`}>{item.termSerial}</span>
-                      </td>
-                      <td className={`px-4 sm:px-6 py-4 whitespace-nowrap border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
-                        <div className={`flex items-center gap-2 text-xs sm:text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
-                          <svg className={`w-4 h-4 ${isDarkMode ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <span className="font-bold">{item.startDate}</span>
-                        </div>
-                      </td>
-                      <td className={`px-4 sm:px-6 py-4 whitespace-nowrap border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
-                        <div className={`flex items-center gap-2 text-xs sm:text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
-                          <svg className={`w-4 h-4 ${isDarkMode ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <span className="font-bold">{item.endDate}</span>
-                        </div>
-                      </td>
-                      {(item.holidayRowspan === undefined || item.holidayRowspan !== 0) && (
-                        <td 
-                          className={`px-4 sm:px-6 py-4 ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}
-                          rowSpan={item.holidayRowspan && item.holidayStartRow ? item.holidayRowspan : 1}
-                        >
-                          {item.holidays ? (
-                            <div className={`text-xs sm:text-sm leading-relaxed font-bold ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
-                              {item.holidays}
-                            </div>
-                          ) : (
-                            <div className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>&nbsp;</div>
-                          )}
+                          } ${isDarkMode ? 'hover:bg-[#060050]' : 'hover:bg-blue-50'}`}
+                      >
+                        <td className={`px-4 sm:px-6 py-4 whitespace-nowrap border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
+                          <span className={`font-bold text-xs sm:text-sm ${isDarkMode ? 'text-white' : 'text-blue-900'}`}>{item.termSerial}</span>
                         </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        <td className={`px-4 sm:px-6 py-4 whitespace-nowrap border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
+                          <div className={`flex items-center gap-2 text-xs sm:text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
+                            <svg className={`w-4 h-4 ${isDarkMode ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span className="font-bold">{item.startDate}</span>
+                          </div>
+                        </td>
+                        <td className={`px-4 sm:px-6 py-4 whitespace-nowrap border-r ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}>
+                          <div className={`flex items-center gap-2 text-xs sm:text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
+                            <svg className={`w-4 h-4 ${isDarkMode ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span className="font-bold">{item.endDate}</span>
+                          </div>
+                        </td>
+                        {(item.holidayRowspan === undefined || item.holidayRowspan !== 0) && (
+                          <td
+                            className={`px-4 sm:px-6 py-4 ${isDarkMode ? 'border-[#1a1a3e]' : 'border-gray-200'}`}
+                            rowSpan={item.holidayRowspan && item.holidayStartRow ? item.holidayRowspan : 1}
+                          >
+                            {item.holidays ? (
+                              <div className={`text-xs sm:text-sm leading-relaxed font-bold ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
+                                {item.holidays}
+                              </div>
+                            ) : (
+                              <div className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>&nbsp;</div>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </div>

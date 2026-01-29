@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import DataPolicy from "@/components/DataPolicy";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export const metadata = {
   title: "Data Policy | BEA - Blueprint English Academy",
@@ -15,6 +16,7 @@ export default function DataPolicyPage() {
         <DataPolicy />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import ContactUs from "@/components/ContactUs";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function ContactUsPage() {
   return (
@@ -10,6 +11,7 @@ export default function ContactUsPage() {
         <ContactUs />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

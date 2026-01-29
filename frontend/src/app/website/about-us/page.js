@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import AboutUs from "@/components/AboutUs";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function AboutUsPage() {
   return (
@@ -10,6 +11,8 @@ export default function AboutUsPage() {
         <AboutUs />
       </main>
       <Footer />
+      <WhatsAppButton />
+
     </div>
   );
 }

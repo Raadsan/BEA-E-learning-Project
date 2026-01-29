@@ -1,7 +1,13 @@
 import mysql from "mysql2";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from the backend directory (parent of this file's directory)
+dotenv.config({ path: path.join(__dirname, "../.env") });
 
 // Use createPool instead of createConnection for better handling of concurrent requests
 const db = mysql.createPool({

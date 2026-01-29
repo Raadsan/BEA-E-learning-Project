@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Blogs from "@/components/Blogs";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export const metadata = {
   title: "Blog | BEA - Blueprint English Academy",
@@ -15,6 +16,7 @@ export default function BlogsPage() {
         <Blogs />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

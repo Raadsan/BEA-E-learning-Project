@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import StudentEngagementPolicy from "@/components/StudentEngagementPolicy";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export const metadata = {
   title: "Student Engagement Policy | BEA - Blueprint English Academy",
@@ -15,6 +16,7 @@ export default function StudentEngagementPolicyPage() {
         <StudentEngagementPolicy />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }
