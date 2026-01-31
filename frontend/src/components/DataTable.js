@@ -133,11 +133,13 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                     } text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2d3447] transition-colors`}
                 >
                   {Array.isArray(columns) && columns.map((col, i) => {
+                    const cellValue = col.key
+                      ? col.key.split(".").reduce((obj, key) => obj?.[key], row)
+                      : undefined;
+
                     const rawValue = col.render
-                      ? col.render(row, idx)
-                      : col.key
-                        ? col.key.split(".").reduce((obj, key) => obj?.[key], row)
-                        : undefined;
+                      ? col.render(cellValue, row, idx)
+                      : cellValue;
 
                     let cellContent = rawValue;
 

@@ -23,6 +23,18 @@ export const studentApi = createApi({
   }),
   tagTypes: ["Students"],
   endpoints: (builder) => ({
+    // GET STUDENTS BY CLASS
+    getStudentsByClass: builder.query({
+      query: (classId) => `/class/${classId}`,
+      providesTags: (classId) => [{ type: "Students", id: `Class_${classId}` }],
+      transformResponse: (response) => {
+        if (response.success) {
+          return response.students;
+        }
+        return response;
+      },
+    }),
+
     // GET ALL students
     getStudents: builder.query({
       query: () => "/",
@@ -186,6 +198,7 @@ export const studentApi = createApi({
 });
 
 export const {
+  useGetStudentsByClassQuery,
   useGetStudentsQuery,
   useGetStudentQuery,
   useCreateStudentMutation,

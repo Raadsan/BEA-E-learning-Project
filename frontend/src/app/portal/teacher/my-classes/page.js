@@ -6,6 +6,8 @@ import { useGetTeacherClassesQuery, useGetTeacherProgramsQuery } from "@/redux/a
 import { useGetStudentsQuery } from "@/redux/api/studentApi"; // Import students query
 import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable"; // Import DataTable
+import { useGetTimelinesQuery } from "@/redux/api/courseTimelineApi";
+import TeacherReviewForm from "@/components/ReviewFlows/TeacherReviewForm";
 
 // Reusable Card Component specifically for this page
 const InfoCard = ({ title, subtitle, details, footer, isDark, type }) => (
@@ -55,6 +57,7 @@ export default function MyClassesPage() {
     const { data: classesData, isLoading: classesLoading } = useGetTeacherClassesQuery();
     const { data: programsData, isLoading: programsLoading } = useGetTeacherProgramsQuery();
     const { data: studentsData } = useGetStudentsQuery(); // Fetch all students
+    const { data: timelines = [] } = useGetTimelinesQuery();
 
     const classes = Array.isArray(classesData) ? classesData : [];
     const programs = Array.isArray(programsData) ? programsData : [];
@@ -85,6 +88,29 @@ export default function MyClassesPage() {
     if (selectedClass) {
         const classStudents = getClassStudents(selectedClass.id);
 
+        // Find a term that has ended recently
+        const today = new Date();
+        const eligibleTerm = timelines.find(t => {
+            const endDate = new Date(t.end_date);
+            return today > endDate;
+        });
+
+        // Add Review Column if eligible
+        const columnsWithReview = [
+            ...studentColumns,
+            ...(eligibleTerm ? [{
+                label: "Qiimeynta",
+                key: "review",
+                render: (row) => (
+                    <TeacherReviewForm
+                        student={{ id: row.student_id, full_name: row.full_name }}
+                        classId={selectedClass.id}
+                        termSerial={eligibleTerm.term_serial}
+                    />
+                )
+            }] : [])
+        ];
+
         return (
             <>
                 <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
@@ -97,17 +123,24 @@ export default function MyClassesPage() {
                             Back to Classes
                         </button>
 
-                        <div className="mb-8">
-                            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{selectedClass.class_name}</h1>
-                            <p className="text-gray-500 dark:text-gray-400 mt-1">
-                                {selectedClass.course_title} • {selectedClass.program_name}
-                            </p>
+                        <div className="mb-8 flex justify-between items-end">
+                            <div>
+                                <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{selectedClass.class_name}</h1>
+                                <p className="text-gray-500 dark:text-gray-400 mt-1">
+                                    {selectedClass.course_title} • {selectedClass.program_name}
+                                </p>
+                            </div>
+                            {eligibleTerm && (
+                                <div className="bg-indigo-600/10 border border-indigo-500/20 px-4 py-2 rounded-xl text-indigo-600 dark:text-indigo-400 text-xs font-bold animate-pulse">
+                                    Term-ka {eligibleTerm.term_serial} waa dhammaaday. Qiimeey Ardayda.
+                                </div>
+                            )}
                         </div>
 
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
                             <DataTable
                                 title={`Students (${classStudents.length})`}
-                                columns={studentColumns}
+                                columns={columnsWithReview}
                                 data={classStudents}
                                 showAddButton={false} // Read-only view for now
                             />

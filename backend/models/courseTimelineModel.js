@@ -142,6 +142,17 @@ const CourseTimelineModel = {
 
         const [rows] = await dbp.query(query, params);
         return rows[0].count > 0;
+    },
+
+    // Get timeline by term_serial
+    async getTimelineBySerial(term_serial) {
+        const query = `
+      SELECT id, term_serial, start_date, end_date, holidays, display_order, is_active, created_at, updated_at
+      FROM course_timeline
+      WHERE term_serial = ? AND is_active = TRUE
+    `;
+        const [rows] = await dbp.query(query, [term_serial]);
+        return rows[0];
     }
 };
 

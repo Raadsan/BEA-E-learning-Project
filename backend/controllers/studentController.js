@@ -700,3 +700,21 @@ export const getMyClasses = async (req, res) => {
     res.status(500).json({ success: false, error: "Academic data resolution failed" });
   }
 };
+
+// GET STUDENTS BY CLASS (For Teacher Review)
+export const getStudentsByClass = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const students = await Student.getStudentsByClassId(classId);
+    res.json({
+      success: true,
+      students
+    });
+  } catch (err) {
+    console.error("❌ Get students by class error:", err);
+    res.status(500).json({
+      success: false,
+      error: "Server error: " + err.message
+    });
+  }
+};

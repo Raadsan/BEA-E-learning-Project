@@ -520,9 +520,10 @@ export const getStudentLocations = async (program_id) => {
 };
 
 // GET STUDENTS BY CLASS ID
-export const getStudentsByClassId = async (classId) => {
-  const [rows] = await dbp.query(
-    `SELECT s.student_id, s.full_name, s.email, s.phone, s.age, s.sex, s.residency_country, s.residency_city, 
+// GET STUDENTS BY CLASS ID with Review Status check
+export const getStudentsByClassId = async (classId, teacherId = null, termSerial = null) => {
+  let query = `
+    SELECT s.student_id, s.full_name, s.email, s.phone, s.age, s.sex, s.residency_country, s.residency_city, 
      s.chosen_program, s.chosen_subprogram, s.parent_name, s.parent_email, s.parent_phone, 
      s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, 
      s.funding_status, s.sponsorship_package, s.funding_amount, s.funding_month, s.scholarship_percentage,
@@ -530,10 +531,24 @@ export const getStudentsByClassId = async (classId) => {
      s.paid_until,
      s.expiry_date,
      s.created_at, s.updated_at
-     FROM students s
-     WHERE s.class_id = ? AND s.approval_status = 'approved'
-     ORDER BY s.full_name ASC`,
-    [classId]
-  );
+  `;
+
+  const params = [];
+
+  if (teacherId && termSerial) {
+    query += `, (CASE WHEN tr.id IS NOT NULL THEN 1 ELSE 0 END) as is_reviewed `;
+  }
+
+  query += ` FROM students s `;
+
+  if (teacherId && termSerial) {
+    query += ` LEFT JOIN teacher_reviews tr ON s.student_id = tr.student_id AND tr.teacher_id = ? AND tr.term_serial = ? `;
+    params.push(teacherId, termSerial);
+  }
+
+  query += ` WHERE s.class_id = ? AND s.approval_status = 'approved' ORDER BY s.full_name ASC`;
+  params.push(classId);
+
+  const [rows] = await dbp.query(query, params);
   return rows;
 };

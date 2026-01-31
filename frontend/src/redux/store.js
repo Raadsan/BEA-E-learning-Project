@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { authApi } from "./api/authApi";
 import { userApi } from "./api/userApi";
+import { courseTimelineApi } from "./api/courseTimelineApi";
 import { announcementApi } from "./api/announcementApi";
 import { eventApi } from "./api/eventApi";
 import { courseApi } from "./api/courseApi";
@@ -30,11 +31,13 @@ import { proficiencyTestStudentsApi } from "./api/proficiencyTestStudentsApi";
 import { placementTestApi } from "./api/placementTestApi";
 import { learningHoursApi } from "./api/learningHoursApi";
 import { shiftApi } from "./api/shiftApi";
+import { reviewApi } from "./api/reviewApi";
 
 export const store = configureStore({
     reducer: {
         [authApi.reducerPath]: authApi.reducer,
         [userApi.reducerPath]: userApi.reducer,
+        [courseTimelineApi.reducerPath]: courseTimelineApi.reducer,
         [announcementApi.reducerPath]: announcementApi.reducer,
         [eventApi.reducerPath]: eventApi.reducer,
         [courseApi.reducerPath]: courseApi.reducer,
@@ -64,11 +67,13 @@ export const store = configureStore({
         [placementTestApi.reducerPath]: placementTestApi.reducer,
         [learningHoursApi.reducerPath]: learningHoursApi.reducer,
         [shiftApi.reducerPath]: shiftApi.reducer,
+        [reviewApi.reducerPath]: reviewApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(
             authApi.middleware,
             userApi.middleware,
+            courseTimelineApi.middleware,
             announcementApi.middleware,
             eventApi.middleware,
             courseApi.middleware,
@@ -97,6 +102,7 @@ export const store = configureStore({
             proficiencyTestStudentsApi.middleware,
             placementTestApi.middleware,
             learningHoursApi.middleware,
-            shiftApi.middleware
+            shiftApi.middleware,
+            reviewApi.middleware
         ),
 });

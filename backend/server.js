@@ -34,6 +34,8 @@ import freezingRoutes from './routes/freezingRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import courseTimelineRoutes from './routes/courseTimelineRoutes.js';
 import testimonialsRoutes from './routes/testimonialsRoutes.js';
+import teacherReviewRoutes from './routes/teacherReviewRoutes.js';
+import studentReviewRoutes from './routes/studentReviewRoutes.js';
 
 dotenv.config();
 
@@ -79,6 +81,8 @@ app.use('/api/freezing-requests', freezingRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/course-timeline', courseTimelineRoutes);
 app.use('/api/testimonials', testimonialsRoutes);
+app.use('/api/teacher-reviews', teacherReviewRoutes);
+app.use('/api/student-reviews', studentReviewRoutes);
 
 // Root Route
 app.get('/', (req, res) => {

@@ -15,6 +15,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import UpcomingEventsList from "@/components/UpcomingEventsList";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useGetTimelinesQuery } from "@/redux/api/courseTimelineApi";
+import { useGetClassQuery } from "@/redux/api/classApi";
+import StudentReviewForm from "@/components/ReviewFlows/StudentReviewForm";
 
 const ProficiencyDashboard = ({ user, results, timeLeft, isExpired, isDark, router }) => {
     const hasCompleted = results && results.length > 0;
@@ -166,6 +169,8 @@ export default function StudentDashboard() {
     const router = useRouter();
     const { isDark } = useDarkMode();
     const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
+    const isProficiencyOnly = (user?.chosen_program || user?.program || "").toString().toLowerCase().trim() === 'proficiency test' || user?.role === 'proficiency_student';
+
     const [approvalStatus, setApprovalStatus] = useState('pending');
     const [isPaid, setIsPaid] = useState(true);
     const [timeUntilExpiry, setTimeUntilExpiry] = useState({ hours: 0, minutes: 0, seconds: 0, isExpired: false });
@@ -197,6 +202,18 @@ export default function StudentDashboard() {
     const { data: programDetails } = useGetProgramQuery(user?.chosen_program, {
         skip: !user?.chosen_program
     });
+
+    // Review System Hooks (Moved to top level)
+    const { data: timelines = [] } = useGetTimelinesQuery();
+    const { data: studentClassData } = useGetClassQuery(user?.class_id, { skip: !user?.class_id || isProficiencyOnly });
+
+    const today = new Date();
+    const eligibleTerm = timelines.find(t => {
+        const endDate = new Date(t.end_date);
+        return today > endDate;
+    });
+
+    const showReviewBanner = !isProficiencyOnly && eligibleTerm && studentClassData && studentClassData.teacher_id;
 
     // EXACT Mapping Logic from Curriculum Image
     const getAssessmentType = () => {
@@ -421,7 +438,6 @@ export default function StudentDashboard() {
         streakDays: user?.login_streak || 0,
     };
 
-    const isProficiencyOnly = (user?.chosen_program || user?.program || "").toString().toLowerCase().trim() === 'proficiency test' || user?.role === 'proficiency_student';
 
     if (userLoading) {
         return (
@@ -448,6 +464,30 @@ export default function StudentDashboard() {
                     />
                 ) : (
                     <>
+                        {/* Term End Review Section */}
+                        {showReviewBanner && (
+                            <div className={`mb-8 p-6 rounded-2xl border-2 border-dashed flex flex-col md:flex-row items-center justify-between gap-6 transition-all animate-in fade-in slide-in-from-top-4 duration-500 ${isDark ? 'bg-indigo-900/10 border-indigo-500/30' : 'bg-indigo-50 border-indigo-200'}`}>
+                                <div className="flex items-center gap-5 text-center md:text-left">
+                                    <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/20">
+                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-indigo-900'}`}>Qiimeey Barahaaga!</h3>
+                                        <p className={`text-sm font-medium mt-1 ${isDark ? 'text-indigo-200/70' : 'text-indigo-700/70'}`}>
+                                            Term-ka <strong>{eligibleTerm.term_serial}</strong> waa dhammaaday. Fadlan qiimeyn ka bixi barahaaga.
+                                        </p>
+                                    </div>
+                                </div>
+                                <StudentReviewForm
+                                    teacher={{ id: studentClassData.teacher_id, full_name: studentClassData.teacher_name || "Barahaaga" }}
+                                    classId={user.class_id}
+                                    termSerial={eligibleTerm.term_serial}
+                                />
+                            </div>
+                        )}
+
                         {/* Header Section */}
                         <div className={`mb-8 p-8 rounded-2xl ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} shadow-sm border`}>
                             <h1 className={`text-4xl font-bold mb-2 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>

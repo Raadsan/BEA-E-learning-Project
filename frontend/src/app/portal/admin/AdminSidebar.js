@@ -86,6 +86,15 @@ export default function AdminSidebar({ isOpen, onClose }) {
     } else if (pathname?.startsWith("/portal/admin/reports")) {
       setOpenSection('reports');
       setOpenSubSection(null);
+    } else if (pathname?.startsWith("/portal/admin/reviews")) {
+      setOpenSection('reviews');
+      if (pathname.includes('/teacher-')) {
+        setOpenSubSection('reviewTeacher');
+      } else if (pathname.includes('/student-')) {
+        setOpenSubSection('reviewStudent');
+      } else {
+        setOpenSubSection(null);
+      }
     } else {
       setOpenSection(null);
       setOpenSubSection(null);
@@ -631,6 +640,88 @@ export default function AdminSidebar({ isOpen, onClose }) {
             )}
           </li>
 
+          {/* Reviews Management */}
+          <li>
+            <button
+              onClick={() => toggleSection('reviews')}
+              className={getDropdownButtonClasses('reviews')}
+              style={getDropdownButtonStyle('reviews')}
+            >
+              <div className="flex items-center gap-3">
+                <svg className={`w-5 h-5 ${openSection === 'reviews' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+                <span className={`font-medium text-sm ${openSection === 'reviews' ? 'text-white' : 'text-gray-100'}`}>Reviews</span>
+              </div>
+              <svg className={`w-4 h-4 ${openSection === 'reviews' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'reviews' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {openSection === 'reviews' && (
+              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                {/* Teacher Subsection */}
+                <li className="ml-2">
+                  <button
+                    onClick={() => toggleSubSection('reviewTeacher')}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm text-gray-300 hover:bg-white/10 ${openSubSection === 'reviewTeacher' ? 'bg-white/10' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-400">•</span>
+                      <span className="text-gray-100">Teacher</span>
+                    </div>
+                    <svg className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${openSubSection === 'reviewTeacher' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {openSubSection === 'reviewTeacher' && (
+                    <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                      <li>
+                        <Link href="/portal/admin/reviews/teacher-questions" className={getSubMenuItemClasses("/portal/admin/reviews/teacher-questions")} style={getSubActiveStyle("/portal/admin/reviews/teacher-questions")}>
+                          <span className={isActive("/portal/admin/reviews/teacher-questions") ? 'text-white' : 'text-gray-100'}>Questions</span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/portal/admin/reviews/teacher-reviews" className={getSubMenuItemClasses("/portal/admin/reviews/teacher-reviews")} style={getSubActiveStyle("/portal/admin/reviews/teacher-reviews")}>
+                          <span className={isActive("/portal/admin/reviews/teacher-reviews") ? 'text-white' : 'text-gray-100'}>Reviews</span>
+                        </Link>
+                      </li>
+                    </ul>
+                  )}
+                </li>
+
+                {/* Student Subsection */}
+                <li className="ml-2">
+                  <button
+                    onClick={() => toggleSubSection('reviewStudent')}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm text-gray-300 hover:bg-white/10 ${openSubSection === 'reviewStudent' ? 'bg-white/10' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-400">•</span>
+                      <span className="text-gray-100">Student</span>
+                    </div>
+                    <svg className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${openSubSection === 'reviewStudent' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {openSubSection === 'reviewStudent' && (
+                    <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                      <li>
+                        <Link href="/portal/admin/reviews/student-questions" className={getSubMenuItemClasses("/portal/admin/reviews/student-questions")} style={getSubActiveStyle("/portal/admin/reviews/student-questions")}>
+                          <span className={isActive("/portal/admin/reviews/student-questions") ? 'text-white' : 'text-gray-100'}>Questions</span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/portal/admin/reviews/student-reviews" className={getSubMenuItemClasses("/portal/admin/reviews/student-reviews")} style={getSubActiveStyle("/portal/admin/reviews/student-reviews")}>
+                          <span className={isActive("/portal/admin/reviews/student-reviews") ? 'text-white' : 'text-gray-100'}>Reviews</span>
+                        </Link>
+                      </li>
+                    </ul>
+                  )}
+                </li>
+              </ul>
+            )}
+          </li>
+
           {/* Reports & Analytics */}
           <li>
             <button
@@ -686,6 +777,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
           </li>
 
 
+          
         </ul>
       </nav >
 
