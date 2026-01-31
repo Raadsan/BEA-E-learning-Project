@@ -36,6 +36,8 @@ import courseTimelineRoutes from './routes/courseTimelineRoutes.js';
 import testimonialsRoutes from './routes/testimonialsRoutes.js';
 import teacherReviewRoutes from './routes/teacherReviewRoutes.js';
 import studentReviewRoutes from './routes/studentReviewRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
+
 
 dotenv.config();
 
@@ -83,6 +85,9 @@ app.use('/api/course-timeline', courseTimelineRoutes);
 app.use('/api/testimonials', testimonialsRoutes);
 app.use('/api/teacher-reviews', teacherReviewRoutes);
 app.use('/api/student-reviews', studentReviewRoutes);
+app.use('/api/reports', reportRoutes);
+
+
 
 // Root Route
 app.get('/', (req, res) => {

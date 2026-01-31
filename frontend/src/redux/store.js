@@ -32,6 +32,7 @@ import { placementTestApi } from "./api/placementTestApi";
 import { learningHoursApi } from "./api/learningHoursApi";
 import { shiftApi } from "./api/shiftApi";
 import { reviewApi } from "./api/reviewApi";
+import { reportApi } from "./api/reportApi";
 
 export const store = configureStore({
     reducer: {
@@ -68,6 +69,7 @@ export const store = configureStore({
         [learningHoursApi.reducerPath]: learningHoursApi.reducer,
         [shiftApi.reducerPath]: shiftApi.reducer,
         [reviewApi.reducerPath]: reviewApi.reducer,
+        [reportApi.reducerPath]: reportApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(
@@ -103,6 +105,7 @@ export const store = configureStore({
             placementTestApi.middleware,
             learningHoursApi.middleware,
             shiftApi.middleware,
-            reviewApi.middleware
+            reviewApi.middleware,
+            reportApi.middleware
         ),
 });
