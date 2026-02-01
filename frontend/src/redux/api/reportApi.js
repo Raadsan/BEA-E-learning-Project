@@ -41,6 +41,40 @@ export const reportApi = createApi({
       providesTags: ["Reports"],
       transformResponse: (response) => response.success ? response.data : response
     }),
+    getDetailedStudentList: builder.query({
+      query: (params) => ({
+        url: "/detailed-students",
+        params
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    }),
+    getStudentDetailedReport: builder.query({
+      query: (studentId) => `/student/${studentId}`,
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    }),
+    getAttendanceAnalytics: builder.query({
+      query: (params) => ({
+        url: "/attendance-analytics",
+        params
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    }),
+    getAssignmentCompletionAnalytics: builder.query({
+      query: (params) => ({
+        url: "/assignment-completion",
+        params
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    }),
+    getConsolidatedStats: builder.query({
+      query: () => "/consolidated-stats",
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    })
   }),
 });
 
@@ -48,5 +82,10 @@ export const {
   useGetStudentStatsQuery,
   useGetProgramDistributionQuery,
   useGetSubprogramDistributionQuery,
-  useGetPerformanceOverviewQuery
+  useGetPerformanceOverviewQuery,
+  useGetDetailedStudentListQuery,
+  useGetStudentDetailedReportQuery,
+  useGetAttendanceAnalyticsQuery,
+  useGetAssignmentCompletionAnalyticsQuery,
+  useGetConsolidatedStatsQuery
 } = reportApi;
