@@ -167,9 +167,9 @@ export default function IELTSTOEFLStudentsPage() {
       key: "student_id",
       label: "Student ID",
       width: COL_WIDTH,
-      render: (row) => (
+      render: (val) => (
         <span className="font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
-          {row.student_id || "N/A"}
+          {val || "N/A"}
         </span>
       ),
     },
@@ -177,7 +177,7 @@ export default function IELTSTOEFLStudentsPage() {
       key: "fullName",
       label: "Full Name",
       width: COL_WIDTH,
-      render: (row) => (
+      render: (_, row) => (
         <span className="font-medium text-gray-900 dark:text-white">
           {`${row.first_name || ''} ${row.last_name || ''}`}
         </span>
@@ -187,9 +187,9 @@ export default function IELTSTOEFLStudentsPage() {
       key: "email",
       label: "Email",
       width: COL_WIDTH,
-      render: (row) => (
-        <span className="text-gray-700 dark:text-gray-300 truncate block font-sans text-xs" title={row.email}>
-          {row.email}
+      render: (val) => (
+        <span className="text-gray-700 dark:text-gray-300 truncate block font-sans text-xs" title={val}>
+          {val}
         </span>
       ),
     },
@@ -197,12 +197,12 @@ export default function IELTSTOEFLStudentsPage() {
       key: "examType",
       label: "Exam Type",
       width: COL_WIDTH,
-      render: (row) => (
+      render: (val) => (
         <span
           className="text-sm text-black dark:text-white truncate block font-medium"
-          title={row.exam_type}
+          title={val}
         >
-          {row.exam_type?.length > 15 ? `${row.exam_type.substring(0, 15)}...` : row.exam_type}
+          {val?.length > 15 ? `${val.substring(0, 15)}...` : val}
         </span>
       ),
     },
@@ -210,13 +210,13 @@ export default function IELTSTOEFLStudentsPage() {
       key: "verification_method",
       label: "Verification",
       width: COL_WIDTH,
-      render: (row) => (
+      render: (val) => (
         <span
           className="text-sm text-black dark:text-white truncate block font-medium"
-          title={row.verification_method}
+          title={val}
         >
-          {row.verification_method === "Proficiency Exam" ? "Proficiency..." :
-            (row.verification_method?.length > 15 ? `${row.verification_method.substring(0, 15)}...` : row.verification_method)}
+          {val === "Proficiency Exam" ? "Proficiency..." :
+            (val?.length > 15 ? `${val.substring(0, 15)}...` : val)}
         </span>
       ),
     },
@@ -261,8 +261,8 @@ export default function IELTSTOEFLStudentsPage() {
       key: "status",
       label: "Status",
       width: COL_WIDTH,
-      render: (row) => {
-        const s = (row.status || 'Pending').toLowerCase();
+      render: (val, row) => {
+        const s = (val || 'Pending').toLowerCase();
         const colors = {
           "approved": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
           "pending": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
@@ -294,7 +294,7 @@ export default function IELTSTOEFLStudentsPage() {
       key: "actions",
       label: "Actions",
       width: COL_WIDTH,
-      render: (row) => (
+      render: (_, row) => (
         <div className="flex gap-3 items-center justify-center">
           {/* View Details */}
           <button

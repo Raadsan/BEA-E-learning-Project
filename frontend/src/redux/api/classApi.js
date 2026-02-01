@@ -19,8 +19,8 @@ export const classApi = createApi({
       query: () => "/",
       providesTags: ["Classes"],
     }),
-    getClassesByCourseId: builder.query({
-      query: (courseId) => `/course/${courseId}`,
+    getClassesBySubprogramId: builder.query({
+      query: (subprogramId) => `/subprogram/${subprogramId}`,
       providesTags: ["Classes"],
     }),
     getClass: builder.query({
@@ -95,7 +95,7 @@ export const classApi = createApi({
 
 export const {
   useGetClassesQuery,
-  useGetClassesByCourseIdQuery,
+  useGetClassesBySubprogramIdQuery,
   useGetClassQuery,
   useCreateClassMutation,
   useUpdateClassMutation,

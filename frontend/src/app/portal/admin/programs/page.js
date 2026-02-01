@@ -171,12 +171,12 @@ export default function ProgramsPage() {
 
   const columns = [
     { key: "title", label: "Title" },
-    { key: "description", label: "Description", render: (row) => <span className="truncate block max-w-xs">{row.description || "No description"}</span> },
-    { key: "price", label: "Price", render: (row) => <div><span>${(parseFloat(row.price || 0) - parseFloat(row.discount || 0)).toFixed(2)}</span>{parseFloat(row.discount || 0) > 0 && <span className="block text-[10px] text-gray-400 line-through">${parseFloat(row.price || 0).toFixed(2)}</span>}</div> },
-    { key: "status", label: "Status", render: (row) => <button onClick={() => handleStatusToggle(row)} className={`px-4 py-1.5 text-xs font-bold rounded-full ${row.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{row.status?.charAt(0).toUpperCase() + row.status?.slice(1)}</button> },
+    { key: "description", label: "Description", render: (val) => <span className="truncate block max-w-xs">{val || "No description"}</span> },
+    { key: "price", label: "Price", render: (_, row) => <div><span>${(parseFloat(row.price || 0) - parseFloat(row.discount || 0)).toFixed(2)}</span>{parseFloat(row.discount || 0) > 0 && <span className="block text-[10px] text-gray-400 line-through">${parseFloat(row.price || 0).toFixed(2)}</span>}</div> },
+    { key: "status", label: "Status", render: (val, row) => <button onClick={() => handleStatusToggle(row)} className={`px-4 py-1.5 text-xs font-bold rounded-full ${val === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{val?.charAt(0).toUpperCase() + val?.slice(1)}</button> },
     {
       key: "actions", label: "Actions",
-      render: (row) => (
+      render: (_, row) => (
         <div className="flex gap-2">
           <button onClick={() => handleView(row)} className="text-blue-600 p-1 hover:bg-blue-50 rounded" title="View"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
           <button onClick={() => handleEdit(row)} className="text-blue-600 p-1 hover:bg-blue-50 rounded" title="Edit"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>

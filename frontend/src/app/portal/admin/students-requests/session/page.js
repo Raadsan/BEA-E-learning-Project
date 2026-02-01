@@ -81,25 +81,25 @@ export default function AdminSessionRequestsPage() {
     const columns = [
         {
             key: "student_id", label: "STUDENT ID", width: "150px",
-            render: (row) => <div className="text-gray-900 dark:text-white truncate lg:max-w-[150px]" title={row.student_id || "N/A"}>{row.student_id || "N/A"}</div>
+            render: (val) => <div className="text-gray-900 dark:text-white truncate lg:max-w-[150px]" title={val || "N/A"}>{val || "N/A"}</div>
         },
         {
             key: "student_name", label: "NAME", width: "200px",
-            render: (row) => <div className="text-gray-600 dark:text-gray-400  truncate lg:max-w-[180px]" title={row.student_name}>{row.student_name}</div>
+            render: (val) => <div className="text-gray-600 dark:text-gray-400  truncate lg:max-w-[180px]" title={val}>{val}</div>
         },
         {
             key: "program_name", label: "PROGRAM", width: "180px",
-            render: (row) => <div className="text-gray-700 dark:text-gray-300 truncate lg:max-w-[180px]" title={row.program_name || "-"}>{row.program_name || "-"}</div>
+            render: (val) => <div className="text-gray-700 dark:text-gray-300 truncate lg:max-w-[180px]" title={val || "-"}>{val || "-"}</div>
         },
         {
             key: "subprogram_name", label: "SUBPROGRAM", width: "180px",
-            render: (row) => <div className="text-gray-700 dark:text-gray-300 truncate lg:max-w-[180px]" title={row.subprogram_name || "-"}>{row.subprogram_name || "-"}</div>
+            render: (val) => <div className="text-gray-700 dark:text-gray-300 truncate lg:max-w-[180px]" title={val || "-"}>{val || "-"}</div>
         },
         {
             key: "current_class_name", label: "CURRENT CLASS", width: "180px",
-            render: (row) => (
-                <div className="text-sm text-gray-700 dark:text-gray-200 truncate lg:max-w-[180px]" title={`${row.current_class_name || "N/A"}`}>
-                    <div>{row.current_class_name || "N/A"}</div>
+            render: (val, row) => (
+                <div className="text-sm text-gray-700 dark:text-gray-200 truncate lg:max-w-[180px]" title={`${val || "N/A"}`}>
+                    <div>{val || "N/A"}</div>
                     <div className="text-[10px] text-gray-500 font-normal">
                         {row.current_shift_name && row.current_session_type
                             ? `${row.current_shift_name} - ${row.current_session_type}`
@@ -110,9 +110,9 @@ export default function AdminSessionRequestsPage() {
         },
         {
             key: "requested_session_type", label: "REQUEST", width: "180px",
-            render: (row) => (
-                <div className="truncate lg:max-w-[180px]" title={row.requested_session_type}>
-                    <span className="text-sm text-blue-600 dark:text-blue-400 capitalize">{row.requested_session_type}</span>
+            render: (val, row) => (
+                <div className="truncate lg:max-w-[180px]" title={val}>
+                    <span className="text-sm text-blue-600 dark:text-blue-400 capitalize">{val}</span>
                     <div className="text-[10px] text-gray-500">
                         {row.requested_shift_name && row.requested_class_type
                             ? `${row.requested_shift_name} - ${row.requested_class_type}`
@@ -123,16 +123,16 @@ export default function AdminSessionRequestsPage() {
         },
         {
             key: "status", label: "STATUS", width: "120px",
-            render: (row) => {
+            render: (val, row) => {
                 const styles = {
                     approved: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800",
                     rejected: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800",
                     pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800"
                 };
 
-                const currentStyle = styles[row.status] || styles.pending;
+                const currentStyle = styles[val] || styles.pending;
 
-                if (row.status === 'pending') {
+                if (val === 'pending') {
                     return (
                         <button
                             onClick={() => openModal(row, 'choose')}
@@ -145,14 +145,14 @@ export default function AdminSessionRequestsPage() {
 
                 return (
                     <span className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider border ${currentStyle}`}>
-                        {row.status}
+                        {val}
                     </span>
                 );
             },
         },
         {
             key: "actions", label: "ACTIONS", width: "100px",
-            render: (row) => (
+            render: (_, row) => (
                 <button
                     onClick={() => openModal(row, 'view')}
                     className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-1 text-xs"

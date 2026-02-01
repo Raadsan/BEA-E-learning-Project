@@ -124,15 +124,15 @@ export default function AdminsPage() {
   };
 
   const columns = [
-    { key: "first_name", label: "First Name", render: (row) => <span className="font-medium text-gray-900 dark:text-white">{row.first_name || "-"}</span> },
-    { key: "last_name", label: "Last Name", render: (row) => <span className="font-medium text-gray-900 dark:text-white">{row.last_name || "-"}</span> },
-    { key: "username", label: "Username", render: (row) => <span className="text-gray-700 dark:text-gray-300">{row.username}</span> },
-    { key: "email", label: "Email", render: (row) => <span className="text-gray-700 dark:text-gray-300">{row.email || "-"}</span> },
-    { key: "status", label: "Status", render: (row) => <button onClick={() => handleStatusToggle(row)} className={`px-3 py-1 text-xs font-semibold rounded-full ${row.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{row.status?.charAt(0).toUpperCase() + row.status?.slice(1)}</button> },
-    { key: "role", label: "Role", render: (row) => <span className="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">{row.role}</span> },
+    { key: "first_name", label: "First Name", render: (val) => <span className="font-medium text-gray-900 dark:text-white">{val || "-"}</span> },
+    { key: "last_name", label: "Last Name", render: (val) => <span className="font-medium text-gray-900 dark:text-white">{val || "-"}</span> },
+    { key: "username", label: "Username", render: (val) => <span className="text-gray-700 dark:text-gray-300">{val}</span> },
+    { key: "email", label: "Email", render: (val) => <span className="text-gray-700 dark:text-gray-300">{val || "-"}</span> },
+    { key: "status", label: "Status", render: (val, row) => <button onClick={() => handleStatusToggle(row)} className={`px-3 py-1 text-xs font-semibold rounded-full ${val === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{val?.charAt(0).toUpperCase() + val?.slice(1)}</button> },
+    { key: "role", label: "Role", render: (val) => <span className="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">{val}</span> },
     {
       key: "actions", label: "Actions",
-      render: (row) => (
+      render: (_, row) => (
         <div className="flex gap-2 items-center">
           <button onClick={() => handleEditClick(row)} className="text-green-600 p-2 hover:bg-green-50 rounded-lg transition-colors" title="Edit"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
           <button onClick={() => handleDeleteClick(row.id)} className="text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Delete" disabled={isDeleting}><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>

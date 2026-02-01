@@ -145,12 +145,12 @@ export default function ClassesPage() {
 
   const columns = useMemo(() => [
     { key: "class_name", label: "Class Name" },
-    { key: "description", label: "Description", render: (row) => row.description || "No description" },
-    { key: "subprogram_name", label: "Subprogram", render: (row) => row.subprogram_name || "Not assigned" },
-    { key: "program_name", label: "Program", render: (row) => row.program_name || "Not assigned" },
-    { key: "teacher_name", label: "Assigned Teacher", render: (row) => row.teacher_name || "No assigned teacher" },
+    { key: "description", label: "Description", render: (val) => val || "No description" },
+    { key: "subprogram_name", label: "Subprogram", render: (val) => val || "Not assigned" },
+    { key: "program_name", label: "Program", render: (val) => val || "Not assigned" },
+    { key: "teacher_name", label: "Assigned Teacher", render: (val) => val || "No assigned teacher" },
     {
-      key: "shift_info", label: "Shift & Session", render: (row) => (
+      key: "shift_info", label: "Shift & Session", render: (_, row) => (
         row.shift_name ? (
           <div className="flex flex-col">
             <span className="font-semibold text-blue-600">{row.shift_name}</span>
@@ -161,7 +161,7 @@ export default function ClassesPage() {
     },
     {
       key: "actions", label: "Actions",
-      render: (row) => (
+      render: (_, row) => (
         <div className="flex gap-2">
           <button onClick={() => handleView(row)} className="text-green-600 p-1 hover:bg-green-50 rounded" title="View Students"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
           <button onClick={() => handleAssign(row)} className="text-purple-600 p-1 hover:bg-purple-50 rounded" title="Assign Teacher"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></button>

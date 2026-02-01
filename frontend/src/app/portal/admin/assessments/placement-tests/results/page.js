@@ -17,15 +17,15 @@ export default function PlacementResultsPage() {
         {
             key: "submitted_at",
             label: "Test Date",
-            render: (row) => new Date(row.submitted_at).toLocaleDateString(),
+            render: (val) => new Date(val).toLocaleDateString(),
         },
         {
             key: "percentage",
             label: "Score",
-            render: (row) => (
+            render: (val, row) => (
                 <div className="flex flex-col">
                     <span className="font-semibold text-gray-900 dark:text-white">
-                        {Math.round(row.percentage)}%
+                        {Math.round(val)}%
                     </span>
                     {row.status === 'pending_review' && (
                         <span className="text-[10px] text-yellow-600 font-bold uppercase tracking-tight">Partial</span>
@@ -36,8 +36,8 @@ export default function PlacementResultsPage() {
         {
             key: "recommended_level",
             label: "Level",
-            render: (row) => {
-                const level = row.recommended_level;
+            render: (val) => {
+                const level = val;
 
                 if (!level) return <span className="text-xs text-gray-400 font-medium italic">Evaluating...</span>;
 
@@ -56,7 +56,7 @@ export default function PlacementResultsPage() {
         {
             key: "recommended_course",
             label: "Recommended Course",
-            render: (row) => {
+            render: (_, row) => {
                 const level = row.recommended_level;
                 if (!level) return <span className="text-gray-400">-</span>;
                 return `${level} English`;
@@ -65,11 +65,11 @@ export default function PlacementResultsPage() {
         {
             key: "status",
             label: "Status",
-            render: (row) => {
-                const isPending = row.status === 'pending_review';
+            render: (val) => {
+                const isPending = val === 'pending_review';
                 return (
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${isPending ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                        {isPending ? 'Pending Review' : (row.status || 'Completed')}
+                        {isPending ? 'Pending Review' : (val || 'Completed')}
                     </span>
                 )
             },
@@ -77,7 +77,7 @@ export default function PlacementResultsPage() {
         {
             key: "actions",
             label: "Actions",
-            render: (row) => (
+            render: (_, row) => (
                 <div className="flex gap-2">
                     <button
                         onClick={() => router.push(`/portal/admin/assessments/placement-tests/results/${row.id}`)}

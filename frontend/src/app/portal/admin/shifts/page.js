@@ -104,21 +104,21 @@ export default function ShiftsPage() {
         {
             key: "session_type",
             label: "Session",
-            render: (row) => (
+            render: (val) => (
                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${isDark ? 'bg-blue-900/40 text-blue-300' : 'bg-blue-50 text-blue-600'}`}>
-                    {row.session_type}
+                    {val}
                 </span>
             )
         },
         {
             key: "start_time",
             label: "Start Time",
-            render: (row) => <span className="font-medium">{row.start_time}</span>
+            render: (val) => <span className="font-medium">{val}</span>
         },
         {
             key: "end_time",
             label: "End Time",
-            render: (row) => <span className="font-medium">{row.end_time}</span>
+            render: (val) => <span className="font-medium">{val}</span>
         },
         {
             key: "actions", label: "Actions",

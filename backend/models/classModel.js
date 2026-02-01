@@ -82,12 +82,24 @@ export const getClassByName = async (name) => {
 // Since we are removing courses, this function might be irrelevant, but keeping it empty or throwing error might be safer if called.
 // For now, I'll remove it or if it's used somewhere I should find out.
 // Assuming it's not used if we remove routes calling it.
-export const getClassesByCourseId = async (course_id) => {
-  // Returning empty array as course concept is removed
-  return [];
+// GET classes by subprogram_id
+export const getClassesBySubprogramId = async (subprogram_id) => {
+  const [rows] = await dbp.query(
+    `SELECT cl.*, 
+            s.subprogram_name,
+            s.program_id,
+            p.title as program_name
+     FROM classes cl 
+     LEFT JOIN subprograms s ON cl.subprogram_id = s.id 
+     LEFT JOIN programs p ON s.program_id = p.id 
+     WHERE cl.subprogram_id = ?
+     ORDER BY cl.created_at DESC`,
+    [subprogram_id]
+  );
+  return rows;
 };
 
-// GET classes by teacher_id
+// GET classes by course_id - REMOVED or DEPRECATED?
 export const getClassesByTeacherId = async (teacher_id) => {
   const [rows] = await dbp.query(
     `SELECT cl.*, 

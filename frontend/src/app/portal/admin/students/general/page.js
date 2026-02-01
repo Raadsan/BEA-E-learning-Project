@@ -310,9 +310,9 @@ export default function GeneralStudentsPage() {
       key: "student_id",
       label: "Student ID",
       width: "150px",
-      render: (row) => (
+      render: (val) => (
         <span className="font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
-          {row.student_id || "N/A"}
+          {val || "N/A"}
         </span>
       ),
     },
@@ -330,28 +330,28 @@ export default function GeneralStudentsPage() {
       key: "phone",
       label: "Phone",
       width: "150px",
-      render: (row) => row.phone || <span className="text-gray-400">-</span>,
+      render: (val) => val || <span className="text-gray-400">-</span>,
     },
     {
       key: "age",
       label: "Age",
       width: "80px",
-      render: (row) => row.age || <span className="text-gray-400">-</span>,
+      render: (val) => val || <span className="text-gray-400">-</span>,
     },
     {
       key: "residency_country",
       label: "Country",
       width: "150px",
-      render: (row) => row.residency_country || <span className="text-gray-400">-</span>,
+      render: (val) => val || <span className="text-gray-400">-</span>,
     },
 
     {
       key: "chosen_program",
       label: "Program",
       width: "180px",
-      render: (row) => (
-        <span className="block truncate max-w-[160px]" title={row.chosen_program}>
-          {row.chosen_program || <span className="text-gray-400">-</span>}
+      render: (val) => (
+        <span className="block truncate max-w-[160px]" title={val}>
+          {val || <span className="text-gray-400">-</span>}
         </span>
       ),
     },
@@ -359,8 +359,8 @@ export default function GeneralStudentsPage() {
       key: "chosen_subprogram",
       label: "Subprogram",
       width: "180px",
-      render: (row) => {
-        let subId = row.chosen_subprogram;
+      render: (val, row) => {
+        let subId = val;
         if (!subId && row.class_id) {
           const cls = classes.find(c => c.id == row.class_id);
           if (cls) subId = cls.subprogram_id;
@@ -389,8 +389,8 @@ export default function GeneralStudentsPage() {
       key: "class_id",
       label: "Class",
       width: "150px",
-      render: (row) => {
-        const className = getClassName(row.class_id);
+      render: (val, row) => {
+        const className = getClassName(val);
         if (!className) {
           return (
             <button
@@ -411,9 +411,9 @@ export default function GeneralStudentsPage() {
     {
       key: "created_at",
       label: "Registration Date",
-      render: (row) => {
-        if (!row.created_at) return <span className="text-gray-400">-</span>;
-        const date = new Date(row.created_at);
+      render: (val) => {
+        if (!val) return <span className="text-gray-400">-</span>;
+        const date = new Date(val);
         return date.toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'short',
@@ -424,8 +424,8 @@ export default function GeneralStudentsPage() {
     {
       key: "approval_status",
       label: "Status",
-      render: (row) => {
-        const isActive = row.approval_status === 'approved';
+      render: (val, row) => {
+        const isActive = val === 'approved';
         return (
           <div className="flex justify-center">
             <button
@@ -444,7 +444,7 @@ export default function GeneralStudentsPage() {
     {
       key: "actions",
       label: "Actions",
-      render: (row) => (
+      render: (_, row) => (
         <div className="flex gap-2 justify-center">
           <button
             onClick={() => handleOpenAssignModal(row)}

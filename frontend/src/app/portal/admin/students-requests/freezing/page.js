@@ -57,57 +57,57 @@ export default function AdminFreezingRequestsPage() {
     const columns = [
         {
             key: "student_id", label: "STUDENT ID", width: "150px",
-            render: (row) => {
-                const student = allStudents.find(s => s.student_id === row.student_id);
-                return <div className="font-bold text-gray-900 dark:text-white truncate lg:max-w-[150px]" title={student?.student_id || row.student_id || "N/A"}>{student?.student_id || row.student_id || "N/A"}</div>;
+            render: (val, row) => {
+                const student = allStudents.find(s => s.student_id === val);
+                return <div className="font-bold text-gray-900 dark:text-white truncate lg:max-w-[150px]" title={student?.student_id || val || "N/A"}>{student?.student_id || val || "N/A"}</div>;
             }
         },
         {
             key: "student_name", label: "FULL NAME", width: "200px",
-            render: (row) => <div className="font-bold text-gray-900 dark:text-white uppercase truncate lg:max-w-[180px]" title={row.student_name}>{row.student_name}</div>
+            render: (val) => <div className="font-bold text-gray-900 dark:text-white uppercase truncate lg:max-w-[180px]" title={val}>{val}</div>
         },
         {
             key: "student_email", label: "EMAIL", width: "200px",
-            render: (row) => <div className="text-gray-600 dark:text-gray-400 truncate lg:max-w-[200px]" title={row.student_email}>{row.student_email}</div>
+            render: (val) => <div className="text-gray-600 dark:text-gray-400 truncate lg:max-w-[200px]" title={val}>{val}</div>
         },
         {
             key: "phone", label: "PHONE", width: "150px",
-            render: (row) => {
+            render: (_, row) => {
                 const student = allStudents.find(s => s.student_id === row.student_id);
                 return <span className="text-gray-600 dark:text-gray-400">{student?.phone || "-"}</span>;
             }
         },
         {
             key: "age", label: "AGE", width: "80px",
-            render: (row) => {
+            render: (_, row) => {
                 const student = allStudents.find(s => s.student_id === row.student_id);
                 return <span className="text-gray-600 dark:text-gray-400">{student?.age || "-"}</span>;
             }
         },
         {
             key: "country", label: "COUNTRY", width: "120px",
-            render: (row) => {
+            render: (_, row) => {
                 const student = allStudents.find(s => s.student_id === row.student_id);
                 return <span className="text-gray-600 dark:text-gray-400">{student?.country || "-"}</span>;
             }
         },
         {
             key: "program", label: "PROGRAM", width: "180px",
-            render: (row) => {
+            render: (_, row) => {
                 const student = allStudents.find(s => s.student_id === row.student_id);
                 return <div className="text-gray-600 dark:text-gray-400 font-medium truncate lg:max-w-[180px]" title={student?.chosen_program || "-"}>{student?.chosen_program || "-"}</div>;
             }
         },
         {
             key: "subprogram", label: "SUBPROGRAM", width: "180px",
-            render: (row) => {
+            render: (_, row) => {
                 const student = allStudents.find(s => s.student_id === row.student_id);
                 return <div className="text-gray-600 dark:text-gray-400 font-medium truncate lg:max-w-[180px]" title={student?.chosen_subprogram_name || student?.chosen_subprogram || "-"}>{student?.chosen_subprogram_name || student?.chosen_subprogram || "-"}</div>;
             }
         },
         {
             key: "period", label: "FREEZING PERIOD", width: "220px",
-            render: (row) => (
+            render: (_, row) => (
                 <div className="text-sm">
                     <div className="font-bold text-blue-600 dark:text-blue-400">
                         {new Date(row.start_date).toLocaleDateString()} - {new Date(row.end_date).toLocaleDateString()}
@@ -116,12 +116,12 @@ export default function AdminFreezingRequestsPage() {
                 </div>
             ),
         },
-        { key: "reason", label: "REASON", width: "150px", render: (row) => <div className="capitalize text-sm font-medium truncate lg:max-w-[150px]" title={row.reason}>{row.reason}</div> },
-        { key: "description", label: "DETAILS", width: "200px", render: (row) => <div className="text-sm truncate lg:max-w-[200px]" title={row.description}>{row.description || "No description provided"}</div> },
+        { key: "reason", label: "REASON", width: "150px", render: (val, row) => <div className="capitalize text-sm font-medium truncate lg:max-w-[150px]" title={row.reason}>{row.reason}</div> },
+        { key: "description", label: "DETAILS", width: "200px", render: (val, row) => <div className="text-sm truncate lg:max-w-[200px]" title={row.description}>{row.description || "No description provided"}</div> },
         {
             key: "status", label: "Status", width: "120px",
-            render: (row) => {
-                switch (row.status) {
+            render: (val) => {
+                switch (val) {
                     case 'approved': return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase tracking-wider">Approved</span>;
                     case 'rejected': return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 uppercase tracking-wider">Rejected</span>;
                     default: return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 uppercase tracking-wider">Pending</span>;
@@ -130,7 +130,7 @@ export default function AdminFreezingRequestsPage() {
         },
         {
             key: "actions", label: "ACTIONS", width: "150px",
-            render: (row) => {
+            render: (_, row) => {
                 if (row.status === 'pending') {
                     return (
                         <div className="flex gap-2">

@@ -4,7 +4,7 @@ import {
   createClass,
   getClasses,
   getClass,
-  getClassesByCourseId,
+  getClassesBySubprogramId,
   updateClass,
   deleteClass,
   createClassesForSubprogram,
@@ -25,7 +25,7 @@ const router = express.Router();
 // ---------- CLASS ROUTES ----------
 router.get("/", verifyToken, getClasses);
 router.get("/all-schedules", verifyToken, getAllClassSchedules); // Get all schedules across classes
-router.get("/course/:course_id", getClassesByCourseId);
+router.get("/subprogram/:subprogram_id", getClassesBySubprogramId);
 router.get("/:id", getClass);
 router.post("/", createClass);
 router.post("/create-for-subprogram", createClassesForSubprogram);

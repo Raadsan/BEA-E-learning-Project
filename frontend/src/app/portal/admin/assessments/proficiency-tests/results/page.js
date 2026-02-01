@@ -13,20 +13,20 @@ export default function ProficiencyTestResultsPage() {
         {
             key: "student_name",
             label: "Student Name",
-            render: (row) => row.name || row.full_name || "Unknown Student"
+            render: (val, row) => val || row.name || row.full_name || "Unknown Student"
         },
         {
             key: "submitted_at",
             label: "Test Date",
-            render: (row) => new Date(row.submitted_at || row.created_at).toLocaleDateString(),
+            render: (val, row) => new Date(val || row.created_at).toLocaleDateString(),
         },
         {
             key: "score",
             label: "Score",
-            render: (row) => (
+            render: (val, row) => (
                 <div className="flex flex-col">
                     <span className="font-semibold text-gray-900 dark:text-white">
-                        {row.score !== null ? `${row.score} / ${row.total_points || row.total_questions || 0}` : "N/A"}
+                        {val !== null ? `${val} / ${row.total_points || row.total_questions || 0}` : "N/A"}
                     </span>
                     {row.percentage !== null && (
                         <span className="text-xs text-gray-500">
@@ -39,8 +39,8 @@ export default function ProficiencyTestResultsPage() {
         {
             key: "recommended_level",
             label: "Level",
-            render: (row) => {
-                const level = row.recommended_level;
+            render: (val) => {
+                const level = val;
 
                 if (!level) return <span className="text-xs text-gray-400 font-medium italic">-</span>;
 
@@ -59,8 +59,8 @@ export default function ProficiencyTestResultsPage() {
         {
             key: "status",
             label: "Status",
-            render: (row) => {
-                const status = row.status;
+            render: (val) => {
+                const status = val;
                 const isPending = status === 'pending';
                 const statusStyles = {
                     pending: 'bg-yellow-100 text-yellow-800',
@@ -79,7 +79,7 @@ export default function ProficiencyTestResultsPage() {
         {
             key: "actions",
             label: "Actions",
-            render: (row) => (
+            render: (_, row) => (
                 <div className="flex gap-2">
                     <button
                         onClick={() => router.push(`/portal/admin/assessments/proficiency-tests/results/${row.id}`)}

@@ -22,12 +22,18 @@ export const reportApi = createApi({
   tagTypes: ["Reports"],
   endpoints: (builder) => ({
     getStudentStats: builder.query({
-      query: () => "/student-stats",
+      query: (params) => ({
+        url: "/student-stats",
+        params
+      }),
       providesTags: ["Reports"],
       transformResponse: (response) => response.success ? response.data : response
     }),
     getProgramDistribution: builder.query({
-      query: () => "/program-distribution",
+      query: (params) => ({
+        url: "/program-distribution",
+        params
+      }),
       providesTags: ["Reports"],
       transformResponse: (response) => response.success ? response.data : response
     }),
@@ -71,7 +77,10 @@ export const reportApi = createApi({
       transformResponse: (response) => response.success ? response.data : response
     }),
     getConsolidatedStats: builder.query({
-      query: () => "/consolidated-stats",
+      query: (params) => ({
+        url: "/consolidated-stats",
+        params
+      }),
       providesTags: ["Reports"],
       transformResponse: (response) => response.success ? response.data : response
     })
@@ -84,6 +93,7 @@ export const {
   useGetSubprogramDistributionQuery,
   useGetPerformanceOverviewQuery,
   useGetDetailedStudentListQuery,
+  useLazyGetDetailedStudentListQuery,
   useGetStudentDetailedReportQuery,
   useGetAttendanceAnalyticsQuery,
   useGetAssignmentCompletionAnalyticsQuery,

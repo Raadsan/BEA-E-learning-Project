@@ -43,7 +43,7 @@ export default function UsersPage() {
     {
       key: "full_name",
       label: "Full Name",
-      render: (row) => (
+      render: (_, row) => (
         <span className="font-medium text-gray-900 dark:text-white">
           {row.full_name || "-"}
         </span>
@@ -52,7 +52,7 @@ export default function UsersPage() {
     {
       key: "email",
       label: "Email",
-      render: (row) => (
+      render: (_, row) => (
         <span className="text-gray-700 dark:text-gray-300">{row.email || "-"}</span>
       ),
     },
@@ -68,13 +68,13 @@ export default function UsersPage() {
     {
       key: "role",
       label: "Role",
-      render: (row) => {
+      render: (val, row) => {
         const roleColors = {
           admin: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
           teacher: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
           student: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
         };
-        const roleDisplay = row.role || row.user_type || "N/A";
+        const roleDisplay = val || row.user_type || "N/A";
         // Simple normalization for role key to match colors
         const roleKey = (roleDisplay.toLowerCase().includes('admin') ? 'admin' :
           roleDisplay.toLowerCase().includes('teacher') ? 'teacher' :
@@ -91,8 +91,8 @@ export default function UsersPage() {
     {
       key: "status",
       label: "Status",
-      render: (row) => {
-        const status = row.status || "Active";
+      render: (val, row) => {
+        const status = val || "Active";
         const isActive = status.toLowerCase() === "active";
 
         return (
@@ -108,7 +108,7 @@ export default function UsersPage() {
     {
       key: "actions",
       label: "Actions",
-      render: (row) => (
+      render: (_, row) => (
         <div className="flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => handleView(row)}
@@ -238,8 +238,8 @@ export default function UsersPage() {
                     <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
                       }`}>Status</label>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${viewingUser.status?.toLowerCase() === 'active'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                      : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                       }`}>
                       {viewingUser.status || 'Active'}
                     </span>

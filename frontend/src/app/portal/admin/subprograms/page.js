@@ -151,12 +151,12 @@ export default function SubprogramsPage() {
 
   const columns = [
     { key: "subprogram_name", label: "Subprogram Name" },
-    { key: "program_name", label: "Program", render: (row) => row.program_name || "N/A" },
-    { key: "description", label: "Description", render: (row) => <span className="text-gray-700 dark:text-gray-300 max-w-xs truncate block">{row.description || <span className="text-gray-400">No description</span>}</span> },
-    { key: "status", label: "Status", render: (row) => <button onClick={() => handleStatusToggle(row)} className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full transition-all active:scale-95 ${row.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{row.status === "active" ? "Active" : "Inactive"}</button> },
+    { key: "program_name", label: "Program", render: (val) => val || "N/A" },
+    { key: "description", label: "Description", render: (val) => <span className="text-gray-700 dark:text-gray-300 max-w-xs truncate block">{val || <span className="text-gray-400">No description</span>}</span> },
+    { key: "status", label: "Status", render: (val, row) => <button onClick={() => handleStatusToggle(row)} className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full transition-all active:scale-95 ${val === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{val === "active" ? "Active" : "Inactive"}</button> },
     {
       key: "actions", label: "Actions",
-      render: (row) => (
+      render: (_, row) => (
         <div className="flex gap-2">
           <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-900 transition-colors p-1 rounded hover:bg-blue-50" title="Edit">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>

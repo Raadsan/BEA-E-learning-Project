@@ -147,59 +147,59 @@ export default function ProficiencyCandidatesPage() {
         {
             key: "student_id",
             label: "Student ID",
-            render: (row) => <span className="font-bold text-gray-900">{row.student_id}</span>
+            render: (val) => <span className="font-bold text-gray-900">{val}</span>
         },
         {
             key: "full_name",
             label: "Full Name",
-            render: (row) => <span className="font-bold text-sm">{row.first_name} {row.last_name}</span>
+            render: (_, row) => <span className="font-bold text-sm">{row.first_name} {row.last_name}</span>
         },
         {
             key: "email",
             label: "Email",
-            render: (row) => <span className="text-sm text-gray-600">{row.email}</span>
+            render: (val) => <span className="text-sm text-gray-600">{val}</span>
         },
         {
             key: "phone",
             label: "Phone",
-            render: (row) => <span className="text-sm text-gray-600">{row.phone}</span>
+            render: (val) => <span className="text-sm text-gray-600">{val}</span>
         },
         {
             key: "age",
             label: "Age",
-            render: (row) => <span className="text-sm text-gray-600">{row.age || '-'}</span>
+            render: (val) => <span className="text-sm text-gray-600">{val || '-'}</span>
         },
         {
             key: "sex",
             label: "Sex",
-            render: (row) => <span className="text-sm text-gray-600">{row.sex || '-'}</span>
+            render: (val) => <span className="text-sm text-gray-600">{val || '-'}</span>
         },
         {
             key: "residency_country",
             label: "Country",
-            render: (row) => <span className="text-sm text-gray-600">{row.residency_country || '-'}</span>
+            render: (val) => <span className="text-sm text-gray-600">{val || '-'}</span>
         },
         {
             key: "program",
             label: "Program",
-            render: (row) => <span className="text-sm text-gray-600">Proficiency Test</span>
+            render: () => <span className="text-sm text-gray-600">Proficiency Test</span>
         },
         {
             key: "status",
             label: "Status",
-            render: (row) => (
-                <span className={`px-2 py-1 rounded text-xs font-bold ${row.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                    row.status === 'Rejected' ? 'bg-red-100 text-red-800' :
+            render: (val) => (
+                <span className={`px-2 py-1 rounded text-xs font-bold ${val === 'Approved' ? 'bg-green-100 text-green-800' :
+                    val === 'Rejected' ? 'bg-red-100 text-red-800' :
                         'bg-yellow-100 text-yellow-800'
                     }`}>
-                    {row.status || 'Pending'}
+                    {val || 'Pending'}
                 </span>
             )
         },
         {
             key: "actions",
             label: "Actions",
-            render: (row) => (
+            render: (_, row) => (
                 <div className="flex gap-2">
                     <button
                         onClick={() => {

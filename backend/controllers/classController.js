@@ -53,11 +53,11 @@ export const getClasses = async (req, res) => {
   }
 };
 
-// GET CLASSES BY COURSE ID
-export const getClassesByCourseId = async (req, res) => {
+// GET CLASSES BY SUBPROGRAM ID
+export const getClassesBySubprogramId = async (req, res) => {
   try {
-    const { course_id } = req.params;
-    const classes = await Class.getClassesByCourseId(course_id);
+    const { subprogram_id } = req.params;
+    const classes = await Class.getClassesBySubprogramId(subprogram_id);
     res.json(classes);
   } catch (err) {
     console.error(err);
