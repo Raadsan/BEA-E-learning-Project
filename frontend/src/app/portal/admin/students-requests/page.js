@@ -5,11 +5,25 @@ import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetSessionRequestsQuery } from "@/redux/api/sessionRequestApi";
 import { useGetFreezingRequestsQuery } from "@/redux/api/freezingApi";
+import { useGetLevelUpRequestsQuery, useUpdateLevelUpRequestStatusMutation } from "@/redux/api/levelUpApi";
+import { useToast } from "@/components/Toast";
 
 export default function AdminStudentsRequestsPage() {
     const { isDark } = useDarkMode();
     const { data: sessionRequests = [], isLoading: sessionLoading } = useGetSessionRequestsQuery();
     const { data: freezingRequests = [], isLoading: freezingLoading } = useGetFreezingRequestsQuery();
+    const { data: levelUpRequests = [], isLoading: levelUpLoading } = useGetLevelUpRequestsQuery();
+    const [updateLevelUpStatus] = useUpdateLevelUpRequestStatusMutation();
+    const { showToast } = useToast();
+
+    const handleLevelUpAction = async (id, status) => {
+        try {
+            await updateLevelUpStatus({ id, status }).unwrap();
+            showToast(`Request ${status} successfully`, "success");
+        } catch (err) {
+            showToast("Failed to update status", "error");
+        }
+    };
 
     const sessionColumns = [
         {
@@ -66,10 +80,68 @@ export default function AdminStudentsRequestsPage() {
         },
     ];
 
+    const levelUpColumns = [
+        {
+            key: "student_name", label: "Student", width: "250px",
+            render: (_, row) => (
+                <div>
+                    <div className="font-medium text-gray-900 dark:text-white uppercase font-bold">{row.student_name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{row.student_email}</div>
+                </div>
+            ),
+        },
+        { key: "requested_subprogram_name", label: "Requested Level", width: "200px" },
+        {
+            key: "status", label: "Status", width: "120px",
+            render: (val) => (
+                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${val === 'approved' ? 'bg-green-100 text-green-700' :
+                    val === 'rejected' ? 'bg-red-100 text-red-700' :
+                        'bg-yellow-100 text-yellow-700'
+                    }`}>
+                    {val}
+                </span>
+            )
+        },
+        {
+            key: "actions", label: "Actions", width: "200px",
+            render: (_, row) => row.status === 'pending' && (
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => handleLevelUpAction(row.id, 'approved')}
+                        className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg transition-colors"
+                    >
+                        Approve
+                    </button>
+                    <button
+                        onClick={() => handleLevelUpAction(row.id, 'rejected')}
+                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors"
+                    >
+                        Reject
+                    </button>
+                </div>
+            )
+        }
+    ];
+
     return (
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-900 transition-colors duration-300">
             <div className="w-full px-8 py-6 space-y-12">
                 <div className="max-w-7xl mx-auto space-y-12">
+                    <section>
+                        <div className="mb-6">
+                            <h2 className="text-xl font-bold text-[#010080] dark:text-white">Admin: Level-Up Requests</h2>
+                            <p className="text-gray-500 text-sm">Overview of students ready for promotion to their next level.</p>
+                        </div>
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+                            <DataTable
+                                columns={levelUpColumns}
+                                data={levelUpRequests}
+                                isLoading={levelUpLoading}
+                                showAddButton={false}
+                            />
+                        </div>
+                    </section>
+
                     <section>
                         <div className="mb-6">
                             <h2 className="text-xl font-bold text-[#010080] dark:text-white">Admin: Session Change Requests</h2>

@@ -148,49 +148,50 @@ export const getStudentStats = async (req, res) => {
     }
 };
 
-// 2. GET Program Distribution (Combined)
+// 2. GET Program Distribution (Combined or Drill-down)
 export const getProgramDistribution = async (req, res) => {
     try {
-        const { program, class_id } = req.query;
-        let whereS = "";
-        let whereI = "";
-        let params = [];
+        const { program } = req.query;
 
-        // For IELTSTOEFL
-        if (program) {
-            whereI = "WHERE chosen_program = ?";
-            params.push(program);
+        // If a specific program is selected, we drill down into its SUBPROGRAMS
+        if (program && program !== 'Proficiency Test') {
+            const [rows] = await dbp.query(`
+                SELECT sp.subprogram_name as name, COUNT(s.student_id) as students
+                FROM students s
+                JOIN subprograms sp ON s.chosen_subprogram = sp.id
+                WHERE s.chosen_program = ?
+                GROUP BY sp.subprogram_name
+                ORDER BY students DESC
+            `, [program]);
+            return res.json({ success: true, data: rows });
         }
 
-        // For ProficiencyTestStudents
-        let whereP = "";
-        if (program) {
-            if (program === 'Proficiency Test') {
-                whereP = ""; // Join all
-            } else {
-                whereP = "WHERE 1=0"; // Join none
-            }
+        // If 'Proficiency Test' is selected (no subprograms), just return the single bar
+        if (program === 'Proficiency Test') {
+            const [rows] = await dbp.query(`
+                SELECT 'Proficiency Test' as name, COUNT(*) as students
+                FROM ProficiencyTestStudents
+            `);
+            return res.json({ success: true, data: rows });
         }
 
+        // Default: Show distribution of ALL PROGRAMS (High Level)
         const [rows] = await dbp.query(`
             SELECT name, SUM(students) as students FROM (
                 SELECT chosen_program as name, COUNT(*) as students 
                 FROM students 
-                ${whereS}
                 GROUP BY chosen_program 
                 UNION ALL
                 SELECT chosen_program as name, COUNT(*) as students 
                 FROM IELTSTOEFL 
-                ${whereI}
                 GROUP BY chosen_program 
                 UNION ALL
                 SELECT 'Proficiency Test' as name, COUNT(*) as students
                 FROM ProficiencyTestStudents
-                ${whereP}
             ) combined
             GROUP BY name
             ORDER BY students DESC
-        `, params);
+        `);
         res.json({ success: true, data: rows });
     } catch (error) {
         console.error("Error in getProgramDistribution:", error);
@@ -516,6 +517,374 @@ export const getConsolidatedStats = async (req, res) => {
         });
     } catch (error) {
         console.error("Error in getConsolidatedStats:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 10. GET Assessment Stats
+export const getAssessmentStats = async (req, res) => {
+    try {
+        const { program, class_id } = req.query;
+
+        // 1. Total Assessments (Assignments + Tests + Placement + Proficiency)
+        let assignmentWhere = "";
+        let assignmentParams = [];
+
+        // Placement and Proficiency tests are usually global or system-wide, not linked to a specific program/class structure directly in the same way
+        // But let's respect filters where possible for Assignments.
+
+        if (program) {
+            assignmentWhere = `
+                JOIN classes c ON a.class_id = c.id
+                JOIN subprograms sp ON c.subprogram_id = sp.id
+                JOIN programs p ON sp.program_id = p.id
+                WHERE p.title = ?
+            `;
+            assignmentParams.push(program);
+        } else if (class_id) {
+            assignmentWhere = "WHERE class_id = ?";
+            assignmentParams.push(class_id);
+        }
+
+        const [totalAssigns] = await dbp.query(`SELECT COUNT(*) as count FROM assignments a ${assignmentWhere}`, assignmentParams);
+
+        // For Placement/Proficiency, we usually count them all if no filters, or maybe valid to show them always as they are available to everyone
+        // But if filtering by Program, maybe Proficiency applies if matched?
+        // Let's just count global for these tests if no class filter.
+
+        let totalPlacement = 0;
+        let totalProficiency = 0;
+
+        if (!class_id) {
+            const [tp] = await dbp.query("SELECT COUNT(*) as count FROM placement_tests");
+            totalPlacement = tp[0].count;
+            const [tprof] = await dbp.query("SELECT COUNT(*) as count FROM proficiency_tests");
+            totalProficiency = tprof[0].count;
+        }
+
+        const totalAssessments = totalAssigns[0].count + totalPlacement + totalProficiency;
+
+        // 2. Submissions Stats (Count, Avg Score, Pass Rate)
+        // We need to UNION all submission tables and then apply filters
+
+        // Assignments
+        let subWhere = "WHERE sub.status = 'graded'";
+        let subParams = [];
+        if (program) {
+            subWhere += ` AND (s.chosen_program = ? OR i.chosen_program = ? OR (CASE WHEN p.student_id IS NOT NULL THEN 'Proficiency Test' END) = ?)`;
+            subParams.push(program, program, program);
+        }
+        if (class_id) {
+            subWhere += " AND (s.class_id = ? OR i.class_id = ?)";
+            subParams.push(class_id, class_id);
+        }
+
+        const assignQuery = `
+            SELECT sub.score, sub.status 
+            FROM assignment_submissions sub
+            LEFT JOIN students s ON sub.student_id = s.student_id
+            LEFT JOIN IELTSTOEFL i ON sub.student_id = i.student_id
+            LEFT JOIN ProficiencyTestStudents p ON sub.student_id = p.student_id
+            ${subWhere}
+        `;
+
+        // Placement Results
+        // Filtering by Program/Class is tricky for Placement. Students usually take it BEFORE being assigned.
+        // But we can check current student status.
+        let placeWhere = "WHERE r.status = 'completed'";
+        let placeParams = [];
+        if (program) {
+            placeWhere += ` AND (s.chosen_program = ? OR i.chosen_program = ? OR (CASE WHEN p.student_id IS NOT NULL THEN 'Proficiency Test' END) = ?)`;
+            placeParams.push(program, program, program);
+        }
+        if (class_id) {
+            placeWhere += " AND (s.class_id = ? OR i.class_id = ?)";
+            placeParams.push(class_id, class_id);
+        }
+
+        const placeQuery = `
+            SELECT r.score, r.status
+            FROM placement_test_results r
+            LEFT JOIN students s ON r.student_id = s.student_id
+            LEFT JOIN IELTSTOEFL i ON r.student_id = i.student_id
+            LEFT JOIN ProficiencyTestStudents p ON r.student_id = p.student_id
+            ${placeWhere}
+        `;
+
+        // Proficiency Results
+        const profQuery = `
+            SELECT r.score, r.status
+            FROM proficiency_test_results r
+            LEFT JOIN students s ON r.student_id = s.student_id
+            LEFT JOIN IELTSTOEFL i ON r.student_id = i.student_id
+            LEFT JOIN ProficiencyTestStudents p ON r.student_id = p.student_id
+            ${placeWhere}
+        `; // Re-using placeWhere/Params as logic is same
+
+        // Combine
+        const [allSubs] = await dbp.query(`
+            SELECT score, status FROM (${assignQuery} UNION ALL ${placeQuery} UNION ALL ${profQuery}) as united
+        `, [...subParams, ...placeParams, ...placeParams]);
+
+        const totalSubs = allSubs.length;
+        const totalScore = allSubs.reduce((acc, curr) => acc + (curr.score || 0), 0);
+        const avgScore = totalSubs > 0 ? Math.round(totalScore / totalSubs) : 0; // Scores might need normalization if out of different totals? 
+        // Assuming all are normalized to 0-100 or using percentages. 
+        // Wait, assignment scores are raw points. Placement/Proficiency might be raw.
+        // We SHOULD use percentage if available.
+        // Let we adjust queries to fetch percentage if possible, else raw.
+        // Assignment Logic: Score is points. We need total_points to get percentage.
+        // Re-writing queries to fetch percentage.
+
+        // Simplified approach: Just assume score is what we track for now, or fetch percentage if stored.
+        // Placement/Proficiency store percentage. Assignment submissions do NOT store percentage directly usually.
+        // Let's rely on 'score' for now, assuming standard 100 for exams, or mix. 
+        // For generic stats, this might be rough.
+
+        const passedCount = allSubs.filter(s => s.score >= 50).length; // Assuming 50 is pass
+        const passRate = totalSubs > 0 ? Math.round((passedCount / totalSubs) * 100) : 0;
+
+        // 3. Pending Grading
+        // Assignments: submitted
+        const [pendAssign] = await dbp.query("SELECT COUNT(*) as count FROM assignment_submissions WHERE status = 'submitted'");
+        // Placement: pending_review
+        const [pendPlace] = await dbp.query("SELECT COUNT(*) as count FROM placement_test_results WHERE status = 'pending_review'");
+        // Proficiency: pending
+        const [pendProf] = await dbp.query("SELECT COUNT(*) as count FROM proficiency_test_results WHERE status = 'pending'");
+
+        const totalPending = pendAssign[0].count + pendPlace[0].count + pendProf[0].count;
+
+        res.json({
+            success: true,
+            data: {
+                totalAssessments: totalAssessments,
+                totalSubmissions: totalSubs,
+                avgScore,
+                passRate,
+                pendingGrading: totalPending
+            }
+        });
+    } catch (error) {
+        console.error("Error in getAssessmentStats:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 11. GET Assessment Distribution (Scores)
+export const getAssessmentDistribution = async (req, res) => {
+    try {
+        const { program } = req.query;
+        let where = "WHERE sub.status = 'graded'";
+        let params = [];
+        let rWhere = "WHERE r.status = 'completed'";
+        let rParams = [];
+
+        if (program) {
+            where += ` AND (s.chosen_program = ? OR i.chosen_program = ?)`;
+            params.push(program, program);
+
+            rWhere += ` AND (s.chosen_program = ? OR i.chosen_program = ?)`;
+            rParams.push(program, program);
+        }
+
+        /* 
+           We need to union percentages.
+           Assignments: Need to calculate percentage dynamically via JOIN assignments a -> (score / a.total_marks * 100)
+           Placement: percentage column
+           Proficiency: percentage column
+        */
+
+        const [rows] = await dbp.query(`
+            SELECT 
+                type,
+                CASE 
+                    WHEN pct BETWEEN 0 AND 20 THEN '0-20'
+                    WHEN pct BETWEEN 21 AND 40 THEN '21-40'
+                    WHEN pct BETWEEN 41 AND 60 THEN '41-60'
+                    WHEN pct BETWEEN 61 AND 80 THEN '61-80'
+                    ELSE '81-100'
+                END as range_name,
+                COUNT(*) as count
+            FROM (
+                SELECT 'Assignment' as type, (sub.score) as pct 
+                FROM assignment_submissions sub
+                LEFT JOIN students s ON sub.student_id = s.student_id
+                LEFT JOIN IELTSTOEFL i ON sub.student_id = i.student_id
+                ${where}
+                
+                UNION ALL
+                
+                SELECT 'Placement Test' as type, r.percentage as pct
+                FROM placement_test_results r
+                LEFT JOIN students s ON r.student_id = s.student_id
+                LEFT JOIN IELTSTOEFL i ON r.student_id = i.student_id
+                ${rWhere}
+                
+                UNION ALL
+                
+                SELECT 'Proficiency Test' as type, (CASE WHEN r.total_points > 0 THEN (r.score / r.total_points) * 100 ELSE 0 END) as pct
+                FROM proficiency_test_results r
+                LEFT JOIN students s ON r.student_id = s.student_id
+                LEFT JOIN IELTSTOEFL i ON r.student_id = i.student_id
+                ${rWhere}
+            ) as unified
+            GROUP BY type, range_name
+            ORDER BY range_name
+        `, [...params, ...rParams, ...rParams]);
+
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error("Error in getAssessmentDistribution:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 12. GET Recent Assessments
+export const getRecentAssessments = async (req, res) => {
+    try {
+        // Union Assignments, Placement Tests, Proficiency Tests
+        /*
+          Cols needed: title, type, class_name (if applicable), date (created_at), average_score
+        */
+        const [rows] = await dbp.query(`
+            SELECT title, type, class_name, due_date, submissions, avg_score
+            FROM (
+                -- Assignments
+                SELECT a.title, 'Assignment' as type, c.class_name, a.created_at as due_date,
+                       (SELECT COUNT(*) FROM assignment_submissions WHERE assignment_id = a.id) as submissions,
+                       (SELECT AVG(score) FROM assignment_submissions WHERE assignment_id = a.id AND status = 'graded') as avg_score
+                FROM assignments a
+                LEFT JOIN classes c ON a.class_id = c.id
+                
+                UNION ALL
+                
+                -- Placement Tests
+                SELECT title, 'Placement Test' as type, 'N/A' as class_name, created_at as due_date,
+                       (SELECT COUNT(*) FROM placement_test_results WHERE test_id = t.id) as submissions,
+                       (SELECT AVG(score) FROM placement_test_results WHERE test_id = t.id AND status = 'completed') as avg_score
+                FROM placement_tests t
+                
+                UNION ALL
+                 -- Proficiency Tests
+                SELECT title, 'Proficiency Test' as type, 'N/A' as class_name, created_at as due_date,
+                       (SELECT COUNT(*) FROM proficiency_test_results WHERE test_id = t.id) as submissions,
+                       (SELECT AVG(score) FROM proficiency_test_results WHERE test_id = t.id AND status = 'graded') as avg_score
+                FROM proficiency_tests t
+            ) as unified
+            ORDER BY due_date DESC
+            LIMIT 15
+        `);
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error("Error in getRecentAssessments:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 13. GET Assessment Gender Stats
+export const getAssessmentGenderStats = async (req, res) => {
+    try {
+        const { program } = req.query;
+        let where = "";
+        let params = [];
+
+        // If filtering by program, we filter the students
+        if (program) {
+            // If program is 'Proficiency Test', we include those from ProficiencyTestStudents table (p)
+            // matching logic: (s.program = ? OR i.program = ?) OR (program == 'Proficiency Test' AND p.id IS NOT NULL)
+            where = " AND (s.chosen_program = ? OR i.chosen_program = ? OR (? = 'Proficiency Test' AND p.student_id IS NOT NULL))";
+            params.push(program, program, program);
+        }
+
+        /* 
+           Placement Gender Stats
+           Join results -> students/ielts/proficiency -> sex
+        */
+        const [placementGender] = await dbp.query(`
+            SELECT 
+                COALESCE(s.sex, i.sex, p.sex, 'Unknown') as gender, 
+                COUNT(*) as count
+            FROM placement_test_results r
+            LEFT JOIN students s ON r.student_id = s.student_id
+            LEFT JOIN IELTSTOEFL i ON r.student_id = i.student_id
+            LEFT JOIN ProficiencyTestStudents p ON r.student_id = p.student_id
+            WHERE r.status IN ('completed', 'pending_review', 'reviewed', 'graded') ${where}
+            GROUP BY gender
+        `, params);
+
+        /* 
+          Proficiency Gender Stats
+          Updated to include 'pending_review', 'reviewed' to match "entered" users
+       */
+        const [proficiencyGender] = await dbp.query(`
+            SELECT 
+                COALESCE(s.sex, i.sex, p.sex, 'Unknown') as gender, 
+                COUNT(*) as count
+            FROM proficiency_test_results r
+            LEFT JOIN students s ON r.student_id = s.student_id
+            LEFT JOIN IELTSTOEFL i ON r.student_id = i.student_id
+            LEFT JOIN ProficiencyTestStudents p ON r.student_id = p.student_id
+            WHERE r.status IN ('graded', 'completed', 'pending_review', 'reviewed', 'pending') ${where}
+            GROUP BY gender
+        `, params);
+
+        const formatGenderData = (rows) => {
+            let male = 0;
+            let female = 0;
+            let unknown = 0;
+            rows.forEach(r => {
+                const g = (r.gender || 'Unknown').toLowerCase();
+                if (g === 'male' || g === 'm') male += r.count;
+                else if (g === 'female' || g === 'f') female += r.count;
+                else unknown += r.count;
+            });
+            return { male, female, unknown };
+        };
+
+        res.json({
+            success: true,
+            data: {
+                placement: formatGenderData(placementGender),
+                proficiency: formatGenderData(proficiencyGender)
+            }
+        });
+
+    } catch (error) {
+        console.error("Error in getAssessmentGenderStats:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 14. GET Class Assessment Activity
+export const getClassAssessmentActivity = async (req, res) => {
+    try {
+        const { program } = req.query;
+        let where = "";
+        let params = [];
+
+        if (program) {
+            where = `
+                JOIN subprograms sp ON c.subprogram_id = sp.id
+                JOIN programs p ON sp.program_id = p.id
+                WHERE p.title = ?
+            `;
+            params.push(program);
+        }
+
+        const [rows] = await dbp.query(`
+            SELECT c.class_name, COUNT(a.id) as count
+            FROM classes c
+            LEFT JOIN assignments a ON c.id = a.class_id
+            ${where}
+            GROUP BY c.id
+            HAVING count > 0
+            ORDER BY count DESC
+            LIMIT 10
+        `, params);
+
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error("Error in getClassAssessmentActivity:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

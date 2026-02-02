@@ -223,56 +223,69 @@ export default function CourseWorkPage() {
         {
             key: "student_name",
             label: "Student Name",
-            render: (row) => (
+            render: (value, row) => (
                 <div className="flex flex-col">
-                    <span className="font-semibold text-gray-900 dark:text-white">{row.student_name}</span>
-                    <span className="text-[10px] text-gray-500 uppercase">{row.student_email}</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">{value || 'N/A'}</span>
+                    <span className="text-[10px] text-gray-500 uppercase">{row?.student_email || 'N/A'}</span>
                 </div>
             )
         },
         {
             key: "submission_date",
             label: "Submitted At",
-            render: (row) => row.submission_date ? new Date(row.submission_date).toLocaleDateString(undefined, {
-                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            }) : "N/A"
+            render: (value, row) => {
+                if (!row) return "N/A";
+                return row.submission_date ? new Date(row.submission_date).toLocaleDateString(undefined, {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                }) : "N/A"
+            }
         },
         {
             key: "status",
             label: "Status",
-            render: (row) => (
-                <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${row.status === 'graded'
-                    ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
-                    : 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800'
-                    }`}>
-                    {(row.status || 'pending').charAt(0).toUpperCase() + (row.status || 'pending').slice(1)}
-                </span>
-            )
+            render: (value, row) => {
+                if (!row) return <span className="text-gray-400 italic">Pending</span>;
+                const status = row.status || 'pending';
+                return (
+                    <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${status === 'graded'
+                        ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                        : 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800'
+                        }`}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </span>
+                );
+            }
         },
         {
             key: "score",
             label: "Grade",
-            render: (row) => row.status === 'graded' ? (
-                <span className="font-bold text-green-600">{row.score} / {selectedAssignment?.total_points || 100}</span>
-            ) : (
-                <span className="text-gray-400 italic">Pending</span>
-            )
+            render: (value, row) => {
+                if (!row) return <span className="text-gray-400 italic">Pending</span>;
+                return row.status === 'graded' ? (
+                    <span className="font-bold text-green-600">{row.score} / {selectedAssignment?.total_points || 100}</span>
+                ) : (
+                    <span className="text-gray-400 italic">Pending</span>
+                );
+            }
         },
         {
             key: "actions",
             label: "Actions",
-            render: (row) => (
-                <button
-                    onClick={() => handleGradeClick(row)}
-                    className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                    title="Review & Grade"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                </button>
-            )
+            render: (_, row) => {
+                if (!row) return null;
+                return (
+                    <button
+                        onClick={() => handleGradeClick(row)}
+                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        title="Review & Grade"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                );
+            }
         }
     ];
 

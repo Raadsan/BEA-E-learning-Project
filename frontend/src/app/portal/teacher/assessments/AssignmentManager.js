@@ -491,22 +491,22 @@ export default function AssignmentManager({ type, title, description }) {
             {
                 key: "title",
                 label: "Assignment Title",
-                render: (row) => (
+                render: (value, row) => (
                     <div className="flex flex-col">
-                        <span className="font-semibold text-gray-900 dark:text-white">{row.title}</span>
-                        <span className="text-[11px] text-gray-500 uppercase">{row.class_name || "General"}</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{value || "N/A"}</span>
+                        <span className="text-[11px] text-gray-500 uppercase">{row?.class_name || "General"}</span>
                     </div>
                 )
             },
             {
                 key: "program",
                 label: "Program",
-                render: (row) => <span className="text-sm opacity-80">{row.program_name || "N/A"}</span>
+                render: (value) => <span className="text-sm opacity-80">{value || "N/A"}</span>
             },
             {
                 key: "subprogram",
                 label: "Subprogram",
-                render: (row) => <span className="text-sm opacity-80">{row.subprogram_name || "N/A"}</span>
+                render: (value) => <span className="text-sm opacity-80">{value || "N/A"}</span>
             },
         ];
 
@@ -519,10 +519,10 @@ export default function AssignmentManager({ type, title, description }) {
         baseColumns.push(
             {
                 label: "Date Range/Due",
-                render: (row) => {
-                    const start = row.start_date ? new Date(row.start_date).toLocaleDateString() : null;
-                    const end = row.end_date ? new Date(row.end_date).toLocaleDateString() : null;
-                    const due = row.due_date ? new Date(row.due_date).toLocaleDateString() : null;
+                render: (_, row) => {
+                    const start = row?.start_date ? new Date(row.start_date).toLocaleDateString() : null;
+                    const end = row?.end_date ? new Date(row.end_date).toLocaleDateString() : null;
+                    const due = row?.due_date ? new Date(row.due_date).toLocaleDateString() : null;
 
                     if (start && end) {
                         return (
@@ -537,32 +537,35 @@ export default function AssignmentManager({ type, title, description }) {
             },
             {
                 label: "Points",
-                render: (row) => <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{row.total_points}</span>
+                render: (value) => <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{value}</span>
             },
             {
                 label: "Status",
-                render: (row) => (
-                    <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${row.status === 'inactive'
-                        ? 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
-                        : 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
-                        }`}>
-                        {(row.status || 'active').charAt(0).toUpperCase() + (row.status || 'active').slice(1)}
-                    </span>
-                )
+                render: (value, row) => {
+                    const status = row?.status || value || 'active';
+                    return (
+                        <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${status === 'inactive'
+                            ? 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
+                            : 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                            }`}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                    );
+                }
             },
             {
                 label: "Actions",
-                render: (row) => (
+                render: (_, row) => (
                     <div className="flex gap-2">
                         <button
                             onClick={() => handleStatusToggle(row)}
-                            className={`p-1.5 rounded-lg transition-all ${row.status === 'inactive'
+                            className={`p-1.5 rounded-lg transition-all ${row?.status === 'inactive'
                                 ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20'
                                 : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
                                 }`}
-                            title={row.status === 'inactive' ? "Activate" : "Deactivate"}
+                            title={row?.status === 'inactive' ? "Activate" : "Deactivate"}
                         >
-                            <div className={`w-3 h-3 rounded-full ${row.status === 'inactive' ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
+                            <div className={`w-3 h-3 rounded-full ${row?.status === 'inactive' ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
                         </button>
                         <button
                             onClick={() => handleViewSubmissions(row)}
@@ -583,7 +586,7 @@ export default function AssignmentManager({ type, title, description }) {
                             </svg>
                         </button>
                         <button
-                            onClick={() => handleDeleteClick(row.id)}
+                            onClick={() => handleDeleteClick(row?.id)}
                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
                             title="Delete"
                         >
@@ -603,7 +606,7 @@ export default function AssignmentManager({ type, title, description }) {
         {
             key: "student_name",
             label: "Student Name",
-            render: (row) => <span className="font-semibold text-gray-900 dark:text-white">{row.student_name}</span>
+            render: (value) => <span className="font-semibold text-gray-900 dark:text-white">{value || "N/A"}</span>
         },
         {
             label: "Class Name",
@@ -615,30 +618,33 @@ export default function AssignmentManager({ type, title, description }) {
         },
         {
             label: "Submitted",
-            render: (row) => row.submission_date ? new Date(row.submission_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "N/A"
+            render: (_, row) => row?.submission_date ? new Date(row.submission_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "N/A"
         },
         {
             label: "Grade",
-            render: (row) => row.status === 'graded' ? (
-                <span className="font-bold text-green-600">{row.score} / {selectedAssignment.total_points}</span>
+            render: (_, row) => row?.status === 'graded' ? (
+                <span className="font-bold text-green-600">{row?.score} / {selectedAssignment?.total_points || 100}</span>
             ) : (
                 <span className="text-gray-400 italic">Pending</span>
             ),
         },
         {
             label: "Status",
-            render: (row) => (
-                <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${row.status === 'graded'
-                    ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
-                    : 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800'
-                    }`}>
-                    {(row.status || 'pending').charAt(0).toUpperCase() + (row.status || 'pending').slice(1)}
-                </span>
-            )
+            render: (value, row) => {
+                const status = row?.status || value || 'pending';
+                return (
+                    <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${status === 'graded'
+                        ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                        : 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800'
+                        }`}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </span>
+                );
+            }
         },
         {
             label: "Actions",
-            render: (row) => (
+            render: (_, row) => (
                 <button
                     onClick={() => handleGradeClick(row)}
                     className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"

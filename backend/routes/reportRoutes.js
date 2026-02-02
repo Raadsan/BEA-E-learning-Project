@@ -8,7 +8,12 @@ import {
     getStudentDetailedReport,
     getAttendanceAnalytics,
     getAssignmentCompletionAnalytics,
-    getConsolidatedStats
+    getConsolidatedStats,
+    getAssessmentStats,
+    getAssessmentDistribution,
+    getRecentAssessments,
+    getAssessmentGenderStats,
+    getClassAssessmentActivity
 } from '../controllers/reportController.js';
 
 const router = express.Router();
@@ -22,5 +27,10 @@ router.get('/student/:studentId', getStudentDetailedReport);
 router.get('/attendance-analytics', getAttendanceAnalytics);
 router.get('/assignment-completion', getAssignmentCompletionAnalytics);
 router.get('/consolidated-stats', getConsolidatedStats);
+router.get('/assessment-stats', getAssessmentStats);
+router.get('/assessment-distribution', getAssessmentDistribution);
+router.get('/recent-assessments', getRecentAssessments);
+router.get('/assessment-gender', getAssessmentGenderStats);
+router.get('/class-assessment-activity', getClassAssessmentActivity);
 
 export default router;

@@ -1,0 +1,50 @@
+
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+export const levelUpApi = createApi({
+    reducerPath: 'levelUpApi',
+    baseQuery: fetchBaseQuery({
+        baseUrl: 'http://localhost:5000/api',
+        prepareHeaders: (headers) => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                headers.set('authorization', `Bearer ${token}`);
+            }
+            return headers;
+        },
+    }),
+    tagTypes: ['LevelUpRequest'],
+    endpoints: (builder) => ({
+        createLevelUpRequest: builder.mutation({
+            query: (data) => ({
+                url: '/level-up-requests',
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['LevelUpRequest'],
+        }),
+        getLevelUpRequests: builder.query({
+            query: () => '/level-up-requests/all',
+            providesTags: ['LevelUpRequest'],
+        }),
+        getMyLevelUpRequests: builder.query({
+            query: () => '/level-up-requests/my-requests',
+            providesTags: ['LevelUpRequest'],
+        }),
+        updateLevelUpRequestStatus: builder.mutation({
+            query: ({ id, ...body }) => ({
+                url: `/level-up-requests/${id}/status`,
+                method: 'PATCH',
+                body,
+            }),
+            invalidatesTags: ['LevelUpRequest'],
+        }),
+    }),
+});
+
+export const {
+    useCreateLevelUpRequestMutation,
+    useGetLevelUpRequestsQuery,
+    useGetMyLevelUpRequestsQuery,
+    useUpdateLevelUpRequestStatusMutation
+} = levelUpApi;

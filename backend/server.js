@@ -37,6 +37,7 @@ import testimonialsRoutes from './routes/testimonialsRoutes.js';
 import teacherReviewRoutes from './routes/teacherReviewRoutes.js';
 import studentReviewRoutes from './routes/studentReviewRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
+import levelUpRequestRoutes from './routes/levelUpRequestRoutes.js';
 
 
 dotenv.config();
@@ -86,6 +87,7 @@ app.use('/api/testimonials', testimonialsRoutes);
 app.use('/api/teacher-reviews', teacherReviewRoutes);
 app.use('/api/student-reviews', studentReviewRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/level-up-requests', levelUpRequestRoutes);
 
 
 

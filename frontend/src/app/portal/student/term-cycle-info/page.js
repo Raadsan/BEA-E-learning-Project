@@ -7,6 +7,11 @@ import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useGetTimetableQuery } from "@/redux/api/timetableApi";
 import { useGetEventsQuery } from "@/redux/api/eventApi";
 import { useGetAcademicCalendarQuery } from "@/redux/api/academicCalendarApi";
+import { useGetStudentReviewsQuery, useGetTeachersToReviewQuery } from "@/redux/api/reviewApi";
+import { useGetAssignmentsQuery } from "@/redux/api/assignmentApi";
+import { useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
+import { useCreateNotificationMutation } from "@/redux/api/notificationApi";
+import { useToast } from "@/components/Toast";
 import { timelineData, parseDate } from "@/data/timelineData";
 
 const CountdownCircle = ({ value, label, max, color, isDark }) => {
@@ -116,18 +121,54 @@ const TermCountdown = ({ isDark }) => {
 
 export default function TermCycleInfoPage() {
   const { isDark } = useDarkMode();
+  const { showToast } = useToast();
 
   const { data: user } = useGetCurrentUserQuery();
-  const subprogramId = user?.chosen_subprogram;
+  const subprogramId = user?.chosen_subprogram || user?.subprogram_id;
+  const programId = user?.program_id || user?.chosen_program_id || user?.chosen_program;
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('en-US', { month: 'long' }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestLoading, setRequestLoading] = useState(false);
+  const [nextSubprogramId, setNextSubprogramId] = useState("");
 
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
   const years = [2025, 2026, 2027, 2028, 2029, 2030];
+
+  // 1. Term End Check
+  const termEnded = useMemo(() => {
+    const lastTerm = timelineData[timelineData.length - 1];
+    if (!lastTerm) return false;
+    return new Date() > parseDate(lastTerm.endDate);
+  }, []);
+
+  // 2. Pass Check (Success Rate >= 50%)
+  const { data: assignments = [] } = useGetAssignmentsQuery({ subprogram_id: subprogramId }, { skip: !subprogramId });
+  const hasPassed = useMemo(() => {
+    if (!assignments || assignments.length === 0) return false;
+    const totalEarned = assignments.reduce((sum, a) => sum + (Number(a.score) || 0), 0);
+    const totalPossible = assignments.reduce((sum, a) => sum + (Number(a.total_points) || 0), 0);
+    return totalPossible > 0 && (totalEarned / totalPossible) >= 0.5;
+  }, [assignments]);
+
+  // 3. Teacher Evaluated Student Check
+  const { data: studentReviews = [] } = useGetStudentReviewsQuery(user?.student_id || user?.id, { skip: !user });
+  const teacherEvaluated = useMemo(() => {
+    return studentReviews.length > 0;
+  }, [studentReviews]);
+
+  // 4. Student Evaluated Teacher Check
+  const { data: teachersToReview = [] } = useGetTeachersToReviewQuery(undefined, { skip: !user });
+  const studentEvaluated = useMemo(() => {
+    return (teachersToReview || []).length === 0;
+  }, [teachersToReview]);
+
+  const { data: availableSubprograms = [] } = useGetSubprogramsByProgramIdQuery(programId, { skip: !programId || !showRequestModal });
+  const [createNotification] = useCreateNotificationMutation();
 
   // For specific range events (holidays, etc)
   const monthIndex = months.indexOf(selectedMonth);
@@ -146,7 +187,6 @@ export default function TermCycleInfoPage() {
     skip: !subprogramId
   });
 
-  // New Monthly Schedule Data
   const { data: academicCalendar = [], isLoading: calendarLoading } = useGetAcademicCalendarQuery({
     subprogramId,
     month: selectedMonth,
@@ -180,12 +220,12 @@ export default function TermCycleInfoPage() {
       key: "week",
       label: "Weeks",
       width: "100px",
-      render: (row) => <span className="font-extrabold text-[#010080] dark:text-blue-400">{row.week}</span>
+      render: (cellValue, row) => <span className="font-extrabold text-[#010080] dark:text-blue-400">{row.week}</span>
     },
     ...gridDays.map(day => ({
       key: day,
       label: day,
-      render: (row) => (
+      render: (cellValue, row) => (
         <div className="py-2">
           {row[day] !== "-" ? (
             <p className="font-bold leading-tight text-gray-900 dark:text-white text-sm">
@@ -209,6 +249,40 @@ export default function TermCycleInfoPage() {
     }));
   }, [events]);
 
+  const handleRequestCourse = async () => {
+    if (!nextSubprogramId) {
+      showToast("Please select a subprogram", "error");
+      return;
+    }
+    setRequestLoading(true);
+    try {
+      // 1. Formal Request Record
+      await createLevelUpRequest({
+        requested_subprogram_id: nextSubprogramId
+      }).unwrap();
+
+      // 2. Alert Admin (Notification)
+      await createNotification({
+        user_id: null, // Broadcast to admins
+        type: 'course_request',
+        title: `[LEVEL UP] ${user?.full_name} Ready for Next Level`,
+        message: `Student ${user?.full_name} (${user?.student_id}) has completed their current term and is requesting promotion to: ${availableSubprograms.find(s => s.id == nextSubprogramId)?.subprogram_name}.`,
+        metadata: {
+          student_id: user?.student_id,
+          requested_subprogram_id: nextSubprogramId,
+          source: 'student_level_up_request'
+        }
+      }).unwrap();
+
+      showToast("Level-up request submitted successfully!", "success");
+      setShowRequestModal(false);
+    } catch (err) {
+      console.error("Request error:", err);
+      showToast(err?.data?.error || "Failed to submit request", "error");
+    } finally {
+      setRequestLoading(false);
+    }
+  };
 
   return (
     <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
@@ -224,32 +298,36 @@ export default function TermCycleInfoPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className={`px-3 py-2 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/10 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-700'}`}
-            >
-              {months.map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className={`px-3 py-2 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/10 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-700'}`}
-            >
-              {years.map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className={`px-3 py-2 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/10 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-700'}`}
+              >
+                {months.map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className={`px-3 py-2 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/10 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-700'}`}
+              >
+                {years.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
-        {/* Term Countdown Timer */}
-        <TermCountdown isDark={isDark} />
+        {/* Term Countdown Timer - Only show if academic plan is created for this month */}
+        {!calendarLoading && (academicCalendar || []).length > 0 && (
+          <TermCountdown isDark={isDark} />
+        )}
 
-        {/* Weekly Schedule Grid - Using Standard DataTable */}
+        {/* Weekly Schedule Grid */}
         <div className="mb-12">
           <DataTable
             title={`Weekly Academic Plan - ${selectedMonth} ${selectedYear}`}
@@ -296,6 +374,53 @@ export default function TermCycleInfoPage() {
           * Weekly classes follow the pattern established by the administration.
         </div>
       </div>
+
+      {/* Request Modal */}
+      {showRequestModal && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowRequestModal(false)} />
+          <div className={`relative w-full max-w-md rounded-2xl shadow-2xl p-8 border ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+            <h2 className="text-2xl font-bold mb-4">Request Next Level</h2>
+            <p className="opacity-70 mb-6 text-sm">
+              Congratulations on completing your current term! Please select the next subprogram you wish to join.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest opacity-50 mb-2">Target Level</label>
+                <select
+                  value={nextSubprogramId}
+                  onChange={(e) => setNextSubprogramId(e.target.value)}
+                  className={`w-full p-4 rounded-xl border outline-none transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+                >
+                  <option value="">Select Level</option>
+                  {(availableSubprograms || []).filter(s => s.id != subprogramId).map(s => (
+                    <option key={s.id} value={s.id}>{s.subprogram_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowRequestModal(false)}
+                  className={`flex-1 py-3 rounded-xl font-bold ${isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRequestCourse}
+                  disabled={requestLoading || !nextSubprogramId}
+                  className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
+                >
+                  {requestLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  Submit Request
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

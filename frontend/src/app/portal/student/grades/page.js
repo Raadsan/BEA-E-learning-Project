@@ -86,11 +86,14 @@ export default function GradesPage() {
   }, [selectedSubprogramName]);
 
   // Show ALL assignments returned by the API
-  const grades = assignments || [];
+  const grades = (assignments || []).filter(a => a).map((a, index) => ({
+    ...a,
+    _id: a.id ? `${a.type || 'item'}-${a.id}` : `grade-${index}`
+  }));
 
   // Calculate metrics
-  const totalEarnedMarks = grades.reduce((sum, g) => sum + (Number(g.score) || 0), 0);
-  const totalPossibleMarks = grades.reduce((sum, g) => sum + (g.submission_status === 'graded' ? (Number(g.total_points) || 100) : 0), 0);
+  const totalEarnedMarks = grades.reduce((sum, g) => sum + (Number(g?.score) || 0), 0);
+  const totalPossibleMarks = grades.reduce((sum, g) => sum + (Number(g?.total_points) || 0), 0);
   const successRate = totalPossibleMarks > 0 ? Math.round((totalEarnedMarks / totalPossibleMarks) * 100) : 0;
 
   const handleDownloadFeedbackFile = async (fileUrl) => {
@@ -118,60 +121,72 @@ export default function GradesPage() {
     {
       key: 'title',
       label: 'Assignment Title',
-      render: (row) => (
-        <div>
-          <div className={isDark ? 'text-white' : 'text-gray-900'}>{row.title}</div>
-          <div className="text-xs text-gray-500">{row.type}</div>
-        </div>
-      )
+      render: (_, row) => {
+        if (!row) return null;
+        return (
+          <div>
+            <div className={isDark ? 'text-white' : 'text-gray-900'}>{row?.title}</div>
+            <div className="text-xs text-gray-500">{row?.type}</div>
+          </div>
+        )
+      }
     },
     {
       key: 'score',
       label: 'Grade / Marks',
-      render: (row) => (
-        <div className={isDark ? 'text-white' : 'text-gray-900'}>
-          {row.submission_status === 'graded'
-            ? `${row.score} / ${row.total_points || 100}`
-            : <span className={`text-xs uppercase font-bold px-2 py-1 rounded ${!row.submission_status ? 'text-gray-500 bg-gray-100 dark:bg-gray-800' :
-              row.submission_status === 'submitted' ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30' :
-                'text-blue-500 bg-blue-100 dark:bg-blue-900/30'
-              }`}>
-              {!row.submission_status ? 'Not Submitted' :
-                row.submission_status === 'submitted' ? 'Pending Grading' :
-                  row.submission_status}
-            </span>
-          }
-        </div>
-      )
+      render: (_, row) => {
+        if (!row) return null;
+        return (
+          <div className={isDark ? 'text-white' : 'text-gray-900'}>
+            {row.submission_status === 'graded'
+              ? `${row.score} / ${row.total_points || 100}`
+              : <span className={`text-xs uppercase font-bold px-2 py-1 rounded ${!row.submission_status ? 'text-gray-500 bg-gray-100 dark:bg-gray-800' :
+                row.submission_status === 'submitted' ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30' :
+                  'text-blue-500 bg-blue-100 dark:bg-blue-900/30'
+                }`}>
+                {!row.submission_status ? 'Not Submitted' :
+                  row.submission_status === 'submitted' ? 'Pending Grading' :
+                    row.submission_status}
+              </span>
+            }
+          </div>
+        )
+      }
     },
     {
       key: 'graded_at',
       label: 'Date',
-      render: (row) => (
-        <div className={isDark ? 'text-white' : 'text-gray-900'}>
-          {row.graded_at || row.submission_date
-            ? new Date(row.graded_at || row.submission_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-            : <span className="text-gray-400 text-xs italic">Pending</span>}
-        </div>
-      )
+      render: (_, row) => {
+        if (!row) return null;
+        return (
+          <div className={isDark ? 'text-white' : 'text-gray-900'}>
+            {row.graded_at || row.submission_date
+              ? new Date(row.graded_at || row.submission_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+              : <span className="text-gray-400 text-xs italic">Pending</span>}
+          </div>
+        )
+      }
     },
     {
       key: 'actions',
       label: 'Action',
-      render: (row) => (
-        <button
-          onClick={() => setSelectedGrade(row)}
-          className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isDark
-            ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
-            : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-            }`}
-        >
-          <span>View Report</span>
-          <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      )
+      render: (_, row) => {
+        if (!row) return null;
+        return (
+          <button
+            onClick={() => setSelectedGrade(row)}
+            className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isDark
+              ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+              : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+              }`}
+          >
+            <span>View Report</span>
+            <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )
+      }
     }
   ];
 
@@ -221,9 +236,9 @@ export default function GradesPage() {
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Marks</span>
             <div className="flex items-baseline gap-1.5">
               <span className={`text-2xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                {totalEarnedMarks}
+                {grades.length > 0 ? totalEarnedMarks : "000"}
               </span>
-              <span className="text-sm font-medium opacity-40">/ {totalPossibleMarks}</span>
+              <span className="text-sm font-medium opacity-40">/ {totalPossibleMarks || "000"}</span>
             </div>
           </div>
 
@@ -231,7 +246,7 @@ export default function GradesPage() {
           <div className={`col-span-1 p-4 rounded-xl border flex flex-col justify-center ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Success Rate</span>
             <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {successRate}%
+              {grades.length > 0 ? `${successRate}%` : "0%"}
             </div>
           </div>
         </div>

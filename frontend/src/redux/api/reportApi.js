@@ -83,6 +83,43 @@ export const reportApi = createApi({
       }),
       providesTags: ["Reports"],
       transformResponse: (response) => response.success ? response.data : response
+    }),
+    getAssessmentStats: builder.query({
+      query: (params) => ({
+        url: "/assessment-stats",
+        params
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    }),
+    getAssessmentDistribution: builder.query({
+      query: (params) => ({
+        url: "/assessment-distribution",
+        params
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    }),
+    getRecentAssessments: builder.query({
+      query: () => "/recent-assessments",
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    }),
+    getAssessmentGenderStats: builder.query({
+      query: (params) => ({
+        url: "/assessment-gender",
+        params
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    }),
+    getClassAssessmentActivity: builder.query({
+      query: (params) => ({
+        url: "/class-assessment-activity",
+        params
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
     })
   }),
 });
@@ -97,5 +134,10 @@ export const {
   useGetStudentDetailedReportQuery,
   useGetAttendanceAnalyticsQuery,
   useGetAssignmentCompletionAnalyticsQuery,
-  useGetConsolidatedStatsQuery
+  useGetConsolidatedStatsQuery,
+  useGetAssessmentStatsQuery,
+  useGetAssessmentDistributionQuery,
+  useGetRecentAssessmentsQuery,
+  useGetAssessmentGenderStatsQuery,
+  useGetClassAssessmentActivityQuery
 } = reportApi;

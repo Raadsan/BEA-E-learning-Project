@@ -1,0 +1,67 @@
+[
+  {
+    "student_id": "BEA-ST-GEP-301225-104",
+    "full_name": "Mohamed",
+    "created_at": "2025-12-30T10:09:11.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-291225-103",
+    "full_name": "Feysal Mohamed",
+    "created_at": "2025-12-29T04:44:45.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-280126-105",
+    "full_name": "fiilo",
+    "created_at": "2026-01-28T08:31:10.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-231225-102",
+    "full_name": "Muzamil Tahlil",
+    "created_at": "2025-12-23T07:59:01.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-221225-101",
+    "full_name": "muuse",
+    "created_at": "2025-12-22T10:45:05.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-140126-112",
+    "full_name": "S",
+    "created_at": "2026-01-14T07:24:17.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-130126-111",
+    "full_name": "gedi",
+    "created_at": "2026-01-13T11:22:27.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-130126-110",
+    "full_name": "farah",
+    "created_at": "2026-01-13T11:12:01.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-130126-109",
+    "full_name": "Mustalifo",
+    "created_at": "2026-01-13T10:54:21.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-120126-108",
+    "full_name": "ali",
+    "created_at": "2026-01-12T08:19:10.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-120126-107",
+    "full_name": "mmii",
+    "created_at": "2026-01-12T07:51:47.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-120126-106",
+    "full_name": "munasa",
+    "created_at": "2026-01-12T04:04:26.000Z"
+  },
+  {
+    "student_id": "BEA-ST-GEP-060126-105",
+    "full_name": "Muzamil Tahlil",
+    "created_at": "2026-01-06T10:58:07.000Z"
+  }
+]

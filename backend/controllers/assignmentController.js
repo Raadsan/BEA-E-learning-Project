@@ -646,9 +646,12 @@ export const getAssignmentSubmissions = async (req, res) => {
         if (!subTable) return res.status(400).json({ error: "Invalid assignment type" });
 
         const query = `
-            SELECT s.*, st.full_name as student_name, st.email as student_email
+            SELECT s.*, 
+                   COALESCE(st.full_name, CONCAT(ielts.first_name, ' ', ielts.last_name)) as student_name,
+                   COALESCE(st.email, ielts.email) as student_email
             FROM ${subTable} s
-            JOIN students st ON s.student_id = st.student_id
+            LEFT JOIN students st ON s.student_id = st.student_id
+            LEFT JOIN IELTSTOEFL ielts ON s.student_id = ielts.student_id
             WHERE s.assignment_id = ?
         `;
 
@@ -656,6 +659,8 @@ export const getAssignmentSubmissions = async (req, res) => {
         res.json(submissions);
     } catch (error) {
         console.error("Error fetching assignment submissions:", error);
+        console.error("Error details:", error.message);
+        console.error("SQL Error:", error.sql);
         res.status(500).json({ error: "Failed to fetch submissions" });
     }
 };
@@ -670,10 +675,13 @@ export const getAllSubmissions = async (req, res) => {
         if (!subTable || !mainTable) return res.status(400).json({ error: "Invalid assignment type" });
 
         let query = `
-            SELECT sub.*, st.full_name as student_name, st.email as student_email, 
+            SELECT sub.*, 
+                   COALESCE(st.full_name, CONCAT(ielts.first_name, ' ', ielts.last_name)) as student_name,
+                   COALESCE(st.email, ielts.email) as student_email,
                    a.title as assignment_title, c.class_name, sp.subprogram_name
             FROM ${subTable} sub
-            JOIN students st ON sub.student_id = st.student_id
+            LEFT JOIN students st ON sub.student_id = st.student_id
+            LEFT JOIN IELTSTOEFL ielts ON sub.student_id = ielts.student_id
             JOIN ${mainTable} a ON sub.assignment_id = a.id
             JOIN classes c ON a.class_id = c.id
             LEFT JOIN subprograms sp ON c.subprogram_id = sp.id

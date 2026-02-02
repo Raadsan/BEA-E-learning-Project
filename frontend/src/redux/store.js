@@ -33,6 +33,7 @@ import { learningHoursApi } from "./api/learningHoursApi";
 import { shiftApi } from "./api/shiftApi";
 import { reviewApi } from "./api/reviewApi";
 import { reportApi } from "./api/reportApi";
+import { levelUpApi } from "./api/levelUpApi";
 
 export const store = configureStore({
     reducer: {
@@ -70,6 +71,7 @@ export const store = configureStore({
         [shiftApi.reducerPath]: shiftApi.reducer,
         [reviewApi.reducerPath]: reviewApi.reducer,
         [reportApi.reducerPath]: reportApi.reducer,
+        [levelUpApi.reducerPath]: levelUpApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(
@@ -106,6 +108,7 @@ export const store = configureStore({
             learningHoursApi.middleware,
             shiftApi.middleware,
             reviewApi.middleware,
-            reportApi.middleware
+            reportApi.middleware,
+            levelUpApi.middleware
         ),
 });

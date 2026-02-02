@@ -403,7 +403,12 @@ export default function OralAssignmentPage() {
         {
             key: "student_name",
             label: "Student Name",
-            render: (row) => <span className="font-semibold text-gray-900 dark:text-white">{row.student_name}</span>
+            render: (value, row) => (
+                <div className="flex flex-col">
+                    <span className="font-semibold text-gray-900 dark:text-white">{value || 'N/A'}</span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400">{row?.student_id || ''}</span>
+                </div>
+            )
         },
         {
             label: "Class Name",
@@ -411,46 +416,58 @@ export default function OralAssignmentPage() {
         },
         {
             label: "Submitted",
-            render: (row) => row.submission_date ? new Date(row.submission_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "N/A"
+            render: (_, row) => {
+                if (!row) return "N/A";
+                return row.submission_date ? new Date(row.submission_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "N/A";
+            }
         },
         {
             label: "Submission File",
-            render: (row) => row.file_url ? (
-                <button
-                    onClick={() => handleDownloadFile(row.file_url)}
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline text-sm"
-                >
-                    {row.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                    ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                    )}
-                    {row.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? 'View / Download Video' : 'Listen / Download Audio'}
-                </button>
-            ) : "No File"
+            render: (_, row) => {
+                if (!row) return "No File";
+                return row.file_url ? (
+                    <button
+                        onClick={() => handleDownloadFile(row.file_url)}
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline text-sm"
+                    >
+                        {row.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                        )}
+                        {row.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? 'View / Download Video' : 'Listen / Download Audio'}
+                    </button>
+                ) : "No File";
+            }
         },
         {
             label: "Grade",
-            render: (row) => row.status === 'graded' ? (
-                <span className="font-bold text-green-600">{row.score} / {selectedAssignment.total_points}</span>
-            ) : (
-                <span className="text-gray-400 italic">Pending</span>
-            ),
+            render: (_, row) => {
+                if (!row) return <span className="text-gray-400 italic">Pending</span>;
+                return row.status === 'graded' ? (
+                    <span className="font-bold text-green-600">{row.score} / {selectedAssignment?.total_points}</span>
+                ) : (
+                    <span className="text-gray-400 italic">Pending</span>
+                );
+            }
         },
         {
             label: "Status",
-            render: (row) => (
-                <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${row.status === 'graded'
-                    ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
-                    : 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800'
-                    }`}>
-                    {(row.status || 'pending').charAt(0).toUpperCase() + (row.status || 'pending').slice(1)}
-                </span>
-            )
+            render: (_, row) => {
+                if (!row) return <span className="text-gray-400 italic">Unknown</span>;
+                return (
+                    <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${row.status === 'graded'
+                        ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                        : 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800'
+                        }`}>
+                        {(row.status || 'pending').charAt(0).toUpperCase() + (row.status || 'pending').slice(1)}
+                    </span>
+                );
+            }
         },
         {
             label: "Actions",
-            render: (row) => (
+            render: (_, row) => (
                 <button
                     onClick={() => handleGradeClick(row)}
                     className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"

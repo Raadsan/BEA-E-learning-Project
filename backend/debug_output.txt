@@ -1,0 +1,93 @@
+
+--- Results for writing_task ---
+Keys: id, title, description, class_id, program_id, due_date, total_points, questions, status, created_by, word_count, requirements, created_at, updated_at, type, submission_status
+Sample Row: {
+  "id": 1,
+  "title": "mm",
+  "description": "mmm",
+  "class_id": 28,
+  "program_id": 27,
+  "due_date": "2025-12-28T00:00:00.000Z",
+  "total_points": 10,
+  "questions": null,
+  "status": "inactive",
+  "created_by": 1,
+  "word_count": 100,
+  "requirements": null,
+  "created_at": "2025-12-29T07:11:13.000Z",
+  "updated_at": "2025-12-29T11:00:04.000Z",
+  "type": "writing_task",
+  "submission_status": null
+}
+
+--- Results for exam ---
+Keys: id, title, description, start_date, end_date, class_id, program_id, subprogram_id, due_date, total_points, status, created_by, duration, questions, created_at, updated_at, media_url, type, submission_status
+Sample Row: {
+  "id": 1,
+  "title": "arg",
+  "description": "agrf",
+  "start_date": null,
+  "end_date": null,
+  "class_id": 29,
+  "program_id": 27,
+  "subprogram_id": null,
+  "due_date": "2025-12-31T00:00:00.000Z",
+  "total_points": 6,
+  "status": "active",
+  "created_by": 1,
+  "duration": 60,
+  "questions": null,
+  "created_at": "2025-12-30T06:25:42.000Z",
+  "updated_at": "2025-12-30T06:25:42.000Z",
+  "media_url": null,
+  "type": "exam",
+  "submission_status": null
+}
+
+--- Results for oral_assignment ---
+Keys: id, title, description, class_id, program_id, due_date, total_points, status, created_by, duration, submission_type, questions, created_at, updated_at, subprogram_id, media_url, type, submission_status
+Sample Row: {
+  "id": 1,
+  "title": "Oral Assignment One",
+  "description": "/*\n * Second server - Railway MySQL\n */\n$i++;\n$cfg['Servers'][$i]['host'] = 'centerbeam.proxy.rlwy.net'; // Railway MySQL public hostname\n$cfg['Servers'][$i]['port'] = 11633; // Railway MySQL port\n$cfg['Servers'][$i]['user'] = 'root'; // REPLACE with your MYSQLUSER\n$cfg['Servers'][$i]['password'] = 'TitRelhjpHWOHOvjDIVXEJesZfwhkXJB'; // Your password (already correct)\n$cfg['Servers'][$i]['auth_type'] = 'config';\n$cfg['Servers'][$i]['extension'] = 'mysqli';\n$cfg['Servers'][$i]['connect_type'] = 'tcp';\n\n/*\n * End of servers configuration\n */",
+  "class_id": 45,
+  "program_id": 27,
+  "due_date": "2026-01-28T00:00:00.000Z",
+  "total_points": 10,
+  "status": "active",
+  "created_by": 1,
+  "duration": 10,
+  "submission_type": "audio",
+  "questions": "[]",
+  "created_at": "2026-01-27T10:13:49.000Z",
+  "updated_at": "2026-01-27T10:13:49.000Z",
+  "subprogram_id": 26,
+  "media_url": null,
+  "type": "oral_assignment",
+  "submission_status": null
+}
+
+--- Results for course_work ---
+Keys: id, title, description, class_id, program_id, due_date, total_points, status, created_by, submission_format, questions, created_at, updated_at, word_count, duration, requirements, subprogram_id, unit, type, submission_status
+Sample Row: {
+  "id": 1,
+  "title": "nn",
+  "description": "nnn",
+  "class_id": 28,
+  "program_id": 27,
+  "due_date": "2025-12-26T00:00:00.000Z",
+  "total_points": 100,
+  "status": "active",
+  "created_by": 1,
+  "submission_format": null,
+  "questions": null,
+  "created_at": "2025-12-29T11:40:12.000Z",
+  "updated_at": "2025-12-30T10:09:50.000Z",
+  "word_count": null,
+  "duration": null,
+  "requirements": null,
+  "subprogram_id": null,
+  "unit": null,
+  "type": "course_work",
+  "submission_status": null
+}

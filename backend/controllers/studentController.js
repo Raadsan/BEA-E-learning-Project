@@ -347,9 +347,12 @@ export const updateStudent = async (req, res) => {
         [id, subprogramId, newClassId]
       );
 
-      // 3. ALWAYS migrate assignment submissions when class changes
-      if (oldClassId) {
-        console.log(`[Migration] Class change detected: ${oldClassId} → ${newClassId}. Migrating all student submissions...`);
+      // 3. Migrate assignment submissions ONLY if staying within the SAME subprogram (e.g., class change by admin)
+      // If subprogramId (new) != existing.chosen_subprogram (old), we skip migration to preserve old level history.
+      const oldSubprogramId = existing.chosen_subprogram || existing.subprogram_id;
+
+      if (oldClassId && subprogramId == oldSubprogramId) {
+        console.log(`[Migration] Internal Class change detected: ${oldClassId} → ${newClassId}. Migrating submissions within same level...`);
 
         const tables = [
           { main: 'exams', sub: 'exam_submissions' },
@@ -397,12 +400,14 @@ export const updateStudent = async (req, res) => {
           }
         }
 
-        // Also migrate attendance records
+        // Also migrate attendance records if same subprogram
         const [attendanceResult] = await dbp.query(
           "UPDATE attendance SET class_id = ? WHERE student_id = ? AND class_id = ?",
           [newClassId, id, oldClassId]
         );
         console.log(`[Migration] ✅ Migrated ${attendanceResult.affectedRows} attendance records`);
+      } else if (oldClassId) {
+        console.log(`[Promotion] Level change detected (${oldSubprogramId} → ${subprogramId}). Skipping assignment migration to preserve history.`);
       }
     }
 
