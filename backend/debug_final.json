@@ -1,0 +1,233 @@
+{
+  "programs": [
+    {
+      "id": 25,
+      "title": "IELTS and TOEFL Test Preparation Courses"
+    },
+    {
+      "id": 26,
+      "title": "English For Specific Purposes Program (ESP)"
+    },
+    {
+      "id": 27,
+      "title": "8-Level General English Course for Adults"
+    },
+    {
+      "id": 28,
+      "title": "Soft Skills and Workplace Training Programs"
+    },
+    {
+      "id": 29,
+      "title": "BEA Academic Writing Program"
+    },
+    {
+      "id": 30,
+      "title": "Digital Literacy and Virtual Communication"
+    },
+    {
+      "id": 31,
+      "title": "Proficiency Test"
+    }
+  ],
+  "subprograms": [
+    {
+      "id": 6,
+      "name": "TOEFL iBT Test Training Course",
+      "program_id": 25
+    },
+    {
+      "id": 7,
+      "name": "IELTS for Academic and General Training Course",
+      "program_id": 25
+    },
+    {
+      "id": 8,
+      "name": "English For Tourism and Hospitality",
+      "program_id": 26
+    },
+    {
+      "id": 9,
+      "name": "English For Busy People (EBP)",
+      "program_id": 26
+    },
+    {
+      "id": 10,
+      "name": "English For Civil Servants (ECS) ",
+      "program_id": 26
+    },
+    {
+      "id": 11,
+      "name": "Business English",
+      "program_id": 26
+    },
+    {
+      "id": 12,
+      "name": "Aviation English",
+      "program_id": 26
+    },
+    {
+      "id": 13,
+      "name": "Professional Ethics and Workplace Conduct",
+      "program_id": 28
+    },
+    {
+      "id": 14,
+      "name": "Critical Thinking and Problem Solving Skills",
+      "program_id": 28
+    },
+    {
+      "id": 15,
+      "name": "Report Writing and Presentation Skills",
+      "program_id": 28
+    },
+    {
+      "id": 16,
+      "name": "Leadership and Teamwork Development",
+      "program_id": 28
+    },
+    {
+      "id": 18,
+      "name": "Level 2: B1–B2. Intermediate",
+      "program_id": 29
+    },
+    {
+      "id": 19,
+      "name": "Level 3: C1–Advanced",
+      "program_id": 29
+    },
+    {
+      "id": 20,
+      "name": "Digital Litercay and Basic ICT Skills",
+      "program_id": 30
+    },
+    {
+      "id": 21,
+      "name": "Virtual Communication Language",
+      "program_id": 30
+    },
+    {
+      "id": 22,
+      "name": "Remote Work and Virtual Team Management Skills",
+      "program_id": 30
+    },
+    {
+      "id": 23,
+      "name": "Online Productivity Tools and Digital Collaboration Skills",
+      "program_id": 30
+    },
+    {
+      "id": 24,
+      "name": "A1 - Beginner",
+      "program_id": 27
+    },
+    {
+      "id": 25,
+      "name": "A2 - Elementary",
+      "program_id": 27
+    },
+    {
+      "id": 26,
+      "name": "A2+ - Pre-Intermediate",
+      "program_id": 27
+    },
+    {
+      "id": 27,
+      "name": "B1 - Intermediate",
+      "program_id": 27
+    },
+    {
+      "id": 28,
+      "name": "B1+ - Intermediate Plus",
+      "program_id": 27
+    },
+    {
+      "id": 29,
+      "name": "B2 - Upper-Intermediate",
+      "program_id": 27
+    },
+    {
+      "id": 30,
+      "name": "C1 - Advanced",
+      "program_id": 27
+    },
+    {
+      "id": 31,
+      "name": "C2 - Advanced Plus",
+      "program_id": 27
+    },
+    {
+      "id": 35,
+      "name": "C222",
+      "program_id": 27
+    }
+  ],
+  "configs": [
+    {
+      "id": 1,
+      "type": "subprogram",
+      "target_id": 26
+    }
+  ],
+  "students": [
+    {
+      "student_id": "BEA-ST-DLVCS-161225-101",
+      "full_name": "Mohamed Hassan",
+      "chosen_program": "Digital Literacy and Virtual Communication",
+      "chosen_subprogram": "20"
+    },
+    {
+      "student_id": "BEA-ST-DLVCS-301225-102",
+      "full_name": "yaasmiin",
+      "chosen_program": "Digital Literacy and Virtual Communication",
+      "chosen_subprogram": "20"
+    },
+    {
+      "student_id": "BEA-ST-DLVCS-311225-103",
+      "full_name": "Mustalifo  Axmed",
+      "chosen_program": "Digital Literacy and Virtual Communication",
+      "chosen_subprogram": "20"
+    },
+    {
+      "student_id": "BEA-ST-GEP-060126-105",
+      "full_name": "Muzamil Tahlil",
+      "chosen_program": "8-Level General English Course for Adults",
+      "chosen_subprogram": null
+    },
+    {
+      "student_id": "BEA-ST-GEP-120126-106",
+      "full_name": "munasa",
+      "chosen_program": "8-Level General English Course for Adults",
+      "chosen_subprogram": null
+    },
+    {
+      "student_id": "BEA-ST-GEP-120126-107",
+      "full_name": "mmii",
+      "chosen_program": "8-Level General English Course for Adults",
+      "chosen_subprogram": "27"
+    },
+    {
+      "student_id": "BEA-ST-GEP-120126-108",
+      "full_name": "ali",
+      "chosen_program": "8-Level General English Course for Adults",
+      "chosen_subprogram": null
+    },
+    {
+      "student_id": "BEA-ST-GEP-130126-109",
+      "full_name": "Mustalifo",
+      "chosen_program": "8-Level General English Course for Adults",
+      "chosen_subprogram": null
+    },
+    {
+      "student_id": "BEA-ST-GEP-130126-110",
+      "full_name": "farah",
+      "chosen_program": "8-Level General English Course for Adults",
+      "chosen_subprogram": null
+    },
+    {
+      "student_id": "BEA-ST-GEP-130126-111",
+      "full_name": "gedi",
+      "chosen_program": "8-Level General English Course for Adults",
+      "chosen_subprogram": null
+    }
+  ]
+}

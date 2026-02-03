@@ -105,7 +105,7 @@ export const getAllStudents = async () => {
 // GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT student_id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, sponsor_name, profile_picture, paid_until, expiry_date, created_at, updated_at FROM students WHERE student_id = ?",
+    "SELECT student_id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, completed_subprograms, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, sponsor_name, profile_picture, paid_until, expiry_date, created_at, updated_at FROM students WHERE student_id = ?",
     [id]
   );
   return rows[0] || null;

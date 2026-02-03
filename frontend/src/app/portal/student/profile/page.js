@@ -15,6 +15,7 @@ export default function StudentProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
+    full_name: "",
     phone: "",
     residency_country: "",
     residency_city: "",
@@ -33,6 +34,7 @@ export default function StudentProfilePage() {
   useEffect(() => {
     if (user) {
       setFormData({
+        full_name: user.full_name || "",
         phone: user.phone || "",
         residency_country: user.residency_country || "",
         residency_city: user.residency_city || "",
@@ -85,6 +87,7 @@ export default function StudentProfilePage() {
     try {
       const submitData = new FormData();
       submitData.append("id", user.id || user.student_id);
+      submitData.append("full_name", formData.full_name);
       submitData.append("phone", formData.phone);
       submitData.append("residency_country", formData.residency_country);
       submitData.append("residency_city", formData.residency_city);
@@ -121,6 +124,7 @@ export default function StudentProfilePage() {
   const handleCancel = () => {
     if (user) {
       setFormData({
+        full_name: user.full_name || "",
         phone: user.phone || "",
         residency_country: user.residency_country || "",
         residency_city: user.residency_city || "",
@@ -188,10 +192,24 @@ export default function StudentProfilePage() {
 
               {/* Name & Basic Info */}
               <div className="flex-1 text-center sm:text-left mb-2">
-                <h1 className={`text-3xl font-bold mb-1 ${isDark ? "text-white" : "text-gray-900"}`}>
-                  {user?.full_name}
-                </h1>
-                <p className={`text-sm font-medium flex items-center justify-center sm:justify-start gap-2 ${isDark ? "text-blue-400" : "text-blue-600"}`}>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <label className={`text-xs font-medium block ${isDark ? "text-slate-400" : "text-gray-500"}`}>Full Name</label>
+                    <input
+                      type="text"
+                      name="full_name"
+                      value={formData.full_name}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 rounded-lg border text-lg font-bold transition-all focus:ring-2 focus:ring-blue-500/20 ${isDark ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-gray-300"}`}
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                ) : (
+                  <h1 className={`text-3xl font-bold mb-1 ${isDark ? "text-white" : "text-gray-900"}`}>
+                    {user?.full_name}
+                  </h1>
+                )}
+                <p className={`text-sm font-medium flex items-center justify-center sm:justify-start gap-2 ${isDark ? "text-blue-400" : "text-blue-600"} ${isEditing ? "mt-2" : ""}`}>
                   <UserIcon className="w-4 h-4" />
                   Student Account
                 </p>

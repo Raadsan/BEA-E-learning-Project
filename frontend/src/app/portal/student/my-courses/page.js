@@ -10,6 +10,7 @@ import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery, useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
 import { useGetStudentAttendanceQuery } from "@/redux/api/attendanceApi";
 import { useCheckLevelUpEligibilityQuery, useCreateLevelUpRequestMutation } from "@/redux/api/levelUpApi";
+import { useGetCertificatesQuery } from "@/redux/api/certificateApi";
 import { useToast } from "@/components/Toast";
 import Modal from "@/components/Modal";
 import Image from "next/image";
@@ -29,6 +30,7 @@ export default function MyCoursesPage() {
     const [levelUpDescription, setLevelUpDescription] = useState("");
 
     const { data: eligibility } = useCheckLevelUpEligibilityQuery();
+    const { data: certificates = [] } = useGetCertificatesQuery();
     const [createRequest] = useCreateLevelUpRequestMutation();
     const { showToast } = useToast();
 
@@ -141,10 +143,40 @@ export default function MyCoursesPage() {
     }, [allClasses, allSubprograms, studentProgram]);
 
     useEffect(() => {
-        if (!userLoading && !classLoading && !subprogramsLoading && !allCoursesLoading && !attendanceLoading) { // Added attendanceLoading
+        if (!userLoading && !classLoading && !subprogramsLoading && !allCoursesLoading && !attendanceLoading) {
             setLoading(false);
         }
-    }, [userLoading, classLoading, subprogramsLoading, allCoursesLoading, attendanceLoading]); // Added attendanceLoading
+    }, [userLoading, classLoading, subprogramsLoading, allCoursesLoading, attendanceLoading]);
+
+    const handleDownloadCertificate = async (type, id, name) => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`http://localhost:5000/api/certificates/download/${type}/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to download certificate");
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Certificate_${name.replace(/\s+/g, '_')}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            showToast("Certificate downloaded successfully!", "success");
+        } catch (error) {
+            showToast(error.message || "Certificate not available yet.", "error");
+        }
+    };
 
     // Handle subprogram click - Scrolls to the main classes section
     const handleSubprogramClick = (subprogram, isLocked) => {
@@ -276,6 +308,18 @@ export default function MyCoursesPage() {
                                 Download Program Curriculum
                             </a>
                         )}
+
+                        {certificates.some(c => c.target_id === studentProgram?.id && c.target_type === 'program') && (
+                            <button
+                                onClick={() => handleDownloadCertificate('program', studentProgram.id, studentProgram.title || studentProgram.program_name)}
+                                className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-green-600 text-white text-sm font-bold rounded-2xl transition-all shadow-xl hover:bg-green-700 active:scale-95"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Download Program Certificate
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -368,6 +412,22 @@ export default function MyCoursesPage() {
                                                                 </div>
 
                                                                 <div className={`w-8 h-1 rounded-full ${isActive ? "bg-white/40" : "bg-gray-400/20"}`}></div>
+
+                                                                {/* Download Button for Completed Pillar */}
+                                                                {isPast && certificates.some(c => c.target_id === subprogram.id && c.target_type === 'subprogram') && (
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDownloadCertificate('subprogram', subprogram.id, subprogram.subprogram_name);
+                                                                        }}
+                                                                        className="absolute -bottom-10 left-1/2 -translate-x-1/2 p-2 bg-green-500 text-white rounded-full shadow-lg hover:scale-110 transition-all z-20"
+                                                                        title="Download Certificate"
+                                                                    >
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                                        </svg>
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     );
@@ -581,6 +641,22 @@ export default function MyCoursesPage() {
                                                             <span>Course Locked</span>
                                                         </div>
                                                     )}
+
+                                                    {/* Certificate Download Button for Subprogram */}
+                                                    {!isLocked && progress === 100 && certificates.some(c => c.target_id === subprogram.id && c.target_type === 'subprogram') && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDownloadCertificate('subprogram', subprogram.id, subprogram.subprogram_name);
+                                                            }}
+                                                            className={`mt-3 w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold transition-all border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white`}
+                                                        >
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                            </svg>
+                                                            Get Certificate
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         );
@@ -644,7 +720,7 @@ export default function MyCoursesPage() {
                                             onClick={() => isActive && router.push("/portal/student/online-sessions")}
                                             className={`relative rounded-2xl overflow-hidden shadow-xl transition-all duration-300 border-2 ${isActive
                                                 ? `border-[#010080] ${isDark ? 'bg-gray-800' : 'bg-blue-50'} hover:shadow-2xl hover:scale-[1.02] cursor-pointer`
-                                                : `${isDark ? 'border-green-600/20 bg-gray-800/50' : 'border-green-600/20 bg-green-50/10'} opacity-90 cursor-pointer hover:scale-[1.01]`
+                                                : `${isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} opacity-90 cursor-pointer hover:scale-[1.01]`
                                                 }`}
                                         >
                                             <div className="relative p-6">
@@ -678,7 +754,7 @@ export default function MyCoursesPage() {
                                                             Active
                                                         </span>
                                                     ) : (
-                                                        <span className="px-3 py-1.5 bg-green-600 text-white rounded-full text-xs font-normal shadow-md flex items-center gap-1.5 whitespace-nowrap">
+                                                        <span className={`px-3 py-1.5 rounded-full text-xs font-normal shadow-sm flex items-center gap-1.5 whitespace-nowrap ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
                                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                             </svg>

@@ -270,6 +270,7 @@ export const getCurrentUser = async (req, res) => {
             residency_city: user.residency_city || null,
             chosen_program: user.chosen_program,
             chosen_subprogram: user.chosen_subprogram,
+            completed_subprograms: user.completed_subprograms || null,
             sponsor_name: user.sponsor_name,
             approval_status: user.approval_status || null,
             class_id: user.class_id || null,

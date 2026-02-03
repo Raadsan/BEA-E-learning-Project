@@ -34,6 +34,7 @@ import { shiftApi } from "./api/shiftApi";
 import { reviewApi } from "./api/reviewApi";
 import { reportApi } from "./api/reportApi";
 import { levelUpApi } from "./api/levelUpApi";
+import { certificateApi } from "./api/certificateApi";
 
 export const store = configureStore({
     reducer: {
@@ -72,6 +73,7 @@ export const store = configureStore({
         [reviewApi.reducerPath]: reviewApi.reducer,
         [reportApi.reducerPath]: reportApi.reducer,
         [levelUpApi.reducerPath]: levelUpApi.reducer,
+        [certificateApi.reducerPath]: certificateApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(
@@ -109,6 +111,7 @@ export const store = configureStore({
             shiftApi.middleware,
             reviewApi.middleware,
             reportApi.middleware,
-            levelUpApi.middleware
+            levelUpApi.middleware,
+            certificateApi.middleware
         ),
 });

@@ -19,7 +19,7 @@ export default function AdminLevelUpRequestsPage() {
 
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [adminNote, setAdminNote] = useState("");
-    const [modalType, setModalType] = useState(null); // 'approve', 'reject', 'view'
+    const [modalType, setModalType] = useState(null); // 'choose', 'approve', 'reject', 'view'
 
     const [confirmationModal, setConfirmationModal] = useState({
         isOpen: false,
@@ -59,7 +59,7 @@ export default function AdminLevelUpRequestsPage() {
     const columns = [
         {
             key: "student_id", label: "STUDENT ID", width: "150px",
-            render: (val) => <div className="font-bold text-gray-900 dark:text-white truncate lg:max-w-[150px]" title={val}>{val}</div>
+            render: (val) => <div className="font-bold text-gray-900 dark:text-white" title={val}>{val}</div>
         },
         {
             key: "student_name", label: "STUDENT NAME", width: "180px",
@@ -79,63 +79,46 @@ export default function AdminLevelUpRequestsPage() {
         },
         {
             key: "status", label: "Status", width: "120px",
-            render: (val) => {
-                switch (val) {
-                    case 'approved': return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase tracking-wider">Approved</span>;
-                    case 'rejected': return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 uppercase tracking-wider">Rejected</span>;
-                    default: return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 uppercase tracking-wider">Pending</span>;
+            render: (val, row) => {
+                const styles = {
+                    approved: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800",
+                    rejected: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800",
+                    pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800"
+                };
+
+                const currentStyle = styles[val] || styles.pending;
+
+                if (val === 'pending') {
+                    return (
+                        <button
+                            onClick={() => openModal(row, 'choose')}
+                            className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider border transition-all hover:scale-105 active:scale-95 ${currentStyle}`}
+                        >
+                            Pending
+                        </button>
+                    );
                 }
+
+                return (
+                    <span className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider border ${currentStyle}`}>
+                        {val}
+                    </span>
+                );
             },
         },
         {
-            key: "actions", label: "ACTIONS", width: "150px",
+            key: "actions", label: "ACTIONS", width: "80px",
             render: (_, row) => {
-                if (row.status === 'pending') {
-                    return (
-                        <div className="flex gap-2">
-                            <button onClick={() => openModal(row, 'approve')} className="text-green-600 hover:bg-green-50 p-2 rounded-lg transition-colors border border-green-100 dark:border-green-900/30" title="Promote Student">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setConfirmationModal({
-                                        isOpen: true,
-                                        title: "Confirm Rejection",
-                                        message: `Are you sure you want to reject the level-up request for ${row.student_name}?`,
-                                        onConfirm: () => {
-                                            setConfirmationModal(prev => ({ ...prev, isOpen: false }));
-                                            openModal(row, 'reject');
-                                        }
-                                    });
-                                }}
-                                className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors border border-red-100 dark:border-red-900/30"
-                                title="Reject Request"
-                            >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </button>
-                            <button onClick={() => openModal(row, 'view')} className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors border border-blue-100 dark:border-blue-900/30" title="View Details">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                            </button>
-                        </div>
-                    );
-                }
                 return (
                     <button
                         onClick={() => openModal(row, 'view')}
-                        className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors border border-blue-100 dark:border-blue-900/30 flex items-center gap-2 px-3 py-1.5"
+                        className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors border border-blue-100 dark:border-blue-900/30 flex items-center justify-center"
+                        title={row.status === 'pending' ? 'View Details' : 'View Result'}
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
-                        <span className="text-xs font-bold uppercase">View Result</span>
                     </button>
                 );
             },
@@ -161,6 +144,7 @@ export default function AdminLevelUpRequestsPage() {
                 onClose={closeModal}
                 request={selectedRequest}
                 modalType={modalType}
+                setModalType={setModalType}
                 adminNote={adminNote}
                 setAdminNote={setAdminNote}
                 handleAction={handleAction}
