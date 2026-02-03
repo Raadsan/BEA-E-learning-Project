@@ -205,7 +205,7 @@ export default function TestimonialsPage() {
             key: "image",
             label: "Photo",
             width: "80px",
-            render: (row) => (
+            render: (_, row) => (
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden border border-gray-200">
                     {row.image_url ? (
                         <img
@@ -228,20 +228,20 @@ export default function TestimonialsPage() {
             key: "quote",
             label: "Quote",
             width: "400px",
-            render: (row) => (
-                <p className="line-clamp-2 text-sm italic text-gray-600 dark:text-gray-400">"{row.quote}"</p>
+            render: (value) => (
+                <p className="line-clamp-2 text-sm italic text-gray-600 dark:text-gray-400">"{value}"</p>
             )
         },
         {
             key: "is_active",
             label: "Status",
             width: "120px",
-            render: (row) => (
+            render: (value) => (
                 <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${row.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${value ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
                         }`}
                 >
-                    {row.is_active ? "Active" : "Inactive"}
+                    {value ? "Active" : "Inactive"}
                 </span>
             ),
         },
@@ -249,7 +249,7 @@ export default function TestimonialsPage() {
             key: "actions",
             label: "Actions",
             width: "120px",
-            render: (row) => (
+            render: (_, row) => (
                 <div className="flex gap-2">
                     <button
                         onClick={() => handleEdit(row)}

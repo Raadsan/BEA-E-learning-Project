@@ -183,30 +183,30 @@ export default function CourseTimelinePage() {
             key: "start_date",
             label: "Start Date",
             width: "150px",
-            render: (row) => row.start_date_display || formatDateForDisplay(row.start_date),
+            render: (value, row) => row.start_date_display || formatDateForDisplay(value),
         },
         {
             key: "end_date",
             label: "End Date",
             width: "150px",
-            render: (row) => row.end_date_display || formatDateForDisplay(row.end_date),
+            render: (value, row) => row.end_date_display || formatDateForDisplay(value),
         },
         {
             key: "holidays",
             label: "Holidays",
             width: "300px",
-            render: (row) => row.holidays || <span className="text-gray-400 italic">No holidays</span>,
+            render: (value) => value || <span className="text-gray-400 italic">No holidays</span>,
         },
         {
             key: "is_active",
             label: "Status",
             width: "120px",
-            render: (row) => (
+            render: (value) => (
                 <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${row.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${value ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
                         }`}
                 >
-                    {row.is_active ? "Active" : "Inactive"}
+                    {value ? "Active" : "Inactive"}
                 </span>
             ),
         },
@@ -214,7 +214,7 @@ export default function CourseTimelinePage() {
             key: "actions",
             label: "Actions",
             width: "120px",
-            render: (row) => (
+            render: (_, row) => (
                 <div className="flex gap-2">
                     <button
                         onClick={() => handleEdit(row)}

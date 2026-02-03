@@ -888,3 +888,136 @@ export const getClassAssessmentActivity = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// 15. GET Payment Stats
+export const getPaymentStats = async (req, res) => {
+    try {
+        const { date_from, date_to } = req.query;
+        let where = "WHERE 1=1";
+        let params = [];
+
+        if (date_from) { where += " AND created_at >= ?"; params.push(date_from); }
+        if (date_to) { where += " AND created_at <= ?"; params.push(date_to); }
+
+        // Core Totals
+        const [totals] = await dbp.query(`
+            SELECT 
+                SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as totalRevenue,
+                SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pendingRevenue,
+                COUNT(*) as totalTransactions,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as successfulTransactions
+            FROM payments
+            ${where}
+        `, params);
+
+        // Monthly Trend (Growth)
+        const [trend] = await dbp.query(`
+            SELECT DATE_FORMAT(created_at, '%b %Y') as month, SUM(amount) as revenue, MIN(created_at) as sort_date
+            FROM payments
+            WHERE status = 'completed'
+            GROUP BY month
+            ORDER BY sort_date ASC
+            LIMIT 12
+        `);
+
+        res.json({
+            success: true,
+            data: {
+                ...totals[0],
+                totalRevenue: parseFloat(totals[0].totalRevenue || 0),
+                pendingRevenue: parseFloat(totals[0].pendingRevenue || 0),
+                trend: trend.map(t => ({ month: t.month, revenue: parseFloat(t.revenue) }))
+            }
+        });
+    } catch (error) {
+        console.error("Error in getPaymentStats:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 16. GET Payment Distribution
+export const getPaymentDistribution = async (req, res) => {
+    try {
+        const { program } = req.query;
+
+        // By Method
+        const [byMethod] = await dbp.query(`
+            SELECT method as name, SUM(amount) as value
+            FROM payments
+            WHERE status = 'completed'
+            GROUP BY method
+        `);
+
+        // By Program (Using Centralized Programs Table)
+        const [byProgram] = await dbp.query(`
+            SELECT pr.title as name, SUM(p.amount) as value
+            FROM payments p
+            JOIN programs pr ON p.program_id = pr.id
+            WHERE p.status = 'completed'
+            GROUP BY pr.title
+        `);
+
+        res.json({
+            success: true,
+            data: {
+                byMethod: byMethod.map(m => ({ name: m.name, value: parseFloat(m.value) })),
+                byProgram: byProgram.map(pr => ({ name: pr.name, value: parseFloat(pr.value) }))
+            }
+        });
+    } catch (error) {
+        console.error("Error in getPaymentDistribution:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 17. GET Detailed Payment List
+export const getDetailedPaymentList = async (req, res) => {
+    try {
+        const { status, method, search, limit = 100, offset = 0 } = req.query;
+        let where = "WHERE 1=1";
+        let params = [];
+
+        if (status) { where += " AND p.status = ?"; params.push(status); }
+        if (method) { where += " AND p.method = ?"; params.push(method); }
+        if (search) {
+            where += " AND (p.student_id LIKE ? OR p.ielts_student_id LIKE ? OR p.provider_transaction_id LIKE ? OR s.full_name LIKE ? OR i.first_name LIKE ? OR i.last_name LIKE ?)";
+            const s = `%${search}%`;
+            params.push(s, s, s, s, s, s);
+        }
+
+        const query = `
+            SELECT 
+                p.id, p.student_id, p.ielts_student_id, p.amount, p.method as payment_method, p.provider_transaction_id as transaction_id, p.status, p.created_at as payment_date,
+                COALESCE(s.full_name, CONCAT(i.first_name, ' ', i.last_name)) as student_name,
+                COALESCE(pr.title, s.chosen_program, i.chosen_program) as program
+            FROM payments p
+            LEFT JOIN students s ON p.student_id = s.student_id
+            LEFT JOIN IELTSTOEFL i ON p.ielts_student_id = i.student_id
+            LEFT JOIN programs pr ON p.program_id = pr.id
+            ${where}
+            ORDER BY p.created_at DESC
+            LIMIT ? OFFSET ?
+        `;
+
+        const [list] = await dbp.query(query, [...params, parseInt(limit), parseInt(offset)]);
+
+        const [count] = await dbp.query(`
+            SELECT COUNT(*) as total 
+            FROM payments p
+            LEFT JOIN students s ON p.student_id = s.student_id
+            LEFT JOIN IELTSTOEFL i ON p.ielts_student_id = i.student_id
+            ${where}
+        `, params);
+
+        res.json({
+            success: true,
+            data: {
+                payments: list,
+                total: count[0].total
+            }
+        });
+    } catch (error) {
+        console.error("Error in getDetailedPaymentList:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

@@ -120,6 +120,30 @@ export const reportApi = createApi({
       }),
       providesTags: ["Reports"],
       transformResponse: (response) => response.success ? response.data : response
+    }),
+    getPaymentStats: builder.query({
+      query: (params) => ({
+        url: "/payment-stats",
+        params
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    }),
+    getPaymentDistribution: builder.query({
+      query: (params) => ({
+        url: "/payment-distribution",
+        params
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    }),
+    getDetailedPaymentList: builder.query({
+      query: (params) => ({
+        url: "/payment-detailed",
+        params
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
     })
   }),
 });
@@ -139,5 +163,9 @@ export const {
   useGetAssessmentDistributionQuery,
   useGetRecentAssessmentsQuery,
   useGetAssessmentGenderStatsQuery,
-  useGetClassAssessmentActivityQuery
+  useGetClassAssessmentActivityQuery,
+  useGetPaymentStatsQuery,
+  useGetPaymentDistributionQuery,
+  useGetDetailedPaymentListQuery,
+  useLazyGetDetailedPaymentListQuery
 } = reportApi;

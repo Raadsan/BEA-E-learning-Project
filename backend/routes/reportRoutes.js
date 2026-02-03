@@ -13,7 +13,10 @@ import {
     getAssessmentDistribution,
     getRecentAssessments,
     getAssessmentGenderStats,
-    getClassAssessmentActivity
+    getClassAssessmentActivity,
+    getPaymentStats,
+    getPaymentDistribution,
+    getDetailedPaymentList
 } from '../controllers/reportController.js';
 
 const router = express.Router();
@@ -32,5 +35,10 @@ router.get('/assessment-distribution', getAssessmentDistribution);
 router.get('/recent-assessments', getRecentAssessments);
 router.get('/assessment-gender', getAssessmentGenderStats);
 router.get('/class-assessment-activity', getClassAssessmentActivity);
+
+// Payment Reports
+router.get('/payment-stats', getPaymentStats);
+router.get('/payment-distribution', getPaymentDistribution);
+router.get('/payment-detailed', getDetailedPaymentList);
 
 export default router;
