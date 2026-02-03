@@ -597,6 +597,14 @@ export default function AdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/students-requests/freezing") ? 'text-white' : 'text-gray-100'}>Freezing Requests</span>
                   </Link>
                 </li>
+                <li>
+                  <Link href="/portal/admin/students-requests/level-up" className={getSubMenuItemClasses("/portal/admin/students-requests/level-up")} style={getSubActiveStyle("/portal/admin/students-requests/level-up")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/students-requests/level-up") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                    <span className={isActive("/portal/admin/students-requests/level-up") ? 'text-white' : 'text-gray-100'}>Level Up Requests</span>
+                  </Link>
+                </li>
               </ul>
             )}
           </li>
@@ -777,7 +785,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
           </li>
 
 
-          
+
         </ul>
       </nav >
 

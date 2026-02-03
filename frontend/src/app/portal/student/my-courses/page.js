@@ -8,7 +8,10 @@ import { useGetClassQuery, useGetClassesQuery } from "@/redux/api/classApi"; // 
 import { useGetCoursesQuery } from "@/redux/api/courseApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsQuery, useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
-import { useGetStudentAttendanceQuery } from "@/redux/api/attendanceApi"; // Added useGetStudentAttendanceQuery
+import { useGetStudentAttendanceQuery } from "@/redux/api/attendanceApi";
+import { useCheckLevelUpEligibilityQuery, useCreateLevelUpRequestMutation } from "@/redux/api/levelUpApi";
+import { useToast } from "@/components/Toast";
+import Modal from "@/components/Modal";
 import Image from "next/image";
 
 export default function MyCoursesPage() {
@@ -22,6 +25,12 @@ export default function MyCoursesPage() {
     const [assignedClasses, setAssignedClasses] = useState([]); // Added assignedClasses state
     const [selectedSubprogramId, setSelectedSubprogramId] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false);
+    const [levelUpDescription, setLevelUpDescription] = useState("");
+
+    const { data: eligibility } = useCheckLevelUpEligibilityQuery();
+    const [createRequest] = useCreateLevelUpRequestMutation();
+    const { showToast } = useToast();
 
 
     // Fetch student's class
@@ -231,23 +240,47 @@ export default function MyCoursesPage() {
                         </p>
                     </div>
 
+                    <div className="flex items-center gap-4">
+                        {eligibility?.isEligible ? (
+                            <button
+                                onClick={() => setIsLevelUpModalOpen(true)}
+                                className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-[#010080] text-white text-sm font-bold rounded-2xl transition-all whitespace-nowrap shadow-xl"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                </svg>
+                                Level Up Request
+                            </button>
+                        ) : eligibility?.hasPending ? (
+                            <button
+                                disabled
+                                className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-green-600 text-white text-sm font-bold rounded-2xl transition-all whitespace-nowrap shadow-xl cursor-default"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Requested
+                            </button>
+                        ) : null}
+
                         {studentProgram?.curriculum_file && (
                             <a
                                 href={`http://localhost:5000${studentProgram.curriculum_file}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-[#010080] text-white rounded-2xl text-sm font-bold shadow-xl hover:shadow-2xl hover:scale-[1.03] active:scale-95 transition-all group whitespace-nowrap"
+                                className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-[#010080] text-white text-sm font-bold rounded-2xl transition-all whitespace-nowrap shadow-xl"
                             >
-                                <svg className="w-5 h-5 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
                                 Download Program Curriculum
                             </a>
                         )}
                     </div>
+                </div>
 
-                    <div className="flex flex-col gap-10">
-                        {isGeneralProgram ? (
+                <div className="flex flex-col gap-10">
+                    {isGeneralProgram ? (
                         <>
                             {/* === GENERAL PROGRAM LAYOUT (PILLARS) === */}
 
@@ -285,12 +318,12 @@ export default function MyCoursesPage() {
                                                     const isPast = index < activeIndex;
                                                     const isLocked = !isEnrolled && !isPast;
 
-                                            return (
+                                                    return (
                                                         <div
                                                             key={subprogram.id}
                                                             onClick={() => handleSubprogramClick(subprogram, isLocked)}
                                                             className={`group flex flex-col items-center flex-shrink-0 w-16 h-full justify-end ${isLocked ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}`}
-                                                    >
+                                                        >
                                                             <div className={`mb-2 text-[10px] font-bold ${isActive ? "text-green-600" : "text-gray-400"}`}>
                                                                 {shortCodes[index] || `L${index + 1}`}
                                                             </div>
@@ -312,34 +345,34 @@ export default function MyCoursesPage() {
                                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                                                                             </svg>
-                                                    </div>
+                                                                        </div>
                                                                     ) : isPast ? (
                                                                         <div className="w-5 h-5 rounded-full bg-green-600/20 text-green-600 flex items-center justify-center">
                                                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                                                                             </svg>
-                                                </div>
+                                                                        </div>
                                                                     ) : (
                                                                         <div className={`w-5 h-5 flex items-center justify-center ${isDark ? "text-gray-600" : "text-gray-400"}`}>
                                                                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                                                             </svg>
-                                    </div>
+                                                                        </div>
                                                                     )}
-                                </div>
+                                                                </div>
 
                                                                 <div className="flex-1 flex items-center justify-center overflow-hidden text-center px-1">
                                                                     <span className={`text-[9px] font-normal uppercase tracking-widest -rotate-90 whitespace-nowrap ${isActive ? "text-white" : "text-gray-500 opacity-40"}`}>
                                                                         {subprogram.subprogram_name}
                                                                     </span>
-                                </div>
+                                                                </div>
 
                                                                 <div className={`w-8 h-1 rounded-full ${isActive ? "bg-white/40" : "bg-gray-400/20"}`}></div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                );
-                                            });
-                                        })()}
+                                                    );
+                                                });
+                                            })()}
                                         </div>
                                     )}
                                 </div>
@@ -361,202 +394,202 @@ export default function MyCoursesPage() {
                             </div>
 
                         </>
-                        ) : (
-                            /* === OTHER PROGRAMS LAYOUT (PREMIUM CARD DESIGN) === */
-                            <div className="flex flex-col gap-8">
-                                {/* Main Program Card */}
-                                <div className={`mb-8 rounded-xl shadow-lg overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-50"} border ${isDark ? "border-gray-700" : "border-gray-200"}`}>
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-                                        {/* Left Section - Program Card with Image */}
-                                        <div className={`lg:col-span-1 ${isDark ? "bg-gray-700" : "bg-gray-100"} p-6 relative overflow-hidden`}>
-                                            <div className="relative h-full min-h-[300px] flex flex-col items-center justify-center">
-                                                <Image
-                                                    src={programImage}
-                                                    alt={studentProgram.program_name}
-                                                    fill
-                                                    className="object-cover"
-                                                    unoptimized
-                                                />
+                    ) : (
+                        /* === OTHER PROGRAMS LAYOUT (PREMIUM CARD DESIGN) === */
+                        <div className="flex flex-col gap-8">
+                            {/* Main Program Card */}
+                            <div className={`mb-8 rounded-xl shadow-lg overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-50"} border ${isDark ? "border-gray-700" : "border-gray-200"}`}>
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+                                    {/* Left Section - Program Card with Image */}
+                                    <div className={`lg:col-span-1 ${isDark ? "bg-gray-700" : "bg-gray-100"} p-6 relative overflow-hidden`}>
+                                        <div className="relative h-full min-h-[300px] flex flex-col items-center justify-center">
+                                            <Image
+                                                src={programImage}
+                                                alt={studentProgram.program_name}
+                                                fill
+                                                className="object-cover"
+                                                unoptimized
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Right Section - Course Details */}
+                                    <div className={`lg:col-span-2 ${isDark ? "bg-gray-800" : "bg-white"} p-8`}>
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div>
+                                                <h3 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
+                                                    {studentProgram.title || studentProgram.program_name}
+                                                </h3>
+                                                <p className={`text-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                                                    {studentProgram.title || studentProgram.program_name}
+                                                </p>
+                                            </div>
+                                            <div className="bg-[#010080] text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                                                </svg>
+                                                <span className="font-semibold">In Progress</span>
                                             </div>
                                         </div>
 
-                                        {/* Right Section - Course Details */}
-                                        <div className={`lg:col-span-2 ${isDark ? "bg-gray-800" : "bg-white"} p-8`}>
-                                            <div className="flex items-start justify-between mb-4">
-                                                <div>
-                                                    <h3 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
-                                                        {studentProgram.title || studentProgram.program_name}
-                                                    </h3>
-                                                    <p className={`text-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                                                        {studentProgram.title || studentProgram.program_name}
-                                                    </p>
-                                                </div>
-                                                <div className="bg-[#010080] text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                                                    </svg>
-                                                    <span className="font-semibold">In Progress</span>
-                                                </div>
+                                        {/* Activity Info */}
+                                        <div className="flex items-center gap-6 text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <svg className={`w-5 h-5 ${isDark ? "text-gray-400" : "text-gray-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span className={isDark ? "text-gray-400" : "text-gray-600"}>
+                                                    Last activity: 4 days ago
+                                                </span>
                                             </div>
-
-                                            {/* Activity Info */}
-                                            <div className="flex items-center gap-6 text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <svg className={`w-5 h-5 ${isDark ? "text-gray-400" : "text-gray-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                    <span className={isDark ? "text-gray-400" : "text-gray-600"}>
-                                                        Last activity: 4 days ago
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <span className={isDark ? "text-gray-400" : "text-gray-600"}>
-                                                        {subprogramsData.length} courses available
-                                                    </span>
-                                                </div>
+                                            <div>
+                                                <span className={isDark ? "text-gray-400" : "text-gray-600"}>
+                                                    {subprogramsData.length} courses available
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* Subprograms as Course Cards */}
-                                {subprogramsLoading ? (
-                                    <div className={`p-6 rounded-xl shadow ${card} text-center`}>
-                                        <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading courses...</p>
-                                    </div>
-                                ) : subprogramsData.length === 0 ? (
-                                    <div className={`p-6 rounded-xl shadow ${card} text-center`}>
-                                        <p className={isDark ? "text-gray-400" : "text-gray-600"}>No courses available.</p>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                                        {subprogramsData.map((subprogram, index) => {
-                                            const currentSubId = studentClass?.subprogram_id || user?.chosen_subprogram;
-                                            const isActive = Number(subprogram.id) === Number(currentSubId);
-                                            const isLocked = !isActive;
-                                            const progress = calculateProgress(subprogram.id);
-                                            const coursesInSub = filteredCourses.filter(c => Number(c.subprogram_id) === Number(subprogram.id));
-                                            const totalLessons = coursesInSub.length;
-                                            const completedLessons = Math.floor((progress / 100) * totalLessons);
+                            {/* Subprograms as Course Cards */}
+                            {subprogramsLoading ? (
+                                <div className={`p-6 rounded-xl shadow ${card} text-center`}>
+                                    <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading courses...</p>
+                                </div>
+                            ) : subprogramsData.length === 0 ? (
+                                <div className={`p-6 rounded-xl shadow ${card} text-center`}>
+                                    <p className={isDark ? "text-gray-400" : "text-gray-600"}>No courses available.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                                    {subprogramsData.map((subprogram, index) => {
+                                        const currentSubId = studentClass?.subprogram_id || user?.chosen_subprogram;
+                                        const isActive = Number(subprogram.id) === Number(currentSubId);
+                                        const isLocked = !isActive;
+                                        const progress = calculateProgress(subprogram.id);
+                                        const coursesInSub = filteredCourses.filter(c => Number(c.subprogram_id) === Number(subprogram.id));
+                                        const totalLessons = coursesInSub.length;
+                                        const completedLessons = Math.floor((progress / 100) * totalLessons);
 
-                                            const gradient = gradients[index % gradients.length];
+                                        const gradient = gradients[index % gradients.length];
 
-                                            return (
-                                                <div
-                                                    key={subprogram.id}
-                                                    onClick={() => {
-                                                        if (!isLocked) {
-                                                            router.push(`/portal/student/my-courses/${subprogram.id}`);
-                                                        }
-                                                    }}
-                                                    className={`group relative rounded-2xl overflow-hidden transition-all duration-500 border-2 ${isLocked
-                                                        ? `${isDark ? "bg-gray-800/40 border-gray-700/50" : "bg-gray-100 border-gray-200"} grayscale opacity-80 cursor-not-allowed`
-                                                        : `${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"} cursor-pointer hover:shadow-2xl hover:border-[#010080]/30 hover:-translate-y-2`
-                                                        }`}
-                                                >
-                                                    {/* Top Decorative Section with Icon */}
-                                                    <div className={`relative h-32 flex items-center justify-center overflow-hidden bg-gradient-to-br ${gradient}`}>
-                                                        <div className="absolute inset-0 opacity-20">
-                                                            <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/30 blur-2xl"></div>
-                                                            <div className="absolute -left-4 -bottom-4 w-20 h-20 rounded-full bg-black/20 blur-xl"></div>
-                                                        </div>
+                                        return (
+                                            <div
+                                                key={subprogram.id}
+                                                onClick={() => {
+                                                    if (!isLocked) {
+                                                        router.push(`/portal/student/my-courses/${subprogram.id}`);
+                                                    }
+                                                }}
+                                                className={`group relative rounded-2xl overflow-hidden transition-all duration-500 border-2 ${isLocked
+                                                    ? `${isDark ? "bg-gray-800/40 border-gray-700/50" : "bg-gray-100 border-gray-200"} grayscale opacity-80 cursor-not-allowed`
+                                                    : `${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"} cursor-pointer hover:shadow-2xl hover:border-[#010080]/30 hover:-translate-y-2`
+                                                    }`}
+                                            >
+                                                {/* Top Decorative Section with Icon */}
+                                                <div className={`relative h-32 flex items-center justify-center overflow-hidden bg-gradient-to-br ${gradient}`}>
+                                                    <div className="absolute inset-0 opacity-20">
+                                                        <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/30 blur-2xl"></div>
+                                                        <div className="absolute -left-4 -bottom-4 w-20 h-20 rounded-full bg-black/20 blur-xl"></div>
+                                                    </div>
 
-                                                        <div className={`relative z-10 transition-transform duration-500 ${!isLocked && "group-hover:scale-110"}`}>
-                                                            <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-xl">
-                                                                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                                                </svg>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Status Badges */}
-                                                        <div className="absolute top-4 right-4">
-                                                            {isActive && (
-                                                                <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg flex items-center gap-1.5 ${progress === 100
-                                                                    ? "bg-green-500 text-white"
-                                                                    : "bg-white text-[#010080]"
-                                                                    }`}>
-                                                                    <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${progress === 100 ? "bg-white" : "bg-[#010080]"}`}></div>
-                                                                    {progress === 100 ? "Completed" : "Active"}
-                                                                </div>
-                                                            )}
-                                                            {isLocked && (
-                                                                <div className="p-1.5 bg-black/20 backdrop-blur-sm rounded-full border border-white/10 text-white/80">
-                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                                    </svg>
-                                                                </div>
-                                                            )}
+                                                    <div className={`relative z-10 transition-transform duration-500 ${!isLocked && "group-hover:scale-110"}`}>
+                                                        <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-xl">
+                                                            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                            </svg>
                                                         </div>
                                                     </div>
 
-                                                    {/* Content Section */}
-                                                    <div className="p-6">
-                                                        <div className="mb-4">
-                                                            <h3 className={`text-xl font-bold mb-2 line-clamp-1 transition-colors ${isLocked
-                                                                ? (isDark ? "text-gray-500" : "text-gray-400")
-                                                                : (isDark ? "text-white group-hover:text-[#4F46E5]" : "text-gray-900 group-hover:text-[#010080]")
+                                                    {/* Status Badges */}
+                                                    <div className="absolute top-4 right-4">
+                                                        {isActive && (
+                                                            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg flex items-center gap-1.5 ${progress === 100
+                                                                ? "bg-green-500 text-white"
+                                                                : "bg-white text-[#010080]"
                                                                 }`}>
-                                                                {subprogram.subprogram_name}
-                                                            </h3>
-                                                            <p className={`text-sm line-clamp-2 leading-relaxed ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                                                                {subprogram.description || "Master the concepts and build practical skills with this comprehensive course module."}
-                                                            </p>
-                                                        </div>
-
-                                                        {/* Progress & Lessons Info */}
-                                                        {!isLocked && (
-                                                            <div className="space-y-3 mb-6">
-                                                                <div className="flex justify-between items-end text-xs font-semibold">
-                                                                    <span className={isDark ? "text-gray-400" : "text-gray-600"}>
-                                                                        {totalLessons > 0 ? `${completedLessons}/${totalLessons} Lessons` : "0 Lessons"}
-                                                                    </span>
-                                                                    <span className="text-[#010080] dark:text-indigo-400">{progress}%</span>
-                                                                </div>
-                                                                <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? "bg-gray-700" : "bg-gray-100"}`}>
-                                                                    <div
-                                                                        className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-1000 ease-out`}
-                                                                        style={{ width: `${progress}%` }}
-                                                                    ></div>
-                                                                </div>
+                                                                <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${progress === 100 ? "bg-white" : "bg-[#010080]"}`}></div>
+                                                                {progress === 100 ? "Completed" : "Active"}
                                                             </div>
                                                         )}
-
-                                                        {/* Action Button */}
-                                                        {isActive ? (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    router.push(`/portal/student/my-courses/${subprogram.id}`);
-                                                                }}
-                                                                className={`w-full group/btn relative flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all duration-300 overflow-hidden ${isDark
-                                                                    ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                                                                    : "bg-[#010080] text-white hover:bg-[#010080]/90 shadow-[0_4px_14px_0_rgba(1,0,128,0.39)]"
-                                                                    }`}
-                                                            >
-                                                                <span className="relative z-10 transition-transform duration-300 group-hover/btn:-translate-x-1">View Course</span>
-                                                                <svg className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                                                </svg>
-                                                            </button>
-                                                        ) : (
-                                                            <div className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-dashed font-medium text-sm transition-colors ${isDark ? "border-gray-700 text-gray-500" : "border-gray-200 text-gray-400"
-                                                                }`}>
+                                                        {isLocked && (
+                                                            <div className="p-1.5 bg-black/20 backdrop-blur-sm rounded-full border border-white/10 text-white/80">
                                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                                                 </svg>
-                                                                <span>Course Locked</span>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
+
+                                                {/* Content Section */}
+                                                <div className="p-6">
+                                                    <div className="mb-4">
+                                                        <h3 className={`text-xl font-bold mb-2 line-clamp-1 transition-colors ${isLocked
+                                                            ? (isDark ? "text-gray-500" : "text-gray-400")
+                                                            : (isDark ? "text-white group-hover:text-[#4F46E5]" : "text-gray-900 group-hover:text-[#010080]")
+                                                            }`}>
+                                                            {subprogram.subprogram_name}
+                                                        </h3>
+                                                        <p className={`text-sm line-clamp-2 leading-relaxed ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                                                            {subprogram.description || "Master the concepts and build practical skills with this comprehensive course module."}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Progress & Lessons Info */}
+                                                    {!isLocked && (
+                                                        <div className="space-y-3 mb-6">
+                                                            <div className="flex justify-between items-end text-xs font-semibold">
+                                                                <span className={isDark ? "text-gray-400" : "text-gray-600"}>
+                                                                    {totalLessons > 0 ? `${completedLessons}/${totalLessons} Lessons` : "0 Lessons"}
+                                                                </span>
+                                                                <span className="text-[#010080] dark:text-indigo-400">{progress}%</span>
+                                                            </div>
+                                                            <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? "bg-gray-700" : "bg-gray-100"}`}>
+                                                                <div
+                                                                    className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-1000 ease-out`}
+                                                                    style={{ width: `${progress}%` }}
+                                                                ></div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Action Button */}
+                                                    {isActive ? (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                router.push(`/portal/student/my-courses/${subprogram.id}`);
+                                                            }}
+                                                            className={`w-full group/btn relative flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all duration-300 overflow-hidden ${isDark
+                                                                ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                                                                : "bg-[#010080] text-white hover:bg-[#010080]/90 shadow-[0_4px_14px_0_rgba(1,0,128,0.39)]"
+                                                                }`}
+                                                        >
+                                                            <span className="relative z-10 transition-transform duration-300 group-hover/btn:-translate-x-1">View Course</span>
+                                                            <svg className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                                            </svg>
+                                                        </button>
+                                                    ) : (
+                                                        <div className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-dashed font-medium text-sm transition-colors ${isDark ? "border-gray-700 text-gray-500" : "border-gray-200 text-gray-400"
+                                                            }`}>
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                            </svg>
+                                                            <span>Course Locked</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
 
                 {/* My Enrolled Classes - Only visible for 8-level General program */}
                 {isGeneralProgram && (
@@ -652,7 +685,7 @@ export default function MyCoursesPage() {
                                                             Completed
                                                         </span>
                                                     )}
-                                </div>
+                                                </div>
 
                                                 {cls.description && (
                                                     <p className={`text-sm mb-4 leading-relaxed ${isDark ? "text-gray-300" : "text-gray-600"}`}>
@@ -677,14 +710,78 @@ export default function MyCoursesPage() {
                                                         </div>
                                                     )}
                                                 </div>
-                                </div>
-                            </div>
+                                            </div>
+                                        </div>
                                     );
                                 });
                             })()}
                         </div>
                     </div>
                 )}
+
+                {/* Level Up Request Modal */}
+                <Modal
+                    isOpen={isLevelUpModalOpen}
+                    onClose={() => setIsLevelUpModalOpen(false)}
+                    title="Level Up Request"
+                >
+                    <div className="space-y-6 py-2">
+                        <div>
+                            <label className={`block text-sm font-semibold mb-2.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                Description (Qor sababta aad u codsanayso)
+                            </label>
+                            <textarea
+                                value={levelUpDescription}
+                                onChange={(e) => setLevelUpDescription(e.target.value)}
+                                placeholder="Enter your reason here..."
+                                className={`w-full p-4 rounded-xl border-2 min-h-[120px] transition-all outline-none text-sm
+                                    ${isDark
+                                        ? 'bg-[#151b2b] border-gray-700 text-white focus:border-[#010080]'
+                                        : 'bg-gray-50 border-gray-100 focus:border-[#010080]'}`}
+                            />
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                onClick={() => setIsLevelUpModalOpen(false)}
+                                className={`flex-1 py-3.5 rounded-xl font-bold text-sm transition-all
+                                    ${isDark
+                                        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        // Find next subprogram ID
+                                        const currentIndex = subprogramsData.findIndex(s => Number(s.id) === Number(studentSubprogram?.id));
+                                        const nextSubprogram = subprogramsData[currentIndex + 1];
+
+                                        if (!nextSubprogram) {
+                                            showToast("You are already at the highest level!", "info");
+                                            return;
+                                        }
+
+                                        await createRequest({
+                                            requested_subprogram_id: nextSubprogram.id,
+                                            description: levelUpDescription
+                                        }).unwrap();
+
+                                        showToast("Level-up request sent successfully!", "success");
+                                        setIsLevelUpModalOpen(false);
+                                        setLevelUpDescription("");
+                                    } catch (err) {
+                                        showToast(err.data?.error || "Failed to send request", "error");
+                                    }
+                                }}
+                                className="flex-1 py-3.5 bg-[#010080] text-white rounded-xl font-bold text-sm transition-all shadow-lg active:scale-[0.98]"
+                            >
+                                Submit Request
+                            </button>
+                        </div>
+                    </div>
+                </Modal>
             </div>
         </div>
     );

@@ -31,6 +31,10 @@ export const levelUpApi = createApi({
             query: () => '/level-up-requests/my-requests',
             providesTags: ['LevelUpRequest'],
         }),
+        checkLevelUpEligibility: builder.query({
+            query: () => '/level-up-requests/check-eligibility',
+            providesTags: ['LevelUpRequest'],
+        }),
         updateLevelUpRequestStatus: builder.mutation({
             query: ({ id, ...body }) => ({
                 url: `/level-up-requests/${id}/status`,
@@ -46,5 +50,6 @@ export const {
     useCreateLevelUpRequestMutation,
     useGetLevelUpRequestsQuery,
     useGetMyLevelUpRequestsQuery,
+    useCheckLevelUpEligibilityQuery,
     useUpdateLevelUpRequestStatusMutation
 } = levelUpApi;

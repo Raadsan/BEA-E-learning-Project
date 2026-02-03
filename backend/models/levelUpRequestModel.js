@@ -5,13 +5,14 @@ const dbp = db.promise();
 
 export const createLevelUpRequest = async ({
     student_id,
-    requested_subprogram_id
+    requested_subprogram_id,
+    description
 }) => {
     const [result] = await dbp.query(
         `INSERT INTO level_up_requests 
-        (student_id, requested_subprogram_id) 
-        VALUES (?, ?)`,
-        [student_id, requested_subprogram_id]
+        (student_id, requested_subprogram_id, description) 
+        VALUES (?, ?, ?)`,
+        [student_id, requested_subprogram_id, description || null]
     );
 
     const [newRequest] = await dbp.query("SELECT * FROM level_up_requests WHERE id = ?", [result.insertId]);

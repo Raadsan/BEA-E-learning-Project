@@ -6,22 +6,33 @@ import { useDarkMode } from "@/context/ThemeContext";
 import { useGetSessionRequestsQuery } from "@/redux/api/sessionRequestApi";
 import { useGetFreezingRequestsQuery } from "@/redux/api/freezingApi";
 import { useGetLevelUpRequestsQuery, useUpdateLevelUpRequestStatusMutation } from "@/redux/api/levelUpApi";
+import { useGetClassesQuery } from "@/redux/api/classApi";
+import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useToast } from "@/components/Toast";
+import Modal from "@/components/Modal";
+import { useState } from "react";
 
 export default function AdminStudentsRequestsPage() {
     const { isDark } = useDarkMode();
     const { data: sessionRequests = [], isLoading: sessionLoading } = useGetSessionRequestsQuery();
     const { data: freezingRequests = [], isLoading: freezingLoading } = useGetFreezingRequestsQuery();
     const { data: levelUpRequests = [], isLoading: levelUpLoading } = useGetLevelUpRequestsQuery();
+    const { data: allClasses = [] } = useGetClassesQuery();
+    const { data: subprograms = [] } = useGetSubprogramsQuery();
     const [updateLevelUpStatus] = useUpdateLevelUpRequestStatusMutation();
     const { showToast } = useToast();
 
-    const handleLevelUpAction = async (id, status) => {
+    const [reviewRequest, setReviewRequest] = useState(null);
+    const [selectedClassId, setSelectedClassId] = useState("");
+
+    const handleLevelUpAction = async (id, status, extraData = {}) => {
         try {
-            await updateLevelUpStatus({ id, status }).unwrap();
-            showToast(`Request ${status} successfully`, "success");
+            await updateLevelUpStatus({ id, status, ...extraData }).unwrap();
+            showToast(`Level-up request ${status} successfully!`, "success");
+            setReviewRequest(null);
+            setSelectedClassId("");
         } catch (err) {
-            showToast("Failed to update status", "error");
+            showToast("Failed to update level-up request", "error");
         }
     };
 
@@ -105,20 +116,15 @@ export default function AdminStudentsRequestsPage() {
         {
             key: "actions", label: "Actions", width: "200px",
             render: (_, row) => row.status === 'pending' && (
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => handleLevelUpAction(row.id, 'approved')}
-                        className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg transition-colors"
-                    >
-                        Approve
-                    </button>
-                    <button
-                        onClick={() => handleLevelUpAction(row.id, 'rejected')}
-                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors"
-                    >
-                        Reject
-                    </button>
-                </div>
+                <button
+                    onClick={() => {
+                        setReviewRequest(row);
+                        setSelectedClassId("");
+                    }}
+                    className="px-4 py-2 bg-[#010080] hover:bg-[#010080]/90 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95"
+                >
+                    Review Eligibility
+                </button>
             )
         }
     ];
@@ -173,6 +179,97 @@ export default function AdminStudentsRequestsPage() {
                     </section>
                 </div>
             </div>
+
+            {/* Level Up Review Modal */}
+            <Modal
+                isOpen={!!reviewRequest}
+                onClose={() => setReviewRequest(null)}
+                title="Level-Up Request Review"
+                size="lg"
+            >
+                {reviewRequest && (
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-start border-b border-gray-100 dark:border-gray-700 pb-4">
+                            <div>
+                                <h4 className="text-lg font-bold text-gray-900 dark:text-white uppercase">{reviewRequest.student_name}</h4>
+                                <p className="text-sm text-gray-500">{reviewRequest.student_email}</p>
+                            </div>
+                            <div className="text-right">
+                                <span className="block text-xs text-gray-400 uppercase font-bold mb-1">Target Level</span>
+                                <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-bold">
+                                    {reviewRequest.requested_subprogram_name}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700 flex flex-col items-center justify-center text-center">
+                                <span className="text-xs text-gray-500 uppercase font-bold mb-1">Academic Status</span>
+                                <span className="text-2xl font-bold text-[#010080] dark:text-white">Ready for Review</span>
+                                <p className="text-[10px] text-gray-400 mt-2 italic px-4">Admin should verify student's performance manually before making the final decision.</p>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Assign to Class</label>
+                                    <select
+                                        value={selectedClassId}
+                                        onChange={(e) => setSelectedClassId(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#010080]"
+                                    >
+                                        <option value="">Select a class...</option>
+                                        {allClasses.filter(c =>
+                                            // Show next subprogram classes if considering approval
+                                            // Show current subprogram classes if considering rejection (for reassignment)
+                                            Number(c.subprogram_id) === Number(reviewRequest.requested_subprogram_id) ||
+                                            // Logic to find current subprogram would be better if passed from backend
+                                            true
+                                        ).map(cls => (
+                                            <option key={cls.id} value={cls.id}>
+                                                {cls.class_name} ({subprograms.find(sp => sp.id === cls.subprogram_id)?.subprogram_name})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4 pt-4">
+                            <button
+                                onClick={() => {
+                                    if (!selectedClassId) return showToast("Please select a new class", "warning");
+                                    handleLevelUpAction(reviewRequest.id, 'approved', {
+                                        new_class_id: selectedClassId,
+                                        new_subprogram_id: reviewRequest.requested_subprogram_id
+                                    });
+                                }}
+                                disabled={!selectedClassId}
+                                className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+                            >
+                                Approve & Promote
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (!selectedClassId) return showToast("Please select a reassignment class", "warning");
+                                    handleLevelUpAction(reviewRequest.id, 'rejected', {
+                                        new_class_id: selectedClassId,
+                                        admin_response: "Not recommended for promotion yet. Reassigned to a different class for improvement."
+                                    });
+                                }}
+                                disabled={!selectedClassId}
+                                className="flex-1 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+                            >
+                                Re-assign (Reject)
+                            </button>
+                            <button
+                                onClick={() => handleLevelUpAction(reviewRequest.id, 'rejected', { admin_response: "Request rejected by administrator." })}
+                                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition-all active:scale-[0.98]"
+                            >
+                                Direct Reject
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </main>
 
     );
