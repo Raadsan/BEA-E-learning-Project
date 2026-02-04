@@ -28,7 +28,12 @@ export const downloadCertificate = async (req, res) => {
 
         if (student) {
             studentName = student.full_name;
-            className = student.class_name || '-';
+            if (target_type === 'subprogram') {
+                const historicalClass = await StudentModel.getHistoricalClass(studentId, target_id);
+                className = historicalClass?.class_name || student.class_name || '-';
+            } else {
+                className = student.class_name || '-';
+            }
         } else {
             // Check IELTS
             student = await IeltsModel.getStudentById(studentId);

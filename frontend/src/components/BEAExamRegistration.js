@@ -30,6 +30,8 @@ export default function BEAExamRegistration({ isOpen, onClose, examType = "profi
     city: '',
     examDate: '',
     examTime: '',
+    date_of_birth: '',
+    place_of_birth: '',
   });
 
   // Update cities when country changes
@@ -150,6 +152,17 @@ export default function BEAExamRegistration({ isOpen, onClose, examType = "profi
             </div>
 
             {/* Age & Gender */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Date of Birth</label>
+                <input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-gray-800 text-sm" required />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Place of Birth</label>
+                <input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleChange} placeholder="City, Country" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-gray-800 text-sm" required />
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Age</label>

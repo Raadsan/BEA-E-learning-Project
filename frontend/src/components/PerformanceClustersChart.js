@@ -1,36 +1,42 @@
 "use client";
 
 import React, { useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
 import { useGetPerformanceClustersQuery } from '@/redux/api/assignmentApi';
 
+// Semantic colors are good for performance, but user prefers "Green not Blue" where appropriate?
+// Actually user said "make the design even the circles of parts green not blue".
+// Here for performance, Green/Yellow/Red is standard.
+// But to align with brand, maybe High = Green (#10b981), Average = #fbbf24, Low = #ef4444
+// Brand colors: High = Navy, Average = Purple, Low = Red
 const COLORS = {
-    'High': '#10b981',
-    'Average': '#f59e0b',
-    'Low': '#ef4444'
+    'High': '#010080', // Navy
+    'Average': '#4b47a4', // Purple
+    'Low': '#f40606'     // Red
 };
 
 const PerformanceClustersChart = ({ programs = [], classes = [] }) => {
     const [selectedProgram, setSelectedProgram] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
 
-    // Mock data for a "perfect" look
-    const data = [
-        { category: 'High', count: 65, percentage: 45 },
-        { category: 'Average', count: 55, percentage: 38 },
-        { category: 'Low', count: 25, percentage: 17 },
-    ];
+    const { data: apiData = [], isLoading, isError } = useGetPerformanceClustersQuery({
+        program_id: selectedProgram || undefined,
+        class_id: selectedClass || undefined
+    });
 
-    const isLoading = false;
+    const chartData = apiData;
 
     return (
         <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
             <div className="flex flex-col mb-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Student Performance Clusters</h3>
+                <h3 className="text-lg font-bold text-[#010080] mb-4">Student Performance Clusters</h3>
                 <div className="flex gap-2 mb-4 flex-wrap">
                     <select
                         value={selectedProgram}
-                        onChange={(e) => setSelectedProgram(e.target.value)}
+                        onChange={(e) => {
+                            setSelectedProgram(e.target.value);
+                            setSelectedClass('');
+                        }}
                         className="w-full sm:w-auto px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
                         <option value="">All Programs</option>
@@ -47,15 +53,20 @@ const PerformanceClustersChart = ({ programs = [], classes = [] }) => {
                     <select
                         value={selectedClass}
                         onChange={(e) => setSelectedClass(e.target.value)}
-                        className="w-full sm:w-auto px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                        disabled={!selectedProgram}
+                        className={`w-full sm:w-auto px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 ${!selectedProgram ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white cursor-pointer'}`}
                     >
-                        <option value="">All Classes</option>
+                        <option value="">
+                            {!selectedProgram ? "Select a Program First" : "All Classes"}
+                        </option>
                         {classes.length > 0 ? (
-                            classes.map((cls) => (
-                                <option key={cls.id} value={cls.id}>
-                                    {cls.class_name}
-                                </option>
-                            ))
+                            classes
+                                .filter(cls => cls.program_id == selectedProgram)
+                                .map((cls) => (
+                                    <option key={cls.id} value={cls.id}>
+                                        {cls.class_name}
+                                    </option>
+                                ))
                         ) : (
                             <option disabled>No Classes Available</option>
                         )}
@@ -66,15 +77,19 @@ const PerformanceClustersChart = ({ programs = [], classes = [] }) => {
             <div className="h-[300px] w-full">
                 {isLoading ? (
                     <div className="flex items-center justify-center h-full">
-                        <p className="text-gray-400">Loading...</p>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#010080]"></div>
                     </div>
-                ) : data.length === 0 ? (
+                ) : isError ? (
+                    <div className="flex items-center justify-center h-full">
+                        <p className="text-red-500">Failed to load performance data</p>
+                    </div>
+                ) : chartData.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
                         <p className="text-gray-400">No performance data available</p>
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                             <XAxis
                                 dataKey="category"
@@ -100,8 +115,8 @@ const PerformanceClustersChart = ({ programs = [], classes = [] }) => {
                                 ]}
                             />
                             <Bar dataKey="count" radius={[8, 8, 0, 0]}>
-                                {data.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[entry.category]} />
+                                {chartData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[entry.category] || '#ccc'} />
                                 ))}
                             </Bar>
                         </BarChart>
@@ -109,8 +124,8 @@ const PerformanceClustersChart = ({ programs = [], classes = [] }) => {
                 )}
             </div>
 
-            {/* Legend */}
-            <div className="mt-4 flex justify-center gap-6">
+            {/* Legend - match palette */}
+            <div className="mt-4 flex justify-center gap-6 flex-wrap">
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded" style={{ backgroundColor: COLORS['High'] }}></div>
                     <span className="text-sm text-gray-700">High (80%+)</span>

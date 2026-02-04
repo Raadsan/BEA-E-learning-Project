@@ -27,10 +27,11 @@ export const assignmentApi = createApi({
             providesTags: ["Assignments"],
         }),
         getAssignmentStats: builder.query({
-            query: ({ program_id, class_id, timeFrame } = {}) => {
+            query: ({ program_id, class_id, student_id, timeFrame } = {}) => {
                 const params = new URLSearchParams();
                 if (program_id) params.append("program_id", program_id);
                 if (class_id) params.append("class_id", class_id);
+                if (student_id) params.append("student_id", student_id);
                 if (timeFrame) params.append("timeFrame", timeFrame);
                 return `/stats?${params.toString()}`;
             },

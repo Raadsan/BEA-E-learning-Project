@@ -35,6 +35,8 @@ export default function ProficiencyTestRegistration() {
         confirmPassword: "",
         educational_level: "",
         reason_essay: "",
+        date_of_birth: "",
+        place_of_birth: "",
     });
 
     const [cities, setCities] = useState([]);
@@ -86,7 +88,7 @@ export default function ProficiencyTestRegistration() {
 
     const validateStep = () => {
         if (currentStep === 1) {
-            if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.phone || !formData.sex || !formData.age) {
+            if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.phone || !formData.sex || !formData.age || !formData.date_of_birth || !formData.place_of_birth) {
                 showToast("Please fill in all required fields", 'error');
                 return false;
             }
@@ -150,7 +152,9 @@ export default function ProficiencyTestRegistration() {
                     method: paymentMethod,
                     amount: APPLICATION_FEE,
                     payerPhone: paymentAccountNumber.replace(/\s+/g, ''),
-                }
+                },
+                date_of_birth: formData.date_of_birth || null,
+                place_of_birth: formData.place_of_birth || null,
             };
 
 
@@ -282,6 +286,32 @@ export default function ProficiencyTestRegistration() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                         <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Date of Birth <span className="text-red-500">*</span></label>
+                                            <input
+                                                type="date"
+                                                name="date_of_birth"
+                                                value={formData.date_of_birth}
+                                                onChange={handleChange}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-blue-100"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Place of Birth <span className="text-red-500">*</span></label>
+                                            <input
+                                                type="text"
+                                                name="place_of_birth"
+                                                value={formData.place_of_birth}
+                                                onChange={handleChange}
+                                                placeholder="City/Country"
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-blue-100"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                        <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
                                             <CountrySelect value={formData.country} onChange={(val) => setFormData(prev => ({ ...prev, country: val, city: "" }))} placeholder="Select country" />
                                         </div>
@@ -333,6 +363,8 @@ export default function ProficiencyTestRegistration() {
                                             </div>
                                         </div>
                                     </div>
+
+                                    
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                         <div>

@@ -59,7 +59,9 @@ export default function GeneralStudentsPage() {
     chosen_program: "",
     chosen_subprogram: "",
     class_id: "",
-    approval_status: "approved"
+    approval_status: "approved",
+    date_of_birth: "",
+    place_of_birth: ""
   });
   const [editSelectedSubprogramId, setEditSelectedSubprogramId] = useState("");
 
@@ -200,7 +202,15 @@ export default function GeneralStudentsPage() {
       chosen_program: student.chosen_program || "",
       chosen_subprogram: subprogramId,
       class_id: student.class_id?.toString() || "",
-      approval_status: student.approval_status || "approved"
+      approval_status: student.approval_status || "approved",
+      date_of_birth: student.date_of_birth ? new Date(student.date_of_birth).toISOString().split('T')[0] : "",
+      place_of_birth: student.place_of_birth || "",
+      funding_status: student.funding_status || "Paid",
+      sponsorship_package: student.sponsorship_package || "None",
+      funding_amount: student.funding_amount || "",
+      funding_month: student.funding_month || "",
+      scholarship_percentage: student.scholarship_percentage || "",
+      sponsor_name: student.sponsor_name || ""
     });
     setIsEditModalOpen(true);
   };
@@ -236,7 +246,15 @@ export default function GeneralStudentsPage() {
       chosen_program: "",
       chosen_subprogram: "",
       class_id: "",
-      approval_status: "approved"
+      approval_status: "approved",
+      date_of_birth: "",
+      place_of_birth: "",
+      funding_status: "Paid",
+      sponsorship_package: "None",
+      funding_amount: "",
+      funding_month: "",
+      scholarship_percentage: "",
+      sponsor_name: ""
     });
   };
 
@@ -251,7 +269,7 @@ export default function GeneralStudentsPage() {
         full_name: editFormData.full_name,
         email: editFormData.email,
         phone: editFormData.phone,
-        age: editFormData.age ? parseInt(editFormData.age) : null,
+        age: editFormData.age === "" ? null : parseInt(editFormData.age),
         sex: editFormData.sex,
         residency_country: editFormData.residency_country,
         residency_city: editFormData.residency_city,
@@ -261,10 +279,18 @@ export default function GeneralStudentsPage() {
         parent_relation: editFormData.parent_relation,
         parent_res_county: editFormData.parent_res_county,
         parent_res_city: editFormData.parent_res_city,
-        chosen_program: editFormData.chosen_program,
-        chosen_subprogram: editFormData.chosen_subprogram ? parseInt(editFormData.chosen_subprogram) : null,
-        class_id: editFormData.class_id ? parseInt(editFormData.class_id) : null,
-        approval_status: editFormData.approval_status
+        chosen_subprogram: editFormData.chosen_subprogram === "" ? null : parseInt(editFormData.chosen_subprogram),
+        class_id: editFormData.class_id === "" ? null : parseInt(editFormData.class_id),
+        approval_status: editFormData.approval_status,
+        date_of_birth: editFormData.date_of_birth || null,
+        place_of_birth: editFormData.place_of_birth || null,
+        // Adding missing fields for complete update
+        funding_status: editFormData.funding_status || "Paid",
+        sponsorship_package: editFormData.sponsorship_package || "None",
+        funding_amount: editFormData.funding_amount === "" ? null : parseFloat(editFormData.funding_amount),
+        funding_month: editFormData.funding_month === "" ? null : parseInt(editFormData.funding_month),
+        scholarship_percentage: editFormData.scholarship_percentage === "" ? null : parseInt(editFormData.scholarship_percentage),
+        sponsor_name: editFormData.sponsor_name || null
       }).unwrap();
 
       showToast("Student updated successfully!", "success");
@@ -338,11 +364,29 @@ export default function GeneralStudentsPage() {
       width: "80px",
       render: (val) => val || <span className="text-gray-400">-</span>,
     },
+
     {
-      key: "residency_country",
-      label: "Country",
-      width: "150px",
+      key: "date_of_birth",
+      label: "Date Of Birth",
+      width: "120px",
+      render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span>,
+    },
+    {
+      key: "place_of_birth",
+      label: "Place Of Birth",
+      width: "120px",
       render: (val) => val || <span className="text-gray-400">-</span>,
+    },
+    {
+      key: "address",
+      label: "Address",
+      width: "150px",
+      render: (_, row) => {
+        const city = row.residency_city;
+        const country = row.residency_country;
+        if (city && country) return <span className="text-gray-600 font-sans text-xs">{`${city}, ${country}`}</span>;
+        return <span className="text-gray-600 font-sans text-xs">{city || country || '-'}</span>;
+      }
     },
 
     {
@@ -949,6 +993,27 @@ export default function GeneralStudentsPage() {
                         name="age"
                         value={editFormData.age}
                         onChange={handleEditInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Date of Birth</label>
+                      <input
+                        type="date"
+                        name="date_of_birth"
+                        value={editFormData.date_of_birth}
+                        onChange={handleEditInputChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Place of Birth</label>
+                      <input
+                        type="text"
+                        name="place_of_birth"
+                        value={editFormData.place_of_birth}
+                        onChange={handleEditInputChange}
+                        placeholder="City, Country"
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                       />
                     </div>

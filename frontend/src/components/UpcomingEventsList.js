@@ -41,13 +41,13 @@ const UpcomingEventsList = () => {
 
     return (
         <div className={`p-6 rounded-xl shadow-md border flex flex-col h-[500px] ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-            <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+            <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-[#010080]'}`}>
                 <span>📅</span> Upcoming Events & News
             </h3>
 
             {isLoading ? (
                 <div className="flex-1 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#010080]"></div>
                 </div>
             ) : isError ? (
                 <div className="flex-1 flex items-center justify-center text-red-500">

@@ -170,9 +170,10 @@ export const studentApi = createApi({
 
     // GET STUDENT LOCATIONS
     getStudentLocations: builder.query({
-      query: ({ program_id } = {}) => {
+      query: ({ program_id, class_id } = {}) => {
         const params = new URLSearchParams();
         if (program_id) params.append("program_id", program_id);
+        if (class_id) params.append("class_id", class_id);
         return `/locations?${params.toString()}`;
       },
       providesTags: ["Students"],

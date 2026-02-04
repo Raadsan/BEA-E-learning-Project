@@ -3,13 +3,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useLogoutMutation } from "@/redux/api/authApi";
 
 export default function AdminSidebar({ isOpen, onClose }) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'configuration';
   const { isDark } = useDarkMode();
   const [logout] = useLogoutMutation();
 
@@ -53,7 +55,11 @@ export default function AdminSidebar({ isOpen, onClose }) {
       pathname?.startsWith("/portal/admin/courses") ||
       pathname?.includes("/learning-resources/materials")) {
       setOpenSection('academicManagement');
-      setOpenSubSection(null);
+      if (pathname?.startsWith("/portal/admin/certificates")) {
+        setOpenSubSection('certificatesSub');
+      } else {
+        setOpenSubSection(null);
+      }
     } else if (pathname?.startsWith("/portal/admin/classes") ||
       pathname?.startsWith("/portal/admin/learning-resources/timetable") ||
       pathname?.startsWith("/portal/admin/learning-resources/sessions") ||
@@ -358,12 +364,44 @@ export default function AdminSidebar({ isOpen, onClose }) {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/portal/admin/certificates" className={getSubMenuItemClasses("/portal/admin/certificates")} style={getSubActiveStyle("/portal/admin/certificates")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/certificates") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a.75.75 0 00-1.217.14L3.25 10.25M17.25 10.25l-3.368-5.413a.75.75 0 00-1.217-.14l-1.415 1.414M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <button
+                    onClick={() => toggleSubSection('certificatesSub')}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm text-gray-300 hover:bg-white/10 ${openSubSection === 'certificatesSub' ? 'bg-white/10' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <svg className={`w-4 h-4 ${isActive("/portal/admin/certificates") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a.75.75 0 00-1.217.14L3.25 10.25M17.25 10.25l-3.368-5.413a.75.75 0 00-1.217-.14l-1.415 1.414M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className={isActive("/portal/admin/certificates") ? 'text-white' : 'text-gray-100'}>Certificates</span>
+                    </div>
+                    <svg className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${openSubSection === 'certificatesSub' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
-                    <span className={isActive("/portal/admin/certificates") ? 'text-white' : 'text-gray-100'}>Certificates</span>
-                  </Link>
+                  </button>
+                  {openSubSection === 'certificatesSub' && (
+                    <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                      <li>
+                        <Link
+                          href="/portal/admin/certificates?tab=configuration"
+                          className={getSubMenuItemClasses("/portal/admin/certificates?tab=configuration")}
+                          style={pathname === "/portal/admin/certificates" && currentTab === 'configuration' ? { backgroundColor: '#FF4D4D' } : {}}
+                        >
+                          <span className="text-xs text-gray-400">•</span>
+                          <span className="text-gray-100">Certificate Configuration</span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/portal/admin/certificates?tab=issued"
+                          className={getSubMenuItemClasses("/portal/admin/certificates?tab=issued")}
+                          style={pathname === "/portal/admin/certificates" && currentTab === 'issued' ? { backgroundColor: '#FF4D4D' } : {}}
+                        >
+                          <span className="text-xs text-gray-400">•</span>
+                          <span className="text-gray-100">Issued Certificates Log</span>
+                        </Link>
+                      </li>
+                    </ul>
+                  )}
                 </li>
               </ul>
             )}

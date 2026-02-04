@@ -224,7 +224,7 @@ export default function ClassSessionsPage() {
         {
             key: "platform",
             label: "Platform",
-            render: (row) => (
+            render: (_, row) => (
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.platform === "Zoom" ? "bg-blue-100 text-blue-800" :
                     row.platform === "Google Meet" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
                     {row.platform}
@@ -234,7 +234,7 @@ export default function ClassSessionsPage() {
         {
             key: "schedule",
             label: "Schedule",
-            render: (row) => (
+            render: (_, row) => (
                 <div className="flex flex-col text-sm">
                     <span className="font-medium text-gray-900">{row.scheduleDate}</span>
                     <span className="text-gray-500">{row.startTime} - {row.endTime}</span>
@@ -244,7 +244,7 @@ export default function ClassSessionsPage() {
         {
             key: "status",
             label: "Status",
-            render: (row) => (
+            render: (_, row) => (
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === "Active" ? "bg-green-100 text-green-800" :
                     row.status === "Scheduled" ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-800"}`}>
                     {row.status}
@@ -254,7 +254,7 @@ export default function ClassSessionsPage() {
         {
             key: "actions",
             label: "Actions",
-            render: (row) => (
+            render: (_, row) => (
                 <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-900 p-1">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />

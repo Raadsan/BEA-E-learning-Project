@@ -107,7 +107,9 @@ export default function ProficiencyCandidatesPage() {
             residency_country: student.residency_country || "",
             residency_city: student.residency_city || "",
             password: "",
-            confirmPassword: ""
+            confirmPassword: "",
+            date_of_birth: student.date_of_birth ? new Date(student.date_of_birth).toISOString().split('T')[0] : "",
+            place_of_birth: student.place_of_birth || ""
         });
         setEditModalOpen(true);
     };
@@ -127,6 +129,9 @@ export default function ProficiencyCandidatesPage() {
         }
 
         const { confirmPassword, ...dataToSubmit } = editFormData;
+        // Sanitize age
+        dataToSubmit.age = dataToSubmit.age === "" ? null : parseInt(dataToSubmit.age);
+
         // If password is empty, remove it from submission so it doesn't get hashed as empty string
         if (!dataToSubmit.password) delete dataToSubmit.password;
 
@@ -154,6 +159,7 @@ export default function ProficiencyCandidatesPage() {
             label: "Full Name",
             render: (_, row) => <span className="font-bold text-sm">{row.first_name} {row.last_name}</span>
         },
+
         {
             key: "email",
             label: "Email",
@@ -175,8 +181,24 @@ export default function ProficiencyCandidatesPage() {
             render: (val) => <span className="text-sm text-gray-600">{val || '-'}</span>
         },
         {
-            key: "residency_country",
-            label: "Country",
+            key: "address",
+            label: "Address",
+            render: (val, row) => {
+                const city = row.residency_city;
+                const country = row.residency_country;
+                if (city && country) return <span className="text-sm text-gray-600">{`${city}, ${country}`}</span>;
+                return <span className="text-sm text-gray-600">{city || country || '-'}</span>;
+            }
+        },
+
+        {
+            key: "date_of_birth",
+            label: "Date Of Birth",
+            render: (val) => <span className="text-sm text-gray-600">{val ? new Date(val).toLocaleDateString() : '-'}</span>
+        },
+        {
+            key: "place_of_birth",
+            label: "Place Of Birth",
             render: (val) => <span className="text-sm text-gray-600">{val || '-'}</span>
         },
         {
@@ -331,6 +353,31 @@ export default function ProficiencyCandidatesPage() {
                                         className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'}`}
                                     />
                                 </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:col-span-2">
+                                    <div>
+                                        <label className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Date of Birth
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={editFormData.date_of_birth || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, date_of_birth: e.target.value })}
+                                            className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'}`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Place of Birth
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editFormData.place_of_birth || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, place_of_birth: e.target.value })}
+                                            placeholder="City of birth"
+                                            className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'}`}
+                                        />
+                                    </div>
+                                </div>
                                 <div>
                                     <label className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                         Sex
@@ -480,6 +527,14 @@ export default function ProficiencyCandidatesPage() {
                             <div>
                                 <p className="text-xs text-gray-500 uppercase font-bold mb-1">Age / Sex</p>
                                 <p className="text-sm font-medium">{selectedCandidate.age} / {selectedCandidate.sex}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Date of Birth</p>
+                                <p className="text-sm font-medium">{selectedCandidate.date_of_birth ? new Date(selectedCandidate.date_of_birth).toLocaleDateString() : 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Place of Birth</p>
+                                <p className="text-sm font-medium">{selectedCandidate.place_of_birth || 'N/A'}</p>
                             </div>
                         </div>
 

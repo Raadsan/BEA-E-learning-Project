@@ -247,13 +247,13 @@ export default function AdminDashboard() {
           {/* Learning Hours and Assignment Completion */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <LearningHoursChart programs={programsData} classes={classesData} />
-            <AssignmentCompletionChart programs={programsData} classes={classesData} />
+            <AssignmentCompletionChart programs={programsData} classes={classesData} students={studentsArray} />
           </div>
 
           {/* Performance Clusters and Student Locations */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <PerformanceClustersChart programs={programsData} classes={classesData} />
-            <StudentLocationsMap programs={programsData} students={studentsData} />
+            <StudentLocationsMap programs={programsData} students={studentsData} classes={classesData} />
           </div>
 
           {/* Programs Pie Chart and Upcoming Events */}

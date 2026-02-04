@@ -43,11 +43,13 @@ export const createIeltsStudent = async (req, res) => {
         let paymentStatus = 'Pending';
         let waafiRawResponse = null;
 
-        if (payment && payment.method === 'mwallet_account') {
+        const paymentAmount = payment?.amount ? parseFloat(payment.amount) : 0;
+
+        if (payment && payment.method === 'mwallet_account' && paymentAmount > 0) {
             const waafiResponse = await sendWaafiPayment({
                 transactionId: `WAAFI-${Date.now()}`,
                 accountNo: payment.payerPhone,
-                amount: payment.amount,
+                amount: paymentAmount,
                 description: `IELTS/TOEFL Registration: ${req.body.chosen_program}`
             });
 
@@ -71,12 +73,20 @@ export const createIeltsStudent = async (req, res) => {
             // Update req.body with payment details
             req.body.payment_method = 'mwallet_account';
             req.body.transaction_id = transactionId;
-            req.body.payment_amount = payment.amount;
+            req.body.payment_amount = paymentAmount;
             req.body.payer_phone = payment.payerPhone;
             req.body.status = 'Pending'; // Keep status as Pending for Admin Approval even if Paid
+        } else if (payment && paymentAmount === 0) {
+            // Free registration
+            paymentStatus = 'Paid';
+            transactionId = `FREE-${Date.now()}`;
+            req.body.payment_method = payment.method || 'free';
+            req.body.transaction_id = transactionId;
+            req.body.payment_amount = 0;
+            req.body.status = 'Pending';
         } else if (payment && payment.method === 'bank') {
             req.body.payment_method = 'bank';
-            req.body.payment_amount = payment.amount;
+            req.body.payment_amount = paymentAmount;
             req.body.status = 'Pending';
         }
 
@@ -173,7 +183,7 @@ export const updateIeltsStudent = async (req, res) => {
             'exam_booking_date', 'exam_booking_time', 'status', 'password',
             'payment_method', 'transaction_id', 'payment_amount', 'payer_phone', 'class_id',
             'funding_status', 'funding_amount', 'funding_month', 'paid_until', 'chosen_program',
-            'expiry_date'
+            'expiry_date', 'date_of_birth', 'place_of_birth'
         ];
 
         const updateData = {};

@@ -21,11 +21,13 @@ export const registerCandidate = async (req, res) => {
         let paymentStatus = 'unpaid';
         let waafiRawResponse = null;
 
-        if (payment && payment.method === 'mwallet_account') {
+        const paymentAmount = payment?.amount ? parseFloat(payment.amount) : 0;
+
+        if (payment && payment.method === 'mwallet_account' && paymentAmount > 0) {
             const waafiResponse = await sendWaafiPayment({
                 transactionId: `PROF-${Date.now()}`,
                 accountNo: payment.payerPhone,
-                amount: payment.amount,
+                amount: paymentAmount,
                 description: `Proficiency Test Registration: ${req.body.first_name} ${req.body.last_name}`
             });
 
@@ -45,6 +47,11 @@ export const registerCandidate = async (req, res) => {
 
             transactionId = waafiResponse?.serviceParams?.transactionId || `WAAFI-${Date.now()}`;
             paymentStatus = 'paid';
+            candidateData.payment_status = 'paid';
+        } else if (payment && paymentAmount === 0) {
+            // Free registration
+            paymentStatus = 'paid';
+            transactionId = `FREE-${Date.now()}`;
             candidateData.payment_status = 'paid';
         } else if (payment && payment.method === 'bank') {
             candidateData.payment_status = 'Pending';

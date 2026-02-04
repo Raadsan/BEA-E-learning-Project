@@ -1,41 +1,35 @@
-import mysql from 'mysql2';
-import dotenv from 'dotenv';
+import db from './dbconfig.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const connection = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT || 3306
-});
+const migrationPath = path.join(__dirname, 'add_dob_pob_to_students.sql');
+const sql = fs.readFileSync(migrationPath, 'utf8');
 
-const sql = `ALTER TABLE oral_assignments 
-ADD COLUMN submission_type ENUM('audio', 'video', 'both') DEFAULT 'audio' AFTER duration;`;
+const dbp = db.promise();
 
-connection.connect((err) => {
-    if (err) {
-        console.error('❌ Database connection error:', err);
+async function runMigration() {
+    try {
+        console.log('🚀 Running migration...');
+        // Split the SQL into individual statements
+        const statements = sql
+            .split(';')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+
+        for (const statement of statements) {
+            console.log(`Executing: ${statement}`);
+            await dbp.query(statement);
+        }
+        console.log('✅ Migration completed successfully!');
+        process.exit(0);
+    } catch (err) {
+        console.error('❌ Migration failed:', err);
         process.exit(1);
     }
+}
 
-    console.log('✅ Connected to database');
-
-    connection.query(sql, (error, results) => {
-        if (error) {
-            if (error.code === 'ER_DUP_FIELDNAME') {
-                console.log('✅ Column already exists, no migration needed');
-            } else {
-                console.error('❌ Migration error:', error);
-                connection.end();
-                process.exit(1);
-            }
-        } else {
-            console.log('✅ Migration successful! submission_type column added');
-        }
-
-        connection.end();
-        process.exit(0);
-    });
-});
+runMigration();

@@ -3,7 +3,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+const COLORS = ['#f40606', '#010080', '#4b47a4', '#f95150', '#18178a'];
 
 const ProgramPieChart = ({ data, unit = "Students" }) => {
     // Transform data to ensure we have the correct count accessible

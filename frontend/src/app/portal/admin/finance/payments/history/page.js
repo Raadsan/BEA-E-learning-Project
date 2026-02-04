@@ -65,7 +65,7 @@ export default function PaymentHistoryPage() {
     {
       key: "amount",
       label: "Amount",
-      render: (row) => (
+      render: (_, row) => (
         <span className="font-semibold text-gray-900 dark:text-white">${row.amount.toFixed(2)}</span>
       ),
     },
@@ -80,7 +80,7 @@ export default function PaymentHistoryPage() {
     {
       key: "status",
       label: "Status",
-      render: (row) => (
+      render: (_, row) => (
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.status === "Completed"
           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
           : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
@@ -92,7 +92,7 @@ export default function PaymentHistoryPage() {
     {
       key: "actions",
       label: "Actions",
-      render: (row) => (
+      render: (_, row) => (
         <div className="flex gap-2">
           <button
             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
@@ -126,5 +126,5 @@ export default function PaymentHistoryPage() {
         />
       </div>
     </div>
+  );
 }
-

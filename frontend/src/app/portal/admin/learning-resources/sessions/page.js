@@ -21,22 +21,22 @@ export default function OnlineSessionsPage() {
         {
             key: "teacher_name",
             label: "Teacher",
-            render: (row) => row.teacher_name || "Unassigned",
+            render: (_, row) => row.teacher_name || "Unassigned",
         },
         {
             key: "program_name",
             label: "Program",
-            render: (row) => row.program_name || "N/A",
+            render: (_, row) => row.program_name || "N/A",
         },
         {
             key: "subprogram_name",
             label: "Subprogram",
-            render: (row) => row.subprogram_name || "N/A",
+            render: (_, row) => row.subprogram_name || "N/A",
         },
         {
             key: "shift_info",
             label: "Shift & Schedule",
-            render: (row) => (
+            render: (_, row) => (
                 row.shift_name ? (
                     <div className="flex flex-col text-xs">
                         <span className="font-bold text-blue-600">{row.shift_name}</span>
@@ -48,7 +48,7 @@ export default function OnlineSessionsPage() {
         {
             key: "actions",
             label: "Actions",
-            render: (row) => (
+            render: (_, row) => (
                 <button
                     onClick={() => handleViewSessions(row)}
                     className="flex items-center gap-1 text-blue-600 hover:text-blue-900 transition-colors px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded-md text-sm font-medium"

@@ -70,7 +70,7 @@ export default function PaymentHistoryPage() {
         {
             key: "student_name",
             label: "Student Name",
-            render: (row) => {
+            render: (_, row) => {
                 const student = studentDataMap[row.student_id];
                 const name = student?.full_name || row.student_name || row.full_name;
 
@@ -82,7 +82,7 @@ export default function PaymentHistoryPage() {
         {
             key: "program",
             label: "Program",
-            render: (row) => {
+            render: (_, row) => {
                 // Priority 1: Check if backend already sent a non-numeric title
                 if (row.program_name && isNaN(row.program_name)) return row.program_name;
 
@@ -107,7 +107,7 @@ export default function PaymentHistoryPage() {
         {
             key: "fee",
             label: "Fee",
-            render: (row) => (
+            render: (_, row) => (
                 <span className="font-semibold text-gray-700 dark:text-gray-300">
                     ${row.amount || '0.00'}
                 </span>
@@ -116,14 +116,14 @@ export default function PaymentHistoryPage() {
         {
             key: "paid",
             label: "Paid",
-            render: (row) => (
+            render: (_, row) => (
                 <span className="font-semibold text-green-600 dark:text-green-400">${row.amount || '0.00'}</span>
             ),
         },
         {
             key: "payment_method",
             label: "Method",
-            render: (row) => {
+            render: (_, row) => {
                 const method = (row.payment_method || '').toLowerCase();
                 let label = row.payment_method || 'N/A';
                 if (method.includes('waafi') || method.includes('mwallet')) label = 'WAAFI';
@@ -140,7 +140,7 @@ export default function PaymentHistoryPage() {
         {
             key: "status",
             label: "Status",
-            render: (row) => {
+            render: (_, row) => {
                 const status = row.status || 'pending';
                 const isPaid = status === 'completed' || status === 'paid';
                 return (
@@ -163,7 +163,7 @@ export default function PaymentHistoryPage() {
         {
             key: "description",
             label: "Type",
-            render: (row) => {
+            render: (_, row) => {
                 if (!row.description || row.description === 'null') return 'Subscription';
                 try {
                     const desc = typeof row.description === 'string' ? JSON.parse(row.description) : row.description;
@@ -179,7 +179,7 @@ export default function PaymentHistoryPage() {
         {
             key: "payment_date",
             label: "Date",
-            render: (row) => row.payment_date ? new Date(row.payment_date).toLocaleDateString('en-US', {
+            render: (_, row) => row.payment_date ? new Date(row.payment_date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit'
@@ -188,7 +188,7 @@ export default function PaymentHistoryPage() {
         {
             key: "actions",
             label: "Action",
-            render: (row) => (
+            render: (_, row) => (
                 <button
                     className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
                     title="Download Receipt"

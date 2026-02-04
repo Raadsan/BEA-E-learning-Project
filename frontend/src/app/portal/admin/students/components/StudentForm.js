@@ -251,6 +251,35 @@ export default function StudentForm({
                                     </select>
                                 </div>
 
+                                {/* Row 2.5: DOB | POB */}
+                                <div>
+                                    <label htmlFor="date_of_birth" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        Date of Birth
+                                    </label>
+                                    <input
+                                        type="date"
+                                        id="date_of_birth"
+                                        name="date_of_birth"
+                                        value={formData.date_of_birth}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'}`}
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="place_of_birth" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        Place of Birth
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="place_of_birth"
+                                        name="place_of_birth"
+                                        value={formData.place_of_birth}
+                                        onChange={handleInputChange}
+                                        placeholder="City of birth"
+                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'}`}
+                                    />
+                                </div>
+
                                 {/* Row 3: Country | City */}
                                 <div>
                                     <label htmlFor="residency_country" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'

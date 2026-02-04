@@ -9,7 +9,8 @@ export const createCandidate = async (data) => {
         first_name, last_name, email, phone, password,
         educational_level, reason_essay,
         status, payment_status,
-        age, sex, residency_country, residency_city
+        age, sex, residency_country, residency_city,
+        date_of_birth, place_of_birth
     } = data;
 
     // Generate specialized CRT (Certificate) ID
@@ -21,7 +22,8 @@ export const createCandidate = async (data) => {
       student_id, first_name, last_name, email, phone, password, 
       educational_level, reason_essay, status, payment_status,
       age, sex, residency_country, residency_city,
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 100 YEAR))
+      date_of_birth, place_of_birth
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 100 YEAR), ?, ?)
   `;
 
     const values = [
@@ -29,7 +31,8 @@ export const createCandidate = async (data) => {
         first_name, last_name, email, phone, password,
         educational_level, reason_essay,
         status || 'Pending', payment_status || 'unpaid',
-        age || null, sex || null, residency_country || null, residency_city || null
+        age || null, sex || null, residency_country || null, residency_city || null,
+        date_of_birth || null, place_of_birth || null
     ];
 
     const [result] = await dbp.query(query, values);

@@ -10,7 +10,8 @@ export const createStudent = async (data) => {
         residency_country, residency_city, exam_type, verification_method,
         certificate_institution, certificate_date, certificate_document,
         exam_booking_date, exam_booking_time, status,
-        payment_method, transaction_id, payment_amount, payer_phone
+        payment_method, transaction_id, payment_amount, payer_phone,
+        date_of_birth, place_of_birth
     } = data;
 
     const student_id = await generateStudentId('IELTSTOEFL', chosen_program);
@@ -22,8 +23,8 @@ export const createStudent = async (data) => {
       certificate_institution, certificate_date, certificate_document,
       exam_booking_date, exam_booking_time, status,
       payment_method, transaction_id, payment_amount, payer_phone,
-      expiry_date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 1440 MINUTE))
+      expiry_date, date_of_birth, place_of_birth
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 1440 MINUTE), ?, ?)
   `;
 
     const values = [
@@ -32,7 +33,8 @@ export const createStudent = async (data) => {
         residency_country, residency_city, exam_type, verification_method,
         certificate_institution || null, certificate_date || null, certificate_document || null,
         exam_booking_date || null, exam_booking_time || null, status || 'Pending',
-        payment_method || null, transaction_id || null, payment_amount || null, payer_phone || null
+        payment_method || null, transaction_id || null, payment_amount || null, payer_phone || null,
+        date_of_birth || null, place_of_birth || null
     ];
 
     const [result] = await dbp.query(query, values);
@@ -54,7 +56,10 @@ export const getStudentByEmail = async (email) => {
 
 // Get Student by ID
 export const getStudentById = async (id) => {
-    const [rows] = await dbp.query("SELECT *, (expiry_date < NOW()) as is_expired FROM IELTSTOEFL WHERE student_id = ?", [id]);
+    const [rows] = await dbp.query(
+        "SELECT it.*, (it.expiry_date < NOW()) as is_expired, c.class_name FROM IELTSTOEFL it LEFT JOIN classes c ON it.class_id = c.id WHERE it.student_id = ?",
+        [id]
+    );
     return rows[0];
 };
 

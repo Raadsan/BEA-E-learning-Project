@@ -42,6 +42,8 @@ export default function RegistrationPage() {
     residency_city: "",
     chosen_program: "",
     password: "",
+    date_of_birth: "",
+    place_of_birth: "",
     parent_name: "",
     parent_email: "",
     parent_phone: "",
@@ -68,7 +70,13 @@ export default function RegistrationPage() {
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState(null); const [requiresPin, setRequiresPin] = useState(false);
   const [waafiTransactionId, setWaafiTransactionId] = useState(null);
-  const [pin, setPin] = useState(''); const APPLICATION_FEE = 0.01;
+  const [pin, setPin] = useState('');
+
+  // Calculate dynamic application fee based on selected program
+  const selectedProgramObj = programs.find(p => p.id === parseInt(formData.chosen_program));
+  const APPLICATION_FEE = selectedProgramObj
+    ? Math.max(0, parseFloat(selectedProgramObj.price || 0) - parseFloat(selectedProgramObj.discount || 0))
+    : 0.01;
 
   useEffect(() => {
     if (formData.residency_country) {
@@ -148,6 +156,8 @@ export default function RegistrationPage() {
         chosen_subprogram: chosenSubprogram ? chosenSubprogram.subprogram_name : formData.chosen_subprogram,
         password: formData.password,
         gender: formData.gender || null,
+        date_of_birth: formData.date_of_birth || null,
+        place_of_birth: formData.place_of_birth || null,
         // Include parent information if applicable
         ...(showParentSection && {
           parent_name: formData.parent_name || null,
@@ -423,6 +433,33 @@ export default function RegistrationPage() {
                     />
                   </div>
 
+                  {/* DOB & POB - Row 5 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Date of Birth <span className="text-red-500">*</span></label>
+                      <input
+                        type="date"
+                        name="date_of_birth"
+                        value={formData.date_of_birth}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Place of Birth <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        name="place_of_birth"
+                        value={formData.place_of_birth}
+                        onChange={handleChange}
+                        placeholder="City/Country"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
+                        required
+                      />
+                    </div>
+                  </div>
+
                   {/* Country & City - Row 3 */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
@@ -502,6 +539,8 @@ export default function RegistrationPage() {
                       </div>
                     </div>
                   </div>
+
+
 
                   {/* Age (Half Width now, maybe combine with password or keep separate row?) - Row 5 */}
                   {/* Providing Age on its own row half width or grid with spacer */}

@@ -33,7 +33,9 @@ export const createStudent = async (req, res) => {
       funding_amount,
       funding_month,
       scholarship_percentage,
-      gender
+      gender,
+      date_of_birth,
+      place_of_birth
     } = req.body;
 
     const studentSex = sex || gender;
@@ -87,11 +89,13 @@ export const createStudent = async (req, res) => {
     let paymentStatus = 'Pending';
     let waafiRawResponse = null;
 
-    if (req.body.payment && req.body.payment.method === 'waafi') {
+    const paymentAmount = req.body.payment?.amount ? parseFloat(req.body.payment.amount) : 0;
+
+    if (req.body.payment && req.body.payment.method === 'waafi' && paymentAmount > 0) {
       const waafiResponse = await sendWaafiPayment({
         transactionId: `REG-${Date.now()}`,
         accountNo: req.body.payment.payerPhone || req.body.payment.accountNumber,
-        amount: req.body.payment.amount || 0.01,
+        amount: paymentAmount,
         description: `Registration: ${chosen_program}`
       });
 
@@ -108,6 +112,10 @@ export const createStudent = async (req, res) => {
 
       transactionId = waafiResponse?.serviceParams?.transactionId || waafiResponse?.params?.transactionId || `WAAFI-${Date.now()}`;
       paymentStatus = 'Paid';
+    } else if (req.body.payment && paymentAmount === 0) {
+      // If fee is 0, bypass payment and confirm immediately
+      paymentStatus = 'Paid';
+      transactionId = `FREE-${Date.now()}`;
     }
 
     const student = await Student.createStudent({
@@ -134,7 +142,9 @@ export const createStudent = async (req, res) => {
       funding_month,
       scholarship_percentage,
       paid_until: initialPaidUntil,
-      expiry_date: expiryDate
+      expiry_date: expiryDate,
+      date_of_birth,
+      place_of_birth
     });
 
     console.log('✅ Student created with ID:', student?.student_id);
@@ -612,8 +622,8 @@ export const getTopStudents = async (req, res) => {
 // GET STUDENT LOCATIONS
 export const getStudentLocations = async (req, res) => {
   try {
-    const { program_id } = req.query;
-    const locations = await Student.getStudentLocations(program_id);
+    const { program_id, class_id } = req.query;
+    const locations = await Student.getStudentLocations(program_id, class_id);
 
     res.json({
       success: true,

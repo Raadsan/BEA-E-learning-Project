@@ -30,7 +30,9 @@ export const createStudent = async ({
   paid_until,
   expiry_date,
   reminder_sent,
-  admin_expiry_notified
+  admin_expiry_notified,
+  date_of_birth,
+  place_of_birth
 }) => {
   // Generate unique student ID
   const student_id = await generateStudentId('students', chosen_program);
@@ -41,8 +43,8 @@ export const createStudent = async ({
       chosen_program, chosen_subprogram, password, parent_name, parent_email, parent_phone,
       parent_relation, parent_res_county, parent_res_city, funding_status, sponsorship_package,
       funding_amount, funding_month, scholarship_percentage, sponsor_name, paid_until,
-      expiry_date, reminder_sent, admin_expiry_notified
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      expiry_date, reminder_sent, admin_expiry_notified, date_of_birth, place_of_birth
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       student_id,
       full_name,
@@ -70,7 +72,9 @@ export const createStudent = async ({
       paid_until || null,
       expiry_date || null,
       reminder_sent || 0,
-      admin_expiry_notified || 0
+      admin_expiry_notified || 0,
+      date_of_birth || null,
+      place_of_birth || null
     ]
   );
 
@@ -90,6 +94,8 @@ export const getAllStudents = async () => {
        s.profile_picture,
         s.paid_until,
         s.expiry_date,
+        s.date_of_birth,
+        s.place_of_birth,
         s.created_at, s.updated_at, c.class_name
        FROM students s
        LEFT JOIN classes c ON s.class_id = c.id
@@ -105,7 +111,7 @@ export const getAllStudents = async () => {
 // GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT student_id, full_name, email, phone, age, residency_country, residency_city, chosen_program, chosen_subprogram, completed_subprograms, parent_name, parent_email, parent_phone, parent_relation, parent_res_county, parent_res_city, class_id, approval_status, sponsor_name, profile_picture, paid_until, expiry_date, created_at, updated_at FROM students WHERE student_id = ?",
+    "SELECT s.student_id, s.full_name, s.email, s.phone, s.age, s.residency_country, s.residency_city, s.chosen_program, s.chosen_subprogram, s.completed_subprograms, s.parent_name, s.parent_email, s.parent_phone, s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, s.sponsor_name, s.profile_picture, s.paid_until, s.expiry_date, s.date_of_birth, s.place_of_birth, s.created_at, s.updated_at, c.class_name FROM students s LEFT JOIN classes c ON s.class_id = c.id WHERE s.student_id = ?",
     [id]
   );
   return rows[0] || null;
@@ -150,7 +156,9 @@ export const updateStudentById = async (id, {
   paid_until,
   expiry_date,
   reminder_sent,
-  admin_expiry_notified
+  admin_expiry_notified,
+  date_of_birth,
+  place_of_birth
 }) => {
   const updates = [];
   const values = [];
@@ -270,6 +278,14 @@ export const updateStudentById = async (id, {
   if (admin_expiry_notified !== undefined) {
     updates.push("admin_expiry_notified = ?");
     values.push(admin_expiry_notified);
+  }
+  if (date_of_birth !== undefined) {
+    updates.push("date_of_birth = ?");
+    values.push(date_of_birth);
+  }
+  if (place_of_birth !== undefined) {
+    updates.push("place_of_birth = ?");
+    values.push(place_of_birth);
   }
 
   if (updates.length === 0) {
@@ -495,25 +511,49 @@ export const getTopStudents = async (limit = 10, program_id, class_id) => {
 };
 
 // GET STUDENT LOCATIONS
-export const getStudentLocations = async (program_id) => {
-  let query = `
-    SELECT 
-      residency_country as country,
-      residency_city as city,
-      COUNT(*) as student_count
-    FROM students s
-    LEFT JOIN programs p ON (s.chosen_program = p.id OR s.chosen_program = p.title COLLATE utf8mb4_unicode_ci)
-    WHERE residency_country IS NOT NULL AND residency_country != ''
-  `;
-
+export const getStudentLocations = async (program_id, class_id) => {
   const params = [];
+  let query = "";
 
-  if (program_id) {
-    query += ` AND p.id = ?`;
-    params.push(program_id);
+  if (program_id || class_id) {
+    // We need to join programs to filter robustly (ID or Title match)
+    query = `
+        SELECT s.residency_country as country, COUNT(*) as count 
+        FROM students s
+    `;
+
+    // Add Joins
+    if (program_id) {
+      query += ` LEFT JOIN programs p ON (s.chosen_program = p.id OR s.chosen_program = p.title COLLATE utf8mb4_unicode_ci)`;
+    }
+
+    let whereConditions = ["s.residency_country IS NOT NULL", "s.residency_country != ''"];
+
+    if (program_id) {
+      whereConditions.push("p.id = ?");
+      params.push(program_id);
+    }
+
+    if (class_id) {
+      whereConditions.push("s.class_id = ?");
+      params.push(class_id);
+    }
+
+    query += ` WHERE ${whereConditions.join(" AND ")}`;
+    query += ` GROUP BY s.residency_country ORDER BY count DESC`;
+
+  } else {
+    // No filters -> Show ALL (Students + IELTS)
+    query = `
+        SELECT country, COUNT(*) as count FROM (
+            SELECT residency_country as country FROM students WHERE residency_country IS NOT NULL AND residency_country != ''
+            UNION ALL
+            SELECT residency_country as country FROM IELTSTOEFL WHERE residency_country IS NOT NULL AND residency_country != ''
+        ) as combined
+        GROUP BY country
+        ORDER BY count DESC
+      `;
   }
-
-  query += ` GROUP BY residency_country, residency_city ORDER BY student_count DESC`;
 
   const [rows] = await dbp.query(query, params);
   return rows;
@@ -551,4 +591,17 @@ export const getStudentsByClassId = async (classId, teacherId = null, termSerial
 
   const [rows] = await dbp.query(query, params);
   return rows;
+};
+
+// GET historical class for a student and subprogram
+export const getHistoricalClass = async (studentId, subprogramId) => {
+  const [rows] = await dbp.query(
+    `SELECT sch.*, c.class_name 
+     FROM student_class_history sch 
+     JOIN classes c ON sch.class_id = c.id 
+     WHERE sch.student_id = ? AND sch.subprogram_id = ? 
+     ORDER BY sch.created_at DESC LIMIT 1`,
+    [studentId, subprogramId]
+  );
+  return rows[0] || null;
 };

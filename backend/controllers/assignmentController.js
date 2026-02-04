@@ -6,7 +6,32 @@ const dbp = db.promise();
 // Get assignment statistics across all tables
 export const getAssignmentStats = async (req, res) => {
     try {
-        const { program_id, class_id } = req.query;
+        const { program_id, class_id, student_id } = req.query;
+
+        // 1. Get accurate total student count for the denominator
+        // If student_id is set, count is 1.
+        // If class_id is set, count students in class.
+        // If program_id is set, count students in program.
+        // Else, count all students.
+        let studentCount = 0;
+        if (student_id) {
+            studentCount = 1;
+        } else {
+            let countQuery = "SELECT COUNT(*) as count FROM students WHERE 1=1";
+            let countParams = [];
+
+            if (class_id) {
+                countQuery += " AND class_id = ?";
+                countParams.push(class_id);
+            } else if (program_id) {
+                // Approximate: Check chosen_program
+                countQuery += " AND chosen_program = ?";
+                countParams.push(program_id);
+            }
+
+            const [countRows] = await dbp.query(countQuery, countParams);
+            studentCount = countRows[0].count;
+        }
 
         const tables = [
             { main: 'writing_tasks', sub: 'writing_task_submissions', type: 'writing_task' },
@@ -22,7 +47,6 @@ export const getAssignmentStats = async (req, res) => {
                     '${t.type}' as type,
                     COUNT(DISTINCT a.id) as total_assignments,
                     COUNT(DISTINCT CASE WHEN asub.status IN ('submitted', 'graded') THEN asub.id END) as completed_submissions,
-                    COUNT(DISTINCT asub.student_id) as total_students,
                     ROUND(AVG(CASE WHEN asub.status = 'graded' THEN asub.score END), 2) as avg_score
                 FROM ${t.main} a
                 LEFT JOIN ${t.sub} asub ON a.id = asub.assignment_id
@@ -30,6 +54,9 @@ export const getAssignmentStats = async (req, res) => {
             `;
 
             const params = [];
+
+            // Add student filter to the submission join logic effectively?
+            // Actually, we filter the assignments first.
             if (program_id) {
                 query += ` AND a.program_id = ?`;
                 params.push(program_id);
@@ -39,18 +66,28 @@ export const getAssignmentStats = async (req, res) => {
                 params.push(class_id);
             }
 
+            // If filtering by student, we modify the COUNT(completed_submissions) logic or the join
+            // But strict filtering by student means "Show stats for student X".
+            if (student_id) {
+                query += ` AND asub.student_id = ?`;
+                params.push(student_id);
+            }
+
             const [stat] = await dbp.query(query, params);
             results.push(stat[0]);
         }
 
-        const formattedStats = results.map(stat => ({
-            type: stat.type,
-            totalAssignments: stat.total_assignments,
-            completionRate: stat.total_students > 0
-                ? Math.round((stat.completed_submissions / (stat.total_assignments * stat.total_students)) * 100)
-                : 0,
-            avgScore: stat.avg_score || 0
-        }));
+        const formattedStats = results.map(stat => {
+            const denominator = (stat.total_assignments * studentCount);
+            return {
+                type: stat.type,
+                totalAssignments: stat.total_assignments,
+                completionRate: denominator > 0
+                    ? Math.round((stat.completed_submissions / denominator) * 100)
+                    : 0,
+                avgScore: stat.avg_score || 0
+            };
+        });
 
         res.json(formattedStats);
     } catch (error) {
@@ -62,7 +99,11 @@ export const getAssignmentStats = async (req, res) => {
 // Get performance clusters (High, Average, Low) across all tables
 export const getPerformanceClusters = async (req, res) => {
     try {
-        const { program_id, class_id } = req.query;
+        let { program_id, class_id } = req.query;
+
+        // Ensure IDs are numbers if present
+        if (program_id) program_id = Number(program_id);
+        if (class_id) class_id = Number(class_id);
 
         const tables = [
             { main: 'writing_tasks', sub: 'writing_task_submissions' },
@@ -71,14 +112,37 @@ export const getPerformanceClusters = async (req, res) => {
             { main: 'course_work', sub: 'course_work_submissions' }
         ];
 
+        // Build subquery conditions
+        let subConditions = "s.status = 'graded'";
+        let subParams = [];
+
+        if (program_id) {
+            subConditions += " AND a.program_id = ?";
+            subParams.push(program_id);
+        }
+        if (class_id) {
+            subConditions += " AND a.class_id = ?";
+            subParams.push(class_id);
+        }
+
+        // We need to pass the params for EACH table in the union, so replicate them
+        let allParams = [];
+        tables.forEach(() => {
+            allParams.push(...subParams);
+        });
+
+        // Join assignment table in subqueries to enable filtering
         let unionQueries = tables.map(t => `
-            SELECT student_id, score, status FROM ${t.sub} WHERE status = 'graded'
+            SELECT s.student_id, s.score 
+            FROM ${t.sub} s
+            JOIN ${t.main} a ON s.assignment_id = a.id
+            WHERE ${subConditions}
         `).join(' UNION ALL ');
 
         let query = `
             SELECT 
-                s.student_id as id,
-                s.full_name,
+                st.student_id as id,
+                st.full_name,
                 ROUND(AVG(all_subs.score), 2) as avg_score,
                 COUNT(all_subs.student_id) as graded_count,
                 CASE 
@@ -86,24 +150,14 @@ export const getPerformanceClusters = async (req, res) => {
                     WHEN AVG(all_subs.score) >= 60 THEN 'Average'
                     ELSE 'Low'
                 END as performance_level
-            FROM students s
-            LEFT JOIN (${unionQueries}) all_subs ON s.student_id = all_subs.student_id
+            FROM students st
+            JOIN (${unionQueries}) all_subs ON st.student_id = all_subs.student_id
             WHERE 1=1
+            GROUP BY st.student_id, st.full_name 
+            HAVING graded_count > 0
         `;
 
-        const params = [];
-        if (program_id) {
-            query += ` AND s.chosen_program = ?`;
-            params.push(program_id);
-        }
-        if (class_id) {
-            query += ` AND s.class_id = ?`;
-            params.push(class_id);
-        }
-
-        query += ` GROUP BY s.student_id, s.full_name HAVING graded_count > 0`;
-
-        const [students] = await dbp.query(query, params);
+        const [students] = await dbp.query(query, allParams);
 
         const clusters = {
             High: students.filter(s => s.performance_level === 'High').length,

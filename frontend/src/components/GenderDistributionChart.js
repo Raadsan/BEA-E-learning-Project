@@ -5,9 +5,9 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { useGetSexDistributionQuery } from '@/redux/api/studentApi';
 
 const COLORS = {
-    'Male': '#3b82f6',
-    'Female': '#ec4899',
-    'Not Specified': '#6b7280'
+    'Male': '#010080',
+    'Female': '#f95150', // Light red as requested for contrast within palette
+    'Not Specified': '#18178a' // Dark Blue from palette
 };
 
 const SexDistributionChart = ({ programs = [], classes = [] }) => {
@@ -24,7 +24,7 @@ const SexDistributionChart = ({ programs = [], classes = [] }) => {
     return (
         <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
             <div className="flex flex-col mb-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Sex</h3>
+                <h3 className="text-lg font-bold text-[#010080] mb-4">Sex</h3>
                 <div className="flex gap-2 mb-4 flex-wrap">
                     <select
                         value={selectedProgram}
@@ -66,7 +66,7 @@ const SexDistributionChart = ({ programs = [], classes = [] }) => {
             <div className="h-[350px] w-full">
                 {isLoading ? (
                     <div className="flex items-center justify-center h-full">
-                        <p className="text-gray-400">Loading...</p>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#010080]"></div>
                     </div>
                 ) : chartData.length === 0 ? (
                     <div className="flex items-center justify-center h-full">

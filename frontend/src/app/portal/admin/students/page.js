@@ -64,6 +64,8 @@ export default function StudentsPage() {
         certificate_institution: "",
         certificate_date: "",
         certificate_document: "",
+        date_of_birth: "",
+        place_of_birth: "",
     });
 
     // API Hooks
@@ -132,6 +134,8 @@ export default function StudentsPage() {
             certificate_institution: "",
             certificate_date: "",
             certificate_document: "",
+            date_of_birth: "",
+            place_of_birth: "",
         });
         setIsModalOpen(true);
     };
@@ -159,6 +163,8 @@ export default function StudentsPage() {
             certificate_institution: student.certificate_institution || "",
             certificate_date: student.certificate_date || "",
             certificate_document: student.certificate_document || "",
+            date_of_birth: student.date_of_birth ? new Date(student.date_of_birth).toISOString().split('T')[0] : "",
+            place_of_birth: student.place_of_birth || "",
         });
         setIsModalOpen(true);
     };
@@ -196,7 +202,13 @@ export default function StudentsPage() {
                 }
             }
             const { confirmPassword, ...submitData } = formData;
-            submitData.age = submitData.age ? parseInt(submitData.age) : null;
+
+            // Sanitize numeric fields: convert "" to null or parse to number
+            submitData.age = submitData.age === "" ? null : parseInt(submitData.age);
+            submitData.funding_amount = submitData.funding_amount === "" ? null : parseFloat(submitData.funding_amount);
+            submitData.funding_month = submitData.funding_month === "" ? null : parseInt(submitData.funding_month);
+            submitData.scholarship_percentage = submitData.scholarship_percentage === "" ? null : parseInt(submitData.scholarship_percentage);
+
             if (!submitData.password || submitData.password.trim() === "") delete submitData.password;
             if (submitData.chosen_subprogram === "") submitData.chosen_subprogram = null;
 
@@ -324,10 +336,23 @@ export default function StudentsPage() {
     const columns = [
         { key: "student_id", label: "Student ID", render: (_, row) => <span className="font-bold">{row.student_id || "N/A"}</span> },
         { key: "full_name", label: "Full Name" },
+
         { key: "email", label: "Email" },
         { key: "phone", label: "Phone", render: (val) => val || "N/A" },
         { key: "age", label: "Age", render: (val) => val || "N/A" },
         { key: "sex", label: "Sex" },
+        { key: "date_of_birth", label: "Date Of Birth", render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span> },
+        { key: "place_of_birth", label: "Place Of Birth", render: (val) => val || <span className="text-gray-400">-</span> },
+        {
+            key: "address",
+            label: "Address",
+            render: (_, row) => {
+                const city = row.residency_city;
+                const country = row.residency_country;
+                if (city && country) return <span className="text-gray-600 font-sans text-xs">{`${city}, ${country}`}</span>;
+                return <span className="text-gray-600 font-sans text-xs">{city || country || '-'}</span>;
+            }
+        },
         { key: "chosen_program", label: "Program" },
         {
             key: "approval_status", label: "Status",

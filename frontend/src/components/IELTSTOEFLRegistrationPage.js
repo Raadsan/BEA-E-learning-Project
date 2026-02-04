@@ -42,6 +42,8 @@ export default function IELTSTOEFLRegistrationPage() {
     exam_booking_date: "",
     exam_booking_time: "",
     termsAccepted: false,
+    date_of_birth: "",
+    place_of_birth: "",
   });
 
   const [cities, setCities] = useState([]);
@@ -166,6 +168,8 @@ export default function IELTSTOEFLRegistrationPage() {
         certificate_document: formData.certificateDocument || null,
         exam_booking_date: formData.exam_booking_date || null,
         exam_booking_time: formData.exam_booking_time || null,
+        date_of_birth: formData.date_of_birth || null,
+        place_of_birth: formData.place_of_birth || null,
         payment: {
           method: paymentMethod,
           amount: APPLICATION_FEE,
@@ -296,6 +300,32 @@ export default function IELTSTOEFLRegistrationPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Date of Birth <span className="text-red-500">*</span></label>
+                      <input
+                        type="date"
+                        name="date_of_birth"
+                        value={formData.date_of_birth}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-blue-100"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Place of Birth <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        name="place_of_birth"
+                        value={formData.place_of_birth}
+                        onChange={handleChange}
+                        placeholder="City/Country"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-blue-100"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
                       <CountrySelect value={formData.country} onChange={(val) => setFormData(prev => ({ ...prev, country: val, city: "" }))} placeholder="Select country" />
                     </div>
@@ -348,16 +378,7 @@ export default function IELTSTOEFLRegistrationPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Age</label>
-                      <input type="number" name="age" value={formData.age} onChange={handleChange} placeholder="18" className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-blue-100" required />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Program</label>
-                      <input type="text" value={formData.chosen_program} readOnly className="w-full px-4 py-3 border border-gray-200 rounded-md bg-gray-50 text-gray-500 cursor-not-allowed" />
-                    </div>
-                  </div>
+                  
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
@@ -629,9 +650,9 @@ export default function IELTSTOEFLRegistrationPage() {
           <p className="text-center text-gray-500 text-sm">
             Already registered? <Link href="/login" className="font-bold hover:underline" style={{ color: '#010080' }}>Sign In</Link>
           </p>
-        </div>
-      </div>
-    </div>
+        </div >
+      </div >
+    </div >
   );
 }
 

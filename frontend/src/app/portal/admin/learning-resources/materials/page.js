@@ -129,12 +129,12 @@ export default function CourseMaterialsPage() {
     {
       key: "title",
       label: "Title",
-      render: (row) => <span className="font-medium text-gray-900 dark:text-white">{row.title}</span>
+      render: (_, row) => <span className="font-medium text-gray-900 dark:text-white">{row.title}</span>
     },
     {
       key: "type",
       label: "Type",
-      render: (row) => (
+      render: (_, row) => (
         <span className={`px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full border ${row.type === 'Drive'
           ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
           : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800'
@@ -146,7 +146,7 @@ export default function CourseMaterialsPage() {
     {
       key: "program",
       label: "Program",
-      render: (row) => (
+      render: (_, row) => (
         <span className="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800">
           {row.program_name || "N/A"}
         </span>
@@ -155,7 +155,7 @@ export default function CourseMaterialsPage() {
     {
       key: "subprogram",
       label: "Subprogram",
-      render: (row) => (
+      render: (_, row) => (
         <span className="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800">
           {row.subprogram_name || "N/A"}
         </span>
@@ -164,12 +164,12 @@ export default function CourseMaterialsPage() {
     {
       key: "subject",
       label: "Subject",
-      render: (row) => <span className="text-gray-600 dark:text-gray-300">{row.subject || "-"}</span>
+      render: (_, row) => <span className="text-gray-600 dark:text-gray-300">{row.subject || "-"}</span>
     },
     {
       key: "status",
       label: "Status",
-      render: (row) => (
+      render: (_, row) => (
         <span className={`px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full border ${row.status === "Active"
           ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
           : "bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
@@ -181,7 +181,7 @@ export default function CourseMaterialsPage() {
     {
       key: "url",
       label: "Link",
-      render: (row) => (
+      render: (_, row) => (
         <a
           href={row.url}
           target="_blank"
@@ -199,7 +199,7 @@ export default function CourseMaterialsPage() {
     {
       key: "actions",
       label: "Actions",
-      render: (row) => (
+      render: (_, row) => (
         <div className="flex gap-2">
           <button
             onClick={() => handleEdit(row)}

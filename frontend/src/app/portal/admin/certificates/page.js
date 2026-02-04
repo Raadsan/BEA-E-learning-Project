@@ -12,6 +12,8 @@ import {
 } from "@/redux/api/certificateApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 // Components
 import CertificateForm from "./components/CertificateForm";
@@ -21,7 +23,10 @@ export default function CertificatesPage() {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
 
-    const [activeTab, setActiveTab] = useState("configuration"); // "configuration" or "issued"
+    const searchParams = useSearchParams();
+    const tabParam = searchParams.get("tab") || "configuration";
+
+    const [activeTab, setActiveTab] = useState(tabParam);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCert, setEditingCert] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
@@ -33,6 +38,13 @@ export default function CertificatesPage() {
         isLoading: false,
         confirmButtonColor: "blue"
     });
+
+    // Sync activeTab with URL parameter
+    useEffect(() => {
+        if (tabParam && tabParam !== activeTab) {
+            setActiveTab(tabParam);
+        }
+    }, [tabParam, activeTab]);
 
     // Queries
     const { data: programs = [], isLoading: loadingPrograms } = useGetProgramsQuery();
@@ -183,20 +195,11 @@ export default function CertificatesPage() {
         <>
             <main className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
                 <div className="w-full px-8 py-6 space-y-6">
-                    {/* Tabs */}
-                    <div className="flex gap-4 border-b border-gray-200 dark:border-gray-700">
-                        <button
-                            onClick={() => setActiveTab("configuration")}
-                            className={`pb-4 px-2 text-sm font-bold transition-all ${activeTab === "configuration" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
-                        >
-                            Certificate Configuration
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("issued")}
-                            className={`pb-4 px-2 text-sm font-bold transition-all ${activeTab === "issued" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
-                        >
-                            Issued Certificates Log
-                        </button>
+                    {/* Header - No tabs here as they are in the sidebar */}
+                    <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4">
+                        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {activeTab === "configuration" ? "Certificate Configuration" : "Issued Certificates Log"}
+                        </h1>
                     </div>
 
                     {activeTab === "configuration" ? (

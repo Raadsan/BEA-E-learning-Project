@@ -55,7 +55,7 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
     return (
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 w-full h-full flex flex-col">
             <div className="flex flex-col mb-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Weekly Class Attendance Overview</h3>
+                <h3 className="text-lg font-bold text-[#010080] mb-4">Weekly Class Attendance Overview</h3>
                 <div className="flex gap-2 mb-2 flex-wrap">
                     <select
                         value={selectedProgram}
@@ -108,7 +108,7 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
             <div className="flex-1 min-h-[300px] w-full relative">
                 {isLoading ? (
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <p className="text-gray-400 text-sm">Loading stats...</p>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#010080]"></div>
                     </div>
                 ) : processedData.length === 0 ? (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -157,9 +157,9 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                                 type="monotone"
                                 dataKey="attended"
                                 name="Students Attended"
-                                stroke="#3b82f6"
+                                stroke="#010080"
                                 strokeWidth={3}
-                                dot={{ r: 4, fill: 'white', stroke: '#3b82f6', strokeWidth: 2 }}
+                                dot={{ r: 4, fill: 'white', stroke: '#010080', strokeWidth: 2 }}
                                 activeDot={{ r: 6 }}
                             />
 
@@ -167,9 +167,9 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                                 type="monotone"
                                 dataKey="absent"
                                 name="Students Absent"
-                                stroke="#f97316"
+                                stroke="#f40606"
                                 strokeWidth={3}
-                                dot={{ r: 4, fill: 'white', stroke: '#f97316', strokeWidth: 2 }}
+                                dot={{ r: 4, fill: 'white', stroke: '#f40606', strokeWidth: 2 }}
                                 activeDot={{ r: 6 }}
                             />
 
@@ -177,9 +177,9 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                                 type="monotone"
                                 dataKey="percentage"
                                 name="Attendance %"
-                                stroke="#60a5fa"
+                                stroke="#4b47a4"
                                 strokeWidth={2}
-                                dot={{ r: 4, fill: 'white', stroke: '#60a5fa', strokeWidth: 2 }}
+                                dot={{ r: 4, fill: 'white', stroke: '#4b47a4', strokeWidth: 2 }}
                                 activeDot={{ r: 6 }}
                             />
                         </LineChart>
@@ -194,8 +194,8 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                         <AreaChart data={processedData}>
                             <defs>
                                 <linearGradient id="colorPercentage" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#dbeafe" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="#dbeafe" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="#4b47a4" stopOpacity={0.2} />
+                                    <stop offset="95%" stopColor="#4b47a4" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <XAxis
@@ -205,7 +205,7 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                                 tick={{ fill: '#6b7280', fontSize: 12 }}
                                 hide
                             />
-                            <Area type="monotone" dataKey="percentage" stroke="#93c5fd" fillOpacity={1} fill="url(#colorPercentage)" />
+                            <Area type="monotone" dataKey="percentage" stroke="#4b47a4" fillOpacity={1} fill="url(#colorPercentage)" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>

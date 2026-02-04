@@ -80,6 +80,20 @@ export default function StudentViewModal({
                                     {viewingStudent.age || 'N/A'} {viewingStudent.age ? 'years' : ''}
                                 </p>
                             </div>
+                            <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                                <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                    }`}>Date of Birth</label>
+                                <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                                    {viewingStudent.date_of_birth ? new Date(viewingStudent.date_of_birth).toLocaleDateString() : 'N/A'}
+                                </p>
+                            </div>
+                            <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                                <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                    }`}>Place of Birth</label>
+                                <p className={`text-base ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                                    {viewingStudent.place_of_birth || 'N/A'}
+                                </p>
+                            </div>
                         </div>
                     </div>
 

@@ -348,7 +348,7 @@ export default function TimeBasedView() {
         {
             key: "date",
             label: "Date",
-            render: (row) => {
+            render: (_, row) => {
                 const isWeekly = row.displayDate === "Weekly Pattern";
                 return (
                     <span className={`font-bold ${isWeekly ? 'text-gray-400 text-[10px] uppercase tracking-wider' : 'text-black dark:text-white'}`}>
@@ -360,12 +360,12 @@ export default function TimeBasedView() {
         {
             key: "day",
             label: "Day",
-            render: (row) => <span className="font-semibold text-gray-900 dark:text-white uppercase text-xs tracking-wider">{row.day}</span>
+            render: (_, row) => <span className="font-semibold text-gray-900 dark:text-white uppercase text-xs tracking-wider">{row.day}</span>
         },
         {
             key: "type",
             label: "Type",
-            render: (row) => {
+            render: (_, row) => {
                 let colorClass = "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
                 if (row.type === 'Holiday') colorClass = "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
                 if (row.type === 'Exam' || row.type === 'exam') colorClass = "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
@@ -385,12 +385,12 @@ export default function TimeBasedView() {
         {
             key: "subject",
             label: "Subject / Title",
-            render: (row) => <span className="font-medium text-gray-900 dark:text-white">{row.subject}</span>
+            render: (_, row) => <span className="font-medium text-gray-900 dark:text-white">{row.subject}</span>
         },
         {
             key: "teacher_name",
             label: "Teacher",
-            render: (row) => {
+            render: (_, row) => {
                 if (row.isEvent) {
                     return (
                         <span className="text-gray-400 text-xs italic font-medium uppercase tracking-tighter">
@@ -404,7 +404,7 @@ export default function TimeBasedView() {
         {
             key: "actions",
             label: "Actions",
-            render: (row) => (
+            render: (_, row) => (
                 <div className="flex items-center gap-2">
                     {row.isEvent ? (
                         <>

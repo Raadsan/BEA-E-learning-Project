@@ -18,6 +18,8 @@ import { useToast } from "@/components/Toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Modal from "@/components/Modal";
 import StudentApprovalModal from "../components/StudentApprovalModal";
+import StudentViewModal from "../components/StudentViewModal";
+import StudentForm from "../components/StudentForm";
 
 const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick, isExtended }) => {
   const [timeLeft, setTimeLeft] = useState(null);
@@ -84,6 +86,23 @@ export default function IELTSTOEFLStudentsPage() {
   const [timeUnit, setTimeUnit] = useState("minutes");
   const [selectedClassId, setSelectedClassId] = useState("");
   const [studentToDelete, setStudentToDelete] = useState(null);
+
+  // View/Edit state
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    sex: "",
+    date_of_birth: "",
+    place_of_birth: "",
+    exam_type: "",
+    residency_country: "",
+    residency_city: "",
+  });
 
   const filteredStudents = (ieltsStudents || []).filter(student => {
     if (statusFilter === "all") return true;
@@ -159,6 +178,49 @@ export default function IELTSTOEFLStudentsPage() {
     }
   };
 
+  const handleEditSubmit = async (e) => {
+    if (e) e.preventDefault();
+    try {
+      const sanitizedData = { ...editFormData };
+      // Sanitize numeric fields if any exist or are added in the future
+      // (Currently IELTS/TOEFL uses age less prominently but good to be safe)
+      if (sanitizedData.age !== undefined) {
+        sanitizedData.age = sanitizedData.age === "" ? null : parseInt(sanitizedData.age);
+      }
+
+      await updateStudent({
+        id: selectedCandidate.student_id,
+        formData: sanitizedData
+      }).unwrap();
+      showToast("Student info updated successfully", 'success');
+      setIsEditModalOpen(false);
+    } catch (err) {
+      showToast(err.data?.error || "Update failed", 'error');
+    }
+  };
+
+  const handleEditClick = (student) => {
+    setSelectedCandidate(student);
+    setEditFormData({
+      first_name: student.first_name || "",
+      last_name: student.last_name || "",
+      email: student.email || "",
+      phone: student.phone || "",
+      sex: student.sex || "",
+      date_of_birth: student.date_of_birth ? new Date(student.date_of_birth).toISOString().split('T')[0] : "",
+      place_of_birth: student.place_of_birth || "",
+      exam_type: student.exam_type || "",
+      residency_country: student.residency_country || "",
+      residency_city: student.residency_city || "",
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleViewClick = (student) => {
+    setSelectedCandidate(student);
+    setIsViewModalOpen(true);
+  };
+
   // Equal width configuration for balanced UI
   const COL_WIDTH = "150px";
 
@@ -183,6 +245,7 @@ export default function IELTSTOEFLStudentsPage() {
         </span>
       ),
     },
+
     {
       key: "email",
       label: "Email",
@@ -194,18 +257,45 @@ export default function IELTSTOEFLStudentsPage() {
       ),
     },
     {
-      key: "examType",
-      label: "Exam Type",
+      key: "address",
+      label: "Address",
       width: COL_WIDTH,
-      render: (val) => (
-        <span
-          className="text-sm text-black dark:text-white truncate block font-medium"
-          title={val}
-        >
-          {val?.length > 15 ? `${val.substring(0, 15)}...` : val}
-        </span>
-      ),
+      render: (_, row) => {
+        const city = row.residency_city;
+        const country = row.residency_country;
+        if (city && country) return <span className="text-gray-700 dark:text-gray-300 text-xs">{`${city}, ${country}`}</span>;
+        return <span className="text-gray-700 dark:text-gray-300 text-xs">{city || country || '-'}</span>;
+      }
     },
+
+    {
+      key: "date_of_birth",
+      label: "Date Of Birth",
+      width: "120px",
+      render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span>,
+    },
+    {
+      key: "place_of_birth",
+      label: "Place Of Birth",
+      width: "120px",
+      render: (val) => val || <span className="text-gray-400">-</span>,
+    },
+
+    // {
+    //   key: "examType",
+    //   label: "Exam Type",
+    //   width: COL_WIDTH,
+    //   render: (val) => (
+    //     <span
+    //       className="text-sm text-black dark:text-white truncate block font-medium"
+    //       title={val}
+    //     >
+    //       {val?.length > 15 ? `${val.substring(0, 15)}...` : val}
+    //     </span>
+    //   ),
+    // },
+    
+    
     {
       key: "verification_method",
       label: "Verification",
@@ -224,7 +314,7 @@ export default function IELTSTOEFLStudentsPage() {
       key: "time_status",
       label: "Life Status",
       width: COL_WIDTH,
-      render: (row) => {
+      render: (_, row) => {
         const isExpired = row.is_expired;
         const isExtended = row.is_extended; // From backend SELECT *
         const status = row.status?.toLowerCase();
@@ -300,6 +390,7 @@ export default function IELTSTOEFLStudentsPage() {
           <button
             className="text-blue-600 hover:text-blue-900 transition-colors"
             title="View Details"
+            onClick={() => handleViewClick(row)}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -311,6 +402,7 @@ export default function IELTSTOEFLStudentsPage() {
           <button
             className="text-gray-600 hover:text-gray-900 transition-colors"
             title="Edit"
+            onClick={() => handleEditClick(row)}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -489,6 +581,32 @@ export default function IELTSTOEFLStudentsPage() {
                 </button>
               </div>
             </div>
+          )}
+        </Modal>
+        {/* --- View Modal --- */}
+        <StudentViewModal
+          isOpen={isViewModalOpen}
+          onClose={() => { setIsViewModalOpen(false); setSelectedCandidate(null); }}
+          candidate={selectedCandidate ? { ...selectedCandidate, full_name: `${selectedCandidate.first_name} ${selectedCandidate.last_name}` } : null}
+          isDark={isDark}
+        />
+
+        {/* --- Edit Modal --- */}
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={() => { setIsEditModalOpen(false); setSelectedCandidate(null); }}
+          title="Edit Student Info"
+        >
+          {selectedCandidate && (
+            <StudentForm
+              formData={editFormData}
+              setFormData={setEditFormData}
+              onSubmit={handleEditSubmit}
+              onClose={() => setIsEditModalOpen(false)}
+              isDark={isDark}
+              isEdit={true}
+              isIeltsToefl={true}
+            />
           )}
         </Modal>
       </main>
