@@ -1,5 +1,6 @@
 import * as Attendance from "../models/attendanceModel.js";
 import * as Class from "../models/classModel.js";
+import db from "../database/dbconfig.js";
 
 // SAVE ATTENDANCE (Bulk or Single)
 export const saveAttendance = async (req, res) => {
@@ -282,12 +283,53 @@ export const getAdminLearningHours = async (req, res) => {
     }
 };
 
+const dbp = db.promise();
+
 // GET LEARNING HOURS SUMMARY (Card)
 export const getLearningHoursSummary = async (req, res) => {
     try {
-        const studentId = req.user.userId;
-        const total_hours = await Attendance.getStudentLearningHoursSummary(studentId);
-        res.json({ total_hours });
+        const { program_id, class_id, student_id, subprogram_name, subprogram_id } = req.query;
+        const targetStudentId = student_id || req.user.userId;
+
+        let query = `
+            SELECT 
+                SUM(
+                    (CASE WHEN a.hour1 = 1 THEN 1 ELSE 0 END) + 
+                    (CASE WHEN a.hour2 = 1 THEN 1 ELSE 0 END)
+                ) as total_hours,
+                COUNT(DISTINCT a.date) as total_sessions
+            FROM attendance a
+            LEFT JOIN classes c ON a.class_id = c.id
+            LEFT JOIN subprograms s ON c.subprogram_id = s.id
+            WHERE a.student_id COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci
+        `;
+
+        const params = [targetStudentId];
+
+        if (program_id) {
+            query += ` AND c.program_id = ?`;
+            params.push(program_id);
+        }
+
+        if (class_id) {
+            query += ` AND a.class_id = ?`;
+            params.push(class_id);
+        }
+
+        // Filter by Subprogram (Preferred for Dashboard sync)
+        if (subprogram_id) {
+            query += ` AND c.subprogram_id = ?`;
+            params.push(subprogram_id);
+        } else if (subprogram_name) {
+            query += ` AND s.subprogram_name = ?`;
+            params.push(subprogram_name);
+        }
+
+        const [rows] = await dbp.query(query, params);
+        res.json({
+            total_hours: parseInt(rows[0]?.total_hours) || 0,
+            total_sessions: rows[0]?.total_sessions || 0
+        });
     } catch (err) {
         console.error("Get learning hours summary error:", err);
         res.status(500).json({ error: "Server error" });

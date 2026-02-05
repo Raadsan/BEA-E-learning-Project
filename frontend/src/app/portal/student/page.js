@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
-import { useGetAttendanceStatsQuery } from "@/redux/api/attendanceApi";
+import { useGetStudentAttendanceQuery } from "@/redux/api/attendanceApi";
 import { useGetLearningHoursSummaryQuery } from "@/redux/api/learningHoursApi";
 import { useGetTopStudentsQuery, useGetStudentProgressQuery } from "@/redux/api/studentApi";
 import { useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
@@ -18,6 +18,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useGetTimelinesQuery } from "@/redux/api/courseTimelineApi";
 import { useGetClassQuery } from "@/redux/api/classApi";
 import StudentReviewForm from "@/components/ReviewFlows/StudentReviewForm";
+import DashboardTermCounter from "./components/DashboardTermCounter";
 
 const ProficiencyDashboard = ({ user, results, timeLeft, isExpired, isDark, router }) => {
     const hasCompleted = results && results.length > 0;
@@ -36,7 +37,7 @@ const ProficiencyDashboard = ({ user, results, timeLeft, isExpired, isDark, rout
             </div>
 
             {/* Main Action Card - Simplified */}
-            <div className={`rounded-2xl p-8 ${isDark ? 'bg-blue-900/20 border border-blue-800/50' : 'bg-blue-50 border border-blue-100'} relative overflow-hidden`}>
+            <div className={`rounded-2xl p-8 ${isDark ? 'bg-[#0f172a] border border-gray-800' : 'bg-blue-50 border border-blue-100'} relative overflow-hidden`}>
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="text-center md:text-left">
                         <h2 className={`text-2xl font-semibold mb-3 tracking-tight ${isDark ? 'text-white' : 'text-blue-900'}`}>
@@ -84,13 +85,13 @@ const ProficiencyDashboard = ({ user, results, timeLeft, isExpired, isDark, rout
 
                     {/* Simple Info Grid */}
                     <div className="grid grid-cols-2 gap-4 min-w-[240px]">
-                        <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-900/50 border-gray-800' : 'bg-white border-gray-100'}`}>
+                        <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#0b0f19] border-gray-800' : 'bg-white border-gray-100'}`}>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status</p>
                             <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                 {user?.status || 'Pending'}
                             </p>
                         </div>
-                        <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-900/50 border-gray-800' : 'bg-white border-gray-100'}`}>
+                        <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#0b0f19] border-gray-800' : 'bg-white border-gray-100'}`}>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Score</p>
                             <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                 {hasCompleted ? `${Math.round(latestResult.percentage)}%` : 'N/A'}
@@ -108,7 +109,7 @@ const ProficiencyDashboard = ({ user, results, timeLeft, isExpired, isDark, rout
                         if (isExpired) return;
                         router.push('/portal/student/proficiency-test');
                     }}
-                    className={`group cursor-pointer p-6 rounded-2xl border transition-all hover:border-blue-400 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200 shadow-sm'
+                    className={`group cursor-pointer p-6 rounded-2xl border transition-all hover:border-blue-400 ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-200 shadow-sm'
                         } ${isExpired ? 'opacity-80 grayscale-[0.5]' : ''}`}
                 >
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isDark ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
@@ -125,7 +126,7 @@ const ProficiencyDashboard = ({ user, results, timeLeft, isExpired, isDark, rout
                 {/* Certificate Card */}
                 <div
                     onClick={() => router.push('/portal/student/my-certification')}
-                    className={`group cursor-pointer p-6 rounded-2xl border transition-all hover:border-orange-400 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200 shadow-sm'
+                    className={`group cursor-pointer p-6 rounded-2xl border transition-all hover:border-orange-400 ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-200 shadow-sm'
                         }`}
                 >
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isDark ? 'bg-orange-900/30' : 'bg-orange-50'}`}>
@@ -142,7 +143,7 @@ const ProficiencyDashboard = ({ user, results, timeLeft, isExpired, isDark, rout
                 {/* Support Card */}
                 <div
                     onClick={() => router.push('/portal/student/student-support')}
-                    className={`group cursor-pointer p-6 rounded-2xl border transition-all hover:border-green-400 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200 shadow-sm'
+                    className={`group cursor-pointer p-6 rounded-2xl border transition-all hover:border-green-400 ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-200 shadow-sm'
                         }`}
                 >
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isDark ? 'bg-green-900/30' : 'bg-green-50'}`}>
@@ -176,14 +177,18 @@ export default function StudentDashboard() {
     const [timeUntilExpiry, setTimeUntilExpiry] = useState({ hours: 0, minutes: 0, seconds: 0, isExpired: false });
 
     // Fetch Attendance Stats
-    const { data: attendanceStats, isLoading: attendanceLoading } = useGetAttendanceStatsQuery(
-        { class_id: user?.class_id, timeFrame: 'Weekly' },
-        { skip: !user?.class_id }
+    const { data: studentAttendance, isLoading: attendanceLoading } = useGetStudentAttendanceQuery(
+        user?.id || user?.student_id,
+        { skip: !user?.id && !user?.student_id }
     );
 
     // Fetch Learning Hours Summary
     const { data: learningSummary, isLoading: learningLoading } = useGetLearningHoursSummaryQuery(
-        { class_id: user?.class_id },
+        {
+            class_id: user?.class_id,
+            student_id: user?.student_id || user?.id,
+            subprogram_name: user?.chosen_subprogram
+        },
         { skip: !user?.class_id }
     );
 
@@ -411,21 +416,37 @@ export default function StudentDashboard() {
         ? progressData.find(p => p.student_id === user?.id && p.progress < 100) || progressData[0]
         : null;
 
-    // Process attendance for chart
+    // Process attendance for chart (Last 4 weeks)
     const processAttendanceData = () => {
-        if (!attendanceStats || !Array.isArray(attendanceStats)) {
+        if (!studentAttendance?.records || !Array.isArray(studentAttendance.records)) {
             return [
-                { week: "W1", value: 0 },
-                { week: "W2", value: 0 },
-                { week: "W3", value: 0 },
-                { week: "W4", value: 0 },
+                { week: "Week 1", value: 0 },
+                { week: "Week 2", value: 0 },
+                { week: "Week 3", value: 0 },
+                { week: "Week 4", value: 0 },
             ];
         }
-        // Simple mapping - adapt based on actual API response structure
-        return attendanceStats.slice(-4).map((stat, index) => ({
-            week: `W${index + 1}`,
-            value: stat.percentage || stat.attendance_rate || 0
-        }));
+
+        // Group by week (simple 5-session windows)
+        const records = [...studentAttendance.records].reverse(); // Oldest first
+        const weeks = [];
+
+        for (let i = 0; i < 4; i++) {
+            const weekRecords = records.slice(i * 5, (i + 1) * 5);
+            if (weekRecords.length === 0) {
+                weeks.push({ week: `Week ${4 - i}`, value: 0 });
+                continue;
+            }
+
+            const attended = weekRecords.reduce((acc, r) => acc + (r.hour1 === 1 ? 1 : 0) + (r.hour2 === 1 ? 1 : 0), 0);
+            const total = weekRecords.length * 2;
+            weeks.push({
+                week: `Week ${4 - i}`,
+                value: Math.round((attended / total) * 100)
+            });
+        }
+
+        return weeks.reverse();
     };
 
     const attendanceData = processAttendanceData();
@@ -435,7 +456,7 @@ export default function StudentDashboard() {
         coursesCompleted: user?.completed_courses_count || 0,
         certificatesEarned: user?.certificates_count || 0,
         hoursLearned: learningSummary?.total_hours || 0,
-        streakDays: user?.login_streak || 0,
+        currentLevel: user?.chosen_subprogram_name || user?.chosen_subprogram || "Level 1",
     };
 
 
@@ -451,7 +472,7 @@ export default function StudentDashboard() {
     }
 
     return (
-        <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-[#0b0f19]' : 'bg-gray-50'}`}>
             <div className="w-full">
                 {isProficiencyOnly ? (
                     <ProficiencyDashboard
@@ -464,6 +485,106 @@ export default function StudentDashboard() {
                     />
                 ) : (
                     <>
+                        {/* Welcome Header (Simple Text) */}
+                        <div className="mb-6">
+                            <h1 className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                Welcome back, {user?.full_name?.split(' ')[0] || 'Student'}!
+                            </h1>
+                            <p className={`text-sm font-medium opacity-60 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                Here's what's happening this term.
+                            </p>
+                        </div>
+
+                        {/* 1. Ready to Keep Learning (Banner) - MOVED TO TOP */}
+                        {isPaid ? (
+                            <div className={`mb-8 rounded-xl p-8 bg-[#010080] text-white relative overflow-hidden`}>
+                                <div className="absolute inset-0 opacity-10">
+                                    <div className="absolute top-4 right-4 w-16 h-16 bg-white rounded-lg"></div>
+                                    <div className="absolute top-20 right-20 w-12 h-12 bg-white rounded-full"></div>
+                                    <div className="absolute bottom-8 left-8 w-20 h-20 bg-white rounded-lg"></div>
+                                    <div className="absolute bottom-20 left-24 w-14 h-14 bg-white rounded-full"></div>
+                                    <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-white rounded-lg"></div>
+                                </div>
+                                <div className="relative z-10">
+                                    <h2 className="text-3xl font-bold mb-3">Ready to keep learning?</h2>
+                                    <p className="text-blue-100 mb-6 max-w-2xl">
+                                        Master your skills with BEA E-learning. Your progress is saved and waiting for you to continue your journey.
+                                    </p>
+                                    <div className="flex gap-4">
+                                        <Link href="/portal/student/my-courses" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors">
+                                            Resume Last Course
+                                        </Link>
+                                        {/* <Link href="/portal/student/browse-courses" className="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg font-medium transition-colors">
+                                            Explore New Courses
+                                        </Link> */}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={`mb-8 rounded-xl p-8 bg-gradient-to-br from-[#f6d365] to-[#fda085] text-gray-900 relative overflow-hidden shadow-2xl border border-white/20`}>
+                                <div className="absolute top-0 right-0 p-4 opacity-20">
+                                    <svg className="w-48 h-48 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                                    </svg>
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <span className="bg-white/40 px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-widest border border-white/50 shadow-sm text-amber-900">Urgent: Account Locked</span>
+                                    </div>
+                                    <h2 className="text-3xl font-bold mb-3 text-gray-900 tracking-tight">Access Period Expired</h2>
+                                    <p className="text-gray-800 mb-8 max-w-2xl text-lg font-medium leading-relaxed opacity-90">
+                                        Your premium access has ended. Renew your subscription now to unlock your courses and continue your learning journey.
+                                    </p>
+                                    <Link
+                                        href="/portal/student/payments/upgrade"
+                                        className="inline-flex items-center gap-2 px-10 py-4 bg-[#010080] text-white hover:bg-blue-900 rounded-xl font-normal transition-all transform hover:scale-105 shadow-xl uppercase tracking-wider text-sm border-b-4 border-blue-900 active:border-b-0 active:translate-y-1"
+                                    >
+                                        <span>Upgrade & Continue</span>
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 2. Term Cycle & Download Grid Row */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                            <div className="lg:col-span-2">
+                                <DashboardTermCounter isDark={isDark} user={user} />
+                            </div>
+                            <div className="lg:col-span-1">
+                                {programDetails?.curriculum_file && (
+                                    <div className={`h-full p-6 rounded-2xl border transition-all shadow-md flex flex-col justify-center gap-4 ${isDark ? 'bg-blue-900/10 border-blue-800' : 'bg-blue-50 border-blue-200'}`}>
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isDark ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-600 text-white'}`}>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </div>
+                                            <h3 className={`text-sm font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
+                                                Program Curriculum
+                                            </h3>
+                                        </div>
+                                        <p className={`text-xs font-medium leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                                            Download the official program guide and curriculum for {programDetails.title}.
+                                        </p>
+                                        <a
+                                            href={`http://localhost:5000${programDetails.curriculum_file}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={`inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${isDark
+                                                ? 'bg-blue-600 text-white hover:bg-blue-500'
+                                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                                                }`}
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                            Download Program Guide
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Term End Review Section */}
                         {showReviewBanner && (
                             <div className={`mb-8 p-6 rounded-2xl border-2 border-dashed flex flex-col md:flex-row items-center justify-between gap-6 transition-all animate-in fade-in slide-in-from-top-4 duration-500 ${isDark ? 'bg-indigo-900/10 border-indigo-500/30' : 'bg-indigo-50 border-indigo-200'}`}>
@@ -488,8 +609,8 @@ export default function StudentDashboard() {
                             </div>
                         )}
 
-                        {/* Header Section */}
-                        <div className={`mb-8 p-8 rounded-2xl ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} shadow-sm border`}>
+                        {/* Header Section (Welcome Box) - Commented out as per request "ardayga box kasar" */}
+                        {/* <div className={`mb-8 p-8 rounded-2xl ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} shadow-sm border`}>
                             <h1 className={`text-4xl font-bold mb-2 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                 Welcome, {user?.full_name || 'Student'}!
                             </h1>
@@ -547,65 +668,19 @@ export default function StudentDashboard() {
                                 </div>
                             )}
 
-                        </div>
+                        </div> */}
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* Main Content Area */}
                             <div className="lg:col-span-2 space-y-6">
-                                {/* Conditional Learning/Expiry Banner */}
-                                {isPaid ? (
-                                    <div className={`rounded-xl p-8 bg-[#010080] text-white relative overflow-hidden`}>
-                                        <div className="absolute inset-0 opacity-10">
-                                            <div className="absolute top-4 right-4 w-16 h-16 bg-white rounded-lg"></div>
-                                            <div className="absolute top-20 right-20 w-12 h-12 bg-white rounded-full"></div>
-                                            <div className="absolute bottom-8 left-8 w-20 h-20 bg-white rounded-lg"></div>
-                                            <div className="absolute bottom-20 left-24 w-14 h-14 bg-white rounded-full"></div>
-                                            <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-white rounded-lg"></div>
-                                        </div>
-                                        <div className="relative z-10">
-                                            <h2 className="text-3xl font-bold mb-3">Ready to keep learning?</h2>
-                                            <p className="text-blue-100 mb-6 max-w-2xl">
-                                                Master your skills with BEA E-learning. Your progress is saved and waiting for you to continue your journey.
-                                            </p>
-                                            <div className="flex gap-4">
-                                                <Link href="/portal/student/my-courses" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors">
-                                                    Resume Last Course
-                                                </Link>
-                                                <Link href="/portal/student/browse-courses" className="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg font-medium transition-colors">
-                                                    Explore New Courses
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className={`rounded-xl p-8 bg-gradient-to-br from-[#f6d365] to-[#fda085] text-gray-900 relative overflow-hidden shadow-2xl border border-white/20`}>
-                                        <div className="absolute top-0 right-0 p-4 opacity-20">
-                                            <svg className="w-48 h-48 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                                            </svg>
-                                        </div>
-                                        <div className="relative z-10">
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <span className="bg-white/40 px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-widest border border-white/50 shadow-sm text-amber-900">Urgent: Account Locked</span>
-                                            </div>
-                                            <h2 className="text-3xl font-bold mb-3 text-gray-900 tracking-tight">Access Period Expired</h2>
-                                            <p className="text-gray-800 mb-8 max-w-2xl text-lg font-medium leading-relaxed opacity-90">
-                                                Your premium access has ended. Renew your subscription now to unlock your courses and continue your learning journey.
-                                            </p>
-                                            <Link
-                                                href="/portal/student/payments/upgrade"
-                                                className="inline-flex items-center gap-2 px-10 py-4 bg-[#010080] text-white hover:bg-blue-900 rounded-xl font-normal transition-all transform hover:scale-105 shadow-xl uppercase tracking-wider text-sm border-b-4 border-blue-900 active:border-b-0 active:translate-y-1"
-                                            >
-                                                <span>Upgrade & Continue</span>
-                                            </Link>
-                                        </div>
-                                    </div>
-                                )}
+                                {/* "Ready to keep learning" Logic MOVED UP - Replaced here with emptiness or preserved if structure needs it. 
+                                    Since we moved the entire logic block up, we just clear this space so Summary Cards are next. 
+                                */}
 
                                 {/* Summary Cards */}
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {/* Courses Completed */}
-                                    <div className={`rounded-xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+                                    <div className={`rounded-xl p-6 ${isDark ? 'bg-[#0f172a] border border-gray-800 shadow-none' : 'bg-white shadow-md'}`}>
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                                                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -622,7 +697,7 @@ export default function StudentDashboard() {
                                     </div>
 
                                     {/* Certificates Earned */}
-                                    <div className={`rounded-xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+                                    <div className={`rounded-xl p-6 ${isDark ? 'bg-[#0f172a] border border-gray-800 shadow-none' : 'bg-white shadow-md'}`}>
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                                                 <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -639,7 +714,7 @@ export default function StudentDashboard() {
                                     </div>
 
                                     {/* Hours Learned */}
-                                    <div className={`rounded-xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+                                    <div className={`rounded-xl p-6 ${isDark ? 'bg-[#0f172a] border border-gray-800 shadow-none' : 'bg-white shadow-md'}`}>
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                                                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -655,69 +730,143 @@ export default function StudentDashboard() {
                                         </p>
                                     </div>
 
-                                    {/* Streak */}
-                                    <div className={`rounded-xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+                                    {/* Current Level */}
+                                    <div className={`rounded-xl p-6 ${isDark ? 'bg-[#0f172a] border border-gray-800 shadow-none' : 'bg-white shadow-md'}`}>
                                         <div className="flex items-center gap-3 mb-3">
-                                            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                                                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z" />
                                                 </svg>
                                             </div>
                                             <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                Streak (Days)
+                                                Current Level
                                             </span>
                                         </div>
-                                        <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                            {stats.streakDays}
+                                        <p className={`text-2xl font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                            {stats.currentLevel}
                                         </p>
                                     </div>
                                 </div>
 
+                                {/* Analytical Charts Section */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className={`p-6 rounded-2xl shadow-sm border ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-100'}`}>
+                                        <h3 className={`text-sm font-bold uppercase tracking-widest mb-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            My Attendance Trends
+                                        </h3>
+                                        <div className="h-64 w-full">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <LineChart data={attendanceData}>
+                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? '#374151' : '#E5E7EB'} />
+                                                    <XAxis
+                                                        dataKey="week"
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                        tick={{ fontSize: 12, fill: isDark ? '#9CA3AF' : '#6B7280' }}
+                                                    />
+                                                    <YAxis
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                        tick={{ fontSize: 12, fill: isDark ? '#9CA3AF' : '#6B7280' }}
+                                                        domain={[0, 100]}
+                                                    />
+                                                    <Tooltip
+                                                        contentStyle={{
+                                                            backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+                                                            borderColor: isDark ? '#374151' : '#E5E7EB',
+                                                            borderRadius: '12px'
+                                                        }}
+                                                    />
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="value"
+                                                        stroke="#010080"
+                                                        strokeWidth={3}
+                                                        dot={{ r: 4, fill: '#010080' }}
+                                                        activeDot={{ r: 6 }}
+                                                    />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+
+                                    <div className={`p-6 rounded-2xl shadow-sm border ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-100'}`}>
+                                        <h3 className={`text-sm font-bold uppercase tracking-widest mb-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            Performance Analysis
+                                        </h3>
+                                        <div className="h-64 w-full flex items-center justify-center">
+                                            <div className="text-center">
+                                                <div className={`text-3xl font-black mb-1 ${isDark ? 'text-white' : 'text-[#010080]'}`}>
+                                                    {learningSummary?.total_sessions || 0}
+                                                </div>
+                                                <div className="text-[10px] font-bold uppercase tracking-widest opacity-40">Total Sessions Active</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Star Students (Top 5) */}
+                                <div className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-100 shadow-sm'}`}>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-600">
+                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z" />
+                                                </svg>
+                                            </div>
+                                            <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Star Students</h3>
+                                        </div>
+                                        <span className={`text-xs font-medium px-3 py-1 rounded-full ${isDark ? 'bg-[#0b0f19] text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+                                            Top 5 Performers
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {leaderboardLoading ? (
+                                            [1, 2, 3].map(i => <div key={i} className="h-16 w-full animate-pulse bg-gray-200 dark:bg-gray-700 rounded-xl"></div>)
+                                        ) : leaderboardData?.students?.length > 0 ? (
+                                            leaderboardData.students.slice(0, 5).map((student, index) => (
+                                                <div key={student.student_id} className={`flex items-center justify-between p-4 rounded-xl transition-all hover:translate-x-1 ${isDark ? 'hover:bg-[#1a2035]' : 'hover:bg-gray-50'}`}>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-inner ${index === 0 ? 'bg-yellow-400 text-white shadow-yellow-200' :
+                                                            index === 1 ? 'bg-slate-300 text-white shadow-slate-200' :
+                                                                index === 2 ? 'bg-amber-600/50 text-white shadow-amber-300' :
+                                                                    'bg-gray-100 text-gray-500'
+                                                            }`}>
+                                                            {index + 1}
+                                                        </div>
+                                                        <div>
+                                                            <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                                                {student.full_name}
+                                                            </div>
+                                                            <div className={`text-[10px] font-medium opacity-50 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                                {student.class_name || "General Class"}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className={`text-sm font-black ${isDark ? 'text-blue-400' : 'text-[#010080]'}`}>
+                                                            {student.attendance_rate}%
+                                                        </div>
+                                                        <div className="text-[10px] font-bold uppercase tracking-widest opacity-30">Attendance</div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8 opacity-40">No data available yet</div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Right Sidebar */}
                             <div className="space-y-6">
-                                {/* Program Curriculum Download Section */}
-                                {programDetails?.curriculum_file && (
-                                    <div className={`p-6 rounded-2xl border transition-all shadow-md ${isDark ? 'bg-blue-900/10 border-blue-800' : 'bg-blue-50 border-blue-200'
-                                        }`}>
-                                        <div className="flex flex-col gap-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isDark ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-600 text-white'
-                                                    }`}>
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                    </svg>
-                                                </div>
-                                                <h3 className={`text-sm font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
-                                                    Program Curriculum
-                                                </h3>
-                                            </div>
-                                            <p className={`text-xs font-medium leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                                                Download the official program guide and curriculum for {programDetails.title}.
-                                            </p>
-                                            <a
-                                                href={`http://localhost:5000${programDetails.curriculum_file}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className={`inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${isDark
-                                                    ? 'bg-blue-600 text-white hover:bg-blue-500'
-                                                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                                                    }`}
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                </svg>
-                                                Download Program Guide
-                                            </a>
-                                        </div>
-                                    </div>
-                                )}
+                                {/* Program Curriculum Download - MOVED UP NEXT TO TERM CYCLE */}
                                 {/* Attendance Chart */}
                                 <div className={`rounded-xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                            Weekly Attendance
+                                            My Weekly Attendance
                                         </h3>
                                         {attendanceLoading && <span className="animate-spin h-4 w-4 border-2 border-[#010080] border-t-transparent rounded-full"></span>}
                                     </div>

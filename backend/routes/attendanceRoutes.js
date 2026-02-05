@@ -42,7 +42,7 @@ router.get("/student/:studentId", verifyToken, async (req, res) => {
         LEFT JOIN courses co ON c.course_id = co.id
         LEFT JOIN subprograms sp ON (c.subprogram_id = sp.id OR co.subprogram_id = sp.id)
         LEFT JOIN programs p ON sp.program_id = p.id
-        WHERE a.student_id = ? 
+        WHERE a.student_id COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci
         ORDER BY a.date DESC`,
       [studentId]
     );

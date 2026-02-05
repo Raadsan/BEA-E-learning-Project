@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect, useMemo } from "react";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useGetStudentAttendanceQuery } from "@/redux/api/attendanceApi";
+import { useGetMyClassesQuery } from "@/redux/api/studentApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import {
   PieChart,
@@ -16,30 +18,60 @@ import DataTable from "@/components/DataTable";
 export default function AttendancePage() {
   const { isDark } = useDarkMode();
   const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
+  const { data: myClasses, isLoading: classesLoading } = useGetMyClassesQuery();
   const { data: attendanceData, isLoading: attendanceLoading } = useGetStudentAttendanceQuery(user?.id, {
     skip: !user?.id,
   });
 
-  const records = attendanceData?.records || [];
+  const [selectedSubprogramName, setSelectedSubprogramName] = useState("");
+
+  // Extract unique levels from myClasses using useMemo to prevent recalculation
+  const levels = useMemo(() => {
+    return myClasses?.reduce((acc, cls) => {
+      if (cls.subprogram_name && !acc.find(l => l.subprogram_name === cls.subprogram_name)) {
+        acc.push({
+          subprogram_id: cls.subprogram_id,
+          subprogram_name: cls.subprogram_name,
+          program_name: cls.program_name
+        });
+      }
+      return acc;
+    }, []) || [];
+  }, [myClasses]);
+
+  // Auto-select level matching user's current level or the first available
+  useEffect(() => {
+    if (levels.length > 0 && !selectedSubprogramName) {
+      const currentLevel = levels.find(l => l.subprogram_name === user?.chosen_subprogram);
+      setSelectedSubprogramName(currentLevel ? currentLevel.subprogram_name : levels[0].subprogram_name);
+    }
+  }, [levels, user?.chosen_subprogram, selectedSubprogramName]);
+
+  const allRecords = attendanceData?.records || [];
+
+  // Filter records by selected subprogram
+  const records = useMemo(() => {
+    if (!selectedSubprogramName) return allRecords;
+    return allRecords.filter(record =>
+      record.subprogram_name === selectedSubprogramName ||
+      (!record.subprogram_name && record.class_name && levels.find(l => l.subprogram_name === selectedSubprogramName))
+    );
+  }, [allRecords, selectedSubprogramName, levels]);
 
   // Calculate attendance statistics
   const stats = records.reduce((acc, record) => {
     // 0 = Absent, 1 = Present, 2 = Excused
     const h1 = record.hour1 === 1 ? 1 : 0;
     const h2 = record.hour2 === 1 ? 1 : 0;
-    const h1Excused = record.hour1 === 2 ? 1 : 0;
-    const h2Excused = record.hour2 === 2 ? 1 : 0;
 
     acc.totalDays += 1;
     acc.presentHours += (h1 + h2);
-    // Explicitly calculate absent: Not Present AND Not Excused
-    // Total possible hours per day is 2.
-    // Absent means hour is 0.
+
+    // Absent means hour is 0
     const h1Absent = record.hour1 === 0 ? 1 : 0;
     const h2Absent = record.hour2 === 0 ? 1 : 0;
 
     acc.absentHours += (h1Absent + h2Absent);
-    // We can also track excused hours if we want, but for now just don't count them as absent
     return acc;
   }, { totalDays: 0, presentHours: 0, absentHours: 0 });
 
@@ -79,7 +111,7 @@ export default function AttendancePage() {
     }
   ];
 
-  const bg = isDark ? "bg-gray-900" : "bg-gray-50";
+  const bg = isDark ? "bg-[#0b0f19]" : "bg-gray-50";
 
   if (userLoading || attendanceLoading) {
     return (
@@ -97,7 +129,7 @@ export default function AttendancePage() {
     <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
       <div className="w-full">
 
-        {/* Simple Header */}
+        {/* Header */}
         <div className="mb-12">
           <h1 className={`text-4xl font-bold tracking-tight mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
             Attendance
@@ -107,10 +139,44 @@ export default function AttendancePage() {
           </p>
         </div>
 
-        {/* Stats Grid - Normal Size */}
+        {/* Academic Selection Dashboard - Matching Grades Page */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Level Selection */}
+          <div className={`p-4 rounded-xl border transition-all ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-200'}`}>
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Select Level</label>
+            <div className="relative">
+              <select
+                value={selectedSubprogramName}
+                onChange={(e) => setSelectedSubprogramName(e.target.value)}
+                className={`w-full appearance-none pl-3 pr-8 py-2 rounded-lg border text-sm font-medium focus:ring-1 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'
+                  }`}
+              >
+                <option value="">{classesLoading ? "Loading..." : "Select Level"}</option>
+                {levels?.map(level => (
+                  <option key={level.subprogram_name} value={level.subprogram_name}>
+                    {level.subprogram_name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Program Info */}
+          <div className={`p-4 rounded-xl border flex flex-col justify-center ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-200'}`}>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Program</span>
+            <div className={`text-sm font-medium line-clamp-1 ${isDark ? 'text-white' : 'text-black'}`}>
+              {user?.chosen_program || user?.exam_type || "General Program"}
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Total Days */}
-          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
+          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-[#0f172a] border-gray-800 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
             <div>
               <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Total Days</p>
               <h2 className="text-2xl font-extrabold">{stats.totalDays}</h2>
@@ -123,7 +189,7 @@ export default function AttendancePage() {
           </div>
 
           {/* Present Hours */}
-          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
+          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-[#0f172a] border-gray-800 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
             <div>
               <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Present Hours</p>
               <h2 className="text-2xl font-extrabold text-green-500">{stats.presentHours}</h2>
@@ -136,7 +202,7 @@ export default function AttendancePage() {
           </div>
 
           {/* Absent Hours */}
-          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
+          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-[#0f172a] border-gray-800 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
             <div>
               <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Absent Hours</p>
               <h2 className="text-2xl font-extrabold text-red-500">{stats.absentHours}</h2>
@@ -149,7 +215,7 @@ export default function AttendancePage() {
           </div>
 
           {/* Absent Percentage */}
-          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
+          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-[#0f172a] border-gray-800 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
             <div>
               <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Absent Rate</p>
               <h2 className="text-2xl font-extrabold text-orange-500">
@@ -167,7 +233,7 @@ export default function AttendancePage() {
         </div>
 
         {/* Overview Chart */}
-        <div className={`p-5 rounded-xl shadow-sm border mb-8 ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
+        <div className={`p-5 rounded-xl shadow-sm border mb-8 ${isDark ? "bg-[#0f172a] border-gray-800" : "bg-white border-gray-100"}`}>
           <h3 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>Overall Allocation</h3>
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -209,22 +275,6 @@ export default function AttendancePage() {
   );
 }
 
-function Card({ children, isDark, error }) {
-  return (
-    <div
-      className={`p-6 rounded-xl shadow ${error
-        ? isDark
-          ? "bg-red-900/20 border border-red-500 text-red-200"
-          : "bg-red-50 border border-red-200 text-red-700"
-        : isDark
-          ? "bg-gray-800 text-gray-100"
-          : "bg-white text-gray-800"
-        }`}
-    >
-      <p className="text-sm">{children}</p>
-    </div>
-  );
-}
 
 
 

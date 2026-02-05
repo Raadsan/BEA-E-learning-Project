@@ -8,7 +8,9 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { validatePassword, passwordPolicyMessage } from "../utils/passwordValidator.js";
+
 import db from "../database/dbconfig.js";
+import * as CertificateModel from "../models/certificateModel.js";
 
 const dbp = db.promise();
 
@@ -260,6 +262,10 @@ export const getCurrentUser = async (req, res) => {
             [user.chosen_program]
           );
 
+          // Calculate Stats
+          const certificatesCount = await CertificateModel.getCertificateCountByStudentId(user.student_id);
+          const completedCoursesCount = user.completed_subprograms ? user.completed_subprograms.split(',').filter(s => s.trim()).length : 0;
+
           user = {
             id: user.student_id,
             full_name: user.full_name,
@@ -270,6 +276,7 @@ export const getCurrentUser = async (req, res) => {
             residency_city: user.residency_city || null,
             chosen_program: user.chosen_program,
             chosen_subprogram: user.chosen_subprogram,
+            chosen_subprogram_name: user.chosen_subprogram_name,
             completed_subprograms: user.completed_subprograms || null,
             sponsor_name: user.sponsor_name,
             approval_status: user.approval_status || null,
@@ -278,7 +285,11 @@ export const getCurrentUser = async (req, res) => {
             paid_until: user.paid_until || null,
             expiry_date: user.expiry_date || null,
             created_at: user.created_at || null,
-            program_test_required: programDetails[0]?.test_required || 'none'
+            program_test_required: programDetails[0]?.test_required || 'none',
+            // Dynamic Stats
+            certificates_count: certificatesCount,
+            completed_courses_count: completedCoursesCount,
+            login_streak: 0 // Placeholder until streak tracking is implemented
           };
         } else {
           // Check IELTS table

@@ -147,14 +147,14 @@ export default function StudentPaymentsPage() {
 
   if (userLoading || paymentsLoading) {
     return (
-      <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-[#0b0f19]' : 'bg-gray-50'}`}>
         <Loader fullPage />
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-[#0b0f19]' : 'bg-gray-50'}`}>
       <div className="w-full">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -182,7 +182,7 @@ export default function StudentPaymentsPage() {
           {stats.map((stat, index) => (
             <div
               key={index}
-              className={`rounded-2xl shadow-sm p-6 border transition-all ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
+              className={`rounded-2xl shadow-sm p-6 border transition-all ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-100'}`}
             >
               <div className="flex items-center gap-4">
                 <div className={`p-3 rounded-xl ${stat.color}`}>

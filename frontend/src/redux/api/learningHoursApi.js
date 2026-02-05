@@ -26,10 +26,12 @@ export const learningHoursApi = createApi({
             providesTags: ["LearningHours"],
         }),
         getLearningHoursSummary: builder.query({
-            query: ({ program_id, class_id } = {}) => {
+            query: ({ program_id, class_id, student_id, subprogram_name } = {}) => {
                 const params = new URLSearchParams();
                 if (program_id) params.append("program_id", program_id);
                 if (class_id) params.append("class_id", class_id);
+                if (student_id) params.append("student_id", student_id);
+                if (subprogram_name) params.append("subprogram_name", subprogram_name);
                 return `/learning-hours/summary?${params.toString()}`;
             },
             providesTags: ["LearningHours"],

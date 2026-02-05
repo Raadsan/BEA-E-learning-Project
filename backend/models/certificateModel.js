@@ -84,3 +84,11 @@ export const hasStudentClaimedCertificate = async (student_id, target_id, target
     );
     return rows.length > 0;
 };
+
+export const getCertificateCountByStudentId = async (student_id) => {
+    const [rows] = await dbp.query(
+        "SELECT COUNT(*) as count FROM issued_certificates WHERE student_id = ?",
+        [student_id]
+    );
+    return rows[0]?.count || 0;
+};

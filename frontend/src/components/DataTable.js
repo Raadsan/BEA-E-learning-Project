@@ -46,7 +46,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
   const totalPages = Math.ceil((Array.isArray(filteredData) ? filteredData.length : 0) / entriesPerPage);
 
   return (
-    <div className="p-4 bg-white dark:bg-[#1a2035] text-gray-900 dark:text-white rounded-xl shadow-md w-full max-w-full min-w-0">
+    <div className={`p-5 rounded-xl shadow-sm border w-full max-w-full min-w-0 ${isDark ? 'bg-[#0f172a] border-gray-800 text-white' : 'bg-white border-gray-100 text-gray-900'}`}>
       {/* Table Header Section - Fixed at top of card */}
       <div className="flex-shrink-0">
         <div className="flex justify-between items-center mb-4">
@@ -81,7 +81,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                 setEntriesPerPage(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded px-2 py-1"
+              className="border border-gray-300 dark:border-gray-800 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
             >
               {[5, 10, 25, 50, 100].map((num) => (
                 <option key={num} value={num}>
@@ -95,17 +95,17 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
           <input
             type="text"
             placeholder="Search..."
-            className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white px-3 py-1 rounded-lg w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-[#010080]"
+            className="border border-gray-300 dark:border-gray-800 dark:bg-[#1e293b] dark:text-white px-3 py-1 rounded-lg w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder-gray-500"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="w-full rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="w-full rounded-lg border border-gray-200 dark:border-gray-800/50">
         <div ref={tableRef} className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-sm" style={{ minWidth: 'max-content', borderCollapse: 'separate', borderSpacing: 0 }}>
-            <thead className={`${isDark ? 'bg-white text-gray-900' : 'bg-[#010080] text-white'} sticky top-0 z-30`}>
+            <thead className={`${isDark ? 'bg-[#0f172a] text-white border-b border-gray-800' : 'bg-[#010080] text-white'} sticky top-0 z-30`}>
               <tr>
                 {Array.isArray(columns) && columns.map((col, i) => {
                   return (
@@ -114,7 +114,8 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                       className={`px-5 py-4 uppercase text-xs font-medium tracking-wide ${col.className || ''}`}
                       style={{
                         ...(col.width ? { width: col.width, minWidth: col.width } : { minWidth: DEFAULT_MIN_COLUMN_WIDTH }),
-                        backgroundColor: isDark ? '#ffffff' : '#010080'
+                        backgroundColor: isDark ? '#0f172a' : '#010080',
+                        color: '#ffffff',
                       }}
                     >
                       {col.label ?? ""}
@@ -128,9 +129,9 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                 <tr
                   key={row._id || row.id || idx}
                   className={`${idx % 2 === 0
-                    ? "bg-white dark:bg-[#1a2035]"
-                    : "bg-gray-50 dark:bg-[#252b40]"
-                    } text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2d3447] transition-colors`}
+                    ? "bg-white dark:bg-[#0f172a]"
+                    : "bg-gray-50 dark:bg-[#111827]"
+                    } text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors`}
                 >
                   {Array.isArray(columns) && columns.map((col, i) => {
                     const cellValue = col.key
@@ -162,8 +163,8 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                         style={{
                           ...(col.width ? { width: col.width, minWidth: col.width } : { minWidth: DEFAULT_MIN_COLUMN_WIDTH }),
                           backgroundColor: idx % 2 === 0
-                            ? (isDark ? '#1a2035' : '#ffffff')
-                            : (isDark ? '#252b40' : '#f9fafb')
+                            ? (isDark ? '#0f172a' : '#ffffff')
+                            : (isDark ? '#111827' : '#f9fafb')
                         }}
                       >
                         {cellContent}
@@ -197,7 +198,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
           </span>
           <div className="flex items-center gap-2">
             <button
-              className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-black dark:text-white disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400 dark:bg-[#1e293b] dark:hover:bg-[#334155] border dark:border-gray-700 text-black dark:text-white disabled:bg-gray-200 dark:disabled:bg-[#0f172a] disabled:cursor-not-allowed transition-all"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((prev) => prev - 1)}
             >
@@ -207,7 +208,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
               {currentPage} of {totalPages || 1}
             </span>
             <button
-              className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-black dark:text-white disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400 dark:bg-[#1e293b] dark:hover:bg-[#334155] border dark:border-gray-700 text-black dark:text-white disabled:bg-gray-200 dark:disabled:bg-[#0f172a] disabled:cursor-not-allowed transition-all"
               disabled={currentPage === totalPages || totalPages === 0}
               onClick={() => setCurrentPage((prev) => prev + 1)}
             >

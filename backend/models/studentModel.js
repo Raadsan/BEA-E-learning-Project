@@ -111,7 +111,11 @@ export const getAllStudents = async () => {
 // GET student by ID
 export const getStudentById = async (id) => {
   const [rows] = await dbp.query(
-    "SELECT s.student_id, s.full_name, s.email, s.phone, s.age, s.residency_country, s.residency_city, s.chosen_program, s.chosen_subprogram, s.completed_subprograms, s.parent_name, s.parent_email, s.parent_phone, s.parent_relation, s.parent_res_county, s.parent_res_city, s.class_id, s.approval_status, s.sponsor_name, s.profile_picture, s.paid_until, s.expiry_date, s.date_of_birth, s.place_of_birth, s.created_at, s.updated_at, c.class_name FROM students s LEFT JOIN classes c ON s.class_id = c.id WHERE s.student_id = ?",
+    `SELECT s.*, c.class_name, sp.subprogram_name as chosen_subprogram_name 
+     FROM students s 
+     LEFT JOIN classes c ON s.class_id = c.id 
+     LEFT JOIN subprograms sp ON s.chosen_subprogram = sp.id
+     WHERE s.student_id = ?`,
     [id]
   );
   return rows[0] || null;
@@ -475,8 +479,8 @@ export const getTopStudents = async (limit = 10, program_id, class_id) => {
     FROM students s
     LEFT JOIN classes c ON s.class_id = c.id
     LEFT JOIN programs p ON (s.chosen_program = p.id OR s.chosen_program = p.title COLLATE utf8mb4_unicode_ci)
-    LEFT JOIN attendance a ON s.student_id = a.student_id
-    LEFT JOIN assignment_submissions asub ON s.student_id = asub.student_id AND asub.status = 'graded'
+    LEFT JOIN attendance a ON s.student_id COLLATE utf8mb4_unicode_ci = a.student_id COLLATE utf8mb4_unicode_ci
+    LEFT JOIN assignment_submissions asub ON s.student_id COLLATE utf8mb4_unicode_ci = asub.student_id COLLATE utf8mb4_unicode_ci AND asub.status = 'graded'
     WHERE s.approval_status = 'approved'
   `;
 

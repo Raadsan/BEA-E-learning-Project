@@ -85,7 +85,7 @@ export const getLearningHours = async (req, res) => {
 // Get total learning hours summary
 export const getLearningHoursSummary = async (req, res) => {
     try {
-        const { program_id, class_id } = req.query;
+        const { program_id, class_id, student_id, subprogram_name, subprogram_id } = req.query;
         const hoursPerSession = 2;
 
         let query = `
@@ -95,6 +95,7 @@ export const getLearningHoursSummary = async (req, res) => {
         COUNT(DISTINCT att.student_id) as unique_students
       FROM attendance att
       LEFT JOIN classes c ON att.class_id = c.id
+      LEFT JOIN subprograms s ON c.subprogram_id = s.id
       WHERE 1=1
     `;
 
@@ -108,6 +109,21 @@ export const getLearningHoursSummary = async (req, res) => {
         if (class_id) {
             query += ` AND att.class_id = ?`;
             params.push(class_id);
+        }
+
+        // Add filter by Student ID
+        if (student_id) {
+            query += ` AND att.student_id = ?`;
+            params.push(student_id);
+        }
+
+        // Add filter by Subprogram
+        if (subprogram_id) {
+            query += ` AND c.subprogram_id = ?`;
+            params.push(subprogram_id);
+        } else if (subprogram_name) {
+            query += ` AND s.subprogram_name = ?`;
+            params.push(subprogram_name);
         }
 
         const [summary] = await dbp.query(query, params);
