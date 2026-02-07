@@ -493,7 +493,7 @@ export default function AssignmentManager({ type, title, description }) {
                 label: "Assignment Title",
                 render: (value, row) => (
                     <div className="flex flex-col">
-                        <span className="font-semibold text-gray-900 dark:text-white">{value || "N/A"}</span>
+                        <span className="text-black dark:text-white">{value || "N/A"}</span>
                         <span className="text-[11px] text-gray-500 uppercase">{row?.class_name || "General"}</span>
                     </div>
                 )
@@ -606,7 +606,7 @@ export default function AssignmentManager({ type, title, description }) {
         {
             key: "student_name",
             label: "Student Name",
-            render: (value) => <span className="font-semibold text-gray-900 dark:text-white">{value || "N/A"}</span>
+            render: (value) => <span className="text-black dark:text-white">{value || "N/A"}</span>
         },
         {
             label: "Class Name",
@@ -672,7 +672,7 @@ export default function AssignmentManager({ type, title, description }) {
                         {view === 'list' && (
                             <button
                                 onClick={handleAddClick}
-                                className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-[#010080] text-white rounded-xl font-semibold hover:bg-blue-800 shadow-lg shadow-blue-900/20 transition-all active:scale-95 text-sm md:text-base"
+                                className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-[#010080] text-white rounded-xl font-bold hover:bg-blue-800 shadow-lg shadow-blue-900/20 transition-all active:scale-95 text-sm md:text-base"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

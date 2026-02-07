@@ -902,10 +902,11 @@ export const getPaymentStats = async (req, res) => {
         // Core Totals
         const [totals] = await dbp.query(`
             SELECT 
-                SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as totalRevenue,
-                SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pendingRevenue,
+                SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) as totalRevenue,
+                SUM(CASE WHEN status IN ('pending', 'partial') THEN amount ELSE 0 END) as pendingRevenue,
                 COUNT(*) as totalTransactions,
-                COUNT(CASE WHEN status = 'completed' THEN 1 END) as successfulTransactions
+                COUNT(CASE WHEN status = 'paid' THEN 1 END) as successfulTransactions,
+                COUNT(CASE WHEN status IN ('pending', 'partial') THEN 1 END) as pendingTransactions
             FROM payments
             ${where}
         `, params);
@@ -914,7 +915,7 @@ export const getPaymentStats = async (req, res) => {
         const [trend] = await dbp.query(`
             SELECT DATE_FORMAT(created_at, '%b %Y') as month, SUM(amount) as revenue, MIN(created_at) as sort_date
             FROM payments
-            WHERE status = 'completed'
+            WHERE status = 'paid'
             GROUP BY month
             ORDER BY sort_date ASC
             LIMIT 12
@@ -944,17 +945,22 @@ export const getPaymentDistribution = async (req, res) => {
         const [byMethod] = await dbp.query(`
             SELECT method as name, SUM(amount) as value
             FROM payments
-            WHERE status = 'completed'
+            WHERE status = 'paid'
             GROUP BY method
         `);
 
-        // By Program (Using Centralized Programs Table)
+        // By Program (Capturing all income using fallbacks)
         const [byProgram] = await dbp.query(`
-            SELECT pr.title as name, SUM(p.amount) as value
+            SELECT 
+                COALESCE(pr.title, s.chosen_program, i.chosen_program, 'Unassigned') as name, 
+                SUM(p.amount) as value
             FROM payments p
-            JOIN programs pr ON p.program_id = pr.id
-            WHERE p.status = 'completed'
-            GROUP BY pr.title
+            LEFT JOIN programs pr ON p.program_id = pr.id
+            LEFT JOIN students s ON p.student_id = s.student_id
+            LEFT JOIN IELTSTOEFL i ON p.ielts_student_id = i.student_id
+            WHERE p.status = 'paid'
+            GROUP BY name
+            ORDER BY value DESC
         `);
 
         res.json({
@@ -1001,8 +1007,10 @@ export const getDetailedPaymentList = async (req, res) => {
 
         const [list] = await dbp.query(query, [...params, parseInt(limit), parseInt(offset)]);
 
-        const [count] = await dbp.query(`
-            SELECT COUNT(*) as total 
+        const [countResult] = await dbp.query(`
+            SELECT 
+                COUNT(*) as total, 
+                SUM(CASE WHEN p.status = 'paid' THEN p.amount ELSE 0 END) as totalAmount
             FROM payments p
             LEFT JOIN students s ON p.student_id = s.student_id
             LEFT JOIN IELTSTOEFL i ON p.ielts_student_id = i.student_id
@@ -1013,11 +1021,335 @@ export const getDetailedPaymentList = async (req, res) => {
             success: true,
             data: {
                 payments: list,
-                total: count[0].total
+                total: countResult[0].total,
+                totalAmount: parseFloat(countResult[0].totalAmount || 0)
             }
         });
     } catch (error) {
         console.error("Error in getDetailedPaymentList:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// NEW: Get unique available periods (months) for a student's activity
+export const getStudentAvailablePeriods = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+
+        // Combine attendance dates and review dates to find active months
+        const [periods] = await dbp.query(`
+            SELECT DISTINCT DATE_FORMAT(date, '%Y-%m') as period, DATE_FORMAT(date, '%M %Y') as label
+            FROM attendance
+            WHERE student_id = ?
+            UNION
+            SELECT DISTINCT DATE_FORMAT(created_at, '%Y-%m') as period, DATE_FORMAT(created_at, '%M %Y') as label
+            FROM student_reviews
+            WHERE student_id = ?
+            ORDER BY period DESC
+        `, [studentId, studentId]);
+
+        res.json({ success: true, data: periods });
+    } catch (error) {
+        console.error("Error in getStudentAvailablePeriods:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 19. GET Student Progress Report (Detailed for ESL Progress Report)
+export const getStudentProgressReport = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const { period } = req.query; // Optional: 'YYYY-MM' format
+
+        let attendanceFilter = "WHERE student_id = ?";
+        let reviewFilter = "WHERE student_id = ?";
+        let submissionFilter = "WHERE student_id = ?";
+        const params = [studentId];
+        const reviewParams = [studentId];
+        const submissionParams = [studentId];
+
+        if (period) {
+            attendanceFilter += " AND DATE_FORMAT(date, '%Y-%m') = ?";
+            reviewFilter += " AND DATE_FORMAT(created_at, '%Y-%m') = ?";
+            submissionFilter += " AND DATE_FORMAT(submission_date, '%Y-%m') = ?";
+            params.push(period);
+            reviewParams.push(period);
+            submissionParams.push(period);
+        }
+
+        // 1. Fetch Student Info
+        let [studentRows] = await dbp.query(`
+            SELECT s.student_id, s.full_name as student_name, s.chosen_program as course_level, 
+                   c.class_name, t.full_name as instructor_name, s.class_id, sp.subprogram_name
+            FROM students s
+            LEFT JOIN classes c ON s.class_id = c.id
+            LEFT JOIN subprograms sp ON c.subprogram_id = sp.id
+            LEFT JOIN teachers t ON c.teacher_id = t.id
+            WHERE s.student_id = ?
+        `, [studentId]);
+
+        if (!studentRows[0]) {
+            [studentRows] = await dbp.query(`
+                SELECT i.student_id, CONCAT(i.first_name, ' ', i.last_name) as student_name, 
+                       i.chosen_program as course_level, c.class_name, t.full_name as instructor_name, i.class_id, sp.subprogram_name
+                FROM IELTSTOEFL i
+                LEFT JOIN classes c ON i.class_id = c.id
+                LEFT JOIN subprograms sp ON c.subprogram_id = sp.id
+                LEFT JOIN teachers t ON c.teacher_id = t.id
+                WHERE i.student_id = ?
+            `, [studentId]);
+        }
+
+        if (!studentRows[0]) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        const student = studentRows[0];
+
+        // 1.1 Overwrite class/subprogram if period matches a different enrollment record?
+        // (Simplified: if period is selected, try to find attendance record's class)
+        if (period) {
+            const [periodClass] = await dbp.query(`
+                SELECT c.class_name, t.full_name as instructor_name, sp.subprogram_name
+                FROM attendance a
+                JOIN classes c ON a.class_id = c.id
+                LEFT JOIN subprograms sp ON c.subprogram_id = sp.id
+                LEFT JOIN teachers t ON c.teacher_id = t.id
+                WHERE a.student_id = ? AND DATE_FORMAT(a.date, '%Y-%m') = ?
+                LIMIT 1
+            `, [studentId, period]);
+            if (periodClass[0]) {
+                student.class_name = periodClass[0].class_name;
+                student.instructor_name = periodClass[0].instructor_name;
+                student.subprogram_name = periodClass[0].subprogram_name;
+            }
+        }
+
+        // 2. Attendance Rate & Trend
+        const [attRows] = await dbp.query(`
+            SELECT ROUND((SUM(
+                CASE WHEN hour1 = 1 THEN 1 WHEN hour1 = 2 THEN 1 ELSE 0 END + 
+                CASE WHEN hour2 = 1 THEN 1 WHEN hour2 = 2 THEN 1 ELSE 0 END
+            )/(COUNT(*)*2))*100, 0) as attendance_rate 
+            FROM attendance 
+            ${attendanceFilter}
+        `, params);
+        const attendanceRate = attRows[0].attendance_rate || 0;
+
+        const [trendRows] = await dbp.query(`
+            SELECT 
+                DATE_FORMAT(date, '%b') as month,
+                DATE_FORMAT(date, '%Y-%m') as sort_key,
+                ROUND((SUM(
+                    CASE WHEN hour1 = 1 THEN 1 WHEN hour1 = 2 THEN 1 ELSE 0 END + 
+                    CASE WHEN hour2 = 1 THEN 1 WHEN hour2 = 2 THEN 1 ELSE 0 END
+                )/(COUNT(*)*2))*100, 0) as rate
+            FROM attendance
+            WHERE student_id = ?
+            GROUP BY sort_key, month
+            ORDER BY sort_key DESC
+            LIMIT 6
+        `, [studentId]);
+        const attendanceTrend = trendRows.reverse().map(t => ({ name: t.month, rate: t.rate }));
+
+        // 3. Success Rate Calculation (Total Earned / Total Possible)
+        const [marksResult] = await dbp.query(`
+            SELECT 
+                SUM(total_earned) as total_earned,
+                SUM(total_possible) as total_possible
+            FROM (
+                SELECT SUM(score) as total_earned, SUM(total_points) as total_possible 
+                FROM writing_task_submissions s JOIN writing_tasks a ON s.assignment_id = a.id 
+                ${submissionFilter.replace('submission_date', 's.submission_date')} AND s.status = 'graded'
+                UNION ALL
+                SELECT SUM(score) as total_earned, SUM(total_points) as total_possible 
+                FROM exam_submissions s JOIN exams a ON s.assignment_id = a.id 
+                ${submissionFilter.replace('submission_date', 's.submission_date')} AND s.status = 'graded'
+                UNION ALL
+                SELECT SUM(score) as total_earned, SUM(total_points) as total_possible 
+                FROM oral_assignment_submissions s JOIN oral_assignments a ON s.assignment_id = a.id 
+                ${submissionFilter.replace('submission_date', 's.submission_date')} AND s.status = 'graded'
+                UNION ALL
+                SELECT SUM(score) as total_earned, SUM(total_points) as total_possible 
+                FROM course_work_submissions s JOIN course_work a ON s.assignment_id = a.id 
+                ${submissionFilter.replace('submission_date', 's.submission_date')} AND s.status = 'graded'
+            ) as all_marks
+        `, submissionParams.concat(submissionParams).concat(submissionParams).concat(submissionParams));
+
+        const totalEarned = marksResult[0].total_earned || 0;
+        const totalPossible = marksResult[0].total_possible || 0;
+        let overallAverage = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
+        const completionRate = overallAverage; // Syncing completion rate concept with Success Rate
+
+        // CEFR Mapping
+        const getCEFRMapping = (score) => {
+            if (score >= 90) return 'C2';
+            if (score >= 85) return 'C1';
+            if (score >= 75) return 'B2';
+            if (score >= 60) return 'B1';
+            if (score >= 45) return 'A2';
+            if (score >= 20) return 'A1';
+            return 'A0'; // Pre-A1
+        };
+
+        // 4. Aggregated Skill Performance (from assignments)
+        const skillPerformance = {
+            listening: 0, speaking: 0, reading: 0, writing: 0,
+            grammar: 0, vocabulary: 0, pronunciation: 0
+        };
+
+        const skillCounts = {
+            listening: 0, speaking: 0, reading: 0, writing: 0,
+            grammar: 0, vocabulary: 0, pronunciation: 0
+        };
+
+        const addToSkill = (skill, score) => {
+            if (score !== null && score !== undefined) {
+                skillPerformance[skill] += parseFloat(score);
+                skillCounts[skill]++;
+            }
+        };
+
+        // Aggregation Queries
+        const [writingSubs] = await dbp.query(`
+            SELECT sub.score, a.total_points FROM writing_task_submissions sub
+            JOIN writing_tasks a ON sub.assignment_id = a.id
+            ${submissionFilter.replace('submission_date', 'sub.submission_date')} AND sub.status = 'graded'
+        `, submissionParams);
+        writingSubs.forEach(s => addToSkill('writing', (s.score / s.total_points) * 100));
+
+        const [oralSubs] = await dbp.query(`
+            SELECT sub.score, a.total_points FROM oral_assignment_submissions sub
+            JOIN oral_assignments a ON sub.assignment_id = a.id
+            ${submissionFilter.replace('submission_date', 'sub.submission_date')} AND sub.status = 'graded'
+        `, submissionParams);
+        oralSubs.forEach(s => addToSkill('speaking', (s.score / s.total_points) * 100));
+
+        const [courseSubs] = await dbp.query(`
+            SELECT sub.score, a.total_points, a.title FROM course_work_submissions sub
+            JOIN course_work a ON sub.assignment_id = a.id
+            ${submissionFilter.replace('submission_date', 'sub.submission_date')} AND sub.status = 'graded'
+        `, submissionParams);
+        courseSubs.forEach(s => {
+            const title = s.title.toLowerCase();
+            const score = (s.score / s.total_points) * 100;
+            if (title.includes('grammar')) addToSkill('grammar', score);
+            else if (title.includes('vocabu')) addToSkill('vocabulary', score);
+            else if (title.includes('pronun')) addToSkill('pronunciation', score);
+            else if (title.includes('listen')) addToSkill('listening', score);
+            else if (title.includes('read')) addToSkill('reading', score);
+            else addToSkill('grammar', score); // Default course work to grammar
+        });
+
+        const [examSubs] = await dbp.query(`
+            SELECT sub.score, a.total_points, a.title FROM exam_submissions sub
+            JOIN exams a ON sub.assignment_id = a.id
+            ${submissionFilter.replace('submission_date', 'sub.submission_date')} AND sub.status = 'graded'
+        `, submissionParams);
+        examSubs.forEach(s => {
+            const title = s.title.toLowerCase();
+            const score = (s.score / s.total_points) * 100;
+            if (title.includes('listen')) addToSkill('listening', score);
+            else if (title.includes('read')) addToSkill('reading', score);
+            else if (title.includes('speak')) addToSkill('speaking', score);
+            else if (title.includes('writ')) addToSkill('writing', score);
+            else {
+                // Approximate: split score if it's a general exam or map to parts?
+                // For now, average across common skills if unspecified
+                addToSkill('listening', score);
+                addToSkill('reading', score);
+            }
+        });
+
+        // Finalize Averages
+        Object.keys(skillPerformance).forEach(key => {
+            if (skillCounts[key] > 0) {
+                skillPerformance[key] = Math.round(skillPerformance[key] / skillCounts[key]);
+            }
+        });
+
+        // 5. Fallback/Overlay with Teacher Review (for qualitative skills)
+        const [reviewRows] = await dbp.query(`
+            SELECT * FROM student_reviews 
+            ${reviewFilter}
+            ORDER BY created_at DESC LIMIT 1
+        `, reviewParams);
+
+        let feedback = {
+            strengths: "", weaknesses: "", improvements: "",
+            recommendations: "", overall_grade: overallAverage,
+            promotion_recommendation: ""
+        };
+
+        if (reviewRows[0]) {
+            const review = reviewRows[0];
+            const answers = typeof review.answers === 'string' ? JSON.parse(review.answers) : (review.answers || []);
+            const mapRating = (r) => (parseInt(r) || 0) * 20;
+
+            answers.forEach(a => {
+                const qLower = a.question_text?.toLowerCase() || "";
+                const val = mapRating(a.rating || a.answer);
+                // Only overlay if we don't have assignment data, or average them?
+                // Let's average assignment data with review data for a more balanced view
+                if (qLower.includes("listening")) { skillPerformance.listening = skillCounts.listening > 0 ? (skillPerformance.listening + val) / 2 : val; }
+                if (qLower.includes("speaking")) { skillPerformance.speaking = skillCounts.speaking > 0 ? (skillPerformance.speaking + val) / 2 : val; }
+                if (qLower.includes("reading")) { skillPerformance.reading = skillCounts.reading > 0 ? (skillPerformance.reading + val) / 2 : val; }
+                if (qLower.includes("writing")) { skillPerformance.writing = skillCounts.writing > 0 ? (skillPerformance.writing + val) / 2 : val; }
+                if (qLower.includes("grammar")) { skillPerformance.grammar = skillCounts.grammar > 0 ? (skillPerformance.grammar + val) / 2 : val; }
+                if (qLower.includes("vocabulary")) { skillPerformance.vocabulary = skillCounts.vocabulary > 0 ? (skillPerformance.vocabulary + val) / 2 : val; }
+                if (qLower.includes("pronunciation")) { skillPerformance.pronunciation = skillCounts.pronunciation > 0 ? (skillPerformance.pronunciation + val) / 2 : val; }
+            });
+
+            feedback.comments = review.comment;
+        }
+
+        // Final Rounding
+        Object.keys(skillPerformance).forEach(key => skillPerformance[key] = Math.round(skillPerformance[key]));
+
+        // 5. Final Exam Result
+        const [examRows] = await dbp.query(`
+            SELECT sub.score, a.total_points
+            FROM assignment_submissions sub
+            JOIN assignments a ON sub.assignment_id = a.id
+            WHERE sub.student_id = ? AND a.title LIKE '%Final%'
+            ORDER BY sub.created_at DESC LIMIT 1
+        `, [studentId]);
+
+        const finalExamScore = examRows[0]
+            ? Math.round((examRows[0].score / examRows[0].total_points) * 100)
+            : overallAverage; // Fallback to overall average if no final exam found
+
+        // Use final exam score as the overall grade
+        feedback.overall_grade = finalExamScore;
+
+        res.json({
+            success: true,
+            data: {
+                studentInfo: {
+                    name: student.student_name,
+                    id: student.student_id,
+                    courseLevel: student.course_level,
+                    subprogram: student.subprogram_name || "N/A",
+                    instructor: student.instructor_name || "N/A",
+                    reportingPeriod: period ? new Date(period + "-01").toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                },
+                progressSummary: {
+                    attendanceRate,
+                    attendanceTrend,
+                    cefrLevel: getCEFRMapping(overallAverage),
+                    completionRate
+                },
+                skillPerformance,
+                examResult: finalExamScore,
+                feedback: {
+                    ...feedback,
+                    overall_grade: finalExamScore, // Use final exam score
+                    promotion: finalExamScore >= 60 ? "Recommended" : "Not Recommended"
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Error in getStudentProgressReport:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

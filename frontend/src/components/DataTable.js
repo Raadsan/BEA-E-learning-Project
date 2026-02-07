@@ -111,7 +111,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                   return (
                     <th
                       key={col.key || i}
-                      className={`px-5 py-4 uppercase text-xs font-medium tracking-wide ${col.className || ''}`}
+                      className={`px-5 py-4 uppercase text-sm font-semibold tracking-wide ${col.className || ''}`}
                       style={{
                         ...(col.width ? { width: col.width, minWidth: col.width } : { minWidth: DEFAULT_MIN_COLUMN_WIDTH }),
                         backgroundColor: isDark ? '#0f172a' : '#010080',
@@ -131,7 +131,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                   className={`${idx % 2 === 0
                     ? "bg-white dark:bg-[#0f172a]"
                     : "bg-gray-50 dark:bg-[#111827]"
-                    } text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors`}
+                    } text-black dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors`}
                 >
                   {Array.isArray(columns) && columns.map((col, i) => {
                     const cellValue = col.key
@@ -156,10 +156,12 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                       cellContent = rawValue._id || JSON.stringify(rawValue);
                     }
 
+                    const isIdField = col.key?.toLowerCase().includes("id") || col.key?.toLowerCase() === "student_id";
+
                     return (
                       <td
                         key={col.key || i}
-                        className={`px-5 py-4 border-b border-gray-200 dark:border-gray-700 ${col.className || ''}`}
+                        className={`px-5 py-4 border-b border-gray-200 dark:border-gray-700 text-black dark:text-white ${isIdField ? 'font-bold' : 'font-normal'} ${col.className || ''}`}
                         style={{
                           ...(col.width ? { width: col.width, minWidth: col.width } : { minWidth: DEFAULT_MIN_COLUMN_WIDTH }),
                           backgroundColor: idx % 2 === 0

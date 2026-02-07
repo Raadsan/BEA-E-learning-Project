@@ -39,7 +39,7 @@ const StarStudentsList = ({ programs = [], classes = [] }) => {
             key: "full_name",
             render: (value, row) => (
                 <div className="flex flex-col">
-                    <span className="font-medium text-gray-900">{value}</span>
+                    <span className="text-black">{value}</span>
                     <span className="text-xs text-gray-500">{row.email}</span>
                 </div>
             )
@@ -49,7 +49,7 @@ const StarStudentsList = ({ programs = [], classes = [] }) => {
             key: "program_name",
             render: (value, row) => (
                 <div className="flex flex-col">
-                    <span className="text-gray-700">{value || '-'}</span>
+                    <span className="text-black">{value || '-'}</span>
                     <span className="text-xs text-gray-500">{row.class_name || row.subprogram_name || '-'}</span>
                 </div>
             )

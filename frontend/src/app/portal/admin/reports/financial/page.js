@@ -21,98 +21,180 @@ const brandColors = ["#010080", "#4b47a4", "#18178a", "#f40606", "#f95150"];
 const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }) => {
     if (!isOpen) return null;
 
+    const totalAmount = data.reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0).toFixed(2);
+    const completedAmount = data.filter(p => p.status === 'paid').reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0).toFixed(2);
+    const pendingAmount = data.filter(p => p.status === 'pending' || p.status === 'partial').reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0).toFixed(2);
+    const pendingCount = data.filter(p => p.status === 'pending' || p.status === 'partial').length;
+
+    // Calculate success rate: (paid / total) * 100
+    const successfulCount = data.filter(p => p.status === 'paid').length;
+    const successRate = data.length ? Math.round((successfulCount / data.length) * 100) : 0;
+
+    // Calculate income by program for the summary table
+    const programRevenue = data.reduce((acc, curr) => {
+        const prog = curr.program || 'Unassigned';
+        acc[prog] = (acc[prog] || 0) + parseFloat(curr.amount || 0);
+        return acc;
+    }, {});
+
+    const sortedPrograms = Object.entries(programRevenue).sort((a, b) => b[1] - a[1]);
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className={`w-full max-w-7xl max-h-[90vh] flex flex-col rounded-2xl shadow-xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                {/* Modal Header */}
-                <div className={`p-6 border-b flex items-center justify-between ${isDark ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
-                    <div>
-                        <h2 className={`text-xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {title || "Payment Information Report"}
-                        </h2>
-                        <p className={`text-[10px] font-medium mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                            Comprehensive financial summary of all course payments and registrations
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={onPrint}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold border transition-all ${isDark ? 'bg-gray-700 hover:bg-gray-600 border-gray-600 text-white' : 'bg-white hover:bg-gray-50 border-gray-300 text-gray-700'
-                                }`}
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                            Print
-                        </button>
-                        <button
-                            onClick={onExport}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all bg-[#010080] hover:bg-[#010080]/90 text-white shadow-sm"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                            Export CSV
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className={`p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}
-                        >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
-                </div>
+            <div className="w-full max-w-7xl max-h-[90vh] flex flex-col rounded-2xl shadow-xl overflow-hidden border bg-white">
+                {/* Close Button - Top Right */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 z-50 p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
 
-                {/* Modal Body with Horizontal Scroll */}
-                <div className="flex-1 overflow-auto bg-white dark:bg-[#1a2035] p-0 custom-scrollbar" id="printable-report">
-                    <div className="w-full">
-                        <table className="w-full text-left text-xs border-collapse table-fixed" style={{ minWidth: "1200px" }}>
-                            <thead className="sticky top-0 z-10">
-                                <tr className={`${isDark ? 'bg-white text-gray-900' : 'bg-[#010080] text-white'}`}>
-                                    <th className="w-32 px-4 py-4 uppercase font-bold tracking-wider border-b border-gray-100 dark:border-gray-700">Student ID</th>
-                                    <th className="w-60 px-4 py-4 uppercase font-bold tracking-wider border-b border-gray-100 dark:border-gray-700">Student Name</th>
-                                    <th className="w-48 px-4 py-4 uppercase font-bold tracking-wider border-b border-gray-100 dark:border-gray-700">Program</th>
-                                    <th className="w-32 px-4 py-4 uppercase font-bold tracking-wider border-b border-gray-100 dark:border-gray-700 text-center">Amount</th>
-                                    <th className="w-40 px-4 py-4 uppercase font-bold tracking-wider border-b border-gray-100 dark:border-gray-700">Method</th>
-                                    <th className="w-48 px-4 py-4 uppercase font-bold tracking-wider border-b border-gray-100 dark:border-gray-700">Transaction ID</th>
-                                    <th className="w-32 px-4 py-4 uppercase font-bold tracking-wider border-b border-gray-100 dark:border-gray-700">Status</th>
-                                    <th className="w-40 px-4 py-4 uppercase font-bold tracking-wider border-b border-gray-100 dark:border-gray-700">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {data.map((payment, idx) => (
-                                    <tr
-                                        key={payment.id || idx}
-                                        className={`${idx % 2 === 0 ? 'bg-white dark:bg-[#1a2035]' : 'bg-gray-50/50 dark:bg-[#252b40]'} hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors`}
-                                    >
-                                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 border-b border-gray-100 dark:border-gray-800 truncate">{payment.student_id}</td>
-                                        <td className="px-4 py-3 font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 truncate">{payment.student_name}</td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800 truncate">{payment.program}</td>
-                                        <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-bold border-b border-gray-100 dark:border-gray-800">${payment.amount}</td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800 capitalize">{payment.payment_method}</td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800 truncate">{payment.transaction_id || '-'}</td>
-                                        <td className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-                                            <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase ${payment.status === 'completed' ? 'bg-green-100 text-green-700' :
-                                                payment.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                    'bg-red-100 text-red-700'
-                                                }`}>
-                                                {payment.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800 whitespace-nowrap">
-                                            {new Date(payment.payment_date).toLocaleDateString()}
-                                        </td>
+                {/* Modal Body with Report */}
+                <div className="flex-1 overflow-auto bg-white p-0 custom-scrollbar" id="printable-financial-report">
+                    <div className="p-8 bg-white text-black font-sans print:p-0 max-w-7xl mx-auto relative">
+                        {/* Logo - Absolute Top Right */}
+                        <div className="absolute top-0 right-0 p-8">
+                            <img src="/images/headerlogo.png" alt="BEA Logo" className="h-32 w-auto object-contain" />
+                        </div>
+
+                        {/* Header */}
+                        <div className="mb-8 pb-4 border-b-4 border-[#010080] pt-20">
+                            <div>
+                                <h1 className="text-3xl font-bold text-[#010080] tracking-tight uppercase mb-2">Financial Report</h1>
+                                <p className="text-sm text-gray-600">Comprehensive Payment Transaction Summary</p>
+                            </div>
+                        </div>
+
+                        {/* Report Summary Section */}
+                        <div className="mb-8 grid grid-cols-4 gap-4">
+                            <div className="border-2 border-[#010080] rounded-xl p-4">
+                                <p className="text-[10px] font-bold text-[#010080] uppercase mb-1">Total Paid</p>
+                                <p className="text-2xl font-bold text-[#010080]">${completedAmount} <span className="text-sm">USD</span></p>
+                                <p className="text-[10px] text-gray-500 mt-1">Successful</p>
+                            </div>
+                            <div className="border-2 border-yellow-500 rounded-xl p-4">
+                                <p className="text-[10px] font-bold text-yellow-600 uppercase mb-1">Unpaid Students</p>
+                                <p className="text-2xl font-bold text-yellow-600">{pendingCount} <span className="text-sm">Records</span></p>
+                                <p className="text-[10px] text-gray-500 mt-1">Pending/Partial</p>
+                            </div>
+                            <div className="border-2 border-gray-400 rounded-xl p-4">
+                                <p className="text-[10px] font-bold text-gray-600 uppercase mb-1">Transactions</p>
+                                <p className="text-2xl font-bold text-gray-900">{data.length}</p>
+                                <p className="text-[10px] text-gray-500 mt-1">Total count</p>
+                            </div>
+                            <div className="border-2 border-green-600 rounded-xl p-4">
+                                <p className="text-[10px] font-bold text-green-700 uppercase mb-1">Success Rate</p>
+                                <p className="text-2xl font-bold text-green-700">{successRate}%</p>
+                                <p className="text-[10px] text-gray-500 mt-1">Completion rate</p>
+                            </div>
+                        </div>
+
+                        {/* Revenue by Program Summary Table */}
+                        <div className="mb-8 overflow-hidden rounded-xl border-2 border-[#010080]/20">
+                            <div className="bg-[#010080] px-4 py-2">
+                                <h3 className="text-xs font-bold text-white uppercase tracking-wider">Revenue Breakdown by Program</h3>
+                            </div>
+                            <table className="w-full text-left">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-2 text-[10px] font-bold text-gray-600 uppercase border-b">Program Name</th>
+                                        <th className="px-4 py-2 text-[10px] font-bold text-gray-600 uppercase border-b text-right">Total Income</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                </thead>
+                                <tbody>
+                                    {sortedPrograms.map(([name, value], i) => (
+                                        <tr key={i} className="hover:bg-gray-50">
+                                            <td className="px-4 py-2 text-sm text-gray-800 border-b">{name}</td>
+                                            <td className="px-4 py-2 text-sm font-bold text-[#010080] border-b text-right">${parseFloat(value).toLocaleString()} USD</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
 
-                {/* Footer */}
-                <div className={`p-4 border-t flex items-center justify-between text-[10px] font-medium ${isDark ? 'bg-gray-900/50 border-gray-700 text-gray-500' : 'bg-gray-50 border-gray-100 text-gray-600'}`}>
-                    <div className="flex items-center gap-8">
-                        <span>Total Transactions: {data.length}</span>
-                        <span>Total Amount: ${data.reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0).toFixed(2)}</span>
-                        <span>Generated: {new Date().toLocaleString()}</span>
+                        {/* Transaction Details Table */}
+                        <div className="mb-6">
+                            <table className="w-full border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th colSpan="8" className="bg-[#010080] text-white text-sm font-bold uppercase px-4 py-3 text-left border-2 border-[#010080]">TRANSACTION DETAILS</th>
+                                    </tr>
+                                    <tr className="bg-[#010080] text-white">
+                                        <th className="px-4 py-3 text-xs font-bold uppercase text-left border border-gray-300">Student ID</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase text-left border border-gray-300">Student Name</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase text-left border border-gray-300">Program</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase text-center border border-gray-300">Amount</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase text-left border border-gray-300">Method</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase text-left border border-gray-300">Transaction ID</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase text-center border border-gray-300">Status</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase text-left border border-gray-300">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data.map((payment, idx) => (
+                                        <tr key={payment.id || idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-900">{payment.student_id}</td>
+                                            <td className="border-2 border-gray-300 px-4 py-2 text-xs font-semibold text-gray-900">{payment.student_name}</td>
+                                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-700">{payment.program}</td>
+                                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-center font-bold text-[#010080]">${payment.amount}</td>
+                                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-700 capitalize">{payment.payment_method}</td>
+                                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-600">{payment.transaction_id || '-'}</td>
+                                            <td className="border-2 border-gray-300 px-4 py-2 text-center">
+                                                <span className={`inline-flex px-2 py-1 rounded text-xs font-bold uppercase ${payment.status === 'paid' ? 'bg-green-100 text-green-700' :
+                                                    (payment.status === 'pending' || payment.status === 'partial') ? 'bg-yellow-100 text-yellow-700' :
+                                                        'bg-red-100 text-red-700'
+                                                    }`}>
+                                                    {payment.status}
+                                                </span>
+                                            </td>
+                                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-700 whitespace-nowrap">
+                                                {new Date(payment.payment_date).toLocaleDateString()}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {/* Total Row */}
+                                    <tr className="bg-[#010080] text-white font-bold">
+                                        <td colSpan="3" className="border-2 border-gray-300 px-4 py-3 text-sm uppercase text-right">TOTAL:</td>
+                                        <td className="border-2 border-gray-300 px-4 py-3 text-sm text-center">${totalAmount} USD</td>
+                                        <td colSpan="4" className="border-2 border-gray-300 px-4 py-3 text-xs text-gray-200">All Transactions</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Footer Information */}
+                        <div className="mt-8 pt-4 border-t-2 border-gray-300">
+                            <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
+                                <div>
+                                    <p><strong>Report Generated:</strong> {new Date().toLocaleString()}</p>
+                                    <p><strong>Total Records:</strong> {data.length}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p><strong>BEA E-Learning System</strong></p>
+                                    <p>Financial Registry & Transaction Audit</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons - Print Visible Only */}
+                        <div className="mt-8 flex items-center justify-center gap-4 print:hidden">
+                            <button
+                                onClick={onPrint}
+                                className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold border transition-all bg-white hover:bg-gray-50 border-gray-300 text-gray-700"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                Print Report
+                            </button>
+                            <button
+                                onClick={onExport}
+                                className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-all bg-[#010080] hover:bg-[#010080]/90 text-white shadow-sm"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                Export CSV
+                            </button>
+                        </div>
                     </div>
-                    <span>BEA E-Learning System • Financial Registry</span>
                 </div>
             </div>
 
@@ -120,20 +202,15 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
                 @media print {
                     @page { size: landscape; margin: 0.5cm; }
                     body * { visibility: hidden !important; }
-                    #printable-report, #printable-report * { visibility: visible !important; }
-                    #printable-report {
+                    #printable-financial-report, #printable-financial-report * { visibility: visible !important; }
+                    #printable-financial-report {
                         position: absolute !important;
                         left: 0 !important;
                         top: 0 !important;
                         width: 100% !important;
                         background: white !important;
                         color: black !important;
-                        padding: 0 !important;
-                        font-size: 6pt !important;
                     }
-                    table { table-layout: fixed !important; width: 100% !important; border-collapse: collapse !important; }
-                    th, td { border: 0.1pt solid #ccc !important; padding: 2pt !important; -webkit-print-color-adjust: exact; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-                    th { background-color: #010080 !important; color: white !important; font-weight: bold !important; }
                 }
             `}</style>
         </div>
@@ -173,7 +250,7 @@ export default function PaymentReportsPage() {
     // Dashboard Boxes
     const summaryBoxes = [
         {
-            label: "Total Revenue",
+            label: "Total Paid",
             val: `$${stats?.totalRevenue?.toLocaleString() || 0}`,
             sub: "Successful payments",
             icon: (
@@ -183,9 +260,9 @@ export default function PaymentReportsPage() {
             )
         },
         {
-            label: "Pending Amount",
-            val: `$${stats?.pendingRevenue?.toLocaleString() || 0}`,
-            sub: "Awaiting confirmation",
+            label: "Unpaid Students",
+            val: stats?.pendingTransactions || 0,
+            sub: "Pending & Partial",
             icon: (
                 <svg className="w-6 h-6 text-[#f95150]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -258,7 +335,7 @@ export default function PaymentReportsPage() {
             label: "Student",
             render: (val, row) => (
                 <div>
-                    <p className={`font-bold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{val}</p>
+                    <p className={`text-sm ${isDark ? 'text-white' : 'text-black'}`}>{val}</p>
                     <p className="text-[10px] text-gray-500">{row.student_id}</p>
                 </div>
             )
@@ -276,7 +353,7 @@ export default function PaymentReportsPage() {
             key: "status",
             label: "Status",
             render: (val) => (
-                <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase ${val === 'completed' ? 'bg-green-100 text-green-700' : val === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase ${val === 'paid' ? 'bg-green-100 text-green-700' : (val === 'pending' || val === 'partial') ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
                     {val}
                 </span>
             )
@@ -332,7 +409,7 @@ export default function PaymentReportsPage() {
                                 className={`w-full px-4 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}`}
                             >
                                 <option value="">All Statuses</option>
-                                <option value="completed">Completed</option>
+                                <option value="paid">Completed</option>
                                 <option value="pending">Pending</option>
                                 <option value="failed">Failed</option>
                             </select>
@@ -403,8 +480,17 @@ export default function PaymentReportsPage() {
                                 <BarChart data={byProgram}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartGridColor} />
                                     <XAxis dataKey="name" tick={{ fill: chartLabelColor, fontSize: 10 }} axisLine={false} tickLine={false} />
-                                    <YAxis tick={{ fill: chartLabelColor, fontSize: 10 }} axisLine={false} tickLine={false} />
-                                    <Tooltip cursor={{ fill: 'transparent' }} />
+                                    <YAxis
+                                        tick={{ fill: chartLabelColor, fontSize: 10 }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tickFormatter={(value) => `$${value}`}
+                                    />
+                                    <Tooltip
+                                        cursor={{ fill: 'transparent' }}
+                                        formatter={(value) => [`$${value.toLocaleString()}`, "Revenue"]}
+                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                                    />
                                     <Bar dataKey="value" fill="#010080" radius={[4, 4, 0, 0]}>
                                         {byProgram.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={brandColors[index % brandColors.length]} />

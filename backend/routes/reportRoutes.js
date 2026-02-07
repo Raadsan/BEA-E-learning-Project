@@ -16,7 +16,9 @@ import {
     getClassAssessmentActivity,
     getPaymentStats,
     getPaymentDistribution,
-    getDetailedPaymentList
+    getDetailedPaymentList,
+    getStudentProgressReport,
+    getStudentAvailablePeriods
 } from '../controllers/reportController.js';
 
 const router = express.Router();
@@ -40,5 +42,9 @@ router.get('/class-assessment-activity', getClassAssessmentActivity);
 router.get('/payment-stats', getPaymentStats);
 router.get('/payment-distribution', getPaymentDistribution);
 router.get('/payment-detailed', getDetailedPaymentList);
+
+// Progress Report
+router.get('/student-progress/:studentId', getStudentProgressReport);
+router.get('/student-available-periods/:studentId', getStudentAvailablePeriods);
 
 export default router;

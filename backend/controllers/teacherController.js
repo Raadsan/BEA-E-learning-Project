@@ -144,15 +144,18 @@ export const deleteTeacher = async (req, res) => {
 // GET TEACHER DASHBOARD STATS
 export const getTeacherDashboardStats = async (req, res) => {
   try {
-    // req.user is populated by verifyToken middleware
     const teacherId = req.user.userId;
+    const { month, year } = req.query;
 
-    // Ensure the user is actually a teacher if needed, or just trust the ID from token
     if (req.user.role !== 'teacher') {
       return res.status(403).json({ error: "Access denied. Teachers only." });
     }
 
-    const stats = await Teacher.getTeacherStatsById(teacherId);
+    const stats = await Teacher.getTeacherStatsById(
+      teacherId,
+      month ? parseInt(month) : undefined,
+      year ? parseInt(year) : undefined
+    );
     res.json(stats);
   } catch (err) {
     console.error("❌ Get teacher stats error:", err);

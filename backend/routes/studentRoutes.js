@@ -13,7 +13,8 @@ import {
   getTopStudents,
   getStudentLocations,
   getMyClasses,
-  getStudentsByClass
+  getStudentsByClass,
+  getDetailedStudentReport
 } from "../controllers/studentController.js";
 import { verifyToken } from "../controllers/authController.js";
 import { upload } from "../controllers/uploadController.js";
@@ -23,6 +24,7 @@ const router = express.Router();
 
 // ---------- STUDENT ROUTES ----------
 // IMPORTANT: More specific routes must come before generic :id routes
+router.get("/detailed-report", verifyToken, getDetailedStudentReport);
 router.get("/progress", verifyToken, getStudentProgress);
 router.get("/sex-distribution", verifyToken, getSexDistribution);
 router.get("/top-students", verifyToken, getTopStudents);

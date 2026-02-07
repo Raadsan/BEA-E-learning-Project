@@ -349,8 +349,8 @@ export default function StudentsPage() {
             render: (_, row) => {
                 const city = row.residency_city;
                 const country = row.residency_country;
-                if (city && country) return <span className="text-gray-600 font-sans text-xs">{`${city}, ${country}`}</span>;
-                return <span className="text-gray-600 font-sans text-xs">{city || country || '-'}</span>;
+                if (city && country) return <span className="text-black font-semibold text-xs">{`${city}, ${country}`}</span>;
+                return <span className="text-black font-semibold text-xs">{city || country || '-'}</span>;
             }
         },
         { key: "chosen_program", label: "Program" },

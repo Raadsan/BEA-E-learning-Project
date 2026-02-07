@@ -175,7 +175,19 @@ export const deleteTeacherById = async (id) => {
 };
 
 // GET teacher stats
-export const getTeacherStatsById = async (id) => {
+export const getTeacherStatsById = async (id, month, year) => {
+  // Use provided month/year or default to current
+  const targetDate = (month && year) ? new Date(year, month - 1, 1) : new Date();
+  const targetYear = targetDate.getFullYear();
+  const targetMonth = targetDate.getMonth() + 1;
+
+  // 0. Get Teacher Info
+  const [teacherInfo] = await dbp.query(
+    "SELECT full_name FROM teachers WHERE id = ?",
+    [id]
+  );
+  const fullName = teacherInfo[0]?.full_name || "Teacher";
+
   // 1. Total Classes
   const [classesCount] = await dbp.query(
     "SELECT COUNT(*) as count FROM classes WHERE teacher_id = ?",
@@ -205,8 +217,8 @@ export const getTeacherStatsById = async (id) => {
     `SELECT SUM(a.hour1 + a.hour2) as attended, COUNT(*) * 2 as possible
      FROM attendance a
      JOIN classes cl ON a.class_id = cl.id
-     WHERE cl.teacher_id = ?`,
-    [id]
+     WHERE cl.teacher_id = ? AND MONTH(a.date) = ? AND YEAR(a.date) = ?`,
+    [id, targetMonth, targetYear]
   );
 
   const totalAttended = Number(attendanceAvg[0].attended) || 0;
@@ -219,52 +231,53 @@ export const getTeacherStatsById = async (id) => {
   // 4. Assignments (Placeholder)
   const assignmentsCount = 0;
 
-  // 5. Weekly Attendance (Last 14 days)
+  // 5. Weekly Attendance (Filtered by target month)
   const [weeklyStats] = await dbp.query(
     `SELECT DATE(a.date) as date, SUM(a.hour1 + a.hour2) as attended
      FROM attendance a
      JOIN classes cl ON a.class_id = cl.id
-     WHERE cl.teacher_id = ? AND a.date >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+     WHERE cl.teacher_id = ? AND MONTH(a.date) = ? AND YEAR(a.date) = ?
      GROUP BY DATE(a.date)
      ORDER BY date ASC`,
-    [id]
+    [id, targetMonth, targetYear]
   );
 
+  // For historical months, we'll map into 4-5 weeks or days. 
+  // User asked for "Weekly Attendance Trends" for past months.
+  // We'll keep the Mon-Sun format but show the aggregate for that month's weeks?
+  // Actually, the current chart shows "This Week" vs "Last Week".
+  // If a past month is selected, "This Week" could mean "Current month aggregate" and "Last Week" as "Previous month"?
+  // Or more logically: Show the 4 weeks of that month.
+
   const days = ["Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat"];
-  const today = new Date();
-  const startOfThisWeek = new Date(today);
-  startOfThisWeek.setDate(today.getDate() - today.getDay());
-  startOfThisWeek.setHours(0, 0, 0, 0);
-
-  const startOfLastWeek = new Date(startOfThisWeek);
-  startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
-
   const formatData = days.map(day => ({ day, thisWeek: 0, lastWeek: 0 }));
 
+  // Split the month into two halves for "This half" vs "Last half" or just aggregate by day of week
   weeklyStats.forEach(row => {
     const d = new Date(row.date);
     const dayIndex = d.getDay();
-
-    if (d >= startOfThisWeek) {
+    // If it's the second half of the month, put into thisWeek (simulating current focus)
+    if (d.getDate() > 15) {
       formatData[dayIndex].thisWeek += Number(row.attended);
-    } else if (d >= startOfLastWeek) {
+    } else {
       formatData[dayIndex].lastWeek += Number(row.attended);
     }
   });
 
-  // 6. Per-Class Attendance for Pie Chart
+  // 6. Per-Class Attendance for Pie Chart (Filtered by Month)
   const [classAttendanceData] = await dbp.query(
     `SELECT cl.class_name,
             SUM(a.hour1 + a.hour2) as attended,
             COUNT(*) * 2 as possible
      FROM attendance a
      JOIN classes cl ON a.class_id = cl.id
-     WHERE cl.teacher_id = ?
+     WHERE cl.teacher_id = ? AND MONTH(a.date) = ? AND YEAR(a.date) = ?
      GROUP BY cl.id, cl.class_name`,
-    [id]
+    [id, targetMonth, targetYear]
   );
 
   return {
+    fullName,
     totalClasses: classesCount[0].count,
     activeStudents: studentsCount[0].count,
     totalPrograms: programsCount[0].count,

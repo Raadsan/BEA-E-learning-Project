@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetStudentsQuery } from "@/redux/api/studentApi";
@@ -22,12 +22,21 @@ export default function AttendancePage() {
   const classes = classesData || [];
   const students = Array.isArray(studentsData) ? studentsData : (studentsData?.students || []);
 
+  // Generate last 7 days for history logs
+  const historyDates = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      return d.toISOString().slice(0, 10);
+    });
+  }, []);
+
   // Define table columns
   const columns = [
     {
       label: "#",
       key: "index",
-      render: (row, idx) => idx + 1,
+      render: (row, idx) => <span className="font-bold">{idx + 1}</span>,
       width: "50px",
       className: "hidden sm:table-cell"
     },
@@ -43,7 +52,7 @@ export default function AttendancePage() {
           <label className="flex items-center justify-center cursor-pointer w-full h-full">
             <input
               type="checkbox"
-              className="w-5 h-5 rounded text-green-600 focus:ring-green-500 cursor-pointer"
+              className="w-5 h-5 rounded text-[#010080] focus:ring-[#010080]/50 cursor-pointer"
               checked={isPresent}
               onChange={() => handleToggleHour1(row.student_id)}
             />
@@ -62,7 +71,7 @@ export default function AttendancePage() {
           <label className="flex items-center justify-center cursor-pointer w-full h-full">
             <input
               type="checkbox"
-              className="w-5 h-5 rounded text-green-600 focus:ring-green-500 cursor-pointer"
+              className="w-5 h-5 rounded text-[#010080] focus:ring-[#010080]/50 cursor-pointer"
               checked={isPresent}
               onChange={() => handleToggleHour2(row.student_id)}
             />
@@ -79,10 +88,7 @@ export default function AttendancePage() {
         const h1 = attendance[row.student_id]?.hour1;
         const h2 = attendance[row.student_id]?.hour2;
 
-        // Count excused hours (value 2)
         const excusedCount = (h1 === 2 ? 1 : 0) + (h2 === 2 ? 1 : 0);
-
-        // Checked if ANY hour is marked as 2 (Excused)
         const isExcused = h1 === 2 || h2 === 2;
 
         return (
@@ -90,12 +96,12 @@ export default function AttendancePage() {
             <label className="flex items-center justify-center cursor-pointer">
               <input
                 type="checkbox"
-                className="w-5 h-5 rounded text-orange-500 focus:ring-orange-500 cursor-pointer"
+                className="w-5 h-5 rounded text-[#f40606] focus:ring-[#f40606]/50 cursor-pointer"
                 checked={isExcused}
                 onChange={() => handleToggleExcused(row.student_id)}
               />
             </label>
-            <span className={`font-semibold w-4 text-center ${excusedCount > 0 ? 'text-orange-500' : 'text-gray-300'}`}>
+            <span className={`font-bold w-4 text-center ${excusedCount > 0 ? 'text-[#f40606]' : 'text-gray-300'}`}>
               {excusedCount}
             </span>
           </div>
@@ -121,7 +127,6 @@ export default function AttendancePage() {
     if (attendanceData) {
       setAttendance(attendanceData);
     } else {
-      // Reset to empty if no data
       setAttendance({});
     }
   }, [attendanceData]);
@@ -129,16 +134,8 @@ export default function AttendancePage() {
   const handleToggleHour1 = (studentId) => {
     setAttendance((prev) => {
       const current = prev[studentId] || {};
-      // Toggle Present(1) <-> Absent(0). 
       const newStatus = current.hour1 === 1 ? 0 : 1;
-
-      return {
-        ...prev,
-        [studentId]: {
-          ...current,
-          hour1: newStatus,
-        },
-      };
+      return { ...prev, [studentId]: { ...current, hour1: newStatus } };
     });
   };
 
@@ -146,14 +143,7 @@ export default function AttendancePage() {
     setAttendance((prev) => {
       const current = prev[studentId] || {};
       const newStatus = current.hour2 === 1 ? 0 : 1;
-
-      return {
-        ...prev,
-        [studentId]: {
-          ...current,
-          hour2: newStatus,
-        },
-      };
+      return { ...prev, [studentId]: { ...current, hour2: newStatus } };
     });
   };
 
@@ -162,48 +152,25 @@ export default function AttendancePage() {
       const current = prev[studentId] || {};
       const h1 = current.hour1 || 0;
       const h2 = current.hour2 || 0;
-
-      // "Smart Fill" Logic:
-      // If currently checked (Any is 2):
-      //    Uncheck -> Set ONLY the '2's to '0'. Leave '1's alone.
-      // If currently unchecked (None is 2):
-      //    Check -> Set ONLY the '0's to '2'. Leave '1's alone.
-
       const isCurrentlyExcused = h1 === 2 || h2 === 2;
-
       let newH1 = h1;
       let newH2 = h2;
-
       if (isCurrentlyExcused) {
-        // Uncheck operation: revert excuses to absent
         if (newH1 === 2) newH1 = 0;
         if (newH2 === 2) newH2 = 0;
       } else {
-        // Check operation: fill absent with excuse
         if (newH1 === 0) newH1 = 2;
         if (newH2 === 0) newH2 = 2;
       }
-
-      return {
-        ...prev,
-        [studentId]: {
-          hour1: newH1,
-          hour2: newH2,
-        }
-      };
+      return { ...prev, [studentId]: { hour1: newH1, hour2: newH2 } };
     });
   };
 
   const handleMarkAllHour1 = (checked) => {
     const updated = { ...attendance };
     filteredStudents.forEach((s) => {
-      if (!s.student_id) return; // Safety check
-      // Direct toggle for Present column. Overwrites Excused if Present is checked.
-      // If unchecking Present, becomes Absent (0).
-      updated[s.student_id] = {
-        ...updated[s.student_id],
-        hour1: checked ? 1 : 0,
-      };
+      if (!s.student_id) return;
+      updated[s.student_id] = { ...updated[s.student_id], hour1: checked ? 1 : 0 };
     });
     setAttendance(updated);
   };
@@ -212,10 +179,7 @@ export default function AttendancePage() {
     const updated = { ...attendance };
     filteredStudents.forEach((s) => {
       if (!s.student_id) return;
-      updated[s.student_id] = {
-        ...updated[s.student_id],
-        hour2: checked ? 1 : 0,
-      };
+      updated[s.student_id] = { ...updated[s.student_id], hour2: checked ? 1 : 0 };
     });
     setAttendance(updated);
   };
@@ -227,17 +191,13 @@ export default function AttendancePage() {
       const current = updated[s.student_id] || {};
       let h1 = current.hour1 || 0;
       let h2 = current.hour2 || 0;
-
       if (checked) {
-        // Fill gaps
         if (h1 === 0) h1 = 2;
         if (h2 === 0) h2 = 2;
       } else {
-        // Clear excuses
         if (h1 === 2) h1 = 0;
         if (h2 === 2) h2 = 0;
       }
-
       updated[s.student_id] = { hour1: h1, hour2: h2 };
     });
     setAttendance(updated);
@@ -263,18 +223,15 @@ export default function AttendancePage() {
     }
   };
 
-
-  // Count Students by Status Priority: Present > Excused > Absent
   const presentStudentCount = filteredStudents.filter(s => {
     const h1 = attendance[s.student_id]?.hour1;
     const h2 = attendance[s.student_id]?.hour2;
-    return h1 === 1 || h2 === 1; // Present if ANY hour is 1
+    return h1 === 1 || h2 === 1;
   }).length;
 
   const excusedStudentCount = filteredStudents.filter(s => {
     const h1 = attendance[s.student_id]?.hour1;
     const h2 = attendance[s.student_id]?.hour2;
-    // Excused if NOT Present AND (h1 is 2 OR h2 is 2)
     const isPresent = h1 === 1 || h2 === 1;
     return !isPresent && (h1 === 2 || h2 === 2);
   }).length;
@@ -287,17 +244,25 @@ export default function AttendancePage() {
       <div className="w-full px-8 py-6">
         {classes.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-lg text-gray-500">Not assigned class yet</p>
+            <p className="text-lg text-gray-500 font-bold">Not assigned class yet</p>
           </div>
         ) : (
           <>
             <div className="flex flex-col gap-6 mb-8">
-              <h1 className="text-3xl font-bold">Attendance</h1>
+              <div className="flex items-center justify-between">
+                <h1 className="text-4xl font-bold text-[#010080] dark:text-white">Attendance Manager</h1>
+                <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                  <span className="text-sm font-bold text-[#f40606]">Selected Date:</span>
+                  <span className="text-sm font-bold">{new Date(date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                </div>
+              </div>
 
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-3 flex-1">
+              {/* Enhanced Controls */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
+                <div className="lg:col-span-4 space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Step 1: Select Class</label>
                   <select
-                    className={`flex-1 md:flex-none md:w-64 px-3 py-2 rounded-lg border focus:ring-2 focus:ring-[#010080]/20 outline-none transition-all ${isDark ? 'bg-[#06102b] text-white border-[#07203c]' : 'bg-white text-gray-900 border-gray-200'}`}
+                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#010080]/20 outline-none transition-all font-bold ${isDark ? 'bg-[#06102b] text-white border-[#07203c]' : 'bg-gray-50 text-gray-900 border-gray-200'}`}
                     value={selectedClass?.id || ''}
                     onChange={(e) => {
                       const cid = e.target.value;
@@ -310,72 +275,107 @@ export default function AttendancePage() {
                       <option key={c.id} value={c.id}>{c.class_name} {c.course_title ? `- ${c.course_title}` : ''}</option>
                     ))}
                   </select>
+                </div>
 
+                <div className="lg:col-span-3 space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Step 2: Choose Date</label>
                   <input
                     type="date"
-                    className={`flex-1 md:flex-none md:w-auto px-3 py-2 rounded-lg border focus:ring-2 focus:ring-[#010080]/20 outline-none transition-all ${isDark ? 'bg-[#06102b] text-white border-[#07203c]' : 'bg-white text-gray-900 border-gray-200'}`}
+                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#010080]/20 outline-none transition-all font-bold ${isDark ? 'bg-[#06102b] text-white border-[#07203c]' : 'bg-gray-50 text-gray-900 border-gray-200'}`}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                   />
                 </div>
 
-                {selectedClass && (
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex gap-4">
-                      <label className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        <input type="checkbox" className="w-4 h-4 rounded text-green-600" onChange={(e) => handleMarkAllHour1(e.target.checked)} />
-                        <span className="text-sm font-medium">All Hour 1</span>
-                      </label>
-                      <label className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        <input type="checkbox" className="w-4 h-4 rounded text-green-600" onChange={(e) => handleMarkAllHour2(e.target.checked)} />
-                        <span className="text-sm font-medium">All Hour 2</span>
-                      </label>
-                      <label className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        <input type="checkbox" className="w-4 h-4 rounded text-orange-500" onChange={(e) => handleMarkAllExcused(e.target.checked)} />
-                        <span className="text-sm font-medium text-orange-500">All Excused</span>
-                      </label>
+                <div className="lg:col-span-5 flex flex-col justify-end gap-3">
+                  {selectedClass && (
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <input type="checkbox" className="w-5 h-5 rounded text-[#010080] border-gray-300 focus:ring-[#010080]/20" onChange={(e) => handleMarkAllHour1(e.target.checked)} />
+                          <span className="text-xs font-bold text-gray-600 dark:text-gray-300 group-hover:text-[#010080] transition-colors uppercase">All H-1</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <input type="checkbox" className="w-5 h-5 rounded text-[#010080] border-gray-300 focus:ring-[#010080]/20" onChange={(e) => handleMarkAllHour2(e.target.checked)} />
+                          <span className="text-xs font-bold text-gray-600 dark:text-gray-300 group-hover:text-[#010080] transition-colors uppercase">All H-2</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <input type="checkbox" className="w-5 h-5 rounded text-[#f40606] border-gray-300 focus:ring-[#f40606]/20" onChange={(e) => handleMarkAllExcused(e.target.checked)} />
+                          <span className="text-xs font-bold text-[#f40606] uppercase">Excused</span>
+                        </label>
+                      </div>
+                      <button
+                        className="flex-1 lg:flex-none px-10 py-3 rounded-xl bg-[#010080] text-white disabled:opacity-50 hover:bg-blue-800 shadow-lg shadow-blue-900/20 active:scale-95 transition-all font-bold uppercase tracking-wide"
+                        onClick={handleSave}
+                        disabled={saving}
+                      >
+                        {saving ? 'Saving...' : 'Save Attendance'}
+                      </button>
                     </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Attendance History Logs */}
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
+                <div className="flex items-center gap-3 mb-4">
+                  <svg className="w-5 h-5 text-[#f40606]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500">Attendance History Logs</h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {historyDates.map((histDate) => (
                     <button
-                      className="w-full md:w-auto px-6 py-2 rounded-lg bg-[#010080] text-white disabled:opacity-50 hover:bg-[#010080]/90 transition-colors font-semibold"
-                      onClick={handleSave}
-                      disabled={saving}
+                      key={histDate}
+                      onClick={() => setDate(histDate)}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${date === histDate
+                        ? 'bg-[#f40606] text-white border-[#f40606] shadow-md'
+                        : 'bg-gray-50 dark:bg-[#06102b] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-[#f40606] hover:text-[#f40606]'
+                        }`}
                     >
-                      {saving ? 'Saving...' : 'Save'}
+                      {new Date(histDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      {histDate === new Date().toISOString().slice(0, 10) && " (Today)"}
                     </button>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             </div>
 
             {!selectedClass ? (
-              <div className="flex items-center justify-center min-h-[400px]">
-                <p className="text-lg text-gray-500">Select a class to view attendance</p>
+              <div className="flex flex-col items-center justify-center min-h-[400px] bg-white dark:bg-gray-800 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full mb-4">
+                  <svg className="w-12 h-12 text-[#010080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                  </svg>
+                </div>
+                <p className="text-xl font-bold text-gray-400">Please select a class to start tracking attendance</p>
               </div>
             ) : (
               <>
                 <div className="mt-6">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                    <div className={`p-4 rounded-lg ${isDark ? 'bg-[#06102b] text-white' : 'bg-white text-gray-900'} shadow-sm`}>
-                      <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Class</div>
-                      <div className="font-semibold">{selectedClass.class_name}</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-6">
+                    <div className={`p-6 rounded-2xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow-md`}>
+                      <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Class Name</div>
+                      <div className="text-lg font-bold text-[#010080] dark:text-white truncate">{selectedClass.class_name}</div>
                     </div>
-                    <div className={`p-4 rounded-lg ${isDark ? 'bg-[#06102b] text-white' : 'bg-white text-gray-900'} shadow-sm`}>
-                      <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Present Students</div>
-                      <div className="font-semibold text-green-600">{presentStudentCount}</div>
+                    <div className={`p-6 rounded-2xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow-md border-l-4 border-l-blue-600`}>
+                      <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Present</div>
+                      <div className="text-3xl font-black text-[#010080]">{presentStudentCount}</div>
                     </div>
-                    <div className={`p-4 rounded-lg ${isDark ? 'bg-[#06102b] text-white' : 'bg-white text-gray-900'} shadow-sm`}>
-                      <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Excused Students</div>
-                      <div className="font-semibold text-orange-500">{excusedStudentCount}</div>
+                    <div className={`p-6 rounded-2xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow-md border-l-4 border-l-[#f40606]`}>
+                      <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Excused</div>
+                      <div className="text-3xl font-black text-[#f40606]">{excusedStudentCount}</div>
                     </div>
-                    <div className={`p-4 rounded-lg ${isDark ? 'bg-[#06102b] text-white' : 'bg-white text-gray-900'} shadow-sm`}>
-                      <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Absent Students</div>
-                      <div className="font-semibold text-red-500">{absentStudentCount}</div>
+                    <div className={`p-6 rounded-2xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow-md border-l-4 border-l-gray-400`}>
+                      <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Absent</div>
+                      <div className="text-3xl font-black text-gray-400">{absentStudentCount}</div>
                     </div>
                   </div>
 
-                  <div className={`rounded-lg ${isDark ? 'bg-[#06102b] text-white' : 'bg-white text-gray-900'} shadow overflow-hidden`}>
+                  <div className={`rounded-3xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700`}>
                     <DataTable
-                      title={`Attendance - ${selectedClass.class_name}`}
+                      title={`Student Roster - ${selectedClass.class_name}`}
                       columns={columns}
                       data={filteredStudents}
                       showAddButton={false}

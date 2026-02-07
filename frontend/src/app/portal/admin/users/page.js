@@ -44,7 +44,7 @@ export default function UsersPage() {
       key: "full_name",
       label: "Full Name",
       render: (_, row) => (
-        <span className="font-medium text-gray-900 dark:text-white">
+        <span>
           {row.full_name || "-"}
         </span>
       ),
@@ -53,14 +53,14 @@ export default function UsersPage() {
       key: "email",
       label: "Email",
       render: (_, row) => (
-        <span className="text-gray-700 dark:text-gray-300">{row.email || "-"}</span>
+        <span className="dark:text-gray-300">{row.email || "-"}</span>
       ),
     },
     {
       key: "password",
       label: "Password",
       render: () => (
-        <span className="font-mono text-gray-600 dark:text-gray-400">
+        <span className="font-mono dark:text-gray-400">
           ********
         </span>
       ),

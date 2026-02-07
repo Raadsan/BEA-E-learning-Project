@@ -144,6 +144,19 @@ export const reportApi = createApi({
       }),
       providesTags: ["Reports"],
       transformResponse: (response) => response.success ? response.data : response
+    }),
+    getStudentProgressReport: builder.query({
+      query: ({ studentId, period }) => ({
+        url: `/student-progress/${studentId}`,
+        params: { period }
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
+    }),
+    getStudentAvailablePeriods: builder.query({
+      query: (studentId) => `/student-available-periods/${studentId}`,
+      providesTags: ["Reports"],
+      transformResponse: (response) => response.success ? response.data : response
     })
   }),
 });
@@ -167,5 +180,8 @@ export const {
   useGetPaymentStatsQuery,
   useGetPaymentDistributionQuery,
   useGetDetailedPaymentListQuery,
-  useLazyGetDetailedPaymentListQuery
+  useLazyGetDetailedPaymentListQuery,
+  useGetStudentProgressReportQuery,
+  useLazyGetStudentProgressReportQuery,
+  useGetStudentAvailablePeriodsQuery
 } = reportApi;

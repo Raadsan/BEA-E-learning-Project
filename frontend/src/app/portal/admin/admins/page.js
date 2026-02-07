@@ -124,10 +124,10 @@ export default function AdminsPage() {
   };
 
   const columns = [
-    { key: "first_name", label: "First Name", render: (val) => <span className="font-medium text-gray-900 dark:text-white">{val || "-"}</span> },
-    { key: "last_name", label: "Last Name", render: (val) => <span className="font-medium text-gray-900 dark:text-white">{val || "-"}</span> },
-    { key: "username", label: "Username", render: (val) => <span className="text-gray-700 dark:text-gray-300">{val}</span> },
-    { key: "email", label: "Email", render: (val) => <span className="text-gray-700 dark:text-gray-300">{val || "-"}</span> },
+    { key: "first_name", label: "First Name", render: (val) => <span>{val || "-"}</span> },
+    { key: "last_name", label: "Last Name", render: (val) => <span>{val || "-"}</span> },
+    { key: "username", label: "Username" },
+    { key: "email", label: "Email" },
     { key: "status", label: "Status", render: (val, row) => <button onClick={() => handleStatusToggle(row)} className={`px-3 py-1 text-xs font-semibold rounded-full ${val === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{val?.charAt(0).toUpperCase() + val?.slice(1)}</button> },
     { key: "role", label: "Role", render: (val) => <span className="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">{val}</span> },
     {

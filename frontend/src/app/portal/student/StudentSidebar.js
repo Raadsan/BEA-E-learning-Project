@@ -115,7 +115,7 @@ export default function StudentSidebar({ isApproved, isPaid = true, isTestExpire
   };
 
   return (
-    <div className={`fixed left-0 top-0 h-screen w-80 bg-[#010080] border-r border-blue-900 flex flex-col shadow-sm overflow-y-auto transition-transform duration-300 lg:translate-x-0 z-50 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <div className={`fixed left-0 top-0 h-screen w-80 bg-[#010080] border-r border-blue-900 flex flex-col shadow-sm overflow-y-auto transition-transform duration-300 lg:translate-x-0 z-50 portal-nav ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       {/* Logo Section */}
       <div className="border-b border-blue-900 w-full h-32 lg:h-24 relative bg-[#010080] flex items-center justify-between px-4 py-2 flex-shrink-0">
         <div className="h-full flex items-center justify-start relative flex-grow overflow-hidden">

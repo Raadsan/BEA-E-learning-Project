@@ -11,7 +11,7 @@ const getToken = () => {
 export const studentApi = createApi({
   reducerPath: "studentApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/students",
+    baseUrl: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/students`,
     prepareHeaders: (headers) => {
       const token = getToken();
       if (token) {
@@ -195,6 +195,18 @@ export const studentApi = createApi({
         return response;
       },
     }),
+
+    // GET DETAILED REPORT (For Student Progress Page)
+    getDetailedReport: builder.query({
+      query: () => "/detailed-report",
+      providesTags: ["Students"],
+      transformResponse: (response) => {
+        if (response.success) {
+          return response.data;
+        }
+        return response;
+      },
+    }),
   }),
 });
 
@@ -212,5 +224,6 @@ export const {
   useGetTopStudentsQuery,
   useGetStudentLocationsQuery,
   useGetMyClassesQuery,
+  useGetDetailedReportQuery,
 } = studentApi;
 

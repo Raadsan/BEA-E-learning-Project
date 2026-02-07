@@ -15,7 +15,13 @@ export const teacherApi = createApi({
   tagTypes: ["Teachers"],
   endpoints: (builder) => ({
     getTeacherDashboardStats: builder.query({
-      query: () => "/dashboard/stats",
+      query: ({ month, year } = {}) => {
+        const params = new URLSearchParams();
+        if (month) params.append("month", month);
+        if (year) params.append("year", year);
+        const queryStr = params.toString();
+        return `/dashboard/stats${queryStr ? `?${queryStr}` : ""}`;
+      },
       providesTags: ["Teachers"],
     }),
     getTeacherClasses: builder.query({

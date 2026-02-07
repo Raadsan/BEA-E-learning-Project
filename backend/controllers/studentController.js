@@ -733,3 +733,131 @@ export const getStudentsByClass = async (req, res) => {
     });
   }
 };
+// GET DETAILED STUDENT REPORT
+export const getDetailedStudentReport = async (req, res) => {
+  try {
+    const { userId, role } = req.user;
+    const { studentId: targetStudentId } = req.query;
+
+    let targetId = userId;
+
+    // Permissions check: Only teachers and admins can view other students' reports
+    if (targetStudentId && targetStudentId !== String(userId)) {
+      if (role !== 'teacher' && role !== 'admin') {
+        return res.status(403).json({ success: false, error: "Access denied. Only teachers and admins can view other students' reports." });
+      }
+      targetId = targetStudentId;
+    }
+
+    console.log(`[DetailedReport] Generating comprehensive report for targetId: ${targetId} (Requested by: ${userId}, Role: ${role})`);
+
+    // 1. Basic Student & Class Info
+    const [studentInfo] = await dbp.query(
+      `SELECT s.student_id, s.full_name, s.email, s.chosen_program, s.chosen_subprogram, 
+              s.class_id, c.class_name, p.title as program_name, sub.subprogram_name
+       FROM students s
+       LEFT JOIN classes c ON s.class_id = c.id
+       LEFT JOIN programs p ON s.chosen_program = p.id
+       LEFT JOIN subprograms sub ON s.chosen_subprogram = sub.id
+       WHERE s.student_id = ?`,
+      [targetId]
+    );
+
+    if (!studentInfo[0]) {
+      return res.status(404).json({ success: false, error: "Student not found" });
+    }
+
+    const student = studentInfo[0];
+
+    // 2. Attendance Stats
+    const [attendance] = await dbp.query(
+      `SELECT 
+        COUNT(id) as sessions,
+        SUM((CASE WHEN hour1 = 1 THEN 1 ELSE 0 END) + (CASE WHEN hour2 = 1 THEN 1 ELSE 0 END)) as attended_hours,
+        COUNT(id) * 2 as possible_hours
+       FROM attendance
+       WHERE student_id = ?`,
+      [targetId]
+    );
+
+    const attendanceStats = {
+      total_sessions: attendance[0].sessions || 0,
+      attendance_rate: attendance[0].possible_hours > 0
+        ? Math.round((attendance[0].attended_hours / attendance[0].possible_hours) * 100)
+        : 0
+    };
+
+    // 3. Assignment Performance Breakdown
+    const tables = [
+      { key: 'exams', main: 'exams', sub: 'exam_submissions', label: 'Exams' },
+      { key: 'writing', main: 'writing_tasks', sub: 'writing_task_submissions', label: 'Writing Tasks' },
+      { key: 'oral', main: 'oral_assignments', sub: 'oral_assignment_submissions', label: 'Oral Assignments' },
+      { key: 'coursework', main: 'course_work', sub: 'course_work_submissions', label: 'Course Work' }
+    ];
+
+    let performance = [];
+    let allSubmissions = [];
+
+    for (const t of tables) {
+      const [submissions] = await dbp.query(
+        `SELECT s.id, s.score, s.status, s.feedback, s.created_at, a.title, a.total_points as max_score
+         FROM ${t.sub} s
+         JOIN ${t.main} a ON s.assignment_id = a.id
+         WHERE s.student_id = ? AND s.status = 'graded'`,
+        [targetId]
+      );
+
+      const count = submissions.length;
+      const avg = count > 0
+        ? Math.round(submissions.reduce((sum, s) => sum + Number(s.score || 0), 0) / count)
+        : 0;
+
+      performance.push({
+        category: t.label,
+        count: count,
+        average: avg,
+        key: t.key
+      });
+
+      allSubmissions.push(...submissions.map(s => ({ ...s, type: t.label })));
+    }
+
+    // Sort submissions by date descending
+    allSubmissions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // Calculate overall GPA (Average of averages if categories exist)
+    const activeCategories = performance.filter(p => p.count > 0);
+    const overallGPA = activeCategories.length > 0
+      ? Math.round(activeCategories.reduce((sum, p) => sum + p.average, 0) / activeCategories.length)
+      : 0;
+
+    // 4. Recent Teacher Feedback (Reviews of Student)
+    const [feedback] = await dbp.query(
+      `SELECT sr.comment as feedback, sr.created_at, t.full_name as teacher_name
+       FROM student_reviews sr
+       JOIN teachers t ON sr.teacher_id = t.id
+       WHERE sr.student_id = ?
+       ORDER BY sr.created_at DESC LIMIT 3`,
+      [targetId]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        student,
+        summary: {
+          attendance_rate: attendanceStats.attendance_rate,
+          overall_gpa: overallGPA,
+          total_assignments: performance.reduce((sum, p) => sum + p.count, 0)
+        },
+        performance,
+        submissions: allSubmissions,
+        recent_feedback: feedback
+      }
+    });
+
+  } catch (err) {
+    console.error("❌ Detailed report error:", err);
+    res.status(500).json({ success: false, error: "Failed to generate report" });
+  }
+};

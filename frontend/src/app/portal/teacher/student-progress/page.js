@@ -1,16 +1,32 @@
 "use client";
 
 import React, { useState } from "react";
-
 import { useGetStudentProgressQuery } from "@/redux/api/studentApi";
+import {
+    useGetStudentProgressReportQuery,
+    useGetStudentAvailablePeriodsQuery
+} from "@/redux/api/reportApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable";
+import StudentProgressReportView from "@/components/StudentProgressReportView";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 export default function StudentProgressPage() {
     const { isDark } = useDarkMode();
-    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [selectedStudentId, setSelectedStudentId] = useState(null);
+    const [selectedPeriod, setSelectedPeriod] = useState("");
 
-    const { data: students, isLoading, error } = useGetStudentProgressQuery();
+    const { data: students, isLoading: studentsLoading, error: studentsError } = useGetStudentProgressQuery();
+
+    // Hooks for student detail view
+    const { data: availablePeriods = [], isLoading: periodsLoading } = useGetStudentAvailablePeriodsQuery(selectedStudentId, {
+        skip: !selectedStudentId
+    });
+
+    const { data: reportData, isLoading: reportLoading, error: reportError } = useGetStudentProgressReportQuery(
+        { studentId: selectedStudentId, period: selectedPeriod },
+        { skip: !selectedStudentId }
+    );
 
     const getStatusBadge = (status) => {
         const statusConfig = {
@@ -33,38 +49,38 @@ export default function StudentProgressPage() {
         {
             key: "full_name",
             label: "Student Name",
-            render: (row) => (
-                <div className="font-medium">{row.full_name}</div>
+            render: (val, row) => (
+                <div className="font-bold text-[#010080] dark:text-white uppercase text-xs">{val}</div>
             ),
         },
         {
             key: "email",
             label: "Email / ID",
-            render: (row) => (
-                <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.email}</div>
+            render: (val) => (
+                <div className={`text-[10px] font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{val}</div>
             ),
         },
         {
             key: "class_name",
             label: "Class",
-            render: (row) => (
-                <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{row.class_name || 'Not Assigned'}</div>
+            render: (val) => (
+                <div className={`text-[10px] font-bold ${isDark ? 'text-gray-300' : 'text-[#010080]'}`}>{val || 'Not Assigned'}</div>
             ),
         },
         {
             key: "progress_percentage",
             label: "Progress",
-            render: (row) => (
-                <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 max-w-[100px]">
+            render: (val) => (
+                <div className="flex items-center gap-3">
+                    <div className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 min-w-[80px]">
                         <div
-                            className={`h-2 rounded-full ${row.progress_percentage >= 75 ? 'bg-green-500' : row.progress_percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                            className={`h-1.5 rounded-full transition-all duration-500 ${val >= 75 ? 'bg-green-500' : val >= 50 ? 'bg-yellow-500' : 'bg-red-500'
                                 }`}
-                            style={{ width: `${Math.min(row.progress_percentage || 0, 100)}%` }}
+                            style={{ width: `${Math.min(val || 0, 100)}%` }}
                         />
                     </div>
-                    <span className={`text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {row.progress_percentage || 0}%
+                    <span className={`text-[10px] font-black ${isDark ? 'text-gray-300' : 'text-[#010080]'}`}>
+                        {val || 0}%
                     </span>
                 </div>
             ),
@@ -72,179 +88,152 @@ export default function StudentProgressPage() {
         {
             key: "status",
             label: "Status",
-            render: (row) => getStatusBadge(row.status),
-        },
-        {
-            key: "last_active",
-            label: "Last Active",
-            render: (row) => (
-                <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {row.last_active ? new Date(row.last_active).toLocaleDateString() : 'Never'}
-                </div>
-            ),
-        },
+            render: (val) => getStatusBadge(val),
+        }
     ];
 
-    if (isLoading) {
+    if (studentsLoading) {
         return (
-            <>
-                <div className="flex justify-center items-center h-96">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-                </div>
-            </>
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#010080] border-t-transparent"></div>
+            </div>
         );
     }
 
-    if (error) {
+    if (studentsError) {
         return (
-            <>
-                <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
-                    <div className="w-full px-8 py-6">
-                        <div className={`rounded-xl shadow-md p-8 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-                            <h2 className="text-xl font-semibold text-red-600 mb-4">Error Loading Student Progress</h2>
-                            <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>
-                                {error?.data?.error || "Failed to load student data"}
-                            </p>
-                        </div>
-                    </div>
+            <div className="p-8">
+                <div className={`rounded-3xl shadow-xl p-8 ${isDark ? 'bg-gray-800' : 'bg-white border border-gray-100'}`}>
+                    <h2 className="text-xl font-black text-red-600 mb-4 uppercase tracking-tight">System Error</h2>
+                    <p className={isDark ? 'text-gray-400 text-sm' : 'text-gray-600 text-sm'}>
+                        {studentsError?.data?.error || "Failed to load student tracking data."}
+                    </p>
                 </div>
-            </>
+            </div>
         );
     }
 
     // Detail View
-    if (selectedStudent) {
+    if (selectedStudentId) {
+        // Find the basic student info from the list for immediate display
+        const basicInfo = students?.find(s => s.id === selectedStudentId);
+
+        // Map backend data to component props
+        const formattedStudent = reportData?.studentInfo ? {
+            full_name: reportData.studentInfo.name || basicInfo?.full_name,
+            student_id: reportData.studentInfo.id || basicInfo?.student_id,
+            program_name: reportData.studentInfo.courseLevel,
+            subprogram_name: reportData.studentInfo.subprogram,
+            instructor_name: reportData.studentInfo.instructor
+        } : {
+            full_name: basicInfo?.full_name,
+            student_id: basicInfo?.student_id
+        };
+
+        const formattedSummary = reportData?.progressSummary ? {
+            attendance_rate: reportData.progressSummary.attendanceRate,
+            overall_gpa: reportData.examResult || 0,
+            total_assignments: 0
+        } : {
+            attendance_rate: 0,
+            overall_gpa: basicInfo?.progress_percentage || 0
+        };
+
+        const formattedPerformance = reportData?.skillPerformance ? Object.entries(reportData.skillPerformance).map(([key, val]) => ({
+            category: key.charAt(0).toUpperCase() + key.slice(1),
+            average: val
+        })) : [];
+
+        const formattedFeedback = reportData?.feedback ? [{
+            feedback: reportData.feedback.comments || reportData.feedback.comment,
+            teacher_name: reportData.studentInfo?.instructor || "Department Head",
+            created_at: new Date().toISOString()
+        }] : [];
+
+        const transformedPeriods = Array.isArray(availablePeriods) ? availablePeriods.map(p => ({
+            period: p.period,
+            label: p.label || new Date(p.period + "-01").toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        })) : [];
+
         return (
-            <>
-                <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
-                    <div className="w-full px-8 py-6">
-                        {/* Back Button */}
-                        <button
-                            onClick={() => setSelectedStudent(null)}
-                            className={`mb-6 flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isDark
-                                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-                                }`}
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            Back to Student List
-                        </button>
+            <div className="p-8">
+                {/* Back Button */}
+                <button
+                    onClick={() => {
+                        setSelectedStudentId(null);
+                        setSelectedPeriod("");
+                    }}
+                    className={`mb-6 flex items-center gap-2 px-6 py-2.5 rounded-2xl font-bold text-sm transition-all active:scale-95 ${isDark
+                        ? 'bg-gray-800 text-white hover:bg-gray-700'
+                        : 'bg-white text-[#010080] hover:bg-gray-50 border border-gray-200 shadow-sm'
+                        }`}
+                >
+                    <ArrowLeftIcon className="w-4 h-4" />
+                    Back to Registry
+                </button>
 
-                        {/* Student Details */}
-                        <div className={`rounded-xl shadow-md p-8 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-                            <div className="flex items-start justify-between mb-6">
-                                <div>
-                                    <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                                        {selectedStudent.full_name}
-                                    </h1>
-                                    <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                        {selectedStudent.email}
-                                    </p>
-                                </div>
-                                {getStatusBadge(selectedStudent.status)}
-                            </div>
-
-                            {/* Progress Overview */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                                <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Overall Progress</div>
-                                    <div className={`text-2xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                                        {selectedStudent.progress_percentage}%
-                                    </div>
-                                </div>
-                                <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Class</div>
-                                    <div className={`text-2xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                                        {selectedStudent.class_name || 'Not Assigned'}
-                                    </div>
-                                </div>
-                                <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Last Active</div>
-                                    <div className={`text-2xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                                        {selectedStudent.last_active ? new Date(selectedStudent.last_active).toLocaleDateString() : 'Never'}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Additional Details */}
-                            <div className="space-y-4">
-                                <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                                    Student Information
-                                </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Phone</div>
-                                        <div className={`mt-1 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>
-                                            {selectedStudent.phone || 'Not provided'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Program</div>
-                                        <div className={`mt-1 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>
-                                            {selectedStudent.chosen_program || 'Not selected'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Hours Attended</div>
-                                        <div className={`mt-1 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>
-                                            {selectedStudent.total_attended} / {selectedStudent.total_possible}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </>
+                <StudentProgressReportView
+                    student={formattedStudent}
+                    summary={formattedSummary}
+                    performance={formattedPerformance}
+                    submissions={reportData?.submissions || []}
+                    recentFeedback={formattedFeedback}
+                    periods={transformedPeriods}
+                    selectedPeriod={selectedPeriod}
+                    onPeriodChange={setSelectedPeriod}
+                    isLoading={reportLoading}
+                    isDark={isDark}
+                    showLedger={true}
+                />
+            </div>
         );
     }
 
     // List View
     return (
-        <>
-            <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
-                <div className="w-full px-8 py-6">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Student Progress</h1>
-                        <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                            Track student attendance and progress
-                        </p>
-                    </div>
+        <div className="p-8">
+            <div className="mb-8">
+                <h1 className={`text-4xl font-black tracking-tight ${isDark ? 'text-white' : 'text-[#010080]'}`}>
+                    Student Tracking Registry
+                </h1>
+                <p className={`mt-2 font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Comprehensive academic performance monitoring and periodic reporting.
+                </p>
+            </div>
 
-                    {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-                            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Students</div>
-                            <div className={`text-3xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                                {students?.length || 0}
-                            </div>
-                        </div>
-                        <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-                            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>On Track</div>
-                            <div className="text-3xl font-bold mt-2 text-green-500">
-                                {students?.filter(s => s.status === 'On Track').length || 0}
-                            </div>
-                        </div>
-                        <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-                            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>At Risk</div>
-                            <div className="text-3xl font-bold mt-2 text-yellow-500">
-                                {students?.filter(s => s.status === 'At Risk').length || 0}
-                            </div>
-                        </div>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div className={`rounded-3xl shadow-xl p-8 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-white'}`}>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Total Managed</div>
+                    <div className={`text-4xl font-black ${isDark ? 'text-white' : 'text-[#010080]'}`}>
+                        {students?.length || 0}
                     </div>
-
-                    {/* Student Table */}
-                    <DataTable
-                        columns={columns}
-                        data={students || []}
-                        title="All Students"
-                        onRowClick={(student) => setSelectedStudent(student)}
-                        getRowId={(student) => student.id}
-                    />
+                </div>
+                <div className={`rounded-3xl shadow-xl p-8 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-white'}`}>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Optimal Progress</div>
+                    <div className="text-4xl font-black text-green-500">
+                        {students?.filter(s => s.status === 'On Track').length || 0}
+                    </div>
+                </div>
+                <div className={`rounded-3xl shadow-xl p-8 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-white'}`}>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Requiring Attention</div>
+                    <div className="text-4xl font-black text-red-500">
+                        {students?.filter(s => s.status === 'At Risk' || s.status === 'Inactive').length || 0}
+                    </div>
                 </div>
             </div>
-        </>
+
+            {/* Student Table */}
+            <div className="rounded-3xl shadow-2xl overflow-hidden">
+                <DataTable
+                    columns={columns}
+                    data={students || []}
+                    title="Academic Master Registry"
+                    onRowClick={(student) => setSelectedStudentId(student.id)}
+                    getRowId={(student) => student.id}
+                    showAddButton={false}
+                />
+            </div>
+        </div>
     );
 }

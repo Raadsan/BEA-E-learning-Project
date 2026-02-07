@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Playfair_Display, Open_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display, Open_Sans, Montserrat } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ToastProvider } from "@/components/Toast";
@@ -24,6 +24,11 @@ const openSans = Open_Sans({
   subsets: ["latin"],
 });
 
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+});
+
 export const metadata = {
   title: "BEA - Blueprint English Academy",
   description: "Somalia's premier institution for English language education",
@@ -34,7 +39,7 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} ${openSans.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} ${openSans.variable} ${montserrat.variable} antialiased`}
       >
         <ReduxProvider>
           {/* Existing Theme Provider stays inside */}
