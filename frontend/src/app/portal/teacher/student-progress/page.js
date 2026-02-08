@@ -9,12 +9,14 @@ import {
 import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable";
 import StudentProgressReportView from "@/components/StudentProgressReportView";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import OfficialReportModal from "@/components/OfficialReportModal";
+import { ArrowLeftIcon, PrinterIcon } from "@heroicons/react/24/outline";
 
 export default function StudentProgressPage() {
     const { isDark } = useDarkMode();
     const [selectedStudentId, setSelectedStudentId] = useState(null);
     const [selectedPeriod, setSelectedPeriod] = useState("");
+    const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
     const { data: students, isLoading: studentsLoading, error: studentsError } = useGetStudentProgressQuery();
 
@@ -157,24 +159,36 @@ export default function StudentProgressPage() {
 
         return (
             <div className="p-8">
-                {/* Back Button */}
-                <button
-                    onClick={() => {
-                        setSelectedStudentId(null);
-                        setSelectedPeriod("");
-                    }}
-                    className={`mb-6 flex items-center gap-2 px-6 py-2.5 rounded-2xl font-bold text-sm transition-all active:scale-95 ${isDark
-                        ? 'bg-gray-800 text-white hover:bg-gray-700'
-                        : 'bg-white text-[#010080] hover:bg-gray-50 border border-gray-200 shadow-sm'
-                        }`}
-                >
-                    <ArrowLeftIcon className="w-4 h-4" />
-                    Back to Registry
-                </button>
+                <div className="flex justify-between items-center mb-6">
+                    <button
+                        onClick={() => {
+                            setSelectedStudentId(null);
+                            setSelectedPeriod("");
+                        }}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl font-bold text-sm transition-all active:scale-95 ${isDark
+                            ? 'bg-gray-800 text-white hover:bg-gray-700'
+                            : 'bg-white text-[#010080] hover:bg-gray-50 border border-gray-200 shadow-sm'
+                            }`}
+                    >
+                        <ArrowLeftIcon className="w-4 h-4" />
+                        Back to Registry
+                    </button>
+
+                    <button
+                        onClick={() => setIsPrintModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-2xl font-bold text-sm bg-[#010080] text-white hover:bg-blue-900 transition-all shadow-lg active:scale-95"
+                    >
+                        <PrinterIcon className="w-4 h-4" />
+                        Print Official Report
+                    </button>
+                </div>
 
                 <StudentProgressReportView
                     student={formattedStudent}
-                    summary={formattedSummary}
+                    summary={{
+                        ...formattedSummary,
+                        completion_rate: reportData?.progressSummary?.completionRate || 0
+                    }}
                     performance={formattedPerformance}
                     submissions={reportData?.submissions || []}
                     recentFeedback={formattedFeedback}
@@ -184,6 +198,19 @@ export default function StudentProgressPage() {
                     isLoading={reportLoading}
                     isDark={isDark}
                     showLedger={true}
+                />
+
+                <OfficialReportModal
+                    isOpen={isPrintModalOpen}
+                    onClose={() => setIsPrintModalOpen(false)}
+                    data={reportData}
+                    student={formattedStudent}
+                    summary={{
+                        ...formattedSummary,
+                        completion_rate: reportData?.progressSummary?.completionRate || 0
+                    }}
+                    performance={formattedPerformance}
+                    isDark={isDark}
                 />
             </div>
         );

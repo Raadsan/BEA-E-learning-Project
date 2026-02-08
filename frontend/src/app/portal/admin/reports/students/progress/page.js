@@ -115,8 +115,8 @@ export default function StudentProgressReportPage() {
                                     onChange={(e) => setStudentId(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     className={`w-full pl-12 pr-6 py-3.5 rounded-2xl border font-bold text-sm focus:ring-4 transition-all outline-none ${isDark
-                                            ? 'bg-gray-700 border-gray-600 text-white focus:ring-white/10'
-                                            : 'bg-gray-50 border-gray-200 text-[#010080] focus:ring-[#010080]/10'
+                                        ? 'bg-gray-700 border-gray-600 text-white focus:ring-white/10'
+                                        : 'bg-gray-50 border-gray-200 text-[#010080] focus:ring-[#010080]/10'
                                         }`}
                                 />
                             </div>

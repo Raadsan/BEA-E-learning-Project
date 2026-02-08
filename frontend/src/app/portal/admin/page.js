@@ -122,7 +122,7 @@ export default function AdminDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-500 text-sm font-medium mb-1">Total Students</p>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-5xl font-black text-gray-900 mb-2">
                     {studentsLoading ? "..." : totalStudents}
                   </h3>
                   <div className={`flex items-center gap-1 text-sm font-medium ${studentGrowth.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
@@ -151,7 +151,7 @@ export default function AdminDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-500 text-sm font-medium mb-1">Total Teachers</p>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-5xl font-black text-gray-900 mb-2">
                     {teachersLoading ? "..." : totalTeachers}
                   </h3>
                   <div className={`flex items-center gap-1 text-sm font-medium ${teacherGrowth.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
@@ -180,7 +180,7 @@ export default function AdminDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-500 text-sm font-medium mb-1">Total Programs</p>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-5xl font-black text-gray-900 mb-2">
                     {programsLoading ? "..." : totalPrograms}
                   </h3>
                   <div className={`flex items-center gap-1 text-sm font-medium ${programGrowth.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
@@ -209,7 +209,7 @@ export default function AdminDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-500 text-sm font-medium mb-1">Total Classes</p>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-5xl font-black text-gray-900 mb-2">
                     {classesLoading ? "..." : totalClasses}
                   </h3>
                   <div className={`flex items-center gap-1 text-sm font-medium ${classGrowth.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>

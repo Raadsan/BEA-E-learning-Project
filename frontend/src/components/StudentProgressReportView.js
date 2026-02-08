@@ -14,11 +14,16 @@ import {
     DocumentTextIcon,
     ClockIcon,
     CheckBadgeIcon,
-    PrinterIcon
+    PrinterIcon,
+    CodeBracketIcon,
+    BookOpenIcon,
+    BriefcaseIcon
 } from "@heroicons/react/24/outline";
+import DataTable from "./DataTable";
 
 const BRAND_COLOR = "#010080";
 const ACCENT_RED = "#f40606";
+
 
 const StudentProgressReportView = ({
     student = {},
@@ -34,11 +39,14 @@ const StudentProgressReportView = ({
     showLedger = true
 }) => {
     const printRef = useRef();
+    const tabularPrintRef = useRef();
+    const isEndOfTerm = selectedPeriod ? (selectedPeriod.toLowerCase().includes('final') || selectedPeriod.toLowerCase().includes('end')) : false;
+    const selectedPeriodLabel = selectedPeriod ? (periods.find(p => p.period === selectedPeriod)?.label || selectedPeriod) : "Overall Report";
 
     if (isLoading) {
         return (
             <div className="flex justify-center items-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#010080] border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-blue-500"></div>
             </div>
         );
     }
@@ -48,52 +56,17 @@ const StudentProgressReportView = ({
 
     // CEFR Mapping
     const getCEFRLevel = (score) => {
-        if (score >= 90) return { level: "C2", desc: "Proficient" };
-        if (score >= 80) return { level: "C1", desc: "Advanced" };
-        if (score >= 70) return { level: "B2", desc: "Upper Intermediate" };
-        if (score >= 60) return { level: "B1", desc: "Intermediate" };
+        if (score >= 95) return { level: "C2", desc: "Proficient" };
+        if (score >= 90) return { level: "C1", desc: "Advanced" };
+        if (score >= 85) return { level: "B2", desc: "Upper Intermediate" };
+        if (score >= 75) return { level: "B1", desc: "Intermediate" };
+        if (score >= 60) return { level: "A2+", desc: "Pre-Intermediate" };
         if (score >= 50) return { level: "A2", desc: "Elementary" };
         return { level: "A1", desc: "Beginner" };
     };
 
     const cefr = getCEFRLevel(overallGPA);
 
-    const handlePrint = () => {
-        const printContent = document.getElementById('printable-report-content').innerHTML;
-
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>BEA - Student Progress Report</title>
-                    <script src="https://cdn.tailwindcss.com"></script>
-                    <style>
-                        @media print {
-                            .no-print { display: none; }
-                            body { -webkit-print-color-adjust: exact; }
-                        }
-                    </style>
-                </head>
-                <body class="bg-white p-10 font-sans">
-                    ${printContent}
-                    <div class="mt-20 border-t pt-10 grid grid-cols-2 gap-20 px-10">
-                        <div class="text-center">
-                            <div class="border-b-2 border-dashed border-gray-400 w-full mb-2 h-10"></div>
-                            <p class="font-bold text-[#010080]">Academic Director</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="border-b-2 border-dashed border-gray-400 w-full mb-2 h-10"></div>
-                            <p class="font-bold text-[#010080]">School Principal</p>
-                        </div>
-                    </div>
-                </body>
-            </html>
-        `);
-        printWindow.document.close();
-        setTimeout(() => {
-            printWindow.print();
-        }, 500);
-    };
 
     const ledgerColumns = [
         {
@@ -116,7 +89,7 @@ const StudentProgressReportView = ({
             label: "Score",
             className: "text-center",
             render: (val) => (
-                <span className="text-[#f40606] font-black text-lg">{val}%</span>
+                <span className="text-[#f40606] font-bold text-lg">{val}%</span>
             )
         },
         {
@@ -130,7 +103,7 @@ const StudentProgressReportView = ({
             label: "Status",
             className: "text-center",
             render: () => (
-                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-tighter">Graded</span>
+                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-tighter">Graded</span>
             )
         }
     ];
@@ -138,189 +111,175 @@ const StudentProgressReportView = ({
     return (
         <div className="w-full">
             {/* Header Controls */}
-            <div className="flex justify-between items-center mb-8 no-print">
-                <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                    Student Progress Report
-                </h2>
-                <div className="flex items-center gap-4">
-                    {periods.length > 0 && (
-                        <select
-                            value={selectedPeriod}
-                            onChange={(e) => onPeriodChange(e.target.value)}
-                            className={`px-4 py-2.5 rounded-xl border font-bold text-sm ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-[#010080]'} focus:outline-none focus:ring-2 focus:ring-[#010080]/20 transition-all`}
-                        >
-                            <option value="">Full History</option>
-                            {periods.map(p => (
-                                <option key={p.period} value={p.period}>{p.label}</option>
-                            ))}
-                        </select>
-                    )}
-                    <button
-                        onClick={handlePrint}
-                        className="flex items-center gap-2 bg-[#010080] text-white px-6 py-2.5 rounded-xl hover:bg-blue-900 transition-all shadow-lg hover:shadow-blue-900/20 font-medium"
-                    >
-                        <PrinterIcon className="w-5 h-5" />
-                        Print Official Report
-                    </button>
-                </div>
-            </div>
+
 
             <div id="printable-report-content">
-                {/* 1. Top Identification Row */}
+                {/* 1. Top Identification Row - Horizontal Cards */}
                 <div className={`grid grid-cols-1 md:grid-cols-5 gap-4 mb-8`}>
                     {[
-                        { label: "Student Name", value: student.full_name, icon: <UserIcon className="w-5 h-5" /> },
-                        { label: "Student ID", value: student.student_id ? `#${student.student_id}` : 'N/A', icon: <DocumentTextIcon className="w-5 h-5" /> },
-                        { label: "Program", value: student.program_name || 'N/A', icon: <AcademicCapIcon className="w-5 h-5" /> },
-                        { label: "Level", value: student.subprogram_name || 'N/A', icon: <ArrowTrendingUpIcon className="w-5 h-5" /> },
+                        { label: "STUDENT NAME", value: student.full_name || 'N/A', subLabel: 'Full Name', icon: <UserIcon className="w-5 h-5" />, type: 'text' },
                         {
-                            label: "Reporting Period",
+                            label: "STUDENT ID",
+                            value: student.student_id || 'N/A',
+                            subLabel: 'Unique Identifier',
+                            icon: <CodeBracketIcon className="w-5 h-5" />,
+                            type: 'text'
+                        },
+                        { label: "COURSE LEVEL", value: student.program_name || student.subprogram_name || 'N/A', subLabel: 'Current Enrollment', icon: <BookOpenIcon className="w-5 h-5" />, type: 'text' },
+                        { label: "INSTRUCTOR", value: student.instructor_name || 'N/A', subLabel: 'Assigned Teacher', icon: <BriefcaseIcon className="w-5 h-5" />, type: 'text' },
+                        {
+                            label: "REPORTING PERIOD",
                             value: selectedPeriod ? (periods.find(p => p.period === selectedPeriod)?.label) : "All Time",
-                            icon: <CalendarIcon className="w-5 h-5 text-red-500" />
+                            subLabel: 'Term timeframe',
+                            icon: <CalendarIcon className="w-5 h-5 text-red-600" />,
+                            type: 'select'
                         }
                     ].map((item, i) => (
-                        <div key={i} className={`p-4 rounded-2xl border transition-all ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-[#010080]'}`}>
-                                    {item.icon}
+                        <div key={i} className={`p-5 rounded-xl border transition-all h-full flex flex-col justify-between ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex-1">
+                                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-3 text-gray-400`}>
+                                        {item.label}
+                                    </p>
+                                    {item.type === 'select' ? (
+                                        <div className="relative group max-w-fit">
+                                            <select
+                                                value={selectedPeriod}
+                                                onChange={(e) => onPeriodChange(e.target.value)}
+                                                className={`text-xl font-medium font-serif bg-transparent border-none outline-none cursor-pointer pr-10 appearance-none whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-900'}`}
+                                            >
+                                                <option value="">Select Period</option>
+                                                {periods.map(p => (
+                                                    <option key={p.period} value={p.period}>{p.label}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <svg className={`w-5 h-5 text-gray-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className={`text-base font-bold leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                            {item.value}
+                                        </p>
+                                    )}
                                 </div>
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{item.label}</p>
+                                <div className={`p-2 rounded-lg ml-2 shrink-0 bg-gray-50 text-gray-400 ${isDark ? 'bg-opacity-10' : ''}`}>
+                                    {React.cloneElement(item.icon, { className: "w-5 h-5" })}
+                                </div>
                             </div>
-                            <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-[#010080]'}`}>
-                                {item.value}
-                            </p>
+                            <p className="text-[10px] font-medium text-gray-400">{item.subLabel}</p>
                         </div>
                     ))}
                 </div>
 
-                {/* 2. Main Analytics Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                    {/* Attendance Circular Gauge */}
-                    <div className={`p-8 rounded-3xl border ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-[#010080]'}`}>Attendance Rate</h3>
-                            <div className={`px-3 py-1 rounded-full text-xs font-bold ${attendanceRate >= 80 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                                {attendanceRate >= 80 ? 'Excellent' : 'Action Required'}
-                            </div>
+                {/* 2. Charts Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    {/* Attendance Card */}
+                    <div className={`p-6 rounded-xl border ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
+                        <div className="flex justify-between items-center mb-12">
+                            <h3 className={`text-xs font-semibold tracking-[0.2em] ${isDark ? 'text-blue-400' : 'text-[#010080]'}`}>ATTENDANCE RATE</h3>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{selectedPeriodLabel}</span>
                         </div>
 
-                        <div className="h-[250px] relative flex items-center justify-center">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={[
-                                            { name: "Attended", value: attendanceRate },
-                                            { name: "Missing", value: 100 - attendanceRate }
-                                        ]}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={70}
-                                        outerRadius={90}
-                                        startAngle={225}
-                                        endAngle={-45}
-                                        paddingAngle={0}
-                                        dataKey="value"
-                                    >
-                                        <Cell fill={BRAND_COLOR} strokeWidth={0} />
-                                        <Cell fill={isDark ? "#07203c" : "#f1f5f9"} strokeWidth={0} />
-                                        <Label
-                                            value={`${attendanceRate}%`}
-                                            position="center"
-                                            className="text-4xl font-bold"
-                                            fill={isDark ? "#fff" : "#010080"}
-                                            style={{ fontSize: '32px', fontWeight: '800' }}
-                                        />
-                                    </Pie>
-                                </PieChart>
-                            </ResponsiveContainer>
+                        <div className="flex flex-col items-center justify-center py-10">
+                            <h2 className={`text-6xl font-semibold mb-2 ${isDark ? 'text-blue-400' : 'text-[#010080]'}`}>
+                                {summary.attendance_rate}%
+                            </h2>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">PRESENCE</p>
                         </div>
                     </div>
 
-                    {/* Overall Performance Circular Gauge */}
-                    <div className={`p-8 rounded-3xl border ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-[#010080]'}`}>Overall Performance</h3>
-                            <div className={`px-3 py-1 rounded-full text-xs font-bold ${overallGPA >= 70 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
-                                GPA: {overallGPA}%
-                            </div>
+                    {/* Performance Card */}
+                    <div className={`p-6 rounded-xl border ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className={`text-xs font-semibold tracking-[0.2em] ${isDark ? 'text-red-400' : 'text-[#f40606]'}`}>OVERALL PERFORMANCE</h3>
+                            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">{selectedPeriodLabel}</span>
                         </div>
 
-                        <div className="h-[250px] relative flex items-center justify-center">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={[
-                                            { name: "Score", value: overallGPA },
-                                            { name: "Remaining", value: 100 - overallGPA }
-                                        ]}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={70}
-                                        outerRadius={90}
-                                        startAngle={225}
-                                        endAngle={-45}
-                                        paddingAngle={0}
-                                        dataKey="value"
-                                    >
-                                        <Cell fill={ACCENT_RED} strokeWidth={0} />
-                                        <Cell fill={isDark ? "#07203c" : "#f1f5f9"} strokeWidth={0} />
-                                        <Label
-                                            value={`${overallGPA}%`}
-                                            position="center"
-                                            className="text-4xl font-bold"
-                                            fill={isDark ? "#fff" : "#f40606"}
-                                            style={{ fontSize: '32px', fontWeight: '800' }}
-                                        />
-                                    </Pie>
-                                </PieChart>
-                            </ResponsiveContainer>
+                        <div className="flex flex-col items-center justify-center py-4">
+                            <div className="w-64 h-64 relative">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={[
+                                                { name: 'Score', value: summary.overall_gpa },
+                                                { name: 'Remaining', value: Math.max(0, 100 - summary.overall_gpa) }
+                                            ]}
+                                            cx="50%" cy="50%"
+                                            innerRadius={75}
+                                            outerRadius={95}
+                                            startAngle={90}
+                                            endAngle={-270}
+                                            dataKey="value"
+                                            stroke="none"
+                                        >
+                                            <Cell fill="#f40606" />
+                                            <Cell fill={isDark ? '#1e293b' : '#f1f5f9'} />
+                                        </Pie>
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                <div className="absolute inset-0 flex items-center justify-center flex-col">
+                                    <span className="text-4xl font-semibold text-[#f40606]">{Math.round(summary.overall_gpa)}%</span>
+                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">AVERAGE GRADE</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* 3. Skill & CEFR Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                    {/* CEFR Level Badge */}
-                    <div className={`p-8 rounded-3xl border flex flex-col items-center justify-center text-center ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
-                        <div className={`w-24 h-24 rounded-full border-4 flex items-center justify-center mb-4 ${isDark ? 'border-blue-500/20 bg-blue-500/5' : 'border-[#010080]/10 bg-blue-50'}`}>
-                            <span className="text-4xl font-black text-[#010080]">{cefr.level}</span>
+                {/* 3. Skills & CEFR Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    {/* CEFR Level Card */}
+                    <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
+                        <div className="w-full flex justify-between items-center mb-12 text-left">
+                            <h3 className={`text-xs font-bold tracking-[0.2em] ${isDark ? 'text-blue-400' : 'text-[#010080]'}`}>CEFR LEVEL</h3>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{selectedPeriodLabel}</span>
                         </div>
-                        <h4 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-[#010080]'}`}>{cefr.desc}</h4>
-                        <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">CEFR Proficiency Level</p>
+
+                        <div className="w-40 h-40 rounded-full border-2 border-gray-50 dark:border-gray-800 flex items-center justify-center mb-6">
+                            <span className={`text-5xl font-bold ${isDark ? 'text-blue-400' : 'text-[#010080]'}`}>{cefr.level}</span>
+                        </div>
+
+                        <h4 className={`text-base font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{cefr.level} - {cefr.desc}</h4>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">ESTIMATED PROFICIENCY</p>
                     </div>
 
-                    {/* Skill breakdown horizontal bars */}
-                    <div className={`lg:col-span-2 p-8 rounded-3xl border ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
-                        <div className="flex items-center gap-3 mb-8">
-                            <ChartBarIcon className="w-6 h-6 text-[#f40606]" />
-                            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-[#010080]'}`}>Skill Performance Breakdown</h3>
+                    {/* Skill Performance Card */}
+                    <div className={`p-6 rounded-xl border ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
+                        <div className="flex justify-between items-center mb-12">
+                            <h3 className={`text-xs font-bold tracking-[0.2em] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>SKILL PERFORMANCE</h3>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{selectedPeriodLabel} DATA</span>
                         </div>
 
-                        <div className="space-y-6">
-                            {performance.map((skill, i) => (
-                                <div key={i}>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className={`text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{skill.category}</span>
-                                        <span className="text-sm font-bold text-[#010080]">{skill.average}%</span>
+                        <div className="space-y-5">
+                            {performance.map((skill, i) => {
+                                const colors = ['#010080', '#4b47a4', '#010080', '#f40606', '#f95150', '#010080'];
+                                return (
+                                    <div key={i} className="flex items-center gap-4">
+                                        <span className={`w-24 text-[10px] font-bold tracking-tight ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            {skill.category}
+                                        </span>
+                                        <div className={`flex-1 h-4 rounded-sm overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
+                                            <div
+                                                className="h-full transition-all duration-1000"
+                                                style={{
+                                                    width: `${Math.max(skill.average, 5)}%`,
+                                                    backgroundColor: colors[i % colors.length]
+                                                }}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className={`h-3 w-full rounded-full overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                                        <div
-                                            className="h-full rounded-full transition-all duration-1000"
-                                            style={{
-                                                width: `${skill.average}%`,
-                                                backgroundColor: i % 2 === 0 ? BRAND_COLOR : ACCENT_RED
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
 
                 {/* 4. Feedback Section */}
                 {recentFeedback.length > 0 && (
-                    <div className={`p-8 rounded-3xl border mb-8 ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
+                    <div className={`p-6 rounded-xl border mb-8 ${isDark ? 'bg-[#06102b] border-[#07203c]' : 'bg-white border-gray-100 shadow-sm'}`}>
                         <div className="flex items-center gap-3 mb-6">
                             <CheckBadgeIcon className="w-6 h-6 text-green-500" />
                             <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-[#010080]'}`}>Teacher Feedback</h3>
@@ -352,6 +311,7 @@ const StudentProgressReportView = ({
                     </div>
                 )}
             </div>
+
         </div>
     );
 };

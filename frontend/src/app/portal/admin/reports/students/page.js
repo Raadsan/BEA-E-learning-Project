@@ -19,6 +19,8 @@ import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { useGetSubprogramsByProgramIdQuery } from "@/redux/api/subprogramApi";
 import { useGetClassesBySubprogramIdQuery } from "@/redux/api/classApi";
 import Link from "next/link";
+import StudentProgressReportView from "@/components/StudentProgressReportView";
+import OfficialReportModal from "@/components/OfficialReportModal";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
@@ -28,374 +30,7 @@ import DataTable from "@/components/DataTable";
 // Brand Colors
 const brandColors = ["#010080", "#4b47a4", "#18178a", "#f40606", "#f95150"];
 
-// Narrative Report Component - To replace IndividualReportLayout
-// This is the complete new narrative format report
-
-const IndividualReportLayout = ({ data, isDark }) => {
-    if (!data) return null;
-
-    const student = data.studentInfo;
-    const progress = data.progressSummary;
-    const skills = data.skillPerformance || {};
-    const feedback = data.feedback || {};
-
-    // Get current date for Report Date
-    const reportDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-    // Prepare skill data for bar charts
-    const skillData = [
-        { name: 'Listening', score: skills.listening || 0 },
-        { name: 'Speaking', score: skills.speaking || 0 },
-        { name: 'Reading', score: skills.reading || 0 },
-        { name: 'Writing', score: skills.writing || 0 },
-        { name: 'Grammar', score: skills.grammar || 0 },
-        { name: 'Vocabulary', score: skills.vocabulary || 0 },
-        { name: 'Pronunciation', score: skills.pronunciation || 0 }
-    ];
-
-    return (
-        <div className="p-8 bg-white text-black font-sans print:p-0 max-w-4xl mx-auto relative" id="printable-individual-report">
-            {/* Logo - Absolute Top Right */}
-            <div className="absolute top-0 right-0 p-4">
-                <img src="/images/headerlogo.png" alt="BEA Logo" className="h-32 w-auto object-contain" />
-            </div>
-
-            {/* Header */}
-            <div className="mb-8 pb-4 border-b-4 border-[#010080] pt-16">
-                <div>
-                    <h1 className="text-2xl font-bold text-[#010080] tracking-tight uppercase">ESL Student Progress Report</h1>
-                </div>
-            </div>
-
-            {/* 1. STUDENT INFORMATION */}
-            <div className="mb-6">
-                <table className="w-full border-collapse">
-                    <thead>
-                        <tr>
-                            <th colSpan="4" className="bg-[#010080] text-white text-sm font-bold uppercase px-4 py-3 text-left border-2 border-[#010080]">STUDENT INFORMATION</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs font-bold text-[#010080] bg-gray-50 w-1/4">First Name</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-900">{student.name?.split(' ')[0]}</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs font-bold text-[#010080] bg-gray-50 w-1/4">Last Name</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-900">{student.name?.split(' ').slice(1).join(' ') || '-'}</td>
-                        </tr>
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs font-bold text-[#010080] bg-gray-50">ID #</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-900">{student.id}</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs font-bold text-[#010080] bg-gray-50">Level</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-900">{student.subprogram}</td>
-                        </tr>
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs font-bold text-[#010080] bg-gray-50">Teacher</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-900">{student.instructor || '-'}</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs font-bold text-[#010080] bg-gray-50">District</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-900">Mogadishu</td>
-                        </tr>
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs font-bold text-[#010080] bg-gray-50">Reporting Period</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-900">{student.reportingPeriod}</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs font-bold text-[#010080] bg-gray-50">Report Date</td>
-                            <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-900">{reportDate}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            {/* 2. OVERALL PROGRESS SUMMARY */}
-            <div className="mb-6">
-                <table className="w-full border-collapse">
-                    <thead>
-                        <tr>
-                            <th colSpan="3" className="bg-[#010080] text-white text-sm font-bold uppercase px-4 py-3 text-left border-2 border-[#010080]">OVERALL PROGRESS SUMMARY</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-6 text-center">
-                                <p className="text-xs font-semibold text-gray-600 mb-2">Attendance Rate</p>
-                                <p className="text-2xl font-bold text-[#010080]">{progress.attendanceRate || 0}%</p>
-                            </td>
-                            <td className="border-2 border-gray-300 px-4 py-6 text-center">
-                                <p className="text-xs font-semibold text-gray-600 mb-2">Current CEFR Level</p>
-                                <p className="text-xl font-bold text-[#010080]">{student.courseLevel || 'N/A'}</p>
-                                <p className="text-xs text-gray-600 mt-1">{student.subprogram}</p>
-                            </td>
-                            <td className="border-2 border-gray-300 px-4 py-6 text-center">
-                                <p className="text-xs font-semibold text-gray-600 mb-2">Assignment Completion</p>
-                                <p className="text-2xl font-bold text-[#010080]">{progress.completionRate || 0}%</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            {/* 3. SKILL PERFORMANCE */}
-            <div className="mb-6">
-                <table className="w-full border-collapse">
-                    <thead>
-                        <tr>
-                            <th colSpan="2" className="bg-[#010080] text-white text-sm font-bold uppercase px-4 py-3 text-left border-2 border-[#010080]">SKILL PERFORMANCE</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {skillData.map((skill, idx) => (
-                            <tr key={idx}>
-                                <td className="border-2 border-gray-300 px-4 py-3 text-xs font-semibold text-[#010080] bg-gray-50 w-1/3">{skill.name}</td>
-                                <td className="border-2 border-gray-300 px-4 py-3 text-center">
-                                    <span className="text-lg font-bold text-[#010080]">{skill.score}%</span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* 4. FINAL EXAM RESULT */}
-            <div className="mb-6">
-                <table className="w-full border-collapse">
-                    <thead>
-                        <tr>
-                            <th className="bg-[#010080] text-white text-sm font-bold uppercase px-4 py-3 text-left border-2 border-[#010080]">FINAL EXAM RESULT</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-6 text-center">
-                                <p className="text-sm font-semibold text-[#010080] mb-2">Final Exam Score</p>
-                                <p className="text-3xl font-bold text-[#010080]">{feedback.overall_grade || 0}%</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            {/* 5. TEACHER'S FEEDBACK */}
-            <div className="mb-6">
-                <table className="w-full border-collapse">
-                    <thead>
-                        <tr>
-                            <th className="bg-[#010080] text-white text-sm font-bold uppercase px-4 py-3 text-left border-2 border-[#010080]">TEACHER'S FEEDBACK</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {/* Detailed Feedback */}
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-4">
-                                <p className="text-xs font-bold text-[#010080] mb-2">Detailed Feedback:</p>
-                                <p className="text-xs text-gray-700 leading-relaxed italic">
-                                    {feedback.comments || "The student has demonstrated consistent effort and engagement throughout the reporting period. Progress has been observed across multiple skill areas, with particular strength in comprehension and communication tasks."}
-                                </p>
-                            </td>
-                        </tr>
-
-                        {/* Strengths */}
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-3">
-                                <p className="text-xs font-bold text-[#010080] mb-2">Strengths:</p>
-                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-700">
-                                    <li>Strong participation in class discussions and activities</li>
-                                    <li>Excellent attendance and punctuality</li>
-                                    <li>Good comprehension of reading materials</li>
-                                    <li>Effective use of vocabulary in written assignments</li>
-                                </ul>
-                            </td>
-                        </tr>
-
-                        {/* Weaknesses */}
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-3">
-                                <p className="text-xs font-bold text-[#010080] mb-2">Weaknesses:</p>
-                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-700">
-                                    <li>Needs improvement in pronunciation accuracy</li>
-                                    <li>Occasional difficulty with complex grammar structures</li>
-                                    <li>Limited use of advanced vocabulary in speaking</li>
-                                </ul>
-                            </td>
-                        </tr>
-
-                        {/* Areas for Improvement */}
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-3">
-                                <p className="text-xs font-bold text-[#010080] mb-2">Areas for Improvement:</p>
-                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-700">
-                                    <li>Focus on mastering irregular verb forms</li>
-                                    <li>Practice speaking with native speakers or language partners</li>
-                                    <li>Expand academic vocabulary through extensive reading</li>
-                                </ul>
-                            </td>
-                        </tr>
-
-                        {/* Recommendations */}
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-3">
-                                <p className="text-xs font-bold text-[#010080] mb-2">Recommendations:</p>
-                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-700">
-                                    <li>Continue regular practice with listening exercises</li>
-                                    <li>Engage in more writing activities to strengthen grammar</li>
-                                    <li>Participate in conversation clubs or language exchange programs</li>
-                                </ul>
-                            </td>
-                        </tr>
-
-                        {/* Overall Evaluation */}
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-4">
-                                <p className="text-xs font-semibold text-[#010080] mb-3">Overall Evaluation:</p>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-xs font-semibold text-gray-600 mb-1">Overall Grade:</p>
-                                        <p className="text-2xl font-bold text-[#010080]">{feedback.overall_grade || 0}%</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-semibold text-gray-600 mb-1">Promotion Recommendation:</p>
-                                        <p className="text-lg font-semibold text-[#010080]">{student.subprogram || 'N/A'}</p>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-
-                        {/* Signatures */}
-                        <tr>
-                            <td className="border-2 border-gray-300 px-4 py-4">
-                                <p className="text-xs font-bold text-[#010080] mb-3">Signatures:</p>
-                                <div className="grid grid-cols-3 gap-6">
-                                    <div>
-                                        <p className="text-xs font-bold text-gray-600 mb-1">Instructor Name:</p>
-                                        <p className="text-xs text-gray-700 mb-3">{student.instructor || 'N/A'}</p>
-                                        <p className="text-xs font-bold text-gray-600 mb-1">Signature:</p>
-                                        <div className="border-b-2 border-gray-400 h-6"></div>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-bold text-gray-600 mb-1">Date:</p>
-                                        <p className="text-xs text-gray-700">{reportDate}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-bold text-gray-600 mb-1">Academic Coordinator:</p>
-                                        <p className="text-xs text-gray-700 mb-3">________________</p>
-                                        <p className="text-xs font-bold text-gray-600 mb-1">Signature:</p>
-                                        <div className="border-b-2 border-gray-400 h-6"></div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    );
-};
-// Modal component for full report preview
-const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title, isIndividual = false, individualData = null }) => {
-    if (!isOpen) return null;
-
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className={`w-full ${isIndividual ? 'max-w-4xl' : 'max-w-7xl'} max-h-[95vh] flex flex-col rounded-2xl shadow-xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                {/* Modal Header */}
-                <div className={`p-6 border-b flex items-center justify-between ${isDark ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
-                    <div>
-                        <h2 className={`text-xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {isIndividual ? "Student Progress Report" : (title || "Student Information Report")}
-                        </h2>
-                        <p className={`text-[10px] font-medium mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                            {isIndividual ? `Academic performance for ${individualData?.studentInfo?.name}` : "Comprehensive registry database"}
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={onPrint}
-                            className="px-6 py-2.5 bg-[#010080] text-white rounded-lg hover:bg-[#010080]/90 transition-all font-bold text-sm flex items-center gap-2 shadow-md"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                            Open PDF
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className={`p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}
-                        >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Modal Body */}
-                <div className="flex-1 overflow-auto bg-white dark:bg-[#1a2035] p-0 custom-scrollbar" id="printable-report">
-                    {isIndividual ? (
-                        <IndividualReportLayout data={individualData} isDark={isDark} />
-                    ) : (
-                        <div className="w-full">
-                            <table className="w-full text-left text-xs border-collapse table-fixed" style={{ minWidth: "1400px" }}>
-                                <thead className="sticky top-0 z-10">
-                                    <tr className={`${isDark ? 'bg-white text-gray-900' : 'bg-[#010080] text-white'}`}>
-                                        <th className="w-32 px-4 py-4 uppercase font-bold tracking-wider border-b">ID</th>
-                                        <th className="w-60 px-4 py-4 uppercase font-bold tracking-wider border-b">Full Name</th>
-                                        <th className="w-24 px-4 py-4 uppercase font-bold tracking-wider border-b text-center">Sex</th>
-                                        <th className="w-20 px-4 py-4 uppercase font-bold tracking-wider border-b text-center">Age</th>
-                                        <th className="w-64 px-4 py-4 uppercase font-bold tracking-wider border-b">Email</th>
-                                        <th className="w-40 px-4 py-4 uppercase font-bold tracking-wider border-b">Phone</th>
-                                        <th className="w-48 px-4 py-4 uppercase font-bold tracking-wider border-b">Program</th>
-                                        <th className="w-56 px-4 py-4 uppercase font-bold tracking-wider border-b">Sub-Program</th>
-                                        <th className="w-48 px-4 py-4 uppercase font-bold tracking-wider border-b">Class</th>
-                                        <th className="w-24 px-4 py-4 uppercase font-bold tracking-wider border-b text-center">Att%</th>
-                                        <th className="w-24 px-4 py-4 uppercase font-bold tracking-wider border-b text-center">Score%</th>
-                                        <th className="w-32 px-4 py-4 uppercase font-bold tracking-wider border-b">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {data.map((student, idx) => (
-                                        <tr key={student.student_id || idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-blue-50/30 transition-colors`}>
-                                            <td className="px-4 py-3 font-medium truncate">{student.student_id}</td>
-                                            <td className="px-4 py-3 font-bold truncate">{student.full_name}</td>
-                                            <td className="px-4 py-3 text-center">{student.sex || '-'}</td>
-                                            <td className="px-4 py-3 text-center">{student.age || '-'}</td>
-                                            <td className="px-4 py-3 truncate">{student.email}</td>
-                                            <td className="px-4 py-3 truncate">{student.phone || '-'}</td>
-                                            <td className="px-4 py-3 truncate">{student.chosen_program}</td>
-                                            <td className="px-4 py-3 truncate">{student.subprogram_name || '-'}</td>
-                                            <td className="px-4 py-3 truncate">{student.class_name || 'Unassigned'}</td>
-                                            <td className="px-4 py-3 text-center font-bold">{student.attendance_rate}%</td>
-                                            <td className="px-4 py-3 text-center font-bold">{student.overall_average}%</td>
-                                            <td className="px-4 py-3">
-                                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-green-100 text-green-700">{student.status}</span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
-
-                {/* Footer */}
-                <div className={`p-4 border-t flex items-center justify-between text-[10px] font-medium ${isDark ? 'bg-gray-900/50 border-gray-700 text-gray-500' : 'bg-gray-50 border-gray-100 text-gray-600'}`}>
-                    <span>BEA E-Learning System • {isIndividual ? 'Individual Progress Transcript' : 'Combined Registry'}</span>
-                    <span>Generated: {new Date().toLocaleString()}</span>
-                </div>
-            </div>
-
-            <style jsx global>{`
-                @media print {
-                    @page { size: portrait; margin: 1cm; }
-                    body * { visibility: hidden !important; }
-                    #printable-report, #printable-report * { visibility: visible !important; }
-                    #printable-report {
-                        position: absolute !important;
-                        left: 0 !important;
-                        top: 0 !important;
-                        width: 100% !important;
-                        background: white !important;
-                        color: black !important;
-                        padding: 0 !important;
-                        font-size: 10pt !important;
-                    }
-                }
-            `}</style>
-        </div>
-    );
-};
+// Shared Official Report Modal is used now
 
 export default function StudentReportsPage() {
     const { isDark } = useDarkMode();
@@ -682,7 +317,7 @@ export default function StudentReportsPage() {
     const handlePrint = () => {
         if (isIndividualReport && individualReportData) {
             const printWindow = window.open('', '_blank', 'width=1200,height=800');
-            const reportHtml = document.getElementById('printable-individual-report').innerHTML;
+            const reportHtml = document.getElementById('tabular-report-content').innerHTML;
 
             printWindow.document.write(`
                 <!DOCTYPE html>
@@ -1178,16 +813,26 @@ export default function StudentReportsPage() {
                     isDark={isDark}
                 />
 
-                <ReportModal
+                <OfficialReportModal
                     isOpen={isReportModalOpen}
                     onClose={() => setIsReportModalOpen(false)}
-                    data={reportStudents}
-                    onPrint={handlePrint}
-                    onExport={() => handleExportCSV(reportStudents)}
+                    data={individualReportData}
+                    student={individualReportData ? {
+                        full_name: individualReportData.studentInfo?.name,
+                        student_id: individualReportData.studentInfo?.id,
+                        program_name: individualReportData.studentInfo?.courseLevel,
+                        instructor_name: individualReportData.studentInfo?.instructor
+                    } : null}
+                    summary={individualReportData ? {
+                        attendance_rate: individualReportData.progressSummary?.attendanceRate || 0,
+                        completion_rate: individualReportData.progressSummary?.completionRate || 0,
+                        overall_gpa: individualReportData.feedback?.overall_grade || 0
+                    } : null}
+                    performance={individualReportData?.skillPerformance ? Object.entries(individualReportData.skillPerformance).map(([key, val]) => ({
+                        category: key.charAt(0).toUpperCase() + key.slice(1),
+                        average: val
+                    })) : []}
                     isDark={isDark}
-                    title={reportModalTitle}
-                    isIndividual={isIndividualReport}
-                    individualData={individualReportData}
                 />
             </div>
         </div>

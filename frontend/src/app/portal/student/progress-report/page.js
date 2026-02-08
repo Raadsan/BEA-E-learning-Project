@@ -8,15 +8,17 @@ import {
   useGetStudentAvailablePeriodsQuery
 } from "@/redux/api/reportApi";
 import StudentProgressReportView from "@/components/StudentProgressReportView";
-import { DocumentTextIcon } from "@heroicons/react/24/outline";
+import OfficialReportModal from "@/components/OfficialReportModal";
+import { PrinterIcon } from "@heroicons/react/24/outline";
 
 export default function ProgressReportPage() {
   const { isDark } = useDarkMode();
   const [selectedPeriod, setSelectedPeriod] = useState("");
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   // 1. Get current user to identify the student
   const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
-  const studentId = user?.user_id;
+  const studentId = user?.id;
 
   // 2. Get available periods for this student
   const { data: availablePeriods = [], isLoading: periodsLoading } = useGetStudentAvailablePeriodsQuery(studentId, {
@@ -29,53 +31,37 @@ export default function ProgressReportPage() {
     { skip: !studentId }
   );
 
-  if (userLoading || periodsLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#010080] border-t-transparent"></div>
-      </div>
-    );
-  }
+  const handlePrint = () => {
+    setIsPrintModalOpen(true);
+  };
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-        <div className="bg-red-50 dark:bg-red-900/20 p-8 rounded-3xl border border-red-100 dark:border-red-800 max-w-md">
-          <DocumentTextIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-red-700 dark:text-red-400 mb-2">Failed to load report</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            We couldn't retrieve your academic progress data at this time.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-700 transition-colors"
-          >
-            Retry Loading
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const isInitialLoading = userLoading || periodsLoading;
+  const hasError = !!error;
 
   // Map backend data to component props
   const formattedStudent = reportData?.studentInfo ? {
-    full_name: reportData.studentInfo.name || user?.full_name,
-    student_id: reportData.studentInfo.id || user?.student_id,
-    program_name: reportData.studentInfo.courseLevel,
-    subprogram_name: reportData.studentInfo.subprogram,
-    instructor_name: reportData.studentInfo.instructor
+    full_name: reportData.studentInfo.name || user?.full_name || 'N/A',
+    student_id: reportData.studentInfo.id || user?.student_id || user?.id || 'N/A',
+    program_name: reportData.studentInfo.courseLevel || reportData.studentInfo.subprogram || user?.chosen_program || 'N/A',
+    subprogram_name: reportData.studentInfo.subprogram || 'N/A',
+    instructor_name: reportData.studentInfo.instructor || 'N/A'
   } : {
-    full_name: user?.full_name,
-    student_id: user?.student_id
+    full_name: user?.full_name || 'N/A',
+    student_id: user?.student_id || user?.id || 'N/A',
+    program_name: user?.chosen_program || 'N/A',
+    subprogram_name: 'N/A',
+    instructor_name: 'N/A'
   };
 
   const formattedSummary = reportData?.progressSummary ? {
     attendance_rate: reportData.progressSummary.attendanceRate,
     overall_gpa: reportData.examResult || 0,
+    completion_rate: reportData.progressSummary.completionRate || 0,
     total_assignments: 0
   } : {
     attendance_rate: 0,
-    overall_gpa: 0
+    overall_gpa: 0,
+    completion_rate: 0
   };
 
   const formattedPerformance = reportData?.skillPerformance ? Object.entries(reportData.skillPerformance).map(([key, val]) => ({
@@ -89,26 +75,63 @@ export default function ProgressReportPage() {
     created_at: new Date().toISOString()
   }] : [];
 
-  // Transform periods for the selector
   const transformedPeriods = Array.isArray(availablePeriods) ? availablePeriods.map(p => ({
-    period: p.period, // e.g. "2024-05"
+    period: p.period,
     label: p.label || new Date(p.period + "-01").toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
   })) : [];
 
   return (
-    <main className={`min-h-screen pt-12 pb-12 w-full px-6 sm:px-10 transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <StudentProgressReportView
+    <main className={`min-h-screen pt-12 pb-12 w-full sm:px-10 transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="flex justify-between items-center mb-8 no-print">
+        <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+          Student Progress Report
+        </h2>
+        <div className="flex items-center gap-4">
+          {transformedPeriods.length > 0 && (
+            <select
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className={`px-4 py-2.5 rounded-xl border font-bold text-sm ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-[#010080]'} focus:outline-none focus:ring-2 focus:ring-[#010080]/20 transition-all`}
+            >
+              <option value="">Full History</option>
+              {transformedPeriods.map(p => (
+                <option key={p.period} value={p.period}>{p.label}</option>
+              ))}
+            </select>
+          )}
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 bg-[#010080] text-white px-6 py-2.5 rounded-xl hover:bg-blue-900 transition-all shadow-lg hover:shadow-blue-900/20 font-medium"
+          >
+            <PrinterIcon className="w-5 h-5" />
+            Print Official Report
+          </button>
+        </div>
+      </div>
+      <div id="printable-report">
+        <StudentProgressReportView
+          student={formattedStudent}
+          summary={formattedSummary}
+          performance={formattedPerformance}
+          submissions={reportData?.submissions || []}
+          recentFeedback={formattedFeedback}
+          periods={transformedPeriods}
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={setSelectedPeriod}
+          isLoading={reportLoading}
+          isDark={isDark}
+          showLedger={true}
+        />
+      </div>
+
+      <OfficialReportModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        data={reportData}
         student={formattedStudent}
         summary={formattedSummary}
         performance={formattedPerformance}
-        submissions={reportData?.submissions || []}
-        recentFeedback={formattedFeedback}
-        periods={transformedPeriods}
-        selectedPeriod={selectedPeriod}
-        onPeriodChange={setSelectedPeriod}
-        isLoading={reportLoading}
         isDark={isDark}
-        showLedger={true}
       />
     </main>
   );

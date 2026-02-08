@@ -1036,17 +1036,45 @@ export const getStudentAvailablePeriods = async (req, res) => {
     try {
         const { studentId } = req.params;
 
-        // Combine attendance dates and review dates to find active months
+        // Combine attendance dates, review dates, and student registration date to find active months
         const [periods] = await dbp.query(`
             SELECT DISTINCT DATE_FORMAT(date, '%Y-%m') as period, DATE_FORMAT(date, '%M %Y') as label
             FROM attendance
             WHERE student_id = ?
+            
             UNION
+            
             SELECT DISTINCT DATE_FORMAT(created_at, '%Y-%m') as period, DATE_FORMAT(created_at, '%M %Y') as label
             FROM student_reviews
             WHERE student_id = ?
+            
+            UNION
+            
+            SELECT DISTINCT DATE_FORMAT(submission_date, '%Y-%m') as period, DATE_FORMAT(submission_date, '%M %Y') as label
+            FROM (
+                SELECT submission_date FROM writing_task_submissions WHERE student_id = ?
+                UNION ALL
+                SELECT submission_date FROM oral_assignment_submissions WHERE student_id = ?
+                UNION ALL
+                SELECT submission_date FROM exam_submissions WHERE student_id = ?
+                UNION ALL
+                SELECT submission_date FROM course_work_submissions WHERE student_id = ?
+            ) as activity
+            WHERE submission_date IS NOT NULL
+            
+            UNION
+            
+            -- Add registration month from students/IELTSTOEFL
+            SELECT DISTINCT DATE_FORMAT(created_at, '%Y-%m') as period, DATE_FORMAT(created_at, '%M %Y') as label
+            FROM (
+                SELECT created_at FROM students WHERE student_id = ?
+                UNION
+                SELECT created_at FROM IELTSTOEFL WHERE student_id = ?
+            ) as reg
+            WHERE created_at IS NOT NULL
+            
             ORDER BY period DESC
-        `, [studentId, studentId]);
+        `, [studentId, studentId, studentId, studentId, studentId, studentId, studentId, studentId]);
 
         res.json({ success: true, data: periods });
     } catch (error) {
@@ -1108,8 +1136,10 @@ export const getStudentProgressReport = async (req, res) => {
 
         // 1.1 Overwrite class/subprogram if period matches a different enrollment record?
         // (Simplified: if period is selected, try to find attendance record's class)
+        // 1.1 Overwrite class/subprogram if period matches a different enrollment record
         if (period) {
-            const [periodClass] = await dbp.query(`
+            // Try attendance first
+            let [periodClass] = await dbp.query(`
                 SELECT c.class_name, t.full_name as instructor_name, sp.subprogram_name
                 FROM attendance a
                 JOIN classes c ON a.class_id = c.id
@@ -1118,6 +1148,20 @@ export const getStudentProgressReport = async (req, res) => {
                 WHERE a.student_id = ? AND DATE_FORMAT(a.date, '%Y-%m') = ?
                 LIMIT 1
             `, [studentId, period]);
+
+            // If no attendance, try enrollment history
+            if (!periodClass[0]) {
+                [periodClass] = await dbp.query(`
+                    SELECT c.class_name, t.full_name as instructor_name, sp.subprogram_name
+                    FROM student_class_history h
+                    JOIN classes c ON h.class_id = c.id
+                    LEFT JOIN subprograms sp ON c.subprogram_id = sp.id
+                    LEFT JOIN teachers t ON c.teacher_id = t.id
+                    WHERE h.student_id = ? AND DATE_FORMAT(h.created_at, '%Y-%m') = ?
+                    LIMIT 1
+                `, [studentId, period]);
+            }
+
             if (periodClass[0]) {
                 student.class_name = periodClass[0].class_name;
                 student.instructor_name = periodClass[0].instructor_name;
@@ -1183,13 +1227,13 @@ export const getStudentProgressReport = async (req, res) => {
 
         // CEFR Mapping
         const getCEFRMapping = (score) => {
-            if (score >= 90) return 'C2';
-            if (score >= 85) return 'C1';
-            if (score >= 75) return 'B2';
-            if (score >= 60) return 'B1';
-            if (score >= 45) return 'A2';
-            if (score >= 20) return 'A1';
-            return 'A0'; // Pre-A1
+            if (score >= 95) return 'C2';
+            if (score >= 90) return 'C1';
+            if (score >= 85) return 'B2';
+            if (score >= 75) return 'B1';
+            if (score >= 60) return 'A2+';
+            if (score >= 50) return 'A2';
+            return 'A1';
         };
 
         // 4. Aggregated Skill Performance (from assignments)
@@ -1307,13 +1351,20 @@ export const getStudentProgressReport = async (req, res) => {
         Object.keys(skillPerformance).forEach(key => skillPerformance[key] = Math.round(skillPerformance[key]));
 
         // 5. Final Exam Result
+        let examFilter = "WHERE sub.student_id = ? AND a.title LIKE '%Final%'";
+        const examParams = [studentId];
+        if (period) {
+            examFilter += " AND DATE_FORMAT(sub.created_at, '%Y-%m') = ?";
+            examParams.push(period);
+        }
+
         const [examRows] = await dbp.query(`
             SELECT sub.score, a.total_points
             FROM assignment_submissions sub
             JOIN assignments a ON sub.assignment_id = a.id
-            WHERE sub.student_id = ? AND a.title LIKE '%Final%'
+            ${examFilter}
             ORDER BY sub.created_at DESC LIMIT 1
-        `, [studentId]);
+        `, examParams);
 
         const finalExamScore = examRows[0]
             ? Math.round((examRows[0].score / examRows[0].total_points) * 100)
@@ -1321,6 +1372,75 @@ export const getStudentProgressReport = async (req, res) => {
 
         // Use final exam score as the overall grade
         feedback.overall_grade = finalExamScore;
+
+        // 6. Fetch All Graded Submissions for Academic Ledger
+        // Build the WHERE clause for submissions
+        let submissionsWhere = "WHERE sub.student_id = ?";
+        const submissionsParams = [studentId];
+
+        if (period) {
+            submissionsWhere += " AND DATE_FORMAT(sub.submission_date, '%Y-%m') = ?";
+            submissionsParams.push(period);
+        }
+
+        const [submissions] = await dbp.query(`
+            SELECT 
+                'Writing Task' as type,
+                a.title,
+                sub.submission_date as created_at,
+                ROUND((sub.score / a.total_points) * 100, 0) as score,
+                a.total_points as max_score,
+                'graded' as status
+            FROM writing_task_submissions sub
+            JOIN writing_tasks a ON sub.assignment_id = a.id
+            ${submissionsWhere} AND sub.status = 'graded'
+            
+            UNION ALL
+            
+            SELECT 
+                'Exam' as type,
+                a.title,
+                sub.submission_date as created_at,
+                ROUND((sub.score / a.total_points) * 100, 0) as score,
+                a.total_points as max_score,
+                'graded' as status
+            FROM exam_submissions sub
+            JOIN exams a ON sub.assignment_id = a.id
+            ${submissionsWhere} AND sub.status = 'graded'
+            
+            UNION ALL
+            
+            SELECT 
+                'Oral Assignment' as type,
+                a.title,
+                sub.submission_date as created_at,
+                ROUND((sub.score / a.total_points) * 100, 0) as score,
+                a.total_points as max_score,
+                'graded' as status
+            FROM oral_assignment_submissions sub
+            JOIN oral_assignments a ON sub.assignment_id = a.id
+            ${submissionsWhere} AND sub.status = 'graded'
+            
+            UNION ALL
+            
+            SELECT 
+                'Course Work' as type,
+                a.title,
+                sub.submission_date as created_at,
+                ROUND((sub.score / a.total_points) * 100, 0) as score,
+                a.total_points as max_score,
+                'graded' as status
+            FROM course_work_submissions sub
+            JOIN course_work a ON sub.assignment_id = a.id
+            ${submissionsWhere} AND sub.status = 'graded'
+            
+            ORDER BY created_at DESC
+        `, [
+            ...submissionsParams,  // For writing tasks
+            ...submissionsParams,  // For exams
+            ...submissionsParams,  // For oral assignments
+            ...submissionsParams   // For course work
+        ]);
 
         res.json({
             success: true,
@@ -1341,6 +1461,7 @@ export const getStudentProgressReport = async (req, res) => {
                 },
                 skillPerformance,
                 examResult: finalExamScore,
+                submissions: submissions || [],
                 feedback: {
                     ...feedback,
                     overall_grade: finalExamScore, // Use final exam score

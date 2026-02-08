@@ -110,7 +110,7 @@ export default function TeacherDashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Students</p>
-                <h3 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h3 className={`text-5xl font-black mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {statsLoading ? '...' : totalStudents}
                 </h3>
                 <div className="flex items-center gap-1 text-sm font-medium text-blue-600">
@@ -133,7 +133,7 @@ export default function TeacherDashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Active Students</p>
-                <h3 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h3 className={`text-5xl font-black mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {statsLoading ? '...' : activeStudents}
                 </h3>
                 <div className="flex items-center gap-1 text-sm font-medium text-blue-700">
@@ -156,7 +156,7 @@ export default function TeacherDashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Programs</p>
-                <h3 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h3 className={`text-5xl font-black mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {statsLoading ? '...' : totalPrograms}
                 </h3>
                 <div className="flex items-center gap-1 text-sm font-medium text-indigo-600">
@@ -179,7 +179,7 @@ export default function TeacherDashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Classes</p>
-                <h3 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h3 className={`text-5xl font-black mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {statsLoading ? '...' : totalClasses}
                 </h3>
                 <div className="flex items-center gap-1 text-sm font-medium text-[#f40606]">
