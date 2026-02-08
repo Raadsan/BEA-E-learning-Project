@@ -102,6 +102,11 @@ export default function StudentsPage() {
     })();
     const showParentInfo = formData.age && parseInt(formData.age) < 18;
 
+    // Filter States
+    const [selectedProgram, setSelectedProgram] = useState("");
+
+    const [selectedStatus, setSelectedStatus] = useState("");
+
     // Merge and format students
     const mergedStudents = [
         ...(backendStudents || []).map(s => ({
@@ -118,6 +123,14 @@ export default function StudentsPage() {
             class_name: s.class_id ? classes.find(c => c.id == s.class_id)?.class_name : null
         }))
     ];
+
+    // Filter Logic
+    const filteredStudents = mergedStudents.filter(student => {
+        const matchesProgram = selectedProgram ? (student.chosen_program === selectedProgram || student.exam_type === selectedProgram) : true;
+        const matchesStatus = selectedStatus ? student.approval_status === selectedStatus : true;
+        return matchesProgram && matchesStatus;
+    });
+
 
     // Event Handlers
     const handleAddStudent = () => {
@@ -383,7 +396,46 @@ export default function StudentsPage() {
     return (
         <>
             <main className="flex-1 min-w-0 flex flex-col bg-gray-50 px-4 sm:px-8 py-6 ">
-                <DataTable title="Student Management" columns={columns} data={mergedStudents} onAddClick={handleAddStudent} showAddButton={true} />
+                <DataTable
+                    title="Student Management"
+                    columns={columns}
+                    data={filteredStudents}
+                    onAddClick={handleAddStudent}
+                    showAddButton={true}
+                    filters={
+                        <div className="flex flex-wrap gap-4 items-center">
+                            {/* Program Filter */}
+                            <select
+                                value={selectedProgram}
+                                onChange={(e) => {
+                                    setSelectedProgram(e.target.value);
+                                }}
+                                className={`px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-[#1e293b] border-gray-700 text-white' : 'bg-white border-gray-300'}`}
+                            >
+                                <option value="">All Programs</option>
+                                {programs.map(prog => (
+                                    <option key={prog.id} value={prog.title}>{prog.title}</option>
+                                ))}
+                                <option value="IELTS">IELTS</option>
+                                <option value="TOEFL">TOEFL</option>
+                            </select>
+
+
+
+                            {/* Status Filter */}
+                            <select
+                                value={selectedStatus}
+                                onChange={(e) => setSelectedStatus(e.target.value)}
+                                className={`px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-[#1e293b] border-gray-700 text-white' : 'bg-white border-gray-300'}`}
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    }
+                />
             </main>
 
             <StudentForm

@@ -45,10 +45,30 @@ export default function ClassesPage() {
     class_name: "", description: "", program_id: "", subprogram_id: "", teacher_id: "", shift_id: "",
   });
 
+  // Form Subprograms Logic
   const filteredSubprograms = useMemo(() => {
     if (!formData.program_id) return [];
     return allSubprograms.filter(sub => sub.program_id === parseInt(formData.program_id));
   }, [allSubprograms, formData.program_id]);
+
+  // Table Filter States
+  const [selectedProgram, setSelectedProgram] = useState("");
+  const [selectedSubprogram, setSelectedSubprogram] = useState("");
+
+  // Table Filter Logic
+  const filteredClasses = useMemo(() => {
+    return classes.filter(cls => {
+      const matchesProgram = selectedProgram ? cls.program_name === selectedProgram : true;
+      const matchesSubprogram = selectedSubprogram ? cls.subprogram_name === selectedSubprogram : true;
+      return matchesProgram && matchesSubprogram;
+    });
+  }, [classes, selectedProgram, selectedSubprogram]);
+
+  const availableSubprogramsForFilter = useMemo(() => {
+    if (!selectedProgram) return [];
+    const prog = programs.find(p => p.title === selectedProgram);
+    return prog ? allSubprograms.filter(sub => sub.program_id === prog.id) : [];
+  }, [selectedProgram, programs, allSubprograms]);
 
   const handleAddClass = useCallback(() => {
     setEditingClass(null);
@@ -177,7 +197,49 @@ export default function ClassesPage() {
 
   return (
     <>
-      <main className="flex-1 overflow-y-auto bg-gray-50"><div className="w-full px-8 py-6"><DataTable title="Class Management" columns={columns} data={classes} onAddClick={handleAddClass} showAddButton={true} /></div></main>
+      <main className="flex-1 overflow-y-auto bg-gray-50">
+        <div className="w-full px-8 py-6">
+          <DataTable
+            title="Class Management"
+            columns={columns}
+            data={filteredClasses}
+            onAddClick={handleAddClass}
+            showAddButton={true}
+            filters={
+              <div className="flex flex-wrap gap-4 items-center">
+                {/* Program Filter */}
+                <select
+                  value={selectedProgram}
+                  onChange={(e) => {
+                    setSelectedProgram(e.target.value);
+                    setSelectedSubprogram(""); // Reset subprogram
+                  }}
+                  className={`px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-[#1e293b] border-gray-700 text-white' : 'bg-white border-gray-300'}`}
+                >
+                  <option value="">All Programs</option>
+                  {programs.map(prog => (
+                    <option key={prog.id} value={prog.title}>{prog.title}</option>
+                  ))}
+                </select>
+
+                {/* Subprogram Filter */}
+                {selectedProgram && availableSubprogramsForFilter.length > 0 && (
+                  <select
+                    value={selectedSubprogram}
+                    onChange={(e) => setSelectedSubprogram(e.target.value)}
+                    className={`px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-[#1e293b] border-gray-700 text-white' : 'bg-white border-gray-300'}`}
+                  >
+                    <option value="">All Subprograms</option>
+                    {availableSubprogramsForFilter.map(sub => (
+                      <option key={sub.id} value={sub.subprogram_name}>{sub.subprogram_name}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            }
+          />
+        </div>
+      </main>
       <ClassForm
         isOpen={isModalOpen}
         onClose={handleCloseModal}

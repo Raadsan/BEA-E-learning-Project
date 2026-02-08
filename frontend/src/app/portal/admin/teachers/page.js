@@ -33,6 +33,14 @@ export default function TeachersPage() {
 
   const teachers = backendTeachers || [];
 
+  // Filter States
+  const [selectedStatus, setSelectedStatus] = useState("");
+
+  const filteredTeachers = teachers.filter(teacher => {
+    const matchesStatus = selectedStatus ? teacher.status === selectedStatus : true;
+    return matchesStatus;
+  });
+
   const getAssignedClasses = (teacherId) => {
     return classes.filter(c => c.teacher_id === teacherId);
   };
@@ -175,7 +183,30 @@ export default function TeachersPage() {
 
   return (
     <>
-      <main className="flex-1 bg-gray-50"><div className="w-full px-8 py-6"><DataTable title="Teachers" columns={columns} data={teachers} onAddClick={handleAddTeacher} showAddButton={true} /></div></main>
+      <main className="flex-1 bg-gray-50">
+        <div className="w-full px-8 py-6">
+          <DataTable
+            title="Teachers"
+            columns={columns}
+            data={filteredTeachers}
+            onAddClick={handleAddTeacher}
+            showAddButton={true}
+            filters={
+              <div className="flex flex-wrap gap-4 items-center">
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className={`px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-[#1e293b] border-gray-700 text-white' : 'bg-white border-gray-300'}`}
+                >
+                  <option value="">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+            }
+          />
+        </div>
+      </main>
       <TeacherForm isOpen={isModalOpen} onClose={handleCloseModal} editingTeacher={editingTeacher} formData={formData} setFormData={setFormData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} isDark={isDark} isCreating={isCreating} isUpdating={isUpdating} cities={cities} />
       <TeacherViewModal isOpen={isViewModalOpen} onClose={handleCloseViewModal} teacher={viewingTeacher} isDark={isDark} getAssignedClasses={getAssignedClasses} />
       <TeacherConfirmationModal isOpen={confirmationModal.isOpen} onClose={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))} title={confirmationModal.title} message={confirmationModal.message} onConfirm={confirmationModal.onConfirm} isLoading={confirmationModal.isLoading} isDark={isDark} />

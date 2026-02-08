@@ -64,6 +64,10 @@ export default function GeneralStudentsPage() {
     place_of_birth: ""
   });
   const [editSelectedSubprogramId, setEditSelectedSubprogramId] = useState("");
+  const [selectedSubprogram, setSelectedSubprogram] = useState("");
+  const [selectedProgram, setSelectedProgram] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
 
   // Filter students: approved general-program students (exclude IELTS/TOEFL)
   const generalStudents = useMemo(() => {
@@ -71,9 +75,19 @@ export default function GeneralStudentsPage() {
     return allStudents.filter(
       (student) =>
         (student.approval_status === "approved" || student.approval_status === "inactive") &&
-        student.chosen_program !== "IELTS & TOFEL Preparation"
+        student.chosen_program !== "IELTS & TOFEL Preparation" &&
+        (selectedProgram ? student.chosen_program === selectedProgram : true) &&
+        (selectedSubprogram ? student.chosen_subprogram == selectedSubprogram : true) &&
+        (selectedStatus ? student.approval_status === selectedStatus : true)
     );
-  }, [allStudents]);
+  }, [allStudents, selectedSubprogram, selectedProgram, selectedStatus]);
+
+  // Get available subprograms based on selected program
+  const availableSubprograms = useMemo(() => {
+    if (!selectedProgram) return [];
+    const program = programs.find(p => p.title === selectedProgram);
+    return program ? subprograms.filter(sp => sp.program_id === program.id) : [];
+  }, [selectedProgram, programs, subprograms]);
 
   // Get subprogram name for display
   const getSubprogramName = (subprogramId) => {
@@ -563,6 +577,60 @@ export default function GeneralStudentsPage() {
             columns={columns}
             data={generalStudents}
             showAddButton={false}
+            customHeaderLeft={
+              selectedStudentIds.length > 0 && (
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full">
+                  {selectedStudentIds.length} Selected
+                </span>
+              )
+            }
+            selectable={true}
+            selectedItems={selectedStudentIds}
+            onSelectionChange={setSelectedStudentIds}
+            filters={
+              <div className="flex flex-wrap gap-4 items-center">
+                {/* Program Filter */}
+                <select
+                  value={selectedProgram}
+                  onChange={(e) => {
+                    setSelectedProgram(e.target.value);
+                    setSelectedSubprogram(""); // Reset subprogram when program changes
+                  }}
+                  className={`px-3 py-1.5 text-sm w-48 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-[#1e293b] border-gray-700 text-white' : 'bg-white border-gray-300'}`}
+                >
+                  <option value="">All Programs</option>
+                  {programs
+                    .filter(p => p.title !== "IELTS & TOFEL Preparation")
+                    .map(prog => (
+                      <option key={prog.id} value={prog.title}>{prog.title}</option>
+                    ))}
+                </select>
+
+                {/* Subprogram Filter */}
+                <select
+                  value={selectedSubprogram}
+                  onChange={(e) => setSelectedSubprogram(e.target.value)}
+                  className={`px-3 py-1.5 text-sm w-48 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-[#1e293b] border-gray-700 text-white' : 'bg-white border-gray-300'}`}
+                >
+                  <option value="">All Subprograms</option>
+                  {(selectedProgram ? availableSubprograms : subprograms).map(sub => (
+                    <option key={sub.id} value={sub.id}>{sub.subprogram_name}</option>
+                  ))}
+                </select>
+
+                {/* Status Filter */}
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className={`px-3 py-1.5 text-sm w-32 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-[#1e293b] border-gray-700 text-white' : 'bg-white border-gray-300'}`}
+                >
+                  <option value="">All Statuses</option>
+                  <option value="approved">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="pending">Pending</option>
+                </select>
+              </div>
+            }
           />
         </div>
       </main>

@@ -38,63 +38,147 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
         average: performance?.find(p => p.category.toLowerCase() === cat.toLowerCase())?.average || 0
     }));
 
-    const handlePrint = async () => {
+    const generatePDF = async (action = 'download') => {
         const element = document.getElementById('tabular-report-content');
         if (!element) return;
 
         setIsGenerating(true);
+
+        // precise A4 dimensions in px (at 96 DPI)
+        // A4 is 210mm x 297mm.
+        // at 2x scale (used by html2canvas below), we need to work with scaled dimensions or logical dimensions.
+        // Let's allow html2canvas to capture the full scrolling height.
+        // We will then digitally "cut" the image into A4 pages.
+
         try {
-            const canvas = await html2canvas(element, {
+            // 1. Clone the element to manipulate it for printing (inserting spacers) without affecting the view
+            const clone = element.cloneNode(true);
+            clone.style.width = '800px'; // Ensure fixed width for consistency
+            clone.style.height = 'auto';
+            clone.style.position = 'absolute';
+            clone.style.top = '-9999px';
+            clone.style.left = '-9999px';
+            document.body.appendChild(clone);
+
+            // 2. Smart Pagination: Insert breaks
+            // Ratio of A4 (297/210) ~ 1.414
+            // Content width is fixed at 800px.
+            // Full Page Height in layout pixels = 800 * (297/210) ≈ 1131px
+            const PAGE_FULL_HEIGHT = 1131; // Exact height where PDF page cut will happen
+            const PAGE_SAFE_HEIGHT = 1050; // Threshold to trigger a break (leaving ~80px margin)
+
+            // Start offset at 48px (3rem) because the wrapper has p-12 padding.
+            // This aligns the content tracking with the visual top of the container.
+            let currentOffset = 48;
+
+            // Get all direct children (sections) of the wrapper
+            // Since we cloned the wrapper itself (which has the ID), the clone IS the wrapper
+            const wrapper = clone;
+            const children = Array.from(wrapper.children);
+
+            // Find the header element to clone later
+            const headerElement = wrapper.querySelector('.report-header');
+
+            children.forEach((child) => {
+                const style = window.getComputedStyle(child);
+                const marginTop = parseFloat(style.marginTop);
+                const marginBottom = parseFloat(style.marginBottom);
+                const totalHeight = child.offsetHeight + marginTop + marginBottom;
+
+                // If adding this child exceeds the safe area...
+                if (currentOffset + totalHeight > PAGE_SAFE_HEIGHT) {
+                    // Calculate spacer to fill exactly to the end of the page
+                    const spacerHeight = PAGE_FULL_HEIGHT - currentOffset;
+
+                    if (spacerHeight > 0) {
+                        const spacer = document.createElement('div');
+                        spacer.style.height = `${spacerHeight}px`;
+                        spacer.className = 'print-spacer';
+                        wrapper.insertBefore(spacer, child);
+                    }
+
+                    // On the new page, we want to repeat the header
+                    // But we also need to account for the padding that Page 1 has!
+                    // Page 1 has 48px padding.
+                    // If we start Page 2 at 0px, the header will be at the very top.
+                    // To match Page 1, we should add a spacer or margin equal to the padding BEFORE the header.
+
+                    if (headerElement) {
+                        // User requested "move to the top", so we remove the extra padding spacer.
+                        // We just insert the header directly at the top of the new page.
+
+                        const headerClone = headerElement.cloneNode(true);
+                        // No extra margin needed, it keeps the classes from the original header (mb-8 etc)
+                        wrapper.insertBefore(headerClone, child);
+
+                        // New page starts with header height + this child
+                        // headerClone.offsetHeight includes border + padding, but NOT margin
+                        // We need to account for the margin (mb-8 = 2rem = 32px)
+                        currentOffset = headerClone.offsetHeight + 32 + totalHeight;
+                    } else {
+                        // Reset current height for new page, starting with margins/padding but we removed padding spacer
+                        // So effectively 0 or just margin
+                        currentOffset = totalHeight;
+                    }
+
+                } else {
+                    currentOffset += totalHeight;
+                }
+            });
+
+            // 3. Generate Canvas from Clone
+            const canvas = await html2canvas(clone, {
                 scale: 2,
                 useCORS: true,
                 logging: false,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                windowWidth: 800
             });
 
+            // Clean up clone
+            document.body.removeChild(clone);
+
+            // 4. Generate PDF
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
+            const pdfHeight = pdf.internal.pageSize.getHeight(); // 297mm
 
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfImageHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-            // Generate a blob URL and open it in a new tab for printing
-            const blobUrl = pdf.output('bloburl');
-            window.open(blobUrl, '_blank');
-        } catch (error) {
-            console.error('Print Generation Error:', error);
-        } finally {
-            setIsGenerating(false);
-        }
-    };
+            let heightLeft = pdfImageHeight;
+            let position = 0;
+            let page = 1;
 
-    const handleDownload = async () => {
-        const element = document.getElementById('tabular-report-content');
-        if (!element) return;
+            // Add first page
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfImageHeight);
+            heightLeft -= pdfHeight;
 
-        setIsGenerating(true);
-        try {
-            // Increase scale for better PDF quality
-            const canvas = await html2canvas(element, {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#ffffff'
-            });
+            // Add additional pages if needed
+            while (heightLeft > 0) {
+                position = heightLeft - pdfImageHeight; // This positions the top of the image off-canvas upwards
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, -297 * page, pdfWidth, pdfImageHeight);
+                heightLeft -= pdfHeight;
+                page++;
+            }
 
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            if (action === 'download') {
+                pdf.save(`BEA_Progress_Report_${student?.full_name?.replace(/\s+/g, '_') || 'Student'}.pdf`);
+            } else {
+                window.open(pdf.output('bloburl'), '_blank');
+            }
 
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`BEA_Progress_Report_${student?.full_name?.replace(/\s+/g, '_') || 'Student'}.pdf`);
         } catch (error) {
             console.error('PDF Generation Error:', error);
         } finally {
             setIsGenerating(false);
         }
     };
+
+    const handlePrint = () => generatePDF('print');
+    const handleDownload = () => generatePDF('download');
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[rgba(0,0,0,0.6)] backdrop-blur-sm no-print">
@@ -137,10 +221,10 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
                 </div>
 
                 {/* Modal Body / Report Content */}
-                <div className="flex-1 overflow-auto p-12 bg-[#f9fafb] print-container" id="tabular-report-content">
-                    <div className="report-content-wrapper max-w-[800px] mx-auto bg-[#ffffff] border border-[#e5e7eb] p-12 print:border-none print:p-0" style={{ boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)' }}>
+                <div className="flex-1 overflow-auto p-12 bg-[#f9fafb] print-container">
+                    <div className="report-content-wrapper max-w-[800px] mx-auto bg-[#ffffff] border border-[#e5e7eb] p-12 print:border-none print:p-0" id="tabular-report-content" style={{ boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)' }}>
                         {/* Logo/Header */}
-                        <div className="flex justify-between items-center mb-8 pb-6 border-b-2 border-[#010080]">
+                        <div className="report-header flex justify-between items-center mb-8 pb-6 border-b-2 border-[#010080]">
                             <div className="text-left">
                                 <h1 className="text-2xl font-black text-[#010080] leading-none mb-1">ESL Student Progress Report</h1>
                                 <p className="text-[10px] font-bold text-[#9ca3af] uppercase tracking-[0.3em]">Official Performance Record</p>
@@ -235,7 +319,7 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
                                 <tbody>
                                     <tr>
                                         <TableLabel className="w-1/2">Final Exam Percentage</TableLabel>
-                                        <TableValue className="text-6xl font-black text-[#f40606] text-center w-1/2 py-6">
+                                        <TableValue className="text-6xl font-black text-[#010080] text-center w-1/2 py-6">
                                             <span className="font-black">{data?.examResult || summary?.overall_gpa || 0}%</span>
                                         </TableValue>
                                     </tr>
@@ -296,13 +380,13 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
                             <table className="w-full border-collapse border border-[#dbeafe]">
                                 <tbody>
                                     <tr className="bg-[#ffffff]">
-                                        <td className="p-10 text-center border-2 border-[#010080] w-1/2">
-                                            <span className="text-[12px] font-black uppercase tracking-[0.2em] text-[#010080] opacity-60 block mb-3">Total Academic Grade</span>
-                                            <div className="text-7xl font-black italic text-[#010080]">{summary?.overall_gpa || 0}%</div>
+                                        <td className="p-4 text-center border-2 border-[#010080] w-1/2">
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#010080] opacity-60 block mb-1">Total Academic Grade</span>
+                                            <div className="text-3xl font-black italic text-[#010080]">{summary?.overall_gpa || 0}%</div>
                                         </td>
-                                        <td className="p-10 text-center border-2 border-[#010080] w-1/2">
-                                            <span className="text-[12px] font-black uppercase tracking-[0.2em] text-[#010080] opacity-60 block mb-3">Promotion Level</span>
-                                            <div className="text-5xl font-black text-[#010080]">{summary?.overall_gpa >= 60 ? (data?.progressSummary?.cefrLevel || "PASS") : "RETAKE"}</div>
+                                        <td className="p-4 text-center border-2 border-[#010080] w-1/2">
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#010080] opacity-60 block mb-1">Promotion Level</span>
+                                            <div className="text-2xl font-black text-[#010080]">{summary?.overall_gpa >= 60 ? (data?.progressSummary?.cefrLevel || "PASS") : "RETAKE"}</div>
                                         </td>
                                     </tr>
                                 </tbody>

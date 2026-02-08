@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 const DEFAULT_MIN_COLUMN_WIDTH = "120px";
 
-const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true, customActions, emptyMessage, customHeaderLeft }) => {
+const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true, customActions, emptyMessage, customHeaderLeft, filters, selectable = false, onSelectionChange, selectedItems = [] }) => {
   const tableRef = useRef(null);
   const [hasHorizontalScroll, setHasHorizontalScroll] = useState(false);
 
@@ -41,6 +41,44 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
     }
   }, [search, data]);
 
+  // Selection Logic
+  const handleSelectAll = (e) => {
+    if (!onSelectionChange) return;
+    if (e.target.checked) {
+      // Select all filtered data
+      const allIds = filteredData.map(item => item.id || item._id || item.student_id);
+      // Merge with existing selection to avoid losing selections from other pages/searches if desired? 
+      // Usually "Select All" on a table selects visible.
+      // But if we want to support accumulation, we should merge.
+      // However, usually "Select All" checkbox in header reflects current view.
+      // Let's simpler: Select all filtered items.
+      // But we should probably keep existing selections that are NOT in current view?
+      // For now, let's just replacing selection with all filtered IDs might be unexpected if user wants to accumulate.
+      // Better: Add filtered IDs to selectedItems (deduplicated).
+      const newSelected = [...new Set([...selectedItems, ...allIds])];
+      onSelectionChange(newSelected);
+    } else {
+      // Deselect all filtered data
+      const filteredIds = filteredData.map(item => item.id || item._id || item.student_id);
+      const newSelected = selectedItems.filter(id => !filteredIds.includes(id));
+      onSelectionChange(newSelected);
+    }
+  };
+
+  const handleSelectRow = (id) => {
+    if (!onSelectionChange) return;
+    if (selectedItems.includes(id)) {
+      onSelectionChange(selectedItems.filter(itemId => itemId !== id));
+    } else {
+      onSelectionChange([...selectedItems, id]);
+    }
+  };
+
+  const isAllSelected = filteredData.length > 0 && filteredData.every(item => selectedItems.includes(item.id || item._id || item.student_id));
+  const isIndeterminate = filteredData.some(item => selectedItems.includes(item.id || item._id || item.student_id)) && !isAllSelected;
+
+
+
   const startIdx = (currentPage - 1) * entriesPerPage;
   const endIdx = startIdx + entriesPerPage;
   const totalPages = Math.ceil((Array.isArray(filteredData) ? filteredData.length : 0) / entriesPerPage);
@@ -49,7 +87,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
     <div className={`p-5 rounded-xl shadow-sm border w-full max-w-full min-w-0 ${isDark ? 'bg-[#0f172a] border-gray-800 text-white' : 'bg-white border-gray-100 text-gray-900'}`}>
       {/* Table Header Section - Fixed at top of card */}
       <div className="flex-shrink-0">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
           <div className="header">
             <h2 className="text-xl font-semibold">{title}</h2>
           </div>
@@ -73,25 +111,31 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
         </div>
 
         <div className="flex justify-between items-center mb-4 gap-4 flex-wrap">
-          <div className="flex items-center">
-            <label className="text-sm text-gray-600 dark:text-gray-300">Show&nbsp;</label>
-            <select
-              value={entriesPerPage}
-              onChange={(e) => {
-                setEntriesPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="border border-gray-300 dark:border-gray-800 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
-            >
-              {[5, 10, 25, 50, 100].map((num) => (
-                <option key={num} value={num}>
-                  {num}
-                </option>
-              ))}
-            </select>
-            <span className="text-sm text-gray-600 dark:text-gray-300 ml-1 mr-4"> entries</span>
-            {customHeaderLeft}
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center">
+              <label className="text-sm text-gray-600 dark:text-gray-300">Show&nbsp;</label>
+              <select
+                value={entriesPerPage}
+                onChange={(e) => {
+                  setEntriesPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-gray-300 dark:border-gray-800 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+              >
+                {[5, 10, 25, 50, 100].map((num) => (
+                  <option key={num} value={num}>
+                    {num}
+                  </option>
+                ))}
+              </select>
+              <span className="text-sm text-gray-600 dark:text-gray-300 ml-1 mr-4"> entries</span>
+              {customHeaderLeft}
+            </div>
+
+            {/* Filters inserted here to be on the right of 'Show entries' */}
+            {filters}
           </div>
+
           <input
             type="text"
             placeholder="Search..."
@@ -107,6 +151,17 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
           <table className="w-full text-left text-sm" style={{ minWidth: 'max-content', borderCollapse: 'separate', borderSpacing: 0 }}>
             <thead className={`${isDark ? 'bg-[#0f172a] text-white border-b border-gray-800' : 'bg-[#010080] text-white'} sticky top-0 z-30`}>
               <tr>
+                {selectable && (
+                  <th className="px-5 py-4 w-12" style={{ backgroundColor: isDark ? '#0f172a' : '#010080', color: '#ffffff' }}>
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      ref={input => { if (input) input.indeterminate = isIndeterminate; }}
+                      onChange={handleSelectAll}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                  </th>
+                )}
                 {Array.isArray(columns) && columns.map((col, i) => {
                   return (
                     <th
@@ -133,6 +188,16 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                     : "bg-gray-50 dark:bg-[#111827]"
                     } text-black dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors`}
                 >
+                  {selectable && (
+                    <td className="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.includes(row.id || row._id || row.student_id)}
+                        onChange={() => handleSelectRow(row.id || row._id || row.student_id)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </td>
+                  )}
                   {Array.isArray(columns) && columns.map((col, i) => {
                     const cellValue = col.key
                       ? col.key.split(".").reduce((obj, key) => obj?.[key], row)
@@ -178,7 +243,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
               {(!Array.isArray(filteredData) || filteredData.length === 0) && (
                 <tr>
                   <td
-                    colSpan={Array.isArray(columns) ? columns.length : 1}
+                    colSpan={(Array.isArray(columns) ? columns.length : 1) + (selectable ? 1 : 0)}
                     className="px-4 py-8 text-center text-gray-500 dark:text-gray-300"
                   >
                     {emptyMessage || "No data found."}

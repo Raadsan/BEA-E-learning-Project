@@ -294,8 +294,8 @@ export default function IELTSTOEFLStudentsPage() {
     //     </span>
     //   ),
     // },
-    
-    
+
+
     {
       key: "verification_method",
       label: "Verification",
