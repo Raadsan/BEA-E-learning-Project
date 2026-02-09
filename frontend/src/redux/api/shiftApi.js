@@ -6,7 +6,7 @@ export const shiftApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: `${API_URL}/shifts`,
         prepareHeaders: (headers) => {
-            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+            const token = typeof window !== `undefined" ? localStorage.getItem("token") : null;
             if (token) {
                 headers.set("Authorization", `Bearer ${token}`);
             }
