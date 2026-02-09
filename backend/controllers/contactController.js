@@ -1,6 +1,5 @@
-// controllers/contactController.js
 import * as Contact from "../models/contactModel.js";
-import nodemailer from "nodemailer";
+import { sendNotification } from "../utils/emailService.js";
 
 // CREATE CONTACT (Save to DB + Send Email)
 export const createContact = async (req, res) => {
@@ -9,124 +8,132 @@ export const createContact = async (req, res) => {
 
     // Validate required fields
     if (!name || !email || !message) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Name, email, and message are required" 
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and message are required"
       });
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid email format" 
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email format"
       });
     }
 
-    // Save to database first
-    const contact = await Contact.createContact({
-      name,
-      email,
-      phone,
-      message
-    });
+    // Save to database
+    let contact;
+    try {
+      contact = await Contact.createContact({
+        name,
+        email,
+        phone,
+        message
+      });
+    } catch (dbErr) {
+      console.error("❌ Database Error saving contact:", dbErr);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to save message to database"
+      });
+    }
 
-    // Send email (if configured) - Non-blocking, won't affect database save
+    // Send email notification to admin
     let emailSent = false;
     let emailError = null;
 
-    // Try to send email, but don't let it block the response
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       try {
-        // Clean email password (remove spaces that might be in .env file)
-        const emailPass = String(process.env.EMAIL_PASS).trim().replace(/\s+/g, '');
-        
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: process.env.EMAIL_USER.trim(),
-            pass: emailPass,
-          },
-        });
+        const html = `
+          <div style="font-family: 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #010080 0%, #1e1b4b 100%); padding: 32px 24px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.025em;">New Contact Inquiry</h1>
+              <p style="color: #cbd5e1; margin: 8px 0 0 0; font-size: 14px;">BEA E-Learning Portal</p>
+            </div>
 
-        // Don't verify - just try to send (verify can fail even with correct credentials)
-        const mailOptions = {
-          from: `"${name}" <${process.env.EMAIL_USER}>`,
-          replyTo: email,
-          to: process.env.EMAIL_USER, // You receive the message
-          subject: `New Contact Message from ${name}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #010080; border-bottom: 2px solid #010080; padding-bottom: 10px;">
-                New Contact Form Message
-              </h2>
-              <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin-top: 20px;">
-                <p style="margin: 10px 0;"><strong>Name:</strong> ${name}</p>
-                <p style="margin: 10px 0;"><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-                ${phone ? `<p style="margin: 10px 0;"><strong>Phone:</strong> ${phone}</p>` : ''}
-                <p style="margin: 10px 0;"><strong>Message:</strong></p>
-                <p style="margin: 10px 0; padding: 10px; background-color: white; border-left: 3px solid #010080;">
-                  ${message.replace(/\n/g, '<br>')}
-                </p>
+            <!-- Content -->
+            <div style="padding: 32px 24px;">
+              <p style="color: #475569; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
+                Hello Administrator,<br>
+                You have received a new message through the website contact form. Here are the details:
+              </p>
+
+              <!-- Details Table -->
+              <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; width: 30%;">Name</td>
+                    <td style="padding: 8px 0; color: #1e293b; font-size: 15px; font-weight: 600;">${name}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Email</td>
+                    <td style="padding: 8px 0; color: #010080; font-size: 15px; font-weight: 600;">
+                      <a href="mailto:${email}" style="color: #010080; text-decoration: none;">${email}</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Phone</td>
+                    <td style="padding: 8px 0; color: #1e293b; font-size: 15px; font-weight: 600;">${phone || 'Not provided'}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 16px 0 8px 0; color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;" colspan="2">Message Content</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; color: #334155; font-size: 15px; line-height: 1.6; white-space: pre-wrap;" colspan="2">${message}</td>
+                  </tr>
+                </table>
               </div>
-              <p style="margin-top: 20px; color: #666; font-size: 12px;">
-                This message was sent from the BEA E-learning contact form.
+
+              <!-- Action Button -->
+              <div style="text-align: center;">
+                <a href="mailto:${email}" style="display: inline-block; background-color: #010080; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 15px; transition: background-color 0.2s;">
+                  Reply to ${name}
+                </a>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="background-color: #f1f5f9; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="color: #94a3b8; font-size: 12px; margin: 0;">
+                &copy; ${new Date().getFullYear()} BEA (Blueprint English Academy). All rights reserved.<br>
+                This is an automated notification from your learning portal.
               </p>
             </div>
-          `,
-          text: `
-            New Contact Form Message
-            
-            Name: ${name}
-            Email: ${email}
-            ${phone ? `Phone: ${phone}` : ''}
-            Message: ${message}
-          `,
-        };
+          </div>
+        `;
 
-        // Try to send email (without verify step)
-        const info = await transporter.sendMail(mailOptions);
-        emailSent = true;
-        console.log("✅ Email sent successfully:", info.messageId);
-      } catch (emailErr) {
-        emailError = emailErr.code === 'EAUTH' 
-          ? "Email authentication failed. Please check your EMAIL_USER and EMAIL_PASS in .env file. Make sure EMAIL_PASS is a Gmail App Password (16 characters, no spaces)."
-          : emailErr.message || "Email failed to send";
-        console.error("❌ Email Error:", emailErr);
-        console.error("❌ Email Error Details:", {
-          code: emailErr.code,
-          command: emailErr.command,
-          response: emailErr.response
+        await sendNotification({
+          to: process.env.EMAIL_USER, // Send to site admin
+          subject: `BEA Contact: ${name} - ${new Date().toLocaleDateString()}`,
+          html: html
         });
-        // Continue - contact is already saved in DB
+
+        emailSent = true;
+        console.log("✅ Contact email sent successfully to admin");
+      } catch (err) {
+        console.error("❌ Email failed to send:", err.message);
+        emailError = err.message;
       }
-    } else {
-      console.log("ℹ️ Email not configured - skipping email send");
     }
 
-    // Return success - contact is saved even if email fails
-    res.status(201).json({ 
-      success: true, 
-      message: "Contact saved successfully" + (emailSent ? " and email sent!" : (emailError ? " (email failed but contact saved)" : " (email not configured)")),
-      contact: {
-        id: contact.id,
-        name: contact.name,
-        email: contact.email,
-        phone: contact.phone
-      },
+    res.status(201).json({
+      success: true,
+      message: emailSent
+        ? "Message sent successfully! We'll get back to you soon."
+        : "Message saved successfully, but email notification failed.",
       emailSent,
-      emailError: emailError || undefined
+      emailError,
+      contactId: contact.id
     });
 
   } catch (err) {
-    console.error("❌ Contact Save Error:", err);
-    console.error("❌ Error Stack:", err.stack);
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to save contact: " + (err.message || "Unknown error"),
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    console.error("❌ Controller Error:", err);
+    res.status(500).json({
+      success: false,
+      message: "An unexpected error occurred"
     });
   }
 };

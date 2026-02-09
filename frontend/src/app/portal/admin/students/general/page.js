@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 
 import DataTable from "@/components/DataTable";
-import { useGetStudentsQuery, useUpdateStudentMutation } from "@/redux/api/studentApi";
+import { useGetStudentsQuery, useUpdateStudentMutation, useDeleteStudentMutation } from "@/redux/api/studentApi";
 import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
@@ -22,6 +22,7 @@ export default function GeneralStudentsPage() {
   const { data: shifts = [] } = useGetShiftsQuery();
   const { data: sessionRequests = [] } = useGetSessionRequestsQuery();
   const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
+  const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentMutation();
 
   // Modal state for assigning class
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -68,6 +69,17 @@ export default function GeneralStudentsPage() {
   const [selectedProgram, setSelectedProgram] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+  const [isBulkActionsModalOpen, setIsBulkActionsModalOpen] = useState(false);
+  const [bulkActions, setBulkActions] = useState({
+    changeStatus: false,
+    assignClass: false
+  });
+  const [bulkStatusValue, setBulkStatusValue] = useState("approved");
+  const [bulkLevelId, setBulkLevelId] = useState("");
+  const [bulkShiftName, setBulkShiftName] = useState("");
+  const [bulkSessionType, setBulkSessionType] = useState("");
+  const [bulkClassId, setBulkClassId] = useState("");
+  const [bulkStep, setBulkStep] = useState(1); // 1: Select Action, 2: Action Details
 
   // Filter students: approved general-program students (exclude IELTS/TOEFL)
   const generalStudents = useMemo(() => {
@@ -345,6 +357,57 @@ export default function GeneralStudentsPage() {
     }
   };
 
+  // Handle bulk actions
+  const handleBulkActions = async () => {
+    if (selectedStudentIds.length === 0) return;
+
+    try {
+      if (bulkActions.changeStatus) {
+        // Run all status updates in parallel
+        await Promise.all(
+          selectedStudentIds.map(id =>
+            updateStudent({
+              id: id,
+              approval_status: bulkStatusValue
+            }).unwrap()
+          )
+        );
+        showToast(`Successfully updated status for ${selectedStudentIds.length} students`, "success");
+      } else if (bulkActions.assignClass) {
+        if (!bulkClassId) {
+          showToast("Please select a class to assign", "error");
+          return;
+        }
+        // Run all class assignments in parallel
+        await Promise.all(
+          selectedStudentIds.map(id =>
+            updateStudent({
+              id: id,
+              class_id: parseInt(bulkClassId),
+              chosen_subprogram: parseInt(bulkLevelId)
+            }).unwrap()
+          )
+        );
+        showToast(`Successfully assigned ${selectedStudentIds.length} students to class`, "success");
+      }
+
+      setIsBulkActionsModalOpen(false);
+      setSelectedStudentIds([]);
+      setBulkActions({ changeStatus: false, assignClass: false });
+      setBulkStep(1);
+      setBulkLevelId("");
+      setBulkShiftName("");
+      setBulkSessionType("");
+      setBulkClassId("");
+      setSelectedStudentIds([]);
+      setSelectedIELTSStudentIds([]);
+      refetch();
+    } catch (error) {
+      console.error("Bulk action failed:", error);
+      showToast(error?.data?.error || "Failed to perform bulk actions", "error");
+    }
+  };
+
   const columns = [
     {
       key: "student_id",
@@ -579,10 +642,38 @@ export default function GeneralStudentsPage() {
             showAddButton={false}
             customHeaderLeft={
               selectedStudentIds.length > 0 && (
-                <span className="text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full">
-                  {selectedStudentIds.length} Selected
-                </span>
+                <div className="px-3 py-1.5 bg-[#010080] text-white rounded-lg shadow-sm flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-bold text-[13px] whitespace-nowrap">{selectedStudentIds.length} selected</span>
+                  <button
+                    onClick={() => setSelectedStudentIds([])}
+                    className="ml-1 text-white hover:text-gray-200 transition-colors"
+                    title="Clear selection"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               )
+            }
+            customActions={
+              <button
+                onClick={() => setIsBulkActionsModalOpen(true)}
+                disabled={selectedStudentIds.length === 0}
+                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all active:scale-95 shadow-lg ${selectedStudentIds.length === 0
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none opacity-50'
+                  : 'bg-[#010080] text-white hover:bg-[#010080]/90 shadow-[#010080]/20'
+                  }`}
+                title={selectedStudentIds.length === 0 ? "Select students to perform actions" : "Perform bulk actions"}
+              >
+                <svg className="w-5 h-5 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span className="font-semibold">Actions</span>
+              </button>
             }
             selectable={true}
             selectedItems={selectedStudentIds}
@@ -1306,6 +1397,260 @@ export default function GeneralStudentsPage() {
           </div>
         );
       })()}
+      {/* Bulk Actions Modal */}
+      {isBulkActionsModalOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsBulkActionsModalOpen(false)}
+          />
+          <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-hidden border-2 transition-all ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className={`sticky top-0 z-10 px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                Bulk Actions
+              </h3>
+              <button
+                onClick={() => setIsBulkActionsModalOpen(false)}
+                className={`p-1 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className={`p-6 overflow-y-auto ${bulkStep === 2 && bulkActions.assignClass ? 'max-h-[70vh]' : 'max-h-[85vh]'}`}>
+              {/* Step 1: Action Selection */}
+              {bulkStep === 1 && (
+                <>
+                  <div className={`p-4 rounded-lg mb-6 text-sm border ${isDark ? 'bg-gray-700/30 border-gray-600 text-gray-300' : 'bg-blue-50/50 border-blue-100 text-blue-800'}`}>
+                    <p className="font-semibold">{selectedStudentIds.length} student{selectedStudentIds.length !== 1 ? 's' : ''} selected</p>
+                    <p className="text-xs mt-1 opacity-80">What would you like to do with the selected students?</p>
+                  </div>
+
+                  <div className="space-y-4 mb-6">
+                    {/* Change Status Option */}
+                    <div className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${bulkActions.changeStatus ? (isDark ? 'border-[#010080] bg-[#010080]/10' : 'border-[#010080] bg-[#010080]/5') : (isDark ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')}`}
+                      onClick={() => setBulkActions({ changeStatus: true, delete: false, assignClass: false })}
+                    >
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={bulkActions.changeStatus}
+                          readOnly
+                          className="mt-1 w-5 h-5 text-[#010080] border-gray-300 rounded focus:ring-[#010080]"
+                        />
+                        <div className="flex-1">
+                          <div className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Change Status</div>
+                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Update the approval status (Active/Inactive/Pending)</p>
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Assign to Class Option */}
+                    <div className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${bulkActions.assignClass ? (isDark ? 'border-[#010080] bg-[#010080]/10' : 'border-[#010080] bg-[#010080]/5') : (isDark ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')}`}
+                      onClick={() => setBulkActions({ changeStatus: false, assignClass: true })}
+                    >
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={bulkActions.assignClass}
+                          readOnly
+                          className="mt-1 w-5 h-5 text-[#010080] border-gray-300 rounded focus:ring-[#010080]"
+                        />
+                        <div className="flex-1">
+                          <div className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Assign to Class</div>
+                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Move students to a specific Level and Class</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={() => {
+                        setIsBulkActionsModalOpen(false);
+                        setBulkActions({ changeStatus: false, assignClass: false });
+                      }}
+                      className={`flex-1 px-4 py-2.5 rounded-lg border font-semibold transition-all active:scale-95 ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (bulkActions.assignClass) {
+                          const selectedStudents = allStudents?.filter(s => selectedStudentIds.includes(s.student_id));
+                          const uniquePrograms = [...new Set(selectedStudents?.map(s => s.chosen_program))];
+
+                          if (uniquePrograms.length > 1) {
+                            showToast("Selected students must belong to the same program for bulk assignment.", "error");
+                            return;
+                          }
+                        }
+                        setBulkStep(2);
+                      }}
+                      disabled={!bulkActions.changeStatus && !bulkActions.assignClass}
+                      className={`flex-1 px-4 py-2.5 rounded-lg font-semibold transition-all active:scale-95 shadow-lg ${!bulkActions.changeStatus && !bulkActions.assignClass
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                        : 'bg-[#010080] text-white hover:bg-[#010080]/90 shadow-[#010080]/20'
+                        }`}
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </>
+              )
+              }
+
+              {/* Step 2: Action Details */}
+              {bulkStep === 2 && (
+                <>
+                  <div className="mb-6">
+                    <button
+                      onClick={() => setBulkStep(1)}
+                      className={`flex items-center gap-1 text-sm font-medium mb-4 ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-[#010080] hover:text-[#010080]/80'}`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      Back to selection
+                    </button>
+
+                    <h4 className={`text-base font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {bulkActions.changeStatus ? 'Set New Status' : 'Class Assignment Details'}
+                    </h4>
+
+                    {bulkActions.changeStatus && (
+                      <div className={`p-4 rounded-xl border-2 ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
+                        <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Select Status</label>
+                        <select
+                          value={bulkStatusValue}
+                          onChange={(e) => setBulkStatusValue(e.target.value)}
+                          className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-[#010080] outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                        >
+                          <option value="approved">Active</option>
+                          <option value="inactive">Inactive</option>
+                          <option value="pending">Pending</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {bulkActions.assignClass && (() => {
+                      const firstStudentId = selectedStudentIds[0];
+                      const firstStudent = allStudents?.find(s => s.student_id === firstStudentId);
+                      const studentProgram = programs.find(p => p.title === firstStudent?.chosen_program);
+                      const availableLevels = studentProgram ? subprograms.filter(sp => sp.program_id === studentProgram.id) : subprograms;
+                      const classesForProgram = studentProgram ? classes.filter(cls => cls.program_name === studentProgram.title) : classes;
+                      const shiftsForLevel = bulkLevelId ? classesForProgram.filter(cls => cls.subprogram_id == bulkLevelId) : [];
+                      const uniqueShiftNames = [...new Set(shiftsForLevel.map(cls => cls.shift_name))].filter(Boolean);
+                      const sessionsForShift = bulkShiftName ? shiftsForLevel.filter(cls => cls.shift_name === bulkShiftName) : [];
+                      const availableSessions = [...new Set(sessionsForShift.map(cls => cls.shift_session))].filter(Boolean);
+                      const finalClasses = bulkSessionType ? sessionsForShift.filter(cls => cls.shift_session === bulkSessionType) : [];
+
+                      return (
+                        <div className={`p-4 rounded-xl border-2 space-y-4 ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
+                          <div>
+                            <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Select Level</label>
+                            <select
+                              value={bulkLevelId}
+                              onChange={(e) => {
+                                setBulkLevelId(e.target.value);
+                                setBulkShiftName("");
+                                setBulkSessionType("");
+                                setBulkClassId("");
+                              }}
+                              className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#010080] outline-none ${isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                            >
+                              <option value="">Select Level</option>
+                              {availableLevels.map(lvl => (
+                                <option key={lvl.id} value={lvl.id}>{lvl.subprogram_name}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Shift</label>
+                              <select
+                                value={bulkShiftName}
+                                disabled={!bulkLevelId}
+                                onChange={(e) => {
+                                  setBulkShiftName(e.target.value);
+                                  setBulkSessionType("");
+                                  setBulkClassId("");
+                                }}
+                                className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#010080] outline-none disabled:opacity-50 ${isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                              >
+                                <option value="">Select Shift</option>
+                                {uniqueShiftNames.map(name => (
+                                  <option key={name} value={name}>{name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Session</label>
+                              <select
+                                value={bulkSessionType}
+                                disabled={!bulkShiftName}
+                                onChange={(e) => {
+                                  setBulkSessionType(e.target.value);
+                                  setBulkClassId("");
+                                }}
+                                className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#010080] outline-none disabled:opacity-50 ${isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                              >
+                                <option value="">Select Session</option>
+                                {availableSessions.map(session => (
+                                  <option key={session} value={session}>{session}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Final Class</label>
+                            <select
+                              value={bulkClassId}
+                              disabled={!bulkSessionType}
+                              onChange={(e) => setBulkClassId(e.target.value)}
+                              className={`w-full px-3 py-2.5 text-sm border rounded-lg border-[#010080] focus:ring-2 focus:ring-[#010080] outline-none disabled:opacity-50 font-semibold ${isDark ? 'bg-gray-800 text-white' : 'bg-blue-50 text-[#010080]'}`}
+                            >
+                              <option value="">Choose Class</option>
+                              {finalClasses.map(cls => (
+                                <option key={cls.id} value={cls.id}>{cls.class_name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={() => {
+                        setIsBulkActionsModalOpen(false);
+                        setBulkStep(1);
+                        setBulkActions({ changeStatus: false, assignClass: false });
+                      }}
+                      className={`flex-1 px-4 py-2.5 rounded-lg border font-semibold transition-all active:scale-95 ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleBulkActions}
+                      disabled={bulkActions.assignClass ? !bulkClassId : false}
+                      className={`flex-1 px-4 py-2.5 rounded-lg font-semibold bg-[#010080] text-white hover:bg-[#010080]/90 transition-all active:scale-95 shadow-lg shadow-[#010080]/20 disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      Apply Actions
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
       {/* Status Toggle Confirmation Modal */}
       {isStatusModalOpen && studentToToggleStatus && (() => {
         const isActive = studentToToggleStatus.approval_status === 'approved';

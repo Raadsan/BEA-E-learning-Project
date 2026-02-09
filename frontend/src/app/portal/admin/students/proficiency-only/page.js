@@ -68,6 +68,8 @@ export default function ProficiencyCandidatesPage() {
     const [extraTime, setExtraTime] = useState("");
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editFormData, setEditFormData] = useState({});
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [verificationFilter, setVerificationFilter] = useState("all");
 
 
     const handleUpdateStatus = async (id, status) => {
@@ -268,7 +270,18 @@ export default function ProficiencyCandidatesPage() {
         }
     ];
 
-
+    const filteredCandidates = (candidates || []).filter(candidate => {
+        // Filter by status
+        if (statusFilter !== "all" && candidate.status?.toLowerCase() !== statusFilter.toLowerCase()) {
+            return false;
+        }
+        // Verification filter - all proficiency candidates are "Proficiency Test Only"
+        // This filter is mainly for UI consistency with IELTS/TOEFL page
+        if (verificationFilter !== "all" && verificationFilter !== "proficiency_test") {
+            return false;
+        }
+        return true;
+    });
 
     if (isLoading) return <main className="flex-1 flex items-center justify-center p-20 p-6"><p>Loading candidates...</p></main>;
 
@@ -277,10 +290,59 @@ export default function ProficiencyCandidatesPage() {
             <DataTable
                 title="Proficiency Candidates (Test Only)"
                 columns={columns}
-                data={candidates || []}
+                data={filteredCandidates}
                 isLoading={isLoading}
                 isDark={isDark}
                 itemsPerPage={10}
+                customHeaderLeft={
+                    <div className="flex gap-3 flex-wrap">
+                        {/* Status Filter */}
+                        <div className="relative group min-w-[180px]">
+                            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                </svg>
+                            </div>
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="w-full pl-10 pr-10 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[13px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer"
+                            >
+                                <option value="all">Everywhere</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Verification Filter */}
+                        <div className="relative group min-w-[180px]">
+                            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <select
+                                value={verificationFilter}
+                                onChange={(e) => setVerificationFilter(e.target.value)}
+                                className="w-full pl-10 pr-10 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[13px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer"
+                            >
+                                <option value="all">All Verification</option>
+                                <option value="proficiency_test">Proficiency Test</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                }
             />
 
             {/* Edit Modal (Styled like Student Management) */}

@@ -75,20 +75,20 @@ export default function Header() {
     <header className={`sticky top-0 z-50 shadow-sm transition-colors duration-300 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`} style={{ fontFamily: 'var(--font-opensans)' }}>
       {/* Top Blue Line Container */}
       <div className="w-full h-8 bg-[#010080]"></div>
-      <div className={`container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
+      <div className={`container mx-auto px-4 sm:px-4 md:px-6 lg:px-8 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
         {/* First Row: Logo, Search, Icons */}
-        <div className={`flex items-center justify-between pt-10 pb-8 -mt-0 h-12 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
+        <div className={`flex items-center justify-between pt-0 pb-0 -mt-0 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
           {/* Logo */}
-          <div className="flex items-center flex-shrink-0">
+          <Link href="/" className="flex items-center flex-shrink-0 max-w-[200px] sm:max-w-none">
             <Image
               src={isDarkMode ? "/images/footerlogo-removebg-preview.png" : "/images/headerlogo.png"}
               alt="BEA Logo"
-              width={280}
-              height={140}
-              className="h-16 sm:h-20 md:h-24 lg:h-28 xl:h-32 w-auto object-contain"
+              width={400}
+              height={200}
+              className="h-20 sm:h-24 md:h-32 lg:h-36 xl:h-40 w-auto object-contain cursor-pointer"
               priority
             />
-          </div>
+          </Link>
 
           {/* Search Bar - Center */}
           <div className="hidden md:flex items-center flex-1 justify-center mx-4 max-w-2xl">
@@ -142,11 +142,11 @@ export default function Header() {
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
@@ -155,7 +155,7 @@ export default function Header() {
         </div>
 
         {/* Second Row: Navigation Links */}
-        <div className={`pb-4 pt-2 ml-8 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
+        <div className={`hidden lg:block pb-4 pt-2 ml-8 ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
           <nav className="hidden lg:flex items-center gap-4 xl:gap-6 py-0 h-8 ml-0">
             <Link href="/" className={`text-sm xl:text-base hover:opacity-80 transition-colors ${isDarkMode ? 'text-white' : ''}`} style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
               Home
@@ -334,190 +334,167 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)}>
-          <div
-            className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-4 space-y-4">
-              {/* Mobile Search */}
-              <div className="flex items-center border border-gray-300 rounded-full bg-gray-200">
-                <input
-                  type="text"
-                  placeholder="Search course..."
-                  className="outline-none text-sm px-3 py-2 text-gray-700 placeholder-gray-500 bg-transparent flex-1"
-                />
-                <div className="px-3 flex items-center">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Mobile Navigation Links */}
-              <nav className="space-y-2">
-                <Link href="/" className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors rounded-lg">
-                  Home
-                </Link>
-
-                {/* Mobile Programs Dropdown */}
-                <div>
-                  <div className="w-full flex items-center justify-between px-4 py-2">
-                    <Link
-                      href="/website/programs"
-                      className="text-gray-700 hover:text-red-600 transition-colors"
-                    >
-                      Programs
-                    </Link>
-                    <button
-                      onClick={() => setProgramsOpen(!programsOpen)}
-                      className="text-gray-700 hover:text-red-600 transition-colors"
-                    >
-                      <svg
-                        className={`w-4 h-4 transition-transform ${programsOpen ? "rotate-180" : ""}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  </div>
-                  {programsOpen && (
-                    <div className="mt-2 ml-4 space-y-1 bg-gray-50 rounded-lg p-2">
-                      {programsMenu.map((item, index) => (
-                        <Link
-                          key={index}
-                          href={item.href}
-                          className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors rounded-lg text-sm"
-                          onClick={() => {
-                            setProgramsOpen(false);
-                            setMobileMenuOpen(false);
-                          }}
-                        >
-                          {item.title}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Mobile BEA Values Dropdown */}
-                <div>
-                  <div className="w-full flex items-center justify-between px-4 py-2">
-                    <Link
-                      href="/website/bea-values"
-                      className="text-gray-700 hover:text-red-600 transition-colors"
-                    >
-                      BEA Values
-                    </Link>
-                    <button
-                      onClick={() => setBeaValuesOpen(!beaValuesOpen)}
-                      className="text-gray-700 hover:text-red-600 transition-colors"
-                    >
-                      <svg
-                        className={`w-4 h-4 transition-transform ${beaValuesOpen ? "rotate-180" : ""}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  </div>
-                  {beaValuesOpen && (
-                    <div className="mt-2 ml-4 space-y-1 rounded-lg" style={{ backgroundColor: isDarkMode ? '#050040' : '#010080' }}>
-                      {beaValuesMenu.map((item, index) => (
-                        <Link
-                          key={index}
-                          href={item.href}
-                          className={`flex items-start gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-lg transition-colors group text-sm ${isDarkMode ? 'hover:bg-[#03002e]' : 'hover:bg-blue-900'}`}
-                          onClick={() => {
-                            setBeaValuesOpen(false);
-                            setMobileMenuOpen(false);
-                          }}
-                        >
-                          {/* Icon */}
-                          <div className="flex-shrink-0 mt-0.5">
-                            {item.icon === "lightbulb" && (
-                              <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.477.859h4z" />
-                              </svg>
-                            )}
-                            {item.icon === "book" && (
-                              <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
-                              </svg>
-                            )}
-                            {item.icon === "users" && (
-                              <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-300'}`} fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                              </svg>
-                            )}
-                          </div>
-
-                          {/* Content */}
-                          <div className="flex-1 min-w-0">
-                            <div className={`font-bold text-white mb-0.5 sm:mb-1 text-xs sm:text-sm leading-tight ${isDarkMode ? 'group-hover:text-blue-300' : 'group-hover:text-blue-200'}`}>
-                              {item.title}
-                            </div>
-                            <div className={`text-[10px] sm:text-xs leading-tight ${isDarkMode ? 'text-gray-400' : 'text-gray-300'}`}>
-                              {item.description}
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Link href="/exams" className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-                  Exams
-                </Link>
-                <Link href="/contact-us" className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-                  Contact us
-                </Link>
-              </nav>
-
-              {/* Mobile Icons */}
-              <div className="pt-4 border-t border-gray-200 flex items-center justify-center">
-                <button
-                  onClick={toggleTheme}
-                  className={`transition-colors ${isDarkMode ? 'text-yellow-300 hover:text-yellow-100' : 'text-gray-700 hover:text-gray-900'}`}
-                  aria-label="Toggle theme"
-                >
-                  {isDarkMode ? (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-
-              {/* Mobile Login Button */}
-              <div className="pt-4">
-                <Link
-                  href="/auth/login"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-semibold text-sm transition-all duration-300 hover:opacity-90"
-                  style={{ backgroundColor: '#010080' }}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  Login
-                </Link>
-              </div>
+      {/* Mobile Menu Dropdown */}
+      <div
+        className={`lg:hidden absolute left-0 right-0 top-full bg-white dark:bg-[#03002e] shadow-2xl transition-all duration-300 ease-in-out border-t border-gray-100 dark:border-blue-900/30 overflow-hidden ${mobileMenuOpen ? 'max-h-[85vh] opacity-100 visible' : 'max-h-0 opacity-0 invisible'
+          }`}
+        style={{ zIndex: 100 }}
+      >
+        <div className="p-3 space-y-3 max-h-[80vh] overflow-y-auto custom-scrollbar">
+          {/* Mobile Search */}
+          <div className="flex items-center border border-gray-200 dark:border-blue-800 rounded-xl bg-gray-50 dark:bg-[#050040]">
+            <input
+              type="text"
+              placeholder="Search course..."
+              className="outline-none text-sm px-4 py-2.5 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent flex-1"
+            />
+            <div className="px-4 flex items-center">
+              <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
           </div>
+
+          {/* Mobile Navigation Links */}
+          <nav className="space-y-0.5">
+            <Link
+              href="/"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-blue-900/30 transition-colors rounded-xl font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              Home
+            </Link>
+
+            {/* Mobile Programs Dropdown */}
+            <div className="space-y-0.5">
+              <button
+                onClick={() => setProgramsOpen(!programsOpen)}
+                className="w-full flex items-center justify-between px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-blue-900/30 transition-colors rounded-xl font-medium"
+              >
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  Programs
+                </div>
+                <svg className={`w-4 h-4 transition-transform duration-200 ${programsOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {programsOpen && (
+                <div className="ml-4 pl-4 border-l-2 border-gray-100 dark:border-blue-800 py-1 space-y-1">
+                  {programsMenu.map((item, index) => (
+                    <Link
+                      key={index}
+                      href={item.href}
+                      className="block px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-[#010080] dark:hover:text-blue-300 transition-colors"
+                      onClick={() => {
+                        setProgramsOpen(false);
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      {item.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Mobile BEA Values Dropdown */}
+            <div className="space-y-0.5">
+              <button
+                onClick={() => setBeaValuesOpen(!beaValuesOpen)}
+                className="w-full flex items-center justify-between px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-blue-900/30 transition-colors rounded-xl font-medium"
+              >
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  BEA Values
+                </div>
+                <svg className={`w-4 h-4 transition-transform duration-200 ${beaValuesOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {beaValuesOpen && (
+                <div className="ml-4 pl-4 border-l-2 border-gray-100 dark:border-blue-800 py-1 space-y-1">
+                  {beaValuesMenu.map((item, index) => (
+                    <Link
+                      key={index}
+                      href={item.href}
+                      className="block px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-[#010080] dark:hover:text-blue-300 transition-colors"
+                      onClick={() => {
+                        setBeaValuesOpen(false);
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      {item.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Link
+              href="/website/exams"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-blue-900/30 transition-colors rounded-xl font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Exams
+            </Link>
+            <Link
+              href="/website/contact-us"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-blue-900/30 transition-colors rounded-xl font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Contact
+            </Link>
+          </nav>
+
+          {/* Action Buttons */}
+          <div className="pt-3 border-t border-gray-100 dark:border-blue-900/30 flex flex-col gap-2 pb-2">
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-blue-900/30 text-gray-700 dark:text-gray-200 font-semibold transition-all"
+            >
+              {isDarkMode ? (
+                <>
+                  <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  Light Mode
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                  Dark Mode
+                </>
+              )}
+            </button>
+            <Link
+              href="/auth/login"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white font-bold bg-[#010080] hover:bg-[#010080]/90 transition-all shadow-md shadow-blue-900/10"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              Login
+            </Link>
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Close dropdowns when clicking outside */}
       {(programsOpen || beaValuesOpen) && !mobileMenuOpen && (

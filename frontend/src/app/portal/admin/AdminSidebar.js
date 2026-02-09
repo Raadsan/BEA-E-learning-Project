@@ -87,6 +87,9 @@ export default function AdminSidebar({ isOpen, onClose }) {
       } else {
         setOpenSubSection(null);
       }
+    } else if (pathname?.includes("/communication/contacts") || pathname?.includes("/communication/newsletter")) {
+      setOpenSection('inquiries');
+      setOpenSubSection(null);
     } else if (pathname?.startsWith("/portal/admin/communication")) {
       setOpenSection('communication');
       setOpenSubSection(null);
@@ -157,18 +160,18 @@ export default function AdminSidebar({ isOpen, onClose }) {
   // Helper function to get active background style for main menu items
   const getActiveStyle = (href, exact = false) => {
     const active = exact ? (pathname === href) : isActive(href);
-    return active ? { backgroundColor: '#FF4D4D' } : {};
+    return active ? { backgroundColor: '#f40606' } : {};
   };
 
   // Helper function to get active background style for sub-menu items
   const getSubActiveStyle = (href) => {
     const active = isActive(href);
-    return active ? { backgroundColor: '#FF4D4D' } : {};
+    return active ? { backgroundColor: '#f40606' } : {};
   };
 
   // Helper function to get active background style for dropdown buttons
   const getDropdownButtonStyle = (sectionId) => {
-    return openSection === sectionId ? { backgroundColor: '#FF4D4D', color: '#ffffff' } : {};
+    return openSection === sectionId ? { backgroundColor: '#f40606', color: '#ffffff' } : {};
   };
 
   const getDropdownButtonClasses = (sectionId) => {
@@ -223,7 +226,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
           <li>
             <Link href="/portal/admin" className={getMenuItemClasses("/portal/admin", true)} style={getActiveStyle("/portal/admin", true)}>
               <svg className={getIconClasses("/portal/admin", true)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
               <span className={getTextClasses("/portal/admin", true)}>Dashboard</span>
             </Link>
@@ -260,7 +263,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                 <svg className={`w-5 h-5 ${openSection === 'studentManagement' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
-                <span className={`font-medium text-sm ${openSection === 'studentManagement' ? 'text-white' : 'text-gray-100'}`}>Student Management</span>
+                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'studentManagement' ? 'text-white' : 'text-gray-100'}`}>Student Management</span>
               </div>
               <svg className={`w-4 h-4 ${openSection === 'studentManagement' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'studentManagement' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -331,7 +334,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                 <svg className={`w-5 h-5 ${openSection === 'academicManagement' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span className={`font-medium text-sm ${openSection === 'academicManagement' ? 'text-white' : 'text-gray-100'}`}>Academic Management</span>
+                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'academicManagement' ? 'text-white' : 'text-gray-100'}`}>Academic Management</span>
               </div>
               <svg className={`w-4 h-4 ${openSection === 'academicManagement' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'academicManagement' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -384,7 +387,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                         <Link
                           href="/portal/admin/certificates?tab=configuration"
                           className={getSubMenuItemClasses("/portal/admin/certificates?tab=configuration")}
-                          style={pathname === "/portal/admin/certificates" && currentTab === 'configuration' ? { backgroundColor: '#FF4D4D' } : {}}
+                          style={pathname === "/portal/admin/certificates" && currentTab === 'configuration' ? { backgroundColor: '#f40606' } : {}}
                         >
                           <span className="text-xs text-gray-400">•</span>
                           <span className="text-gray-100">Certificate Configuration</span>
@@ -394,7 +397,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                         <Link
                           href="/portal/admin/certificates?tab=issued"
                           className={getSubMenuItemClasses("/portal/admin/certificates?tab=issued")}
-                          style={pathname === "/portal/admin/certificates" && currentTab === 'issued' ? { backgroundColor: '#FF4D4D' } : {}}
+                          style={pathname === "/portal/admin/certificates" && currentTab === 'issued' ? { backgroundColor: '#f40606' } : {}}
                         >
                           <span className="text-xs text-gray-400">•</span>
                           <span className="text-gray-100">Issued Certificates Log</span>
@@ -471,7 +474,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                 <svg className={`w-5 h-5 ${openSection === 'assessments' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
-                <span className={`font-medium text-sm ${openSection === 'assessments' ? 'text-white' : 'text-gray-100'}`}>Assessments & Assignments</span>
+                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'assessments' ? 'text-white' : 'text-gray-100'}`}>Assessments & Assignments</span>
               </div>
               <svg className={`w-4 h-4 ${openSection === 'assessments' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'assessments' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -565,7 +568,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                 <svg className={`w-5 h-5 ${openSection === 'communication' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                <span className={`font-medium text-sm ${openSection === 'communication' ? 'text-white' : 'text-gray-100'}`}>Communication</span>
+                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'communication' ? 'text-white' : 'text-gray-100'}`}>Communication</span>
               </div>
               <svg className={`w-4 h-4 ${openSection === 'communication' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'communication' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -609,6 +612,45 @@ export default function AdminSidebar({ isOpen, onClose }) {
             )}
           </li>
 
+          {/* Inquiries Section */}
+          <li>
+            <button
+              onClick={() => toggleSection('inquiries')}
+              className={getDropdownButtonClasses('inquiries')}
+              style={getDropdownButtonStyle('inquiries')}
+            >
+              <div className="flex items-center gap-3">
+                <svg className={`w-5 h-5 ${openSection === 'inquiries' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'inquiries' ? 'text-white' : 'text-gray-100'}`}>Public Inquiries</span>
+              </div>
+              <svg className={`w-4 h-4 ${openSection === 'inquiries' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'inquiries' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {openSection === 'inquiries' && (
+              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                <li>
+                  <Link href="/portal/admin/communication/contacts" className={getSubMenuItemClasses("/portal/admin/communication/contacts")} style={getSubActiveStyle("/portal/admin/communication/contacts")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/contacts") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/communication/contacts") ? 'text-white' : 'text-gray-100'}>Contact Messages</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/communication/newsletter" className={getSubMenuItemClasses("/portal/admin/communication/newsletter")} style={getSubActiveStyle("/portal/admin/communication/newsletter")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/newsletter") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/communication/newsletter") ? 'text-white' : 'text-gray-100'}>Newsletter Subscribers</span>
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>
+
           {/* Student Requests Dropdown */}
           <li>
             <button
@@ -620,7 +662,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                 <svg className={`w-5 h-5 ${openSection === 'studentRequests' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
-                <span className={`font-medium text-sm ${openSection === 'studentRequests' ? 'text-white' : 'text-gray-100'}`}>Students Requests</span>
+                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'studentRequests' ? 'text-white' : 'text-gray-100'}`}>Students Requests</span>
               </div>
               <svg className={`w-4 h-4 ${openSection === 'studentRequests' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'studentRequests' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

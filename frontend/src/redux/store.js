@@ -20,7 +20,8 @@ import { paymentPackageApi } from "./api/paymentPackageApi";
 import { uploadApi } from "./api/uploadApi";
 import { freezingApi } from "./api/freezingApi";
 import { newsApi } from "./api/newsApi";
-// import { contactApi } from "./api/contactApi"; 
+import { contactApi } from "./api/contactApi";
+import { newsletterApi } from "./api/newsletterApi";
 import { attendanceApi } from "./api/attendanceApi";
 import { ieltsToeflApi } from "./api/ieltsToeflApi";
 import { materialApi } from "./api/materialApi";
@@ -59,7 +60,8 @@ export const store = configureStore({
         [uploadApi.reducerPath]: uploadApi.reducer,
         [freezingApi.reducerPath]: freezingApi.reducer,
         [newsApi.reducerPath]: newsApi.reducer,
-        // [contactApi.reducerPath]: contactApi.reducer,
+        [contactApi.reducerPath]: contactApi.reducer,
+        [newsletterApi.reducerPath]: newsletterApi.reducer,
         [attendanceApi.reducerPath]: attendanceApi.reducer,
         [ieltsToeflApi.reducerPath]: ieltsToeflApi.reducer,
         [materialApi.reducerPath]: materialApi.reducer,
@@ -98,7 +100,8 @@ export const store = configureStore({
             uploadApi.middleware,
             freezingApi.middleware,
             newsApi.middleware,
-            // contactApi.middleware,
+            contactApi.middleware,
+            newsletterApi.middleware,
             attendanceApi.middleware,
             ieltsToeflApi.middleware,
             materialApi.middleware,

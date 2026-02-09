@@ -41,6 +41,14 @@ export default function StudentsPage() {
     const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [studentToDelete, setStudentToDelete] = useState(null);
+    const [isBulkActionsModalOpen, setIsBulkActionsModalOpen] = useState(false);
+
+    // Bulk Actions States
+    const [bulkActions, setBulkActions] = useState({
+        changeStatus: false,
+        delete: false
+    });
+    const [bulkStatusValue, setBulkStatusValue] = useState("approved");
 
     // Selection States
     const [selectedProgramForSubprograms, setSelectedProgramForSubprograms] = useState(null);
@@ -104,8 +112,10 @@ export default function StudentsPage() {
 
     // Filter States
     const [selectedProgram, setSelectedProgram] = useState("");
-
     const [selectedStatus, setSelectedStatus] = useState("");
+
+    // Selection State
+    const [selectedStudents, setSelectedStudents] = useState([]);
 
     // Merge and format students
     const mergedStudents = [
@@ -346,6 +356,53 @@ export default function StudentsPage() {
         } catch (error) { showToast("Failed to assign.", "error"); }
     };
 
+    const handleBulkActions = async () => {
+        if (selectedStudents.length === 0) {
+            showToast("No students selected", "error");
+            return;
+        }
+
+        if (!bulkActions.changeStatus && !bulkActions.delete) {
+            showToast("Please select at least one action", "error");
+            return;
+        }
+
+        try {
+            const studentsToProcess = mergedStudents.filter(s => selectedStudents.includes(s.id));
+
+            // Handle status change
+            if (bulkActions.changeStatus) {
+                for (const student of studentsToProcess) {
+                    if (student.type === 'ielts') {
+                        await updateIeltsStudent({ id: student.original_id, status: bulkStatusValue }).unwrap();
+                    } else {
+                        await updateStudent({ id: student.id, approval_status: bulkStatusValue }).unwrap();
+                    }
+                }
+            }
+
+            // Handle delete
+            if (bulkActions.delete) {
+                for (const student of studentsToProcess) {
+                    if (student.type === 'ielts') {
+                        await deleteIeltsStudent(student.original_id).unwrap();
+                    } else {
+                        await deleteStudent(student.id).unwrap();
+                    }
+                }
+            }
+
+            showToast(`Bulk actions completed successfully!`, "success");
+            setIsBulkActionsModalOpen(false);
+            setBulkActions({ changeStatus: false, delete: false });
+            setSelectedStudents([]);
+            refetch();
+            refetchIelts();
+        } catch (error) {
+            showToast("Failed to complete bulk actions", "error");
+        }
+    };
+
     const columns = [
         { key: "student_id", label: "Student ID", render: (_, row) => <span className="font-bold">{row.student_id || "N/A"}</span> },
         { key: "full_name", label: "Full Name" },
@@ -401,40 +458,109 @@ export default function StudentsPage() {
                     columns={columns}
                     data={filteredStudents}
                     onAddClick={handleAddStudent}
-                    showAddButton={true}
-                    filters={
-                        <div className="flex flex-wrap gap-4 items-center">
-                            {/* Program Filter */}
-                            <select
-                                value={selectedProgram}
-                                onChange={(e) => {
-                                    setSelectedProgram(e.target.value);
-                                }}
-                                className={`px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-[#1e293b] border-gray-700 text-white' : 'bg-white border-gray-300'}`}
+                    customActions={
+                        <>
+                            <button
+                                onClick={() => setIsBulkActionsModalOpen(true)}
+                                disabled={selectedStudents.length === 0}
+                                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${selectedStudents.length === 0
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'bg-[#010080] hover:bg-[#010080]/90 text-white'
+                                    }`}
+                                title={selectedStudents.length === 0 ? "Select students to perform actions" : "Perform bulk actions"}
                             >
-                                <option value="">All Programs</option>
-                                {programs.map(prog => (
-                                    <option key={prog.id} value={prog.title}>{prog.title}</option>
-                                ))}
-                                <option value="IELTS">IELTS</option>
-                                <option value="TOEFL">TOEFL</option>
-                            </select>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Actions
+                            </button>
+                            <button
+                                onClick={handleAddStudent}
+                                className="bg-[#010080] hover:bg-[#010080]/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add
+                            </button>
+                        </>
+                    }
+                    showAddButton={false}
+                    customHeaderLeft={
+                        <div className="flex gap-3 flex-wrap items-center">
+                            {/* Selection Counter Box */}
+                            {selectedStudents.length > 0 && (
+                                <div className="px-3 py-1.5 bg-[#010080] text-white rounded-lg shadow-sm flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span className="font-bold text-[13px]">{selectedStudents.length} selected</span>
+                                    <button
+                                        onClick={() => setSelectedStudents([])}
+                                        className="ml-1 text-white hover:text-gray-200 transition-colors"
+                                        title="Clear selection"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            )}
 
-
+                            {/* Program Filter */}
+                            <div className="relative group min-w-[180px]">
+                                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                </div>
+                                <select
+                                    value={selectedProgram}
+                                    onChange={(e) => setSelectedProgram(e.target.value)}
+                                    className="w-full pl-10 pr-10 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[13px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer"
+                                >
+                                    <option value="">All Programs</option>
+                                    {programs.map(prog => (
+                                        <option key={prog.id} value={prog.title}>{prog.title}</option>
+                                    ))}
+                                    <option value="IELTS">IELTS</option>
+                                    <option value="TOEFL">TOEFL</option>
+                                </select>
+                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
 
                             {/* Status Filter */}
-                            <select
-                                value={selectedStatus}
-                                onChange={(e) => setSelectedStatus(e.target.value)}
-                                className={`px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-[#1e293b] border-gray-700 text-white' : 'bg-white border-gray-300'}`}
-                            >
-                                <option value="">All Statuses</option>
-                                <option value="pending">Pending</option>
-                                <option value="approved">Approved</option>
-                                <option value="rejected">Rejected</option>
-                            </select>
+                            <div className="relative group min-w-[180px]">
+                                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <select
+                                    value={selectedStatus}
+                                    onChange={(e) => setSelectedStatus(e.target.value)}
+                                    className="w-full pl-10 pr-10 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[13px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer"
+                                >
+                                    <option value="">All Statuses</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
                     }
+                    selectable={true}
+                    selectedItems={selectedStudents}
+                    onSelectionChange={setSelectedStudents}
                 />
             </main>
 
@@ -474,6 +600,105 @@ export default function StudentsPage() {
             <AssignClassModal isOpen={isAssignClassModalOpen} onClose={() => setIsAssignClassModalOpen(false)} assigningStudent={assigningStudent} selectedClassId={selectedClassId} setSelectedClassId={setSelectedClassId} handleSubmit={handleAssignClassSubmit} isUpdating={isUpdating} isUpdatingIelts={isUpdatingIelts} classes={classes} isDark={isDark} />
             <AssignSubprogramModal isOpen={isAssignSubprogramModalOpen} onClose={() => setIsAssignSubprogramModalOpen(false)} assigningStudent={assigningStudent} programs={programs} allSubprograms={allSubprograms} handleSubmit={handleAssignSubprogramSubmit} isUpdating={isUpdating} isDark={isDark} />
             {isSubprogramsModalOpen && <SubprogramsModal program={selectedProgramForSubprograms} onClose={() => setIsSubprogramsModalOpen(false)} isDark={isDark} />}
+
+            {/* Bulk Actions Modal */}
+            {isBulkActionsModalOpen && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        onClick={() => setIsBulkActionsModalOpen(false)}
+                    />
+                    <div className={`relative w-full max-w-md rounded-xl shadow-2xl overflow-hidden border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                        <div className={`sticky top-0 z-10 px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                                Bulk Actions
+                            </h3>
+                            <button
+                                onClick={() => setIsBulkActionsModalOpen(false)}
+                                className={`p-1 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <div className={`p-4 rounded-lg mb-6 text-sm border ${isDark ? 'bg-gray-700/30 border-gray-600 text-gray-300' : 'bg-blue-50/50 border-blue-100 text-blue-800'}`}>
+                                <p className="font-semibold">{selectedStudents.length} student{selectedStudents.length !== 1 ? 's' : ''} selected</p>
+                                <p className="text-xs mt-1 opacity-80">Select the actions you want to perform on the selected students</p>
+                            </div>
+
+                            <div className="space-y-4 mb-6">
+                                {/* Change Status Action */}
+                                <div className={`p-4 rounded-lg border-2 transition-all ${bulkActions.changeStatus ? (isDark ? 'border-[#010080] bg-[#010080]/10' : 'border-[#010080] bg-[#010080]/5') : (isDark ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')}`}>
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={bulkActions.changeStatus}
+                                            onChange={(e) => setBulkActions({ changeStatus: e.target.checked, delete: false })}
+                                            className="mt-1 w-5 h-5 text-[#010080] border-gray-300 rounded focus:ring-[#010080]"
+                                        />
+                                        <div className="flex-1">
+                                            <div className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Change Status</div>
+                                            <p className={`text-xs mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Update the approval status for selected students</p>
+                                            {bulkActions.changeStatus && (
+                                                <select
+                                                    value={bulkStatusValue}
+                                                    onChange={(e) => setBulkStatusValue(e.target.value)}
+                                                    className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-[#010080] outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                                >
+                                                    <option value="approved">Approved</option>
+                                                    <option value="pending">Pending</option>
+                                                    <option value="rejected">Rejected</option>
+                                                </select>
+                                            )}
+                                        </div>
+                                    </label>
+                                </div>
+
+                                {/* Delete Action */}
+                                <div className={`p-4 rounded-lg border-2 transition-all ${bulkActions.delete ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10' : (isDark ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')}`}>
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={bulkActions.delete}
+                                            onChange={(e) => setBulkActions({ changeStatus: false, delete: e.target.checked })}
+                                            className="mt-1 w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="font-semibold text-red-600 mb-1">Delete Students</div>
+                                            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>⚠️ This action cannot be undone</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setIsBulkActionsModalOpen(false);
+                                        setBulkActions({ changeStatus: false, delete: false });
+                                    }}
+                                    className={`flex-1 px-4 py-2.5 rounded-lg border font-semibold transition-all active:scale-95 ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleBulkActions}
+                                    disabled={!bulkActions.changeStatus && !bulkActions.delete}
+                                    className={`flex-1 px-4 py-2.5 rounded-lg font-semibold transition-all active:scale-95 shadow-lg ${!bulkActions.changeStatus && !bulkActions.delete
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                                        : 'bg-[#010080] text-white hover:bg-[#010080]/90 shadow-[#010080]/20'
+                                        }`}
+                                >
+                                    Apply Actions
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <ConfirmationModal
                 isOpen={isDeleteModalOpen}

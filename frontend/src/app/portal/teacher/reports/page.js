@@ -1,25 +1,21 @@
 "use client";
 
 import { useGetAttendanceReportQuery, useGetTeacherClassesQuery } from "@/redux/api/teacherApi";
-
 import { useDarkMode } from "@/context/ThemeContext";
 import { useState } from "react";
+import DataTable from "@/components/DataTable";
 
 export default function AttendanceReportPage() {
     const { isDark } = useDarkMode();
-    const { data: reportData, isLoading, error } = useGetAttendanceReportQuery();
-    const { data: classesData } = useGetTeacherClassesQuery();
+    const { data: reportData = [], isLoading, error } = useGetAttendanceReportQuery();
+    const { data: classesData = [] } = useGetTeacherClassesQuery();
 
-    const [search, setSearch] = useState("");
     const [selectedClass, setSelectedClass] = useState("");
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedStatus, setSelectedStatus] = useState("");
 
-    const filteredData = reportData?.filter((record) => {
-        const matchesSearch =
-            record.student_name.toLowerCase().includes(search.toLowerCase()) ||
-            record.class_name.toLowerCase().includes(search.toLowerCase());
-
+    // Filter Logic
+    const filteredData = reportData.filter((record) => {
         const matchesClass = selectedClass ? record.class_name === selectedClass : true;
 
         // Date comparison (record.date is ISO string, selectedDate is YYYY-MM-DD from input)
@@ -30,126 +26,115 @@ export default function AttendanceReportPage() {
             ? (selectedStatus === 'Present' ? (record.hour1 || record.hour2) : (!record.hour1 && !record.hour2))
             : true;
 
-        return matchesSearch && matchesClass && matchesDate && matchesStatus;
-    }) || [];
+        return matchesClass && matchesDate && matchesStatus;
+    });
+
+    const columns = [
+        {
+            key: "date",
+            label: "Date",
+            render: (val) => <span className="text-sm font-semibold">{new Date(val).toLocaleDateString()}</span>,
+            width: "150px"
+        },
+        {
+            key: "student_name",
+            label: "Student",
+            className: "font-bold",
+            width: "250px"
+        },
+        {
+            key: "class_name",
+            label: "Class",
+            width: "200px"
+        },
+        {
+            key: "hour1",
+            label: "Hour 1",
+            render: (val) => (
+                <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${val
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                    }`}>
+                    {val ? 'Present' : 'Absent'}
+                </span>
+            ),
+            width: "120px"
+        },
+        {
+            key: "hour2",
+            label: "Hour 2",
+            render: (val) => (
+                <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${val
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                    }`}>
+                    {val ? 'Present' : 'Absent'}
+                </span>
+            ),
+            width: "120px"
+        }
+    ];
 
     return (
-        <div className={`min-h-screen transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
-            <div className="w-full px-8 py-6">
-                <h1 className="text-3xl font-bold mb-8">Attendance Report</h1>
-
-                {/* Filters Row */}
-                <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">
-                    {/* Search */}
-                    <div className="w-full md:w-1/4">
-                        <label className="block text-sm font-medium mb-1">Search</label>
-                        <input
-                            type="text"
-                            placeholder="Student or Class..."
-                            className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-[#06102b] border-[#07203c] text-white' : 'bg-white border-gray-300'}`}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
-
-                    {/* Class Filter */}
-                    <div className="w-full md:w-1/4">
-                        <label className="block text-sm font-medium mb-1">Class</label>
-                        <select
-                            value={selectedClass}
-                            onChange={(e) => setSelectedClass(e.target.value)}
-                            className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-[#06102b] border-[#07203c] text-white' : 'bg-white border-gray-300'}`}
-                        >
-                            <option value="">-- Select Class --</option>
-                            {classesData?.map((cls) => (
-                                <option key={cls.id} value={cls.class_name}>{cls.class_name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Date Filter */}
-                    <div className="w-full md:w-1/4">
-                        <label className="block text-sm font-medium mb-1">Date</label>
-                        <input
-                            type="date"
-                            value={selectedDate}
-                            onChange={(e) => setSelectedDate(e.target.value)}
-                            className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-[#06102b] border-[#07203c] text-white' : 'bg-white border-gray-300'}`}
-                        />
-                    </div>
-
-                    {/* Status Filter */}
-                    <div className="w-full md:w-1/4">
-                        <label className="block text-sm font-medium mb-1">Status</label>
-                        <select
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
-                            className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-[#06102b] border-[#07203c] text-white' : 'bg-white border-gray-300'}`}
-                        >
-                            <option value="">-- All Status --</option>
-                            <option value="Present">Present</option>
-                            <option value="Absent">Absent</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* Table */}
-                <div className={`rounded-xl shadow-lg overflow-hidden ${isDark ? 'bg-[#06102b] border border-[#07203c]' : 'bg-white border border-gray-200'}`}>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className={`${isDark ? 'bg-[#07203c]' : 'bg-[#010080]'} text-white`}>
-                                <tr>
-                                    <th className="px-6 py-3 text-xs font-semibold uppercase">Date</th>
-                                    <th className="px-6 py-3 text-xs font-semibold uppercase">Student</th>
-                                    <th className="px-6 py-3 text-xs font-semibold uppercase">Class</th>
-                                    <th className="px-6 py-3 text-center text-xs font-semibold uppercase">Hour 1</th>
-                                    <th className="px-6 py-3 text-center text-xs font-semibold uppercase">Hour 2</th>
-                                </tr>
-                            </thead>
-                            <tbody className={`divide-y ${isDark ? 'divide-[#07203c]' : 'divide-gray-200'}`}>
-                                {isLoading && (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-4 text-center">Loading report...</td>
-                                    </tr>
-                                )}
-                                {error && (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-4 text-center text-red-500">Failed to load report.</td>
-                                    </tr>
-                                )}
-                                {!isLoading && !error && filteredData.length === 0 && (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-4 text-center">No attendance records found.</td>
-                                    </tr>
-                                )}
-                                {filteredData.map((record) => (
-                                    <tr key={record.id} className={`${isDark ? 'hover:bg-[#0d1a2e]' : 'hover:bg-gray-50'}`}>
-                                        <td className="px-6 py-4">{new Date(record.date).toLocaleDateString()}</td>
-                                        <td className="px-6 py-4 font-medium">{record.student_name}</td>
-                                        <td className="px-6 py-4">{record.class_name}</td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className={`px-2 py-1 rounded text-xs ${record.hour1
-                                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                                }`}>
-                                                {record.hour1 ? 'Present' : 'Absent'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className={`px-2 py-1 rounded text-xs ${record.hour2
-                                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                                }`}>
-                                                {record.hour2 ? 'Present' : 'Absent'}
-                                            </span>
-                                        </td>
-                                    </tr>
+        <main className={`flex-1 min-h-screen transition-colors ${isDark ? 'bg-[#0f172a]' : 'bg-gray-50'} px-4 sm:px-8 py-6`}>
+            <DataTable
+                title="Attendance Report"
+                columns={columns}
+                data={filteredData}
+                showAddButton={false}
+                isLoading={isLoading}
+                emptyMessage={error ? "Failed to load report." : "No attendance records found."}
+                customHeaderLeft={
+                    <div className="flex gap-3 flex-wrap items-center">
+                        {/* Class Filter */}
+                        <div className="relative group min-w-[200px]">
+                            <select
+                                value={selectedClass}
+                                onChange={(e) => setSelectedClass(e.target.value)}
+                                className={`w-full pl-4 pr-10 py-1.5 rounded-lg text-gray-700 font-bold text-[13px] border focus:ring-2 outline-none appearance-none transition-all shadow-sm cursor-pointer ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-900' : 'bg-white border-gray-200 focus:ring-blue-100'}`}
+                            >
+                                <option value="">All Classes</option>
+                                {classesData.map((cls) => (
+                                    <option key={cls.id} value={cls.class_name}>{cls.class_name}</option>
                                 ))}
-                            </tbody>
-                        </table>
+                            </select>
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Date Filter */}
+                        <div className="relative min-w-[150px]">
+                            <input
+                                type="date"
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                className={`w-full px-4 py-1.5 rounded-lg text-gray-700 font-bold text-[13px] border focus:ring-2 outline-none transition-all shadow-sm ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-900' : 'bg-white border-gray-200 focus:ring-blue-100'}`}
+                            />
+                        </div>
+
+                        {/* Status Filter */}
+                        <div className="relative group min-w-[150px]">
+                            <select
+                                value={selectedStatus}
+                                onChange={(e) => setSelectedStatus(e.target.value)}
+                                className={`w-full pl-4 pr-10 py-1.5 rounded-lg text-gray-700 font-bold text-[13px] border focus:ring-2 outline-none appearance-none transition-all shadow-sm cursor-pointer ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-900' : 'bg-white border-gray-200 focus:ring-blue-100'}`}
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="Present">Present</option>
+                                <option value="Absent">Absent</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
+                }
+            />
+        </main>
     );
 }
