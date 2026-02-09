@@ -46,15 +46,20 @@ const CountdownCircle = ({ value, label, max, color, isDark }) => {
 const DashboardTermCounter = ({ isDark, user }) => {
     const { data: dbTimelines = [], isLoading } = useGetTimelinesQuery();
 
-    // Get current date info for calendar check
-    const today = new Date();
-    const currentMonth = today.toLocaleString('en-US', { month: 'long' });
-    const currentYear = today.getFullYear();
+    // Get current date info for calendar check (Memoized to prevent instability)
+    const { currentMonth, currentYear } = useMemo(() => {
+        const d = new Date();
+        return {
+            currentMonth: d.toLocaleString('en-US', { month: 'long' }),
+            currentYear: d.getFullYear()
+        };
+    }, []); // Only calculate once on mount or if we wanted to sync with daily changes
+
     const subprogramId = user?.chosen_subprogram || user?.subprogram_id;
 
     // Fetch Academic Calendar to check if classes are scheduled
-    const { data: academicCalendar = [] } = useGetAcademicCalendarQuery(
-        { subprogramId, month: currentMonth, year: currentYear },
+    const { data: academicCalendar, isLoading: calendarLoading } = useGetAcademicCalendarQuery(
+        useMemo(() => ({ subprogramId, month: currentMonth, year: currentYear }), [subprogramId, currentMonth, currentYear]),
         { skip: !subprogramId }
     );
 
@@ -66,6 +71,7 @@ const DashboardTermCounter = ({ isDark, user }) => {
     }, []);
 
     const termData = useMemo(() => {
+        if (!dbTimelines || dbTimelines.length === 0) return [];
         // Helper to parse "DD/MM/YYYY" to Date object
         const parseDateStr = (dateStr) => {
             if (!dateStr) return null;
@@ -82,22 +88,30 @@ const DashboardTermCounter = ({ isDark, user }) => {
     }, [dbTimelines]);
 
     useEffect(() => {
+        if (!mounted || isLoading || calendarLoading) return;
+
         // GATE: If no academic calendar data (and we have a subprogram), force zero/inactive state
-        // The user requirement: "if not have created data... make it zero"
-        const hasTimetable = academicCalendar && academicCalendar.length > 0;
+        const hasTimetable = academicCalendar && Array.isArray(academicCalendar) && academicCalendar.length > 0;
 
         if (subprogramId && !hasTimetable) {
-            if (timeLeft.label !== "No Scheduled Classes") {
-                setTimeLeft({
+            setTimeLeft(prev => {
+                if (prev.label === "No Scheduled Classes") return prev;
+                return {
                     days: 0, hours: 0, minutes: 0, seconds: 0,
                     label: "No Scheduled Classes",
                     termSerial: "Term Paused"
-                });
-            }
+                };
+            });
             return;
         }
 
-        if (termData.length === 0) return;
+        if (termData.length === 0) {
+            setTimeLeft(prev => {
+                if (prev.label === "No Active Cycle") return prev;
+                return { days: 0, hours: 0, minutes: 0, seconds: 0, label: "No Active Cycle", termSerial: "" };
+            });
+            return;
+        }
 
         const updateTimer = () => {
             const now = new Date();
@@ -114,13 +128,11 @@ const DashboardTermCounter = ({ isDark, user }) => {
                 endDate.setHours(23, 59, 59, 999);
 
                 if (now < startDate) {
-                    // Found upcoming term
                     targetDate = startDate;
                     label = "Starts In";
                     termSerial = term.serial;
                     break;
                 } else if (now >= startDate && now <= endDate) {
-                    // Found current term
                     targetDate = endDate;
                     label = "Ends In";
                     termSerial = term.serial;
@@ -131,21 +143,37 @@ const DashboardTermCounter = ({ isDark, user }) => {
             if (targetDate && termSerial) {
                 const difference = targetDate.getTime() - now.getTime();
 
-                if (difference > 0) {
-                    setTimeLeft({
-                        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                        minutes: Math.floor((difference / 1000 / 60) % 60),
-                        seconds: Math.floor((difference / 1000) % 60),
-                        label,
+                setTimeLeft(prev => {
+                    const newDays = difference > 0 ? Math.floor(difference / (1000 * 60 * 60 * 24)) : 0;
+                    const newHours = difference > 0 ? Math.floor((difference / (1000 * 60 * 60)) % 24) : 0;
+                    const newMinutes = difference > 0 ? Math.floor((difference / 1000 / 60) % 60) : 0;
+                    const newSeconds = difference > 0 ? Math.floor((difference / 1000) % 60) : 0;
+                    const newLabel = difference > 0 ? label : "Term Ended";
+
+                    // ONLY update state if values actually changed to prevent loop
+                    if (prev.days === newDays &&
+                        prev.hours === newHours &&
+                        prev.minutes === newMinutes &&
+                        prev.seconds === newSeconds &&
+                        prev.label === newLabel &&
+                        prev.termSerial === termSerial) {
+                        return prev;
+                    }
+
+                    return {
+                        days: newDays,
+                        hours: newHours,
+                        minutes: newMinutes,
+                        seconds: newSeconds,
+                        label: newLabel,
                         termSerial
-                    });
-                } else {
-                    setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, label: "Term Ended", termSerial });
-                }
+                    };
+                });
             } else {
-                // No upcoming active terms found in the DB list
-                setTimeLeft({ label: "No Active Cycle" });
+                setTimeLeft(prev => {
+                    if (prev.label === "No Active Cycle") return prev;
+                    return { days: 0, hours: 0, minutes: 0, seconds: 0, label: "No Active Cycle", termSerial: "" };
+                });
             }
         };
 
@@ -153,7 +181,7 @@ const DashboardTermCounter = ({ isDark, user }) => {
         const timer = setInterval(updateTimer, 1000);
 
         return () => clearInterval(timer);
-    }, [termData, academicCalendar, subprogramId]);
+    }, [termData, academicCalendar, subprogramId, mounted, isLoading, calendarLoading]);
 
     if (!mounted || isLoading) return null;
     // If no label (init) or explicitly "No Active Cycle", hide. 

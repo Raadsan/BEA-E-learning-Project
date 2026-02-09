@@ -2,6 +2,10 @@
     "name": "bea-e-learning-root",
     "version": "1.0.0",
     "private": true,
+    "workspaces": [
+        "frontend",
+        "backend"
+    ],
     "scripts": {
         "server": "npm run dev --prefix backend",
         "client": "npm run dev --prefix frontend",

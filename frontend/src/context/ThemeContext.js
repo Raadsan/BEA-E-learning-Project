@@ -4,8 +4,8 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const ThemeContext = createContext({
   isDarkMode: false,
-  toggleTheme: () => {},
-  setDarkMode: () => {},
+  toggleTheme: () => { },
+  setDarkMode: () => { },
 });
 
 export function ThemeProvider({ children }) {
@@ -20,13 +20,13 @@ export function ThemeProvider({ children }) {
       if (savedTheme) {
         setIsDarkMode(savedTheme === "dark");
       } else {
-        // Check system preference
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        setIsDarkMode(prefersDark);
+        // Default to light mode (false) - no longer checking system preference
+        setIsDarkMode(false);
       }
     } catch (e) {
       // localStorage not available
       console.log("localStorage not available");
+      setIsDarkMode(false);
     }
   }, []);
 
@@ -37,12 +37,12 @@ export function ThemeProvider({ children }) {
         document.documentElement.classList.add("dark");
         try {
           localStorage.setItem("theme", "dark");
-        } catch (e) {}
+        } catch (e) { }
       } else {
         document.documentElement.classList.remove("dark");
         try {
           localStorage.setItem("theme", "light");
-        } catch (e) {}
+        } catch (e) { }
       }
     }
   }, [isDarkMode, mounted]);
