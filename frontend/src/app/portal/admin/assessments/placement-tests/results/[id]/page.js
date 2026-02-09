@@ -85,7 +85,7 @@ export default function AdminResultDetailsPage() {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:5000/api/uploads", {
+            const res = await fetch("${API_URL}/uploads", {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`

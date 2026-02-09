@@ -103,7 +103,7 @@ function OralAssignmentCreateContent() {
         try {
             setIsUploading(true);
             const token = localStorage.getItem('token'); // Assuming standard token storage
-            const res = await fetch('http://localhost:5000/api/uploads', {
+            const res = await fetch('${API_URL}/uploads', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`

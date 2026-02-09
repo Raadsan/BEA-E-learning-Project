@@ -33,7 +33,7 @@ export default function Testimonials() {
     const fetchTestimonials = async () => {
       try {
         console.log("[Testimonials] Fetching data...");
-        const response = await fetch("http://localhost:5000/api/testimonials");
+        const response = await fetch("${API_URL}/testimonials");
         if (!response.ok) throw new Error("Failed to fetch");
         const data = await response.json();
         console.log(`[Testimonials] Received ${data.length} items`);

@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_URL } from "@/constants";
 
 const getToken = () => {
     if (typeof window !== "undefined") {
@@ -10,7 +11,7 @@ const getToken = () => {
 export const paymentApi = createApi({
     reducerPath: "paymentApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: "http://localhost:5000/api/payments",
+        baseUrl: `${API_URL}/payments",
         prepareHeaders: (headers) => {
             const token = getToken();
             if (token) {

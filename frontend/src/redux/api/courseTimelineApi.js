@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const courseTimelineApi = createApi({
     reducerPath: 'courseTimelineApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:5000/api/course-timeline',
+        baseUrl: '${API_URL}/course-timeline',
         prepareHeaders: (headers) => {
             const token = localStorage.getItem('token');
             if (token) {

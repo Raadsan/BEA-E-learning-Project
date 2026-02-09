@@ -32,7 +32,7 @@ export default function TestimonialsPage() {
         try {
             setLoading(true);
             const token = localStorage.getItem("token");
-            const response = await fetch("http://localhost:5000/api/testimonials/admin", {
+            const response = await fetch("${API_URL}/testimonials/admin", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -80,7 +80,7 @@ export default function TestimonialsPage() {
             const formDataUpload = new FormData();
             formDataUpload.append('file', file);
 
-            const response = await fetch("http://localhost:5000/api/uploads", {
+            const response = await fetch("${API_URL}/uploads", {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -142,8 +142,8 @@ export default function TestimonialsPage() {
         try {
             const token = localStorage.getItem("token");
             const url = editingTestimonial
-                ? `http://localhost:5000/api/testimonials/${editingTestimonial.id}`
-                : "http://localhost:5000/api/testimonials";
+                ? `${API_URL}/testimonials/${editingTestimonial.id}`
+                : "${API_URL}/testimonials";
 
             const method = editingTestimonial ? "PUT" : "POST";
 
@@ -181,7 +181,7 @@ export default function TestimonialsPage() {
 
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:5000/api/testimonials/${testimonialToDelete.id}`, {
+            const response = await fetch(`${API_URL}/testimonials/${testimonialToDelete.id}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${token}`,

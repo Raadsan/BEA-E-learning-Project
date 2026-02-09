@@ -19,7 +19,7 @@ export default function CourseTimeline() {
   useEffect(() => {
     const fetchTimelineData = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/course-timeline");
+        const response = await fetch("${API_URL}/course-timeline");
         if (!response.ok) throw new Error("Failed to fetch timeline data");
         const data = await response.json();
 

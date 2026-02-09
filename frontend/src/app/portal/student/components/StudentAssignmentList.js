@@ -229,7 +229,7 @@ export default function StudentAssignmentList({ type, title }) {
         if (!fileUrl) return;
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:5000/api/files/download/${fileUrl}`, {
+            const response = await fetch(`${API_URL}/files/download/${fileUrl}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -479,9 +479,9 @@ export default function StudentAssignmentList({ type, title }) {
                                         </div>
                                         {selectedAssignment.file_url ? (
                                             selectedAssignment.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
-                                                <video controls className="w-full rounded-lg" src={`http://localhost:5000/api/files/download/${selectedAssignment.file_url}`} />
+                                                <video controls className="w-full rounded-lg" src={`${API_URL}/files/download/${selectedAssignment.file_url}`} />
                                             ) : (
-                                                <audio controls className="w-full" src={`http://localhost:5000/api/files/download/${selectedAssignment.file_url}`} />
+                                                <audio controls className="w-full" src={`${API_URL}/files/download/${selectedAssignment.file_url}`} />
                                             )
                                         ) : (
                                             <p className="text-sm italic opacity-50">No file submitted.</p>

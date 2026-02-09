@@ -42,7 +42,7 @@ export default function SubmissionModal({ assignment, onClose, onSuccess }) {
             const formData = new FormData();
             formData.append("file", file);
 
-            const uploadRes = await fetch("http://localhost:5000/api/uploads", {
+            const uploadRes = await fetch("${API_URL}/uploads", {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${localStorage.getItem("token")}`

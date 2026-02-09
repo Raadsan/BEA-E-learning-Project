@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_URL } from "@/constants";
 
 export const attendanceApi = createApi({
     reducerPath: "attendanceApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: "http://localhost:5000/api/attendance",
+        baseUrl: `${API_URL}/attendance",
         prepareHeaders: (headers) => {
             const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {

@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_URL } from "@/constants";
 
 export const teacherApi = createApi({
   reducerPath: "teacherApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/teachers",
+    baseUrl: `${API_URL}/teachers",
     prepareHeaders: (headers) => {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       if (token) {
@@ -33,18 +34,18 @@ export const teacherApi = createApi({
       providesTags: ["Teachers"],
     }),
     getAttendance: builder.query({
-      query: ({ classId, date }) => `http://localhost:5000/api/attendance/${classId}/${date}`,
+      query: ({ classId, date }) => `${API_URL}/attendance/${classId}/${date}`,
     }),
     saveAttendance: builder.mutation({
       query: (body) => ({
-        url: "http://localhost:5000/api/attendance",
+        url: "${API_URL}/attendance",
         method: "POST",
         body,
       }),
       invalidatesTags: ["Attendance"],
     }),
     getAttendanceReport: builder.query({
-      query: () => "http://localhost:5000/api/attendance/report",
+      query: () => "${API_URL}/attendance/report",
     }),
     getTeachers: builder.query({
       query: () => "/",

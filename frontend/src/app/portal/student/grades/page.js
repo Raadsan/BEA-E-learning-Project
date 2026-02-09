@@ -56,7 +56,7 @@ export default function GradesPage() {
         }
 
         // Fetch assignments using subprogram_id parameter
-        const url = `http://localhost:5000/api/assignments?subprogram_id=${selectedLevel.subprogram_id}`;
+        const url = `${API_URL}/assignments?subprogram_id=${selectedLevel.subprogram_id}`;
 
         const response = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -100,7 +100,7 @@ export default function GradesPage() {
     if (!fileUrl) return;
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/files/download/${fileUrl}`, {
+      const response = await fetch(`${API_URL}/files/download/${fileUrl}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const blob = await response.blob();

@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_URL } from "@/constants";
 
 export const classApi = createApi({
   reducerPath: "classApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/classes",
+    baseUrl: `${API_URL}/classes",
     prepareHeaders: (headers) => {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       if (token) {

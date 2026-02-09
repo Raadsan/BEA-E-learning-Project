@@ -187,7 +187,7 @@ export default function TakeExamPage() {
                 try {
                     const token = localStorage.getItem('token');
                     const filename = currentStep.audioUrl.split('/').pop();
-                    const response = await fetch(`http://localhost:5000/api/files/download/${filename}`, {
+                    const response = await fetch(`${API_URL}/files/download/${filename}`, {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }

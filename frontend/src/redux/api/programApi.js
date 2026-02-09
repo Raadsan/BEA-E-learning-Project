@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_URL } from "@/constants";
 
 export const programApi = createApi({
   reducerPath: "programApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/programs",
+    baseUrl: `${API_URL}/programs`,
     prepareHeaders: (headers) => {
       // Let the browser set the Content-Type for FormData (multipart/form-data)
       return headers;

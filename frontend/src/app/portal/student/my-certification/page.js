@@ -156,7 +156,7 @@ export default function MyCertificationPage() {
   const handleGenerateCertificate = async (cert) => {
     setIsGenerating(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/certificates/download/${cert.target_type}/${cert.target_id}`, {
+      const response = await fetch(`${API_URL}/certificates/download/${cert.target_type}/${cert.target_id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -183,7 +183,7 @@ export default function MyCertificationPage() {
     try {
       // If it's a re-download from history, we fetch it first
       if (isReDownload) {
-        const response = await fetch(`http://localhost:5000/api/certificates/download/${cert.target_type}/${cert.target_id}`, {
+        const response = await fetch(`${API_URL}/certificates/download/${cert.target_type}/${cert.target_id}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }

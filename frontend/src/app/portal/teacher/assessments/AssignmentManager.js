@@ -45,7 +45,7 @@ export default function AssignmentManager({ type, title, description }) {
                 setIsLoadingAudio(true);
                 try {
                     const token = localStorage.getItem("token");
-                    const response = await fetch(`http://localhost:5000/api/files/download/${gradingSubmission.file_url}`, {
+                    const response = await fetch(`${API_URL}/files/download/${gradingSubmission.file_url}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     if (response.ok) {
@@ -442,7 +442,7 @@ export default function AssignmentManager({ type, title, description }) {
         if (!fileUrl) return;
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:5000/api/files/download/${fileUrl}`, {
+            const response = await fetch(`${API_URL}/files/download/${fileUrl}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_URL } from "@/constants";
 
 export const shiftApi = createApi({
     reducerPath: "shiftApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: "http://localhost:5000/api/shifts",
+        baseUrl: `${API_URL}/shifts",
         prepareHeaders: (headers) => {
             const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {

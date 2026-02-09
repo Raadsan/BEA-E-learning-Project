@@ -29,7 +29,7 @@ export default function CourseTimelinePage() {
         try {
             setLoading(true);
             const token = localStorage.getItem("token");
-            const response = await fetch("http://localhost:5000/api/course-timeline/admin", {
+            const response = await fetch("${API_URL}/course-timeline/admin", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -109,8 +109,8 @@ export default function CourseTimelinePage() {
         try {
             const token = localStorage.getItem("token");
             const url = editingTimeline
-                ? `http://localhost:5000/api/course-timeline/${editingTimeline.id}`
-                : "http://localhost:5000/api/course-timeline";
+                ? `${API_URL}/course-timeline/${editingTimeline.id}`
+                : "${API_URL}/course-timeline";
 
             const method = editingTimeline ? "PUT" : "POST";
 
@@ -148,7 +148,7 @@ export default function CourseTimelinePage() {
 
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:5000/api/course-timeline/${timelineToDelete.id}`, {
+            const response = await fetch(`${API_URL}/course-timeline/${timelineToDelete.id}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${token}`,
