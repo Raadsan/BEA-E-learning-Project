@@ -4,7 +4,7 @@ import { API_URL } from "@/constants";
 export const announcementApi = createApi({
     reducerPath: "announcementApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: `${API_URL}",
+        baseUrl: `${API_URL}`,
         prepareHeaders: (headers) => {
             const token = localStorage.getItem("token");
             if (token) {

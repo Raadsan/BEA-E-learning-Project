@@ -11,7 +11,7 @@ const getToken = () => {
 export const placementTestApi = createApi({
     reducerPath: "placementTestApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: `${API_URL}/placement-tests",
+        baseUrl: `${API_URL}/placement-tests`,
         prepareHeaders: (headers) => {
             const token = getToken();
             if (token) {

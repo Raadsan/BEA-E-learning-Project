@@ -4,7 +4,7 @@ import { API_URL } from "@/constants";
 export const attendanceApi = createApi({
     reducerPath: "attendanceApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: `${API_URL}/attendance",
+        baseUrl: `${API_URL}/attendance`,
         prepareHeaders: (headers) => {
             const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {

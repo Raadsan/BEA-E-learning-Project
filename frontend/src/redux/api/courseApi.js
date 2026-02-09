@@ -4,7 +4,7 @@ import { API_URL } from "@/constants";
 export const courseApi = createApi({
   reducerPath: "courseApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/courses",
+    baseUrl: `${API_URL}/courses`,
     prepareHeaders: (headers) => {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       if (token) {

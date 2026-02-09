@@ -4,7 +4,7 @@ import { API_URL } from "@/constants";
 export const academicCalendarApi = createApi({
     reducerPath: "academicCalendarApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: `${API_URL}/timetables",
+        baseUrl: `${API_URL}/timetables`,
         prepareHeaders: (headers) => {
             const token = localStorage.getItem("token");
             if (token) {

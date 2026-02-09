@@ -4,7 +4,7 @@ import { API_URL } from "@/constants";
 export const certificateApi = createApi({
     reducerPath: "certificateApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: `${API_URL}/certificates",
+        baseUrl: `${API_URL}/certificates`,
         prepareHeaders: (headers) => {
             const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {

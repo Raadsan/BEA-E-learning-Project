@@ -4,7 +4,7 @@ import { API_URL } from "@/constants";
 export const materialApi = createApi({
     reducerPath: "materialApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: `${API_URL}/materials",
+        baseUrl: `${API_URL}/materials`,
         prepareHeaders: (headers) => {
             const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {

@@ -4,7 +4,7 @@ import { API_URL } from "@/constants";
 export const subprogramApi = createApi({
   reducerPath: "subprogramApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/subprograms",
+    baseUrl: `${API_URL}/subprograms`,
     prepareHeaders: (headers) => {
       headers.set("Content-Type", "application/json");
       return headers;

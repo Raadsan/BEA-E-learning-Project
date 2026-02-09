@@ -12,7 +12,7 @@ const getToken = () => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/auth",
+    baseUrl: `${API_URL}/auth`,
     prepareHeaders: (headers) => {
       const token = getToken();
       if (token) {

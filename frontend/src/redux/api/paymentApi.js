@@ -11,7 +11,7 @@ const getToken = () => {
 export const paymentApi = createApi({
     reducerPath: "paymentApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: `${API_URL}/payments",
+        baseUrl: `${API_URL}/payments`,
         prepareHeaders: (headers) => {
             const token = getToken();
             if (token) {

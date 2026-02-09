@@ -4,7 +4,7 @@ import { API_URL } from "@/constants";
 export const shiftApi = createApi({
     reducerPath: "shiftApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: `${API_URL}/shifts",
+        baseUrl: `${API_URL}/shifts`,
         prepareHeaders: (headers) => {
             const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {

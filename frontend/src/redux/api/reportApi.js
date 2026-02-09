@@ -11,7 +11,7 @@ const getToken = () => {
 export const reportApi = createApi({
   reducerPath: "reportApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/reports",
+    baseUrl: `${API_URL}/reports`,
     prepareHeaders: (headers) => {
       const token = getToken();
       if (token) {
