@@ -41,7 +41,7 @@ export default function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Logo Section */}
-          <div className="flex flex-col items-center sm:items-start">
+          <div className="flex flex-col items-start sm:items-start">
             <div className="mb-4 sm:mb-0">
               <Image
                 src="/images/footerlogo-removebg-preview.png"
@@ -53,9 +53,9 @@ export default function Footer() {
               />
             </div>
             {/* Follow Us - aligned with Quick Links */}
-            <div className="mt-4 sm:mt-auto sm:ml-5 text-center sm:text-left">
+            <div className="mt-4 sm:mt-auto sm:ml-5 text-left sm:text-left">
               <h3 className="text-sm font-semibold mb-3 text-white" style={{ fontFamily: 'var(--font-playfair)' }}>Follow Us</h3>
-              <div className="flex gap-2 justify-center sm:justify-start">
+              <div className="flex gap-2 justify-start sm:justify-start">
                 {/* Facebook */}
                 <a href="#" className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDarkMode ? 'bg-transparent border border-white hover:bg-white/20' : 'bg-white hover:bg-gray-200'}`}>
                   <svg className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-[#010080]'}`} fill="currentColor" viewBox="0 0 24 24">
@@ -103,7 +103,7 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div className="text-center sm:text-left">
+          <div className="text-left sm:text-left">
             <h3 className="text-sm font-semibold mb-3 sm:mb-4" style={{ color: '#87CEEB', fontFamily: 'var(--font-playfair)' }}>Quick Links</h3>
             <ul className="space-y-2 text-sm text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
               <li><Link href="/website/about-us" className="hover:text-gray-300 transition-colors">About Us</Link></li>
@@ -120,7 +120,7 @@ export default function Footer() {
           </div>
 
           {/* Our Policies */}
-          <div className="text-center sm:text-left">
+          <div className="text-left sm:text-left">
             <h3 className="text-sm font-semibold mb-3 sm:mb-4" style={{ color: '#87CEEB', fontFamily: 'var(--font-playfair)' }}>Our Policies</h3>
             <ul className="space-y-2 text-sm text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
               <li><Link href="/website/data-policy" className="hover:text-gray-300 transition-colors">Data Policy</Link></li>
@@ -132,7 +132,7 @@ export default function Footer() {
           </div>
 
           {/* Downloads */}
-          <div className="text-center sm:text-left">
+          <div className="text-left sm:text-left">
             <h3 className="text-sm font-semibold mb-3 sm:mb-4" style={{ color: '#87CEEB', fontFamily: 'var(--font-playfair)' }}>Downloads</h3>
             <ul className="space-y-2 text-sm text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
               <li><a href="#" className="hover:text-gray-300 transition-colors">The BEA Handbook</a></li>
@@ -145,9 +145,9 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar - aligned with Events and News */}
-        <div className="border-t border-white/20 pt-4 sm:pt-6 mt-6 sm:mt-8 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-xs sm:text-sm text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
+        <div className="border-t border-white/20 pt-4 sm:pt-6 mt-6 sm:mt-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-4 text-xs sm:text-sm text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
           <div>© Copyright 2025, All Rights Reserved</div>
-          <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4">
+          <div className="flex flex-wrap justify-start sm:justify-center items-center gap-3 sm:gap-4">
             {/* Theme Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
@@ -173,8 +173,8 @@ export default function Footer() {
                   <button
                     onClick={() => handleThemeSelect('light')}
                     className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${!isDarkMode
-                        ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                        : 'text-black hover:bg-gray-50'
+                      ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                      : 'text-black hover:bg-gray-50'
                       }`}
                   >
                     <svg className={`w-5 h-5 ${!isDarkMode ? 'text-blue-600' : 'text-black'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,8 +190,8 @@ export default function Footer() {
                   <button
                     onClick={() => handleThemeSelect('dark')}
                     className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 border-t ${isDarkMode
-                        ? 'bg-blue-50 hover:bg-blue-100 border-gray-200'
-                        : 'text-black hover:bg-gray-50 border-gray-200'
+                      ? 'bg-blue-50 hover:bg-blue-100 border-gray-200'
+                      : 'text-black hover:bg-gray-50 border-gray-200'
                       }`}
                     style={isDarkMode ? { color: '#000000' } : {}}
                   >
