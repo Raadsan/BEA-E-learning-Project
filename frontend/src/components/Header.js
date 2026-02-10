@@ -80,24 +80,23 @@ export default function Header() {
         <span className="text-white text-[10px] sm:text-xs font-semibold tracking-widest uppercase">Blue Print English Academy</span>
       </div>
 
-      <div className="container mx-auto px-4 lg:px-6">
-        {/* Unified Single Row Header */}
-        <div className="flex items-center justify-between h-20 sm:h-24 lg:h-32 gap-4">
+      <div className="container mx-auto px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 md:h-24 lg:h-28 xl:h-32">
           {/* 1. Logo (Left Column) */}
-          <div className="flex-none flex items-center relative h-full">
+          <div className="flex items-center relative h-full">
             <Link href="/" className="flex-shrink-0 flex items-center transition-transform hover:scale-105 duration-300 relative z-10">
               <Image
                 src={isDarkMode ? "/images/footerlogo-removebg-preview.png" : "/images/headerlogo.png"}
                 alt="BEA Logo"
                 width={380}
                 height={120}
-                className="h-14 sm:h-18 lg:h-44 w-auto object-contain drop-shadow-md"
+                className="h-12 sm:h-16 md:h-20 lg:h-32 xl:h-40 2xl:h-44 w-auto object-contain drop-shadow-md"
                 priority
               />
             </Link>
           </div>
 
-          <nav className="hidden xl:flex items-center justify-start gap-4 2xl:gap-6 ml-8 2xl:ml-12 flex-1 font-nav">
+          <nav className="hidden lg:flex items-center justify-start gap-2 lg:gap-3 xl:gap-4 2xl:gap-6 ml-2 lg:ml-5 xl:ml-10 2xl:ml-14 mr-2 lg:mr-3 xl:mr-4 flex-1 font-nav">
             <Link href="/" className={`text-base 2xl:text-lg font-medium tracking-wide transition-colors ${isDarkMode ? 'text-gray-200 hover:text-white' : 'text-[#010080] hover:text-blue-700'}`}>
               Home
             </Link>
@@ -113,13 +112,13 @@ export default function Header() {
                 <svg className={`w-3.5 h-3.5 transition-transform duration-300 ${programsOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
               </Link>
               {programsOpen && (
-                <div className="absolute top-full left-[-350px] pt-3 w-[1200px] z-[60] animate-fade-in translate-y-1.5">
-                  {/* Dropdown Pointer (The Arrow) - Positioned to stay under "Programs" text */}
-                  <div className={`absolute -top-1.5 left-[390px] w-4 h-4 rotate-45 ${isDarkMode ? 'bg-[#050040]' : 'bg-white'}`}></div>
+                <div className="absolute top-full left-0 lg:left-[-200px] xl:left-[-350px] pt-3 w-full lg:w-[900px] xl:w-[1100px] 2xl:w-[1200px] z-[60] animate-fade-in translate-y-1.5">
+                  {/* Dropdown Pointer (The Arrow) - Responsive Positioning */}
+                  <div className={`absolute -top-1.5 left-[200px] lg:left-[290px] xl:left-[390px] w-4 h-4 rotate-45 ${isDarkMode ? 'bg-[#050040]' : 'bg-white'}`}></div>
 
                   <div className={`relative p-8 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border ${isDarkMode ? 'bg-[#050040] border-blue-900/30' : 'bg-white border-gray-100'}`}>
                     <div className="mb-6 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-blue-500/80 border-b border-blue-500/5 pb-4">Explore Our Programs</div>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 lg:gap-x-8 gap-y-6 lg:gap-y-10">
                       {programsMenu.map((item, index) => (
                         <Link key={index} href={item.href} className={`flex items-start gap-4 p-4 rounded-2xl transition-all duration-300 font-nav group/item ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-100/50'}`} onClick={() => setProgramsOpen(false)}>
                           <div className={`flex-shrink-0 p-3 rounded-xl ${isDarkMode ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
@@ -153,13 +152,13 @@ export default function Header() {
                 <svg className={`w-3.5 h-3.5 transition-transform duration-300 ${beaValuesOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
               </Link>
               {beaValuesOpen && (
-                <div className="absolute top-full left-[-150px] pt-3 w-[850px] z-[60] animate-fade-in translate-y-1.5">
-                  {/* Dropdown Pointer (The Arrow) - Positioned to stay under "Values" text */}
-                  <div className={`absolute -top-1.5 left-[185px] w-4 h-4 rotate-45 ${isDarkMode ? 'bg-[#050040]' : 'bg-white'}`}></div>
+                <div className="absolute top-full left-0 lg:left-[-50px] xl:left-[-150px] pt-3 w-full lg:w-[700px] xl:w-[800px] 2xl:w-[850px] z-[60] animate-fade-in translate-y-1.5">
+                  {/* Dropdown Pointer (The Arrow) - Responsive Positioning */}
+                  <div className={`absolute -top-1.5 left-[100px] lg:left-[135px] xl:left-[185px] w-4 h-4 rotate-45 ${isDarkMode ? 'bg-[#050040]' : 'bg-white'}`}></div>
 
                   <div className={`relative p-8 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border ${isDarkMode ? 'bg-[#050040] border-blue-900/30' : 'bg-white border-gray-100'}`}>
                     <div className="mb-6 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-blue-500/80 border-b border-blue-500/5 pb-4">Values & Principles</div>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 lg:gap-x-8 gap-y-6 lg:gap-y-10">
                       {beaValuesMenu.map((item, index) => (
                         <Link key={index} href={item.href} className={`flex items-start gap-4 p-4 rounded-2xl transition-all duration-300 font-nav group/item ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-100/50'}`} onClick={() => setBeaValuesOpen(false)}>
                           <div className={`flex-shrink-0 p-3 rounded-xl ${isDarkMode ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
@@ -183,31 +182,31 @@ export default function Header() {
             <Link href="/website/contact-us" className={`text-base 2xl:text-lg font-medium tracking-wide transition-colors ${isDarkMode ? 'text-gray-200 hover:text-white' : 'text-[#010080] hover:text-blue-700'}`}>Contact</Link>
           </nav>
 
-          {/* 3. Actions (Right Column) */}
-          <div className="flex-none flex items-center justify-end gap-3 sm:gap-4 lg:gap-6">
-            {/* Wider Search Bar (Slightly Taller) */}
-            <div className="hidden md:flex flex-1 min-w-[200px] lg:min-w-[320px]">
-              <div className={`flex items-center w-full px-4 py-3 rounded-xl border transition-all duration-300 focus-within:shadow-md ${isDarkMode ? 'bg-[#050040] border-blue-900/50' : 'bg-gray-50 border-gray-200 focus-within:bg-white'}`}>
-                <input type="text" placeholder="Search..." className={`outline-none text-xs bg-transparent w-full ${isDarkMode ? 'text-gray-200 placeholder-gray-500' : 'text-gray-700 placeholder-gray-400'}`} />
-                <svg className={`w-4.5 h-4.5 ml-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          {/* 3. Actions (Right Column) - Compact Spacing */}
+          <div className="flex items-center justify-end gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-5">
+            {/* Responsive Search Bar - Fixed Widths */}
+            <div className="hidden md:block w-40 lg:w-52 xl:w-64 2xl:w-80">
+              <div className={`flex items-center w-full px-2 md:px-3 lg:px-4 py-2 md:py-2.5 lg:py-3 rounded-lg lg:rounded-xl border transition-all duration-300 focus-within:shadow-md ${isDarkMode ? 'bg-[#050040] border-blue-900/50' : 'bg-gray-50 border-gray-200 focus-within:bg-white'}`}>
+                <input type="text" placeholder="Search..." className={`outline-none text-[11px] md:text-xs bg-transparent w-full ${isDarkMode ? 'text-gray-200 placeholder-gray-500' : 'text-gray-700 placeholder-gray-400'}`} />
+                <svg className={`w-3.5 h-3.5 md:w-4 md:h-4 lg:w-4.5 lg:h-4.5 ml-1.5 md:ml-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               </div>
             </div>
 
             <button onClick={toggleTheme} className={`p-2 rounded-xl transition-all duration-300 ${isDarkMode ? 'text-yellow-300 hover:text-yellow-200' : 'text-gray-600 hover:text-blue-600'}`}>
               {isDarkMode ? <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg> : <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>}
             </button>
-            <Link href="/auth/login" className={`hidden xl:flex items-center justify-center px-10 py-3 rounded-xl font-bold transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 ${isDarkMode ? '!bg-white !text-black hover:!bg-white/90' : 'bg-[#010080] text-white hover:bg-[#010060]'}`}>
+            <Link href="/auth/login" className={`hidden lg:flex items-center justify-center w-24 py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-sm hover:shadow-md text-base ${isDarkMode ? '!bg-white !text-black hover:!bg-white/90' : 'bg-[#010080] text-white hover:bg-[#010060]'}`}>
               <span className={isDarkMode ? '!text-[#03002e]' : ''}>Sign In</span>
             </Link>
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="xl:hidden p-2 rounded-lg transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2 rounded-lg transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu - Transparent & Connected */}
-      <div className={`xl:hidden fixed inset-x-0 top-[88px] sm:top-[104px] lg:top-[136px] bg-white dark:bg-[#03002e] shadow-[0_15px_30px_rgba(0,0,0,0.05)] transition-all duration-300 overflow-hidden ${mobileMenuOpen ? 'max-h-[85vh] opacity-100' : 'max-h-0 opacity-0'}`} style={{ zIndex: 45 }}>
+      {/* Mobile Menu - Responsive Positioning */}
+      <div className={`lg:hidden fixed inset-x-0 top-[calc(2rem+4rem)] sm:top-[calc(2rem+5rem)] md:top-[calc(2rem+6rem)] bg-white dark:bg-[#03002e] shadow-[0_15px_30px_rgba(0,0,0,0.05)] transition-all duration-300 overflow-hidden ${mobileMenuOpen ? 'max-h-[85vh] opacity-100' : 'max-h-0 opacity-0'}`} style={{ zIndex: 45 }}>
         <div className="p-4 sm:p-5 space-y-4 overflow-y-auto max-h-[80vh]">
           {/* Mobile Search Bar - Compact & Borderless Side */}
           <div className={`flex items-center w-full px-4 py-2.5 rounded-xl border-b transition-all duration-300 ${isDarkMode ? 'bg-white/5 border-blue-900/20' : 'bg-[#f8fafc]/50 border-gray-100/50'}`}>
