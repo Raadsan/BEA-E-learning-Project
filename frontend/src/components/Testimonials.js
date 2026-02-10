@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
-import { API_URL, API_BASE_URL } from "@/constants";
+import { API_URL, API_BASE_URL, resolveMediaUrl } from "@/constants";
 
 export default function Testimonials() {
   const [isVisible, setIsVisible] = useState(false);
