@@ -110,7 +110,7 @@ export default function Testimonials() {
                     <div className="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border border-blue-500/20">
                       {testimonial.image_url ? (
                         <img
-                          src={testimonial.image_url?.startsWith('http') ? testimonial.image_url : `${API_BASE_URL}${testimonial.image_url}`}
+                          src={resolveMediaUrl(testimonial.image_url)}
                           alt={testimonial.student_name}
                           className="w-full h-full object-cover"
                           onError={(e) => {

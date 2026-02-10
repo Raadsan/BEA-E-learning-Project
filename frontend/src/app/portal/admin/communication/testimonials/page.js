@@ -5,7 +5,7 @@ import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
 import Image from "next/image";
-import { API_BASE_URL, API_URL } from "@/constants";
+import { API_BASE_URL, API_URL, resolveMediaUrl } from "@/constants";
 
 export default function TestimonialsPage() {
     const { isDark } = useDarkMode();
@@ -96,7 +96,7 @@ export default function TestimonialsPage() {
             // but the components handle relative `/uploads/...` paths
             setFormData(prev => ({
                 ...prev,
-                image_url: `${API_BASE_URL}${data.url}`
+                image_url: resolveMediaUrl(data.url)
             }));
 
             showToast("Photo uploaded successfully!", "success");
@@ -210,7 +210,7 @@ export default function TestimonialsPage() {
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden border border-gray-200">
                     {row.image_url ? (
                         <img
-                            src={row.image_url?.startsWith('http') ? row.image_url : `${API_BASE_URL}${row.image_url}`}
+                            src={resolveMediaUrl(row.image_url)}
                             alt={row.student_name}
                             className="w-full h-full object-cover"
                             onError={(e) => {

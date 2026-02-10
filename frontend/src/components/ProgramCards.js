@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { getProgramRoute } from "@/utils/programRoutes";
-import { API_BASE_URL } from "@/constants";
+import { API_BASE_URL, resolveMediaUrl } from "@/constants";
 
 // Video Card Component
 function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
@@ -169,8 +169,8 @@ export default function ProgramCards() {
     id: program.id,
     title: program.title,
     description: program.description || "",
-    video: program.video ? (program.video.startsWith('http') ? program.video : `${API_BASE_URL}${program.video}`) : null,
-    image: program.image ? (program.image.startsWith('http') ? program.image : `${API_BASE_URL}${program.image}`) : "/images/book1.jpg",
+    video: resolveMediaUrl(program.video),
+    image: resolveMediaUrl(program.image) || "/images/book1.jpg",
     link: getProgramRoute(program.title), // Map to correct route based on title
   })) || [];
 
