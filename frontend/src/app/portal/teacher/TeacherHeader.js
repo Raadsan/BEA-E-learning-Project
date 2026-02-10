@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { API_BASE_URL } from "@/constants";
 
 export default function TeacherHeader({ onMenuClick }) {
   const { isDark, toggleDarkMode } = useDarkMode();
@@ -92,7 +93,7 @@ export default function TeacherHeader({ onMenuClick }) {
               {currentUser?.profile_picture ? (
                 <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors">
                   <img
-                    src={currentUser.profile_picture.startsWith('http') ? currentUser.profile_picture : `http://localhost:5000${currentUser.profile_picture}`}
+                    src={currentUser.profile_picture.startsWith('http') ? currentUser.profile_picture : `${API_BASE_URL}${currentUser.profile_picture}`}
                     alt={currentUser.full_name || "Teacher"}
                     className="w-full h-full object-cover"
                   />

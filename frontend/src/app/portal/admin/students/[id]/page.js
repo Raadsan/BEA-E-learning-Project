@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import DataTable from "@/components/DataTable";
+import { API_URL } from "@/constants";
 
 export default function StudentDetailPage() {
   const { isDark } = useDarkMode();
@@ -23,11 +24,10 @@ export default function StudentDetailPage() {
   useEffect(() => {
     const fetchStudentData = async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
         const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
 
         // Fetch student details
-        const studentRes = await fetch(`${baseUrl}/api/students/${studentId}`, {
+        const studentRes = await fetch(`${API_URL}/students/${studentId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -36,7 +36,7 @@ export default function StudentDetailPage() {
         setStudent(studentData);
 
         // Fetch attendance
-        const attendanceRes = await fetch(`${baseUrl}/api/attendance/student/${studentId}`, {
+        const attendanceRes = await fetch(`${API_URL}/attendance/student/${studentId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -46,7 +46,7 @@ export default function StudentDetailPage() {
         }
 
         // Fetch payments
-        const paymentsRes = await fetch(`${baseUrl}/api/payments/student/${studentId}`, {
+        const paymentsRes = await fetch(`${API_URL}/payments/student/${studentId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

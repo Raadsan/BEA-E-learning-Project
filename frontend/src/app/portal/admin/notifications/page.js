@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetNotificationsQuery, useMarkAsReadMutation } from "@/redux/api/notificationApi";
 import Image from "next/image";
+import { API_BASE_URL } from "@/constants";
 
 import NotificationDetailsModal from "./components/NotificationDetailsModal";
 
@@ -67,7 +68,7 @@ export default function NotificationsPage() {
                                     <div className="flex items-center p-4 gap-4">
                                         <div className="flex-shrink-0">
                                             {notification.sender_image ? (
-                                                <Image src={`http://localhost:5000${notification.sender_image}`} alt={notification.sender_name || "User"} width={48} height={48} className="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-600" />
+                                                <Image src={`${API_BASE_URL}${notification.sender_image}`} alt={notification.sender_name || "User"} width={48} height={48} className="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-600" />
                                             ) : (
                                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">{(notification.sender_name || "S").charAt(0).toUpperCase()}</div>
                                             )}

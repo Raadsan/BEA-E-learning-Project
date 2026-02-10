@@ -3,6 +3,7 @@
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetStudentPlacementResultsQuery, useGetPlacementTestByIdQuery } from "@/redux/api/placementTestApi";
+import { API_BASE_URL } from "@/constants";
 
 export default function ResultsPage() {
   const router = useRouter();
@@ -163,7 +164,7 @@ export default function ResultsPage() {
                             </div>
                           </div>
                           <a
-                            href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${result.feedback_file}`}
+                            href={`${API_BASE_URL}${result.feedback_file}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm"

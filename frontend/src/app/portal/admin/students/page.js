@@ -17,6 +17,7 @@ import {
 } from "@/redux/api/ieltsToeflApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import { API_BASE_URL, API_URL } from "@/constants";
 import { Country, City } from "country-state-city";
 
 // Extracted Components
@@ -196,9 +197,8 @@ export default function StudentsPage() {
         setViewingStudent(student);
         setIsViewModalOpen(true);
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
             const searchId = student.original_id || student.id;
-            const res = await fetch(`${baseUrl}/api/payments/student/${searchId}`);
+            const res = await fetch(`${API_URL}/payments/student/${searchId}`);
             const json = await res.json().catch(() => ({}));
             if (res.ok && json.success) setViewingPayments(json.payments || []);
         } catch (err) { console.error('Failed to fetch payments', err); }

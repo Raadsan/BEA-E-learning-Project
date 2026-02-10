@@ -10,6 +10,7 @@ import {
     useGetAssignmentsQuery
 } from "@/redux/api/assignmentApi";
 import { useToast } from "@/components/Toast";
+import { API_BASE_URL, API_URL } from "@/constants";
 
 import { useDarkMode } from "@/context/ThemeContext";
 
@@ -103,7 +104,7 @@ function OralAssignmentCreateContent() {
         try {
             setIsUploading(true);
             const token = localStorage.getItem('token'); // Assuming standard token storage
-            const res = await fetch('${API_URL}/uploads', {
+            const res = await fetch(`${API_URL}/uploads`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -277,7 +278,7 @@ function OralAssignmentCreateContent() {
                                         <div className="flex-1">
                                             <p className="font-medium text-sm">Preview Uploaded Audio</p>
                                             <audio controls className="w-full mt-2 h-8">
-                                                <source src={`http://localhost:5000${formData.audioUrl}`} />
+                                                <source src={`${API_BASE_URL}${formData.audioUrl}`} />
                                             </audio>
                                         </div>
                                     </div>

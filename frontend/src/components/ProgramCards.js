@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { getProgramRoute } from "@/utils/programRoutes";
+import { API_BASE_URL } from "@/constants";
 
 // Video Card Component
 function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
@@ -33,9 +34,8 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
     <Link
       key={program.id}
       href={program.link || "#"}
-      className={`rounded-lg border overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${
-        isVisible ? 'animate-fade-in-up' : 'opacity-0'
-      } ${isDarkMode ? 'bg-[#050040] border-[#1a1a3e]' : 'bg-white border-gray-200'}`}
+      className={`rounded-lg border overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
+        } ${isDarkMode ? 'bg-[#050040] border-[#1a1a3e]' : 'bg-white border-gray-200'}`}
       style={{ animationDelay: `${0.1 + index * 0.1}s` }}
     >
       {/* Video/Image with Play Icon */}
@@ -65,7 +65,7 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
             </video>
             {/* Play Icon Overlay - Only show when video is paused */}
             {!isPlaying && (
-              <div 
+              <div
                 className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors cursor-pointer"
                 onClick={handlePlayClick}
                 style={{ pointerEvents: 'auto' }}
@@ -111,25 +111,24 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
             </svg>
           </button>
         </div>
-        
+
         {/* Description */}
         <p className={`text-[11px] sm:text-xs leading-relaxed mb-3 sm:mb-4 ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
           {program.description}
         </p>
-        
+
         {/* Explore more */}
         <div
-          className={`text-xs font-semibold inline-flex items-center gap-1 ${
-            program.color === "red" 
-              ? "text-red-600 hover:text-red-700" 
+          className={`text-xs font-semibold inline-flex items-center gap-1 ${program.color === "red"
+              ? "text-red-600 hover:text-red-700"
               : "text-blue-600 hover:text-blue-700"
-          }`}
+            }`}
         >
           <span>Explore more</span>
-          <svg 
-            className="w-4 h-4" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -170,8 +169,8 @@ export default function ProgramCards() {
     id: program.id,
     title: program.title,
     description: program.description || "",
-    video: program.video ? `http://localhost:5000${program.video}` : null,
-    image: program.image ? `http://localhost:5000${program.image}` : "/images/book1.jpg",
+    video: program.video ? `${API_BASE_URL}${program.video}` : null,
+    image: program.image ? `${API_BASE_URL}${program.image}` : "/images/book1.jpg",
     link: getProgramRoute(program.title), // Map to correct route based on title
   })) || [];
 
@@ -207,7 +206,7 @@ export default function ProgramCards() {
               → View all programs
             </a>
           </div>
-          
+
           {/* Loading State */}
           {isLoading && (
             <div className="text-center py-12">

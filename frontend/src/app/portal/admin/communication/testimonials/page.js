@@ -5,7 +5,7 @@ import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
 import Image from "next/image";
-import { API_URL } from "@/constants";
+import { API_BASE_URL, API_URL } from "@/constants";
 
 export default function TestimonialsPage() {
     const { isDark } = useDarkMode();
@@ -96,7 +96,7 @@ export default function TestimonialsPage() {
             // but the components handle relative `/uploads/...` paths
             setFormData(prev => ({
                 ...prev,
-                image_url: `http://localhost:5000${data.url}`
+                image_url: `${API_BASE_URL}${data.url}`
             }));
 
             showToast("Photo uploaded successfully!", "success");

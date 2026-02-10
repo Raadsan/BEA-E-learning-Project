@@ -12,6 +12,7 @@ import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
 import { useGetTeachersQuery } from "@/redux/api/teacherApi";
 import { useGetAdminsQuery } from "@/redux/api/adminApi";
 import { useDarkMode } from "@/context/ThemeContext";
+import { API_BASE_URL } from "@/constants";
 
 export default function ClassStudentsPage() {
   const { isDark } = useDarkMode();
@@ -84,8 +85,7 @@ export default function ClassStudentsPage() {
       };
 
       // Send notification to backend
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
-      const response = await fetch(`${baseUrl}/api/announcements/classes/${classId}/notifications`, {
+      const response = await fetch(`${API_BASE_URL}/api/announcements/classes/${classId}/notifications`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useGetAnnouncementsQuery } from "@/redux/api/announcementApi";
 import { useGetNotificationsQuery } from "@/redux/api/notificationApi";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
+import { API_BASE_URL } from "@/constants";
 
 export default function StudentHeader({ onMenuClick }) {
   const { isDark, toggleDarkMode } = useDarkMode();
@@ -116,7 +117,7 @@ export default function StudentHeader({ onMenuClick }) {
                 {currentStudent?.profile_picture ? (
                   <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors">
                     <img
-                      src={currentStudent.profile_picture.startsWith('http') ? currentStudent.profile_picture : `http://localhost:5000${currentStudent.profile_picture}`}
+                      src={currentStudent.profile_picture.startsWith('http') ? currentStudent.profile_picture : `${API_BASE_URL}${currentStudent.profile_picture}`}
                       alt={currentStudent.full_name || "Student"}
                       className="w-full h-full object-cover"
                     />

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import { API_BASE_URL } from "@/constants";
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");
@@ -35,8 +36,7 @@ export default function Newsletter() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
-      const response = await fetch(`${baseUrl}/api/newsletter/subscribe`, {
+      const response = await fetch(`${API_BASE_URL}/api/newsletter/subscribe`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

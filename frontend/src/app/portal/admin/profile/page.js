@@ -7,6 +7,7 @@ import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useUpdateAdminMutation } from "@/redux/api/adminApi";
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
+import { API_BASE_URL } from "@/constants";
 
 export default function AdminProfilePage() {
     const { isDark } = useDarkMode();
@@ -188,7 +189,7 @@ export default function AdminProfilePage() {
                                         {imagePreview ? (
                                             <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                                         ) : currentAdmin?.profile_image || currentAdmin?.profile_picture ? (
-                                            <img src={(currentAdmin.profile_image || currentAdmin.profile_picture).startsWith('http') ? (currentAdmin.profile_image || currentAdmin.profile_picture) : `http://localhost:5000${currentAdmin.profile_image || currentAdmin.profile_picture}`} alt="Profile" className="w-full h-full object-cover" />
+                                            <img src={(currentAdmin.profile_image || currentAdmin.profile_picture).startsWith('http') ? (currentAdmin.profile_image || currentAdmin.profile_picture) : `${API_BASE_URL}${currentAdmin.profile_image || currentAdmin.profile_picture}`} alt="Profile" className="w-full h-full object-cover" />
                                         ) : (
                                             getInitials(currentAdmin?.full_name || "AD")
                                         )}

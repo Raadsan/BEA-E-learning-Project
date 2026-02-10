@@ -7,6 +7,7 @@ import { useUpdateStudentMutation } from "@/redux/api/studentApi";
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
 import Image from "next/image";
+import { API_BASE_URL } from "@/constants";
 
 export default function StudentSettingsPage() {
     const { isDark } = useDarkMode();
@@ -44,7 +45,7 @@ export default function StudentSettingsPage() {
                 confirmPassword: "",
             });
             if (user.profile_image) {
-                setImagePreview(`http://localhost:5000${user.profile_image}`);
+                setImagePreview(`${API_BASE_URL}${user.profile_image}`);
             }
         }
     }, [user]);

@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 
 import { useGetAllPlacementResultsQuery, useGetPlacementTestByIdQuery, useGradePlacementTestMutation } from "@/redux/api/placementTestApi";
 import { useToast } from "@/components/Toast";
+import { API_URL, API_BASE_URL } from "@/constants";
 
 export default function AdminResultDetailsPage() {
     const router = useRouter();
@@ -334,7 +335,7 @@ export default function AdminResultDetailsPage() {
                             </p>
                         </div>
                         <a
-                            href={`http://localhost:5000${result.feedback_file}`}
+                            href={`${API_BASE_URL}${result.feedback_file}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 px-4 py-2 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-bold hover:bg-green-50"

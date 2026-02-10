@@ -8,6 +8,7 @@ import { useGetProgramsQuery, useCreateProgramMutation, useUpdateProgramMutation
 import { studentApi } from "@/redux/api/studentApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import { API_BASE_URL } from "@/constants";
 
 // Extracted Components
 import ProgramForm from "./components/ProgramForm";
@@ -44,9 +45,9 @@ export default function ProgramsPage() {
 
   const programs = backendPrograms?.map((program) => ({
     ...program,
-    image: program.image ? `http://localhost:5000${program.image}` : null,
-    video: program.video ? `http://localhost:5000${program.video}` : null,
-    curriculum_file: program.curriculum_file ? `http://localhost:5000${program.curriculum_file}` : null,
+    image: program.image ? `${API_BASE_URL}${program.image}` : null,
+    video: program.video ? `${API_BASE_URL}${program.video}` : null,
+    curriculum_file: program.curriculum_file ? `${API_BASE_URL}${program.curriculum_file}` : null,
   })) || [];
 
   const handleAddProgram = () => {

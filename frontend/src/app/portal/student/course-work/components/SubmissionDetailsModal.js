@@ -1,6 +1,7 @@
 "use client";
 
 import { useDarkMode } from "@/context/ThemeContext";
+import { API_BASE_URL } from "@/constants";
 
 export default function SubmissionDetailsModal({ assignment, onClose }) {
     const { isDark } = useDarkMode();
@@ -105,7 +106,7 @@ export default function SubmissionDetailsModal({ assignment, onClose }) {
                         {/* File */}
                         {assignment.file_url ? (
                             <a
-                                href={`http://localhost:5000${assignment.file_url}`}
+                                href={`${API_BASE_URL}${assignment.file_url}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg border bg-gray-50 dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group w-full"
@@ -165,8 +166,8 @@ export default function SubmissionDetailsModal({ assignment, onClose }) {
                     <button
                         onClick={onClose}
                         className={`px-5 py-2 rounded-lg font-medium transition-colors ${isDark
-                                ? "bg-gray-700 hover:bg-gray-600 text-white"
-                                : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                            ? "bg-gray-700 hover:bg-gray-600 text-white"
+                            : "bg-gray-200 hover:bg-gray-300 text-gray-800"
                             }`}
                     >
                         Close

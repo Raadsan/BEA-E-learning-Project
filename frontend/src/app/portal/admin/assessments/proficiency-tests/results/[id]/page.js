@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 
 import { useGetAllProficiencyResultsQuery, useGetProficiencyTestByIdQuery, useGradeProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
 import { useToast } from "@/components/Toast";
+import { API_URL, API_BASE_URL } from "@/constants";
 
 export default function AdminProficiencyResultDetailsPage() {
     const router = useRouter();
@@ -360,7 +361,7 @@ export default function AdminProficiencyResultDetailsPage() {
                                             <>
                                                 {feedback.essay && (
                                                     <a
-                                                        href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${feedback.essay}`}
+                                                        href={`${API_BASE_URL}${feedback.essay}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
@@ -373,7 +374,7 @@ export default function AdminProficiencyResultDetailsPage() {
                                                 )}
                                                 {feedback.audio && (
                                                     <a
-                                                        href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${feedback.audio}`}
+                                                        href={`${API_BASE_URL}${feedback.audio}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
@@ -394,7 +395,7 @@ export default function AdminProficiencyResultDetailsPage() {
                                     // Fallback for old simple string feedback
                                     return (
                                         <a
-                                            href={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${result.feedback}`}
+                                            href={`${API_BASE_URL}${result.feedback}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
@@ -524,7 +525,7 @@ export default function AdminProficiencyResultDetailsPage() {
                                                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" /></svg>
                                                 </div>
                                                 <audio controls className="h-8 w-full flex-1">
-                                                    <source src={q.audioUrl?.startsWith('http') ? q.audioUrl : `http://localhost:5000${q.audioUrl}`} />
+                                                    <source src={q.audioUrl?.startsWith('http') ? q.audioUrl : `${API_BASE_URL}${q.audioUrl}`} />
                                                     Your browser does not support the audio element.
                                                 </audio>
                                             </div>

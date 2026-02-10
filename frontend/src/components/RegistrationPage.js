@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { API_BASE_URL } from "@/constants";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
@@ -765,7 +766,7 @@ export default function RegistrationPage() {
                               <div className={`h-16 w-16 mb-4 rounded-xl overflow-hidden border ${isSelected ? 'border-blue-100 bg-blue-50' : 'border-gray-100 bg-gray-50'}`}>
                                 {program.image ? (
                                   <img
-                                    src={`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${program.image}`}
+                                    src={`${API_BASE_URL}${program.image}`}
                                     alt={program.title}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                   />

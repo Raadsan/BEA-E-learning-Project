@@ -5,6 +5,7 @@ import { Country } from "country-state-city";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import CountrySelect from '@/components/CountrySelect';
+import { API_BASE_URL, API_URL } from "@/constants";
 
 export default function StudentForm({
     isOpen,
@@ -39,9 +40,8 @@ export default function StudentForm({
         formDataUpload.append('file', file);
 
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
             const token = localStorage.getItem("token");
-            const res = await fetch(`${baseUrl}/api/upload`, {
+            const res = await fetch(`${API_URL}/upload`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formDataUpload

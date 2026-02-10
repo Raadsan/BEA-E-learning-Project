@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/constants";
 
 export default function StudentViewModal({
     isOpen,
@@ -194,7 +195,7 @@ export default function StudentViewModal({
                                                     <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
                                                         }`}>Certificate Document</label>
                                                     <a
-                                                        href={viewingStudent.certificate_document.startsWith('http') ? viewingStudent.certificate_document : `${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}${viewingStudent.certificate_document}`}
+                                                        href={viewingStudent.certificate_document.startsWith('http') ? viewingStudent.certificate_document : `${API_BASE_URL}${viewingStudent.certificate_document}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="text-blue-500 hover:text-blue-600 flex items-center gap-2 mt-1"

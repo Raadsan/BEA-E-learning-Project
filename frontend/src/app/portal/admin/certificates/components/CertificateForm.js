@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/components/Toast";
 import { useUploadFileMutation } from "@/redux/api/uploadApi";
+import { API_BASE_URL } from "@/constants";
 
 export default function CertificateForm({ isOpen, onClose, target, certificate, onSave, isSaving, isDark }) {
     const { showToast } = useToast();
@@ -30,7 +31,7 @@ export default function CertificateForm({ isOpen, onClose, target, certificate, 
                 font_color: certificate.font_color
             });
             if (certificate.template_url) {
-                setPreviewUrl(`http://localhost:5000${certificate.template_url}`);
+                setPreviewUrl(`${API_BASE_URL}${certificate.template_url}`);
             }
         }
     }, [certificate]);

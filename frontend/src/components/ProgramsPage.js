@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/redux/api/programApi";
 import { getProgramRoute } from "@/utils/programRoutes";
+import { API_BASE_URL } from "@/constants";
 
 // Program Card Component with Video Support
 function ProgramCard({ program, index, isDarkMode, isVisible, playingVideos, setPlayingVideos }) {
@@ -62,7 +63,7 @@ function ProgramCard({ program, index, isDarkMode, isVisible, playingVideos, set
             </video>
             {/* Play Icon Overlay - Only show when video is paused */}
             {!isPlaying && (
-              <div 
+              <div
                 className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors cursor-pointer rounded-tl-xl rounded-tr-xl"
                 onClick={handlePlayClick}
                 style={{ pointerEvents: 'auto' }}
@@ -106,13 +107,13 @@ function ProgramCard({ program, index, isDarkMode, isVisible, playingVideos, set
         <h3 className={`text-sm sm:text-base font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {program.title}
         </h3>
-        
+
         <p className={`text-[12px] sm:text-xs leading-relaxed mb-4 flex-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           {program.description}
         </p>
-        
+
         {/* Read More Button */}
-        <div 
+        <div
           className={`px-6 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base w-full text-center block header-keep-white ${isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}
           style={isDarkMode ? { color: '#010080' } : {}}
         >
@@ -160,23 +161,23 @@ export default function ProgramsPage() {
     if (program.image) {
       // If image path starts with /, use it directly with backend URL
       if (program.image.startsWith('/')) {
-        imageUrl = `http://localhost:5000${program.image}`;
+        imageUrl = `${API_BASE_URL}${program.image}`;
       } else {
         // If image path doesn't start with /, add it
-        imageUrl = `http://localhost:5000/${program.image}`;
+        imageUrl = `${API_BASE_URL}/${program.image}`;
       }
     }
-    
+
     // Ensure video URL is properly formatted from backend
     let videoUrl = null;
     if (program.video) {
       if (program.video.startsWith('/')) {
-        videoUrl = `http://localhost:5000${program.video}`;
+        videoUrl = `${API_BASE_URL}${program.video}`;
       } else {
-        videoUrl = `http://localhost:5000/${program.video}`;
+        videoUrl = `${API_BASE_URL}/${program.video}`;
       }
     }
-    
+
     return {
       id: program.id,
       title: program.title,
@@ -204,11 +205,11 @@ export default function ProgramsPage() {
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       {/* Hero Section */}
-      <section 
+      <section
         ref={sectionRefs.hero}
         className="relative flex items-center justify-center overflow-hidden"
         style={{
-          background: isDarkMode 
+          background: isDarkMode
             ? 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)'
             : 'linear-gradient(135deg, #1a237e 0%, #311b92 50%, #b71c1c 100%)',
           height: '170px'
@@ -228,11 +229,11 @@ export default function ProgramsPage() {
             <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               We offer a unique portfolio of programs designed to redefine English learning through purpose, innovation, and global relevance.
             </p>
-            
+
             <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
               From our 8-Level General English Course for Adults to ESP (English For Specific Purposes), IELTS & TOEFL preparation, and Advanced Academic Writing, every program builds confidence, fluency, and real-world communication skills.
             </p>
-            
+
             <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.3s' }}>
               What truly sets BEA apart is our focus on connecting language with life skills. Through our Professional Skills and Training Programs and Digital Literacy & Virtual Skills Program, students gain the tools to thrive in today&apos;s workplace and digital world—making BEA a true blueprint for personal and professional growth.
             </p>
@@ -252,7 +253,7 @@ export default function ProgramsPage() {
                 Learn more about BEA&apos;s unique program portfolio.
               </p>
             </div>
-            
+
             {/* Loading State */}
             {isLoading && (
               <div className="text-center py-12">
@@ -266,19 +267,19 @@ export default function ProgramsPage() {
             {isError && (
               <div className="text-center py-12">
                 <div className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
-                  {error?.status === 'FETCH_ERROR' 
-                    ? 'Cannot connect to backend server' 
+                  {error?.status === 'FETCH_ERROR'
+                    ? 'Cannot connect to backend server'
                     : error?.status === 'PARSING_ERROR'
-                    ? 'Invalid response from server'
-                    : error?.status
-                    ? `Error ${error.status}`
-                    : 'Error loading programs'}
+                      ? 'Invalid response from server'
+                      : error?.status
+                        ? `Error ${error.status}`
+                        : 'Error loading programs'}
                 </div>
                 <div className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                   {error?.status === 'FETCH_ERROR' ? (
                     <>
                       The backend server is not responding.<br />
-                      Please make sure the backend server is running on <code className="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">http://localhost:5000</code>
+                      Please make sure the backend server (Render) is running at <code className="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">{API_BASE_URL}</code>
                     </>
                   ) : error?.data?.error ? (
                     error.data.error

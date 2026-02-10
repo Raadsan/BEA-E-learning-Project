@@ -6,6 +6,7 @@ import { useGetCurrentUserQuery } from "@/redux/api/authApi";
 import { useUpdateTeacherMutation } from "@/redux/api/teacherApi";
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
+import { API_BASE_URL } from "@/constants";
 
 export default function TeacherProfilePage() {
     const { isDark } = useDarkMode();
@@ -169,7 +170,7 @@ export default function TeacherProfilePage() {
                                     {imagePreview ? (
                                         <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                                     ) : user?.profile_picture ? (
-                                        <img src={user.profile_picture.startsWith('http') ? user.profile_picture : `http://localhost:5000${user.profile_picture}`} alt="Profile" className="w-full h-full object-cover" />
+                                        <img src={user.profile_picture.startsWith('http') ? user.profile_picture : `${API_BASE_URL}${user.profile_picture}`} alt="Profile" className="w-full h-full object-cover" />
                                     ) : (
                                         getInitials(user?.full_name || "TC")
                                     )}

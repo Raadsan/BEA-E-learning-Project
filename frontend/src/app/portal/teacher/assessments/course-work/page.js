@@ -13,6 +13,7 @@ import {
 } from "@/redux/api/assignmentApi";
 import { useGetClassesQuery } from "@/redux/api/classApi";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
+import { API_BASE_URL } from "@/constants";
 
 import DataTable from "@/components/DataTable";
 
@@ -586,7 +587,7 @@ export default function CourseWorkPage() {
                                 {gradingSubmission.file_url ? (
                                     <div className="flex flex-col gap-4">
                                         <a
-                                            href={`http://localhost:5000${gradingSubmission.file_url}`}
+                                            href={`${API_BASE_URL}${gradingSubmission.file_url}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             download

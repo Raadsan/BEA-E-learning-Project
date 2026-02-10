@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCreateProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
 import { useUploadFileMutation } from "@/redux/api/uploadApi";
+import { API_BASE_URL } from "@/constants";
 
 import { useToast } from "@/components/Toast";
 import { v4 as uuidv4 } from "uuid";
@@ -604,7 +605,7 @@ export default function CreateProficiencyTestPage() {
                                             {currentAudio.audioUrl && (
                                                 <div className="mt-2 text-xs flex items-center gap-2">
                                                     <audio controls className="h-8 flex-1">
-                                                        <source src={`http://localhost:5000${currentAudio.audioUrl}`} />
+                                                        <source src={`${API_BASE_URL}${currentAudio.audioUrl}`} />
                                                     </audio>
                                                 </div>
                                             )}

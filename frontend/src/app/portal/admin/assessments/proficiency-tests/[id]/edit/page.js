@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGetProficiencyTestByIdQuery, useUpdateProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
 import { useUploadFileMutation } from "@/redux/api/uploadApi";
+import { API_BASE_URL } from "@/constants";
 
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
@@ -355,7 +356,7 @@ export default function EditProficiencyTestPage() {
                                             {currentAudio.audioUrl && (
                                                 <div className="mt-2 text-xs flex items-center gap-2">
                                                     <audio controls className="h-8 flex-1">
-                                                        <source src={`http://localhost:5000${currentAudio.audioUrl}`} />
+                                                        <source src={`${API_BASE_URL}${currentAudio.audioUrl}`} />
                                                     </audio>
                                                 </div>
                                             )}

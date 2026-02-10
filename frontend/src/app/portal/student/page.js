@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/redux/api/authApi";
+import { API_BASE_URL } from "@/constants";
 import { useGetStudentAttendanceQuery } from "@/redux/api/attendanceApi";
 import { useGetLearningHoursSummaryQuery } from "@/redux/api/learningHoursApi";
 import { useGetTopStudentsQuery, useGetStudentProgressQuery } from "@/redux/api/studentApi";
@@ -567,7 +568,7 @@ export default function StudentDashboard() {
                                             Download the official program guide and curriculum for {programDetails.title}.
                                         </p>
                                         <a
-                                            href={`http://localhost:5000${programDetails.curriculum_file}`}
+                                            href={`${API_BASE_URL}${programDetails.curriculum_file}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className={`inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${isDark
