@@ -120,8 +120,8 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
         {/* Explore more */}
         <div
           className={`text-xs font-semibold inline-flex items-center gap-1 ${program.color === "red"
-              ? "text-red-600 hover:text-red-700"
-              : "text-blue-600 hover:text-blue-700"
+            ? "text-red-600 hover:text-red-700"
+            : "text-blue-600 hover:text-blue-700"
             }`}
         >
           <span>Explore more</span>
@@ -169,8 +169,8 @@ export default function ProgramCards() {
     id: program.id,
     title: program.title,
     description: program.description || "",
-    video: program.video ? `${API_BASE_URL}${program.video}` : null,
-    image: program.image ? `${API_BASE_URL}${program.image}` : "/images/book1.jpg",
+    video: program.video ? (program.video.startsWith('http') ? program.video : `${API_BASE_URL}${program.video}`) : null,
+    image: program.image ? (program.image.startsWith('http') ? program.image : `${API_BASE_URL}${program.image}`) : "/images/book1.jpg",
     link: getProgramRoute(program.title), // Map to correct route based on title
   })) || [];
 

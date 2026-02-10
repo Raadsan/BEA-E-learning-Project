@@ -210,7 +210,7 @@ export default function TestimonialsPage() {
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden border border-gray-200">
                     {row.image_url ? (
                         <img
-                            src={row.image_url}
+                            src={row.image_url?.startsWith('http') ? row.image_url : `${API_BASE_URL}${row.image_url}`}
                             alt={row.student_name}
                             className="w-full h-full object-cover"
                             onError={(e) => {

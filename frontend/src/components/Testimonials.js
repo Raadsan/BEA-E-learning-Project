@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
-import { API_URL } from "@/constants";
+import { API_URL, API_BASE_URL } from "@/constants";
 
 export default function Testimonials() {
   const [isVisible, setIsVisible] = useState(false);
@@ -110,7 +110,7 @@ export default function Testimonials() {
                     <div className="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border border-blue-500/20">
                       {testimonial.image_url ? (
                         <img
-                          src={testimonial.image_url}
+                          src={testimonial.image_url?.startsWith('http') ? testimonial.image_url : `${API_BASE_URL}${testimonial.image_url}`}
                           alt={testimonial.student_name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
