@@ -1,14 +1,14 @@
-
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_URL } from "@/constants";
 
-const baseUrl = process.env.NEXT_PUBLIC_API_BASE || '${API_URL}';
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE || `${API_URL}`;
 
 export const notificationApi = createApi({
     reducerPath: "notificationApi",
     baseQuery: fetchBaseQuery({
         baseUrl,
         prepareHeaders: (headers) => {
-            const token = localStorage.getItem("token");
+            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {
                 headers.set("Authorization", `Bearer ${token}`);
             }

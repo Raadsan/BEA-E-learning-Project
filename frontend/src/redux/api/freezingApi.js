@@ -1,14 +1,15 @@
 
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { API_URL } from "@/constants";
 
 export const freezingApi = createApi({
     reducerPath: 'freezingApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: '${API_URL}',
+        baseUrl: `${API_URL}`,
         prepareHeaders: (headers) => {
-            const token = localStorage.getItem('token');
+            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {
-                headers.set('authorization', `Bearer ${token}`);
+                headers.set("Authorization", `Bearer ${token}`);
             }
             return headers;
         },

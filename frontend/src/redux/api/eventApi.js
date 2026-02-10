@@ -1,13 +1,14 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { API_URL } from "@/constants";
 
 export const eventApi = createApi({
     reducerPath: 'eventApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: '${API_URL}/events',
+        baseUrl: `${API_URL}/events`,
         prepareHeaders: (headers) => {
-            const token = localStorage.getItem('token');
+            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {
-                headers.set('authorization', `Bearer ${token}`);
+                headers.set("Authorization", `Bearer ${token}`);
             }
             return headers;
         },

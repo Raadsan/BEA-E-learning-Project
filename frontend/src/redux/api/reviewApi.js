@@ -1,13 +1,14 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { API_URL } from "@/constants";
 
 export const reviewApi = createApi({
     reducerPath: 'reviewApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: '${API_URL}', // Changed from /api/reviews
+        baseUrl: `${API_URL}`, // Changed from /api/reviews
         prepareHeaders: (headers) => {
-            const token = localStorage.getItem('token');
+            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {
-                headers.set('authorization', `Bearer ${token}`);
+                headers.set("Authorization", `Bearer ${token}`);
             }
             return headers;
         },

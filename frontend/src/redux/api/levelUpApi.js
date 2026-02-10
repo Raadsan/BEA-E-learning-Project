@@ -1,14 +1,15 @@
 
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { API_URL } from "@/constants";
 
 export const levelUpApi = createApi({
     reducerPath: 'levelUpApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: '${API_URL}',
+        baseUrl: `${API_URL}/level-up-requests`,
         prepareHeaders: (headers) => {
-            const token = localStorage.getItem('token');
+            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {
-                headers.set('authorization', `Bearer ${token}`);
+                headers.set("Authorization", `Bearer ${token}`);
             }
             return headers;
         },
@@ -17,27 +18,27 @@ export const levelUpApi = createApi({
     endpoints: (builder) => ({
         createLevelUpRequest: builder.mutation({
             query: (data) => ({
-                url: '/level-up-requests',
+                url: '/',
                 method: 'POST',
                 body: data,
             }),
             invalidatesTags: ['LevelUpRequest'],
         }),
         getLevelUpRequests: builder.query({
-            query: () => '/level-up-requests/all',
+            query: () => '/all',
             providesTags: ['LevelUpRequest'],
         }),
         getMyLevelUpRequests: builder.query({
-            query: () => '/level-up-requests/my-requests',
+            query: () => '/my-requests',
             providesTags: ['LevelUpRequest'],
         }),
         checkLevelUpEligibility: builder.query({
-            query: () => '/level-up-requests/check-eligibility',
+            query: () => '/check-eligibility',
             providesTags: ['LevelUpRequest'],
         }),
         updateLevelUpRequestStatus: builder.mutation({
             query: ({ id, ...body }) => ({
-                url: `/level-up-requests/${id}/status`,
+                url: `/${id}/status`,
                 method: 'PATCH',
                 body,
             }),

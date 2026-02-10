@@ -6,7 +6,7 @@ export const academicCalendarApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: `${API_URL}/timetables`,
         prepareHeaders: (headers) => {
-            const token = localStorage.getItem("token");
+            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {
                 headers.set("Authorization", `Bearer ${token}`);
             }

@@ -5,6 +5,7 @@ import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
 import Image from "next/image";
+import { API_URL } from "@/constants";
 
 export default function TestimonialsPage() {
     const { isDark } = useDarkMode();
@@ -32,7 +33,7 @@ export default function TestimonialsPage() {
         try {
             setLoading(true);
             const token = localStorage.getItem("token");
-            const response = await fetch("${API_URL}/testimonials/admin", {
+            const response = await fetch(`${API_URL}/testimonials/admin`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -80,7 +81,7 @@ export default function TestimonialsPage() {
             const formDataUpload = new FormData();
             formDataUpload.append('file', file);
 
-            const response = await fetch("${API_URL}/uploads", {
+            const response = await fetch(`${API_URL}/uploads`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -143,7 +144,7 @@ export default function TestimonialsPage() {
             const token = localStorage.getItem("token");
             const url = editingTestimonial
                 ? `${API_URL}/testimonials/${editingTestimonial.id}`
-                : "${API_URL}/testimonials";
+                : `${API_URL}/testimonials`;
 
             const method = editingTestimonial ? "PUT" : "POST";
 

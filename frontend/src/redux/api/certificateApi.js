@@ -6,7 +6,7 @@ export const certificateApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: `${API_URL}/certificates`,
         prepareHeaders: (headers) => {
-            const token = typeof window !== `undefined" ? localStorage.getItem("token") : null;
+            const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {
                 headers.set("Authorization", `Bearer ${token}`);
             }

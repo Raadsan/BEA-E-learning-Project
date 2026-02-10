@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
+import { API_URL } from "@/constants";
 
 export default function CourseTimelinePage() {
     const { isDark } = useDarkMode();
@@ -29,7 +30,7 @@ export default function CourseTimelinePage() {
         try {
             setLoading(true);
             const token = localStorage.getItem("token");
-            const response = await fetch("${API_URL}/course-timeline/admin", {
+            const response = await fetch(`${API_URL}/course-timeline/admin`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -110,7 +111,7 @@ export default function CourseTimelinePage() {
             const token = localStorage.getItem("token");
             const url = editingTimeline
                 ? `${API_URL}/course-timeline/${editingTimeline.id}`
-                : "${API_URL}/course-timeline";
+                : `${API_URL}/course-timeline`;
 
             const method = editingTimeline ? "PUT" : "POST";
 

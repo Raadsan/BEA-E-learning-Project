@@ -10,7 +10,7 @@ export const programApi = createApi({
       return headers;
     },
   }),
-  tagTypes: [`Programs"],
+  tagTypes: ["Programs"],
   endpoints: (builder) => ({
 
     // ✔ GET ALL programs

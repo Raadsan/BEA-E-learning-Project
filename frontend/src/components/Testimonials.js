@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
+import { API_URL } from "@/constants";
 
 export default function Testimonials() {
   const [isVisible, setIsVisible] = useState(false);
@@ -33,7 +34,7 @@ export default function Testimonials() {
     const fetchTestimonials = async () => {
       try {
         console.log("[Testimonials] Fetching data...");
-        const response = await fetch("${API_URL}/testimonials");
+        const response = await fetch(`${API_URL}/testimonials`);
         if (!response.ok) throw new Error("Failed to fetch");
         const data = await response.json();
         console.log(`[Testimonials] Received ${data.length} items`);

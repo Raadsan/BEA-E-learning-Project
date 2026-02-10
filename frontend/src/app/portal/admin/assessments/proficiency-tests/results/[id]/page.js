@@ -98,7 +98,7 @@ export default function AdminProficiencyResultDetailsPage() {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("${API_URL}/uploads", {
+            const res = await fetch(`${API_URL}/uploads`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`
