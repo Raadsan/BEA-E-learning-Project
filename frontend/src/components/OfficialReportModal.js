@@ -5,18 +5,18 @@ import { jsPDF } from 'jspdf';
 
 const SectionHeader = ({ title }) => (
     <div className="bg-[#010080] text-[#ffffff] px-4 py-2 mt-6 mb-4 print:mt-4 print:mb-2">
-        <h3 className="text-[12px] font-black uppercase tracking-[0.1em]">{title}</h3>
+        <h3 className="text-[14px] font-black uppercase tracking-[0.1em]">{title}</h3>
     </div>
 );
 
 const TableLabel = ({ children, className = "" }) => (
-    <td className={`bg-[#e0f2fe] border border-[#d1d5db] px-3 py-1.5 text-[10px] font-bold text-[#010080] uppercase tracking-wider w-1/4 ${className}`}>
+    <td className={`bg-[#e0f2fe] border border-[#d1d5db] px-3 py-1.5 text-[12px] font-bold text-[#010080] uppercase tracking-wider w-1/4 ${className}`}>
         {children}
     </td>
 );
 
 const TableValue = ({ children, colSpan = 1, className = "" }) => (
-    <td colSpan={colSpan} className={`border border-[#d1d5db] px-3 py-1.5 text-[11px] font-medium text-[#111827] ${className}`}>
+    <td colSpan={colSpan} className={`border border-[#d1d5db] px-3 py-1.5 text-[13px] font-medium text-[#111827] ${className}`}>
         {children}
     </td>
 );
@@ -227,7 +227,7 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
                         <div className="report-header flex justify-between items-center mb-8 pb-6 border-b-2 border-[#010080]">
                             <div className="text-left">
                                 <h1 className="text-2xl font-black text-[#010080] leading-none mb-1">ESL Student Progress Report</h1>
-                                <p className="text-[10px] font-bold text-[#9ca3af] uppercase tracking-[0.3em]">Official Performance Record</p>
+                                <p className="text-[12px] font-bold text-[#9ca3af] uppercase tracking-[0.3em]">Official Performance Record</p>
                             </div>
                             <div className="text-right">
                                 <img src="/images/headerlogo.png" alt="BEA Academy" className="h-16 w-auto" />
@@ -265,16 +265,10 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
                             <table className="w-full border-collapse border border-[#d1d5db]">
                                 <tbody>
                                     <tr>
-                                        <TableLabel>Attendance Rate</TableLabel>
-                                        <TableValue className="text-lg font-black">{summary?.attendance_rate}%</TableValue>
-                                        <TableLabel>CEFR Level</TableLabel>
-                                        <TableValue className="text-lg font-black text-[#010080]">{data?.progressSummary?.cefrLevel || "A1"}</TableValue>
-                                    </tr>
-                                    <tr>
                                         <TableLabel>Assignment Completion</TableLabel>
                                         <TableValue className="text-lg font-black">{summary?.completion_rate}%</TableValue>
                                         <TableLabel>Evaluation Status</TableLabel>
-                                        <TableValue className="text-[10px] font-bold uppercase tracking-tight text-[#6b7280]">Global Scale Standard</TableValue>
+                                        <TableValue className="text-[12px] font-bold uppercase tracking-tight text-[#6b7280]">Global Scale Standard</TableValue>
                                     </tr>
                                 </tbody>
                             </table>
@@ -285,7 +279,7 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
                             <SectionHeader title="3. Academic Skills Assessment" />
                             <table className="w-full border-collapse border border-[#d1d5db]">
                                 <thead>
-                                    <tr className="bg-[#f3f4f6] text-[#010080] text-[9px] font-black uppercase tracking-widest border border-[#d1d5db]">
+                                    <tr className="bg-[#f3f4f6] text-[#010080] text-[11px] font-black uppercase tracking-widest border border-[#d1d5db]">
                                         <th className="px-3 py-2 text-left w-1/2">Skill Category</th>
                                         <th className="px-3 py-2 text-center">Achievement (%)</th>
                                         <th className="px-3 py-2 text-center">Evaluation</th>
@@ -294,9 +288,9 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
                                 <tbody>
                                     {skillData.map((skill, idx) => (
                                         <tr key={idx} className="border border-[#d1d5db]">
-                                            <td className="px-3 py-2 text-[11px] font-bold text-[#374151] uppercase">{skill.category}</td>
-                                            <td className="px-3 py-2 text-center text-[12px] font-black">{Math.round(skill.average)}%</td>
-                                            <td className="px-3 py-2 text-center text-[10px] font-bold uppercase overflow-hidden">
+                                            <td className="px-3 py-2 text-[13px] font-bold text-[#374151] uppercase">{skill.category}</td>
+                                            <td className="px-3 py-2 text-center text-[13px] font-black">{Math.round(skill.average)}%</td>
+                                            <td className="px-3 py-2 text-center text-[11px] font-bold uppercase overflow-hidden">
                                                 <div className="flex justify-center gap-1">
                                                     {[20, 40, 60, 80, 100].map(threshold => (
                                                         <div
@@ -381,11 +375,11 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
                                 <tbody>
                                     <tr className="bg-[#ffffff]">
                                         <td className="p-4 text-center border-2 border-[#010080] w-1/2">
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#010080] opacity-60 block mb-1">Total Academic Grade</span>
+                                            <span className="text-[12px] font-black uppercase tracking-[0.2em] text-[#010080] opacity-60 block mb-1">Total Academic Grade</span>
                                             <div className="text-3xl font-black italic text-[#010080]">{summary?.overall_gpa || 0}%</div>
                                         </td>
                                         <td className="p-4 text-center border-2 border-[#010080] w-1/2">
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#010080] opacity-60 block mb-1">Promotion Level</span>
+                                            <span className="text-[12px] font-black uppercase tracking-[0.2em] text-[#010080] opacity-60 block mb-1">Promotion Level</span>
                                             <div className="text-2xl font-black text-[#010080]">{summary?.overall_gpa >= 60 ? (data?.progressSummary?.cefrLevel || "PASS") : "RETAKE"}</div>
                                         </td>
                                     </tr>
@@ -397,17 +391,17 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
                         <div className="mt-12 pt-8 border-t-2 border-dashed border-[#f3f4f6] flex justify-between gap-10 px-4">
                             <div className="text-center flex-1">
                                 <div className="border-b border-[#d1d5db] h-10 mb-2"></div>
-                                <p className="text-[9px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1">Instructor Name</p>
-                                <p className="text-[11px] font-black text-[#010080]">{student?.instructor_name}</p>
+                                <p className="text-[11px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1">Instructor Name</p>
+                                <p className="text-[13px] font-black text-[#010080]">{student?.instructor_name}</p>
                             </div>
                             <div className="text-center flex-1">
                                 <div className="border-b border-[#d1d5db] h-10 mb-2"></div>
-                                <p className="text-[9px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1">Academic Director / Date</p>
-                                <p className="text-[11px] font-black text-[#010080]">{new Date().toLocaleDateString('en-GB')}</p>
+                                <p className="text-[11px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1">Academic Director / Date</p>
+                                <p className="text-[13px] font-black text-[#010080]">{new Date().toLocaleDateString('en-GB')}</p>
                             </div>
                             <div className="text-center flex-1">
                                 <div className="border-b border-[#d1d5db] h-10 mb-2"></div>
-                                <p className="text-[9px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1">Academy Principal</p>
+                                <p className="text-[11px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1">Academy Principal</p>
                             </div>
                         </div>
                     </div>

@@ -1,8 +1,11 @@
 import React, { useMemo } from 'react';
 import { XMarkIcon, PrinterIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import DataTable from './DataTable';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 const FullReportTableModal = ({ isOpen, onClose, students, title, isDark }) => {
+    const [isGenerating, setIsGenerating] = React.useState(false);
     if (!isOpen) return null;
 
     const columns = [
@@ -68,12 +71,65 @@ const FullReportTableModal = ({ isOpen, onClose, students, title, isDark }) => {
                     {val}
                 </span>
             )
+        },
+        {
+            key: "registration_date",
+            label: "Reg. Date",
+            render: (val) => val ? new Date(val).toLocaleDateString() : "-"
         }
     ];
 
-    const handlePrint = () => {
-        window.print();
+    const generatePDF = async (action = 'download') => {
+        const element = document.getElementById('full-registry-print-content');
+        if (!element) return;
+
+        setIsGenerating(true);
+        try {
+            // landscape A4 is 297mm x 210mm
+            // at 96 DPI, 297mm = 1123px
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff',
+                windowWidth: 1200
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('l', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfImageHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            let heightLeft = pdfImageHeight;
+            let position = 0;
+            let page = 1;
+
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfImageHeight);
+            heightLeft -= pdfHeight;
+
+            while (heightLeft > 0) {
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, -pdfHeight * page, pdfWidth, pdfImageHeight);
+                heightLeft -= pdfHeight;
+                page++;
+            }
+
+            if (action === 'download') {
+                pdf.save(`BEA_Full_Registry_${new Date().toISOString().split('T')[0]}.pdf`);
+            } else {
+                window.open(pdf.output('bloburl'), '_blank');
+            }
+        } catch (error) {
+            console.error('PDF Generation Error:', error);
+        } finally {
+            setIsGenerating(false);
+        }
     };
+
+    const handlePrint = () => generatePDF('print');
 
     const handleDownloadCSV = () => {
         const headers = columns.map(col => col.label).join(',');
@@ -92,7 +148,8 @@ const FullReportTableModal = ({ isOpen, onClose, students, title, isDark }) => {
                 s.class_name || 'Unassigned',
                 `${s.attendance_rate}%`,
                 `${s.overall_average}%`,
-                s.status
+                s.status,
+                s.registration_date ? new Date(s.registration_date).toLocaleDateString() : '-'
             ].map(val => `"${val}"`).join(',');
         });
 
@@ -135,7 +192,7 @@ const FullReportTableModal = ({ isOpen, onClose, students, title, isDark }) => {
                             className="flex items-center gap-2 bg-[#010080] text-[#ffffff] px-3 py-2 rounded-xl hover:bg-[#1e1b4b] transition-all shadow-lg text-[10px] font-black uppercase"
                         >
                             <PrinterIcon className="w-3.5 h-3.5" />
-                            Print Report
+                            {isGenerating ? 'Processing...' : 'Print Report'}
                         </button>
                         <button
                             onClick={onClose}
@@ -165,6 +222,71 @@ const FullReportTableModal = ({ isOpen, onClose, students, title, isDark }) => {
                 <div className={`p-4 border-t flex justify-end gap-6 text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100'}`}>
                     <span>Total Students: {students.length}</span>
                     <span>Generated on: {new Date().toLocaleString()}</span>
+                </div>
+            </div>
+
+            {/* Hidden Print Container for PDF Generation */}
+            <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+                <div id="full-registry-print-content" style={{ width: '1200px', padding: '40px', backgroundColor: '#ffffff' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #010080', paddingBottom: '20px', marginBottom: '20px' }}>
+                        <div>
+                            <h1 style={{ margin: 0, color: '#010080', fontSize: '24px', fontWeight: '900', textTransform: 'uppercase' }}>{title || "Full Student Registry Report"}</h1>
+                            <p style={{ margin: '4px 0 0', color: '#9ca3af', fontWeight: '700', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '2px' }}>Official Academic Record List</p>
+                        </div>
+                        <img src="/images/headerlogo.png" style={{ height: '50px' }} alt="BEA" />
+                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#010080', color: '#ffffff' }}>
+                                <th style={{ padding: '10px 8px', textAlign: 'left', border: '1px solid #000000' }}>ID</th>
+                                <th style={{ padding: '10px 8px', textAlign: 'left', border: '1px solid #000000' }}>Name</th>
+                                <th style={{ padding: '10px 8px', textAlign: 'center', border: '1px solid #000000' }}>S/A</th>
+                                <th style={{ padding: '10px 8px', textAlign: 'left', border: '1px solid #000000' }}>Email/Phone</th>
+                                <th style={{ padding: '10px 8px', textAlign: 'left', border: '1px solid #000000' }}>Location</th>
+                                <th style={{ padding: '10px 8px', textAlign: 'left', border: '1px solid #000000' }}>Program (Class)</th>
+                                <th style={{ padding: '10px 8px', textAlign: 'center', border: '1px solid #000000' }}>Att%</th>
+                                <th style={{ padding: '10px 8px', textAlign: 'center', border: '1px solid #000000' }}>Score%</th>
+                                <th style={{ padding: '10px 8px', textAlign: 'left', border: '1px solid #000000' }}>Status</th>
+                                <th style={{ padding: '10px 8px', textAlign: 'left', border: '1px solid #000000' }}>Reg.Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {students.map((s, idx) => (
+                                <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
+                                    <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', fontWeight: 'bold' }}>{s.student_id}</td>
+                                    <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', fontWeight: '600' }}>{s.full_name}</td>
+                                    <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', textAlign: 'center' }}>
+                                        {s.sex}/{s.age}
+                                    </td>
+                                    <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', fontSize: '10px' }}>
+                                        <div>{s.email}</div>
+                                        <div style={{ color: '#6b7280' }}>{s.phone}</div>
+                                    </td>
+                                    <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', fontSize: '10px' }}>
+                                        {s.residency_country}, {s.residency_city}
+                                    </td>
+                                    <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb' }}>
+                                        <div style={{ fontWeight: 'bold' }}>{s.chosen_program}</div>
+                                        <div style={{ fontSize: '10px', color: '#6b7280' }}>{s.subprogram_name || '-'} / {s.class_name || 'Unassigned'}</div>
+                                    </td>
+                                    <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', textAlign: 'center', fontWeight: 'bold' }}>{s.attendance_rate}%</td>
+                                    <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', textAlign: 'center' }}>
+                                        <span style={{ padding: '2px 6px', borderRadius: '4px', backgroundColor: s.overall_average >= 80 ? '#d1fae5' : '#dbeafe', color: s.overall_average >= 80 ? '#065f46' : '#1e40af', fontWeight: 'bold' }}>
+                                            {s.overall_average}%
+                                        </span>
+                                    </td>
+                                    <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', fontSize: '10px', fontWeight: 'bold' }}>{s.status}</td>
+                                    <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', fontSize: '10px' }}>
+                                        {s.registration_date ? new Date(s.registration_date).toLocaleDateString() : '-'}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '20px', color: '#9ca3af', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase' }}>
+                        <span>Total Students: {students.length}</span>
+                        <span>Generated: {new Date().toLocaleString()}</span>
+                    </div>
                 </div>
             </div>
 
