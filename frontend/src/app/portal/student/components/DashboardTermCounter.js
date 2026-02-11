@@ -80,30 +80,20 @@ const DashboardTermCounter = ({ isDark, user }) => {
             return new Date(`${year}-${month}-${day}`);
         };
 
-        return dbTimelines.map(term => ({
-            serial: term.term_serial || term.termSerial,
-            start: parseDateStr(term.start_date || term.startDate),
-            end: parseDateStr(term.end_date || term.endDate)
-        })).filter(t => t.start && t.end);
+        return dbTimelines.map(term => {
+            const start = parseDateStr(term.start_date || term.startDate);
+            const end = parseDateStr(term.end_date || term.endDate);
+            if (end) end.setHours(23, 59, 59, 999); // Include full end day
+            return {
+                serial: term.term_serial || term.termSerial,
+                start,
+                end
+            };
+        }).filter(t => t.start && t.end);
     }, [dbTimelines]);
 
     useEffect(() => {
-        if (!mounted || isLoading || calendarLoading) return;
-
-        // GATE: If no academic calendar data (and we have a subprogram), force zero/inactive state
-        const hasTimetable = academicCalendar && Array.isArray(academicCalendar) && academicCalendar.length > 0;
-
-        if (subprogramId && !hasTimetable) {
-            setTimeLeft(prev => {
-                if (prev.label === "No Scheduled Classes") return prev;
-                return {
-                    days: 0, hours: 0, minutes: 0, seconds: 0,
-                    label: "No Scheduled Classes",
-                    termSerial: "Term Paused"
-                };
-            });
-            return;
-        }
+        if (!mounted || isLoading) return;
 
         if (termData.length === 0) {
             setTimeLeft(prev => {
@@ -115,48 +105,44 @@ const DashboardTermCounter = ({ isDark, user }) => {
 
         const updateTimer = () => {
             const now = new Date();
-            let targetDate = null;
-            let label = "";
-            let termSerial = "";
+            let targetTerm = null;
+            let mode = "waiting"; // "active" or "waiting"
 
-            // Find active or next term
-            for (const term of termData) {
-                const startDate = new Date(term.start);
-                startDate.setHours(0, 0, 0, 0);
+            // 1. Check if there's an ACTIVE term (Now is between start and end)
+            const active = termData.find(term => now >= term.start && now <= term.end);
 
-                const endDate = new Date(term.end);
-                endDate.setHours(23, 59, 59, 999);
+            if (active) {
+                targetTerm = active;
+                mode = "active";
+            } else {
+                // 2. No active term, look for the NEXT upcoming term
+                const upcoming = termData
+                    .filter(term => term.start > now)
+                    .sort((a, b) => a.start - b.start);
 
-                if (now < startDate) {
-                    targetDate = startDate;
-                    label = "Starts In";
-                    termSerial = term.serial;
-                    break;
-                } else if (now >= startDate && now <= endDate) {
-                    targetDate = endDate;
-                    label = "Ends In";
-                    termSerial = term.serial;
-                    break;
+                if (upcoming.length > 0) {
+                    targetTerm = upcoming[0];
+                    mode = "waiting";
                 }
             }
 
-            if (targetDate && termSerial) {
-                const difference = targetDate.getTime() - now.getTime();
+            if (targetTerm) {
+                const difference = mode === "active" ? targetTerm.end.getTime() - now.getTime() : 0;
 
                 setTimeLeft(prev => {
                     const newDays = difference > 0 ? Math.floor(difference / (1000 * 60 * 60 * 24)) : 0;
                     const newHours = difference > 0 ? Math.floor((difference / (1000 * 60 * 60)) % 24) : 0;
                     const newMinutes = difference > 0 ? Math.floor((difference / 1000 / 60) % 60) : 0;
                     const newSeconds = difference > 0 ? Math.floor((difference / 1000) % 60) : 0;
-                    const newLabel = difference > 0 ? label : "Term Ended";
+                    const newLabel = mode === "active" ? "Ends In" : "Next Start";
+                    const newTermSerial = targetTerm.serial;
 
-                    // ONLY update state if values actually changed to prevent loop
                     if (prev.days === newDays &&
                         prev.hours === newHours &&
                         prev.minutes === newMinutes &&
                         prev.seconds === newSeconds &&
                         prev.label === newLabel &&
-                        prev.termSerial === termSerial) {
+                        prev.termSerial === newTermSerial) {
                         return prev;
                     }
 
@@ -166,7 +152,7 @@ const DashboardTermCounter = ({ isDark, user }) => {
                         minutes: newMinutes,
                         seconds: newSeconds,
                         label: newLabel,
-                        termSerial
+                        termSerial: newTermSerial
                     };
                 });
             } else {
@@ -181,7 +167,7 @@ const DashboardTermCounter = ({ isDark, user }) => {
         const timer = setInterval(updateTimer, 1000);
 
         return () => clearInterval(timer);
-    }, [termData, academicCalendar, subprogramId, mounted, isLoading, calendarLoading]);
+    }, [termData, mounted, isLoading]);
 
     if (!mounted || isLoading) return null;
     // If no label (init) or explicitly "No Active Cycle", hide. 
