@@ -195,14 +195,14 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <button
+                        {/* <button
                             onClick={handleDownload}
                             disabled={isGenerating}
                             className="flex items-center gap-2 bg-[#ffffff] text-[#010080] border border-[#010080] px-4 py-2 rounded-xl hover:bg-[#f9fafb] transition-all shadow-sm text-xs font-black uppercase disabled:opacity-50"
                         >
                             <ArrowDownTrayIcon className="w-4 h-4" />
                             {isGenerating ? 'Saving...' : 'Download PDF'}
-                        </button>
+                        </button> */}
                         <button
                             onClick={handlePrint}
                             disabled={isGenerating}

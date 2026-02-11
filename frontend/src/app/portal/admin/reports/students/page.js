@@ -21,6 +21,7 @@ import { useGetClassesBySubprogramIdQuery } from "@/redux/api/classApi";
 import Link from "next/link";
 import StudentProgressReportView from "@/components/StudentProgressReportView";
 import OfficialReportModal from "@/components/OfficialReportModal";
+import FullReportTableModal from "@/components/FullReportTableModal";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
@@ -283,19 +284,22 @@ export default function StudentReportsPage() {
     };
 
     const handleOpenFullReport = async (isProgramReport = false) => {
-        if (activeStudentId && individualReport) {
+        // If it's a program report but a student is active, show the individual report
+        if (isProgramReport && activeStudentId && individualReport) {
             setIndividualReportData(individualReport);
             setIsIndividualReport(true);
             setIsReportModalOpen(true);
             return;
         }
+
+        // Otherwise (Full Report or Program Report with no active student), show the table modal
         setIsIndividualReport(false);
         try {
             const { data: fullData } = await triggerFetchAll({
                 limit: 5000,
-                program: selectedProgram,
-                subprogram_id: selectedSubprogram,
-                class_id: selectedClass,
+                program: isProgramReport ? selectedProgram : "",
+                subprogram_id: isProgramReport ? selectedSubprogram : "",
+                class_id: isProgramReport ? selectedClass : "",
                 sort_by: 'full_name',
                 order: 'asc'
             });
@@ -303,11 +307,8 @@ export default function StudentReportsPage() {
             const rawList = fullData?.data?.students || fullData?.students || [];
             if (rawList.length > 0) {
                 setReportStudents(rawList);
-                setReportModalTitle(isProgramReport ? `Student Report: ${selectedProgram}` : "Full Student Report");
+                setReportModalTitle(isProgramReport ? (selectedProgram ? `Student Report: ${selectedProgram}` : "Full Student Report") : "Full Student Report");
                 setIsReportModalOpen(true);
-            } else {
-                // Show toast if no data?
-                // showToast("No students found for report", "info");
             }
         } catch (err) {
             console.error("Failed to fetch full report:", err);
@@ -814,7 +815,7 @@ export default function StudentReportsPage() {
                 />
 
                 <OfficialReportModal
-                    isOpen={isReportModalOpen}
+                    isOpen={isReportModalOpen && isIndividualReport}
                     onClose={() => setIsReportModalOpen(false)}
                     data={individualReportData}
                     student={individualReportData ? {
@@ -832,6 +833,14 @@ export default function StudentReportsPage() {
                         category: key.charAt(0).toUpperCase() + key.slice(1),
                         average: val
                     })) : []}
+                    isDark={isDark}
+                />
+
+                <FullReportTableModal
+                    isOpen={isReportModalOpen && !isIndividualReport}
+                    onClose={() => setIsReportModalOpen(false)}
+                    students={reportStudents}
+                    title={reportModalTitle}
                     isDark={isDark}
                 />
             </div>

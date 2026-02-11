@@ -4,7 +4,22 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 const DEFAULT_MIN_COLUMN_WIDTH = "120px";
 
-const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true, customActions, emptyMessage, customHeaderLeft, filters, selectable = false, onSelectionChange, selectedItems = [] }) => {
+const DataTable = ({
+  title,
+  columns,
+  data = [],
+  onAddClick,
+  showAddButton = true,
+  customActions,
+  emptyMessage,
+  customHeaderLeft,
+  filters,
+  selectable = false,
+  onSelectionChange,
+  selectedItems = [],
+  compact = false,
+  rowsPerPage = 10
+}) => {
   const tableRef = useRef(null);
   const [hasHorizontalScroll, setHasHorizontalScroll] = useState(false);
 
@@ -24,7 +39,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
   const { isDark } = useDarkMode();
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState(data);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [entriesPerPage, setEntriesPerPage] = useState(rowsPerPage);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -152,7 +167,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
             <thead className={`${isDark ? 'bg-[#0f172a] text-white border-b border-gray-800' : 'bg-[#010080] text-white'} sticky top-0 z-30`}>
               <tr>
                 {selectable && (
-                  <th className="px-5 py-4 w-12" style={{ backgroundColor: isDark ? '#0f172a' : '#010080', color: '#ffffff' }}>
+                  <th className={`${compact ? 'px-3 py-2' : 'px-5 py-4'} w-12`} style={{ backgroundColor: isDark ? '#0f172a' : '#010080', color: '#ffffff' }}>
                     <input
                       type="checkbox"
                       checked={isAllSelected}
@@ -166,7 +181,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                   return (
                     <th
                       key={col.key || i}
-                      className={`px-5 py-4 uppercase text-sm font-semibold tracking-wide ${col.className || ''}`}
+                      className={`${compact ? 'px-3 py-2 text-[10px]' : 'px-5 py-4 text-sm'} uppercase font-semibold tracking-wide ${col.className || ''}`}
                       style={{
                         ...(col.width ? { width: col.width, minWidth: col.width } : { minWidth: DEFAULT_MIN_COLUMN_WIDTH }),
                         backgroundColor: isDark ? '#0f172a' : '#010080',
@@ -189,7 +204,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                     } text-black dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors`}
                 >
                   {selectable && (
-                    <td className="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <td className={`${compact ? 'px-3 py-2' : 'px-5 py-4'} border-b border-gray-200 dark:border-gray-700`}>
                       <input
                         type="checkbox"
                         checked={selectedItems.includes(row.id || row._id || row.student_id)}
@@ -226,7 +241,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, showAddButton = true
                     return (
                       <td
                         key={col.key || i}
-                        className={`px-5 py-4 border-b border-gray-200 dark:border-gray-700 text-black dark:text-white ${isIdField ? 'font-bold' : 'font-normal'} ${col.className || ''}`}
+                        className={`${compact ? 'px-3 py-2 text-[11px]' : 'px-5 py-4 text-sm'} border-b border-gray-200 dark:border-gray-700 text-black dark:text-white ${isIdField ? 'font-bold' : 'font-normal'} ${col.className || ''}`}
                         style={{
                           ...(col.width ? { width: col.width, minWidth: col.width } : { minWidth: DEFAULT_MIN_COLUMN_WIDTH }),
                           backgroundColor: idx % 2 === 0
