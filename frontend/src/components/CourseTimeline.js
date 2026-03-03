@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { timelineData as staticTimelineData } from "@/data/timelineData";
+import { API_URL } from "@/constants";
 
 export default function CourseTimeline() {
   const [isVisible, setIsVisible] = useState(false);

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import { API_URL } from "@/constants";
 
 export default function ContactUs() {
   const { isDarkMode } = useTheme();

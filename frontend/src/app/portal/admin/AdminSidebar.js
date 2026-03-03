@@ -252,6 +252,16 @@ export default function AdminSidebar({ isOpen, onClose }) {
             </Link>
           </li>
 
+           {/* Teacher Management */}
+          <li>
+            <Link href="/portal/admin/teachers" className={getSubMenuItemClasses("/portal/admin/teachers")} style={getSubActiveStyle("/portal/admin/teachers")}>
+              <svg className={`w-4 h-4 ${isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <span className={isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-100'}>Teachers</span>
+            </Link>
+          </li>
+
           {/* Student Management */}
           <li>
             <button
@@ -312,16 +322,6 @@ export default function AdminSidebar({ isOpen, onClose }) {
                 </li>
               </ul>
             )}
-          </li>
-
-          {/* Teacher Management */}
-          <li>
-            <Link href="/portal/admin/teachers" className={getSubMenuItemClasses("/portal/admin/teachers")} style={getSubActiveStyle("/portal/admin/teachers")}>
-              <svg className={`w-4 h-4 ${isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              <span className={isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-100'}>Teachers</span>
-            </Link>
           </li>
 
           {/* Academic Management */}
@@ -558,99 +558,6 @@ export default function AdminSidebar({ isOpen, onClose }) {
             )}
           </li>
 
-          {/* Communication */}
-          <li>
-            <button
-              onClick={() => toggleSection('communication')}
-              className={getDropdownButtonClasses('communication')} style={getDropdownButtonStyle('communication')}
-            >
-              <div className="flex items-center gap-3">
-                <svg className={`w-5 h-5 ${openSection === 'communication' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'communication' ? 'text-white' : 'text-gray-100'}`}>Communication</span>
-              </div>
-              <svg className={`w-4 h-4 ${openSection === 'communication' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'communication' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {openSection === 'communication' && (
-              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
-                <li>
-                  <Link href="/portal/admin/communication/announcements" className={getSubMenuItemClasses("/portal/admin/communication/announcements")} style={getSubActiveStyle("/portal/admin/communication/announcements")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/announcements") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/communication/announcements") ? 'text-white' : 'text-gray-100'}>Announcements</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/portal/admin/communication/news" className={getSubMenuItemClasses("/portal/admin/communication/news")} style={getSubActiveStyle("/portal/admin/communication/news")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/news") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/communication/news") ? 'text-white' : 'text-gray-100'}>News & Events</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/portal/admin/communication/course-timeline" className={getSubMenuItemClasses("/portal/admin/communication/course-timeline")} style={getSubActiveStyle("/portal/admin/communication/course-timeline")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/course-timeline") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/communication/course-timeline") ? 'text-white' : 'text-gray-100'}>Course Timeline</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/portal/admin/communication/testimonials" className={getSubMenuItemClasses("/portal/admin/communication/testimonials")} style={getSubActiveStyle("/portal/admin/communication/testimonials")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/testimonials") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/communication/testimonials") ? 'text-white' : 'text-gray-100'}>Testimonials</span>
-                  </Link>
-                </li>
-              </ul>
-            )}
-          </li>
-
-          {/* Inquiries Section */}
-          <li>
-            <button
-              onClick={() => toggleSection('inquiries')}
-              className={getDropdownButtonClasses('inquiries')}
-              style={getDropdownButtonStyle('inquiries')}
-            >
-              <div className="flex items-center gap-3">
-                <svg className={`w-5 h-5 ${openSection === 'inquiries' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'inquiries' ? 'text-white' : 'text-gray-100'}`}>Public Inquiries</span>
-              </div>
-              <svg className={`w-4 h-4 ${openSection === 'inquiries' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'inquiries' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {openSection === 'inquiries' && (
-              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
-                <li>
-                  <Link href="/portal/admin/communication/contacts" className={getSubMenuItemClasses("/portal/admin/communication/contacts")} style={getSubActiveStyle("/portal/admin/communication/contacts")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/contacts") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/communication/contacts") ? 'text-white' : 'text-gray-100'}>Contact Messages</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/portal/admin/communication/newsletter" className={getSubMenuItemClasses("/portal/admin/communication/newsletter")} style={getSubActiveStyle("/portal/admin/communication/newsletter")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/newsletter") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/communication/newsletter") ? 'text-white' : 'text-gray-100'}>Newsletter Subscribers</span>
-                  </Link>
-                </li>
-              </ul>
-            )}
-          </li>
-
           {/* Student Requests Dropdown */}
           <li>
             <button
@@ -692,45 +599,6 @@ export default function AdminSidebar({ isOpen, onClose }) {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                     <span className={isActive("/portal/admin/students-requests/level-up") ? 'text-white' : 'text-gray-100'}>Level Up Requests</span>
-                  </Link>
-                </li>
-              </ul>
-            )}
-          </li>
-
-          {/* Payments */}
-          <li>
-            <button
-              onClick={() => toggleSection('payments')}
-              className={getDropdownButtonClasses('payments')}
-              style={getDropdownButtonStyle('payments')}
-            >
-              <div className="flex items-center gap-3">
-                <svg className={`w-5 h-5 ${openSection === 'payments' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className={`font-medium text-sm ${openSection === 'payments' ? 'text-white' : 'text-gray-100'}`}>Payments</span>
-              </div>
-              <svg className={`w-4 h-4 ${openSection === 'payments' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'payments' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {openSection === 'payments' && (
-              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
-                <li>
-                  <Link href="/portal/admin/payments/packages" className={getSubMenuItemClasses("/portal/admin/payments/packages")} style={getSubActiveStyle("/portal/admin/payments/packages")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/payments/packages") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    <span className={isActive("/portal/admin/payments/packages") ? 'text-white' : 'text-gray-100'}>Payment Packages</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/portal/admin/payments/history" className={getSubMenuItemClasses("/portal/admin/payments/history")} style={getSubActiveStyle("/portal/admin/payments/history")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/payments/history") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/payments/history") ? 'text-white' : 'text-gray-100'}>Payment History</span>
                   </Link>
                 </li>
               </ul>
@@ -818,6 +686,140 @@ export default function AdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
+
+          {/* Communication */}
+          <li>
+            <button
+              onClick={() => toggleSection('communication')}
+              className={getDropdownButtonClasses('communication')} style={getDropdownButtonStyle('communication')}
+            >
+              <div className="flex items-center gap-3">
+                <svg className={`w-5 h-5 ${openSection === 'communication' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'communication' ? 'text-white' : 'text-gray-100'}`}>Communication</span>
+              </div>
+              <svg className={`w-4 h-4 ${openSection === 'communication' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'communication' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {openSection === 'communication' && (
+              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                <li>
+                  <Link href="/portal/admin/communication/announcements" className={getSubMenuItemClasses("/portal/admin/communication/announcements")} style={getSubActiveStyle("/portal/admin/communication/announcements")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/announcements") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/communication/announcements") ? 'text-white' : 'text-gray-100'}>Announcements</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/communication/news" className={getSubMenuItemClasses("/portal/admin/communication/news")} style={getSubActiveStyle("/portal/admin/communication/news")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/news") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/communication/news") ? 'text-white' : 'text-gray-100'}>News & Events</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/communication/course-timeline" className={getSubMenuItemClasses("/portal/admin/communication/course-timeline")} style={getSubActiveStyle("/portal/admin/communication/course-timeline")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/course-timeline") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/communication/course-timeline") ? 'text-white' : 'text-gray-100'}>Course Timeline</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/communication/testimonials" className={getSubMenuItemClasses("/portal/admin/communication/testimonials")} style={getSubActiveStyle("/portal/admin/communication/testimonials")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/testimonials") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/communication/testimonials") ? 'text-white' : 'text-gray-100'}>Testimonials</span>
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>
+
+          {/* Contact management Section */}
+          <li>
+            <button
+              onClick={() => toggleSection('inquiries')}
+              className={getDropdownButtonClasses('inquiries')}
+              style={getDropdownButtonStyle('inquiries')}
+            >
+              <div className="flex items-center gap-3">
+                <svg className={`w-5 h-5 ${openSection === 'inquiries' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'inquiries' ? 'text-white' : 'text-gray-100'}`}>Contact management</span>
+              </div>
+              <svg className={`w-4 h-4 ${openSection === 'inquiries' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'inquiries' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {openSection === 'inquiries' && (
+              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                <li>
+                  <Link href="/portal/admin/communication/contacts" className={getSubMenuItemClasses("/portal/admin/communication/contacts")} style={getSubActiveStyle("/portal/admin/communication/contacts")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/contacts") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/communication/contacts") ? 'text-white' : 'text-gray-100'}>Contact Messages</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/communication/newsletter" className={getSubMenuItemClasses("/portal/admin/communication/newsletter")} style={getSubActiveStyle("/portal/admin/communication/newsletter")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/newsletter") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/communication/newsletter") ? 'text-white' : 'text-gray-100'}>Newsletter Subscribers</span>
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>
+
+          {/* Payments */}
+          <li>
+            <button
+              onClick={() => toggleSection('payments')}
+              className={getDropdownButtonClasses('payments')}
+              style={getDropdownButtonStyle('payments')}
+            >
+              <div className="flex items-center gap-3">
+                <svg className={`w-5 h-5 ${openSection === 'payments' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className={`font-medium text-sm ${openSection === 'payments' ? 'text-white' : 'text-gray-100'}`}>Payments</span>
+              </div>
+              <svg className={`w-4 h-4 ${openSection === 'payments' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'payments' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {openSection === 'payments' && (
+              <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                <li>
+                  <Link href="/portal/admin/payments/packages" className={getSubMenuItemClasses("/portal/admin/payments/packages")} style={getSubActiveStyle("/portal/admin/payments/packages")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/payments/packages") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span className={isActive("/portal/admin/payments/packages") ? 'text-white' : 'text-gray-100'}>Payment Packages</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal/admin/payments/history" className={getSubMenuItemClasses("/portal/admin/payments/history")} style={getSubActiveStyle("/portal/admin/payments/history")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/payments/history") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className={isActive("/portal/admin/payments/history") ? 'text-white' : 'text-gray-100'}>Payment History</span>
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>
+
+          
 
           {/* Reports & Analytics */}
           <li>
