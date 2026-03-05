@@ -60,7 +60,7 @@ export default function ProficiencyTestPage() {
     const activeTest = React.useMemo(() => {
         if (!tests || tests.length === 0) return null;
         const activeTests = tests.filter(t => t.status === 'active');
-        if (activeTests.length === 0) return tests[0];
+        if (activeTests.length === 0) return null;
 
         // Pick first active test
         return activeTests[0];

@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useCreateProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import {
+    useCreateProficiencyTestMutation,
+    useGetProficiencyTestByIdQuery,
+    useUpdateProficiencyTestMutation
+} from "@/redux/api/proficiencyTestApi";
 import { useUploadFileMutation } from "@/redux/api/uploadApi";
 import { API_BASE_URL } from "@/constants";
 
@@ -10,11 +14,17 @@ import { useToast } from "@/components/Toast";
 import { v4 as uuidv4 } from "uuid";
 import { useDarkMode } from "@/context/ThemeContext";
 
+
 export default function CreateProficiencyTestPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const testId = searchParams.get('id');
     const { showToast } = useToast();
     const { isDark } = useDarkMode();
-    const [createTest, { isLoading }] = useCreateProficiencyTestMutation();
+
+    const { data: existingTest, isLoading: isLoadingTest } = useGetProficiencyTestByIdQuery(testId, { skip: !testId });
+    const [createTest, { isLoading: isCreating }] = useCreateProficiencyTestMutation();
+    const [updateTest, { isLoading: isUpdating }] = useUpdateProficiencyTestMutation();
     const [uploadFile, { isLoading: uploading }] = useUploadFileMutation();
 
     const [currentStep, setCurrentStep] = useState(1);
@@ -28,6 +38,23 @@ export default function CreateProficiencyTestPage() {
     });
 
     const [questions, setQuestions] = useState([]);
+
+    // Load existing test data if it's a draft
+    useEffect(() => {
+        if (existingTest) {
+            setTestData({
+                title: existingTest.title || '',
+                description: existingTest.description || '',
+                level: existingTest.level || 'Intermediate',
+                duration_minutes: existingTest.duration_minutes || 60,
+                status: existingTest.status || 'active'
+            });
+            const parsedQuestions = typeof existingTest.questions === 'string'
+                ? JSON.parse(existingTest.questions)
+                : existingTest.questions;
+            setQuestions(parsedQuestions || []);
+        }
+    }, [existingTest]);
     const [editingIndex, setEditingIndex] = useState(null);
 
     // MCQ state
@@ -146,16 +173,40 @@ export default function CreateProficiencyTestPage() {
         if (currentStep > 1) setCurrentStep(currentStep - 1);
     };
 
+    const handleSaveDraft = async () => {
+        if (!testData.title) return showToast("Title is required to save draft", "error");
+
+        try {
+            const payload = { ...testData, questions, status: 'draft' };
+            if (testId) {
+                await updateTest({ id: testId, ...payload }).unwrap();
+                showToast("Draft updated successfully", "success");
+            } else {
+                const result = await createTest(payload).unwrap();
+                showToast("Saved as draft", "success");
+                // Update URL to current draft ID
+                router.replace(`/portal/admin/assessments/proficiency-tests/create?id=${result.id}`);
+            }
+        } catch (err) {
+            showToast("Failed to save draft", "error");
+        }
+    };
+
     const handleSubmit = async () => {
         if (!testData.title) return showToast("Title is required", "error");
         if (questions.filter(q => q.part === 5).length === 0) return showToast("Please add at least one question for Part 5", "error");
 
         try {
-            await createTest({ ...testData, questions }).unwrap();
-            showToast("Proficiency Test Created Successfully!", "success");
+            const payload = { ...testData, questions, status: 'active' };
+            if (testId) {
+                await updateTest({ id: testId, ...payload }).unwrap();
+            } else {
+                await createTest(payload).unwrap();
+            }
+            showToast("Proficiency Test Published Successfully!", "success");
             router.push("/portal/admin/assessments/proficiency-tests");
         } catch (err) {
-            showToast("Failed to create test", "error");
+            showToast("Failed to finalize test", "error");
         }
     };
 
@@ -215,8 +266,10 @@ export default function CreateProficiencyTestPage() {
                                 </svg>
                                 Back to Tests
                             </button>
-                            <h1 className="text-3xl font-bold text-gray-900">Create Proficiency Test</h1>
-                            <p className="mt-2 text-gray-600">Complete the 5-part process to build a professional proficiency test.</p>
+                            <div>
+                                <h1 className="text-3xl font-bold text-gray-900">{testId ? 'Continue Draft' : 'Create Proficiency Test'}</h1>
+                                <p className="mt-2 text-gray-600">Complete the 5-part process to build a professional proficiency test.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -672,74 +725,95 @@ export default function CreateProficiencyTestPage() {
                             </div>
                         </div>
 
-                        <div className="lg:col-span-1">
-                            <div className="sticky top-8 space-y-4 max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar pr-2">
+                        <div className="lg:col-span-1 border-l border-gray-100 pl-6">
+                            <div className="sticky top-8 flex flex-col h-[calc(100vh-100px)]">
                                 <div className="mb-4">
                                     <h2 className="text-lg font-bold text-gray-900 tracking-tight">Test Overview</h2>
                                     <p className="text-[10px] text-[#010080]/60 font-semibold uppercase tracking-widest mt-1">Summary by Section</p>
                                 </div>
 
-                                {[1, 2, 3, 4, 5].map(partNum => {
-                                    const partQuestions = questions.filter(q => q.part === partNum);
-                                    const isActivePart = currentStep === partNum;
+                                <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 space-y-4 mb-6">
 
-                                    return (
-                                        <div key={partNum} className={`bg-white rounded-xl border transition-all p-5 shadow-sm ${isActivePart ? 'border-[#010080] ring-2 ring-blue-100' : 'border-gray-200 hover:border-gray-300'}`}>
-                                            <div className="flex justify-between items-center mb-2 pb-1 border-b border-gray-50">
-                                                <h3 className={`text-[10px] font-bold uppercase tracking-wide ${isActivePart ? 'text-[#010080]' : 'text-gray-400'}`}>
-                                                    Part {partNum}: {steps[partNum - 1].title.split(': ')[1]}
-                                                </h3>
-                                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${isActivePart ? 'bg-[#010080] text-white' : 'bg-gray-100 text-gray-400'}`}>
-                                                    {partQuestions.length}
-                                                </span>
-                                            </div>
-                                            {partQuestions.map((q, idx) => {
-                                                const originalIndex = questions.indexOf(q);
-                                                return (
-                                                    <div
-                                                        key={idx}
-                                                        onClick={() => {
-                                                            setCurrentStep(partNum);
-                                                            handleEdit(originalIndex);
-                                                        }}
-                                                        className={`p-2.5 rounded-lg border mb-2 cursor-pointer transition-all ${editingIndex === originalIndex ? 'bg-[#010080]/5 border-[#010080]' : 'bg-gray-50/50 border-gray-100 hover:bg-white'}`}
-                                                    >
-                                                        <p className="text-[10px] font-bold text-gray-800 line-clamp-1">
-                                                            {q.type === 'passage' ? (q.passageText || "Reading Passage") : q.type === 'mcq' ? (q.questionText || "MCQ Question") : q.type === 'audio' ? (q.title || "Audio Listening") : (q.title || "Essay Prompt")}
-                                                        </p>
-                                                        <div className="flex justify-between items-center mt-1">
-                                                            <span className="text-[7px] font-bold text-gray-300 uppercase italic">{q.type}</span>
-                                                            <span className="text-[9px] font-bold text-[#010080]">{q.points} PTS</span>
+                                    {[1, 2, 3, 4, 5].map(partNum => {
+                                        const partQuestions = questions.filter(q => q.part === partNum);
+                                        const isActivePart = currentStep === partNum;
+
+                                        return (
+                                            <div key={partNum} className={`bg-white rounded-xl border transition-all p-5 shadow-sm ${isActivePart ? 'border-[#010080] ring-2 ring-blue-100' : 'border-gray-200 hover:border-gray-300'}`}>
+                                                <div className="flex justify-between items-center mb-2 pb-1 border-b border-gray-50">
+                                                    <h3 className={`text-[10px] font-bold uppercase tracking-wide ${isActivePart ? 'text-[#010080]' : 'text-gray-400'}`}>
+                                                        Part {partNum}: {steps[partNum - 1].title.split(': ')[1]}
+                                                    </h3>
+                                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${isActivePart ? 'bg-[#010080] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                                                        {partQuestions.length}
+                                                    </span>
+                                                </div>
+                                                {partQuestions.map((q, idx) => {
+                                                    const originalIndex = questions.indexOf(q);
+                                                    return (
+                                                        <div
+                                                            key={idx}
+                                                            onClick={() => {
+                                                                setCurrentStep(partNum);
+                                                                handleEdit(originalIndex);
+                                                            }}
+                                                            className={`p-2.5 rounded-lg border mb-2 cursor-pointer transition-all ${editingIndex === originalIndex ? 'bg-[#010080]/5 border-[#010080]' : 'bg-gray-50/50 border-gray-100 hover:bg-white'}`}
+                                                        >
+                                                            <p className="text-[10px] font-bold text-gray-800 line-clamp-1">
+                                                                {q.type === 'passage' ? (q.passageText || "Reading Passage") : q.type === 'mcq' ? (q.questionText || "MCQ Question") : q.type === 'audio' ? (q.title || "Audio Listening") : (q.title || "Essay Prompt")}
+                                                            </p>
+                                                            <div className="flex justify-between items-center mt-1">
+                                                                <span className="text-[7px] font-bold text-gray-300 uppercase italic">{q.type}</span>
+                                                                <span className="text-[9px] font-bold text-[#010080]">{q.points} PTS</span>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    );
-                                })}
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    })}
 
-                                <div className="bg-[#010080] rounded-2xl p-5 flex flex-col gap-1 shadow-xl shadow-blue-900/20">
-                                    <span className="text-[10px] font-bold text-blue-200 uppercase tracking-widest">Growth Weight</span>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-2xl font-bold text-white">{totalMarks}</span>
-                                        <span className="text-[10px] font-bold text-blue-100 uppercase">Total Marks</span>
-                                    </div>
                                 </div>
 
-                                {currentStep === 5 && (
-                                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 transform animate-in slide-in-from-bottom-4 transition-all">
-                                        <button
-                                            onClick={handleSubmit}
-                                            disabled={isLoading || questions.filter(q => q.part === 5).length === 0}
-                                            className="w-full bg-[#010080] hover:bg-[#000066] text-white py-3.5 rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm"
-                                        >
-                                            {isLoading ? 'Finalizing...' : 'Save Final Test'}
-                                        </button>
-                                        {questions.filter(q => q.part === 5).length === 0 && (
-                                            <p className="text-[9px] text-red-500 font-bold text-center mt-2 uppercase tracking-tight">Add audio comprehension to finish</p>
-                                        )}
+                                <div className="space-y-4 pt-4 border-t border-gray-100 bg-gray-50/50 -mx-6 px-6 -mb-6 pb-6 rounded-b-2xl">
+                                    {/* Total Summary Card */}
+                                    <div className="bg-[#010080] rounded-2xl p-5 flex flex-col gap-1 shadow-xl shadow-blue-900/20 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110 duration-700"></div>
+                                        <span className="text-[10px] font-bold text-blue-200 uppercase tracking-widest relative z-10">Growth Weight</span>
+                                        <div className="flex items-baseline gap-2 relative z-10">
+                                            <span className="text-2xl font-bold text-white leading-none">{totalMarks}</span>
+                                            <span className="text-[10px] font-bold text-blue-100 uppercase tracking-wider relative z-10">Total Marks</span>
+                                        </div>
                                     </div>
-                                )}
+
+                                    <button
+                                        onClick={handleSaveDraft}
+                                        disabled={isCreating || isUpdating}
+                                        className="w-full bg-amber-100 text-amber-700 hover:bg-amber-200 px-6 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-sm border border-amber-200/50"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                        </svg>
+                                        {isCreating || isUpdating ? 'Saving...' : 'Save to Draft'}
+                                    </button>
+
+                                    {currentStep === 5 && (
+                                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 transform animate-in slide-in-from-bottom-4 transition-all hover:shadow-lg">
+                                            <button
+                                                onClick={handleSubmit}
+                                                disabled={isCreating || isUpdating || questions.filter(q => q.part === 5).length === 0}
+                                                className="w-full bg-[#010080] hover:bg-[#000066] text-white py-3.5 rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm"
+                                            >
+                                                {isCreating || isUpdating ? 'Processing...' : testId ? 'Update & Publish' : 'Save Final Test'}
+                                            </button>
+                                            {questions.filter(q => q.part === 5).length === 0 && (
+                                                <p className="text-[10px] text-red-500 font-bold text-center mt-3 uppercase tracking-tighter">
+                                                    Add audio comprehension to finish
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

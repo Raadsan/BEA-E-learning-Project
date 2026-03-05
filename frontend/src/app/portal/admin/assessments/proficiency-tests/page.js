@@ -21,9 +21,11 @@ const InfoCard = ({ title, description, details, topActions, isDark, onClick, st
                         <h3 className={`text-xl font-bold leading-tight group-hover:text-blue-600 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${status === 'active'
                             ? (isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700')
-                            : (isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-600')
+                            : status === 'draft'
+                                ? (isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-100 text-amber-700')
+                                : (isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-600')
                             }`}>
-                            {status === 'active' ? 'Active' : 'Inactive'}
+                            {status === 'active' ? 'Active' : status === 'draft' ? 'Draft' : 'Inactive'}
                         </span>
                     </div>
                     <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -175,15 +177,32 @@ export default function ProficiencyTestsPage() {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                 </svg>
                                             </button>
-                                            <button
-                                                onClick={(e) => handleEdit(e, test.id)}
-                                                className="text-blue-600 hover:text-blue-800 transition-colors"
-                                                title="Edit Test"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                            </button>
+                                            {test.status === 'draft' ? (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        router.push(`/portal/admin/assessments/proficiency-tests/create?id=${test.id}`);
+                                                    }}
+                                                    className="text-amber-600 hover:text-amber-800 transition-colors flex items-center gap-1 text-sm font-bold"
+                                                    title="Continue Draft"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Continue
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={(e) => handleEdit(e, test.id)}
+                                                    className="text-blue-600 hover:text-blue-800 transition-colors"
+                                                    title="Edit Test"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={(e) => handleDeleteClick(e, test.id)}
                                                 className="text-red-600 hover:text-red-800 transition-colors"
