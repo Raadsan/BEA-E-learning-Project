@@ -251,6 +251,7 @@ export const getAssignments = async (req, res) => {
 
             const params = [];
             if (role === 'student') {
+                query += ` AND a.status = 'active'`;
                 params.push(userId);
             }
 

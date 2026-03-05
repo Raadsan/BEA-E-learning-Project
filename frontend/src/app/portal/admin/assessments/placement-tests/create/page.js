@@ -741,7 +741,7 @@ export default function CreatePlacementTestPage() {
 
                   {/* Final Submit Button (Only in Step 4) */}
                   {currentStep === 4 && (
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 transform animate-in slide-in-from-bottom-4 transition-all hover:shadow-lg">
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 transform animate-in slide-in-from-bottom-4 transition-all hover:shadow-lg h-[60px]">
                       <button
                         onClick={handleSubmit}
                         disabled={isCreating || isUpdating || questions.filter(q => q.part === 4).length === 0}

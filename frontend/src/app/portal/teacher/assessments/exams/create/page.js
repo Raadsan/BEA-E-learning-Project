@@ -272,23 +272,16 @@ export default function CreateExamPage() {
         return total;
     };
 
-    const handleSubmit = async () => {
+    const handleSaveDraft = async () => {
         if (!basicInfo.title || !basicInfo.program_id) {
-            showToast("Title and Program are required.", "error");
+            showToast("Title and Program are required to save a draft.", "error");
             return;
         }
-
-        // Prepare Questions JSON
-        // Since we are now uploading files directly via `uploadFile` mutation (implied requirement for "design like proficiency"),
-        // we don't need to send FormData for the main create request if audio is already URL.
-        // CHECK: Standard `createAssignment` handles JSON.
-        // My previous edit to assignmentController handles uploaded files in `req.files` OR JSON.
-        // If I use the `uploadFile` API (from proficiency test flow), I get a URL.
-        // I should stick to that pattern as it's cleaner for the Wizard UI.
 
         const payload = {
             ...basicInfo,
             type: 'exam',
+            status: 'draft',
             questions: JSON.stringify(papers),
             total_points: calculateTotal()
         };
@@ -296,14 +289,43 @@ export default function CreateExamPage() {
         try {
             if (editId) {
                 await updateAssignment({ id: editId, ...payload }).unwrap();
-                showToast("Exam updated successfully!", "success");
+                showToast("Draft updated successfully!", "success");
             } else {
-                await createAssignment(payload).unwrap(); // Ensure assignmentApi accepts JSON if no file is stuck in Body
-                showToast("Exam created successfully!", "success");
+                await createAssignment(payload).unwrap();
+                showToast("Draft saved successfully!", "success");
             }
             router.push("/portal/teacher/assessments/exams");
         } catch (err) {
-            showToast("Failed to save exam.", "error");
+            showToast("Failed to save draft.", "error");
+            console.error(err);
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!basicInfo.title || !basicInfo.program_id) {
+            showToast("Title and Program are required.", "error");
+            return;
+        }
+
+        const payload = {
+            ...basicInfo,
+            type: 'exam',
+            status: 'active', // Ensure it's active when publishing
+            questions: JSON.stringify(papers),
+            total_points: calculateTotal()
+        };
+
+        try {
+            if (editId) {
+                await updateAssignment({ id: editId, ...payload }).unwrap();
+                showToast("Exam published successfully!", "success");
+            } else {
+                await createAssignment(payload).unwrap();
+                showToast("Exam published successfully!", "success");
+            }
+            router.push("/portal/teacher/assessments/exams");
+        } catch (err) {
+            showToast("Failed to publish exam.", "error");
             console.error(JSON.stringify(err, null, 2));
         }
     };
@@ -349,7 +371,7 @@ export default function CreateExamPage() {
             <div className="flex-1 overflow-y-auto p-8">
 
                 {/* Header */}
-                <div className="flex justify-between items-center mb-10 max-w-7xl mx-auto w-full">
+                <div className="flex justify-between items-center mb-10 w-full px-4 lg:px-8">
                     <div>
                         <button onClick={() => router.back()} className="text-gray-500 hover:text-[#010080] mb-2 flex items-center gap-2 text-sm font-semibold transition-colors">
                             ← Back to Exams
@@ -359,7 +381,7 @@ export default function CreateExamPage() {
                     </div>
                 </div>
 
-                <div className="max-w-7xl mx-auto">
+                <div className="w-full px-4 lg:px-8 pb-10">
                     <StepIndicator />
 
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -794,6 +816,37 @@ export default function CreateExamPage() {
                                         <span>Passing Score</span>
                                         <span>{Math.round(calculateTotal() * 0.5)}</span>
                                     </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="space-y-3">
+                                    {/* <button
+                                        onClick={handleSaveDraft}
+                                        disabled={isCreating || isUpdating}
+                                        className="w-full py-3 px-4 bg-white dark:bg-gray-800 text-[#010080] dark:text-blue-400 border-2 border-[#010080] dark:border-blue-400 rounded-xl font-bold hover:bg-blue-50 dark:hover:bg-gray-700 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <PencilSquareIcon className="w-5 h-5" />
+                                        Save to Draft
+                                    </button> */}
+
+                                    <button
+                    onClick={handleSaveDraft}
+                    disabled={isCreating || isUpdating}
+                    className="w-full bg-amber-100 text-amber-700 hover:bg-amber-200 px-6 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-sm border border-amber-200/50"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    {isCreating || isUpdating ? 'Saving...' : 'Save to Draft'}
+                  </button>
+                                    <button
+                                        onClick={handleSubmit}
+                                        disabled={isCreating || isUpdating}
+                                        className="w-full py-3 px-4 bg-[#010080] text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2"
+                                    >
+                                        <CheckCircleIcon className="w-5 h-5" />
+                                        Publish Exam
+                                    </button>
                                 </div>
                             </div>
                         </div>

@@ -271,7 +271,7 @@ export default function AssignmentManager({ type, title, description }) {
             return;
         }
         if (type === 'exam') {
-            router.push(`/portal/teacher/assessments/exams/update/${assignment.id}`);
+            router.push(`/portal/teacher/assessments/exams/create?id=${assignment.id}`);
             return;
         }
         if (type === 'oral_assignment') {
@@ -315,7 +315,7 @@ export default function AssignmentManager({ type, title, description }) {
     };
 
     const handleStatusToggle = async (assignment) => {
-        const newStatus = assignment.status === 'inactive' ? 'active' : 'inactive';
+        const newStatus = assignment.status === 'draft' ? 'active' : (assignment.status === 'inactive' ? 'active' : 'inactive');
         try {
             // Ensure due_date is in YYYY-MM-DD format for the backend/MySQL
             const formattedDate = assignment.due_date
@@ -546,7 +546,9 @@ export default function AssignmentManager({ type, title, description }) {
                     return (
                         <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${status === 'inactive'
                             ? 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
-                            : 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                            : status === 'draft'
+                                ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800 font-bold'
+                                : 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
                             }`}>
                             {status.charAt(0).toUpperCase() + status.slice(1)}
                         </span>
@@ -724,8 +726,8 @@ export default function AssignmentManager({ type, title, description }) {
                                     {Array.isArray(assignments) && assignments.map((assignment) => (
                                         <div
                                             key={assignment.id}
-                                            onClick={() => handleViewSubmissions(assignment)}
-                                            className={`relative p-5 rounded-xl border transition-all cursor-pointer flex flex-col hover:shadow-md ${isDark ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-blue-300'}`}
+                                            onClick={() => assignment.status === 'draft' ? handleEditClick(assignment) : handleViewSubmissions(assignment)}
+                                            className={`relative p-5 rounded-xl border transition-all cursor-pointer flex flex-col hover:shadow-md ${isDark ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-blue-300'} ${assignment.status === 'draft' ? 'border-dashed border-blue-300 dark:border-blue-800' : ''}`}
                                         >
                                             {/* 1. Exam Name/Title */}
                                             <div className="flex justify-between items-start mb-4 gap-3">
@@ -741,7 +743,9 @@ export default function AssignmentManager({ type, title, description }) {
                                                     onClick={(e) => { e.stopPropagation(); handleStatusToggle(assignment); }}
                                                     className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${assignment.status === 'inactive'
                                                         ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
-                                                        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                                                        : assignment.status === 'draft'
+                                                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400'
+                                                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
                                                         }`}
                                                 >
                                                     {assignment.status || 'active'}
