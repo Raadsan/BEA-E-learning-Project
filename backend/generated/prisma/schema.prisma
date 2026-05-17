@@ -1,0 +1,1207 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model IELTSTOEFL {
+  student_id              String          @id @db.VarChar(50)
+  student_reg_number      String?         @unique(map: "student_id_number") @db.VarChar(20)
+  first_name              String          @db.VarChar(255)
+  last_name               String          @db.VarChar(255)
+  email                   String          @db.VarChar(255)
+  phone                   String?         @db.VarChar(50)
+  password                String?         @db.VarChar(255)
+  age                     Int?
+  sex                     IELTSTOEFL_sex? @default(Male)
+  date_of_birth           DateTime?       @db.Date
+  place_of_birth          String?         @db.VarChar(255)
+  residency_country       String?         @db.VarChar(255)
+  residency_city          String?         @db.VarChar(255)
+  exam_type               String          @db.VarChar(255)
+  verification_method     String          @db.VarChar(255)
+  certificate_institution String?         @db.VarChar(255)
+  certificate_date        DateTime?       @db.Date
+  certificate_document    String?         @db.VarChar(255)
+  exam_booking_date       DateTime?       @db.Date
+  exam_booking_time       String?         @db.VarChar(50)
+  registration_date       DateTime?       @default(now()) @db.DateTime(0)
+  status                  String?         @default("Pending") @db.VarChar(50)
+  paid_until              DateTime?       @db.DateTime(0)
+  funding_status          String?         @default("Unpaid") @db.VarChar(50)
+  funding_amount          Decimal?        @db.Decimal(10, 2)
+  funding_month           String?         @db.VarChar(50)
+  updated_at              DateTime?       @default(now()) @db.DateTime(0)
+  class_id                Int?
+  chosen_program          String?         @db.VarChar(255)
+  payment_method          String?         @db.VarChar(50)
+  transaction_id          String?         @db.VarChar(255)
+  payment_amount          Decimal?        @db.Decimal(10, 2)
+  payer_phone             String?         @db.VarChar(50)
+  reminder_sent           Boolean?        @default(false)
+  is_extended             Boolean?        @default(false)
+  expiry_date             DateTime?       @db.DateTime(0)
+  admin_expiry_notified   Boolean?        @default(false)
+}
+
+model ProficiencyTestStudents {
+  id                    Int                                       @id @default(autoincrement())
+  student_id            String                                    @unique(map: "student_id") @db.VarChar(255)
+  first_name            String                                    @db.VarChar(255)
+  last_name             String                                    @db.VarChar(255)
+  email                 String                                    @unique(map: "email") @db.VarChar(255)
+  phone                 String?                                   @db.VarChar(255)
+  password              String                                    @db.VarChar(255)
+  educational_level     ProficiencyTestStudents_educational_level
+  reason_essay          String                                    @db.Text
+  status                ProficiencyTestStudents_status?           @default(Pending)
+  payment_status        ProficiencyTestStudents_payment_status?   @default(unpaid)
+  expiry_date           DateTime?                                 @default(now()) @db.DateTime(0)
+  is_extended           Boolean?                                  @default(false)
+  registration_date     DateTime?                                 @default(now()) @db.DateTime(0)
+  reminder_sent         Boolean?                                  @default(false)
+  admin_expiry_notified Boolean?                                  @default(false)
+  age                   Int?
+  sex                   String?                                   @db.VarChar(255)
+  date_of_birth         DateTime?                                 @db.Date
+  place_of_birth        String?                                   @db.VarChar(255)
+  residency_country     String?                                   @db.VarChar(255)
+  residency_city        String?                                   @db.VarChar(255)
+}
+
+model migrations {
+  id         Int       @id @default(autoincrement())
+  filename   String    @unique(map: "filename") @db.VarChar(255)
+  applied_at DateTime? @default(now()) @db.Timestamp(0)
+
+  @@map("_migrations")
+}
+
+model academic_calendar {
+  id                   Int         @id @default(autoincrement())
+  program_id           Int
+  subprogram_id        Int
+  week_number          Int
+  day_of_week          String      @db.VarChar(20)
+  activity_type        String      @db.VarChar(100)
+  activity_title       String      @db.VarChar(255)
+  activity_description String?     @db.Text
+  created_at           DateTime?   @default(now()) @db.Timestamp(0)
+  updated_at           DateTime?   @default(now()) @db.Timestamp(0)
+  programs             programs    @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "academic_calendar_ibfk_1")
+  subprograms          subprograms @relation(fields: [subprogram_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "academic_calendar_ibfk_2")
+
+  @@index([program_id], map: "idx_program")
+  @@index([subprogram_id, week_number], map: "idx_subprogram_week")
+}
+
+model admins {
+  id                     Int       @id @default(autoincrement())
+  first_name             String?   @db.VarChar(100)
+  last_name              String?   @db.VarChar(100)
+  email                  String    @unique(map: "email") @db.VarChar(255)
+  phone                  String?   @db.VarChar(50)
+  password               String    @db.VarChar(255)
+  role                   String?   @default("admin") @db.VarChar(50)
+  status                 String?   @default("active") @db.VarChar(50)
+  created_at             DateTime? @default(now()) @db.Timestamp(0)
+  updated_at             DateTime? @default(now()) @db.Timestamp(0)
+  reset_password_token   String?   @db.VarChar(255)
+  reset_password_expires DateTime? @db.DateTime(0)
+  username               String?   @unique(map: "username") @db.VarChar(100)
+  full_name              String?   @db.VarChar(200)
+  bio                    String?   @db.Text
+  profile_image          String?   @db.VarChar(500)
+  profile_picture        String?   @db.VarChar(255)
+
+  @@index([email], map: "idx_email")
+}
+
+model announcements {
+  id              Int                   @id @default(autoincrement())
+  title           String                @db.VarChar(255)
+  content         String                @db.Text
+  target_audience String?               @default("All Students") @db.VarChar(100)
+  publish_date    DateTime              @db.Date
+  status          announcements_status? @default(Published)
+  created_at      DateTime?             @default(now()) @db.Timestamp(0)
+  updated_at      DateTime?             @default(now()) @db.Timestamp(0)
+  target_type     String?               @default("manual") @db.VarChar(50)
+  target_id       Int?
+}
+
+model assignment_submissions {
+  id              Int                            @id @default(autoincrement())
+  assignment_id   Int
+  student_id      String?                        @db.VarChar(50)
+  submission_date DateTime?                      @db.DateTime(0)
+  score           Int?
+  status          assignment_submissions_status? @default(pending)
+  feedback        String?                        @db.Text
+  file_url        String?                        @db.VarChar(500)
+  created_at      DateTime?                      @default(now()) @db.Timestamp(0)
+  updated_at      DateTime?                      @default(now()) @db.Timestamp(0)
+  content         String?                        @db.LongText
+  assignments     assignments                    @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "assignment_submissions_ibfk_1")
+  students        students?                      @relation(fields: [student_id], references: [student_id], onDelete: NoAction, onUpdate: NoAction, map: "assignment_submissions_ibfk_2")
+
+  @@unique([assignment_id, student_id], map: "unique_submission")
+  @@index([assignment_id], map: "idx_assignment_id")
+  @@index([status], map: "idx_status")
+  @@index([student_id], map: "idx_student_id")
+}
+
+model assignments {
+  id                     Int                      @id @default(autoincrement())
+  title                  String                   @db.VarChar(255)
+  description            String?                  @db.Text
+  class_id               Int
+  program_id             Int?
+  created_by             Int?
+  type                   assignments_type?        @default(assignment)
+  due_date               DateTime?                @db.DateTime(0)
+  total_points           Int?                     @default(100)
+  status                 assignments_status?      @default(active)
+  created_at             DateTime?                @default(now()) @db.Timestamp(0)
+  updated_at             DateTime?                @default(now()) @db.Timestamp(0)
+  word_count             Int?
+  duration               Int?
+  submission_format      String?                  @db.VarChar(100)
+  requirements           String?                  @db.Text
+  assignment_submissions assignment_submissions[]
+  classes                classes                  @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "assignments_ibfk_1")
+
+  @@index([class_id], map: "idx_class_id")
+  @@index([due_date], map: "idx_due_date")
+  @@index([program_id], map: "idx_program_id")
+  @@index([status], map: "idx_status")
+}
+
+model attendance {
+  id         Int       @id @default(autoincrement())
+  class_id   Int
+  student_id String?   @db.VarChar(50)
+  date       DateTime  @db.Date
+  hour1      Int?      @default(0) @db.TinyInt
+  hour2      Int?      @default(0) @db.TinyInt
+  excuse     Int?      @default(0) @db.TinyInt
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+  classes    classes   @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "attendance_ibfk_1")
+  students   students? @relation(fields: [student_id], references: [student_id], onDelete: NoAction, onUpdate: NoAction, map: "attendance_ibfk_2")
+
+  @@unique([class_id, student_id, date], map: "unique_attendance")
+  @@index([student_id], map: "attendance_ibfk_2")
+}
+
+model certificates {
+  id                  Int                      @id @default(autoincrement())
+  target_id           Int
+  target_type         certificates_target_type
+  template_url        String                   @db.VarChar(255)
+  name_x              Int?                     @default(300)
+  name_y              Int?                     @default(400)
+  font_size           Int?                     @default(30)
+  font_color          String?                  @default("#000000") @db.VarChar(20)
+  created_at          DateTime?                @default(now()) @db.Timestamp(0)
+  updated_at          DateTime?                @default(now()) @db.Timestamp(0)
+  uploader_id         Int?
+  issued_certificates issued_certificates[]
+
+  @@unique([target_id, target_type], map: "unique_target")
+}
+
+model class_schedules {
+  id            Int       @id @default(autoincrement())
+  class_id      Int
+  session_title String?   @db.VarChar(255)
+  zoom_link     String?   @db.Text
+  schedule_date DateTime? @db.Date
+  start_time    DateTime? @db.Time(0)
+  end_time      DateTime? @db.Time(0)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  updated_at    DateTime? @default(now()) @db.Timestamp(0)
+  classes       classes   @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "class_schedules_ibfk_1")
+
+  @@index([class_id], map: "idx_class_id")
+  @@index([schedule_date], map: "idx_date")
+}
+
+model classes {
+  id                                                                          Int                       @id @default(autoincrement())
+  class_name                                                                  String                    @unique(map: "class_name") @db.VarChar(255)
+  description                                                                 String?                   @db.Text
+  course_id                                                                   Int?
+  teacher_id                                                                  Int?
+  schedule                                                                    String?                   @db.VarChar(255)
+  created_at                                                                  DateTime                  @default(now()) @db.Timestamp(0)
+  updated_at                                                                  DateTime                  @default(now()) @db.Timestamp(0)
+  subprogram_id                                                               Int?
+  shift_id                                                                    Int?
+  assignments                                                                 assignments[]
+  attendance                                                                  attendance[]
+  class_schedules                                                             class_schedules[]
+  courses                                                                     courses?                  @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "classes_ibfk_1")
+  teachers                                                                    teachers?                 @relation(fields: [teacher_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "classes_ibfk_2")
+  shifts                                                                      shifts?                   @relation(fields: [shift_id], references: [id], onUpdate: NoAction, map: "fk_class_shift")
+  subprograms                                                                 subprograms?              @relation(fields: [subprogram_id], references: [id], onUpdate: NoAction, map: "fk_classes_subprogram")
+  session_change_requests_session_change_requests_current_class_idToclasses   session_change_requests[] @relation("session_change_requests_current_class_idToclasses")
+  session_change_requests_session_change_requests_requested_class_idToclasses session_change_requests[] @relation("session_change_requests_requested_class_idToclasses")
+  student_reviews                                                             student_reviews[]
+  students                                                                    students[]
+  teacher_reviews                                                             teacher_reviews[]
+
+  @@index([shift_id], map: "fk_class_shift")
+  @@index([subprogram_id], map: "fk_classes_subprogram")
+  @@index([course_id], map: "idx_course_id")
+  @@index([teacher_id], map: "idx_teacher_id")
+}
+
+model contacts {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(255)
+  email      String   @db.VarChar(255)
+  phone      String?  @db.VarChar(50)
+  message    String   @db.Text
+  created_at DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([created_at], map: "idx_created_at")
+  @@index([email], map: "idx_email")
+}
+
+model course_timeline {
+  id            Int       @id @default(autoincrement())
+  term_serial   String    @unique(map: "term_serial") @db.VarChar(50)
+  start_date    DateTime  @db.Date
+  end_date      DateTime  @db.Date
+  holidays      String?   @db.Text
+  display_order Int
+  is_active     Boolean?  @default(true)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  updated_at    DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([display_order], map: "idx_display_order")
+  @@index([is_active], map: "idx_is_active")
+}
+
+model course_work {
+  id                      Int                       @id @default(autoincrement())
+  title                   String                    @db.VarChar(255)
+  description             String?                   @db.Text
+  class_id                Int
+  program_id              Int?
+  due_date                DateTime?                 @db.DateTime(0)
+  total_points            Int?                      @default(100)
+  status                  course_work_status?       @default(active)
+  created_by              Int
+  submission_format       String?                   @db.VarChar(100)
+  questions               String?                   @db.LongText
+  created_at              DateTime?                 @default(now()) @db.Timestamp(0)
+  updated_at              DateTime?                 @default(now()) @db.Timestamp(0)
+  word_count              Int?
+  duration                Int?
+  requirements            String?                   @db.Text
+  subprogram_id           Int?
+  unit                    String?                   @db.VarChar(255)
+  course_work_submissions course_work_submissions[]
+}
+
+model course_work_submissions {
+  id                Int                             @id @default(autoincrement())
+  assignment_id     Int
+  student_id        String?                         @db.VarChar(50)
+  content           String?                         @db.LongText
+  file_url          String?                         @db.VarChar(255)
+  score             Decimal?                        @db.Decimal(5, 2)
+  feedback          String?                         @db.Text
+  feedback_file_url String?                         @db.VarChar(255)
+  status            course_work_submissions_status? @default(pending)
+  submission_date   DateTime?                       @db.DateTime(0)
+  created_at        DateTime?                       @default(now()) @db.Timestamp(0)
+  updated_at        DateTime?                       @default(now()) @db.Timestamp(0)
+  course_work       course_work                     @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "course_work_submissions_ibfk_1")
+
+  @@unique([assignment_id, student_id], map: "unique_submission")
+}
+
+model courses {
+  id            Int         @id @default(autoincrement())
+  course_title  String      @db.VarChar(255)
+  subprogram_id Int
+  description   String?     @db.Text
+  duration      String?     @db.VarChar(100)
+  price         Decimal?    @db.Decimal(10, 2)
+  created_at    DateTime    @default(now()) @db.Timestamp(0)
+  updated_at    DateTime    @default(now()) @db.Timestamp(0)
+  classes       classes[]
+  subprograms   subprograms @relation(fields: [subprogram_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "courses_ibfk_1")
+
+  @@index([subprogram_id], map: "idx_subprogram_id")
+}
+
+model exam_submissions {
+  id                Int                      @id @default(autoincrement())
+  assignment_id     Int
+  student_id        String?                  @db.VarChar(50)
+  content           String?                  @db.LongText
+  file_url          String?                  @db.VarChar(255)
+  score             Decimal?                 @db.Decimal(5, 2)
+  feedback          String?                  @db.Text
+  feedback_file_url String?                  @db.VarChar(255)
+  status            exam_submissions_status? @default(pending)
+  submission_date   DateTime?                @db.DateTime(0)
+  created_at        DateTime?                @default(now()) @db.Timestamp(0)
+  updated_at        DateTime?                @default(now()) @db.Timestamp(0)
+  exams             exams                    @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "exam_submissions_ibfk_1")
+
+  @@unique([assignment_id, student_id], map: "unique_submission")
+}
+
+model exams {
+  id               Int                @id @default(autoincrement())
+  title            String             @db.VarChar(255)
+  description      String?            @db.Text
+  start_date       DateTime?          @db.DateTime(0)
+  end_date         DateTime?          @db.DateTime(0)
+  class_id         Int?
+  program_id       Int
+  subprogram_id    Int?
+  due_date         DateTime?          @db.DateTime(0)
+  total_points     Int?               @default(100)
+  status           exams_status?      @default(active)
+  created_by       Int
+  duration         Int?
+  questions        String?            @db.LongText
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  updated_at       DateTime?          @default(now()) @db.Timestamp(0)
+  media_url        String?            @db.VarChar(255)
+  exam_submissions exam_submissions[]
+}
+
+model freezing_requests {
+  id             Int                       @id @default(autoincrement())
+  student_id     String?                   @db.VarChar(50)
+  reason         String                    @db.VarChar(100)
+  start_date     DateTime                  @db.Date
+  end_date       DateTime                  @db.Date
+  description    String?                   @db.Text
+  status         freezing_requests_status? @default(pending)
+  admin_response String?                   @db.Text
+  created_at     DateTime?                 @default(now()) @db.Timestamp(0)
+  updated_at     DateTime?                 @default(now()) @db.Timestamp(0)
+
+  @@index([status], map: "idx_status")
+  @@index([student_id], map: "idx_student_id")
+}
+
+model ielts_registrations {
+  id                  Int       @id @default(autoincrement())
+  full_name           String    @db.VarChar(255)
+  email               String    @db.VarChar(255)
+  phone               String?   @db.VarChar(50)
+  age                 Int?
+  gender              String?   @db.VarChar(50)
+  location            String?   @db.VarChar(255)
+  exam_type           String?   @db.VarChar(50)
+  verification_method String?   @db.VarChar(50)
+  certificate_details Json?
+  exam_booking        Json?
+  status              String?   @default("Pending") @db.VarChar(50)
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model issued_certificates {
+  id             Int                             @id @default(autoincrement())
+  student_id     String                          @db.VarChar(50)
+  student_name   String                          @db.VarChar(255)
+  target_id      Int
+  target_type    issued_certificates_target_type
+  target_name    String                          @db.VarChar(255)
+  class_name     String?                         @db.VarChar(255)
+  certificate_id Int?
+  issued_at      DateTime?                       @default(now()) @db.Timestamp(0)
+  certificates   certificates?                   @relation(fields: [certificate_id], references: [id], onUpdate: NoAction, map: "issued_certificates_ibfk_1")
+
+  @@index([certificate_id], map: "certificate_id")
+  @@index([student_id], map: "idx_student_id")
+  @@index([target_id, target_type], map: "idx_target")
+}
+
+model learning_materials {
+  id            Int                        @id @default(autoincrement())
+  title         String                     @db.VarChar(255)
+  type          learning_materials_type
+  program_id    Int?
+  subprogram_id Int?
+  level         String?                    @default("All") @db.VarChar(50)
+  subject       String?                    @db.VarChar(100)
+  description   String?                    @db.Text
+  url           String                     @db.Text
+  status        learning_materials_status? @default(Active)
+  created_at    DateTime?                  @default(now()) @db.Timestamp(0)
+  updated_at    DateTime?                  @default(now()) @db.Timestamp(0)
+  programs      programs?                  @relation(fields: [program_id], references: [id], onUpdate: NoAction, map: "fk_material_program")
+  subprograms   subprograms?               @relation(fields: [subprogram_id], references: [id], onUpdate: NoAction, map: "fk_material_subprogram")
+
+  @@index([program_id], map: "fk_material_program")
+  @@index([subprogram_id], map: "fk_material_subprogram")
+}
+
+model level_up_requests {
+  id                      Int                       @id @default(autoincrement())
+  student_id              String                    @db.VarChar(100)
+  requested_subprogram_id Int
+  status                  level_up_requests_status? @default(pending)
+  admin_response          String?                   @db.Text
+  description             String?                   @db.Text
+  created_at              DateTime?                 @default(now()) @db.Timestamp(0)
+  students                students                  @relation(fields: [student_id], references: [student_id], onDelete: NoAction, onUpdate: NoAction, map: "level_up_requests_ibfk_1")
+  subprograms             subprograms               @relation(fields: [requested_subprogram_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "level_up_requests_ibfk_2")
+
+  @@index([student_id], map: "level_up_requests_ibfk_1")
+  @@index([requested_subprogram_id], map: "requested_subprogram_id")
+}
+
+model news_events {
+  id          Int                 @id @default(autoincrement())
+  title       String              @db.VarChar(255)
+  description String?             @db.Text
+  event_date  DateTime            @db.DateTime(0)
+  type        news_events_type?   @default(news)
+  status      news_events_status? @default(active)
+  created_at  DateTime?           @default(now()) @db.Timestamp(0)
+  updated_at  DateTime?           @default(now()) @db.Timestamp(0)
+}
+
+model newsletters {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique(map: "email") @db.VarChar(255)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model notifications {
+  id         Int       @id @default(autoincrement())
+  user_id    String?   @db.VarChar(50)
+  sender_id  String?   @db.VarChar(50)
+  type       String    @db.VarChar(50)
+  title      String    @db.VarChar(255)
+  message    String?   @db.Text
+  metadata   Json?
+  is_read    Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([is_read], map: "idx_is_read")
+  @@index([user_id], map: "idx_user_id")
+}
+
+model oral_assignment_submissions {
+  id                Int                                 @id @default(autoincrement())
+  assignment_id     Int
+  student_id        String?                             @db.VarChar(50)
+  content           String?                             @db.LongText
+  file_url          String?                             @db.VarChar(255)
+  score             Decimal?                            @db.Decimal(5, 2)
+  feedback          String?                             @db.Text
+  feedback_file_url String?                             @db.VarChar(255)
+  status            oral_assignment_submissions_status? @default(pending)
+  submission_date   DateTime?                           @db.DateTime(0)
+  created_at        DateTime?                           @default(now()) @db.Timestamp(0)
+  updated_at        DateTime?                           @default(now()) @db.Timestamp(0)
+  oral_assignments  oral_assignments                    @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "oral_assignment_submissions_ibfk_1")
+
+  @@unique([assignment_id, student_id], map: "unique_submission")
+}
+
+model oral_assignments {
+  id                          Int                               @id @default(autoincrement())
+  title                       String                            @db.VarChar(255)
+  description                 String?                           @db.Text
+  class_id                    Int
+  program_id                  Int
+  due_date                    DateTime?                         @db.DateTime(0)
+  total_points                Int?                              @default(100)
+  status                      oral_assignments_status?          @default(active)
+  created_by                  Int
+  duration                    Int?
+  submission_type             oral_assignments_submission_type? @default(audio)
+  questions                   String?                           @db.LongText
+  created_at                  DateTime?                         @default(now()) @db.Timestamp(0)
+  updated_at                  DateTime?                         @default(now()) @db.Timestamp(0)
+  subprogram_id               Int?
+  media_url                   String?                           @db.VarChar(255)
+  oral_assignment_submissions oral_assignment_submissions[]
+}
+
+model payment_packages {
+  id                       Int                        @id @default(autoincrement())
+  package_name             String                     @db.VarChar(255)
+  description              String?                    @db.Text
+  amount                   Decimal?                   @db.Decimal(10, 2)
+  currency                 String?                    @default("USD") @db.VarChar(10)
+  duration_months          Int?
+  status                   payment_packages_status?   @default(active)
+  created_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  updated_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  program_payment_packages program_payment_packages[]
+}
+
+model payments {
+  id                      Int       @id @default(autoincrement())
+  student_id              String?   @db.VarChar(50)
+  ielts_student_id        Int?
+  payer_phone             String?   @db.VarChar(20)
+  amount                  Decimal   @db.Decimal(10, 2)
+  method                  String    @db.VarChar(50)
+  program_id              String?   @db.VarChar(100)
+  provider_transaction_id String?   @db.VarChar(255)
+  status                  String?   @default("paid") @db.VarChar(50)
+  created_at              DateTime? @default(now()) @db.Timestamp(0)
+  updated_at              DateTime? @default(now()) @db.Timestamp(0)
+  currency                String?   @default("USD") @db.VarChar(10)
+  raw_response            Json?
+
+  @@index([student_id], map: "student_id")
+}
+
+model placement_test_results {
+  id                Int                            @id @default(autoincrement())
+  student_id        String?                        @db.VarChar(50)
+  test_id           Int
+  score             Int
+  total_questions   Int
+  percentage        Decimal                        @db.Decimal(5, 2)
+  recommended_level String?                        @db.VarChar(50)
+  answers           Json
+  status            placement_test_results_status? @default(completed)
+  submitted_at      DateTime?                      @default(now()) @db.Timestamp(0)
+  feedback_file     String?                        @db.VarChar(255)
+  essay_marks       String?                        @db.Text
+  oral_review_marks Decimal?                       @db.Decimal(5, 2)
+
+  @@index([student_id], map: "idx_student")
+  @@index([test_id], map: "idx_test")
+}
+
+model placement_tests {
+  id               Int                     @id @default(autoincrement())
+  title            String                  @db.VarChar(255)
+  description      String?                 @db.Text
+  duration_minutes Int?                    @default(60)
+  questions        Json?
+  status           placement_tests_status? @default(active)
+  created_at       DateTime?               @default(now()) @db.Timestamp(0)
+  updated_at       DateTime?               @default(now()) @db.Timestamp(0)
+
+  @@index([status], map: "idx_status")
+}
+
+model proficiency_test_results {
+  id                Int                              @id @default(autoincrement())
+  test_id           Int
+  student_id        String?                          @db.VarChar(50)
+  answers           Json
+  score             Decimal?                         @db.Decimal(5, 2)
+  essay_marks       String?                          @db.Text
+  oral_review_marks Decimal?                         @db.Decimal(5, 2)
+  total_points      Int
+  status            proficiency_test_results_status? @default(pending)
+  submitted_at      DateTime?                        @default(now()) @db.Timestamp(0)
+  graded_at         DateTime?                        @db.Timestamp(0)
+  graded_by         Int?
+  feedback          String?                          @db.Text
+  proficiency_tests proficiency_tests                @relation(fields: [test_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "proficiency_test_results_ibfk_1")
+
+  @@index([status], map: "idx_status")
+  @@index([student_id], map: "idx_student_id")
+  @@index([test_id], map: "idx_test_id")
+}
+
+model proficiency_tests {
+  id                       Int                        @id @default(autoincrement())
+  title                    String                     @db.VarChar(255)
+  description              String?                    @db.Text
+  duration_minutes         Int?                       @default(60)
+  questions                Json?
+  status                   proficiency_tests_status?  @default(active)
+  created_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  updated_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  proficiency_test_results proficiency_test_results[]
+
+  @@index([status], map: "idx_status")
+}
+
+model program_payment_packages {
+  id                 Int              @id @default(autoincrement())
+  program_id         Int
+  payment_package_id Int
+  created_at         DateTime?        @default(now()) @db.Timestamp(0)
+  programs           programs         @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "program_payment_packages_ibfk_1")
+  payment_packages   payment_packages @relation(fields: [payment_package_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "program_payment_packages_ibfk_2")
+
+  @@index([payment_package_id], map: "payment_package_id")
+  @@index([program_id], map: "program_id")
+}
+
+model programs {
+  id                       Int                        @id @default(autoincrement())
+  image                    String?                    @db.VarChar(255)
+  title                    String                     @db.VarChar(255)
+  description              String?                    @db.Text
+  created_at               DateTime                   @default(now()) @db.Timestamp(0)
+  video                    String?                    @db.VarChar(255)
+  status                   programs_status?           @default(active)
+  price                    Decimal?                   @default(0.00) @db.Decimal(10, 2)
+  discount                 Decimal?                   @default(0.00) @db.Decimal(10, 2)
+  curriculum_file          String?                    @db.VarChar(255)
+  test_required            programs_test_required?    @default(none)
+  academic_calendar        academic_calendar[]
+  learning_materials       learning_materials[]
+  program_payment_packages program_payment_packages[]
+  subprograms              subprograms[]
+  timetables               timetables[]
+}
+
+model session_change_requests {
+  id                                                          Int                             @id @default(autoincrement())
+  student_id                                                  String?                         @db.VarChar(50)
+  current_class_id                                            Int?
+  requested_class_id                                          Int?
+  requested_session_type                                      String?                         @db.VarChar(50)
+  reason                                                      String?                         @db.Text
+  status                                                      session_change_requests_status? @default(pending)
+  admin_response                                              String?                         @db.Text
+  created_at                                                  DateTime?                       @default(now()) @db.Timestamp(0)
+  updated_at                                                  DateTime?                       @default(now()) @db.Timestamp(0)
+  classes_session_change_requests_current_class_idToclasses   classes?                        @relation("session_change_requests_current_class_idToclasses", fields: [current_class_id], references: [id], onUpdate: NoAction, map: "session_change_requests_ibfk_2")
+  classes_session_change_requests_requested_class_idToclasses classes?                        @relation("session_change_requests_requested_class_idToclasses", fields: [requested_class_id], references: [id], onUpdate: NoAction, map: "session_change_requests_ibfk_3")
+
+  @@index([current_class_id], map: "current_class_id")
+  @@index([requested_class_id], map: "requested_class_id")
+  @@index([student_id], map: "session_change_requests_ibfk_1")
+}
+
+model shift_sessions {
+  id           Int       @id @default(autoincrement())
+  shift_id     Int
+  session_name String?   @db.VarChar(100)
+  start_time   DateTime  @db.Time(0)
+  end_time     DateTime  @db.Time(0)
+  created_at   DateTime? @default(now()) @db.Timestamp(0)
+  updated_at   DateTime? @default(now()) @db.Timestamp(0)
+  shifts       shifts    @relation(fields: [shift_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "shift_sessions_ibfk_1")
+
+  @@index([shift_id], map: "idx_shift_id")
+}
+
+model shifts {
+  id             Int              @id @default(autoincrement())
+  shift_name     String           @db.VarChar(255)
+  session_type   String           @db.VarChar(100)
+  start_time     DateTime         @db.Time(0)
+  end_time       DateTime         @db.Time(0)
+  description    String?          @db.Text
+  created_at     DateTime?        @default(now()) @db.Timestamp(0)
+  updated_at     DateTime?        @default(now()) @db.Timestamp(0)
+  classes        classes[]
+  shift_sessions shift_sessions[]
+}
+
+model student_class_history {
+  id            Int       @id @default(autoincrement())
+  student_id    String    @db.VarChar(50)
+  class_id      Int
+  subprogram_id Int?
+  is_active     Int?      @default(1) @db.TinyInt
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+
+  @@unique([student_id, class_id], map: "unique_link")
+}
+
+model student_review_questions {
+  id            Int       @id @default(autoincrement())
+  question_text String    @db.Text
+  is_active     Boolean?  @default(true)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model student_reviews {
+  id          Int       @id @default(autoincrement())
+  teacher_id  String    @db.VarChar(50)
+  student_id  String    @db.VarChar(50)
+  class_id    Int
+  term_serial String    @db.VarChar(50)
+  rating      Int?
+  comment     String?   @db.Text
+  answers     Json?
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  classes     classes   @relation(fields: [class_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "student_reviews_ibfk_1")
+
+  @@index([class_id], map: "class_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model students {
+  student_id             String                        @id @db.VarChar(50)
+  full_name              String                        @db.VarChar(255)
+  email                  String                        @unique(map: "email") @db.VarChar(255)
+  phone                  String?                       @db.VarChar(50)
+  age                    Int?
+  sex                    students_sex?                 @default(Male)
+  date_of_birth          DateTime?                     @db.Date
+  place_of_birth         String?                       @db.VarChar(255)
+  residency_country      String?                       @db.VarChar(100)
+  residency_city         String?                       @db.VarChar(100)
+  chosen_program         String?                       @db.VarChar(255)
+  chosen_subprogram      String?                       @db.VarChar(255)
+  completed_subprograms  String?                       @db.Text
+  sponsor_name           String?                       @db.VarChar(255)
+  paid_until             DateTime?                     @db.Date
+  funding_status         students_funding_status?      @default(Paid)
+  sponsorship_package    students_sponsorship_package? @default(None)
+  funding_amount         Decimal?                      @db.Decimal(10, 2)
+  funding_month          String?                       @db.VarChar(50)
+  scholarship_percentage Int?
+  expiry_date            DateTime?                     @db.DateTime(0)
+  reminder_sent          Boolean?                      @default(false)
+  admin_expiry_notified  Boolean?                      @default(false)
+  password               String                        @db.VarChar(255)
+  parent_name            String?                       @db.VarChar(255)
+  parent_email           String?                       @db.VarChar(255)
+  parent_phone           String?                       @db.VarChar(50)
+  parent_relation        String?                       @db.VarChar(100)
+  parent_res_county      String?                       @db.VarChar(100)
+  parent_res_city        String?                       @db.VarChar(100)
+  created_at             DateTime                      @default(now()) @db.Timestamp(0)
+  updated_at             DateTime                      @default(now()) @db.Timestamp(0)
+  approval_status        students_approval_status?     @default(pending)
+  reset_password_token   String?                       @db.VarChar(255)
+  reset_password_expires DateTime?                     @db.DateTime(0)
+  class_id               Int?
+  profile_picture        String?                       @db.VarChar(255)
+  assignment_submissions assignment_submissions[]
+  attendance             attendance[]
+  level_up_requests      level_up_requests[]
+  classes                classes?                      @relation(fields: [class_id], references: [id], onUpdate: NoAction, map: "fk_students_class")
+
+  @@index([class_id], map: "fk_students_class")
+  @@index([chosen_program], map: "idx_chosen_program")
+  @@index([email], map: "idx_email")
+}
+
+model subprograms {
+  id                 Int                  @id @default(autoincrement())
+  subprogram_name    String               @db.VarChar(255)
+  program_id         Int
+  description        String?              @db.Text
+  status             subprograms_status?  @default(active)
+  created_at         DateTime             @default(now()) @db.Timestamp(0)
+  updated_at         DateTime             @default(now()) @db.Timestamp(0)
+  academic_calendar  academic_calendar[]
+  classes            classes[]
+  courses            courses[]
+  learning_materials learning_materials[]
+  level_up_requests  level_up_requests[]
+  programs           programs             @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "subprograms_ibfk_1")
+  timetable_events   timetable_events[]
+  timetables         timetables[]
+
+  @@index([program_id], map: "idx_program_id")
+  @@index([status], map: "idx_status")
+}
+
+model teacher_review_questions {
+  id            Int       @id @default(autoincrement())
+  question_text String    @db.Text
+  is_active     Boolean?  @default(true)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model teacher_reviews {
+  id          Int       @id @default(autoincrement())
+  student_id  String    @db.VarChar(50)
+  teacher_id  String    @db.VarChar(50)
+  class_id    Int
+  term_serial String    @db.VarChar(50)
+  rating      Int?
+  comment     String?   @db.Text
+  answers     Json?
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  classes     classes   @relation(fields: [class_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teacher_reviews_ibfk_1")
+
+  @@index([class_id], map: "class_id")
+}
+
+model teachers {
+  id                     Int              @id @default(autoincrement())
+  teacher_id             String?          @db.VarChar(50)
+  full_name              String           @db.VarChar(255)
+  email                  String           @unique(map: "email") @db.VarChar(255)
+  phone                  String?          @db.VarChar(50)
+  country                String?          @db.VarChar(100)
+  city                   String?          @db.VarChar(100)
+  specialization         String?          @db.VarChar(255)
+  highest_qualification  String?          @db.VarChar(255)
+  years_experience       Int?
+  bio                    String?          @db.Text
+  portfolio_link         String?          @db.VarChar(500)
+  skills                 String?          @db.Text
+  hire_date              DateTime?        @db.Date
+  status                 teachers_status? @default(active)
+  password               String           @db.VarChar(255)
+  created_at             DateTime         @default(now()) @db.Timestamp(0)
+  updated_at             DateTime         @default(now()) @db.Timestamp(0)
+  reset_password_token   String?          @db.VarChar(255)
+  reset_password_expires DateTime?        @db.DateTime(0)
+  profile_picture        String?          @db.VarChar(255)
+  classes                classes[]
+  timetables             timetables[]
+
+  @@index([email], map: "idx_email")
+}
+
+model testimonials {
+  id           Int       @id @default(autoincrement())
+  student_name String    @db.VarChar(255)
+  student_role String?   @db.VarChar(255)
+  quote        String    @db.Text
+  image_url    String?   @db.Text
+  initials     String?   @db.VarChar(10)
+  rating       Int?      @default(5)
+  is_active    Boolean?  @default(true)
+  created_at   DateTime? @default(now()) @db.Timestamp(0)
+  updated_at   DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([is_active], map: "idx_is_active")
+}
+
+model timetable_events {
+  id            Int         @id @default(autoincrement())
+  subprogram_id Int
+  event_date    DateTime    @db.Date
+  type          String      @default("other") @db.VarChar(50)
+  title         String      @db.VarChar(255)
+  description   String?     @db.Text
+  created_at    DateTime?   @default(now()) @db.Timestamp(0)
+  updated_at    DateTime?   @default(now()) @db.Timestamp(0)
+  subprograms   subprograms @relation(fields: [subprogram_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "timetable_events_ibfk_1")
+
+  @@index([subprogram_id], map: "subprogram_id")
+}
+
+model timetables {
+  id                   Int         @id @default(autoincrement())
+  program_id           Int
+  subprogram_id        Int
+  date                 DateTime?   @db.Date
+  day                  String      @db.VarChar(20)
+  week_number          Int?
+  start_time           DateTime?   @db.Time(0)
+  end_time             DateTime?   @db.Time(0)
+  subject              String?     @db.VarChar(255)
+  teacher_id           Int?
+  created_at           DateTime?   @default(now()) @db.Timestamp(0)
+  updated_at           DateTime?   @default(now()) @db.Timestamp(0)
+  type                 String      @default("Class") @db.VarChar(50)
+  activity_type        String?     @db.VarChar(100)
+  activity_title       String?     @db.VarChar(255)
+  activity_description String?     @db.Text
+  month                String?     @db.VarChar(20)
+  year                 Int?
+  programs             programs    @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "timetables_ibfk_1")
+  subprograms          subprograms @relation(fields: [subprogram_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "timetables_ibfk_2")
+  teachers             teachers?   @relation(fields: [teacher_id], references: [id], onUpdate: NoAction, map: "timetables_ibfk_3")
+
+  @@index([program_id], map: "program_id")
+  @@index([subprogram_id], map: "subprogram_id")
+  @@index([teacher_id], map: "teacher_id")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model users {
+  id    Int
+  name  String @db.VarChar(200)
+  email String @db.VarChar(200)
+
+  @@ignore
+}
+
+model writing_task_submissions {
+  id                Int                              @id @default(autoincrement())
+  assignment_id     Int
+  student_id        String?                          @db.VarChar(50)
+  content           String?                          @db.LongText
+  file_url          String?                          @db.VarChar(255)
+  score             Decimal?                         @db.Decimal(5, 2)
+  feedback          String?                          @db.Text
+  feedback_file_url String?                          @db.VarChar(255)
+  status            writing_task_submissions_status? @default(pending)
+  submission_date   DateTime?                        @db.DateTime(0)
+  created_at        DateTime?                        @default(now()) @db.Timestamp(0)
+  updated_at        DateTime?                        @default(now()) @db.Timestamp(0)
+  writing_tasks     writing_tasks                    @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "writing_task_submissions_ibfk_1")
+
+  @@unique([assignment_id, student_id], map: "unique_submission")
+}
+
+model writing_tasks {
+  id                       Int                        @id @default(autoincrement())
+  title                    String                     @db.VarChar(255)
+  description              String?                    @db.Text
+  class_id                 Int
+  program_id               Int
+  due_date                 DateTime?                  @db.DateTime(0)
+  total_points             Int?                       @default(100)
+  questions                String?                    @db.LongText
+  status                   writing_tasks_status?      @default(active)
+  created_by               Int
+  word_count               Int?
+  requirements             String?                    @db.Text
+  created_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  updated_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  writing_task_submissions writing_task_submissions[]
+}
+
+enum certificates_target_type {
+  program
+  subprogram
+}
+
+enum learning_materials_type {
+  PDF
+  Document
+  Presentation
+  Audio
+  Video
+  Link
+  Drive
+}
+
+enum level_up_requests_status {
+  pending
+  approved
+  rejected
+}
+
+enum issued_certificates_target_type {
+  program
+  subprogram
+}
+
+enum news_events_type {
+  exam
+  event
+  deadline
+  training
+  news
+}
+
+enum subprograms_status {
+  active
+  inactive
+}
+
+enum announcements_status {
+  Published
+  Draft
+  Archived
+}
+
+enum assignment_submissions_status {
+  pending
+  submitted
+  graded
+  late
+  missing
+}
+
+enum news_events_status {
+  active
+  inactive
+}
+
+enum placement_tests_status {
+  active
+  inactive
+  archived
+  draft
+}
+
+enum proficiency_tests_status {
+  active
+  inactive
+  archived
+  draft
+}
+
+enum students_sex {
+  Male
+  Female
+}
+
+enum assignments_type {
+  assignment
+  classwork
+  homework
+  project
+  writing_task
+  course_work
+  test
+  oral_assignment
+}
+
+enum freezing_requests_status {
+  pending
+  approved
+  rejected
+}
+
+enum payment_packages_status {
+  active
+  inactive
+}
+
+enum programs_status {
+  active
+  inactive
+}
+
+enum session_change_requests_status {
+  pending
+  approved
+  rejected
+}
+
+enum ProficiencyTestStudents_educational_level {
+  High_School_Diploma  @map("High School Diploma")
+  Undergraduate
+  Postgraduate_Diploma @map("Postgraduate Diploma")
+  Postgraduate
+  None
+}
+
+enum course_work_status {
+  active
+  inactive
+}
+
+enum oral_assignments_status {
+  active
+  inactive
+}
+
+enum IELTSTOEFL_sex {
+  Male
+  Female
+}
+
+enum course_work_submissions_status {
+  pending
+  submitted
+  graded
+}
+
+enum exam_submissions_status {
+  pending
+  submitted
+  graded
+}
+
+enum oral_assignment_submissions_status {
+  pending
+  submitted
+  graded
+}
+
+enum placement_test_results_status {
+  completed
+  pending_review
+}
+
+enum proficiency_test_results_status {
+  pending
+  graded
+  reviewed
+  completed
+}
+
+enum writing_task_submissions_status {
+  pending
+  submitted
+  graded
+}
+
+enum writing_tasks_status {
+  active
+  inactive
+}
+
+enum ProficiencyTestStudents_status {
+  Pending
+  Approved
+  Rejected
+}
+
+enum assignments_status {
+  active
+  closed
+  draft
+}
+
+enum learning_materials_status {
+  Active
+  Inactive
+}
+
+enum ProficiencyTestStudents_payment_status {
+  unpaid
+  paid
+  rejected
+}
+
+enum exams_status {
+  active
+  inactive
+  draft
+}
+
+enum oral_assignments_submission_type {
+  audio
+  video
+  both
+}
+
+enum programs_test_required {
+  none
+  placement
+  proficiency
+}
+
+enum teachers_status {
+  active
+  inactive
+}
+
+enum students_funding_status {
+  Paid
+  Full_Scholarship    @map("Full Scholarship")
+  Partial_Scholarship @map("Partial Scholarship")
+  Sponsorship
+}
+
+enum students_sponsorship_package {
+  Month    @map("1 Month")
+  Months_3 @map("3 Months")
+  Months_6 @map("6 Months")
+  Year     @map("1 Year")
+  None
+}
+
+enum students_approval_status {
+  pending
+  approved
+  rejected
+  inactive
+}

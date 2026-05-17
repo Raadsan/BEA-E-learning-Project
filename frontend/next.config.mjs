@@ -4,7 +4,7 @@ const nextConfig = {
   // Improve stability and prevent crashes
   reactStrictMode: true,
   images: {
-    unoptimized: false,
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'http',
@@ -12,6 +12,10 @@ const nextConfig = {
         port: '5000',
         pathname: '/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: '**',
+      }
     ],
   },
 };
