@@ -13821,6 +13821,7 @@ export namespace Prisma {
     created_by: number | null
     type: $Enums.assignments_type | null
     due_date: Date | null
+    start_date: Date | null
     total_points: number | null
     status: $Enums.assignments_status | null
     created_at: Date | null
@@ -13840,6 +13841,7 @@ export namespace Prisma {
     created_by: number | null
     type: $Enums.assignments_type | null
     due_date: Date | null
+    start_date: Date | null
     total_points: number | null
     status: $Enums.assignments_status | null
     created_at: Date | null
@@ -13859,6 +13861,7 @@ export namespace Prisma {
     created_by: number
     type: number
     due_date: number
+    start_date: number
     total_points: number
     status: number
     created_at: number
@@ -13900,6 +13903,7 @@ export namespace Prisma {
     created_by?: true
     type?: true
     due_date?: true
+    start_date?: true
     total_points?: true
     status?: true
     created_at?: true
@@ -13919,6 +13923,7 @@ export namespace Prisma {
     created_by?: true
     type?: true
     due_date?: true
+    start_date?: true
     total_points?: true
     status?: true
     created_at?: true
@@ -13938,6 +13943,7 @@ export namespace Prisma {
     created_by?: true
     type?: true
     due_date?: true
+    start_date?: true
     total_points?: true
     status?: true
     created_at?: true
@@ -14044,6 +14050,7 @@ export namespace Prisma {
     created_by: number | null
     type: $Enums.assignments_type | null
     due_date: Date | null
+    start_date: Date | null
     total_points: number | null
     status: $Enums.assignments_status | null
     created_at: Date | null
@@ -14082,6 +14089,7 @@ export namespace Prisma {
     created_by?: boolean
     type?: boolean
     due_date?: boolean
+    start_date?: boolean
     total_points?: boolean
     status?: boolean
     created_at?: boolean
@@ -14106,6 +14114,7 @@ export namespace Prisma {
     created_by?: boolean
     type?: boolean
     due_date?: boolean
+    start_date?: boolean
     total_points?: boolean
     status?: boolean
     created_at?: boolean
@@ -14116,7 +14125,7 @@ export namespace Prisma {
     requirements?: boolean
   }
 
-  export type assignmentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "class_id" | "program_id" | "created_by" | "type" | "due_date" | "total_points" | "status" | "created_at" | "updated_at" | "word_count" | "duration" | "submission_format" | "requirements", ExtArgs["result"]["assignments"]>
+  export type assignmentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "class_id" | "program_id" | "created_by" | "type" | "due_date" | "start_date" | "total_points" | "status" | "created_at" | "updated_at" | "word_count" | "duration" | "submission_format" | "requirements", ExtArgs["result"]["assignments"]>
   export type assignmentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     assignment_submissions?: boolean | assignments$assignment_submissionsArgs<ExtArgs>
     classes?: boolean | classesDefaultArgs<ExtArgs>
@@ -14138,6 +14147,7 @@ export namespace Prisma {
       created_by: number | null
       type: $Enums.assignments_type | null
       due_date: Date | null
+      start_date: Date | null
       total_points: number | null
       status: $Enums.assignments_status | null
       created_at: Date | null
@@ -14525,6 +14535,7 @@ export namespace Prisma {
     readonly created_by: FieldRef<"assignments", 'Int'>
     readonly type: FieldRef<"assignments", 'assignments_type'>
     readonly due_date: FieldRef<"assignments", 'DateTime'>
+    readonly start_date: FieldRef<"assignments", 'DateTime'>
     readonly total_points: FieldRef<"assignments", 'Int'>
     readonly status: FieldRef<"assignments", 'assignments_status'>
     readonly created_at: FieldRef<"assignments", 'DateTime'>
@@ -21365,6 +21376,7 @@ export namespace Prisma {
     class_id: number | null
     program_id: number | null
     due_date: Date | null
+    start_date: Date | null
     total_points: number | null
     status: $Enums.course_work_status | null
     created_by: number | null
@@ -21386,6 +21398,7 @@ export namespace Prisma {
     class_id: number | null
     program_id: number | null
     due_date: Date | null
+    start_date: Date | null
     total_points: number | null
     status: $Enums.course_work_status | null
     created_by: number | null
@@ -21407,6 +21420,7 @@ export namespace Prisma {
     class_id: number
     program_id: number
     due_date: number
+    start_date: number
     total_points: number
     status: number
     created_by: number
@@ -21452,6 +21466,7 @@ export namespace Prisma {
     class_id?: true
     program_id?: true
     due_date?: true
+    start_date?: true
     total_points?: true
     status?: true
     created_by?: true
@@ -21473,6 +21488,7 @@ export namespace Prisma {
     class_id?: true
     program_id?: true
     due_date?: true
+    start_date?: true
     total_points?: true
     status?: true
     created_by?: true
@@ -21494,6 +21510,7 @@ export namespace Prisma {
     class_id?: true
     program_id?: true
     due_date?: true
+    start_date?: true
     total_points?: true
     status?: true
     created_by?: true
@@ -21602,6 +21619,7 @@ export namespace Prisma {
     class_id: number
     program_id: number | null
     due_date: Date | null
+    start_date: Date | null
     total_points: number | null
     status: $Enums.course_work_status | null
     created_by: number
@@ -21642,6 +21660,7 @@ export namespace Prisma {
     class_id?: boolean
     program_id?: boolean
     due_date?: boolean
+    start_date?: boolean
     total_points?: boolean
     status?: boolean
     created_by?: boolean
@@ -21667,6 +21686,7 @@ export namespace Prisma {
     class_id?: boolean
     program_id?: boolean
     due_date?: boolean
+    start_date?: boolean
     total_points?: boolean
     status?: boolean
     created_by?: boolean
@@ -21681,7 +21701,7 @@ export namespace Prisma {
     unit?: boolean
   }
 
-  export type course_workOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "class_id" | "program_id" | "due_date" | "total_points" | "status" | "created_by" | "submission_format" | "questions" | "created_at" | "updated_at" | "word_count" | "duration" | "requirements" | "subprogram_id" | "unit", ExtArgs["result"]["course_work"]>
+  export type course_workOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "class_id" | "program_id" | "due_date" | "start_date" | "total_points" | "status" | "created_by" | "submission_format" | "questions" | "created_at" | "updated_at" | "word_count" | "duration" | "requirements" | "subprogram_id" | "unit", ExtArgs["result"]["course_work"]>
   export type course_workInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     course_work_submissions?: boolean | course_work$course_work_submissionsArgs<ExtArgs>
     _count?: boolean | Course_workCountOutputTypeDefaultArgs<ExtArgs>
@@ -21699,6 +21719,7 @@ export namespace Prisma {
       class_id: number
       program_id: number | null
       due_date: Date | null
+      start_date: Date | null
       total_points: number | null
       status: $Enums.course_work_status | null
       created_by: number
@@ -22087,6 +22108,7 @@ export namespace Prisma {
     readonly class_id: FieldRef<"course_work", 'Int'>
     readonly program_id: FieldRef<"course_work", 'Int'>
     readonly due_date: FieldRef<"course_work", 'DateTime'>
+    readonly start_date: FieldRef<"course_work", 'DateTime'>
     readonly total_points: FieldRef<"course_work", 'Int'>
     readonly status: FieldRef<"course_work", 'course_work_status'>
     readonly created_by: FieldRef<"course_work", 'Int'>
@@ -35803,6 +35825,7 @@ export namespace Prisma {
     class_id: number | null
     program_id: number | null
     due_date: Date | null
+    start_date: Date | null
     total_points: number | null
     status: $Enums.oral_assignments_status | null
     created_by: number | null
@@ -35822,6 +35845,7 @@ export namespace Prisma {
     class_id: number | null
     program_id: number | null
     due_date: Date | null
+    start_date: Date | null
     total_points: number | null
     status: $Enums.oral_assignments_status | null
     created_by: number | null
@@ -35841,6 +35865,7 @@ export namespace Prisma {
     class_id: number
     program_id: number
     due_date: number
+    start_date: number
     total_points: number
     status: number
     created_by: number
@@ -35882,6 +35907,7 @@ export namespace Prisma {
     class_id?: true
     program_id?: true
     due_date?: true
+    start_date?: true
     total_points?: true
     status?: true
     created_by?: true
@@ -35901,6 +35927,7 @@ export namespace Prisma {
     class_id?: true
     program_id?: true
     due_date?: true
+    start_date?: true
     total_points?: true
     status?: true
     created_by?: true
@@ -35920,6 +35947,7 @@ export namespace Prisma {
     class_id?: true
     program_id?: true
     due_date?: true
+    start_date?: true
     total_points?: true
     status?: true
     created_by?: true
@@ -36026,6 +36054,7 @@ export namespace Prisma {
     class_id: number
     program_id: number
     due_date: Date | null
+    start_date: Date | null
     total_points: number | null
     status: $Enums.oral_assignments_status | null
     created_by: number
@@ -36064,6 +36093,7 @@ export namespace Prisma {
     class_id?: boolean
     program_id?: boolean
     due_date?: boolean
+    start_date?: boolean
     total_points?: boolean
     status?: boolean
     created_by?: boolean
@@ -36087,6 +36117,7 @@ export namespace Prisma {
     class_id?: boolean
     program_id?: boolean
     due_date?: boolean
+    start_date?: boolean
     total_points?: boolean
     status?: boolean
     created_by?: boolean
@@ -36099,7 +36130,7 @@ export namespace Prisma {
     media_url?: boolean
   }
 
-  export type oral_assignmentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "class_id" | "program_id" | "due_date" | "total_points" | "status" | "created_by" | "duration" | "submission_type" | "questions" | "created_at" | "updated_at" | "subprogram_id" | "media_url", ExtArgs["result"]["oral_assignments"]>
+  export type oral_assignmentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "class_id" | "program_id" | "due_date" | "start_date" | "total_points" | "status" | "created_by" | "duration" | "submission_type" | "questions" | "created_at" | "updated_at" | "subprogram_id" | "media_url", ExtArgs["result"]["oral_assignments"]>
   export type oral_assignmentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     oral_assignment_submissions?: boolean | oral_assignments$oral_assignment_submissionsArgs<ExtArgs>
     _count?: boolean | Oral_assignmentsCountOutputTypeDefaultArgs<ExtArgs>
@@ -36117,6 +36148,7 @@ export namespace Prisma {
       class_id: number
       program_id: number
       due_date: Date | null
+      start_date: Date | null
       total_points: number | null
       status: $Enums.oral_assignments_status | null
       created_by: number
@@ -36503,6 +36535,7 @@ export namespace Prisma {
     readonly class_id: FieldRef<"oral_assignments", 'Int'>
     readonly program_id: FieldRef<"oral_assignments", 'Int'>
     readonly due_date: FieldRef<"oral_assignments", 'DateTime'>
+    readonly start_date: FieldRef<"oral_assignments", 'DateTime'>
     readonly total_points: FieldRef<"oral_assignments", 'Int'>
     readonly status: FieldRef<"oral_assignments", 'oral_assignments_status'>
     readonly created_by: FieldRef<"oral_assignments", 'Int'>
@@ -51229,6 +51262,7 @@ export namespace Prisma {
     funding_month: string | null
     scholarship_percentage: number | null
     expiry_date: Date | null
+    is_extended: boolean | null
     reminder_sent: boolean | null
     admin_expiry_notified: boolean | null
     password: string | null
@@ -51269,6 +51303,7 @@ export namespace Prisma {
     funding_month: string | null
     scholarship_percentage: number | null
     expiry_date: Date | null
+    is_extended: boolean | null
     reminder_sent: boolean | null
     admin_expiry_notified: boolean | null
     password: string | null
@@ -51309,6 +51344,7 @@ export namespace Prisma {
     funding_month: number
     scholarship_percentage: number
     expiry_date: number
+    is_extended: number
     reminder_sent: number
     admin_expiry_notified: number
     password: number
@@ -51365,6 +51401,7 @@ export namespace Prisma {
     funding_month?: true
     scholarship_percentage?: true
     expiry_date?: true
+    is_extended?: true
     reminder_sent?: true
     admin_expiry_notified?: true
     password?: true
@@ -51405,6 +51442,7 @@ export namespace Prisma {
     funding_month?: true
     scholarship_percentage?: true
     expiry_date?: true
+    is_extended?: true
     reminder_sent?: true
     admin_expiry_notified?: true
     password?: true
@@ -51445,6 +51483,7 @@ export namespace Prisma {
     funding_month?: true
     scholarship_percentage?: true
     expiry_date?: true
+    is_extended?: true
     reminder_sent?: true
     admin_expiry_notified?: true
     password?: true
@@ -51572,6 +51611,7 @@ export namespace Prisma {
     funding_month: string | null
     scholarship_percentage: number | null
     expiry_date: Date | null
+    is_extended: boolean | null
     reminder_sent: boolean | null
     admin_expiry_notified: boolean | null
     password: string
@@ -51631,6 +51671,7 @@ export namespace Prisma {
     funding_month?: boolean
     scholarship_percentage?: boolean
     expiry_date?: boolean
+    is_extended?: boolean
     reminder_sent?: boolean
     admin_expiry_notified?: boolean
     password?: boolean
@@ -51678,6 +51719,7 @@ export namespace Prisma {
     funding_month?: boolean
     scholarship_percentage?: boolean
     expiry_date?: boolean
+    is_extended?: boolean
     reminder_sent?: boolean
     admin_expiry_notified?: boolean
     password?: boolean
@@ -51696,7 +51738,7 @@ export namespace Prisma {
     profile_picture?: boolean
   }
 
-  export type studentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"student_id" | "full_name" | "email" | "phone" | "age" | "sex" | "date_of_birth" | "place_of_birth" | "residency_country" | "residency_city" | "chosen_program" | "chosen_subprogram" | "completed_subprograms" | "sponsor_name" | "paid_until" | "funding_status" | "sponsorship_package" | "funding_amount" | "funding_month" | "scholarship_percentage" | "expiry_date" | "reminder_sent" | "admin_expiry_notified" | "password" | "parent_name" | "parent_email" | "parent_phone" | "parent_relation" | "parent_res_county" | "parent_res_city" | "created_at" | "updated_at" | "approval_status" | "reset_password_token" | "reset_password_expires" | "class_id" | "profile_picture", ExtArgs["result"]["students"]>
+  export type studentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"student_id" | "full_name" | "email" | "phone" | "age" | "sex" | "date_of_birth" | "place_of_birth" | "residency_country" | "residency_city" | "chosen_program" | "chosen_subprogram" | "completed_subprograms" | "sponsor_name" | "paid_until" | "funding_status" | "sponsorship_package" | "funding_amount" | "funding_month" | "scholarship_percentage" | "expiry_date" | "is_extended" | "reminder_sent" | "admin_expiry_notified" | "password" | "parent_name" | "parent_email" | "parent_phone" | "parent_relation" | "parent_res_county" | "parent_res_city" | "created_at" | "updated_at" | "approval_status" | "reset_password_token" | "reset_password_expires" | "class_id" | "profile_picture", ExtArgs["result"]["students"]>
   export type studentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     assignment_submissions?: boolean | students$assignment_submissionsArgs<ExtArgs>
     attendance?: boolean | students$attendanceArgs<ExtArgs>
@@ -51735,6 +51777,7 @@ export namespace Prisma {
       funding_month: string | null
       scholarship_percentage: number | null
       expiry_date: Date | null
+      is_extended: boolean | null
       reminder_sent: boolean | null
       admin_expiry_notified: boolean | null
       password: string
@@ -52145,6 +52188,7 @@ export namespace Prisma {
     readonly funding_month: FieldRef<"students", 'String'>
     readonly scholarship_percentage: FieldRef<"students", 'Int'>
     readonly expiry_date: FieldRef<"students", 'DateTime'>
+    readonly is_extended: FieldRef<"students", 'Boolean'>
     readonly reminder_sent: FieldRef<"students", 'Boolean'>
     readonly admin_expiry_notified: FieldRef<"students", 'Boolean'>
     readonly password: FieldRef<"students", 'String'>
@@ -62422,6 +62466,7 @@ export namespace Prisma {
     created_by: 'created_by',
     type: 'type',
     due_date: 'due_date',
+    start_date: 'start_date',
     total_points: 'total_points',
     status: 'status',
     created_at: 'created_at',
@@ -62532,6 +62577,7 @@ export namespace Prisma {
     class_id: 'class_id',
     program_id: 'program_id',
     due_date: 'due_date',
+    start_date: 'start_date',
     total_points: 'total_points',
     status: 'status',
     created_by: 'created_by',
@@ -62766,6 +62812,7 @@ export namespace Prisma {
     class_id: 'class_id',
     program_id: 'program_id',
     due_date: 'due_date',
+    start_date: 'start_date',
     total_points: 'total_points',
     status: 'status',
     created_by: 'created_by',
@@ -63010,6 +63057,7 @@ export namespace Prisma {
     funding_month: 'funding_month',
     scholarship_percentage: 'scholarship_percentage',
     expiry_date: 'expiry_date',
+    is_extended: 'is_extended',
     reminder_sent: 'reminder_sent',
     admin_expiry_notified: 'admin_expiry_notified',
     password: 'password',
@@ -64917,6 +64965,7 @@ export namespace Prisma {
     created_by?: IntNullableFilter<"assignments"> | number | null
     type?: Enumassignments_typeNullableFilter<"assignments"> | $Enums.assignments_type | null
     due_date?: DateTimeNullableFilter<"assignments"> | Date | string | null
+    start_date?: DateTimeNullableFilter<"assignments"> | Date | string | null
     total_points?: IntNullableFilter<"assignments"> | number | null
     status?: Enumassignments_statusNullableFilter<"assignments"> | $Enums.assignments_status | null
     created_at?: DateTimeNullableFilter<"assignments"> | Date | string | null
@@ -64938,6 +64987,7 @@ export namespace Prisma {
     created_by?: SortOrderInput | SortOrder
     type?: SortOrderInput | SortOrder
     due_date?: SortOrderInput | SortOrder
+    start_date?: SortOrderInput | SortOrder
     total_points?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -64963,6 +65013,7 @@ export namespace Prisma {
     created_by?: IntNullableFilter<"assignments"> | number | null
     type?: Enumassignments_typeNullableFilter<"assignments"> | $Enums.assignments_type | null
     due_date?: DateTimeNullableFilter<"assignments"> | Date | string | null
+    start_date?: DateTimeNullableFilter<"assignments"> | Date | string | null
     total_points?: IntNullableFilter<"assignments"> | number | null
     status?: Enumassignments_statusNullableFilter<"assignments"> | $Enums.assignments_status | null
     created_at?: DateTimeNullableFilter<"assignments"> | Date | string | null
@@ -64984,6 +65035,7 @@ export namespace Prisma {
     created_by?: SortOrderInput | SortOrder
     type?: SortOrderInput | SortOrder
     due_date?: SortOrderInput | SortOrder
+    start_date?: SortOrderInput | SortOrder
     total_points?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -65011,6 +65063,7 @@ export namespace Prisma {
     created_by?: IntNullableWithAggregatesFilter<"assignments"> | number | null
     type?: Enumassignments_typeNullableWithAggregatesFilter<"assignments"> | $Enums.assignments_type | null
     due_date?: DateTimeNullableWithAggregatesFilter<"assignments"> | Date | string | null
+    start_date?: DateTimeNullableWithAggregatesFilter<"assignments"> | Date | string | null
     total_points?: IntNullableWithAggregatesFilter<"assignments"> | number | null
     status?: Enumassignments_statusNullableWithAggregatesFilter<"assignments"> | $Enums.assignments_status | null
     created_at?: DateTimeNullableWithAggregatesFilter<"assignments"> | Date | string | null
@@ -65531,6 +65584,7 @@ export namespace Prisma {
     class_id?: IntFilter<"course_work"> | number
     program_id?: IntNullableFilter<"course_work"> | number | null
     due_date?: DateTimeNullableFilter<"course_work"> | Date | string | null
+    start_date?: DateTimeNullableFilter<"course_work"> | Date | string | null
     total_points?: IntNullableFilter<"course_work"> | number | null
     status?: Enumcourse_work_statusNullableFilter<"course_work"> | $Enums.course_work_status | null
     created_by?: IntFilter<"course_work"> | number
@@ -65553,6 +65607,7 @@ export namespace Prisma {
     class_id?: SortOrder
     program_id?: SortOrderInput | SortOrder
     due_date?: SortOrderInput | SortOrder
+    start_date?: SortOrderInput | SortOrder
     total_points?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     created_by?: SortOrder
@@ -65579,6 +65634,7 @@ export namespace Prisma {
     class_id?: IntFilter<"course_work"> | number
     program_id?: IntNullableFilter<"course_work"> | number | null
     due_date?: DateTimeNullableFilter<"course_work"> | Date | string | null
+    start_date?: DateTimeNullableFilter<"course_work"> | Date | string | null
     total_points?: IntNullableFilter<"course_work"> | number | null
     status?: Enumcourse_work_statusNullableFilter<"course_work"> | $Enums.course_work_status | null
     created_by?: IntFilter<"course_work"> | number
@@ -65601,6 +65657,7 @@ export namespace Prisma {
     class_id?: SortOrder
     program_id?: SortOrderInput | SortOrder
     due_date?: SortOrderInput | SortOrder
+    start_date?: SortOrderInput | SortOrder
     total_points?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     created_by?: SortOrder
@@ -65630,6 +65687,7 @@ export namespace Prisma {
     class_id?: IntWithAggregatesFilter<"course_work"> | number
     program_id?: IntNullableWithAggregatesFilter<"course_work"> | number | null
     due_date?: DateTimeNullableWithAggregatesFilter<"course_work"> | Date | string | null
+    start_date?: DateTimeNullableWithAggregatesFilter<"course_work"> | Date | string | null
     total_points?: IntNullableWithAggregatesFilter<"course_work"> | number | null
     status?: Enumcourse_work_statusNullableWithAggregatesFilter<"course_work"> | $Enums.course_work_status | null
     created_by?: IntWithAggregatesFilter<"course_work"> | number
@@ -66740,6 +66798,7 @@ export namespace Prisma {
     class_id?: IntFilter<"oral_assignments"> | number
     program_id?: IntFilter<"oral_assignments"> | number
     due_date?: DateTimeNullableFilter<"oral_assignments"> | Date | string | null
+    start_date?: DateTimeNullableFilter<"oral_assignments"> | Date | string | null
     total_points?: IntNullableFilter<"oral_assignments"> | number | null
     status?: Enumoral_assignments_statusNullableFilter<"oral_assignments"> | $Enums.oral_assignments_status | null
     created_by?: IntFilter<"oral_assignments"> | number
@@ -66760,6 +66819,7 @@ export namespace Prisma {
     class_id?: SortOrder
     program_id?: SortOrder
     due_date?: SortOrderInput | SortOrder
+    start_date?: SortOrderInput | SortOrder
     total_points?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     created_by?: SortOrder
@@ -66784,6 +66844,7 @@ export namespace Prisma {
     class_id?: IntFilter<"oral_assignments"> | number
     program_id?: IntFilter<"oral_assignments"> | number
     due_date?: DateTimeNullableFilter<"oral_assignments"> | Date | string | null
+    start_date?: DateTimeNullableFilter<"oral_assignments"> | Date | string | null
     total_points?: IntNullableFilter<"oral_assignments"> | number | null
     status?: Enumoral_assignments_statusNullableFilter<"oral_assignments"> | $Enums.oral_assignments_status | null
     created_by?: IntFilter<"oral_assignments"> | number
@@ -66804,6 +66865,7 @@ export namespace Prisma {
     class_id?: SortOrder
     program_id?: SortOrder
     due_date?: SortOrderInput | SortOrder
+    start_date?: SortOrderInput | SortOrder
     total_points?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     created_by?: SortOrder
@@ -66831,6 +66893,7 @@ export namespace Prisma {
     class_id?: IntWithAggregatesFilter<"oral_assignments"> | number
     program_id?: IntWithAggregatesFilter<"oral_assignments"> | number
     due_date?: DateTimeNullableWithAggregatesFilter<"oral_assignments"> | Date | string | null
+    start_date?: DateTimeNullableWithAggregatesFilter<"oral_assignments"> | Date | string | null
     total_points?: IntNullableWithAggregatesFilter<"oral_assignments"> | number | null
     status?: Enumoral_assignments_statusNullableWithAggregatesFilter<"oral_assignments"> | $Enums.oral_assignments_status | null
     created_by?: IntWithAggregatesFilter<"oral_assignments"> | number
@@ -67951,6 +68014,7 @@ export namespace Prisma {
     funding_month?: StringNullableFilter<"students"> | string | null
     scholarship_percentage?: IntNullableFilter<"students"> | number | null
     expiry_date?: DateTimeNullableFilter<"students"> | Date | string | null
+    is_extended?: BoolNullableFilter<"students"> | boolean | null
     reminder_sent?: BoolNullableFilter<"students"> | boolean | null
     admin_expiry_notified?: BoolNullableFilter<"students"> | boolean | null
     password?: StringFilter<"students"> | string
@@ -67995,6 +68059,7 @@ export namespace Prisma {
     funding_month?: SortOrderInput | SortOrder
     scholarship_percentage?: SortOrderInput | SortOrder
     expiry_date?: SortOrderInput | SortOrder
+    is_extended?: SortOrderInput | SortOrder
     reminder_sent?: SortOrderInput | SortOrder
     admin_expiry_notified?: SortOrderInput | SortOrder
     password?: SortOrder
@@ -68043,6 +68108,7 @@ export namespace Prisma {
     funding_month?: StringNullableFilter<"students"> | string | null
     scholarship_percentage?: IntNullableFilter<"students"> | number | null
     expiry_date?: DateTimeNullableFilter<"students"> | Date | string | null
+    is_extended?: BoolNullableFilter<"students"> | boolean | null
     reminder_sent?: BoolNullableFilter<"students"> | boolean | null
     admin_expiry_notified?: BoolNullableFilter<"students"> | boolean | null
     password?: StringFilter<"students"> | string
@@ -68087,6 +68153,7 @@ export namespace Prisma {
     funding_month?: SortOrderInput | SortOrder
     scholarship_percentage?: SortOrderInput | SortOrder
     expiry_date?: SortOrderInput | SortOrder
+    is_extended?: SortOrderInput | SortOrder
     reminder_sent?: SortOrderInput | SortOrder
     admin_expiry_notified?: SortOrderInput | SortOrder
     password?: SortOrder
@@ -68135,6 +68202,7 @@ export namespace Prisma {
     funding_month?: StringNullableWithAggregatesFilter<"students"> | string | null
     scholarship_percentage?: IntNullableWithAggregatesFilter<"students"> | number | null
     expiry_date?: DateTimeNullableWithAggregatesFilter<"students"> | Date | string | null
+    is_extended?: BoolNullableWithAggregatesFilter<"students"> | boolean | null
     reminder_sent?: BoolNullableWithAggregatesFilter<"students"> | boolean | null
     admin_expiry_notified?: BoolNullableWithAggregatesFilter<"students"> | boolean | null
     password?: StringWithAggregatesFilter<"students"> | string
@@ -69892,6 +69960,7 @@ export namespace Prisma {
     created_by?: number | null
     type?: $Enums.assignments_type | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.assignments_status | null
     created_at?: Date | string | null
@@ -69913,6 +69982,7 @@ export namespace Prisma {
     created_by?: number | null
     type?: $Enums.assignments_type | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.assignments_status | null
     created_at?: Date | string | null
@@ -69931,6 +70001,7 @@ export namespace Prisma {
     created_by?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumassignments_typeFieldUpdateOperationsInput | $Enums.assignments_type | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumassignments_statusFieldUpdateOperationsInput | $Enums.assignments_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -69952,6 +70023,7 @@ export namespace Prisma {
     created_by?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumassignments_typeFieldUpdateOperationsInput | $Enums.assignments_type | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumassignments_statusFieldUpdateOperationsInput | $Enums.assignments_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -69972,6 +70044,7 @@ export namespace Prisma {
     created_by?: number | null
     type?: $Enums.assignments_type | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.assignments_status | null
     created_at?: Date | string | null
@@ -69989,6 +70062,7 @@ export namespace Prisma {
     created_by?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumassignments_typeFieldUpdateOperationsInput | $Enums.assignments_type | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumassignments_statusFieldUpdateOperationsInput | $Enums.assignments_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -70008,6 +70082,7 @@ export namespace Prisma {
     created_by?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumassignments_typeFieldUpdateOperationsInput | $Enums.assignments_type | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumassignments_statusFieldUpdateOperationsInput | $Enums.assignments_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -70539,6 +70614,7 @@ export namespace Prisma {
     class_id: number
     program_id?: number | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.course_work_status | null
     created_by: number
@@ -70561,6 +70637,7 @@ export namespace Prisma {
     class_id: number
     program_id?: number | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.course_work_status | null
     created_by: number
@@ -70582,6 +70659,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: NullableIntFieldUpdateOperationsInput | number | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumcourse_work_statusFieldUpdateOperationsInput | $Enums.course_work_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -70604,6 +70682,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: NullableIntFieldUpdateOperationsInput | number | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumcourse_work_statusFieldUpdateOperationsInput | $Enums.course_work_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -70626,6 +70705,7 @@ export namespace Prisma {
     class_id: number
     program_id?: number | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.course_work_status | null
     created_by: number
@@ -70646,6 +70726,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: NullableIntFieldUpdateOperationsInput | number | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumcourse_work_statusFieldUpdateOperationsInput | $Enums.course_work_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -70667,6 +70748,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: NullableIntFieldUpdateOperationsInput | number | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumcourse_work_statusFieldUpdateOperationsInput | $Enums.course_work_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -71844,6 +71926,7 @@ export namespace Prisma {
     class_id: number
     program_id: number
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.oral_assignments_status | null
     created_by: number
@@ -71864,6 +71947,7 @@ export namespace Prisma {
     class_id: number
     program_id: number
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.oral_assignments_status | null
     created_by: number
@@ -71883,6 +71967,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumoral_assignments_statusFieldUpdateOperationsInput | $Enums.oral_assignments_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -71903,6 +71988,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumoral_assignments_statusFieldUpdateOperationsInput | $Enums.oral_assignments_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -71923,6 +72009,7 @@ export namespace Prisma {
     class_id: number
     program_id: number
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.oral_assignments_status | null
     created_by: number
@@ -71941,6 +72028,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumoral_assignments_statusFieldUpdateOperationsInput | $Enums.oral_assignments_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -71960,6 +72048,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumoral_assignments_statusFieldUpdateOperationsInput | $Enums.oral_assignments_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -73136,6 +73225,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -73179,6 +73269,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -73222,6 +73313,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -73265,6 +73357,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -73308,6 +73401,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -73348,6 +73442,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -73387,6 +73482,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -75218,6 +75314,7 @@ export namespace Prisma {
     created_by?: SortOrder
     type?: SortOrder
     due_date?: SortOrder
+    start_date?: SortOrder
     total_points?: SortOrder
     status?: SortOrder
     created_at?: SortOrder
@@ -75247,6 +75344,7 @@ export namespace Prisma {
     created_by?: SortOrder
     type?: SortOrder
     due_date?: SortOrder
+    start_date?: SortOrder
     total_points?: SortOrder
     status?: SortOrder
     created_at?: SortOrder
@@ -75266,6 +75364,7 @@ export namespace Prisma {
     created_by?: SortOrder
     type?: SortOrder
     due_date?: SortOrder
+    start_date?: SortOrder
     total_points?: SortOrder
     status?: SortOrder
     created_at?: SortOrder
@@ -75794,6 +75893,7 @@ export namespace Prisma {
     class_id?: SortOrder
     program_id?: SortOrder
     due_date?: SortOrder
+    start_date?: SortOrder
     total_points?: SortOrder
     status?: SortOrder
     created_by?: SortOrder
@@ -75826,6 +75926,7 @@ export namespace Prisma {
     class_id?: SortOrder
     program_id?: SortOrder
     due_date?: SortOrder
+    start_date?: SortOrder
     total_points?: SortOrder
     status?: SortOrder
     created_by?: SortOrder
@@ -75847,6 +75948,7 @@ export namespace Prisma {
     class_id?: SortOrder
     program_id?: SortOrder
     due_date?: SortOrder
+    start_date?: SortOrder
     total_points?: SortOrder
     status?: SortOrder
     created_by?: SortOrder
@@ -76949,6 +77051,7 @@ export namespace Prisma {
     class_id?: SortOrder
     program_id?: SortOrder
     due_date?: SortOrder
+    start_date?: SortOrder
     total_points?: SortOrder
     status?: SortOrder
     created_by?: SortOrder
@@ -76978,6 +77081,7 @@ export namespace Prisma {
     class_id?: SortOrder
     program_id?: SortOrder
     due_date?: SortOrder
+    start_date?: SortOrder
     total_points?: SortOrder
     status?: SortOrder
     created_by?: SortOrder
@@ -76997,6 +77101,7 @@ export namespace Prisma {
     class_id?: SortOrder
     program_id?: SortOrder
     due_date?: SortOrder
+    start_date?: SortOrder
     total_points?: SortOrder
     status?: SortOrder
     created_by?: SortOrder
@@ -78141,6 +78246,7 @@ export namespace Prisma {
     funding_month?: SortOrder
     scholarship_percentage?: SortOrder
     expiry_date?: SortOrder
+    is_extended?: SortOrder
     reminder_sent?: SortOrder
     admin_expiry_notified?: SortOrder
     password?: SortOrder
@@ -78188,6 +78294,7 @@ export namespace Prisma {
     funding_month?: SortOrder
     scholarship_percentage?: SortOrder
     expiry_date?: SortOrder
+    is_extended?: SortOrder
     reminder_sent?: SortOrder
     admin_expiry_notified?: SortOrder
     password?: SortOrder
@@ -78228,6 +78335,7 @@ export namespace Prisma {
     funding_month?: SortOrder
     scholarship_percentage?: SortOrder
     expiry_date?: SortOrder
+    is_extended?: SortOrder
     reminder_sent?: SortOrder
     admin_expiry_notified?: SortOrder
     password?: SortOrder
@@ -82340,6 +82448,7 @@ export namespace Prisma {
     created_by?: number | null
     type?: $Enums.assignments_type | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.assignments_status | null
     created_at?: Date | string | null
@@ -82360,6 +82469,7 @@ export namespace Prisma {
     created_by?: number | null
     type?: $Enums.assignments_type | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.assignments_status | null
     created_at?: Date | string | null
@@ -82397,6 +82507,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -82439,6 +82550,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -82482,6 +82594,7 @@ export namespace Prisma {
     created_by?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumassignments_typeFieldUpdateOperationsInput | $Enums.assignments_type | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumassignments_statusFieldUpdateOperationsInput | $Enums.assignments_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -82502,6 +82615,7 @@ export namespace Prisma {
     created_by?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumassignments_typeFieldUpdateOperationsInput | $Enums.assignments_type | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumassignments_statusFieldUpdateOperationsInput | $Enums.assignments_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -82545,6 +82659,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -82587,6 +82702,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -82835,6 +82951,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -82877,6 +82994,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -82985,6 +83103,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -83027,6 +83146,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -83210,6 +83330,7 @@ export namespace Prisma {
     created_by?: number | null
     type?: $Enums.assignments_type | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.assignments_status | null
     created_at?: Date | string | null
@@ -83229,6 +83350,7 @@ export namespace Prisma {
     created_by?: number | null
     type?: $Enums.assignments_type | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.assignments_status | null
     created_at?: Date | string | null
@@ -83575,6 +83697,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -83617,6 +83740,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -83706,6 +83830,7 @@ export namespace Prisma {
     created_by?: IntNullableFilter<"assignments"> | number | null
     type?: Enumassignments_typeNullableFilter<"assignments"> | $Enums.assignments_type | null
     due_date?: DateTimeNullableFilter<"assignments"> | Date | string | null
+    start_date?: DateTimeNullableFilter<"assignments"> | Date | string | null
     total_points?: IntNullableFilter<"assignments"> | number | null
     status?: Enumassignments_statusNullableFilter<"assignments"> | $Enums.assignments_status | null
     created_at?: DateTimeNullableFilter<"assignments"> | Date | string | null
@@ -84066,6 +84191,7 @@ export namespace Prisma {
     funding_month?: StringNullableFilter<"students"> | string | null
     scholarship_percentage?: IntNullableFilter<"students"> | number | null
     expiry_date?: DateTimeNullableFilter<"students"> | Date | string | null
+    is_extended?: BoolNullableFilter<"students"> | boolean | null
     reminder_sent?: BoolNullableFilter<"students"> | boolean | null
     admin_expiry_notified?: BoolNullableFilter<"students"> | boolean | null
     password?: StringFilter<"students"> | string
@@ -84192,6 +84318,7 @@ export namespace Prisma {
     class_id: number
     program_id?: number | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.course_work_status | null
     created_by: number
@@ -84213,6 +84340,7 @@ export namespace Prisma {
     class_id: number
     program_id?: number | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.course_work_status | null
     created_by: number
@@ -84249,6 +84377,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: NullableIntFieldUpdateOperationsInput | number | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumcourse_work_statusFieldUpdateOperationsInput | $Enums.course_work_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -84270,6 +84399,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: NullableIntFieldUpdateOperationsInput | number | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumcourse_work_statusFieldUpdateOperationsInput | $Enums.course_work_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -84864,6 +84994,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -84906,6 +85037,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -85000,6 +85132,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -85042,6 +85175,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -85110,6 +85244,7 @@ export namespace Prisma {
     class_id: number
     program_id: number
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.oral_assignments_status | null
     created_by: number
@@ -85129,6 +85264,7 @@ export namespace Prisma {
     class_id: number
     program_id: number
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.oral_assignments_status | null
     created_by: number
@@ -85163,6 +85299,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumoral_assignments_statusFieldUpdateOperationsInput | $Enums.oral_assignments_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -85182,6 +85319,7 @@ export namespace Prisma {
     class_id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumoral_assignments_statusFieldUpdateOperationsInput | $Enums.oral_assignments_status | null
     created_by?: IntFieldUpdateOperationsInput | number
@@ -87953,6 +88091,7 @@ export namespace Prisma {
     created_by?: number | null
     type?: $Enums.assignments_type | null
     due_date?: Date | string | null
+    start_date?: Date | string | null
     total_points?: number | null
     status?: $Enums.assignments_status | null
     created_at?: Date | string | null
@@ -88042,6 +88181,7 @@ export namespace Prisma {
     funding_month?: string | null
     scholarship_percentage?: number | null
     expiry_date?: Date | string | null
+    is_extended?: boolean | null
     reminder_sent?: boolean | null
     admin_expiry_notified?: boolean | null
     password: string
@@ -88077,6 +88217,7 @@ export namespace Prisma {
     created_by?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumassignments_typeFieldUpdateOperationsInput | $Enums.assignments_type | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumassignments_statusFieldUpdateOperationsInput | $Enums.assignments_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -88096,6 +88237,7 @@ export namespace Prisma {
     created_by?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumassignments_typeFieldUpdateOperationsInput | $Enums.assignments_type | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumassignments_statusFieldUpdateOperationsInput | $Enums.assignments_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -88115,6 +88257,7 @@ export namespace Prisma {
     created_by?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumassignments_typeFieldUpdateOperationsInput | $Enums.assignments_type | null
     due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     total_points?: NullableIntFieldUpdateOperationsInput | number | null
     status?: NullableEnumassignments_statusFieldUpdateOperationsInput | $Enums.assignments_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -88313,6 +88456,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -88355,6 +88499,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string
@@ -88397,6 +88542,7 @@ export namespace Prisma {
     funding_month?: NullableStringFieldUpdateOperationsInput | string | null
     scholarship_percentage?: NullableIntFieldUpdateOperationsInput | number | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_extended?: NullableBoolFieldUpdateOperationsInput | boolean | null
     reminder_sent?: NullableBoolFieldUpdateOperationsInput | boolean | null
     admin_expiry_notified?: NullableBoolFieldUpdateOperationsInput | boolean | null
     password?: StringFieldUpdateOperationsInput | string

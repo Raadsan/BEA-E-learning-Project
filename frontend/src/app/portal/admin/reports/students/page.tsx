@@ -69,7 +69,7 @@ export default function StudentReportsPage() {
 
     // Dashboard Data
     const queryParams = useMemo(() => {
-        const p = {};
+        const p: Record<string, string> = {};
         if (selectedProgram) p.program = selectedProgram;
         if (selectedClass) p.class_id = selectedClass;
         return p;
@@ -685,7 +685,7 @@ export default function StudentReportsPage() {
                                     <BarChart
                                         data={Object.entries(individualReport.skillPerformance).map(([name, value]) => ({
                                             name: name.charAt(0).toUpperCase() + name.slice(1),
-                                            value: isNaN(value) ? 0 : value
+                                            value: isNaN(value as any) ? 0 : (value as number)
                                         }))}
                                         layout="vertical"
                                         margin={{ left: 0, right: 30 }}
@@ -811,7 +811,6 @@ export default function StudentReportsPage() {
                     columns={columns}
                     data={students}
                     showAddButton={false}
-                    isDark={isDark}
                 />
 
                 <OfficialReportModal

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 
-import { useGetAllPlacementResultsQuery, useGetPlacementTestByIdQuery, useGradePlacementTestMutation } from "@/redux/api/placementTestApi";
+import { useGetAllPlacementResultsQuery, useGetPlacementTestByIdQuery, useGradePlacementTestMutation } from "@/lib/api/placementTestApi";
 import { useToast } from "@/components/Toast";
 import { API_URL, API_BASE_URL } from "@/constants";
 
@@ -21,7 +21,7 @@ export default function AdminResultDetailsPage() {
     });
 
     const [gradePlacementTest] = useGradePlacementTestMutation();
-    const [essayMarks, setEssayMarks] = useState({});
+    const [essayMarks, setEssayMarks] = useState<Record<string, string>>({});
     const [oralReviewMarks, setOralReviewMarks] = useState("");
     const [feedbackFile, setFeedbackFile] = useState(null);
 
@@ -121,7 +121,7 @@ export default function AdminResultDetailsPage() {
         setIsSubmitting(true);
         try {
             // Calculate total essay marks awarded
-            const totalEssayMarks = Object.values(essayMarks).reduce((a, b) => a + (parseInt(b) || 0), 0);
+            const totalEssayMarks = Object.values(essayMarks).reduce<number>((a, b) => a + (parseInt(b || "0", 10) || 0), 0);
 
             await gradePlacementTest({
                 resultId: id,

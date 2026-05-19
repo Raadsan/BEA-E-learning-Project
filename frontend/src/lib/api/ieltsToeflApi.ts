@@ -15,10 +15,10 @@ export const ieltsToeflApi = createApi({
     }),
     tagTypes: ["IELTS_TOEFL"],
     endpoints: (builder) => ({
-        getIeltsToeflStudents: builder.query({
+        getIeltsToeflStudents: builder.query<any, void>({
             query: () => "/",
             providesTags: ["IELTS_TOEFL"],
-            transformResponse: (response) => {
+            transformResponse: (response: any) => {
                 // Ensure we return the array of students
                 return response.students || [];
             }

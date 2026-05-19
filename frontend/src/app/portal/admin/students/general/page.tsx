@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 import DataTable from "@/components/DataTable";
-import { useGetStudentsQuery, useUpdateStudentMutation, useDeleteStudentMutation } from "@/lib/api/studentApi";
+import { useGetStudentsQuery, useUpdateStudentMutation, useDeleteStudentMutation, useExtendStudentDeadlineMutation } from "@/lib/api/studentApi";
 import { useGetSubprogramsQuery } from "@/lib/api/subprogramApi";
 import { useGetClassesQuery } from "@/lib/api/classApi";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
@@ -11,6 +11,39 @@ import { useGetShiftsQuery } from "@/lib/api/shiftApi";
 import { useGetSessionRequestsQuery } from "@/lib/api/sessionRequestApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+
+const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    if (!expiryDate) return;
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const exp = new Date(expiryDate).getTime();
+      const diff = exp - now;
+
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        clearInterval(interval);
+      } else {
+        const hrs = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+        setTimeLeft(`${hrs}h ${mins}m ${secs}s`);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [expiryDate]);
+
+  return (
+    <span
+      onClick={onClick}
+      className={`px-2 py-1 rounded text-xs font-bold border cursor-pointer hover:opacity-80 transition-all ${colorClass}`}
+    >
+      {label} {timeLeft && timeLeft !== "Expired" && `(${timeLeft})`}
+    </span>
+  );
+};
 
 export default function GeneralStudentsPage() {
   const { isDark } = useDarkMode();
@@ -20,9 +53,15 @@ export default function GeneralStudentsPage() {
   const { data: classes = [] } = useGetClassesQuery();
   const { data: programs = [] } = useGetProgramsQuery();
   const { data: shifts = [] } = useGetShiftsQuery();
-  const { data: sessionRequests = [] } = useGetSessionRequestsQuery();
+  const { data: sessionRequests = [] } = useGetSessionRequestsQuery(undefined);
   const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
   const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentMutation();
+  const [extendStudentDeadline] = useExtendStudentDeadlineMutation();
+
+  // Modal state for deadline extension
+  const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
+  const [studentToExtend, setStudentToExtend] = useState(null);
+  const [extraTime, setExtraTime] = useState("");
 
   // Modal state for assigning class
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -62,12 +101,19 @@ export default function GeneralStudentsPage() {
     class_id: "",
     approval_status: "approved",
     date_of_birth: "",
-    place_of_birth: ""
+    place_of_birth: "",
+    funding_status: "Paid",
+    sponsorship_package: "None",
+    funding_amount: "",
+    funding_month: "",
+    scholarship_percentage: "",
+    sponsor_name: ""
   });
   const [editSelectedSubprogramId, setEditSelectedSubprogramId] = useState("");
   const [selectedSubprogram, setSelectedSubprogram] = useState("");
   const [selectedProgram, setSelectedProgram] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [lifeStatusFilter, setLifeStatusFilter] = useState("all");
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
   const [isBulkActionsModalOpen, setIsBulkActionsModalOpen] = useState(false);
   const [bulkActions, setBulkActions] = useState({
@@ -85,14 +131,36 @@ export default function GeneralStudentsPage() {
   const generalStudents = useMemo(() => {
     if (!allStudents) return [];
     return allStudents.filter(
-      (student) =>
-        (student.approval_status === "approved" || student.approval_status === "inactive") &&
-        student.chosen_program !== "IELTS & TOFEL Preparation" &&
-        (selectedProgram ? student.chosen_program === selectedProgram : true) &&
-        (selectedSubprogram ? student.chosen_subprogram == selectedSubprogram : true) &&
-        (selectedStatus ? student.approval_status === selectedStatus : true)
+      (student) => {
+        if (!(student.approval_status === "approved" || student.approval_status === "inactive")) return false;
+        if (student.chosen_program === "IELTS & TOFEL Preparation") return false;
+        if (selectedProgram && student.chosen_program !== selectedProgram) return false;
+        if (selectedSubprogram && student.chosen_subprogram != selectedSubprogram) return false;
+        if (selectedStatus && student.approval_status !== selectedStatus) return false;
+
+        // Filter by life status
+        if (lifeStatusFilter !== "all") {
+          const isExpired = student.expiry_date ? new Date(student.expiry_date) < new Date() : false;
+          const isExtended = student.is_extended;
+          const status = student.approval_status?.toLowerCase();
+
+          if (lifeStatusFilter === "active" && (isExpired || isExtended || (status === 'approved' && student.class_id))) {
+            return false;
+          }
+          if (lifeStatusFilter === "time_end" && !isExpired) {
+            return false;
+          }
+          if (lifeStatusFilter === "pending_time" && !isExtended) {
+            return false;
+          }
+          if (lifeStatusFilter === "entered_exam" && !(status === 'approved' && student.class_id)) {
+            return false;
+          }
+        }
+        return true;
+      }
     );
-  }, [allStudents, selectedSubprogram, selectedProgram, selectedStatus]);
+  }, [allStudents, selectedSubprogram, selectedProgram, selectedStatus, lifeStatusFilter]);
 
   // Get available subprograms based on selected program
   const availableSubprograms = useMemo(() => {
@@ -399,8 +467,6 @@ export default function GeneralStudentsPage() {
       setBulkShiftName("");
       setBulkSessionType("");
       setBulkClassId("");
-      setSelectedStudentIds([]);
-      setSelectedIELTSStudentIds([]);
       refetch();
     } catch (error) {
       console.error("Bulk action failed:", error);
@@ -542,6 +608,40 @@ export default function GeneralStudentsPage() {
         });
       },
     },
+    /* {
+      key: "time_status",
+      label: "Life Status",
+      width: "150px",
+      render: (_, row) => {
+        const isExpired = row.expiry_date ? new Date(row.expiry_date) < new Date() : false;
+        const isExtended = row.is_extended;
+        const status = row.approval_status?.toLowerCase();
+        let label = "Active";
+        let colorClass = "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
+        if (status === 'approved' && row.class_id) {
+          label = "Entered Exam";
+          colorClass = "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800";
+        } else if (isExpired) {
+          label = "Time End";
+          colorClass = "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800";
+        } else if (isExtended) {
+          label = "Pending Time";
+          colorClass = "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800";
+        }
+        return (
+          <LiveAdminTimer
+            expiryDate={row.expiry_date}
+            label={label}
+            colorClass={colorClass}
+            onClick={() => {
+              setStudentToExtend(row);
+              setExtraTime("");
+              setIsExtensionModalOpen(true);
+            }}
+          />
+        );
+      }
+    }, */
     {
       key: "approval_status",
       label: "Status",
@@ -620,7 +720,7 @@ export default function GeneralStudentsPage() {
         <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 transition-colors">
           <div className="flex-1 w-full max-w-full px-4 sm:px-8 py-6 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-red-600 dark:text-red-400">Error loading students: {error?.data?.error || "Unknown error"}</p>
+              <p className="text-red-600 dark:text-red-400">Error loading students: {(error as any)?.data?.error || "Unknown error"}</p>
             </div>
           </div>
         </main>
@@ -720,6 +820,19 @@ export default function GeneralStudentsPage() {
                   <option value="inactive">Inactive</option>
                   <option value="pending">Pending</option>
                 </select>
+
+                {/*
+                <select
+                  value={lifeStatusFilter}
+                  onChange={(e) => setLifeStatusFilter(e.target.value)}
+                  className={`px-3 py-1.5 text-sm w-44 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-[#1e293b] border-gray-700 text-white' : 'bg-white border-gray-300'}`}
+                >
+                  <option value="all">All Life Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="time_end">Time End</option>
+                  <option value="pending_time">Pending Time</option>
+                  <option value="entered_exam">Entered Exam</option>
+                </select>*/}
               </div>
             }
           />
@@ -742,14 +855,14 @@ export default function GeneralStudentsPage() {
           ? classesForProgram.filter(cls => cls.subprogram_id == selectedLevelId)
           : [];
 
-        const uniqueShiftNames = [...new Set(shiftsForLevel.map(cls => cls.shift_name))].filter(Boolean);
+        const uniqueShiftNames = [...new Set(shiftsForLevel.map(cls => cls.shift_name))].filter(Boolean) as string[];
 
         // 3. Sessions available for the selected Level and Shift Name
         const sessionsForShift = selectedShiftName
           ? shiftsForLevel.filter(cls => cls.shift_name === selectedShiftName)
           : [];
 
-        const availableSessions = [...new Set(sessionsForShift.map(cls => cls.shift_session))].filter(Boolean);
+        const availableSessions = [...new Set(sessionsForShift.map(cls => cls.shift_session))].filter(Boolean) as string[];
 
         // 4. Final Class list filtered by all criteria
         const filteredClasses = selectedSessionType
@@ -1431,7 +1544,7 @@ export default function GeneralStudentsPage() {
                   <div className="space-y-4 mb-6">
                     {/* Change Status Option */}
                     <div className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${bulkActions.changeStatus ? (isDark ? 'border-[#010080] bg-[#010080]/10' : 'border-[#010080] bg-[#010080]/5') : (isDark ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')}`}
-                      onClick={() => setBulkActions({ changeStatus: true, delete: false, assignClass: false })}
+                      onClick={() => setBulkActions({ changeStatus: true, assignClass: false })}
                     >
                       <label className="flex items-start gap-3 cursor-pointer">
                         <input
@@ -1542,9 +1655,9 @@ export default function GeneralStudentsPage() {
                       const availableLevels = studentProgram ? subprograms.filter(sp => sp.program_id === studentProgram.id) : subprograms;
                       const classesForProgram = studentProgram ? classes.filter(cls => cls.program_name === studentProgram.title) : classes;
                       const shiftsForLevel = bulkLevelId ? classesForProgram.filter(cls => cls.subprogram_id == bulkLevelId) : [];
-                      const uniqueShiftNames = [...new Set(shiftsForLevel.map(cls => cls.shift_name))].filter(Boolean);
+                      const uniqueShiftNames = [...new Set(shiftsForLevel.map(cls => cls.shift_name))].filter(Boolean) as string[];
                       const sessionsForShift = bulkShiftName ? shiftsForLevel.filter(cls => cls.shift_name === bulkShiftName) : [];
-                      const availableSessions = [...new Set(sessionsForShift.map(cls => cls.shift_session))].filter(Boolean);
+                      const availableSessions = [...new Set(sessionsForShift.map(cls => cls.shift_session))].filter(Boolean) as string[];
                       const finalClasses = bulkSessionType ? sessionsForShift.filter(cls => cls.shift_session === bulkSessionType) : [];
 
                       return (
@@ -1707,6 +1820,74 @@ export default function GeneralStudentsPage() {
         );
       })()}
 
+      {/* Deadline Extension Modal */}
+      {isExtensionModalOpen && studentToExtend && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsExtensionModalOpen(false)}
+          />
+          <div className={`relative w-full max-w-sm rounded-xl shadow-2xl p-6 border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className="mb-6">
+              <h3 className={`text-lg font-bold mb-2 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Manage Access & Time
+              </h3>
+              <p className={`text-sm mb-4 text-center ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                Extend the entry window or placement test access for <strong>{studentToExtend.full_name}</strong>.
+              </p>
+              
+              <div className="space-y-2">
+                <label className={`block text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Extra Time (Minutes)
+                </label>
+                <input
+                  type="number"
+                  placeholder="e.g. 60 for 1 hour, 1440 for 24 hours"
+                  value={extraTime}
+                  onChange={(e) => setExtraTime(e.target.value)}
+                  className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-[#010080] outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsExtensionModalOpen(false)}
+                className={`flex-1 px-4 py-2 rounded-lg border font-medium transition-colors ${isDark
+                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!extraTime || isNaN(Number(extraTime))) {
+                    showToast("Please enter a valid number of minutes", "error");
+                    return;
+                  }
+                  try {
+                    await extendStudentDeadline({
+                      id: studentToExtend.student_id,
+                      durationMinutes: parseInt(extraTime)
+                    }).unwrap();
+                    showToast("Access time extended successfully!", "success");
+                    setIsExtensionModalOpen(false);
+                    refetch();
+                  } catch (err: any) {
+                    console.error("Failed to extend deadline:", err);
+                    showToast(err?.data?.error || "Failed to extend access time", "error");
+                  }
+                }}
+                className={`flex-1 px-4 py-2 rounded-lg bg-[#010080] hover:bg-[#010080]/90 text-white font-medium transition-colors shadow-lg shadow-[#010080]/20`}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+ 
     </>
   );
 }

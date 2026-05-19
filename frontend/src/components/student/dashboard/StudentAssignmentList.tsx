@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
+import { API_URL } from "@/constants";
 import { useToast } from "@/components/Toast";
 
 
@@ -34,25 +35,60 @@ export default function StudentAssignmentList({ type, title }) {
     const [filePreviewUrl, setFilePreviewUrl] = useState(null);
     const fileInputRef = useRef(null);
 
-    // Timer logic
+    // Initialize/read persistent timer when workspace view is activated
     useEffect(() => {
-        // For 'exam' type, the StudentTestWorkspace handles the timer internally to match placement test logic
-        if (view === "workspace" && timeLeft > 0 && !submitting && type !== 'exam') {
+        if (view === "workspace" && selectedAssignment?.duration && user?.id && type !== 'exam') {
+            const timerKey = `assignment_timer_${user.id}_${selectedAssignment.id}`;
+            const savedTarget = localStorage.getItem(timerKey);
+            let targetTime;
+
+            if (savedTarget) {
+                targetTime = parseInt(savedTarget, 10);
+            } else {
+                targetTime = Date.now() + selectedAssignment.duration * 60 * 1000;
+                localStorage.setItem(timerKey, targetTime.toString());
+            }
+
+            const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
+            setTimeLeft(remaining);
+
+            if (remaining <= 0) {
+                handleFinalSubmit(true);
+            }
+        }
+    }, [view, selectedAssignment, user, type]);
+
+    // Timer countdown loop
+    useEffect(() => {
+        if (view === "workspace" && selectedAssignment?.duration && timeLeft !== null && user?.id && !submitting && type !== 'exam') {
+            const timerKey = `assignment_timer_${user.id}_${selectedAssignment.id}`;
             timerRef.current = setInterval(() => {
-                setTimeLeft((prev) => {
-                    if (prev <= 1) {
-                        handleFinalSubmit(true); // Auto-submit when time is up
-                        return 0;
+                const savedTarget = localStorage.getItem(timerKey);
+                if (savedTarget) {
+                    const targetTime = parseInt(savedTarget, 10);
+                    const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
+                    setTimeLeft(remaining);
+                    if (remaining <= 0) {
+                        clearInterval(timerRef.current);
+                        handleFinalSubmit(true);
                     }
-                    return prev - 1;
-                });
+                } else {
+                    setTimeLeft(prev => {
+                        if (prev <= 1) {
+                            clearInterval(timerRef.current);
+                            handleFinalSubmit(true);
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }
             }, 1000);
         } else {
             clearInterval(timerRef.current);
         }
 
         return () => clearInterval(timerRef.current);
-    }, [view, timeLeft, submitting, type]);
+    }, [view, selectedAssignment, timeLeft, user, submitting, type]);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -67,7 +103,15 @@ export default function StudentAssignmentList({ type, title }) {
     const handleOpenWorkspace = (assignment) => {
         setSelectedAssignment(assignment);
         if (assignment.duration && assignment.submission_status !== 'submitted' && assignment.submission_status !== 'graded') {
-            setView("start");
+            // Check if timer was already started (key exists in localStorage)
+            const timerKey = `assignment_timer_${user?.id}_${assignment.id}`;
+            const savedTarget = typeof window !== 'undefined' ? localStorage.getItem(timerKey) : null;
+            if (savedTarget) {
+                // Timer already running — go straight to workspace (don't reset)
+                startWorkspace(assignment);
+            } else {
+                setView("start");
+            }
         } else {
             startWorkspace(assignment);
         }
@@ -177,6 +221,12 @@ export default function StudentAssignmentList({ type, title }) {
             }
 
             await submitAssignment(formData).unwrap();
+
+            if (user?.id && selectedAssignment?.id) {
+                const timerKey = `assignment_timer_${user.id}_${selectedAssignment.id}`;
+                localStorage.removeItem(timerKey);
+            }
+
             setView("list");
             setSubmissionContent("");
             setQuizAnswers({});
@@ -678,70 +728,104 @@ export default function StudentAssignmentList({ type, title }) {
                 </p>
             </div>
 
-            {!assignments || assignments.filter(t => t.status !== 'inactive').length === 0 ? (
-                <div className={`p-16 rounded-lg border-2 border-dashed text-center ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <p className="text-lg text-gray-400">No active {title.toLowerCase()} assignments yet.</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {assignments.filter(t => t.status !== 'inactive').map((task) => {
-                        const isGraded = task.submission_status === 'graded';
-                        const isSubmitted = task.submission_status === 'submitted';
+            {(() => {
+                const now = new Date();
+                const visibleTasks = assignments?.filter(t => {
+                    if (t.status === 'inactive') return false;
+                    if (t.start_date) {
+                        const start = new Date(t.start_date);
+                        if (now < start) return false;
+                    }
+                    return true;
+                }) || [];
 
-                        return (
-                            <div
-                                key={task.id}
-                                onClick={() => handleOpenWorkspace(task)}
-                                className={`p-5 rounded-lg border transition-all cursor-pointer flex flex-col ${isDark ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-blue-300'
+                if (visibleTasks.length === 0) {
+                    return (
+                        <div className={`p-16 rounded-lg border-2 border-dashed text-center ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+                            <p className="text-lg text-gray-400">No active {title.toLowerCase()} assignments yet.</p>
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {visibleTasks.map((task) => {
+                            const isGraded = task.submission_status === 'graded';
+                            const isSubmitted = task.submission_status === 'submitted';
+                            const isClosed = task.due_date && now > new Date(task.due_date);
+
+                            const handleBtnClick = () => {
+                                if (isClosed && !isSubmitted && !isGraded) {
+                                    showToast("This assignment is closed as the deadline has passed.", "warning");
+                                    return;
+                                }
+                                handleOpenWorkspace(task);
+                            };
+
+                            return (
+                                <div
+                                    key={task.id}
+                                    onClick={handleBtnClick}
+                                    className={`p-5 rounded-lg border transition-all flex flex-col ${
+                                        (isClosed && !isSubmitted && !isGraded)
+                                            ? 'bg-gray-100 border-gray-200 dark:bg-gray-800/40 dark:border-gray-800 opacity-60 cursor-not-allowed'
+                                            : `cursor-pointer hover:border-blue-300 ${isDark ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:shadow-sm'}`
                                     }`}
-                            >
-                                {/* Header */}
-                                <div className="flex justify-between items-start mb-3">
-                                    <span className={`text-xs font-medium uppercase tracking-wide opacity-50 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                        {type === 'writing_task' ? 'Writing Task' : type === 'oral_assignment' ? 'Oral Assignment' : 'Assignment'}
-                                    </span>
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isGraded ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
-                                        isSubmitted ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' :
+                                >
+                                    {/* Header */}
+                                    <div className="flex justify-between items-start mb-3">
+                                        <span className={`text-xs font-medium uppercase tracking-wide opacity-50 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            {type === 'writing_task' ? 'Writing Task' : type === 'oral_assignment' ? 'Oral Assignment' : 'Assignment'}
+                                        </span>
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                            isGraded ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
+                                            isSubmitted ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' :
+                                            isClosed ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400' :
                                             'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
                                         }`}>
-                                        {task.submission_status || 'Pending'}
-                                    </span>
-                                </div>
-
-                                {/* Title */}
-                                <h3 className={`text-lg font-bold mb-3 line-clamp-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                    {task.title}
-                                </h3>
-
-                                {/* Meta Info */}
-                                <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2">
-                                    <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                        <span>{task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No Due Date'}</span>
+                                            {isGraded ? 'Graded' : isSubmitted ? 'Submitted' : isClosed ? 'Closed' : 'Pending'}
+                                        </span>
                                     </div>
 
-                                    {isGraded ? (
-                                        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
-                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" /></svg>
-                                            <span>Score: {task.score}/{task.total_points}</span>
-                                        </div>
-                                    ) : (
-                                        <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                                            <span>{task.total_points} Points</span>
-                                        </div>
-                                    )}
-                                </div>
+                                    {/* Title */}
+                                    <h3 className={`text-lg font-bold mb-3 line-clamp-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                        {task.title}
+                                    </h3>
 
-                                {/* Action Button */}
-                                <button className={`mt-4 w-full py-2 rounded-lg text-xs font-semibold transition-colors ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}>
-                                    {isGraded ? 'View Results' : isSubmitted ? 'View Submission' : 'Start Task'}
-                                </button>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+                                    {/* Meta Info */}
+                                    <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2">
+                                        <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                            <span>{task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No Due Date'}</span>
+                                        </div>
+
+                                        {isGraded ? (
+                                            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" /></svg>
+                                                <span>Score: {task.score}/{task.total_points}</span>
+                                            </div>
+                                        ) : (
+                                            <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                                                <span>{task.total_points} Points</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Action Button */}
+                                    <button className={`mt-4 w-full py-2 rounded-lg text-xs font-semibold transition-colors ${
+                                        (isClosed && !isSubmitted && !isGraded)
+                                            ? 'bg-gray-400 text-white cursor-not-allowed opacity-75'
+                                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                    }`}>
+                                        {isGraded ? 'View Results' : isSubmitted ? 'View Submission' : isClosed ? 'Deadline Expired' : 'Start Task'}
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                );
+            })()}
         </div >
     );
 }

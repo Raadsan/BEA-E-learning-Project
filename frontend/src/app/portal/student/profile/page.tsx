@@ -417,7 +417,7 @@ function InfoItem({ icon, label, value, isDark }) {
   );
 }
 
-function DetailCard({ icon, label, value, subValue, isDark, accentColor }) {
+function DetailCard({ icon, label, value, subValue = null, isDark, accentColor }) {
   const colors = {
     blue: isDark ? "bg-blue-900/20 text-blue-400" : "bg-blue-50 text-blue-600",
     green: isDark ? "bg-green-900/20 text-green-400" : "bg-green-50 text-green-600",

@@ -108,7 +108,7 @@ export default function StudentProgressPage() {
                 <div className={`rounded-3xl shadow-xl p-8 ${isDark ? 'bg-gray-800' : 'bg-white border border-gray-100'}`}>
                     <h2 className="text-xl font-black text-red-600 mb-4 uppercase tracking-tight">System Error</h2>
                     <p className={isDark ? 'text-gray-400 text-sm' : 'text-gray-600 text-sm'}>
-                        {studentsError?.data?.error || "Failed to load student tracking data."}
+                        {(studentsError as any)?.data?.error || "Failed to load student tracking data."}
                     </p>
                 </div>
             </div>

@@ -36,7 +36,7 @@ const UpcomingEventsList = () => {
     const sortedEvents = Array.isArray(newsList)
         ? [...newsList]
             .filter(item => item.status === 'active') // Only show active
-            .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
+            .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime())
         : [];
 
     return (

@@ -17,7 +17,7 @@ export default function ContactUs() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [visibleSections, setVisibleSections] = useState({});
+  const [visibleSections, setVisibleSections] = useState<any>({});
   const sectionRefs = {
     hero: useRef(null),
     contact: useRef(null),

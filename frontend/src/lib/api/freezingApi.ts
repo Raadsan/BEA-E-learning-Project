@@ -24,11 +24,11 @@ export const freezingApi = createApi({
             }),
             invalidatesTags: ['FreezingRequest'],
         }),
-        getFreezingRequests: builder.query({
+        getFreezingRequests: builder.query<any, void>({
             query: () => '/freezing-requests/all',
             providesTags: ['FreezingRequest'],
         }),
-        getMyFreezingRequests: builder.query({
+        getMyFreezingRequests: builder.query<any, void>({
             query: () => '/freezing-requests/my',
             providesTags: ['FreezingRequest'],
         }),

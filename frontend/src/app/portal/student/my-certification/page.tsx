@@ -7,6 +7,7 @@ import { useGetCertificatesQuery, useGetMyIssuedCertificatesQuery } from "@/lib/
 import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
 import { useToast } from "@/components/Toast";
+import { API_URL } from "@/constants";
 import Modal from "@/components/Modal";
 
 export default function MyCertificationPage() {
@@ -43,8 +44,8 @@ export default function MyCertificationPage() {
     { skip: !searchForm.programId && !studentProgramId }
   );
 
-  const { data: allConfigs = [], isLoading: loadingConfigs } = useGetCertificatesQuery();
-  const { data: myHistory = [], isLoading: loadingHistory, refetch: refetchHistory } = useGetMyIssuedCertificatesQuery();
+  const { data: allConfigs = [], isLoading: loadingConfigs } = useGetCertificatesQuery(undefined);
+  const { data: myHistory = [], isLoading: loadingHistory, refetch: refetchHistory } = useGetMyIssuedCertificatesQuery(undefined);
 
   const bg = isDark ? "bg-gray-900" : "bg-gray-50";
   const card = isDark ? "bg-gray-800 text-white" : "bg-white text-gray-700";

@@ -14,7 +14,7 @@ export const programApi = createApi({
   endpoints: (builder) => ({
 
     // ✔ GET ALL programs
-    getPrograms: builder.query({
+    getPrograms: builder.query<any, void>({
       query: () => "/",
       providesTags: ["Programs"],
     }),

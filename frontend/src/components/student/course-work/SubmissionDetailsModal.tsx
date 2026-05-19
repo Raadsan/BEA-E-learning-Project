@@ -1,17 +1,21 @@
 "use client";
 
 import { useDarkMode } from "@/context/ThemeContext";
-import { API_BASE_URL } from "@/constants";
+import { API_BASE_URL, UPLOADS_URL } from "@/constants";
 
 export default function SubmissionDetailsModal({ assignment, onClose }) {
     const { isDark } = useDarkMode();
 
-    // Format dates
-    const submissionDate = assignment.submission_date
-        ? new Date(assignment.submission_date).toLocaleString()
+    // Format dates - try direct field first, then fall back to nested submission
+    const submissionData = assignment.submission || assignment;
+    const submissionDate = (assignment.submission_date || submissionData.submission_date)
+        ? new Date(assignment.submission_date || submissionData.submission_date).toLocaleString()
         : "N/A";
 
     const isGraded = assignment.submission_status === 'graded';
+    const fileUrl = assignment.file_url
+        ? (assignment.file_url.startsWith('/') ? `${API_BASE_URL}${assignment.file_url}` : `${UPLOADS_URL}/${assignment.file_url}`)
+        : null;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -104,9 +108,9 @@ export default function SubmissionDetailsModal({ assignment, onClose }) {
                         </h4>
 
                         {/* File */}
-                        {assignment.file_url ? (
+                        {fileUrl ? (
                             <a
-                                href={`${API_BASE_URL}${assignment.file_url}`}
+                                href={fileUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg border bg-gray-50 dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group w-full"

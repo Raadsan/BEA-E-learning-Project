@@ -4,8 +4,8 @@ import { useState, useMemo, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import DataTable from "@/components/DataTable";
-import { useGetClassSchedulesQuery, useGetClassQuery } from "@/redux/api/classApi";
-import { useCreateClassScheduleMutation, useUpdateClassScheduleMutation } from "@/redux/api/classApi";
+import { useGetClassSchedulesQuery, useGetClassQuery } from "@/lib/api/classApi";
+import { useCreateClassScheduleMutation, useUpdateClassScheduleMutation } from "@/lib/api/classApi";
 import { useToast } from "@/components/Toast";
 
 export default function ClassSessionsPage() {
@@ -215,7 +215,7 @@ export default function ClassSessionsPage() {
             ),
             class_id: schedule.class_id,
             description: schedule.description || "",
-        })).sort((a, b) => new Date(`${b.scheduleDate}T${b.startTime || '00:00'}`) - new Date(`${a.scheduleDate}T${a.startTime || '00:00'}`));
+        })).sort((a, b) => new Date(`${b.scheduleDate}T${b.startTime || '00:00'}`).getTime() - new Date(`${a.scheduleDate}T${a.startTime || '00:00'}`).getTime());
     }, [rawSessions]);
 
 

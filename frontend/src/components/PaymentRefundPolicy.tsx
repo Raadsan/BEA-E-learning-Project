@@ -5,7 +5,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 export default function PaymentRefundPolicy() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({});
+  const [visibleSections, setVisibleSections] = useState<Record<string, boolean>>({});
   const sectionRefs = {
     hero: useRef(null),
     intro: useRef(null),

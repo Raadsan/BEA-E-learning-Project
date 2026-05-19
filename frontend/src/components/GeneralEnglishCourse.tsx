@@ -7,7 +7,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 export default function GeneralEnglishCourse() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({ levels: true });
+  const [visibleSections, setVisibleSections] = useState<any>({ levels: true });
   
   const sectionRefs = {
     hero: useRef(null),
@@ -117,7 +117,7 @@ export default function GeneralEnglishCourse() {
                         <div>
                           <h3 className="text-gray-900 font-bold text-base sm:text-lg mb-2">Overview:</h3>
                           <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
-                            {level.overview || level.description?.split('.')[0]}
+                            {level.overview}
                           </p>
                         </div>
 

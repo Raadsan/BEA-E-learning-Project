@@ -45,7 +45,7 @@ export default function PaymentPackageForm({
                         name="description"
                         value={formData.description}
                         onChange={handleInputChange}
-                        rows="4"
+                        rows={4}
                         className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:ring-2 focus:ring-[#010080] outline-none transition-all`}
                         placeholder="Points-based description (e.g., • Full Access\n• 24/7 Support)..."
                     />

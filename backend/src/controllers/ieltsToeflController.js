@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma.js';
+import { validateEmailRobust } from '../utils/emailValidator.js';
 import bcrypt from "bcryptjs";
 import { generateStudentId } from "../utils/idGenerator.js";
 import { sendWaafiPayment } from "../utils/waafiPayment.js";
@@ -18,8 +19,21 @@ export const createIeltsStudent = async (req, res) => {
     try {
         const { email, chosen_program, password, payment, ...rest } = req.body;
         
+        if (!email) {
+            return res.status(400).json({ error: "Email is required" });
+        }
+
+        const emailStr = email.trim().toLowerCase();
+        
+        // Deep Email Validation
+        const emailValidationResult = await validateEmailRobust(emailStr);
+
+        if (!emailValidationResult.valid) {
+            return res.status(400).json({ error: emailValidationResult.message || "Invalid email address. Please provide a real and working email." });
+        }
+
         const existing = await prisma.IELTSTOEFL.findFirst({
-            where: { email, chosen_program }
+            where: { email: emailStr, chosen_program }
         });
         if (existing) return res.status(400).json({ error: "Already registered for this program" });
 
@@ -33,7 +47,7 @@ export const createIeltsStudent = async (req, res) => {
         const data = {
             ...rest,
             student_id,
-            email,
+            email: emailStr,
             chosen_program,
             password: hashedPassword,
             status: 'Pending',

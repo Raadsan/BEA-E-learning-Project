@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useGetProficiencyTestByIdQuery } from "@/redux/api/proficiencyTestApi";
+import { useGetProficiencyTestByIdQuery } from "@/lib/api/proficiencyTestApi";
 import { API_BASE_URL } from "@/constants";
 
 import Loader from "@/components/Loader";

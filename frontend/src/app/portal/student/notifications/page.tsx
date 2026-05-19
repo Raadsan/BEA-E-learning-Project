@@ -1,14 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetNotificationsQuery, useMarkAsReadMutation } from "@/lib/api/notificationApi";
+import { useGetAnnouncementsQuery } from "@/lib/api/announcementApi";
 import Image from "next/image";
 
 export default function StudentNotificationsPage() {
   const { isDark } = useDarkMode();
-  const { data: notifications = [], isLoading } = useGetNotificationsQuery(undefined, { pollingInterval: 10000 });
+  const { data: notificationsData = [], isLoading: isLoadingNotifs } = useGetNotificationsQuery(undefined, { pollingInterval: 10000 });
+  const { data: announcementsData = [], isLoading: isLoadingAnnounce } = useGetAnnouncementsQuery(undefined, { pollingInterval: 10000 });
+  
   const [markAsRead] = useMarkAsReadMutation();
+
+  const [readAnnouncements, setReadAnnouncements] = useState([]);
+
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("student_read_announcements") || "[]");
+    setReadAnnouncements(stored);
+  }, [announcementsData]);
+
+  // Transform announcements to match notification shape so they can be rendered in the same list
+  const announcementsAsNotifs = announcementsData.map(a => ({
+    id: `announcement_${a.id}`,
+    original_id: a.id,
+    title: a.title,
+    message: a.content || a.description || "You have a new announcement.",
+    created_at: a.created_at,
+    type: 'announcement',
+    is_read: readAnnouncements.includes(a.id),
+    metadata: {
+        status: a.target_type || a.type || 'Announcement',
+    }
+  }));
+
+  const allItems = [...notificationsData, ...announcementsAsNotifs].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
+  const isLoading = isLoadingNotifs || isLoadingAnnounce;
 
   // State for selected notification (Modal)
   const [selectedNotification, setSelectedNotification] = useState(null);
@@ -16,7 +46,17 @@ export default function StudentNotificationsPage() {
   const handleViewNotification = (notification) => {
     setSelectedNotification(notification);
     if (!notification.is_read) {
-      markAsRead(notification.id);
+      if (notification.type === 'announcement') {
+        const stored = JSON.parse(localStorage.getItem("student_read_announcements") || "[]");
+        if (!stored.includes(notification.original_id)) {
+            const newStored = [...stored, notification.original_id];
+            localStorage.setItem("student_read_announcements", JSON.stringify(newStored));
+            setReadAnnouncements(newStored);
+            window.dispatchEvent(new Event("studentAnnouncementReadUpdate"));
+        }
+      } else {
+        markAsRead(notification.id);
+      }
     }
   };
 
@@ -28,7 +68,7 @@ export default function StudentNotificationsPage() {
     if (!dateString) return "";
     const date = new Date(dateString);
     const now = new Date();
-    const diffMs = now - date;
+    const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.round(diffMs / 60000);
     const diffHrs = Math.round(diffMs / 3600000);
     const diffDays = Math.round(diffMs / 86400000);
@@ -57,7 +97,7 @@ export default function StudentNotificationsPage() {
         <div className="flex items-center justify-between mb-8">
           <h1 className={`text-3xl font-bold ${textMain}`}>Notifications</h1>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
-            {notifications.filter(n => !n.is_read).length} Unread
+            {allItems.filter(n => !n.is_read).length} Unread
           </span>
         </div>
 
@@ -65,7 +105,7 @@ export default function StudentNotificationsPage() {
           <div className="flex justify-center p-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
-        ) : notifications.length === 0 ? (
+        ) : allItems.length === 0 ? (
           <div className={`text-center py-12 rounded-xl ${cardBg} shadow-sm border ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
             <svg className={`w-12 h-12 mx-auto mb-4 ${textSub}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.032 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -74,7 +114,7 @@ export default function StudentNotificationsPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {notifications.map((notification) => (
+            {allItems.map((notification) => (
               <div
                 key={notification.id}
                 onClick={() => handleViewNotification(notification)}
@@ -87,9 +127,15 @@ export default function StudentNotificationsPage() {
                 <div className="flex items-center p-4 gap-4">
                   {/* Icon/Avatar Placeholder */}
                   <div className="flex-shrink-0">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${notification.type === 'session_change_response' ? 'bg-blue-600' :
-                        notification.type === 'freezing_response' ? 'bg-amber-500' : 'bg-purple-600'}`}>
-                      {notification.type === 'session_change_response' || notification.type === 'freezing_response' ? (
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${
+                      notification.type === 'announcement' ? 'bg-indigo-500' :
+                      notification.type === 'session_change_response' ? 'bg-blue-600' :
+                      notification.type === 'freezing_response' ? 'bg-amber-500' : 'bg-purple-600'}`}>
+                      {notification.type === 'announcement' ? (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                        </svg>
+                      ) : notification.type === 'session_change_response' || notification.type === 'freezing_response' ? (
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.032 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
@@ -144,9 +190,15 @@ export default function StudentNotificationsPage() {
             <div className="p-6">
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex-shrink-0">
-                  <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl ${selectedNotification.type === 'session_change_response' ? 'bg-blue-600' :
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl ${
+                      selectedNotification.type === 'announcement' ? 'bg-indigo-500' :
+                      selectedNotification.type === 'session_change_response' ? 'bg-blue-600' :
                       selectedNotification.type === 'freezing_response' ? 'bg-amber-500' : 'bg-purple-600'}`}>
-                    {selectedNotification.type === 'session_change_response' || selectedNotification.type === 'freezing_response' ? (
+                    {selectedNotification.type === 'announcement' ? (
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                        </svg>
+                    ) : selectedNotification.type === 'session_change_response' || selectedNotification.type === 'freezing_response' ? (
                       <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.032 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                       </svg>

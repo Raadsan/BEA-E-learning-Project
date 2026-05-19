@@ -6,7 +6,7 @@ import WhyChooseUs from "./WhyChooseUs";
 
 export default function AboutUs() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({});
+  const [visibleSections, setVisibleSections] = useState<any>({});
   const sectionRefs = {
     hero: useRef(null),
     slogan: useRef(null),

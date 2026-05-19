@@ -343,7 +343,6 @@ export default function ProficiencyTestRegistration() {
                                                 value={formData.phone}
                                                 onChange={val => setFormData(prev => ({ ...prev, phone: val }))}
                                                 enableSearch={true}
-                                                separateDialCode={true}
                                                 inputStyle={{ width: '100%', height: '48px', fontSize: '14px', borderRadius: '0.375rem', border: 'none', backgroundColor: 'transparent' }}
                                                 containerStyle={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: '0.375rem', backgroundColor: 'white' }}
                                                 buttonStyle={{ border: 'none', backgroundColor: 'transparent', borderRadius: '0.375rem 0 0 0.375rem' }}

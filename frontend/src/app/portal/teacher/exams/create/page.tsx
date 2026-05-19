@@ -101,7 +101,7 @@ export default function CreateExamPage() {
     // Temporary Inputs (Buffer before adding to list)
     const [tempEditing, setTempEditing] = useState({ text: "", correction: "", points: 2 });
     const [editingItemId, setEditingItemId] = useState(null); // Track which item is being edited
-    const [tempReadingQ, setTempReadingQ] = useState({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, points: 2 });
+    const [tempReadingQ, setTempReadingQ] = useState({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, correctAnswer: '', points: 2 });
     const [tempListeningQ, setTempListeningQ] = useState({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, points: 2 });
 
     // Fetch existing if editing
@@ -113,9 +113,9 @@ export default function CreateExamPage() {
             setBasicInfo({
                 title: editingAssignment.title,
                 description: editingAssignment.description,
-                start_date: editingAssignment.start_date ? new Date(editingAssignment.start_date).toISOString().split('T')[0] : "",
-                end_date: editingAssignment.end_date ? new Date(editingAssignment.end_date).toISOString().split('T')[0]
-                    : editingAssignment.due_date ? new Date(editingAssignment.due_date).toISOString().split('T')[0] : "",
+                start_date: editingAssignment.start_date ? new Date(editingAssignment.start_date).toISOString().slice(0, 16) : "",
+                end_date: editingAssignment.end_date ? new Date(editingAssignment.end_date).toISOString().slice(0, 16)
+                    : editingAssignment.due_date ? new Date(editingAssignment.due_date).toISOString().slice(0, 16) : "",
                 class_id: editingAssignment.class_id,
                 program_id: editingAssignment.program_id,
                 subprogram_id: editingAssignment.subprogram_id || "",
@@ -196,7 +196,7 @@ export default function CreateExamPage() {
             }
         }));
         // Reset
-        setTempReadingQ({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, points: 2 });
+        setTempReadingQ({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, correctAnswer: '', points: 2 });
     };
 
     const removeReadingItem = (id) => {
@@ -253,20 +253,20 @@ export default function CreateExamPage() {
     const calculateTotal = () => {
         let total = 0;
         // P1
-        total += papers.paper1.editing.reduce((acc, q) => acc + (parseInt(q.points) || 0), 0);
+        total += papers.paper1.editing.reduce((acc, q) => acc + (Number(q.points) || 0), 0);
         // Only count essay points if prompt is set
         if (papers.paper1.essay.prompt) {
-            total += parseInt(papers.paper1.essay.points) || 0;
+            total += Number(papers.paper1.essay.points) || 0;
         }
 
         // P2
-        total += papers.paper2.questions.reduce((acc, q) => acc + (parseInt(q.points) || 0), 0);
+        total += papers.paper2.questions.reduce((acc, q) => acc + (Number(q.points) || 0), 0);
         // P3
-        total += papers.paper3.questions.reduce((acc, q) => acc + (parseInt(q.points) || 0), 0);
+        total += papers.paper3.questions.reduce((acc, q) => acc + (Number(q.points) || 0), 0);
         // P4
         // Only count oral points if passage is set
         if (papers.paper4.passage) {
-            total += parseInt(papers.paper4.points) || 0;
+            total += Number(papers.paper4.points) || 0;
         }
 
         return total;
@@ -294,7 +294,7 @@ export default function CreateExamPage() {
                 await createAssignment(payload).unwrap();
                 showToast("Draft saved successfully!", "success");
             }
-            router.push("/portal/teacher/assessments/exams");
+            router.push("/portal/teacher/exams");
         } catch (err) {
             showToast("Failed to save draft.", "error");
             console.error(err);
@@ -323,7 +323,7 @@ export default function CreateExamPage() {
                 await createAssignment(payload).unwrap();
                 showToast("Exam published successfully!", "success");
             }
-            router.push("/portal/teacher/assessments/exams");
+            router.push("/portal/teacher/exams");
         } catch (err) {
             showToast("Failed to publish exam.", "error");
             console.error(JSON.stringify(err, null, 2));
@@ -431,25 +431,25 @@ export default function CreateExamPage() {
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-4">
                                         <div className="w-1/2">
                                             <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Start Date</label>
                                             <input
-                                                type="date"
+                                                type="datetime-local"
                                                 name="start_date"
                                                 value={basicInfo.start_date}
                                                 onChange={handleInfoChange}
-                                                className="w-full p-2.5 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm"
+                                                className="w-full p-2.5 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-[#010080]/20 outline-none"
                                             />
                                         </div>
                                         <div className="w-1/2">
-                                            <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">End Date</label>
+                                            <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">End Date / Due Date</label>
                                             <input
-                                                type="date"
+                                                type="datetime-local"
                                                 name="end_date"
                                                 value={basicInfo.end_date}
                                                 onChange={handleInfoChange}
-                                                className="w-full p-2.5 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm"
+                                                className="w-full p-2.5 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-[#010080]/20 outline-none"
                                             />
                                         </div>
                                     </div>
@@ -572,7 +572,7 @@ export default function CreateExamPage() {
                                             <h3 className="font-bold text-[#010080] mb-2">B. Essay Writing</h3>
                                             <textarea
                                                 className="w-full p-4 border rounded-xl focus:ring-2 ring-blue-500/20 outline-none"
-                                                rows="4"
+                                                rows={4}
                                                 placeholder="Enter the essay prompt or topic..."
                                                 value={papers.paper1.essay.prompt}
                                                 onChange={(e) => setPapers(prev => ({ ...prev, paper1: { ...prev.paper1, essay: { ...prev.paper1.essay, prompt: e.target.value } } }))}
@@ -601,39 +601,83 @@ export default function CreateExamPage() {
                                             />
                                         </div>
                                         <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100">
-                                            <h3 className="font-bold text-gray-800 mb-4">Add Comprehension Component</h3>
+                                            <h3 className="font-bold text-gray-800 mb-4">Add Comprehension Question</h3>
                                             <div className="space-y-3 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
-                                                <input
-                                                    className="w-full font-semibold border-b pb-2 outline-none"
-                                                    placeholder="Question?"
-                                                    value={tempReadingQ.questionText}
-                                                    onChange={(e) => setTempReadingQ({ ...tempReadingQ, questionText: e.target.value })}
-                                                />
-                                                <div className="grid grid-cols-2 gap-3 mt-2">
-                                                    {tempReadingQ.options.map((opt, idx) => (
-                                                        <div key={idx} className="flex gap-2 items-center">
-                                                            <input
-                                                                type="radio"
-                                                                name="correctReading"
-                                                                checked={tempReadingQ.correctOption === idx}
-                                                                onChange={() => setTempReadingQ({ ...tempReadingQ, correctOption: idx })}
-                                                            />
-                                                            <input
-                                                                className="flex-1 text-sm p-1 border rounded"
-                                                                placeholder={`Option ${idx + 1}`}
-                                                                value={opt}
-                                                                onChange={(e) => {
-                                                                    const n = [...tempReadingQ.options];
-                                                                    n[idx] = e.target.value;
-                                                                    setTempReadingQ({ ...tempReadingQ, options: n });
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    ))}
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <input
+                                                        className="flex-1 font-semibold border-b pb-2 outline-none"
+                                                        placeholder="Question text?"
+                                                        value={tempReadingQ.questionText}
+                                                        onChange={(e) => setTempReadingQ({ ...tempReadingQ, questionText: e.target.value })}
+                                                    />
+                                                    <select
+                                                        className="text-xs border rounded px-2 py-1 bg-gray-50 shrink-0"
+                                                        value={tempReadingQ.type}
+                                                        onChange={(e) => setTempReadingQ({ ...tempReadingQ, type: e.target.value, correctOption: 0, correctAnswer: '' })}
+                                                    >
+                                                        <option value="mcq">MCQ</option>
+                                                        <option value="true_false">True / False</option>
+                                                        <option value="short_answer">Fill-in</option>
+                                                    </select>
                                                 </div>
-                                                <button onClick={addReadingItem} className="w-full py-2 bg-[#010080] text-white rounded-lg font-bold mt-2 text-sm hover:opacity-90">
-                                                    + Add Question
-                                                </button>
+                                                {(tempReadingQ.type === 'mcq' || tempReadingQ.type === 'true_false') && (
+                                                    <div className="space-y-2 mt-2">
+                                                        <p className="text-[10px] font-bold uppercase text-gray-400">Select the correct answer ↓</p>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            {(tempReadingQ.type === 'true_false' ? ['True', 'False'] : tempReadingQ.options).map((opt, idx) => (
+                                                                <label key={idx} className={`flex gap-2 items-center px-3 py-2 rounded-lg border cursor-pointer transition-all ${tempReadingQ.correctOption === idx ? 'bg-green-50 border-green-400 ring-1 ring-green-300' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                                                    <input
+                                                                        type="radio"
+                                                                        name="correctReading"
+                                                                        checked={tempReadingQ.correctOption === idx}
+                                                                        onChange={() => setTempReadingQ({ ...tempReadingQ, correctOption: idx })}
+                                                                        className="accent-green-600"
+                                                                    />
+                                                                    {tempReadingQ.type === 'true_false' ? (
+                                                                        <span className={`font-bold text-sm ${tempReadingQ.correctOption === idx ? 'text-green-700' : 'text-gray-600'}`}>{opt}</span>
+                                                                    ) : (
+                                                                        <input
+                                                                            className="flex-1 text-sm outline-none bg-transparent"
+                                                                            placeholder={`Option ${idx + 1}`}
+                                                                            value={opt}
+                                                                            onChange={(e) => {
+                                                                                const n = [...tempReadingQ.options];
+                                                                                n[idx] = e.target.value;
+                                                                                setTempReadingQ({ ...tempReadingQ, options: n });
+                                                                            }}
+                                                                        />
+                                                                    )}
+                                                                    {tempReadingQ.correctOption === idx && <span className="text-[10px] font-bold text-green-600 shrink-0">✓ Correct</span>}
+                                                                </label>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {tempReadingQ.type === 'short_answer' && (
+                                                    <div className="mt-2">
+                                                        <label className="text-[10px] font-bold uppercase text-gray-400 block mb-1">Correct Answer</label>
+                                                        <input
+                                                            className="w-full text-sm p-2 border rounded-lg bg-green-50 border-green-200"
+                                                            placeholder="Type the correct answer..."
+                                                            value={tempReadingQ.correctAnswer || ''}
+                                                            onChange={(e) => setTempReadingQ({ ...tempReadingQ, correctAnswer: e.target.value })}
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-2 justify-between mt-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-bold text-gray-500">Points:</span>
+                                                        <input
+                                                            type="number"
+                                                            className="w-16 p-1 border rounded text-center text-sm font-bold"
+                                                            value={tempReadingQ.points}
+                                                            onChange={(e) => setTempReadingQ({ ...tempReadingQ, points: parseInt(e.target.value) || 1 })}
+                                                        />
+                                                    </div>
+                                                    <button onClick={addReadingItem} className="py-2 px-6 bg-[#010080] text-white rounded-lg font-bold text-sm hover:opacity-90">
+                                                        + Add Question
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

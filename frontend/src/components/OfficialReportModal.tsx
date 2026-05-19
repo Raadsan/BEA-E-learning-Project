@@ -52,7 +52,7 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
 
         try {
             // 1. Clone the element to manipulate it for printing (inserting spacers) without affecting the view
-            const clone = element.cloneNode(true);
+            const clone = element.cloneNode(true) as HTMLElement;
             clone.style.width = '800px'; // Ensure fixed width for consistency
             clone.style.height = 'auto';
             clone.style.position = 'absolute';
@@ -74,10 +74,10 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
             // Get all direct children (sections) of the wrapper
             // Since we cloned the wrapper itself (which has the ID), the clone IS the wrapper
             const wrapper = clone;
-            const children = Array.from(wrapper.children);
+            const children = Array.from(wrapper.children) as HTMLElement[];
 
             // Find the header element to clone later
-            const headerElement = wrapper.querySelector('.report-header');
+            const headerElement = wrapper.querySelector('.report-header') as HTMLElement | null;
 
             children.forEach((child) => {
                 const style = window.getComputedStyle(child);
@@ -107,7 +107,7 @@ const OfficialReportModal = ({ isOpen, onClose, data, student, summary, performa
                         // User requested "move to the top", so we remove the extra padding spacer.
                         // We just insert the header directly at the top of the new page.
 
-                        const headerClone = headerElement.cloneNode(true);
+                        const headerClone = headerElement.cloneNode(true) as HTMLElement;
                         // No extra margin needed, it keeps the classes from the original header (mb-8 etc)
                         wrapper.insertBefore(headerClone, child);
 

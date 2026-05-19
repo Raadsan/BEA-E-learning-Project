@@ -28,7 +28,7 @@ export const studentApi = createApi({
     getStudentsByClass: builder.query({
       query: (classId) => `/class/${classId}`,
       providesTags: (classId) => [{ type: "Students", id: `Class_${classId}` }],
-      transformResponse: (response) => {
+      transformResponse: (response: any) => {
         if (response.success) {
           return response.students;
         }
@@ -37,10 +37,10 @@ export const studentApi = createApi({
     }),
 
     // GET ALL students
-    getStudents: builder.query({
+    getStudents: builder.query<any, void>({
       query: () => "/",
       providesTags: ["Students"],
-      transformResponse: (response) => {
+      transformResponse: (response: any) => {
         if (response.success) {
           return response.students;
         }
@@ -52,7 +52,7 @@ export const studentApi = createApi({
     getStudent: builder.query({
       query: (id) => `/${id}`,
       providesTags: (id) => [{ type: "Students", id }],
-      transformResponse: (response) => {
+      transformResponse: (response: any) => {
         if (response.success) {
           return response.student;
         }
@@ -121,12 +121,21 @@ export const studentApi = createApi({
       }),
       invalidatesTags: ["Students"],
     }),
+    // EXTEND student deadline
+    extendStudentDeadline: builder.mutation({
+      query: ({ id, durationMinutes }) => ({
+        url: `/${id}/extend`,
+        method: "PATCH",
+        body: { durationMinutes },
+      }),
+      invalidatesTags: ["Students"],
+    }),
 
     // GET STUDENT PROGRESS
-    getStudentProgress: builder.query({
+    getStudentProgress: builder.query<any, void>({
       query: () => "/progress",
       providesTags: ["Students"],
-      transformResponse: (response) => {
+      transformResponse: (response: any) => {
         if (response.success) {
           return response.students;
         }
@@ -136,14 +145,14 @@ export const studentApi = createApi({
 
     // GET SEX DISTRIBUTION
     getSexDistribution: builder.query({
-      query: ({ program_id, class_id } = {}) => {
+      query: ({ program_id, class_id }: { program_id?: string; class_id?: string } = {}) => {
         const params = new URLSearchParams();
         if (program_id) params.append("program_id", program_id);
         if (class_id) params.append("class_id", class_id);
         return `/sex-distribution?${params.toString()}`;
       },
       providesTags: ["Students"],
-      transformResponse: (response) => {
+      transformResponse: (response: any) => {
         if (response.success) {
           return response.data;
         }
@@ -153,15 +162,15 @@ export const studentApi = createApi({
 
     // GET TOP STUDENTS
     getTopStudents: builder.query({
-      query: ({ limit = 10, program_id, class_id } = {}) => {
+      query: ({ limit = 10, program_id, class_id }: { limit?: number | string; program_id?: string; class_id?: string } = {}) => {
         const params = new URLSearchParams();
-        params.append("limit", limit);
+        params.append("limit", limit.toString());
         if (program_id) params.append("program_id", program_id);
         if (class_id) params.append("class_id", class_id);
         return `/top-students?${params.toString()}`;
       },
       providesTags: ["Students"],
-      transformResponse: (response) => {
+      transformResponse: (response: any) => {
         if (response.success) {
           return response.students;
         }
@@ -171,14 +180,14 @@ export const studentApi = createApi({
 
     // GET STUDENT LOCATIONS
     getStudentLocations: builder.query({
-      query: ({ program_id, class_id } = {}) => {
+      query: ({ program_id, class_id }: { program_id?: string; class_id?: string } = {}) => {
         const params = new URLSearchParams();
         if (program_id) params.append("program_id", program_id);
         if (class_id) params.append("class_id", class_id);
         return `/locations?${params.toString()}`;
       },
       providesTags: ["Students"],
-      transformResponse: (response) => {
+      transformResponse: (response: any) => {
         if (response.success) {
           return response.locations;
         }
@@ -186,10 +195,10 @@ export const studentApi = createApi({
       },
     }),
     // GET MY CLASSES (History)
-    getMyClasses: builder.query({
+    getMyClasses: builder.query<any, void>({
       query: () => "/my-classes",
       providesTags: ["Students"],
-      transformResponse: (response) => {
+      transformResponse: (response: any) => {
         if (response.success) {
           return response.classes;
         }
@@ -198,10 +207,10 @@ export const studentApi = createApi({
     }),
 
     // GET DETAILED REPORT (For Student Progress Page)
-    getDetailedReport: builder.query({
+    getDetailedReport: builder.query<any, void>({
       query: () => "/detailed-report",
       providesTags: ["Students"],
-      transformResponse: (response) => {
+      transformResponse: (response: any) => {
         if (response.success) {
           return response.data;
         }
@@ -220,6 +229,7 @@ export const {
   useDeleteStudentMutation,
   useApproveStudentMutation,
   useRejectStudentMutation,
+  useExtendStudentDeadlineMutation,
   useGetStudentProgressQuery,
   useGetSexDistributionQuery,
   useGetTopStudentsQuery,

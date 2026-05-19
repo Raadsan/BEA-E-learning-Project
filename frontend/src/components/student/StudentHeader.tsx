@@ -20,8 +20,18 @@ export default function StudentHeader({ onMenuClick }) {
 
   // Notification Logic
   const { data: notifications = [] } = useGetNotificationsQuery(undefined, { pollingInterval: 30000 });
+  const { data: announcements = [] } = useGetAnnouncementsQuery(undefined, { pollingInterval: 30000 });
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const [readAnnouncements, setReadAnnouncements] = useState([]);
+
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("student_read_announcements") || "[]");
+    setReadAnnouncements(stored);
+  }, [announcements]);
+
+  const unreadNotificationsCount = notifications.filter(n => !n.is_read).length;
+  const unreadAnnouncementsCount = announcements.filter(a => !readAnnouncements.includes(a.id)).length;
+  const unreadCount = unreadNotificationsCount + unreadAnnouncementsCount;
 
   // Calculate payment status
   let isPaid = true;

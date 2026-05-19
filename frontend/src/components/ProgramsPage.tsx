@@ -87,7 +87,7 @@ function ProgramCard({ program, index, isDarkMode, isVisible, playingVideos, set
               unoptimized
               onError={(e) => {
                 // Fallback to default image if backend image fails to load
-                e.target.src = "/images/book1.jpg";
+                (e.target as HTMLImageElement).src = "/images/book1.jpg";
               }}
             />
             {/* Play Icon Overlay for images */}
@@ -126,8 +126,8 @@ function ProgramCard({ program, index, isDarkMode, isVisible, playingVideos, set
 
 export default function ProgramsPage() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({});
-  const [playingVideos, setPlayingVideos] = useState({});
+  const [visibleSections, setVisibleSections] = useState<any>({});
+  const [playingVideos, setPlayingVideos] = useState<any>({});
   const sectionRefs = {
     hero: useRef(null),
     intro: useRef(null),
@@ -136,6 +136,7 @@ export default function ProgramsPage() {
 
   // Fetch programs from backend
   const { data: backendPrograms, isLoading, isError, error } = useGetProgramsQuery();
+  const err = error as any;
 
   useEffect(() => {
     const observers = [];
@@ -267,26 +268,26 @@ export default function ProgramsPage() {
             {isError && (
               <div className="text-center py-12">
                 <div className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
-                  {error?.status === 'FETCH_ERROR'
+                  {err?.status === 'FETCH_ERROR'
                     ? 'Cannot connect to backend server'
-                    : error?.status === 'PARSING_ERROR'
+                    : err?.status === 'PARSING_ERROR'
                       ? 'Invalid response from server'
-                      : error?.status
-                        ? `Error ${error.status}`
+                      : err?.status
+                        ? `Error ${err.status}`
                         : 'Error loading programs'}
                 </div>
                 <div className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  {error?.status === 'FETCH_ERROR' ? (
+                  {err?.status === 'FETCH_ERROR' ? (
                     <>
                       The backend server is not responding.<br />
                       Please make sure the backend server (Render) is running at <code className="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">{API_BASE_URL}</code>
                     </>
-                  ) : error?.data?.error ? (
-                    error.data.error
-                  ) : error?.error ? (
-                    error.error
-                  ) : error?.message ? (
-                    error.message
+                  ) : err?.data?.error ? (
+                    err.data.error
+                  ) : err?.error ? (
+                    err.error
+                  ) : err?.message ? (
+                    err.message
                   ) : (
                     'Please check your connection and try again.'
                   )}
@@ -294,10 +295,10 @@ export default function ProgramsPage() {
                 <div className={`text-xs mt-4 p-4 rounded max-w-2xl mx-auto text-left ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
                   <strong>Debug Info:</strong><br />
                   <div className="mt-2 space-y-1">
-                    <div>Status: <code>{error?.status || 'N/A'}</code></div>
-                    {error?.data && <div>Response: <code className="text-xs break-all">{JSON.stringify(error.data, null, 2)}</code></div>}
-                    {error?.error && <div>Error: <code>{error.error}</code></div>}
-                    {error?.message && <div>Message: <code>{error.message}</code></div>}
+                    <div>Status: <code>{err?.status || 'N/A'}</code></div>
+                    {err?.data && <div>Response: <code className="text-xs break-all">{JSON.stringify(err.data, null, 2)}</code></div>}
+                    {err?.error && <div>Error: <code>{err.error}</code></div>}
+                    {err?.message && <div>Message: <code>{err.message}</code></div>}
                   </div>
                 </div>
               </div>

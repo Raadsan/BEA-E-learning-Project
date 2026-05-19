@@ -15,14 +15,11 @@ export const announcementApi = createApi({
     }),
     tagTypes: ["Announcements"],
     endpoints: (builder) => ({
-        getAnnouncements: builder.query({
-            query: (params) => ({
-                url: "/announcements",
-                params: params
-            }),
+        getAnnouncements: builder.query<any, void>({
+            query: () => "/announcements",
             providesTags: ["Announcements"],
         }),
-        getTeacherAnnouncements: builder.query({
+        getTeacherAnnouncements: builder.query<any, void>({
             query: () => "/announcements/teacher",
             providesTags: ["Announcements"],
         }),

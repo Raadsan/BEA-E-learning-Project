@@ -5,7 +5,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 export default function EventsNews() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({});
+  const [visibleSections, setVisibleSections] = useState<any>({});
   const [activeTab, setActiveTab] = useState("upcoming");
   const sectionRefs = {
     hero: useRef(null),

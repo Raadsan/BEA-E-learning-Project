@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ToastProvider } from "@/components/Toast";
 import ReduxProvider from "@/components/ReduxProvider";
+import SecurityWrapper from "@/components/SecurityWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,7 +46,9 @@ export default function RootLayout({ children }) {
           {/* Existing Theme Provider stays inside */}
           <ThemeProvider>
             <ToastProvider>
-              {children}
+              <SecurityWrapper>
+                {children}
+              </SecurityWrapper>
             </ToastProvider>
           </ThemeProvider>
         </ReduxProvider>

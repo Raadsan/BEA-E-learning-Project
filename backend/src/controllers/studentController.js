@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma.js';
 import bcrypt from 'bcryptjs';
+import { validateEmailRobust } from '../utils/emailValidator.js';
 import { validatePassword, passwordPolicyMessage } from '../utils/passwordValidator.js';
 import { sendWaafiPayment } from '../utils/waafiPayment.js';
 
@@ -11,7 +12,8 @@ export const createStudent = async (req, res) => {
       chosen_program, chosen_subprogram, password, parent_name, parent_email,
       parent_phone, parent_relation, parent_res_county, parent_res_city,
       class_id, funding_status, sponsorship_package, funding_amount,
-      funding_month, scholarship_percentage, gender, date_of_birth, place_of_birth
+      funding_month, scholarship_percentage, gender, date_of_birth, place_of_birth,
+      approval_status
     } = req.body;
 
     const studentSex = sex || gender;
@@ -20,13 +22,29 @@ export const createStudent = async (req, res) => {
       return res.status(400).json({ success: false, error: "Full name, email, and password are required" });
     }
 
+    const emailStr = email.trim().toLowerCase();
+    
+    // Deep Email Validation (Checks Regex, Typo, Disposable, MX, SMTP)
+    const emailValidationResult = await validateEmailRobust(emailStr);
+
+    if (!emailValidationResult.valid) {
+      return res.status(400).json({ 
+        success: false, 
+        error: emailValidationResult.message || "Invalid email address. Please provide a real and working email." 
+      });
+    }
+
     // Check if email already exists for this program
     const existing = await prisma.students.findFirst({
-      where: { email, chosen_program }
+      where: { email: emailStr, chosen_program }
     });
 
     if (existing) {
       return res.status(400).json({ success: false, error: `Already registered for ${chosen_program}.` });
+    }
+
+    if (!validatePassword(password)) {
+      return res.status(400).json({ success: false, error: passwordPolicyMessage });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -38,8 +56,9 @@ export const createStudent = async (req, res) => {
       initialPaidUntil = new Date(now.setDate(now.getDate() + 30));
     }
 
+    // Student User Activation Period: 45 days
     const expiryDate = new Date();
-    expiryDate.setHours(expiryDate.getHours() + 24);
+    expiryDate.setDate(expiryDate.getDate() + 45);
 
     // Payment Logic (Simplified for brevity, but matching old logic structure)
     let paymentStatus = 'Pending';
@@ -74,32 +93,32 @@ export const createStudent = async (req, res) => {
       data: {
         student_id,
         full_name,
-        email,
-        phone,
-        age: age ? parseInt(age) : null,
-        sex: studentSex,
-        residency_country,
-        residency_city,
-        chosen_program,
-        chosen_subprogram,
+        email: emailStr,
+        phone: phone || null,
+        age: (age && age !== "") ? parseInt(age) : null,
+        sex: studentSex || "Male",
+        residency_country: residency_country || null,
+        residency_city: residency_city || null,
+        chosen_program: chosen_program || null,
+        chosen_subprogram: chosen_subprogram || null,
         password: hashedPassword,
-        parent_name,
-        parent_email,
-        parent_phone,
-        parent_relation,
-        parent_res_county,
-        parent_res_city,
-        class_id: class_id ? parseInt(class_id) : null,
+        parent_name: parent_name || null,
+        parent_email: parent_email || null,
+        parent_phone: parent_phone || null,
+        parent_relation: parent_relation || null,
+        parent_res_county: parent_res_county || null,
+        parent_res_city: parent_res_city || null,
+        class_id: (class_id && class_id !== "") ? parseInt(class_id) : null,
         funding_status: paymentStatus === 'Paid' ? 'Paid' : (funding_status || 'Unpaid'),
-        sponsorship_package,
-        funding_amount: funding_amount ? parseFloat(funding_amount) : null,
-        funding_month,
-        scholarship_percentage: scholarship_percentage ? parseInt(scholarship_percentage) : null,
+        sponsorship_package: sponsorship_package || "None",
+        funding_amount: (funding_amount && funding_amount !== "") ? parseFloat(funding_amount) : null,
+        funding_month: funding_month || null,
+        scholarship_percentage: (scholarship_percentage && scholarship_percentage !== "") ? parseInt(scholarship_percentage) : null,
         paid_until: initialPaidUntil,
         expiry_date: expiryDate,
-        date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
-        place_of_birth,
-        approval_status: (paymentStatus === 'Paid' && transactionId) ? 'pending' : 'pending'
+        date_of_birth: (date_of_birth && date_of_birth !== "") ? new Date(date_of_birth) : null,
+        place_of_birth: place_of_birth || null,
+        approval_status: approval_status || 'pending'
       }
     });
 
@@ -161,17 +180,39 @@ export const updateStudent = async (req, res) => {
 
     const data = { ...req.body };
     if (req.file) data.profile_picture = `/uploads/${req.file.filename}`;
-    if (data.password) {
+
+    // Clean up fields that do not exist on the schema or cannot be updated directly
+    delete data.id;
+    delete data.student_id;
+    delete data.type;
+    delete data.confirmPassword;
+
+    if (data.password && data.password.trim() !== "") {
+      if (!validatePassword(data.password)) {
+        return res.status(400).json({ success: false, error: passwordPolicyMessage });
+      }
       const salt = await bcrypt.genSalt(10);
       data.password = await bcrypt.hash(data.password, salt);
+    } else {
+      delete data.password;
     }
 
-    // Handle data types
-    if (data.age) data.age = parseInt(data.age);
-    if (data.class_id) data.class_id = parseInt(data.class_id);
-    if (data.funding_amount) data.funding_amount = parseFloat(data.funding_amount);
-    if (data.scholarship_percentage) data.scholarship_percentage = parseInt(data.scholarship_percentage);
-    if (data.date_of_birth) data.date_of_birth = new Date(data.date_of_birth);
+    // Handle data types safely
+    if (data.age !== undefined) {
+      data.age = (data.age && data.age !== "") ? parseInt(data.age) : null;
+    }
+    if (data.class_id !== undefined) {
+      data.class_id = (data.class_id && data.class_id !== "") ? parseInt(data.class_id) : null;
+    }
+    if (data.funding_amount !== undefined) {
+      data.funding_amount = (data.funding_amount && data.funding_amount !== "") ? parseFloat(data.funding_amount) : null;
+    }
+    if (data.scholarship_percentage !== undefined) {
+      data.scholarship_percentage = (data.scholarship_percentage && data.scholarship_percentage !== "") ? parseInt(data.scholarship_percentage) : null;
+    }
+    if (data.date_of_birth !== undefined) {
+      data.date_of_birth = (data.date_of_birth && data.date_of_birth !== "") ? new Date(data.date_of_birth) : null;
+    }
 
     // Move to history if class changed
     if (data.class_id && data.class_id !== existing.class_id) {
@@ -193,6 +234,7 @@ export const updateStudent = async (req, res) => {
 
     res.json({ success: true, student: updated });
   } catch (err) {
+    console.error("❌ Update student error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -225,6 +267,23 @@ export const rejectStudent = async (req, res) => {
     const updated = await prisma.students.update({
       where: { student_id: req.params.id },
       data: { approval_status: 'rejected', class_id: null }
+    });
+    res.json({ success: true, student: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+export const extendStudentDeadline = async (req, res) => {
+  try {
+    const { durationMinutes = 1440 } = req.body;
+    const updated = await prisma.students.update({
+      where: { student_id: req.params.id },
+      data: {
+        expiry_date: new Date(Date.now() + durationMinutes * 60000),
+        is_extended: true,
+        reminder_sent: false
+      }
     });
     res.json({ success: true, student: updated });
   } catch (err) {

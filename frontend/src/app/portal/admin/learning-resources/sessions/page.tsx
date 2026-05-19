@@ -84,7 +84,7 @@ export default function OnlineSessionsPage() {
                 <main className="flex-1 overflow-y-auto bg-gray-50">
                     <div className="w-full px-8 py-6">
                         <div className="text-center py-12">
-                            <p className="text-red-600">Error loading classes: {error?.data?.error || "Unknown error"}</p>
+                            <p className="text-red-600">Error loading classes: {(error as any)?.data?.error || "Unknown error"}</p>
                         </div>
                     </div>
                 </main>

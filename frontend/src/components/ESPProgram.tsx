@@ -7,7 +7,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 export default function ESPProgram() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({ courses: true });
+  const [visibleSections, setVisibleSections] = useState<any>({ courses: true });
   const sectionRefs = {
     hero: useRef(null),
     intro: useRef(null),

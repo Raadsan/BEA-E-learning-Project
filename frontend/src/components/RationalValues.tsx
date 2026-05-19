@@ -5,7 +5,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 export default function RationalValues() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({});
+  const [visibleSections, setVisibleSections] = useState<any>({});
   const sectionRefs = {
     hero: useRef(null),
     content: useRef(null),

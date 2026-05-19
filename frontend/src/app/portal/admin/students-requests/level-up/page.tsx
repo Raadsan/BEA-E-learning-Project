@@ -14,7 +14,7 @@ import AdminConfirmationModal from "@/components/admin/admins/AdminConfirmationM
 export default function AdminLevelUpRequestsPage() {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
-    const { data: requests = [], isLoading, refetch } = useGetLevelUpRequestsQuery();
+    const { data: requests = [], isLoading, refetch } = useGetLevelUpRequestsQuery(undefined);
     const [updateStatus, { isLoading: isUpdating }] = useUpdateLevelUpRequestStatusMutation();
 
     const [selectedRequest, setSelectedRequest] = useState(null);

@@ -214,7 +214,7 @@ export default function TestimonialsPage() {
                             alt={row.student_name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                                e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(row.student_name);
+                                e.currentTarget.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(row.student_name);
                             }}
                         />
                     ) : (
@@ -472,7 +472,7 @@ export default function TestimonialsPage() {
                                         value={formData.quote}
                                         onChange={handleInputChange}
                                         required
-                                        rows="4"
+                                        rows={4}
                                         placeholder="Enter the student's testimonial quote here..."
                                         className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
                                             }`}

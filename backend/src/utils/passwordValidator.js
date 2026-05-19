@@ -1,5 +1,6 @@
 export const validatePassword = (password) => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+    // Requires at least one lowercase, one uppercase, one number, and one special character (any non-alphanumeric). Minimum 6 chars.
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
     return passwordRegex.test(password);
 };
 

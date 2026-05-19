@@ -15,7 +15,7 @@ export const adminApi = createApi({
     }),
     tagTypes: ["Admins", "Auth"],
     endpoints: (builder) => ({
-        getAdmins: builder.query({
+        getAdmins: builder.query<any, void>({
             query: () => "/",
             providesTags: ["Admins"],
         }),
@@ -60,6 +60,14 @@ export const adminApi = createApi({
             }),
             invalidatesTags: ["Admins"],
         }),
+        bulkActionAdmins: builder.mutation({
+            query: ({ adminIds, action }) => ({
+                url: "/bulk-action",
+                method: "POST",
+                body: { adminIds, action },
+            }),
+            invalidatesTags: ["Admins"],
+        }),
     }),
 });
 
@@ -69,4 +77,6 @@ export const {
     useCreateAdminMutation,
     useUpdateAdminMutation,
     useDeleteAdminMutation,
+    useBulkActionAdminsMutation,
 } = adminApi;
+

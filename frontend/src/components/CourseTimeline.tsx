@@ -43,7 +43,7 @@ export default function CourseTimeline() {
             return dateStr.split('/')[2];
           }
           return new Date(dateStr).getFullYear().toString();
-        }))].sort((a, b) => a - b);
+        }))].sort((a, b) => parseInt(a as string) - parseInt(b as string));
 
         setYears(extractedYears);
 
@@ -58,7 +58,7 @@ export default function CourseTimeline() {
         console.warn("⚠️ API failed, using static data:", err.message);
         setTimelineData(staticTimelineData);
 
-        const extractedYears = [...new Set(staticTimelineData.map(item => item.startDate.split('/')[2]))].sort((a, b) => a - b);
+        const extractedYears = [...new Set(staticTimelineData.map(item => item.startDate.split('/')[2]))].sort((a, b) => parseInt(a as string) - parseInt(b as string));
         setYears(extractedYears);
         setError(null);
       } finally {

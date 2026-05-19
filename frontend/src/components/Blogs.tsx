@@ -6,7 +6,7 @@ import Image from "next/image";
 
 export default function Blogs() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({});
+  const [visibleSections, setVisibleSections] = useState<any>({});
   const [selectedCategory, setSelectedCategory] = useState("All");
   const sectionRefs = {
     hero: useRef(null),

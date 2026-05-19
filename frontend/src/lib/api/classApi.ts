@@ -16,7 +16,7 @@ export const classApi = createApi({
   }),
   tagTypes: ["Classes", "ClassSchedules"],
   endpoints: (builder) => ({
-    getClasses: builder.query({
+    getClasses: builder.query<any, void>({
       query: () => "/",
       providesTags: ["Classes"],
     }),

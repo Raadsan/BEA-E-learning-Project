@@ -332,7 +332,6 @@ export default function StudentForm({
                                             return 'us';
                                         })()}
                                         enableSearch={true}
-                                        separateDialCode={false}
                                         value={formData.phone}
                                         onChange={phone => setFormData(prev => ({ ...prev, phone }))}
                                         inputStyle={{
@@ -396,6 +395,26 @@ export default function StudentForm({
                                                 {program.title}
                                             </option>
                                         ))}
+                                    </select>
+                                </div>
+
+                                {/* Row 4.5: Approval Status */}
+                                <div className="md:col-span-2">
+                                    <label htmlFor="approval_status" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        Approval Status <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        id="approval_status"
+                                        name="approval_status"
+                                        value={formData.approval_status || "pending"}
+                                        onChange={handleInputChange}
+                                        required
+                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-600'}`}
+                                    >
+                                        <option value="pending">Pending</option>
+                                        <option value="approved">Active (Approved)</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="rejected">Rejected</option>
                                     </select>
                                 </div>
 
@@ -857,7 +876,6 @@ export default function StudentForm({
                                                 return 'us';
                                             })()}
                                             enableSearch={true}
-                                            separateDialCode={false}
                                             value={formData.parent_phone}
                                             onChange={phone => setFormData(prev => ({ ...prev, parent_phone: phone }))}
                                             inputStyle={{

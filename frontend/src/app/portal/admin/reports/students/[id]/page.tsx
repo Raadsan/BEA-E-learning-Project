@@ -6,7 +6,7 @@ import { useDarkMode } from "@/context/ThemeContext";
 import {
     useGetStudentProgressReportQuery,
     useGetStudentAvailablePeriodsQuery
-} from "@/redux/api/reportApi";
+} from "@/lib/api/reportApi";
 import StudentProgressReportView from "@/components/StudentProgressReportView";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useGetPlacementTestByIdQuery, useUpdatePlacementTestMutation } from "@/redux/api/placementTestApi";
+import { useGetPlacementTestByIdQuery, useUpdatePlacementTestMutation } from "@/lib/api/placementTestApi";
 
 import { useToast } from "@/components/Toast";
 import { v4 as uuidv4 } from "uuid";
@@ -281,7 +281,7 @@ export default function EditPlacementTestPage() {
                                             value={testData.description}
                                             onChange={handleTestChange}
                                             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none transition-colors"
-                                            rows="3"
+                                            rows={3}
                                             placeholder="Enter a brief description..."
                                         />
                                     </div>
@@ -340,7 +340,7 @@ export default function EditPlacementTestPage() {
                                                 value={currentMCQ.questionText}
                                                 onChange={e => setCurrentMCQ({ ...currentMCQ, questionText: e.target.value })}
                                                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-colors"
-                                                rows="2"
+                                                rows={2}
                                                 placeholder="Type your question here..."
                                             />
                                         </div>
@@ -426,7 +426,7 @@ export default function EditPlacementTestPage() {
                                                 value={currentPassage.passageText}
                                                 onChange={e => setCurrentPassage({ ...currentPassage, passageText: e.target.value })}
                                                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-colors"
-                                                rows="4"
+                                                rows={4}
                                                 placeholder="Paste your text passage here..."
                                             />
                                         </div>
@@ -551,7 +551,7 @@ export default function EditPlacementTestPage() {
                                                 value={currentEssay.description}
                                                 onChange={e => setCurrentEssay({ ...currentEssay, description: e.target.value })}
                                                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-colors"
-                                                rows="3"
+                                                rows={3}
                                                 placeholder="Describe the task..."
                                             />
                                         </div>

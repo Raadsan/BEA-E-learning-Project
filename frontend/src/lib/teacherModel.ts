@@ -27,7 +27,7 @@ export const defaultTeacher = {
  * @param {Object} data - Teacher data to merge with defaults
  * @returns {Object} New teacher object
  */
-export const createTeacher = (data = {}) => {
+export const createTeacher = (data: Partial<typeof defaultTeacher> = {}) => {
   return {
     ...defaultTeacher,
     ...data,

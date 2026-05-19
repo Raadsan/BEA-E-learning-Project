@@ -36,25 +36,25 @@ export default function AttendancePage() {
     {
       label: "#",
       key: "index",
-      render: (row, idx) => <span className="font-bold">{idx + 1}</span>,
+      render: (val, row, idx) => <span className="font-bold">{idx + 1}</span>,
       width: "50px",
       className: "hidden sm:table-cell"
     },
     { label: "Name", key: "full_name" },
     { label: "Email", key: "email", className: "hidden lg:table-cell" },
-    { label: "Phone", key: "phone", render: (row) => row.phone || 'N/A', className: "hidden xl:table-cell text-xs" },
+    { label: "Phone", key: "phone", render: (val, row) => row.phone || 'N/A', className: "hidden xl:table-cell text-xs" },
     {
       label: "Hour 1",
       key: "hour1",
-      render: (row) => {
-        const isPresent = attendance[row.student_id]?.hour1 === 1;
+      render: (val, row) => {
+        const isPresent = row?.student_id ? (attendance[row.student_id]?.hour1 === 1) : false;
         return (
           <label className="flex items-center justify-center cursor-pointer w-full h-full">
             <input
               type="checkbox"
               className="w-5 h-5 rounded text-[#010080] focus:ring-[#010080]/50 cursor-pointer"
               checked={isPresent}
-              onChange={() => handleToggleHour1(row.student_id)}
+              onChange={() => row?.student_id && handleToggleHour1(row.student_id)}
             />
           </label>
         );
@@ -65,15 +65,15 @@ export default function AttendancePage() {
     {
       label: "Hour 2",
       key: "hour2",
-      render: (row) => {
-        const isPresent = attendance[row.student_id]?.hour2 === 1;
+      render: (val, row) => {
+        const isPresent = row?.student_id ? (attendance[row.student_id]?.hour2 === 1) : false;
         return (
           <label className="flex items-center justify-center cursor-pointer w-full h-full">
             <input
               type="checkbox"
               className="w-5 h-5 rounded text-[#010080] focus:ring-[#010080]/50 cursor-pointer"
               checked={isPresent}
-              onChange={() => handleToggleHour2(row.student_id)}
+              onChange={() => row?.student_id && handleToggleHour2(row.student_id)}
             />
           </label>
         );
@@ -84,7 +84,8 @@ export default function AttendancePage() {
     {
       label: "Excused",
       key: "excused",
-      render: (row) => {
+      render: (val, row) => {
+        if (!row?.student_id) return "-";
         const h1 = attendance[row.student_id]?.hour1;
         const h2 = attendance[row.student_id]?.hour2;
 

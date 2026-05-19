@@ -39,7 +39,7 @@ const TeacherReviewAccordion = ({ teacher, isOpen, onToggle, questions, classId,
       return;
     }
 
-    const totalRating = Object.values(answers).reduce((acc, curr) => acc + curr, 0);
+    const totalRating = (Object.values(answers) as number[]).reduce((acc, curr) => acc + curr, 0);
     const overallRating = Math.round(totalRating / questions.length);
 
     const formattedAnswers = Object.entries(answers).map(([qId, rating]) => ({

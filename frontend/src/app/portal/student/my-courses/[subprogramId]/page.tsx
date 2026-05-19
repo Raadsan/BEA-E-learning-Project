@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useGetCurrentUserQuery } from "@/redux/api/authApi";
-import { useGetClassQuery, useGetClassesQuery, useGetClassSchedulesQuery } from "@/redux/api/classApi";
-import { useGetProgramsQuery } from "@/redux/api/programApi";
-import { useGetSubprogramQuery } from "@/redux/api/subprogramApi";
+import { useGetCurrentUserQuery } from "@/lib/api/authApi";
+import { useGetClassQuery, useGetClassesQuery, useGetClassSchedulesQuery } from "@/lib/api/classApi";
+import { useGetProgramsQuery } from "@/lib/api/programApi";
+import { useGetSubprogramQuery } from "@/lib/api/subprogramApi";
 
 export default function CourseOverviewPage() {
   const { isDark } = useDarkMode();

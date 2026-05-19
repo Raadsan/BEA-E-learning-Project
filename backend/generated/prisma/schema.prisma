@@ -163,6 +163,7 @@ model assignments {
   created_by             Int?
   type                   assignments_type?        @default(assignment)
   due_date               DateTime?                @db.DateTime(0)
+  start_date             DateTime?                @db.DateTime(0)
   total_points           Int?                     @default(100)
   status                 assignments_status?      @default(active)
   created_at             DateTime?                @default(now()) @db.Timestamp(0)
@@ -294,6 +295,7 @@ model course_work {
   class_id                Int
   program_id              Int?
   due_date                DateTime?                 @db.DateTime(0)
+  start_date              DateTime?                 @db.DateTime(0)
   total_points            Int?                      @default(100)
   status                  course_work_status?       @default(active)
   created_by              Int
@@ -522,6 +524,7 @@ model oral_assignments {
   class_id                    Int
   program_id                  Int
   due_date                    DateTime?                         @db.DateTime(0)
+  start_date                  DateTime?                         @db.DateTime(0)
   total_points                Int?                              @default(100)
   status                      oral_assignments_status?          @default(active)
   created_by                  Int
@@ -765,6 +768,7 @@ model students {
   funding_month          String?                       @db.VarChar(50)
   scholarship_percentage Int?
   expiry_date            DateTime?                     @db.DateTime(0)
+  is_extended            Boolean?                      @default(false)
   reminder_sent          Boolean?                      @default(false)
   admin_expiry_notified  Boolean?                      @default(false)
   password               String                        @db.VarChar(255)

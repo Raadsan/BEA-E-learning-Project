@@ -75,6 +75,7 @@ export default function StudentsPage() {
         certificate_document: "",
         date_of_birth: "",
         place_of_birth: "",
+        approval_status: "pending",
     });
 
     // API Hooks
@@ -114,6 +115,9 @@ export default function StudentsPage() {
     // Filter States
     const [selectedProgram, setSelectedProgram] = useState("");
     const [selectedStatus, setSelectedStatus] = useState("");
+    const [selectedClass, setSelectedClass] = useState("");
+    const [sortBy, setSortBy] = useState("newest");
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     // Selection State
     const [selectedStudents, setSelectedStudents] = useState([]);
@@ -122,7 +126,8 @@ export default function StudentsPage() {
     const mergedStudents = [
         ...(backendStudents || []).map(s => ({
             ...s, id: s.student_id, type: 'regular',
-            approval_status: (s.approval_status || 'pending').toLowerCase()
+            approval_status: (s.approval_status || 'pending').toLowerCase(),
+            class_name: s.class_id ? classes.find(c => c.id == s.class_id)?.class_name : s.classes?.class_name || null
         })),
         ...ieltsStudents.map(s => ({
             ...s, full_name: `${s.first_name} ${s.last_name}`,
@@ -139,7 +144,30 @@ export default function StudentsPage() {
     const filteredStudents = mergedStudents.filter(student => {
         const matchesProgram = selectedProgram ? (student.chosen_program === selectedProgram || student.exam_type === selectedProgram) : true;
         const matchesStatus = selectedStatus ? student.approval_status === selectedStatus : true;
-        return matchesProgram && matchesStatus;
+        const matchesClass = selectedClass ? String(student.class_id) === String(selectedClass) : true;
+        return matchesProgram && matchesStatus && matchesClass;
+    });
+
+    const sortedStudents = [...filteredStudents].sort((a, b) => {
+        if (sortBy === "name-asc") {
+            return (a.full_name || "").localeCompare(b.full_name || "");
+        }
+        if (sortBy === "name-desc") {
+            return (b.full_name || "").localeCompare(a.full_name || "");
+        }
+        if (sortBy === "id-asc") {
+            return (a.student_id || "").localeCompare(b.student_id || "");
+        }
+        if (sortBy === "id-desc") {
+            return (b.student_id || "").localeCompare(a.student_id || "");
+        }
+        if (sortBy === "newest") {
+            return new Date(b.created_at || b.registration_date || 0).getTime() - new Date(a.created_at || a.registration_date || 0).getTime();
+        }
+        if (sortBy === "oldest") {
+            return new Date(a.created_at || a.registration_date || 0).getTime() - new Date(b.created_at || b.registration_date || 0).getTime();
+        }
+        return 0;
     });
 
 
@@ -160,6 +188,7 @@ export default function StudentsPage() {
             certificate_document: "",
             date_of_birth: "",
             place_of_birth: "",
+            approval_status: "pending",
         });
         setIsModalOpen(true);
     };
@@ -189,6 +218,7 @@ export default function StudentsPage() {
             certificate_document: student.certificate_document || "",
             date_of_birth: student.date_of_birth ? new Date(student.date_of_birth).toISOString().split('T')[0] : "",
             place_of_birth: student.place_of_birth || "",
+            approval_status: student.approval_status || "pending",
         });
         setIsModalOpen(true);
     };
@@ -224,7 +254,8 @@ export default function StudentsPage() {
                     return;
                 }
             }
-            const { confirmPassword, ...submitData } = formData;
+            const { confirmPassword, ...submitDataRaw } = formData;
+            const submitData: any = { ...submitDataRaw };
 
             // Sanitize numeric fields: convert "" to null or parse to number
             submitData.age = submitData.age === "" ? null : parseInt(submitData.age);
@@ -405,33 +436,70 @@ export default function StudentsPage() {
 
     const columns = [
         { key: "student_id", label: "Student ID", render: (_, row) => <span className="font-bold">{row.student_id || "N/A"}</span> },
-        { key: "full_name", label: "Full Name" },
-
-        { key: "email", label: "Email" },
+        {
+            key: "full_name",
+            label: "Student",
+            render: (val, row) => (
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full border border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0 shadow-sm relative">
+                        {row.profile_picture ? (
+                            <img
+                                src={`http://localhost:5000${row.profile_picture}`}
+                                alt={val}
+                                className="w-full h-full object-cover"
+                                onError={(e: any) => {
+                                    e.target.style.display = 'none';
+                                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                                }}
+                            />
+                        ) : null}
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm">
+                            {val ? val.charAt(0).toUpperCase() : "S"}
+                        </div>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="font-semibold text-gray-900">{val}</span>
+                        <span className="text-[11px] text-gray-400 font-medium">{row.email}</span>
+                    </div>
+                </div>
+            )
+        },
         { key: "phone", label: "Phone", render: (val) => val || "N/A" },
         { key: "age", label: "Age", render: (val) => val || "N/A" },
-        { key: "sex", label: "Sex" },
         { key: "date_of_birth", label: "Date Of Birth", render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span> },
-        { key: "place_of_birth", label: "Place Of Birth", render: (val) => val || <span className="text-gray-400">-</span> },
         {
             key: "address",
             label: "Address",
             render: (_, row) => {
                 const city = row.residency_city;
                 const country = row.residency_country;
-                if (city && country) return <span className="text-black font-semibold text-xs">{`${city}, ${country}`}</span>;
-                return <span className="text-black font-semibold text-xs">{city || country || '-'}</span>;
+                if (city && country) return <span className="text-gray-700 font-medium text-xs">{`${city}, ${country}`}</span>;
+                return <span className="text-gray-700 font-medium text-xs">{city || country || '-'}</span>;
             }
         },
         { key: "chosen_program", label: "Program" },
+        { key: "class_name", label: "Class", render: (val) => val || <span className="text-gray-400 italic">Unassigned</span> },
         {
             key: "approval_status", label: "Status",
             render: (val, row) => {
                 const s = val || 'pending';
-                return s === 'pending' ? (
-                    <button onClick={() => { setStudentToApprove(row); setIsApprovalModalOpen(true); }} className="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Pending</button>
-                ) : (
-                    <span className={`px-3 py-1 text-xs rounded-full ${s === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s}</span>
+                if (s === 'pending') {
+                    return (
+                        <button onClick={() => { setStudentToApprove(row); setIsApprovalModalOpen(true); }} className="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200 hover:bg-yellow-200 transition-colors shadow-sm">
+                            Pending
+                        </button>
+                    );
+                }
+                const statusColors = {
+                    approved: 'bg-green-100 text-green-800 border-green-200',
+                    inactive: 'bg-gray-150 text-gray-700 border-gray-300',
+                    rejected: 'bg-red-100 text-red-800 border-red-200'
+                };
+                const displayLabel = s === 'approved' ? 'Active' : s.charAt(0).toUpperCase() + s.slice(1);
+                return (
+                    <span className={`px-3 py-1 text-xs font-semibold rounded-full border shadow-xs ${statusColors[s] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+                        {displayLabel}
+                    </span>
                 );
             }
         },
@@ -439,10 +507,10 @@ export default function StudentsPage() {
             key: "actions", label: "Actions",
             render: (_, row) => (
                 <div className="flex gap-2">
-                    <button onClick={() => handleView(row)} className="text-green-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
-                    <button onClick={() => handleEdit(row)} className="text-blue-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                    {/* <button onClick={() => { setAssigningStudent(row); setSelectedClassId(row.class_id || ""); setIsAssignClassModalOpen(true); }} className="text-indigo-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></button> */}
-                    <button onClick={() => handleDeleteClick(row.id)} className="text-red-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                    <button onClick={() => handleView(row)} className="text-green-600 hover:text-green-800 transition-colors" title="View Details"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+                    <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-800 transition-colors" title="Edit Profile"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+                    <button onClick={() => { setAssigningStudent(row); setSelectedClassId(row.class_id || ""); setIsAssignClassModalOpen(true); }} className="text-indigo-600 hover:text-indigo-800 transition-colors" title="Assign Class"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></button>
+                    <button onClick={() => handleDeleteClick(row.id)} className="text-red-600 hover:text-red-800 transition-colors" title="Delete Student"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                 </div>
             ),
         },
@@ -456,29 +524,46 @@ export default function StudentsPage() {
                 <DataTable
                     title="Student Management"
                     columns={columns}
-                    data={filteredStudents}
+                    data={sortedStudents}
                     onAddClick={handleAddStudent}
                     customActions={
                         <>
+                            {/* Show All Button */}
+                            <button
+                                onClick={() => {
+                                    setSelectedProgram("");
+                                    setSelectedStatus("");
+                                    setSelectedClass("");
+                                    setSortBy("newest");
+                                    setRowsPerPage(10000); // Reset limit to show all rows in one table view
+                                }}
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors border border-gray-250 cursor-pointer text-xs h-[38px] shadow-sm"
+                                title="Clear all filters"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18v3" />
+                                </svg>
+                                Show All
+                            </button>
                             <button
                                 onClick={() => setIsBulkActionsModalOpen(true)}
                                 disabled={selectedStudents.length === 0}
-                                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${selectedStudents.length === 0
+                                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors h-[38px] text-xs font-semibold ${selectedStudents.length === 0
                                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                     : 'bg-[#010080] hover:bg-[#010080]/90 text-white'
                                     }`}
                                 title={selectedStudents.length === 0 ? "Select students to perform actions" : "Perform bulk actions"}
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>
                                 Actions
                             </button>
                             <button
                                 onClick={handleAddStudent}
-                                className="bg-[#010080] hover:bg-[#010080]/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                                className="bg-[#010080] hover:bg-[#010080]/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors h-[38px] text-xs font-semibold"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                 </svg>
                                 Add
@@ -487,20 +572,20 @@ export default function StudentsPage() {
                     }
                     showAddButton={false}
                     customHeaderLeft={
-                        <div className="flex gap-3 flex-wrap items-center">
+                        <div className="flex gap-2 flex-wrap items-center">
                             {/* Selection Counter Box */}
                             {selectedStudents.length > 0 && (
-                                <div className="px-3 py-1.5 bg-[#010080] text-white rounded-lg shadow-sm flex items-center gap-2">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="px-3 py-1 bg-[#010080] text-white rounded-lg shadow-sm flex items-center gap-2 h-[32px]">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    <span className="font-bold text-[13px]">{selectedStudents.length} selected</span>
+                                    <span className="font-bold text-[11px]">{selectedStudents.length} selected</span>
                                     <button
                                         onClick={() => setSelectedStudents([])}
                                         className="ml-1 text-white hover:text-gray-200 transition-colors"
                                         title="Clear selection"
                                     >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
@@ -508,16 +593,16 @@ export default function StudentsPage() {
                             )}
 
                             {/* Program Filter */}
-                            <div className="relative group min-w-[180px]">
-                                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="relative group w-[130px]">
+                                <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
                                 </div>
                                 <select
                                     value={selectedProgram}
                                     onChange={(e) => setSelectedProgram(e.target.value)}
-                                    className="w-full pl-10 pr-10 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[13px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer"
+                                    className="w-full pl-8 pr-7 py-1 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[11px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer h-[32px]"
                                 >
                                     <option value="">All Programs</option>
                                     {programs.map(prog => (
@@ -526,32 +611,83 @@ export default function StudentsPage() {
                                     <option value="IELTS">IELTS</option>
                                     <option value="TOEFL">TOEFL</option>
                                 </select>
-                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-gray-400">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </div>
                             </div>
 
                             {/* Status Filter */}
-                            <div className="relative group min-w-[180px]">
-                                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="relative group w-[130px]">
+                                <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <select
                                     value={selectedStatus}
                                     onChange={(e) => setSelectedStatus(e.target.value)}
-                                    className="w-full pl-10 pr-10 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[13px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer"
+                                    className="w-full pl-8 pr-7 py-1 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[11px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer h-[32px]"
                                 >
                                     <option value="">All Statuses</option>
                                     <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
+                                    <option value="approved">Active</option>
+                                    <option value="inactive">Inactive</option>
                                     <option value="rejected">Rejected</option>
                                 </select>
-                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-gray-400">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Class Filter */}
+                            <div className="relative group w-[130px]">
+                                <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                </div>
+                                <select
+                                    value={selectedClass}
+                                    onChange={(e) => setSelectedClass(e.target.value)}
+                                    className="w-full pl-8 pr-7 py-1 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[11px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer h-[32px]"
+                                >
+                                    <option value="">All Classes</option>
+                                    {classes.map(cls => (
+                                        <option key={cls.id} value={cls.id}>{cls.class_name}</option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-gray-400">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Sort Filter */}
+                            <div className="relative group w-[130px]">
+                                <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                    </svg>
+                                </div>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    className="w-full pl-8 pr-7 py-1 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[11px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer h-[32px]"
+                                >
+                                    <option value="newest">Newest to Oldest</option>
+                                    <option value="oldest">Oldest to Newest</option>
+                                    <option value="name-asc">Name: A to Z</option>
+                                    <option value="name-desc">Name: Z to A</option>
+                                    <option value="id-asc">ID: A to Z</option>
+                                    <option value="id-desc">ID: Z to A</option>
+                                </select>
+                                <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-gray-400">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </div>
@@ -561,6 +697,8 @@ export default function StudentsPage() {
                     selectable={true}
                     selectedItems={selectedStudents}
                     onSelectionChange={setSelectedStudents}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={setRowsPerPage}
                 />
             </main>
 
@@ -582,6 +720,7 @@ export default function StudentsPage() {
                 isUpdating={isUpdating}
                 isUpdatingIelts={isUpdatingIelts}
                 isCreatingIelts={isCreatingIelts}
+                isCreating={isCreating}
             />
             <StudentViewModal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} viewingStudent={viewingStudent} viewingPayments={viewingPayments} isDark={isDark} />
             <StudentApprovalModal

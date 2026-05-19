@@ -15,7 +15,7 @@ export const proficiencyTestStudentsApi = createApi({
     }),
     tagTypes: ["Candidates"],
     endpoints: (builder) => ({
-        getCandidates: builder.query({
+        getCandidates: builder.query<any, void>({
             query: () => "/all",
             providesTags: ["Candidates"],
         }),

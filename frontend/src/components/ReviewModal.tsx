@@ -5,7 +5,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 const ReviewModal = ({ isOpen, onClose, onSubmit, title, subtitle, revieweeName, questions = [], isLoading }) => {
     const { isDarkMode } = useTheme();
-    const [answers, setAnswers] = useState({});
+    const [answers, setAnswers] = useState<Record<string, number>>({});
     const [comment, setComment] = useState("");
 
     // Initialize answers when questions change

@@ -15,6 +15,7 @@ import { Country, City } from "country-state-city";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import CountrySelect from "@/components/CountrySelect";
+const PhoneInputComponent = PhoneInput as any;
 
 const EyeIcon = ({ size = 20 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
@@ -51,7 +52,7 @@ export default function RegistrationPage() {
     parent_relation: "",
     parent_res_county: "",
     parent_res_city: "",
-    parent_res_city: "",
+    chosen_subprogram: "",
     termsAccepted: false,
     confirmPassword: "",
   });
@@ -500,7 +501,7 @@ export default function RegistrationPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="relative">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                      <PhoneInput
+                      <PhoneInputComponent
                         country={(() => {
                           if (formData.residency_country) {
                             const c = Country.getAllCountries().find(c => c.name === formData.residency_country);
@@ -647,7 +648,7 @@ export default function RegistrationPage() {
 
                         <div className="relative">
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Phone</label>
-                          <PhoneInput
+                          <PhoneInputComponent
                             country={(() => {
                               if (formData.parent_res_county) {
                                 const c = Country.getAllCountries().find(c => c.name === formData.parent_res_county);

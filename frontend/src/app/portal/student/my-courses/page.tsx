@@ -30,8 +30,8 @@ export default function MyCoursesPage() {
     const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false);
     const [levelUpDescription, setLevelUpDescription] = useState("");
 
-    const { data: eligibility } = useCheckLevelUpEligibilityQuery();
-    const { data: certificates = [] } = useGetCertificatesQuery();
+    const { data: eligibility } = useCheckLevelUpEligibilityQuery(undefined);
+    const { data: certificates = [] } = useGetCertificatesQuery(undefined);
     const [createRequest] = useCreateLevelUpRequestMutation();
     const { showToast } = useToast();
 
@@ -58,7 +58,7 @@ export default function MyCoursesPage() {
     );
 
     // Fetch ALL courses to filter manually (since we want "every level's" classes assigned)
-    const { data: allCourses = [], isLoading: allCoursesLoading } = useGetCoursesQuery();
+    const { data: allCourses = [], isLoading: allCoursesLoading } = useGetCoursesQuery(undefined);
 
     // Fetch student attendance to find past classes
     const { data: attendanceData, isLoading: attendanceLoading } = useGetStudentAttendanceQuery( // Added useGetStudentAttendanceQuery

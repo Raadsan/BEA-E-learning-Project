@@ -20,7 +20,7 @@ const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
     useEffect(() => {
         if (!expiryDate) return;
         const calculate = () => {
-            const diff = Math.max(0, Math.floor((new Date(expiryDate) - new Date()) / 1000));
+            const diff = Math.max(0, Math.floor((new Date(expiryDate).getTime() - new Date().getTime()) / 1000));
             setTimeLeft(diff);
         };
         calculate();
@@ -67,9 +67,10 @@ export default function ProficiencyCandidatesPage() {
     const [extensionModalOpen, setExtensionModalOpen] = useState(false);
     const [extraTime, setExtraTime] = useState("");
     const [editModalOpen, setEditModalOpen] = useState(false);
-    const [editFormData, setEditFormData] = useState({});
+    const [editFormData, setEditFormData] = useState<any>({});
     const [statusFilter, setStatusFilter] = useState("all");
     const [verificationFilter, setVerificationFilter] = useState("all");
+    const [lifeStatusFilter, setLifeStatusFilter] = useState("all");
 
 
     const handleUpdateStatus = async (id, status) => {
@@ -82,7 +83,7 @@ export default function ProficiencyCandidatesPage() {
     };
 
     const handleExtendSubmit = async () => {
-        if (!extraTime || isNaN(extraTime)) {
+        if (!extraTime || isNaN(Number(extraTime))) {
             showToast("Please enter a valid number", 'error');
             return;
         }
@@ -208,6 +209,38 @@ export default function ProficiencyCandidatesPage() {
             label: "Program",
             render: () => <span className="text-sm text-gray-600">Proficiency Test</span>
         },
+        /* {
+            key: "time_status",
+            label: "Life Status",
+            render: (_, row) => {
+                const isExpired = row.expiry_date ? new Date(row.expiry_date) < new Date() : false;
+                const isExtended = row.is_extended;
+                const status = row.status?.toLowerCase();
+                let label = "Active";
+                let colorClass = "bg-green-100 text-green-700 border-green-200";
+                if (status === 'approved') {
+                    label = "Entered Exam";
+                    colorClass = "bg-blue-100 text-blue-700 border-blue-200";
+                } else if (isExpired) {
+                    label = "Time End";
+                    colorClass = "bg-red-100 text-red-700 border-red-200";
+                } else if (isExtended) {
+                    label = "Pending Time";
+                    colorClass = "bg-amber-100 text-amber-700 border-amber-200";
+                }
+                return (
+                    <LiveAdminTimer
+                        expiryDate={row.expiry_date}
+                        label={label}
+                        colorClass={colorClass}
+                        onClick={() => {
+                            setSelectedCandidate(row);
+                            setExtensionModalOpen(true);
+                        }}
+                    />
+                );
+            }
+        }, */
         {
             key: "status",
             label: "Status",
@@ -280,6 +313,25 @@ export default function ProficiencyCandidatesPage() {
         if (verificationFilter !== "all" && verificationFilter !== "proficiency_test") {
             return false;
         }
+        // Filter by life status
+        if (lifeStatusFilter !== "all") {
+            const isExpired = candidate.expiry_date ? new Date(candidate.expiry_date) < new Date() : false;
+            const isExtended = candidate.is_extended;
+            const status = candidate.status?.toLowerCase();
+
+            if (lifeStatusFilter === "active" && (isExpired || isExtended || status === 'approved')) {
+                return false;
+            }
+            if (lifeStatusFilter === "time_end" && !isExpired) {
+                return false;
+            }
+            if (lifeStatusFilter === "pending_time" && !isExtended) {
+                return false;
+            }
+            if (lifeStatusFilter === "entered_exam" && status !== 'approved') {
+                return false;
+            }
+        }
         return true;
     });
 
@@ -292,8 +344,7 @@ export default function ProficiencyCandidatesPage() {
                 columns={columns}
                 data={filteredCandidates}
                 isLoading={isLoading}
-                isDark={isDark}
-                itemsPerPage={10}
+                rowsPerPage={10}
                 customHeaderLeft={
                     <div className="flex gap-3 flex-wrap">
                         {/* Status Filter */}
@@ -341,6 +392,31 @@ export default function ProficiencyCandidatesPage() {
                                 </svg>
                             </div>
                         </div>
+
+                        {/*
+                        <div className="relative group min-w-[180px]">
+                            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <select
+                                value={lifeStatusFilter}
+                                onChange={(e) => setLifeStatusFilter(e.target.value)}
+                                className="w-full pl-10 pr-10 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[13px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer"
+                            >
+                                <option value="all">All Life Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="time_end">Time End</option>
+                                <option value="pending_time">Pending Time</option>
+                                <option value="entered_exam">Entered Exam</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div> */}
                     </div>
                 }
             />

@@ -1,13 +1,13 @@
 "use client";
 
 export default function AdminConfirmationModal({
-    isOpen,
-    onClose,
-    title,
-    message,
-    onConfirm,
-    isLoading,
-    isDark
+    isOpen = false,
+    onClose = () => {},
+    title = "",
+    message = "",
+    onConfirm = () => {},
+    isLoading = false,
+    isDark = false
 }) {
     if (!isOpen) return null;
 

@@ -14,7 +14,7 @@ export default function SessionChangePage() {
 
   // Use session request API
   const [createSessionRequest, { isLoading: isSubmitting }] = useCreateSessionRequestMutation();
-  const { data: myRequests = [], isLoading: isLoadingRequests } = useGetMySessionRequestsQuery();
+  const { data: myRequests = [], isLoading: isLoadingRequests } = useGetMySessionRequestsQuery(undefined);
 
   const [formData, setFormData] = useState({
     currentSession: "",

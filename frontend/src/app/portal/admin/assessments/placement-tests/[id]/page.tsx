@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useGetPlacementTestByIdQuery } from "@/redux/api/placementTestApi";
+import { useGetPlacementTestByIdQuery } from "@/lib/api/placementTestApi";
 
 import Loader from "@/components/Loader";
 

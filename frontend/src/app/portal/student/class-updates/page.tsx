@@ -10,6 +10,7 @@ export default function ClassUpdatesPage() {
   const { isDark } = useDarkMode();
   const { data: user } = useGetCurrentUserQuery();
   const { data: updates, isLoading, error } = useGetAnnouncementsQuery(
+    undefined,
     { skip: !user?.class_id }
   );
 

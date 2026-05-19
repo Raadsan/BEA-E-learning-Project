@@ -1,12 +1,10 @@
 "use client";
 
-import StudentHeader from "@/components/student/StudentHeader";
 import Link from "next/link";
 
 export default function AssignmentsPage() {
   return (
     <>
-      <StudentHeader />
       <main className="flex-1 overflow-y-auto">
         <div className="w-full py-6">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Assignments & Assessments</h1>

@@ -5,7 +5,7 @@ import ReviewModal from "../ReviewModal";
 import { useSubmitStudentReviewMutation, useGetQuestionsQuery, useGetStudentReviewsByTeacherQuery } from "@/lib/api/reviewApi";
 import { useToast } from "@/components/Toast";
 
-const TeacherReviewForm = ({ student, classId, termSerial, onComplete }) => {
+const TeacherReviewForm = ({ student, classId, termSerial, onComplete }: { student: any; classId: any; termSerial: any; onComplete?: any }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [locallyReviewed, setLocallyReviewed] = useState(false);
     const { showToast } = useToast();

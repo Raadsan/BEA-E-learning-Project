@@ -13,23 +13,23 @@ export const teacherApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Teachers"],
+  tagTypes: ["Teachers", "Attendance"],
   endpoints: (builder) => ({
     getTeacherDashboardStats: builder.query({
-      query: ({ month, year } = {}) => {
+      query: ({ month, year }: { month?: string | number; year?: string | number } = {}) => {
         const params = new URLSearchParams();
-        if (month) params.append("month", month);
-        if (year) params.append("year", year);
+        if (month) params.append("month", month.toString());
+        if (year) params.append("year", year.toString());
         const queryStr = params.toString();
         return `/dashboard/stats${queryStr ? `?${queryStr}` : ""}`;
       },
       providesTags: ["Teachers"],
     }),
-    getTeacherClasses: builder.query({
+    getTeacherClasses: builder.query<any, void>({
       query: () => "/classes",
       providesTags: ["Teachers"],
     }),
-    getTeacherPrograms: builder.query({
+    getTeacherPrograms: builder.query<any, void>({
       query: () => "/programs",
       providesTags: ["Teachers"],
     }),
@@ -38,16 +38,16 @@ export const teacherApi = createApi({
     }),
     saveAttendance: builder.mutation({
       query: (body) => ({
-        url: "${API_URL}/attendance",
+        url: `${API_URL}/attendance`,
         method: "POST",
         body,
       }),
       invalidatesTags: ["Attendance"],
     }),
-    getAttendanceReport: builder.query({
-      query: () => "${API_URL}/attendance/report",
+    getAttendanceReport: builder.query<any, void>({
+      query: () => `${API_URL}/attendance/report`,
     }),
-    getTeachers: builder.query({
+    getTeachers: builder.query<any, void>({
       query: () => "/",
       providesTags: ["Teachers"],
     }),
@@ -92,6 +92,14 @@ export const teacherApi = createApi({
       }),
       invalidatesTags: ["Teachers"],
     }),
+    bulkActionTeachers: builder.mutation({
+      query: (body) => ({
+        url: "/bulk-action",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Teachers"],
+    }),
   }),
 });
 
@@ -101,6 +109,7 @@ export const {
   useCreateTeacherMutation,
   useUpdateTeacherMutation,
   useDeleteTeacherMutation,
+  useBulkActionTeachersMutation,
   useGetTeacherDashboardStatsQuery,
   useGetTeacherClassesQuery,
   useGetTeacherProgramsQuery,

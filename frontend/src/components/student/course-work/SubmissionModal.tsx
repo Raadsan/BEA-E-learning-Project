@@ -38,39 +38,21 @@ export default function SubmissionModal({ assignment, onClose, onSuccess }) {
         try {
             setUploading(true);
 
-            // 1. Upload File
+            // Submit Assignment directly with file using multipart/form-data
             const formData = new FormData();
+            formData.append("assignment_id", assignment.id.toString());
+            formData.append("content", description || "File submission");
+            formData.append("type", "course_work");
             formData.append("file", file);
 
-            const uploadRes = await fetch(`${API_URL}/uploads`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
-                },
-                body: formData,
-            });
-
-            if (!uploadRes.ok) {
-                throw new Error("File upload failed");
-            }
-
-            const uploadData = await uploadRes.json();
-            const fileUrl = uploadData.url;
-
-            // 2. Submit Assignment with File URL and Description
-            await submitAssignment({
-                assignment_id: assignment.id,
-                content: description || "File submission", // Use description if provided, otherwise default text
-                file_url: fileUrl,
-                type: 'course_work'
-            }).unwrap();
+            await submitAssignment(formData).unwrap();
 
             showToast("Assignment submitted successfully!", "success");
             onSuccess();
             onClose();
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            showToast(err.message || "Failed to submit assignment", "error");
+            showToast(err.data?.error || err.message || "Failed to submit assignment", "error");
         } finally {
             setUploading(false);
         }

@@ -67,10 +67,15 @@ export default function StudentSettingsPage() {
                 showToast("Passwords do not match", "error");
                 return;
             }
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+            if (!passwordRegex.test(formData.password)) {
+                showToast("Password must be at least 6 characters and include uppercase, lowercase, number, and symbol", "error");
+                return;
+            }
         }
 
         try {
-            const updateData = {
+            const updateData: any = {
                 full_name: formData.full_name,
                 email: formData.email,
                 phone: formData.phone,

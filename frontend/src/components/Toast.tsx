@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
-const ToastContext = createContext();
+const ToastContext = createContext<any>(null);
 
 export const useToast = () => {
     const context = useContext(ToastContext);
@@ -99,7 +99,7 @@ export const ToastProvider = ({ children }) => {
 };
 
 // Export a simple Toast component for individual use
-export const Toast = ({ message, type = 'success', onClose, duration }) => {
+export const Toast = ({ message, type = 'success', onClose, duration = 3000 }) => {
     return (
         <div className={`fixed top-4 right-4 z-[9999] min-w-[320px] max-w-md p-4 pr-6 rounded-xl shadow-xl border flex items-center gap-3 ${type === 'success'
             ? 'bg-[#f0fdf4] border-[#dcfce7] text-[#166534]' :

@@ -17,7 +17,7 @@ export const learningHoursApi = createApi({
     tagTypes: ["LearningHours"],
     endpoints: (builder) => ({
         getLearningHours: builder.query({
-            query: ({ program_id, class_id, timeFrame = 'Weekly' } = {}) => {
+            query: ({ program_id, class_id, timeFrame = 'Weekly' }: { program_id?: string; class_id?: string; timeFrame?: string } = {}) => {
                 const params = new URLSearchParams();
                 if (program_id) params.append("program_id", program_id);
                 if (class_id) params.append("class_id", class_id);
@@ -27,7 +27,7 @@ export const learningHoursApi = createApi({
             providesTags: ["LearningHours"],
         }),
         getLearningHoursSummary: builder.query({
-            query: ({ program_id, class_id, student_id, subprogram_name } = {}) => {
+            query: ({ program_id, class_id, student_id, subprogram_name }: { program_id?: string; class_id?: string; student_id?: string; subprogram_name?: string } = {}) => {
                 const params = new URLSearchParams();
                 if (program_id) params.append("program_id", program_id);
                 if (class_id) params.append("class_id", class_id);
@@ -38,7 +38,7 @@ export const learningHoursApi = createApi({
             providesTags: ["LearningHours"],
         }),
         getAdminLearningHours: builder.query({
-            query: ({ program_id, class_id, timeFrame = 'Weekly' } = {}) => {
+            query: ({ program_id, class_id, timeFrame = 'Weekly' }: { program_id?: string; class_id?: string; timeFrame?: string } = {}) => {
                 const params = new URLSearchParams();
                 if (program_id) params.append("program_id", program_id);
                 if (class_id) params.append("class_id", class_id);

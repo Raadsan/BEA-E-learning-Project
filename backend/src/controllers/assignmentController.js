@@ -1,7 +1,7 @@
 import prisma from '../lib/prisma.js';
 
 const tableMapping = {
-    'writing_task': { main: 'writing_tasks', sub: 'writing_task_submissions' },
+    'writing_task': { main: 'assignments', sub: 'assignment_submissions' },
     'exam': { main: 'exams', sub: 'exam_submissions' },
     'oral_assignment': { main: 'oral_assignments', sub: 'oral_assignment_submissions' },
     'course_work': { main: 'course_work', sub: 'course_work_submissions' }
@@ -16,6 +16,26 @@ export const getAssignments = async (req, res) => {
         const typesToQuery = type ? [type] : Object.keys(tableMapping);
         let allAssignments = [];
 
+        // Fetch all classes, programs, and subprograms to map names manually
+        const allClasses = await prisma.classes.findMany({
+            select: { id: true, class_name: true }
+        });
+        const allPrograms = await prisma.programs.findMany({
+            select: { id: true, title: true }
+        });
+        const allSubprograms = await prisma.subprograms.findMany({
+            select: { id: true, subprogram_name: true }
+        });
+
+        const classMap = {};
+        allClasses.forEach(c => { classMap[c.id] = c.class_name; });
+
+        const programMap = {};
+        allPrograms.forEach(p => { programMap[p.id] = p.title; });
+
+        const subprogramMap = {};
+        allSubprograms.forEach(sp => { subprogramMap[sp.id] = sp.subprogram_name; });
+
         for (const t of typesToQuery) {
             const modelName = tableMapping[t]?.main;
             const subModelName = tableMapping[t]?.sub;
@@ -25,7 +45,12 @@ export const getAssignments = async (req, res) => {
             if (role === 'student') {
                 where.status = 'active';
                 // Simplified logic: filter by class_id or subprogram_id if provided
-                if (class_id) where.class_id = parseInt(class_id);
+                if (class_id) {
+                    where.OR = [
+                        { class_id: parseInt(class_id) },
+                        { class_id: null }
+                    ];
+                }
                 if (subprogram_id) where.subprogram_id = parseInt(subprogram_id);
             } else {
                 if (class_id) where.class_id = parseInt(class_id);
@@ -34,18 +59,20 @@ export const getAssignments = async (req, res) => {
 
             const assignments = await prisma[modelName].findMany({
                 where,
-                include: {
-                    classes: true,
-                    programs: true,
-                    // Note: subprograms relation might not exist in all models if it wasn't defined in DB
-                    // I'll skip it for now or check schema
-                },
                 orderBy: { created_at: 'desc' }
             });
 
+            // Map class, program, and subprogram names
+            const mappedAssignments = assignments.map(a => ({
+                ...a,
+                class_name: classMap[a.class_id] || "General",
+                program_name: programMap[a.program_id] || "N/A",
+                subprogram_name: subprogramMap[a.subprogram_id] || "N/A"
+            }));
+
             // If student, also fetch their submissions for these assignments
             if (role === 'student') {
-                for (let a of assignments) {
+                for (let a of mappedAssignments) {
                     const submission = await prisma[subModelName].findUnique({
                         where: {
                             assignment_id_student_id: {
@@ -55,10 +82,22 @@ export const getAssignments = async (req, res) => {
                         }
                     });
                     a.submission = submission;
+                    // Flatten submission fields for easy frontend access
+                    if (submission) {
+                        a.submission_status = submission.status;
+                        a.score = submission.score;
+                        a.feedback = submission.feedback;
+                        a.file_url = submission.file_url;
+                        a.student_content = submission.content;
+                        a.feedback_file_url = submission.feedback_file_url;
+                    } else {
+                        a.submission_status = null;
+                    }
                 }
             }
 
-            allAssignments = [...allAssignments, ...assignments.map(a => ({ ...a, type: t }))];
+            allAssignments = [...allAssignments, ...mappedAssignments.map(a => ({ ...a, type: t }))];
+
         }
 
         allAssignments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -90,12 +129,15 @@ export const createAssignment = async (req, res) => {
         if (type === 'writing_task') {
             prismaData.word_count = data.word_count ? parseInt(data.word_count) : null;
             prismaData.requirements = data.requirements;
+            prismaData.start_date = data.start_date ? new Date(data.start_date) : null;
         } else if (['exam', 'oral_assignment', 'course_work'].includes(type)) {
             prismaData.subprogram_id = data.subprogram_id ? parseInt(data.subprogram_id) : null;
             prismaData.questions = data.questions ? (typeof data.questions === 'string' ? data.questions : JSON.stringify(data.questions)) : null;
+            prismaData.start_date = data.start_date ? new Date(data.start_date) : null;
             if (type === 'exam') {
-                prismaData.start_date = data.start_date ? new Date(data.start_date) : null;
                 prismaData.end_date = data.end_date ? new Date(data.end_date) : null;
+                prismaData.duration = data.duration ? parseInt(data.duration) : null;
+            } else if (type === 'oral_assignment' || type === 'course_work') {
                 prismaData.duration = data.duration ? parseInt(data.duration) : null;
             }
         }
@@ -196,13 +238,13 @@ export const getAssignmentStats = async (req, res) => {
         }
 
         const examsCount = await prisma.exams.count({ where: examWhere });
-        const writingTasksCount = await prisma.writing_tasks.count({ where: writingWhere });
+        const writingTasksCount = await prisma.assignments.count({ where: writingWhere });
         const oralAssignmentsCount = await prisma.oral_assignments.count({ where: oralWhere });
         const courseworkCount = await prisma.course_work.count({ where: courseworkWhere });
 
         // Counts of submissions
         const examSubs = await prisma.exam_submissions.count();
-        const writingSubs = await prisma.writing_task_submissions.count();
+        const writingSubs = await prisma.assignment_submissions.count();
         const oralSubs = await prisma.oral_assignment_submissions.count();
         const courseworkSubs = await prisma.course_work_submissions.count();
 
@@ -237,3 +279,140 @@ export const getPerformanceClusters = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// GET ASSIGNMENT SUBMISSIONS BY ASSIGNMENT ID
+export const getAssignmentSubmissions = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { type } = req.query;
+
+        const subModelName = tableMapping[type]?.sub;
+        if (!subModelName) return res.status(400).json({ error: "Invalid type" });
+
+        const submissions = await prisma[subModelName].findMany({
+            where: { assignment_id: parseInt(id) },
+            orderBy: { submission_date: 'desc' }
+        });
+
+        // Map student names manually
+        const studentIds = [...new Set(submissions.map(s => s.student_id).filter(Boolean))];
+        const students = await prisma.students.findMany({
+            where: { student_id: { in: studentIds } },
+            select: { student_id: true, full_name: true }
+        });
+
+        const studentMap = {};
+        students.forEach(s => { studentMap[s.student_id] = s.full_name; });
+
+        const mappedSubmissions = submissions.map(s => ({
+            ...s,
+            student_name: studentMap[s.student_id] || "Unknown Student",
+            student: { full_name: studentMap[s.student_id] || "Unknown Student" }
+        }));
+
+        res.json(mappedSubmissions);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// GET ALL SUBMISSIONS
+export const getAllSubmissions = async (req, res) => {
+    try {
+        const { type } = req.query;
+
+        const subModelName = tableMapping[type]?.sub;
+        if (!subModelName) return res.status(400).json({ error: "Invalid type" });
+
+        const submissions = await prisma[subModelName].findMany({
+            orderBy: { submission_date: 'desc' }
+        });
+
+        // Map student names manually
+        const studentIds = [...new Set(submissions.map(s => s.student_id).filter(Boolean))];
+        const students = await prisma.students.findMany({
+            where: { student_id: { in: studentIds } },
+            select: { student_id: true, full_name: true }
+        });
+
+        const studentMap = {};
+        students.forEach(s => { studentMap[s.student_id] = s.full_name; });
+
+        const mappedSubmissions = submissions.map(s => ({
+            ...s,
+            student_name: studentMap[s.student_id] || "Unknown Student",
+            student: { full_name: studentMap[s.student_id] || "Unknown Student" }
+        }));
+
+        res.json(mappedSubmissions);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// UPDATE ASSIGNMENT
+export const updateAssignment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { type, ...data } = req.body;
+        const modelName = tableMapping[type]?.main;
+        if (!modelName) return res.status(400).json({ error: "Invalid type" });
+
+        // Clean and prepare update payload
+        const prismaData = {
+            title: data.title,
+            description: data.description,
+            class_id: data.class_id ? parseInt(data.class_id) : undefined,
+            program_id: data.program_id ? parseInt(data.program_id) : undefined,
+            due_date: data.due_date ? new Date(data.due_date) : null,
+            total_points: data.total_points ? parseInt(data.total_points) : undefined,
+            status: data.status || undefined,
+        };
+
+        if (type === 'writing_task') {
+            prismaData.word_count = data.word_count ? parseInt(data.word_count) : undefined;
+            prismaData.requirements = data.requirements;
+            prismaData.start_date = data.start_date ? new Date(data.start_date) : null;
+            prismaData.duration = data.duration ? parseInt(data.duration) : null;
+        } else if (['exam', 'oral_assignment', 'course_work'].includes(type)) {
+            prismaData.subprogram_id = data.subprogram_id ? parseInt(data.subprogram_id) : undefined;
+            prismaData.questions = data.questions ? (typeof data.questions === 'string' ? data.questions : JSON.stringify(data.questions)) : undefined;
+            prismaData.start_date = data.start_date ? new Date(data.start_date) : null;
+            if (type === 'exam') {
+                prismaData.end_date = data.end_date ? new Date(data.end_date) : null;
+                prismaData.duration = data.duration ? parseInt(data.duration) : undefined;
+            } else if (type === 'oral_assignment' || type === 'course_work') {
+                prismaData.duration = data.duration ? parseInt(data.duration) : undefined;
+            }
+        }
+
+        const updated = await prisma[modelName].update({
+            where: { id: parseInt(id) },
+            data: prismaData
+        });
+
+        res.json({ message: "Updated successfully", assignment: updated });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// DELETE ASSIGNMENT
+export const deleteAssignment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { type } = req.query;
+        const modelName = tableMapping[type]?.main;
+        if (!modelName) return res.status(400).json({ error: "Invalid type" });
+
+        await prisma[modelName].delete({
+            where: { id: parseInt(id) }
+        });
+
+        res.json({ message: "Deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+

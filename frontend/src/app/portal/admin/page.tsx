@@ -256,7 +256,7 @@ export default function AdminDashboard() {
           {/* Performance Clusters and Student Locations */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <PerformanceClustersChart programs={programsData} classes={classesData} />
-            <StudentLocationsMap programs={programsData} students={studentsData} classes={classesData} />
+            <StudentLocationsMap programs={programsData} classes={classesData} />
           </div>
 
           {/* Programs Pie Chart and Upcoming Events */}

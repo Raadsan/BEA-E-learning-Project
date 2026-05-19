@@ -26,20 +26,20 @@ const ACCENT_RED = "#f40606";
 
 
 const StudentProgressReportView = ({
-    student = {},
-    summary = {},
-    performance = [],
-    submissions = [],
-    recentFeedback = [],
-    periods = [],
+    student = {} as any,
+    summary = {} as any,
+    performance = [] as any[],
+    submissions = [] as any[],
+    recentFeedback = [] as any[],
+    periods = [] as any[],
     selectedPeriod = "",
-    onPeriodChange = () => { },
+    onPeriodChange = (val: string) => { },
     isLoading = false,
     isDark = false,
     showLedger = true
 }) => {
-    const printRef = useRef();
-    const tabularPrintRef = useRef();
+    const printRef = useRef<any>(null);
+    const tabularPrintRef = useRef<any>(null);
     const isEndOfTerm = selectedPeriod ? (selectedPeriod.toLowerCase().includes('final') || selectedPeriod.toLowerCase().includes('end')) : false;
     const selectedPeriodLabel = selectedPeriod ? (periods.find(p => p.period === selectedPeriod)?.label || selectedPeriod) : "Overall Report";
 

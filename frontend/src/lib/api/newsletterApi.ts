@@ -15,7 +15,7 @@ export const newsletterApi = createApi({
     }),
     tagTypes: ["Newsletters"],
     endpoints: (builder) => ({
-        getSubscribers: builder.query({
+        getSubscribers: builder.query<any, void>({
             query: () => "/newsletter/subscribers",
             providesTags: ["Newsletters"],
         }),

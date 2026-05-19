@@ -31,7 +31,7 @@ export const authApi = createApi({
         method: "POST",
         body: credentials,
       }),
-      transformResponse: (response) => {
+      transformResponse: (response: any) => {
         if (response.success && response.token) {
           // Store token in localStorage
           if (typeof window !== "undefined") {
@@ -44,10 +44,10 @@ export const authApi = createApi({
     }),
 
     // GET CURRENT USER
-    getCurrentUser: builder.query({
+    getCurrentUser: builder.query<any, void>({
       query: () => "/me",
       providesTags: ["Auth"],
-      transformResponse: (response) => {
+      transformResponse: (response: any) => {
         if (response.success) {
           // Update localStorage with fresh user data
           if (typeof window !== "undefined") {
@@ -60,7 +60,7 @@ export const authApi = createApi({
     }),
 
     // LOGOUT (client-side only)
-    logout: builder.mutation({
+    logout: builder.mutation<any, void>({
       queryFn: () => {
         if (typeof window !== "undefined") {
           localStorage.removeItem("token");

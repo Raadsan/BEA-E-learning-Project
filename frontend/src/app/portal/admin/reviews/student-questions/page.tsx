@@ -145,8 +145,7 @@ export default function StudentQuestionsPage() {
                 columns={columns}
                 data={questions || []}
                 isLoading={isLoading}
-                searchPlaceholder="Search questions..."
-                itemsPerPage={10}
+                rowsPerPage={10}
                 onAddClick={() => handleOpenModal()}
                 showAddButton={true}
             />

@@ -6,7 +6,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 export default function ProfessionalSkillsProgram() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({ table: true, benefits: true });
+  const [visibleSections, setVisibleSections] = useState<any>({ table: true, benefits: true });
   const sectionRefs = {
     hero: useRef(null),
     intro: useRef(null),

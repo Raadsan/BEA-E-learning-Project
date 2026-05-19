@@ -158,7 +158,6 @@ export default function ProgramStudentsPage() {
                         columns={columns}
                         data={filteredStudents}
                         showAddButton={false}
-                        searchPlaceholder="Search students..."
                     />
                 </div>
             </main>

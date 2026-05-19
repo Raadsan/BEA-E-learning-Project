@@ -167,7 +167,7 @@ export default function AssessmentReportsPage() {
 
     // Query Params
     const queryParams = useMemo(() => {
-        const p = {};
+        const p: Record<string, string> = {};
         if (selectedProgram) p.program = selectedProgram;
         if (selectedClass) p.class_id = selectedClass;
         return p;

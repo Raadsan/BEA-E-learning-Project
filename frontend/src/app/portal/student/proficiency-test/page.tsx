@@ -47,7 +47,7 @@ export default function ProficiencyTestPage() {
             if (!expiry || isNaN(expiry.getTime())) return;
 
             const now = new Date();
-            const diff = Math.max(0, Math.floor((expiry - now) / 1000));
+            const diff = Math.max(0, Math.floor((expiry.getTime() - now.getTime()) / 1000));
             setWindowTimeLeft(diff);
         };
 

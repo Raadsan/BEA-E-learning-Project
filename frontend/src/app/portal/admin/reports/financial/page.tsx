@@ -31,13 +31,13 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
     const successRate = data.length ? Math.round((successfulCount / data.length) * 100) : 0;
 
     // Calculate income by program for the summary table
-    const programRevenue = data.reduce((acc, curr) => {
+    const programRevenue = data.reduce((acc: Record<string, number>, curr) => {
         const prog = curr.program || 'Unassigned';
         acc[prog] = (acc[prog] || 0) + parseFloat(curr.amount || 0);
         return acc;
-    }, {});
+    }, {} as Record<string, number>);
 
-    const sortedPrograms = Object.entries(programRevenue).sort((a, b) => b[1] - a[1]);
+    const sortedPrograms = Object.entries(programRevenue).sort((a, b) => (b[1] as number) - (a[1] as number));
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -106,7 +106,7 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
                                     {sortedPrograms.map(([name, value], i) => (
                                         <tr key={i} className="hover:bg-gray-50">
                                             <td className="px-4 py-2 text-sm text-gray-800 border-b">{name}</td>
-                                            <td className="px-4 py-2 text-sm font-bold text-[#010080] border-b text-right">${parseFloat(value).toLocaleString()} USD</td>
+                                            <td className="px-4 py-2 text-sm font-bold text-[#010080] border-b text-right">${parseFloat(value as any).toLocaleString()} USD</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -118,7 +118,7 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
                             <table className="w-full border-collapse">
                                 <thead>
                                     <tr>
-                                        <th colSpan="8" className="bg-[#010080] text-white text-sm font-bold uppercase px-4 py-3 text-left border-2 border-[#010080]">TRANSACTION DETAILS</th>
+                                        <th colSpan={8} className="bg-[#010080] text-white text-sm font-bold uppercase px-4 py-3 text-left border-2 border-[#010080]">TRANSACTION DETAILS</th>
                                     </tr>
                                     <tr className="bg-[#010080] text-white">
                                         <th className="px-4 py-3 text-xs font-bold uppercase text-left border border-gray-300">Student ID</th>
@@ -155,9 +155,9 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
                                     ))}
                                     {/* Total Row */}
                                     <tr className="bg-[#010080] text-white font-bold">
-                                        <td colSpan="3" className="border-2 border-gray-300 px-4 py-3 text-sm uppercase text-right">TOTAL:</td>
+                                        <td colSpan={3} className="border-2 border-gray-300 px-4 py-3 text-sm uppercase text-right">TOTAL:</td>
                                         <td className="border-2 border-gray-300 px-4 py-3 text-sm text-center">${totalAmount} USD</td>
-                                        <td colSpan="4" className="border-2 border-gray-300 px-4 py-3 text-xs text-gray-200">All Transactions</td>
+                                        <td colSpan={4} className="border-2 border-gray-300 px-4 py-3 text-xs text-gray-200">All Transactions</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -232,8 +232,8 @@ export default function PaymentReportsPage() {
     const [triggerFetchAll, { isLoading: isFetchingFullReport }] = useLazyGetDetailedPaymentListQuery();
 
     // Data Queries
-    const { data: stats, isLoading: statsLoading } = useGetPaymentStatsQuery();
-    const { data: distribution, isLoading: distLoading } = useGetPaymentDistributionQuery();
+    const { data: stats, isLoading: statsLoading } = useGetPaymentStatsQuery({});
+    const { data: distribution, isLoading: distLoading } = useGetPaymentDistributionQuery({});
     const { data: detailedData, isLoading: listLoading } = useGetDetailedPaymentListQuery({
         status: selectedStatus,
         method: selectedMethod,
@@ -526,7 +526,6 @@ export default function PaymentReportsPage() {
                     columns={columns}
                     data={paymentsList}
                     showAddButton={false}
-                    isDark={isDark}
                 />
 
                 <ReportModal
@@ -536,6 +535,7 @@ export default function PaymentReportsPage() {
                     onPrint={() => window.print()}
                     onExport={() => handleExportCSV(reportPayments)}
                     isDark={isDark}
+                    title="Financial Registry Audit Report"
                 />
             </div>
         </div>

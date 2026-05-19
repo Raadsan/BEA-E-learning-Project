@@ -5,8 +5,8 @@ import { useDarkMode } from "@/context/ThemeContext";
 import Link from "next/link";
 
 // Import both views
-import TimeBasedView from "./TimeBasedView";
-import WeeklyScheduleView from "./weekly-schedule";
+import TimeBasedView from "@/components/admin/timetable/TimeBasedView";
+import WeeklyScheduleView from "@/components/admin/timetable/weekly-schedule";
 
 export default function TimetablePage() {
     const { isDark } = useDarkMode();

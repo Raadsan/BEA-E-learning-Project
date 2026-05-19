@@ -7,7 +7,7 @@ import BEAExamRegistration from "./BEAExamRegistration";
 
 export default function BEAExams() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({});
+  const [visibleSections, setVisibleSections] = useState<any>({});
   const [showModal, setShowModal] = useState(false);
   const [selectedExamType, setSelectedExamType] = useState("proficiency");
 

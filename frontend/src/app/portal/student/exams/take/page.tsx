@@ -7,6 +7,7 @@ import Loader from "@/components/Loader";
 import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useToast } from "@/components/Toast";
+import { API_URL } from "@/constants";
 
 export default function TakeExamPage() {
     const { isDark } = useDarkMode();
@@ -141,18 +142,69 @@ export default function TakeExamPage() {
     const [oralFilePreviewUrl, setOralFilePreviewUrl] = useState(null);
     const fileInputRef = useRef(null);
 
-    useEffect(() => {
-        if (assignment?.duration && timeRemaining === null) {
-            setTimeRemaining(assignment.duration * 60);
+    // Persistent Timer Key
+    const timerKey = useMemo(() => {
+        if (user?.id && testId) {
+            return `exam_timer_${user.id}_${testId}`;
         }
-    }, [assignment]);
+        return null;
+    }, [user?.id, testId]);
 
+    // Initialize/read persistent timer when exam is opened
     useEffect(() => {
-        if (timeRemaining === 0) handleFinalSubmit(true);
-        if (timeRemaining === null || timeRemaining <= 0) return;
-        const timer = setInterval(() => setTimeRemaining(p => p - 1), 1000);
+        if (!assignment?.duration || !timerKey || timeRemaining !== null) return;
+
+        const savedTarget = localStorage.getItem(timerKey);
+        let targetTime;
+
+        if (savedTarget) {
+            targetTime = parseInt(savedTarget, 10);
+        } else {
+            targetTime = Date.now() + assignment.duration * 60 * 1000;
+            localStorage.setItem(timerKey, targetTime.toString());
+        }
+
+        const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
+        setTimeRemaining(remaining);
+
+        if (remaining <= 0) {
+            handleFinalSubmit(true);
+        }
+    }, [assignment, timerKey, timeRemaining]);
+
+    // Timer countdown loop
+    useEffect(() => {
+        if (timeRemaining === null || !timerKey) return;
+
+        if (timeRemaining <= 0) {
+            handleFinalSubmit(true);
+            return;
+        }
+
+        const timer = setInterval(() => {
+            const savedTarget = localStorage.getItem(timerKey);
+            if (savedTarget) {
+                const targetTime = parseInt(savedTarget, 10);
+                const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
+                setTimeRemaining(remaining);
+                if (remaining <= 0) {
+                    clearInterval(timer);
+                    handleFinalSubmit(true);
+                }
+            } else {
+                setTimeRemaining(p => {
+                    if (p <= 1) {
+                        clearInterval(timer);
+                        handleFinalSubmit(true);
+                        return 0;
+                    }
+                    return p - 1;
+                });
+            }
+        }, 1000);
+
         return () => clearInterval(timer);
-    }, [timeRemaining]);
+    }, [timeRemaining, timerKey]);
 
     const handleAnswerChange = (key, value) => {
         setAnswers(prev => ({ ...prev, [key]: value }));
@@ -233,20 +285,23 @@ export default function TakeExamPage() {
             let submitData;
             if (uploadedOralFile) {
                 const formData = new FormData();
-                formData.append('assignment_id', parseInt(testId));
+                formData.append('assignment_id', testId || "");
                 formData.append('type', "exam");
                 formData.append('content', JSON.stringify(processedAnswers));
                 formData.append('file', uploadedOralFile);
                 submitData = formData;
             } else {
                 submitData = {
-                    assignment_id: parseInt(testId),
+                    assignment_id: parseInt(testId || "0", 10),
                     content: processedAnswers,
                     type: "exam"
                 };
             }
 
             await submitAssignment(submitData).unwrap();
+            if (timerKey) {
+                localStorage.removeItem(timerKey);
+            }
             router.push(`/portal/student/exams/results?id=${testId}`);
             showToast(auto ? "Time's up! Exam auto-submitted." : "Exam submitted successfully!", "success");
         } catch (err) {

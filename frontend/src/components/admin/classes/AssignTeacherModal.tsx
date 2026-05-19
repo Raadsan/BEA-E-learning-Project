@@ -48,7 +48,8 @@ export default function AssignTeacherModal({
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
-                        const teacherId = e.target.teacher_id.value ? parseInt(e.target.teacher_id.value) : null;
+                        const target = e.currentTarget as any;
+                        const teacherId = target.teacher_id.value ? parseInt(target.teacher_id.value) : null;
                         onAssign(teacherId);
                     }}
                     className="p-6 space-y-4"

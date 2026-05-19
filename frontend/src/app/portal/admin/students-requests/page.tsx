@@ -14,9 +14,9 @@ import { useState } from "react";
 
 export default function AdminStudentsRequestsPage() {
     const { isDark } = useDarkMode();
-    const { data: sessionRequests = [], isLoading: sessionLoading } = useGetSessionRequestsQuery();
-    const { data: freezingRequests = [], isLoading: freezingLoading } = useGetFreezingRequestsQuery();
-    const { data: levelUpRequests = [], isLoading: levelUpLoading } = useGetLevelUpRequestsQuery();
+    const { data: sessionRequests = [], isLoading: sessionLoading } = useGetSessionRequestsQuery(undefined);
+    const { data: freezingRequests = [], isLoading: freezingLoading } = useGetFreezingRequestsQuery(undefined);
+    const { data: levelUpRequests = [], isLoading: levelUpLoading } = useGetLevelUpRequestsQuery(undefined);
     const { data: allClasses = [] } = useGetClassesQuery();
     const { data: subprograms = [] } = useGetSubprogramsQuery();
     const [updateLevelUpStatus] = useUpdateLevelUpRequestStatusMutation();

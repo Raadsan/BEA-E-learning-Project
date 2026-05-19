@@ -15,7 +15,7 @@ export const newsApi = createApi({
     }),
     tagTypes: ["News"],
     endpoints: (builder) => ({
-        getNews: builder.query({
+        getNews: builder.query<any, boolean | void>({
             query: (all = false) => all ? "/news?all=true" : "/news",
             providesTags: ["News"],
         }),

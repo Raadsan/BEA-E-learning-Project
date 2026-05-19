@@ -3,11 +3,40 @@
 import { useGetAllStudentReviewsQuery } from "@/lib/api/reviewApi";
 import { useState } from "react";
 import { format, isValid } from "date-fns";
+import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable"; // Assuming this is confirmed path
 
 export default function StudentReviewsPage() {
-    const { data: reviews, isLoading } = useGetAllStudentReviewsQuery();
-    const [selectedReview, setSelectedReview] = useState(null);
+    const { isDark } = useDarkMode();
+    const { data: reviews = [], isLoading } = useGetAllStudentReviewsQuery(undefined);
+    const [selectedReview, setSelectedReview] = useState<any>(null);
+    const [selectedClassFilter, setSelectedClassFilter] = useState<string>("");
+
+    // Class list extracted from student reviews
+    const uniqueClasses = [...new Set((reviews || []).map((r: any) => r.class_name).filter(Boolean))] as string[];
+
+    const filteredReviews = (reviews || []).filter((r: any) => {
+        if (!selectedClassFilter) return true;
+        return r.class_name?.toLowerCase() === selectedClassFilter.toLowerCase();
+    });
+
+    const classFilterDropdown = (
+        <select
+            value={selectedClassFilter}
+            onChange={(e) => setSelectedClassFilter(e.target.value)}
+            className={`px-3 py-1 text-xs font-bold rounded-lg border outline-none transition-all h-[32px] ${
+                isDark
+                    ? "bg-gray-800 border-gray-700 text-white focus:border-blue-500"
+                    : "bg-white border-gray-250 text-gray-750 focus:border-blue-500 shadow-sm"
+            }`}
+        >
+            <option value="">Filter by Class (All)</option>
+            {uniqueClasses.map(cls => (
+                <option key={cls} value={cls}>{cls}</option>
+            ))}
+        </select>
+    );
+
 
     const columns = [
         { key: "student_id", label: "Student ID", sortable: true },
@@ -68,14 +97,17 @@ export default function StudentReviewsPage() {
 
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Student Reviews</h1>
+            <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-800">
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Student Reviews</h1>
+                <p className="text-sm text-gray-500 mt-1">Overview of course feedback and evaluations submitted by students.</p>
+            </div>
 
             <DataTable
                 columns={columns}
-                data={reviews || []}
+                data={filteredReviews}
                 isLoading={isLoading}
-                searchPlaceholder="Search reviews..."
-                itemsPerPage={10}
+                rowsPerPage={10}
+                filters={classFilterDropdown}
             />
 
             {/* Details Modal */}

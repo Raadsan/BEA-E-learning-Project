@@ -171,7 +171,7 @@ export default function ShiftsPage() {
     ];
 
     if (isLoading) return <main className="flex-1 pt-12 text-center text-gray-600">Loading shifts...</main>;
-    if (isError) return <main className="flex-1 pt-12 text-center text-red-600">Error: {error?.data?.error || "Unknown error"}</main>;
+    if (isError) return <main className="flex-1 pt-12 text-center text-red-600">Error: {(error as any)?.data?.error || "Unknown error"}</main>;
 
     return (
         <>

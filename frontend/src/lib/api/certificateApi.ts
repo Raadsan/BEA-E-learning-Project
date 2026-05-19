@@ -15,7 +15,7 @@ export const certificateApi = createApi({
     }),
     tagTypes: ["Certificates"],
     endpoints: (builder) => ({
-        getCertificates: builder.query({
+        getCertificates: builder.query<any, void>({
             query: () => "/",
             providesTags: ["Certificates"],
         }),
@@ -23,7 +23,7 @@ export const certificateApi = createApi({
             query: ({ target_type, target_id }) => `/target/${target_type}/${target_id}`,
             providesTags: (result, error, { target_id }) => [{ type: "Certificates", id: target_id }],
         }),
-        getIssuedCertificates: builder.query({
+        getIssuedCertificates: builder.query<any, void>({
             query: () => "/issued",
             providesTags: ["Certificates"],
         }),

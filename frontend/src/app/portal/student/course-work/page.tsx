@@ -59,14 +59,36 @@ export default function StudentCourseWorkPage() {
 
       {/* Content Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {!assignments || assignments.length === 0 ? (
-          <div className="col-span-full py-20 text-center opacity-50">
-            <p className="text-xl">No course work assigned yet.</p>
-          </div>
-        ) : (
-          assignments.filter(a => a.status === 'active').map((assignment) => {
+        {(() => {
+          const now = new Date();
+          const visibleAssignments = assignments?.filter(a => {
+            if (a.status !== 'active') return false;
+            if (a.start_date) {
+              const start = new Date(a.start_date);
+              if (now < start) return false;
+            }
+            return true;
+          }) || [];
+
+          if (visibleAssignments.length === 0) {
+            return (
+              <div className="col-span-full py-20 text-center opacity-50">
+                <p className="text-xl">No course work assigned yet.</p>
+              </div>
+            );
+          }
+
+          return visibleAssignments.map((assignment) => {
             const isSubmitted = assignment.submission_status === 'submitted';
             const isGraded = assignment.submission_status === 'graded';
+            const isClosed = assignment.due_date && now > new Date(assignment.due_date);
+
+            const handleBtnClick = () => {
+              if (isClosed && !isSubmitted && !isGraded) {
+                return;
+              }
+              handleOpenSubmission(assignment);
+            };
 
             return (
               <div
@@ -86,6 +108,10 @@ export default function StudentCourseWorkPage() {
                   ) : isSubmitted ? (
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
                       Submitted
+                    </span>
+                  ) : isClosed ? (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400">
+                      Closed
                     </span>
                   ) : (
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
@@ -120,20 +146,28 @@ export default function StudentCourseWorkPage() {
 
                   {/* Action Button */}
                   <button
-                    onClick={() => handleOpenSubmission(assignment)}
+                    onClick={handleBtnClick}
+                    disabled={isClosed && !isSubmitted && !isGraded}
                     className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all ${isGraded || isSubmitted
                       ? (isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : isClosed
+                        ? 'bg-gray-400 cursor-not-allowed text-white opacity-70'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
                       }`}
                   >
-                    {isGraded ? `View Grade (${assignment.score}/${assignment.total_points})` : isSubmitted ? 'View Submission' : 'Submit Work'}
+                    {isGraded
+                      ? `View Grade (${assignment.score}/${assignment.total_points})`
+                      : isSubmitted
+                        ? 'View Submission'
+                        : isClosed
+                          ? 'Deadline Expired'
+                          : 'Submit Work'}
                   </button>
                 </div>
               </div>
             );
-          })
-        )}
-      </div>
+          });
+        })()}</div>
 
       {/* Submission Modal (For submitting) */}
       {isModalOpen && selectedAssignment && (

@@ -5,12 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 
 import Modal from "@/components/Modal";
 import DataTable from "@/components/DataTable";
-import { useGetStudentsQuery } from "@/redux/api/studentApi";
-import { useGetClassesQuery, useGetClassSchedulesQuery } from "@/redux/api/classApi";
-import { useGetProgramsQuery } from "@/redux/api/programApi";
-import { useGetSubprogramsQuery } from "@/redux/api/subprogramApi";
-import { useGetTeachersQuery } from "@/redux/api/teacherApi";
-import { useGetAdminsQuery } from "@/redux/api/adminApi";
+import { useGetStudentsQuery } from "@/lib/api/studentApi";
+import { useGetClassesQuery, useGetClassSchedulesQuery } from "@/lib/api/classApi";
+import { useGetProgramsQuery } from "@/lib/api/programApi";
+import { useGetSubprogramsQuery } from "@/lib/api/subprogramApi";
+import { useGetTeachersQuery } from "@/lib/api/teacherApi";
+import { useGetAdminsQuery } from "@/lib/api/adminApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { API_BASE_URL } from "@/constants";
 
@@ -353,7 +353,7 @@ export default function ClassStudentsPage() {
               id="notificationContent"
               value={notificationForm.content}
               onChange={(e) => setNotificationForm({ ...notificationForm, content: e.target.value })}
-              rows="4"
+              rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             ></textarea>

@@ -303,7 +303,6 @@ export default function PaymentHistoryPage() {
                         <DataTable
                             columns={columns}
                             data={payments}
-                            searchPlaceholder="Search transactions..."
                         />
                     </div>
                 </div>

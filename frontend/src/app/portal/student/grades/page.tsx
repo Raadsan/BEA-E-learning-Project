@@ -6,6 +6,7 @@ import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetMyClassesQuery } from "@/lib/api/studentApi";
 import { useToast } from "@/components/Toast";
 import DataTable from "@/components/DataTable";
+import { API_URL } from "@/constants";
 
 export default function GradesPage() {
   const { isDark } = useDarkMode();
@@ -262,7 +263,6 @@ export default function GradesPage() {
             isLoading={isLoading}
             showAddButton={false}
             emptyMessage="No assignments found for this level yet."
-            headerClassName="hidden"
           />
         </div>
       </div >

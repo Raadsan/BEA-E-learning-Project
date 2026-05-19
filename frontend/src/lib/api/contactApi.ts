@@ -15,7 +15,7 @@ export const contactApi = createApi({
     }),
     tagTypes: ["Contacts"],
     endpoints: (builder) => ({
-        getContacts: builder.query({
+        getContacts: builder.query<any, void>({
             query: () => "/contact",
             providesTags: ["Contacts"],
         }),

@@ -40,6 +40,7 @@ function OralAssignmentCreateContent() {
         class_id: "",
         program_id: "",
         due_date: "",
+        start_date: "",
         total_points: 100,
         status: "active",
         duration: 30, // Default 30 mins
@@ -52,7 +53,7 @@ function OralAssignmentCreateContent() {
 
     useEffect(() => {
         if (id && allOralAssignments) {
-            const assignment = allOralAssignments.find(a => a.id == id);
+            const assignment = allOralAssignments.find(a => a.id === parseInt(id as string, 10));
             if (assignment) {
                 // Parse audio URL from questions if stored there
                 let loadedAudioUrl = "";
@@ -75,7 +76,8 @@ function OralAssignmentCreateContent() {
                     description: assignment.description || "",
                     class_id: assignment.class_id,
                     program_id: assignment.program_id,
-                    due_date: assignment.due_date ? new Date(assignment.due_date).toISOString().split('T')[0] : "",
+                    due_date: assignment.due_date ? new Date(assignment.due_date).toISOString().slice(0, 16) : "",
+                    start_date: assignment.start_date ? new Date(assignment.start_date).toISOString().slice(0, 16) : "",
                     total_points: assignment.total_points,
                     status: assignment.status || "active",
                     duration: assignment.duration || 30,
@@ -154,6 +156,7 @@ function OralAssignmentCreateContent() {
             class_id: formData.class_id,
             program_id: formData.program_id,
             due_date: formData.due_date,
+            start_date: formData.start_date || null,
             total_points: formData.total_points,
             status: formData.status,
             duration: formData.duration,
@@ -164,13 +167,13 @@ function OralAssignmentCreateContent() {
 
         try {
             if (id) {
-                await updateAssignment({ id, ...payload }).unwrap();
+                await updateAssignment({ id: parseInt(id as string, 10), ...payload }).unwrap();
                 showToast("Oral Assignment updated successfully!", "success");
             } else {
                 await createAssignment(payload).unwrap();
                 showToast("Oral Assignment created successfully!", "success");
             }
-            router.push('/portal/teacher/assessments/oral-assignment');
+            router.push('/portal/teacher/oral-assignment');
         } catch (err) {
             console.error(err);
             showToast(err.data?.error || "Failed to save assignment", "error");
@@ -334,7 +337,7 @@ function OralAssignmentCreateContent() {
                                 <input
                                     type="number"
                                     value={formData.duration}
-                                    onChange={e => setFormData({ ...formData, duration: e.target.value })}
+                                    onChange={e => setFormData({ ...formData, duration: Number(e.target.value) || 0 })}
                                     className={`w-full p-4 rounded-xl border-2 outline-none font-medium transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
                                     placeholder="e.g. 30"
                                 />
@@ -345,20 +348,31 @@ function OralAssignmentCreateContent() {
                                 <input
                                     type="number"
                                     value={formData.total_points}
-                                    onChange={e => setFormData({ ...formData, total_points: e.target.value })}
+                                    onChange={e => setFormData({ ...formData, total_points: Number(e.target.value) || 0 })}
                                     className={`w-full p-4 rounded-xl border-2 outline-none font-medium transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">Due Date</label>
-                                <input
-                                    type="date"
-                                    value={formData.due_date}
-                                    onChange={e => setFormData({ ...formData, due_date: e.target.value })}
-                                    className={`w-full p-4 rounded-xl border-2 outline-none font-medium transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
-                                    required
-                                />
+                            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2 text-gray-700 dark:text-gray-300">Start Date</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={formData.start_date}
+                                        onChange={e => setFormData({ ...formData, start_date: e.target.value })}
+                                        className={`w-full p-4 rounded-xl border-2 outline-none font-medium transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2 text-gray-700 dark:text-gray-300">Due Date</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={formData.due_date}
+                                        onChange={e => setFormData({ ...formData, due_date: e.target.value })}
+                                        className={`w-full p-4 rounded-xl border-2 outline-none font-medium transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+                                        required
+                                    />
+                                </div>
                             </div>
 
                             <div>

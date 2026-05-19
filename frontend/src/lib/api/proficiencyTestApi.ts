@@ -15,7 +15,7 @@ export const proficiencyTestApi = createApi({
     }),
     tagTypes: ['ProficiencyTest'],
     endpoints: (builder) => ({
-        getProficiencyTests: builder.query({
+        getProficiencyTests: builder.query<any, void>({
             query: () => '/proficiency-tests',
             providesTags: ['ProficiencyTest'],
         }),
@@ -66,7 +66,7 @@ export const proficiencyTestApi = createApi({
             }),
             invalidatesTags: ['ProficiencyTest'],
         }),
-        getAllProficiencyResults: builder.query({
+        getAllProficiencyResults: builder.query<any, void>({
             query: () => '/proficiency-tests/results/all',
             providesTags: ['ProficiencyTest'],
         }),

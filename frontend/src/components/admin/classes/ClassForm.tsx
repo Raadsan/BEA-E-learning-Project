@@ -41,9 +41,9 @@ export default function ClassForm({
         }
     }, [formData.shift_id, shifts]);
 
-    const uniqueShiftNames = useMemo(() => {
-        const names = shifts.map(s => s.shift_name);
-        return [...new Set(names)];
+    const uniqueShiftNames = useMemo<string[]>(() => {
+        const names = (shifts || []).map((s: any) => s.shift_name as string);
+        return Array.from(new Set(names)) as string[];
     }, [shifts]);
 
     const handleShiftNameChange = (e) => {

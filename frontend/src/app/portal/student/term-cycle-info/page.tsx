@@ -12,6 +12,7 @@ import { useGetAssignmentsQuery } from "@/lib/api/assignmentApi";
 import { useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
 import { useCreateNotificationMutation } from "@/lib/api/notificationApi";
 import { useToast } from "@/components/Toast";
+import { useCreateLevelUpRequestMutation } from "@/lib/api/levelUpApi";
 import { timelineData, parseDate } from "@/lib/timelineData";
 
 const CountdownCircle = ({ value, label, max, color, isDark }) => {
@@ -86,7 +87,7 @@ const TermCountdown = ({ isDark }) => {
       }
 
       if (targetDate) {
-        const difference = targetDate - now;
+        const difference = targetDate.getTime() - now.getTime();
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
           hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
@@ -122,6 +123,7 @@ const TermCountdown = ({ isDark }) => {
 export default function TermCycleInfoPage() {
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
+  const [createLevelUpRequest] = useCreateLevelUpRequestMutation();
 
   const { data: user } = useGetCurrentUserQuery();
   const subprogramId = user?.chosen_subprogram || user?.subprogram_id;

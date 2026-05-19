@@ -28,7 +28,7 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getProgramDistribution: builder.query({
       query: (params) => ({
@@ -36,17 +36,17 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
-    getSubprogramDistribution: builder.query({
+    getSubprogramDistribution: builder.query<any, void>({
       query: () => "/subprogram-distribution",
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
-    getPerformanceOverview: builder.query({
+    getPerformanceOverview: builder.query<any, void>({
       query: () => "/performance-overview",
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getDetailedStudentList: builder.query({
       query: (params) => ({
@@ -54,12 +54,12 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getStudentDetailedReport: builder.query({
       query: (studentId) => `/student/${studentId}`,
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getAttendanceAnalytics: builder.query({
       query: (params) => ({
@@ -67,7 +67,7 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getAssignmentCompletionAnalytics: builder.query({
       query: (params) => ({
@@ -75,7 +75,7 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getConsolidatedStats: builder.query({
       query: (params) => ({
@@ -83,7 +83,7 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getAssessmentStats: builder.query({
       query: (params) => ({
@@ -91,7 +91,7 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getAssessmentDistribution: builder.query({
       query: (params) => ({
@@ -99,12 +99,12 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
-    getRecentAssessments: builder.query({
+    getRecentAssessments: builder.query<any, void>({
       query: () => "/recent-assessments",
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getAssessmentGenderStats: builder.query({
       query: (params) => ({
@@ -112,7 +112,7 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getClassAssessmentActivity: builder.query({
       query: (params) => ({
@@ -120,7 +120,7 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getPaymentStats: builder.query({
       query: (params) => ({
@@ -128,7 +128,7 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getPaymentDistribution: builder.query({
       query: (params) => ({
@@ -136,7 +136,7 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getDetailedPaymentList: builder.query({
       query: (params) => ({
@@ -144,7 +144,7 @@ export const reportApi = createApi({
         params
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getStudentProgressReport: builder.query({
       query: ({ studentId, period }) => ({
@@ -152,12 +152,12 @@ export const reportApi = createApi({
         params: { period }
       }),
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     }),
     getStudentAvailablePeriods: builder.query({
       query: (studentId) => `/student-available-periods/${studentId}`,
       providesTags: ["Reports"],
-      transformResponse: (response) => response.success ? response.data : response
+      transformResponse: (response: any) => response.success ? response.data : response
     })
   }),
 });

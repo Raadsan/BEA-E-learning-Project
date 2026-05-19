@@ -75,7 +75,7 @@ export default function NewsletterPage() {
     ];
 
     if (isLoading) return <div className="p-8 text-center">Loading subscribers...</div>;
-    if (isError) return <div className="p-8 text-center text-red-500">Error: {error?.data?.error || "Failed to load"}</div>;
+    if (isError) return <div className="p-8 text-center text-red-500">Error: {(error as any)?.data?.error || "Failed to load"}</div>;
 
     return (
         <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 transition-colors">
@@ -85,7 +85,6 @@ export default function NewsletterPage() {
                     columns={columns}
                     data={subscribers}
                     showAddButton={false}
-                    description="Manage your audience and review recently joined newsletter subscribers."
                 />
             </div>
 

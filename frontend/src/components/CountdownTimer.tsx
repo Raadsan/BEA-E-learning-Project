@@ -90,7 +90,7 @@ export default function CountdownTimer() {
         setNextTerm(active);
         setMode("active");
 
-        const difference = active.endObj - now;
+        const difference = active.endObj.getTime() - now.getTime();
         updateTimer(difference);
         return;
       }
@@ -98,7 +98,7 @@ export default function CountdownTimer() {
       // 2. No active term, look for the NEXT upcoming term in the CURRENT year
       const upcoming = processedTerms
         .filter(term => term.startObj > now && term.startObj.getFullYear() === currentYear)
-        .sort((a, b) => a.startObj - b.startObj);
+        .sort((a, b) => a.startObj.getTime() - b.startObj.getTime());
 
       if (upcoming.length > 0) {
         const next = upcoming[0];

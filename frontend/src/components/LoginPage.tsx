@@ -239,7 +239,7 @@ export default function LoginPage() {
             {/* Error Message */}
             {(loginError || error) && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {loginError || (error?.data?.error || "An error occurred")}
+                {loginError || ((error as any)?.data?.error || "An error occurred")}
               </div>
             )}
 

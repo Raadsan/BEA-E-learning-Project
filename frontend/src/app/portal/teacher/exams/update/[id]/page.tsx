@@ -5,15 +5,15 @@ import { useRouter } from "next/navigation";
 import {
     useUpdateAssignmentMutation,
     useGetAssignmentsQuery
-} from "@/redux/api/assignmentApi";
-import { useGetProgramsQuery } from "@/redux/api/programApi";
-import { useGetClassesQuery } from "@/redux/api/classApi";
+} from "@/lib/api/assignmentApi";
+import { useGetProgramsQuery } from "@/lib/api/programApi";
+import { useGetClassesQuery } from "@/lib/api/classApi";
 import { useToast } from "@/components/Toast";
 import { useDarkMode } from "@/context/ThemeContext";
 
 
-export default function UpdateExamPage({ params: paramsPromise }) {
-    const params = use(paramsPromise);
+export default function UpdateExamPage({ params: paramsPromise }: any) {
+    const params = use(paramsPromise) as any;
     const id = params.id;
     const router = useRouter();
     const { showToast } = useToast();
@@ -39,7 +39,13 @@ export default function UpdateExamPage({ params: paramsPromise }) {
 
     const [questions, setQuestions] = useState([]);
     const [editingIndex, setEditingIndex] = useState(null);
-    const [currentQuestion, setCurrentQuestion] = useState({
+    const [currentQuestion, setCurrentQuestion] = useState<{
+        type: string;
+        questionText: string;
+        options: string[];
+        correctOption: number | string;
+        points: number;
+    }>({
         type: "mcq",
         questionText: "",
         options: ["", "", "", ""],
@@ -71,7 +77,7 @@ export default function UpdateExamPage({ params: paramsPromise }) {
             // If it's the new format (object with papers), redirect to the new editor
             if (!Array.isArray(q)) {
                 showToast("Redirecting to Standard Exam Editor...", "info");
-                router.replace(`/portal/teacher/assessments/exams/create?id=${id}`);
+                router.replace(`/portal/teacher/exams/create?id=${id}`);
                 return;
             }
 
@@ -177,7 +183,7 @@ export default function UpdateExamPage({ params: paramsPromise }) {
         try {
             await updateAssignment({ id, ...payload }).unwrap();
             showToast("Exam updated successfully!", "success");
-            router.push("/portal/teacher/assessments/exams");
+            router.push("/portal/teacher/exams");
         } catch (err) {
             showToast(err.data?.error || "Failed to update Exam.", "error");
         }
@@ -198,7 +204,7 @@ export default function UpdateExamPage({ params: paramsPromise }) {
                             </p>
                         </div>
                         <button
-                            onClick={() => router.push("/portal/teacher/assessments/exams")}
+                            onClick={() => router.push("/portal/teacher/exams")}
                             className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all text-sm font-medium ${isDark ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 shadow-sm'}`}
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,7 +242,7 @@ export default function UpdateExamPage({ params: paramsPromise }) {
                                             value={testData.description}
                                             onChange={handleDataChange}
                                             className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                            rows="4"
+                                            rows={4}
                                             placeholder="Provide clear instructions for students..."
                                         />
                                     </div>
@@ -355,7 +361,7 @@ export default function UpdateExamPage({ params: paramsPromise }) {
                                             value={currentQuestion.questionText}
                                             onChange={(e) => setCurrentQuestion({ ...currentQuestion, questionText: e.target.value })}
                                             className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                            rows="3"
+                                            rows={3}
                                             placeholder="Enter your question here..."
                                         />
                                     </div>

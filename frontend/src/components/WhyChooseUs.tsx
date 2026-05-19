@@ -93,7 +93,7 @@ export default function WhyChooseUs() {
                   alt={reason.alt}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.target.src = '/images/book1.jpg'; // Fallback image
+                    (e.target as HTMLImageElement).src = '/images/book1.jpg'; // Fallback image
                   }}
                 />
               </div>

@@ -365,7 +365,7 @@ export default function StudentDashboard() {
                 const now = new Date();
 
                 if (expiry && !isNaN(expiry.getTime())) {
-                    const diffMs = expiry - now;
+                    const diffMs = expiry.getTime() - now.getTime();
                     const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
 
                     console.log('⏰ Timer Debug:', {
@@ -606,6 +606,7 @@ export default function StudentDashboard() {
                                     teacher={{ id: studentClassData.teacher_id, full_name: studentClassData.teacher_name || "Barahaaga" }}
                                     classId={user.class_id}
                                     termSerial={eligibleTerm.term_serial}
+                                    onComplete={() => {}}
                                 />
                             </div>
                         )}

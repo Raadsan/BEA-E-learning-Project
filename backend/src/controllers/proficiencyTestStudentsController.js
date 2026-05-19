@@ -1,10 +1,32 @@
 import prisma from '../lib/prisma.js';
 import bcrypt from 'bcryptjs';
+import { validateEmailRobust } from '../utils/emailValidator.js';
 import { sendWaafiPayment } from '../utils/waafiPayment.js';
 
 export const registerCandidate = async (req, res) => {
     try {
-        const { password, payment, ...rest } = req.body;
+        const { password, payment, email, ...rest } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ error: "Email is required" });
+        }
+
+        const emailStr = email.trim().toLowerCase();
+        
+        // Deep Email Validation
+        const emailValidationResult = await validateEmailRobust(emailStr);
+
+        if (!emailValidationResult.valid) {
+            return res.status(400).json({ error: emailValidationResult.message || "Invalid email address. Please provide a real and working email." });
+        }
+
+        const existing = await prisma.ProficiencyTestStudents.findUnique({
+            where: { email: emailStr }
+        });
+        if (existing) {
+            return res.status(400).json({ error: "Email already registered for Proficiency Test" });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
         let paymentStatus = 'unpaid';
@@ -29,6 +51,7 @@ export const registerCandidate = async (req, res) => {
         const candidate = await prisma.ProficiencyTestStudents.create({
             data: {
                 ...rest,
+                email: emailStr,
                 password: hashedPassword,
                 payment_status: paymentStatus,
                 expiry_date: new Date(Date.now() + 1440 * 60000)

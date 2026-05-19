@@ -76,17 +76,29 @@ export const getAllPlacementResults = async (req, res) => {
 
         const populated = await Promise.all(results.map(async (result) => {
             let student_name = '-';
+            let expiry_date = null;
+            let is_extended = false;
+            let approval_status = null;
+            let class_id = null;
             if (result.student_id) {
                 const student = await prisma.students.findUnique({
                     where: { student_id: result.student_id }
                 });
                 if (student) {
                     student_name = student.full_name || '-';
+                    expiry_date = student.expiry_date;
+                    is_extended = student.is_extended;
+                    approval_status = student.approval_status;
+                    class_id = student.class_id;
                 }
             }
             return {
                 ...result,
-                student_name
+                student_name,
+                expiry_date,
+                is_extended,
+                approval_status,
+                class_id
             };
         }));
 

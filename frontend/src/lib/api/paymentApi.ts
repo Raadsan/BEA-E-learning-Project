@@ -25,17 +25,17 @@ export const paymentApi = createApi({
         getStudentPayments: builder.query({
             query: (studentId) => `/student/${studentId}`,
             providesTags: ["Payments"],
-            transformResponse: (response) => {
+            transformResponse: (response: any) => {
                 if (response.success) {
                     return response.payments;
                 }
                 return response;
             },
         }),
-        getAllPayments: builder.query({
+        getAllPayments: builder.query<any, void>({
             query: () => `/`,
             providesTags: ["Payments"],
-            transformResponse: (response) => {
+            transformResponse: (response: any) => {
                 if (response.success) {
                     return response.payments;
                 }

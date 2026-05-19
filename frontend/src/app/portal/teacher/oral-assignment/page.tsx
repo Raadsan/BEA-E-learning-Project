@@ -16,6 +16,7 @@ import {
 import { useGetClassesQuery } from "@/lib/api/classApi";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
+import { API_URL } from "@/constants";
 
 export default function OralAssignmentPage() {
     const type = "oral_assignment";
@@ -88,6 +89,7 @@ export default function OralAssignmentPage() {
         class_id: "",
         program_id: "",
         subprogram_id: "",
+        start_date: "",
         due_date: "",
         total_points: 100,
         status: "active",
@@ -151,6 +153,7 @@ export default function OralAssignmentPage() {
             class_id: "",
             program_id: "",
             subprogram_id: "",
+            start_date: "",
             due_date: "",
             total_points: 100,
             status: "active",
@@ -169,7 +172,8 @@ export default function OralAssignmentPage() {
             class_id: assignment.class_id,
             program_id: classInfo?.program_id || assignment.program_id || "",
             subprogram_id: classInfo?.subprogram_id || "",
-            due_date: assignment.due_date ? new Date(assignment.due_date).toISOString().split('T')[0] : "",
+            start_date: assignment.start_date ? new Date(assignment.start_date).toISOString().slice(0, 16) : "",
+            due_date: assignment.due_date ? new Date(assignment.due_date).toISOString().slice(0, 16) : "",
             total_points: assignment.total_points,
             status: assignment.status || "active",
             duration: assignment.duration || "",
@@ -508,7 +512,6 @@ export default function OralAssignmentPage() {
                         columns={getSubmissionColumns()}
                         data={submissions || []}
                         isLoading={isLoadingSubmissions}
-                        isDark={isDark}
                         title="Student Submissions"
                     />
                 </div>
@@ -679,15 +682,44 @@ export default function OralAssignmentPage() {
                                     {assignment.class_name || "General Class"}
                                 </p>
 
-                                <div className="space-y-2 mb-6 opacity-70">
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                        Due: {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : 'No date'}
+                                {/* Program | Subprogram (Parallel) */}
+                                <div className="grid grid-cols-2 gap-4 mb-3 pb-3 border-b border-gray-100 dark:border-gray-700/50">
+                                    <div className="flex flex-col">
+                                        <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Program</span>
+                                        <span className={`text-sm font-semibold truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            {assignment.program_name || "N/A"}
+                                        </span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        Total: {assignment.total_points} Points
+                                    <div className="flex flex-col">
+                                        <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Subprogram</span>
+                                        <span className={`text-sm font-semibold truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            {assignment.subprogram_name || "N/A"}
+                                        </span>
                                     </div>
+                                </div>
+
+                                {/* Start Date | Due Date (Parallel) */}
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div className="flex flex-col items-start text-left">
+                                        <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Start Date</span>
+                                        <span className={`text-xs font-medium ${assignment.start_date ? (isDark ? 'text-gray-300' : 'text-gray-600') : 'text-gray-400 italic'}`}>
+                                            {assignment.start_date ? new Date(assignment.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Not set'}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col items-end text-right">
+                                        <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Due Date</span>
+                                        <span className={`text-xs font-semibold ${assignment.due_date || assignment.end_date ? (isDark ? 'text-gray-200' : 'text-gray-700') : 'text-gray-400 italic font-normal'}`}>
+                                            {(assignment.due_date || assignment.end_date)
+                                                ? new Date(assignment.due_date || assignment.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                                                : 'Not set'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Total Points */}
+                                <div className="mb-4 flex justify-between items-center opacity-70">
+                                    <span className="text-xs font-bold uppercase">Total Points</span>
+                                    <span className="text-sm font-bold">{assignment.total_points} Points</span>
                                 </div>
                             </div>
 
@@ -835,7 +867,7 @@ export default function OralAssignmentPage() {
                                                 type="number"
                                                 required
                                                 value={formData.total_points}
-                                                onChange={(e) => setFormData({ ...formData, total_points: e.target.value })}
+                                                onChange={(e) => setFormData({ ...formData, total_points: Number(e.target.value) || 0 })}
                                                 className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
                                             />
                                         </div>
@@ -857,11 +889,10 @@ export default function OralAssignmentPage() {
                                         />
                                     </div>
 
-                                    {/* Duration & Due Date */}
+                                    {/* Duration & Dates */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium mb-1.5 opacity-80">Recording Duration (Minutes)</label>
-                                            {/* <p className="text-xs mb-2 opacity-60">How long should students record for?</p> */}
                                             <input
                                                 type="number"
                                                 placeholder="Optional"
@@ -871,9 +902,20 @@ export default function OralAssignmentPage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium mb-1.5 opacity-80">Due Date</label>
+                                            <label className="block text-sm font-medium mb-1.5 opacity-80">Start Date & Time</label>
                                             <input
-                                                type="date"
+                                                type="datetime-local"
+                                                value={formData.start_date}
+                                                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                                                className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1.5 opacity-80">Due Date & Time</label>
+                                            <input
+                                                type="datetime-local"
                                                 required
                                                 value={formData.due_date}
                                                 onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}

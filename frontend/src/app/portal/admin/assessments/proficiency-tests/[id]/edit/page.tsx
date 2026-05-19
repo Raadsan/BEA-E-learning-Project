@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useGetProficiencyTestByIdQuery, useUpdateProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
-import { useUploadFileMutation } from "@/redux/api/uploadApi";
+import { useGetProficiencyTestByIdQuery, useUpdateProficiencyTestMutation } from "@/lib/api/proficiencyTestApi";
+import { useUploadFileMutation } from "@/lib/api/uploadApi";
 import { API_BASE_URL } from "@/constants";
 
 import { useToast } from "@/components/Toast";
@@ -237,7 +237,7 @@ export default function EditProficiencyTestPage() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
-                                        <textarea name="description" value={testData.description} onChange={handleTestChange} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="2" />
+                                        <textarea name="description" value={testData.description} onChange={handleTestChange} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows={2} />
                                     </div>
                                     <div className="grid grid-cols-3 gap-4">
                                         <div><label className="block text-sm font-semibold text-gray-700 mb-1">Duration</label><input type="number" name="duration_minutes" value={testData.duration_minutes} onChange={handleTestChange} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
@@ -252,7 +252,7 @@ export default function EditProficiencyTestPage() {
 
                                 {steps[currentStep - 1].type === 'mcq' && (
                                     <div className="space-y-5">
-                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Question Text</label><textarea value={currentMCQ.questionText || ""} onChange={e => setCurrentMCQ({ ...currentMCQ, questionText: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="2" /></div>
+                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Question Text</label><textarea value={currentMCQ.questionText || ""} onChange={e => setCurrentMCQ({ ...currentMCQ, questionText: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows={2} /></div>
                                         <div><label className="block text-sm font-bold text-gray-700 mb-2">Points</label><input type="number" value={currentMCQ.points} onChange={e => setCurrentMCQ({ ...currentMCQ, points: parseInt(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
                                         <div className="space-y-3">
                                             <label className="block text-sm font-bold text-gray-700">Options</label>
@@ -270,7 +270,7 @@ export default function EditProficiencyTestPage() {
 
                                 {steps[currentStep - 1].type === 'passage' && (
                                     <div className="space-y-5">
-                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Passage Text</label><textarea value={currentPassage.passageText || ""} onChange={e => setCurrentPassage({ ...currentPassage, passageText: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="6" /></div>
+                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Passage Text</label><textarea value={currentPassage.passageText || ""} onChange={e => setCurrentPassage({ ...currentPassage, passageText: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows={6} /></div>
                                         <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                                             <div className="flex justify-between items-center mb-4"><span className="text-sm font-bold text-gray-700 uppercase">Sub-Questions</span><button onClick={() => { const sub = { id: uuidv4(), questionText: "", options: ["", ""], correctOption: 0, points: 2 }; setCurrentPassage({ ...currentPassage, subQuestions: [...currentPassage.subQuestions, sub] }); }} className="bg-[#010080] text-white px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all active:scale-95">+ Add MCQ sub</button></div>
                                             {currentPassage.subQuestions.map((sq, i) => (
@@ -306,7 +306,7 @@ export default function EditProficiencyTestPage() {
                                 {steps[currentStep - 1].type === 'essay' && (
                                     <div className="space-y-5">
                                         <div><label className="block text-sm font-bold text-gray-700 mb-2">Title</label><input value={currentEssay.title || ""} onChange={e => setCurrentEssay({ ...currentEssay, title: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
-                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Prompt</label><textarea value={currentEssay.description || ""} onChange={e => setCurrentEssay({ ...currentEssay, description: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="4" /></div>
+                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Prompt</label><textarea value={currentEssay.description || ""} onChange={e => setCurrentEssay({ ...currentEssay, description: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows={4} /></div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div><label className="block text-sm font-semibold text-gray-700 mb-1">Max Words</label><input type="number" value={currentEssay.maxWords} onChange={e => setCurrentEssay({ ...currentEssay, maxWords: parseInt(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
                                             <div><label className="block text-sm font-semibold text-gray-700 mb-1">Points</label><input type="number" value={currentEssay.points} onChange={e => setCurrentEssay({ ...currentEssay, points: parseInt(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
@@ -361,7 +361,7 @@ export default function EditProficiencyTestPage() {
                                                 </div>
                                             )}
                                         </div>
-                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Writing Instructions</label><textarea value={currentAudio.description || ""} onChange={e => setCurrentAudio({ ...currentAudio, description: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows="3" /></div>
+                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Writing Instructions</label><textarea value={currentAudio.description || ""} onChange={e => setCurrentAudio({ ...currentAudio, description: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows={3} /></div>
                                         <div><label className="block text-sm font-bold text-gray-700 mb-2">Points</label><input type="number" value={currentAudio.points} onChange={e => setCurrentAudio({ ...currentAudio, points: parseInt(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
                                         <button onClick={addToTestList} className="w-full bg-[#010080] text-white py-3 rounded-lg font-bold">Save Audio</button>
                                     </div>

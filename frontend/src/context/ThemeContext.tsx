@@ -2,7 +2,11 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 
-const ThemeContext = createContext({
+const ThemeContext = createContext<{
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+  setDarkMode: (dark: boolean) => void;
+}>({
   isDarkMode: false,
   toggleTheme: () => { },
   setDarkMode: () => { },

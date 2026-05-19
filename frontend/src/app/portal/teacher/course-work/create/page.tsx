@@ -34,9 +34,11 @@ export default function CreateCourseWorkPage() {
     const [testData, setTestData] = useState({
         title: "",
         description: "",
+        start_date: "",
         due_date: "",
         class_id: "",
         program_id: "",
+        subprogram_id: "",
         total_points: 100,
         status: "active",
     });
@@ -55,9 +57,11 @@ export default function CreateCourseWorkPage() {
             setTestData({
                 title: editingAssignment.title,
                 description: editingAssignment.description,
-                due_date: editingAssignment.due_date ? new Date(editingAssignment.due_date).toISOString().split('T')[0] : "",
+                start_date: editingAssignment.start_date ? new Date(editingAssignment.start_date).toISOString().slice(0, 16) : "",
+                due_date: editingAssignment.due_date ? new Date(editingAssignment.due_date).toISOString().slice(0, 16) : "",
                 class_id: editingAssignment.class_id,
                 program_id: editingAssignment.program_id,
+                subprogram_id: editingAssignment.subprogram_id || "",
                 total_points: editingAssignment.total_points,
                 status: editingAssignment.status || "active",
             });
@@ -149,7 +153,7 @@ export default function CreateCourseWorkPage() {
                 await createAssignment(payload).unwrap();
                 showToast("Course Work created successfully!", "success");
             }
-            router.push("/portal/teacher/assessments/course-work");
+            router.push("/portal/teacher/course-work");
         } catch (err) {
             showToast(err.data?.error || "Failed to save Course Work.", "error");
         }
@@ -170,7 +174,7 @@ export default function CreateCourseWorkPage() {
                             </p>
                         </div>
                         <button
-                            onClick={() => router.push("/portal/teacher/assessments/course-work")}
+                            onClick={() => router.push("/portal/teacher/course-work")}
                             className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all text-sm font-medium ${isDark ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 shadow-sm'}`}
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,7 +212,7 @@ export default function CreateCourseWorkPage() {
                                             value={testData.description}
                                             onChange={handleDataChange}
                                             className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                            rows="3"
+                                            rows={3}
                                             placeholder="Brief instructions for students..."
                                         />
                                     </div>
@@ -240,17 +244,31 @@ export default function CreateCourseWorkPage() {
                                         </div>
                                     </div>
 
+                                    {/* Start Date / Due Date row */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
+                                            <input
+                                                type="datetime-local"
+                                                name="start_date"
+                                                value={testData.start_date}
+                                                onChange={handleDataChange}
+                                                className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                                            />
+                                        </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Due Date</label>
                                             <input
-                                                type="date"
+                                                type="datetime-local"
                                                 name="due_date"
                                                 value={testData.due_date}
                                                 onChange={handleDataChange}
                                                 className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#673ab7]/20 focus:border-[#673ab7] outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                                             />
                                         </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Status</label>
                                             <select
@@ -302,7 +320,7 @@ export default function CreateCourseWorkPage() {
                                             value={currentQuestion.questionText}
                                             onChange={(e) => setCurrentQuestion({ ...currentQuestion, questionText: e.target.value })}
                                             className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                                            rows="3"
+                                            rows={3}
                                             placeholder="What is your question?"
                                         />
                                     </div>

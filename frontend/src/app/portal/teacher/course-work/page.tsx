@@ -35,6 +35,7 @@ export default function CourseWorkPage() {
         subprogram_id: "",
         class_id: "",
         unit: "",
+        start_date: "",
         due_date: "",
         status: "active",
         total_points: "100" // Default marks
@@ -77,9 +78,9 @@ export default function CourseWorkPage() {
 
     const { data: assignments, isLoading: isLoadingAssignments } = useGetAssignmentsQuery({
         type: 'course_work',
-        class_id: selectedClassId,
+        class_id: selectedClassId || undefined,
         created_by: currentUser?.id
-    }, { skip: !selectedClassId || !currentUser?.id });
+    }, { skip: !currentUser?.id });
 
     const selectedAssignment = assignments?.find(a => a.id == selectedAssignmentId);
 
@@ -92,13 +93,6 @@ export default function CourseWorkPage() {
     const [gradeSubmission] = useGradeSubmissionMutation();
     const [createAssignment, { isLoading: isCreating }] = useCreateAssignmentMutation();
     const [updateAssignment, { isLoading: isUpdating }] = useUpdateAssignmentMutation();
-
-    // Auto-select first class if available (Only for VIEWING, not adding)
-    useEffect(() => {
-        if (classes && classes.length > 0 && !selectedClassId) {
-            setSelectedClassId(classes[0].id);
-        }
-    }, [classes]);
 
     const handleCreateDataChange = (e) => {
         const { name, value } = e.target;
@@ -121,6 +115,7 @@ export default function CourseWorkPage() {
             subprogram_id: "",
             class_id: "",
             unit: "",
+            start_date: "",
             due_date: "",
             status: "active",
             total_points: "100"
@@ -141,6 +136,7 @@ export default function CourseWorkPage() {
             subprogram_id: classInfo?.subprogram_id || "",
             class_id: selectedAssignment.class_id,
             unit: selectedAssignment.unit || "",
+            start_date: selectedAssignment.start_date ? new Date(selectedAssignment.start_date).toISOString().slice(0, 16) : "",
             due_date: selectedAssignment.due_date ? new Date(selectedAssignment.due_date).toISOString().slice(0, 16) : "",
             status: selectedAssignment.status || "active",
             total_points: selectedAssignment.total_points || "100"
@@ -183,6 +179,7 @@ export default function CourseWorkPage() {
                 subprogram_id: "",
                 class_id: "",
                 unit: "",
+                start_date: "",
                 due_date: "",
                 status: "active",
                 total_points: "100"
@@ -335,7 +332,7 @@ export default function CourseWorkPage() {
                                     }}
                                     className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500/20 outline-none transition-all ${isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                                 >
-                                    <option value="">Select a Class</option>
+                                    <option value="">All Classes</option>
                                     {classes?.map(cls => (
                                         <option key={cls.id} value={cls.id}>{cls.class_name}</option>
                                     ))}
@@ -469,8 +466,8 @@ export default function CourseWorkPage() {
                                     </div>
                                 </div>
 
-                                {/* Title, Marks & Date */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* Title & Marks */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium mb-1.5 opacity-80">Title</label>
                                         <input
@@ -478,6 +475,7 @@ export default function CourseWorkPage() {
                                             name="title"
                                             value={createFormData.title}
                                             onChange={handleCreateDataChange}
+                                            placeholder="e.g. Unit 3 Course Work"
                                             className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
                                             required
                                         />
@@ -493,9 +491,21 @@ export default function CourseWorkPage() {
                                             required
                                         />
                                     </div>
+                                </div>
 
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium mb-1.5 opacity-80">Due Date</label>
+                                        <label className="block text-sm font-medium mb-1.5 opacity-80">Start Date & Time</label>
+                                        <input
+                                            type="datetime-local"
+                                            name="start_date"
+                                            value={createFormData.start_date}
+                                            onChange={handleCreateDataChange}
+                                            className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5 opacity-80">Due Date & Time</label>
                                         <input
                                             type="datetime-local"
                                             name="due_date"
@@ -617,7 +627,7 @@ export default function CourseWorkPage() {
                                                 {Object.entries(JSON.parse(gradingSubmission.content)).map(([key, val], idx) => (
                                                     <div key={idx} className="flex gap-4 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
                                                         <span className="opacity-40 font-bold">{parseInt(key) + 1}.</span>
-                                                        <span>{val}</span>
+                                                        <span>{val as any}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -642,7 +652,7 @@ export default function CourseWorkPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Feedback (Optional)</label>
                                     <textarea
-                                        rows="3" placeholder="Great job! Keep it up..."
+                                        rows={3} placeholder="Great job! Keep it up..."
                                         value={gradeData.feedback} onChange={(e) => setGradeData({ ...gradeData, feedback: e.target.value })}
                                         className={`w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500/20 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                                     />

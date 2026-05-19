@@ -42,7 +42,7 @@ export default function CertificateForm({ isOpen, onClose, target, certificate, 
             setFile(selectedFile);
             if (selectedFile.type.startsWith('image/')) {
                 const reader = new FileReader();
-                reader.onloadend = () => setPreviewUrl(reader.result);
+                reader.onloadend = () => setPreviewUrl(reader.result as string);
                 reader.readAsDataURL(selectedFile);
             } else if (selectedFile.type === 'application/pdf') {
                 setPreviewUrl(URL.createObjectURL(selectedFile));
@@ -82,7 +82,6 @@ export default function CertificateForm({ isOpen, onClose, target, certificate, 
             await onSave({
                 target_id: target.id,
                 target_type: target.type,
-                template_url: finalTemplateUrl,
                 ...formData,
                 template_url: finalTemplateUrl
             }).unwrap();

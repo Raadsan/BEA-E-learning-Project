@@ -40,10 +40,11 @@ export default function CourseTimelinePage() {
             setTimelines(data);
 
             // Extract unique years
-            const extractedYears = ["All", ...new Set(data.map(t => {
+            const uniqueYears = [...new Set(data.map(t => {
                 const date = new Date(t.start_date);
                 return date.getFullYear().toString();
-            }))].sort((a, b) => b - a);
+            }))].sort((a, b) => parseInt(b as string) - parseInt(a as string)) as string[];
+            const extractedYears = ["All", ...uniqueYears];
             setYears(extractedYears);
         } catch (err) {
             console.error("Error fetching timelines:", err);
@@ -373,7 +374,7 @@ export default function CourseTimelinePage() {
                                         name="holidays"
                                         value={formData.holidays}
                                         onChange={handleInputChange}
-                                        rows="3"
+                                        rows={3}
                                         placeholder="e.g. 19th to the 20th of March 2026—Eid-Alfitr Celebration"
                                         className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
                                             }`}

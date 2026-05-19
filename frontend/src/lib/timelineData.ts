@@ -67,7 +67,7 @@ export const getNextTerm = () => {
       endDateObj: parseDate(term.endDate)
     }))
     .filter(term => term.startDateObj > now) // Only terms that haven't started yet
-    .sort((a, b) => a.startDateObj - b.startDateObj); // Sort by start date
+    .sort((a, b) => a.startDateObj.getTime() - b.startDateObj.getTime()); // Sort by start date
 
   // Return the next upcoming term (first in sorted array)
   return upcomingTerms.length > 0 ? upcomingTerms[0] : null;

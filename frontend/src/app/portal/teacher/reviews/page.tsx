@@ -15,13 +15,13 @@ export default function TeacherReviewsPage() {
     const [selectedClassId, setSelectedClassId] = useState(null);
 
     // Derived lists based on selection
-    const programs = [...new Set(classes.map(c => c.program_name).filter(Boolean))];
+    const programs = [...new Set(classes.map((c: any) => c.program_name).filter(Boolean))] as string[];
 
     const subprograms = [...new Set(classes
-        .filter(c => c.program_name === selectedProgram)
-        .map(c => c.subprogram_name)
+        .filter((c: any) => c.program_name === selectedProgram)
+        .map((c: any) => c.subprogram_name)
         .filter(Boolean)
-    )];
+    )] as string[];
 
     const filteredClasses = classes.filter(c =>
         c.program_name === selectedProgram &&
@@ -145,7 +145,6 @@ export default function TeacherReviewsPage() {
                         columns={columns}
                         data={students}
                         isLoading={studentsLoading}
-                        searchPlaceholder="Search students..."
                         showAddButton={false}
                     />
                 </div>

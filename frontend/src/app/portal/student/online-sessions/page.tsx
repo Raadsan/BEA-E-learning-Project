@@ -106,8 +106,8 @@ export default function OnlineSessionsPage() {
       }
     });
 
-    upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
-    past.sort((a, b) => new Date(b.date) - new Date(a.date));
+    upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return { upcomingSessions: upcoming, pastSessions: past };
   }, [schedulesData, studentClass]);

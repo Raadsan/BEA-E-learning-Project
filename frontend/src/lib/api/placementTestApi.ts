@@ -22,7 +22,7 @@ export const placementTestApi = createApi({
     }),
     tagTypes: ["PlacementTest", "PlacementResult"],
     endpoints: (builder) => ({
-        getPlacementTests: builder.query({
+        getPlacementTests: builder.query<any, void>({
             query: () => "/",
             providesTags: ["PlacementTest"],
         }),
@@ -42,7 +42,7 @@ export const placementTestApi = createApi({
             query: (studentId) => `/results/${studentId}`,
             providesTags: ["PlacementResult"],
         }),
-        getAllPlacementResults: builder.query({
+        getAllPlacementResults: builder.query<any, void>({
             query: () => "/results/all",
             providesTags: ["PlacementResult"],
         }),

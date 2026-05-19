@@ -16,7 +16,7 @@ export const assignmentApi = createApi({
     tagTypes: ["Assignments"],
     endpoints: (builder) => ({
         getAssignments: builder.query({
-            query: ({ program_id, class_id, subprogram_id, type, created_by } = {}) => {
+            query: ({ program_id, class_id, subprogram_id, type, created_by }: { program_id?: string; class_id?: string; subprogram_id?: string; type?: string; created_by?: string } = {}) => {
                 const params = new URLSearchParams();
                 if (program_id) params.append("program_id", program_id);
                 if (class_id) params.append("class_id", class_id);
@@ -28,7 +28,7 @@ export const assignmentApi = createApi({
             providesTags: ["Assignments"],
         }),
         getAssignmentStats: builder.query({
-            query: ({ program_id, class_id, student_id, timeFrame } = {}) => {
+            query: ({ program_id, class_id, student_id, timeFrame }: { program_id?: string; class_id?: string; student_id?: string; timeFrame?: string } = {}) => {
                 const params = new URLSearchParams();
                 if (program_id) params.append("program_id", program_id);
                 if (class_id) params.append("class_id", class_id);
@@ -39,7 +39,7 @@ export const assignmentApi = createApi({
             providesTags: ["Assignments"],
         }),
         getPerformanceClusters: builder.query({
-            query: ({ program_id, class_id } = {}) => {
+            query: ({ program_id, class_id }: { program_id?: string; class_id?: string } = {}) => {
                 const params = new URLSearchParams();
                 if (program_id) params.append("program_id", program_id);
                 if (class_id) params.append("class_id", class_id);
@@ -83,7 +83,7 @@ export const assignmentApi = createApi({
             providesTags: ["Assignments"],
         }),
         getAllSubmissions: builder.query({
-            query: ({ type, subprogram_id, program_id, class_id } = {}) => {
+            query: ({ type, subprogram_id, program_id, class_id }: { type?: string; subprogram_id?: string; program_id?: string; class_id?: string } = {}) => {
                 const params = new URLSearchParams();
                 if (type) params.append("type", type);
                 if (subprogram_id) params.append("subprogram_id", subprogram_id);

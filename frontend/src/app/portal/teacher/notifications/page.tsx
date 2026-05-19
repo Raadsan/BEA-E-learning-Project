@@ -26,7 +26,7 @@ export default function TeacherNotificationsPage() {
         if (!dateString) return "";
         const date = new Date(dateString);
         const now = new Date();
-        const diffMs = now - date;
+        const diffMs = now.getTime() - date.getTime();
         const diffMins = Math.round(diffMs / 60000);
         const diffHrs = Math.round(diffMs / 3600000 / 1);
         const diffDays = Math.round(diffMs / 86400000);

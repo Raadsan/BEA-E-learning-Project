@@ -32,8 +32,8 @@ export default function TeacherDashboard() {
   // Fetch Teacher Stats with month/year
   const { data: stats, isLoading: statsLoading } = useGetTeacherDashboardStatsQuery({ month: selectedMonth, year: selectedYear });
   const { data: classes = [], isLoading: classesLoading } = useGetTeacherClassesQuery();
-  const { data: performanceData } = useGetPerformanceClustersQuery();
-  const { data: submissionStats } = useGetAssignmentStatsQuery();
+  const { data: performanceData } = useGetPerformanceClustersQuery({});
+  const { data: submissionStats } = useGetAssignmentStatsQuery({});
 
   // Extract counts from stats API
   const totalClasses = stats?.totalClasses || 0;

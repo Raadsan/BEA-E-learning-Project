@@ -22,6 +22,7 @@ import Modal from "@/components/Modal";
 import StudentApprovalModal from "@/components/admin/students/StudentApprovalModal";
 import StudentViewModal from "@/components/admin/students/StudentViewModal";
 import StudentForm from "@/components/admin/students/StudentForm";
+import { Country, City } from "country-state-city";
 
 const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick, isExtended }) => {
   const [timeLeft, setTimeLeft] = useState(null);
@@ -29,7 +30,7 @@ const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick, isExtended }) 
   useEffect(() => {
     if (!expiryDate) return;
     const calculate = () => {
-      const diff = Math.max(0, Math.floor((new Date(expiryDate) - new Date()) / 1000));
+      const diff = Math.max(0, Math.floor((new Date(expiryDate).getTime() - new Date().getTime()) / 1000));
       setTimeLeft(diff);
     };
     calculate();
@@ -88,7 +89,7 @@ export default function IELTSTOEFLStudentsPage() {
 
   const [approveStudent] = useApproveIeltsToeflStudentMutation();
   const [rejectStudent] = useRejectIeltsToeflStudentMutation();
-  const [updateStudent] = useUpdateIeltsToeflStudentMutation();
+  const [updateStudent, { isLoading: isUpdatingIelts }] = useUpdateIeltsToeflStudentMutation();
   const [deleteStudent] = useDeleteIeltsToeflStudentMutation();
   const [extendDeadline] = useExtendIeltsDeadlineMutation();
   const [assignClass] = useAssignIeltsClassMutation();
@@ -116,15 +117,55 @@ export default function IELTSTOEFLStudentsPage() {
   const [editFormData, setEditFormData] = useState({
     first_name: "",
     last_name: "",
+    full_name: "",
     email: "",
     phone: "",
-    sex: "",
+    age: "",
+    sex: "Male",
     date_of_birth: "",
     place_of_birth: "",
     exam_type: "",
+    chosen_program: "",
+    chosen_subprogram: "",
     residency_country: "",
     residency_city: "",
+    approval_status: "",
+    parent_name: "",
+    parent_email: "",
+    parent_phone: "",
+    parent_relation: "",
+    parent_res_county: "",
+    parent_res_city: "",
+    funding_status: "Paid",
+    sponsorship_package: "",
+    funding_amount: "",
+    funding_month: "",
+    scholarship_percentage: "",
+    sponsor_name: "",
+    verification_method: "Proficiency Exam",
+    certificate_institution: "",
+    certificate_date: "",
+    certificate_document: "",
   });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const cities = (() => {
+    if (!editFormData.residency_country) return [];
+    const country = Country.getAllCountries().find(c => c.name === editFormData.residency_country);
+    return country ? City.getCitiesOfCountry(country.isoCode) : [];
+  })();
+
+  const parentCities = (() => {
+    if (!editFormData.parent_res_county) return [];
+    const country = Country.getAllCountries().find(c => c.name === editFormData.parent_res_county);
+    return country ? City.getCitiesOfCountry(country.isoCode) : [];
+  })();
+
+  const showParentInfo = !!(editFormData.age && parseInt(editFormData.age) < 18);
 
   const filteredStudents = (ieltsStudents || []).filter(student => {
     // Filter by status
@@ -173,12 +214,12 @@ export default function IELTSTOEFLStudentsPage() {
   };
 
   const handleExtendSubmit = async () => {
-    if (!extraTime || isNaN(extraTime)) {
+    if (!extraTime || isNaN(Number(extraTime))) {
       showToast("Please enter a valid number", 'error');
       return;
     }
 
-    const durationMinutes = timeUnit === "hours" ? extraTime * 60 : parseInt(extraTime);
+    const durationMinutes = timeUnit === "hours" ? parseInt(extraTime) * 60 : parseInt(extraTime);
 
     try {
       await extendDeadline({ id: selectedForExt.student_id, durationMinutes }).unwrap();
@@ -244,14 +285,35 @@ export default function IELTSTOEFLStudentsPage() {
     setEditFormData({
       first_name: student.first_name || "",
       last_name: student.last_name || "",
+      full_name: `${student.first_name || ""} ${student.last_name || ""}`.trim(),
       email: student.email || "",
       phone: student.phone || "",
-      sex: student.sex || "",
+      age: student.age || "",
+      sex: student.sex || "Male",
       date_of_birth: student.date_of_birth ? new Date(student.date_of_birth).toISOString().split('T')[0] : "",
       place_of_birth: student.place_of_birth || "",
       exam_type: student.exam_type || "",
+      chosen_program: student.chosen_program || student.exam_type || "",
+      chosen_subprogram: student.chosen_subprogram || "",
       residency_country: student.residency_country || "",
       residency_city: student.residency_city || "",
+      approval_status: student.status || "pending",
+      parent_name: student.parent_name || "",
+      parent_email: student.parent_email || "",
+      parent_phone: student.parent_phone || "",
+      parent_relation: student.parent_relation || "",
+      parent_res_county: student.parent_res_county || "",
+      parent_res_city: student.parent_res_city || "",
+      funding_status: student.funding_status || "Paid",
+      sponsorship_package: student.sponsorship_package || "",
+      funding_amount: student.funding_amount || "",
+      funding_month: student.funding_month || "",
+      scholarship_percentage: student.scholarship_percentage || "",
+      sponsor_name: student.sponsor_name || "",
+      verification_method: student.verification_method || "Proficiency Exam",
+      certificate_institution: student.certificate_institution || "",
+      certificate_date: student.certificate_date || "",
+      certificate_document: student.certificate_document || "",
     });
     setIsEditModalOpen(true);
   };
@@ -290,12 +352,12 @@ export default function IELTSTOEFLStudentsPage() {
         );
         showToast(`Successfully assigned ${selectedStudentIds.length} students to class`, "success");
       } else if (bulkActions.manageLifeStatus) {
-        if (!bulkExtraTime || isNaN(bulkExtraTime)) {
+        if (!bulkExtraTime || isNaN(Number(bulkExtraTime))) {
           showToast("Please enter a valid number for extra time", "error");
           return;
         }
 
-        const durationMinutes = bulkTimeUnit === "hours" ? bulkExtraTime * 60 : parseInt(bulkExtraTime);
+        const durationMinutes = bulkTimeUnit === "hours" ? parseInt(bulkExtraTime) * 60 : parseInt(bulkExtraTime);
 
         await Promise.all(
           selectedStudentIds.map(id =>
@@ -386,7 +448,7 @@ export default function IELTSTOEFLStudentsPage() {
         </span>
       ),
     },
-    {
+    /* {
       key: "time_status",
       label: "Life Status",
       width: "150px",
@@ -419,7 +481,7 @@ export default function IELTSTOEFLStudentsPage() {
           />
         );
       }
-    },
+    }, */
     {
       key: "status",
       label: "Status",
@@ -527,14 +589,14 @@ export default function IELTSTOEFLStudentsPage() {
                       </select>
                       <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></div>
                     </div>
-                    {/* Life Status Filter */}
+                    {/*
                     <div className="relative group min-w-[180px]">
                       <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#010080] transition-colors"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                       <select value={lifeStatusFilter} onChange={(e) => setLifeStatusFilter(e.target.value)} className="w-full pl-10 pr-10 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[13px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer">
                         <option value="all">All Life Status</option><option value="active">Active</option><option value="time_end">Time End</option><option value="pending_time">Pending Time</option><option value="entered_exam">Entered Exam</option>
                       </select>
                       <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               )}
@@ -589,16 +651,38 @@ export default function IELTSTOEFLStudentsPage() {
           )}
         </Modal>
 
-        <StudentViewModal isOpen={isViewModalOpen} onClose={() => { setIsViewModalOpen(false); setSelectedCandidate(null); }} candidate={selectedCandidate ? { ...selectedCandidate, full_name: `${selectedCandidate.first_name} ${selectedCandidate.last_name}` } : null} isDark={isDark} />
+        <StudentViewModal
+          isOpen={isViewModalOpen}
+          onClose={() => { setIsViewModalOpen(false); setSelectedCandidate(null); }}
+          viewingStudent={selectedCandidate ? { ...selectedCandidate, full_name: `${selectedCandidate.first_name} ${selectedCandidate.last_name}` } : null}
+          viewingPayments={undefined}
+          isDark={isDark}
+        />
 
-        <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setSelectedCandidate(null); }} title="Edit Student Info">
-          {selectedCandidate && <StudentForm formData={editFormData} setFormData={setEditFormData} onSubmit={handleEditSubmit} onClose={() => setIsEditModalOpen(false)} isDark={isDark} isEdit={true} isIeltsToefl={true} />}
-        </Modal>
+        <StudentForm
+          isOpen={isEditModalOpen}
+          onClose={() => { setIsEditModalOpen(false); setSelectedCandidate(null); }}
+          editingStudent={selectedCandidate}
+          formData={editFormData}
+          handleInputChange={handleInputChange}
+          setFormData={setEditFormData}
+          handleSubmit={handleEditSubmit}
+          isDark={isDark}
+          programs={programs}
+          cities={cities}
+          showParentInfo={showParentInfo}
+          parentCities={parentCities}
+          viewingPayments={undefined}
+          isUpdatingIelts={isUpdatingIelts}
+          isCreating={false}
+          isUpdating={false}
+          isCreatingIelts={false}
+        />
       </main>
 
       {isBulkActionsModalOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => { setIsBulkActionsModalOpen(false); setBulkActions({ changeStatus: false, assignClass: false }); setBulkStep(1); }} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => { setIsBulkActionsModalOpen(false); setBulkActions({ changeStatus: false, assignClass: false, manageLifeStatus: false }); setBulkStep(1); }} />
           <div className={`relative w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
             <div className={`px-6 py-4 flex items-center justify-between border-b ${isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-100 bg-gray-50/50'}`}>
               <h3 className={`text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -607,7 +691,7 @@ export default function IELTSTOEFLStudentsPage() {
                 </div>
                 Bulk Student Actions
               </h3>
-              <button onClick={() => { setIsBulkActionsModalOpen(false); setBulkActions({ changeStatus: false, assignClass: false }); setBulkStep(1); }} className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              <button onClick={() => { setIsBulkActionsModalOpen(false); setBulkActions({ changeStatus: false, assignClass: false, manageLifeStatus: false }); setBulkStep(1); }} className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
 
             <div className={`p-6 overflow-y-auto ${bulkStep === 2 && (bulkActions.assignClass || bulkActions.manageLifeStatus) ? 'max-h-[70vh]' : 'max-h-[85vh]'}`}>

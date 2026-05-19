@@ -97,6 +97,11 @@ export const getAllProficiencyResults = async (req, res) => {
 
         const populated = await Promise.all(results.map(async (result) => {
             let student_name = 'Unknown Student';
+            let expiry_date = null;
+            let is_extended = false;
+            let status_val = null;
+            let class_id = null;
+            let is_candidate = false;
             if (result.student_id) {
                 // Try ProficiencyTestStudents first
                 const profStudent = await prisma.ProficiencyTestStudents.findUnique({
@@ -104,6 +109,10 @@ export const getAllProficiencyResults = async (req, res) => {
                 });
                 if (profStudent) {
                     student_name = `${profStudent.first_name || ''} ${profStudent.last_name || ''}`.trim() || 'Unknown Student';
+                    expiry_date = profStudent.expiry_date;
+                    is_extended = profStudent.is_extended;
+                    status_val = profStudent.status;
+                    is_candidate = true;
                 } else {
                     // Try regular students
                     const regularStudent = await prisma.students.findUnique({
@@ -111,6 +120,11 @@ export const getAllProficiencyResults = async (req, res) => {
                     });
                     if (regularStudent) {
                         student_name = regularStudent.full_name || 'Unknown Student';
+                        expiry_date = regularStudent.expiry_date;
+                        is_extended = regularStudent.is_extended;
+                        status_val = regularStudent.approval_status;
+                        class_id = regularStudent.class_id;
+                        is_candidate = false;
                     }
                 }
             }
@@ -123,7 +137,12 @@ export const getAllProficiencyResults = async (req, res) => {
             return {
                 ...result,
                 student_name,
-                percentage
+                percentage,
+                expiry_date,
+                is_extended,
+                status_val,
+                class_id,
+                is_candidate
             };
         }));
 

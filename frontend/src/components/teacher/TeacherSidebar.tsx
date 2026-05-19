@@ -153,8 +153,8 @@ export default function TeacherSidebar({ isOpen, onClose }) {
 
           {/* Writing Tasks */}
           <li>
-            <Link href="/portal/teacher/assessments/writing-tasks" className={getMenuItemClasses("/portal/teacher/assessments/writing-tasks")} style={getActiveStyle("/portal/teacher/assessments/writing-tasks")}>
-              <svg className={getIconClasses("/portal/teacher/assessments/writing-tasks")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <Link href="/portal/teacher/writing-tasks" className={getMenuItemClasses("/portal/teacher/writing-tasks")} style={getActiveStyle("/portal/teacher/writing-tasks")}>
+              <svg className={getIconClasses("/portal/teacher/writing-tasks")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               <span className="font-medium text-sm">Writing Tasks</span>
@@ -163,8 +163,8 @@ export default function TeacherSidebar({ isOpen, onClose }) {
 
           {/* Course Work */}
           <li>
-            <Link href="/portal/teacher/assessments/course-work" className={getMenuItemClasses("/portal/teacher/assessments/course-work")} style={getActiveStyle("/portal/teacher/assessments/course-work")}>
-              <svg className={getIconClasses("/portal/teacher/assessments/course-work")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <Link href="/portal/teacher/course-work" className={getMenuItemClasses("/portal/teacher/course-work")} style={getActiveStyle("/portal/teacher/course-work")}>
+              <svg className={getIconClasses("/portal/teacher/course-work")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
               <span className="font-medium text-sm">Course Work</span>
@@ -173,8 +173,8 @@ export default function TeacherSidebar({ isOpen, onClose }) {
 
           {/* Exams */}
           <li>
-            <Link href="/portal/teacher/assessments/exams" className={getMenuItemClasses("/portal/teacher/assessments/exams")} style={getActiveStyle("/portal/teacher/assessments/exams")}>
-              <svg className={getIconClasses("/portal/teacher/assessments/exams")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <Link href="/portal/teacher/exams" className={getMenuItemClasses("/portal/teacher/exams")} style={getActiveStyle("/portal/teacher/exams")}>
+              <svg className={getIconClasses("/portal/teacher/exams")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="font-medium text-sm">Exams</span>
@@ -183,8 +183,8 @@ export default function TeacherSidebar({ isOpen, onClose }) {
 
           {/* Oral Assignment */}
           <li>
-            <Link href="/portal/teacher/assessments/oral-assignment" className={getMenuItemClasses("/portal/teacher/assessments/oral-assignment")} style={getActiveStyle("/portal/teacher/assessments/oral-assignment")}>
-              <svg className={getIconClasses("/portal/teacher/assessments/oral-assignment")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <Link href="/portal/teacher/oral-assignment" className={getMenuItemClasses("/portal/teacher/oral-assignment")} style={getActiveStyle("/portal/teacher/oral-assignment")}>
+              <svg className={getIconClasses("/portal/teacher/oral-assignment")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
               <span className="font-medium text-sm">Oral Assignment</span>
@@ -243,15 +243,15 @@ export default function TeacherSidebar({ isOpen, onClose }) {
 
 
 
-          {/* My Profile - commented out by user, keeping it commented */}
-          {/* <li>
-             <Link href="/portal/teacher/settings" className={getMenuItemClasses("/portal/teacher/settings")} style={getActiveStyle("/portal/teacher/settings")}>
-               <svg className={getIconClasses("/portal/teacher/settings")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-               </svg>
-               <span className="font-medium text-sm">My Profile</span>
-             </Link>
-           </li> */}
+          {/* My Profile */}
+          <li>
+            <Link href="/portal/teacher/settings" className={getMenuItemClasses("/portal/teacher/settings")} style={getActiveStyle("/portal/teacher/settings")}>
+              <svg className={getIconClasses("/portal/teacher/settings")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span className="font-medium text-sm">My Profile</span>
+            </Link>
+          </li>
         </ul>
       </nav>
 

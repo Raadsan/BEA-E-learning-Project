@@ -80,7 +80,7 @@ const SexDistributionChart = ({ programs = [], classes = [] }) => {
                                 cx="50%"
                                 cy="50%"
                                 labelLine={true}
-                                label={({ sex, percentage }) => `${sex}: ${percentage}%`}
+                                label={(entry: any) => `${entry.sex}: ${entry.percentage}%`}
                                 outerRadius={120}
                                 fill="#8884d8"
                                 dataKey="count"

@@ -114,8 +114,11 @@ export default function Testimonials() {
                           alt={testimonial.student_name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.parentElement.innerHTML = `<span class="text-white font-semibold text-sm">${testimonial.student_name.substring(0, 2).toUpperCase()}</span>`;
+                            const img = e.target as HTMLImageElement;
+                            img.style.display = 'none';
+                            if (img.parentElement) {
+                              img.parentElement.innerHTML = `<span class="text-white font-semibold text-sm">${testimonial.student_name.substring(0, 2).toUpperCase()}</span>`;
+                            }
                           }}
                         />
                       ) : (

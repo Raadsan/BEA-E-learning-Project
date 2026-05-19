@@ -117,7 +117,7 @@ export default function ContactsPage() {
     ];
 
     if (isLoading) return <div className="p-8 text-center">Loading messages...</div>;
-    if (isError) return <div className="p-8 text-center text-red-500">Error: {error?.data?.error || "Failed to load"}</div>;
+    if (isError) return <div className="p-8 text-center text-red-500">Error: {(error as any)?.data?.error || "Failed to load"}</div>;
 
     return (
         <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 transition-colors">

@@ -121,11 +121,7 @@ const StarStudentsList = ({ programs = [], classes = [] }) => {
 
     return (
         <DataTable
-            title={
-                <span className="text-lg font-bold text-[#010080] flex items-center gap-2">
-                    <span className="text-xl">🌟</span> Star Students
-                </span>
-            }
+            title="🌟 Star Students"
             columns={columns}
             data={students}
             customHeaderLeft={filters}

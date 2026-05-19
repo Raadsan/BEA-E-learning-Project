@@ -16,7 +16,7 @@ export const subprogramApi = createApi({
   }),
   tagTypes: ["Subprograms"],
   endpoints: (builder) => ({
-    getSubprograms: builder.query({
+    getSubprograms: builder.query<any, void>({
       query: () => "/",
       providesTags: ["Subprograms"],
     }),

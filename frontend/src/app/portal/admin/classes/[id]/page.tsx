@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { useGetClassQuery, useGetClassSchedulesQuery, useCreateClassScheduleMutation, useUpdateClassScheduleMutation, useDeleteClassScheduleMutation } from "@/redux/api/classApi";
+import { useGetClassQuery, useGetClassSchedulesQuery, useCreateClassScheduleMutation, useUpdateClassScheduleMutation, useDeleteClassScheduleMutation } from "@/lib/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
 
 export default function ClassDetailPage() {

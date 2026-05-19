@@ -1,7 +1,7 @@
 import express from "express";
 import {
   createStudent, getStudents, getStudent, updateStudent, deleteStudent,
-  approveStudent, rejectStudent, getSexDistribution, getStudentLocations,
+  approveStudent, rejectStudent, extendStudentDeadline, getSexDistribution, getStudentLocations,
   getTopStudents
 } from "../controllers/studentController.js";
 import { verifyToken } from "../controllers/authController.js";
@@ -19,6 +19,7 @@ router.get("/top-students", verifyToken, getTopStudents);
 
 router.patch("/:id/approve", approveStudent);
 router.patch("/:id/reject", rejectStudent);
+router.patch("/:id/extend", verifyToken, extendStudentDeadline);
 router.get("/:id", getStudent);
 router.put("/:id", upload.single("profile_picture"), updateStudent);
 router.delete("/:id", deleteStudent);

@@ -50,6 +50,7 @@ export default function TimeBasedView() {
         end_time: "00:00",
         subject: "",
         teacher_id: "",
+        classType: "Class",
         sessionType: "class",
         eventType: "holiday",
         title: "",
@@ -198,6 +199,8 @@ export default function TimeBasedView() {
             setEditingClass(entry);
             setClassFormData({
                 days: [entry.day],
+                start_time: entry.start_time || "00:00",
+                end_time: entry.end_time || "00:00",
                 subject: entry.subject || "",
                 teacher_id: entry.teacher_id || "",
                 classType: entry.type || "Class",
@@ -212,6 +215,8 @@ export default function TimeBasedView() {
             const today = new Date().toISOString().split('T')[0];
             setClassFormData({
                 days: [new Date().toLocaleDateString('en-US', { weekday: 'long' })],
+                start_time: "00:00",
+                end_time: "00:00",
                 subject: "",
                 teacher_id: "",
                 classType: "Class",
@@ -523,8 +528,8 @@ export default function TimeBasedView() {
                             <div>
                                 <h4 className="font-bold text-sm mb-1 uppercase tracking-wider">Schedule Information</h4>
                                 <ul className="text-xs space-y-1.5 font-medium opacity-90">
-                                    <li>GÇó <span className="font-bold">Weekly Classes</span> repeat automatically every week. Editing one updates the global pattern.</li>
-                                    <li>GÇó <span className="font-bold">Events & Holidays</span> are date-specific. Holidays will automatically suppress recurring classes.</li>
+                                    <li>Gï¿½ï¿½ <span className="font-bold">Weekly Classes</span> repeat automatically every week. Editing one updates the global pattern.</li>
+                                    <li>Gï¿½ï¿½ <span className="font-bold">Events & Holidays</span> are date-specific. Holidays will automatically suppress recurring classes.</li>
                                 </ul>
                             </div>
                         </div>
@@ -588,8 +593,8 @@ export default function TimeBasedView() {
                             onChange={(e) => setClassFormData({ ...classFormData, sessionType: e.target.value })}
                             className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                         >
-                            <option value="class">=ƒÄô Weekly Recurring Class</option>
-                            <option value="event">=ƒôà Specific Event (Holiday/Exam/etc.)</option>
+                            <option value="class">=ï¿½ï¿½ï¿½ Weekly Recurring Class</option>
+                            <option value="event">=ï¿½ï¿½ï¿½ Specific Event (Holiday/Exam/etc.)</option>
                         </select>
                     </div>
 

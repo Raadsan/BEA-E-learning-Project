@@ -8,7 +8,7 @@ export default function StudentCalendarPage() {
   const { isDark } = useDarkMode();
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const { data: schedules = [], isLoading } = useGetStudentSchedulesQuery();
+  const { data: schedules = [], isLoading } = useGetStudentSchedulesQuery(undefined);
 
   // Get days in current month
   const getDaysInMonth = (date) => {

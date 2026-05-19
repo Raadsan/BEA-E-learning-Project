@@ -16,7 +16,7 @@ export const shiftApi = createApi({
     }),
     tagTypes: ["Shift"],
     endpoints: (builder) => ({
-        getShifts: builder.query({
+        getShifts: builder.query<any, void>({
             query: () => "/",
             providesTags: ["Shift"],
         }),

@@ -101,7 +101,6 @@ export default function TeacherForm({
                                         return 'us';
                                     })()}
                                     enableSearch={true}
-                                    separateDialCode={false}
                                     value={formData.phone}
                                     onChange={phone => setFormData(prev => ({ ...prev, phone }))}
                                     inputStyle={{

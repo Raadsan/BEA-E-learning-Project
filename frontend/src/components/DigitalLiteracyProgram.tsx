@@ -7,7 +7,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 export default function DigitalLiteracyProgram() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({ table: true });
+  const [visibleSections, setVisibleSections] = useState<any>({ table: true });
   const sectionRefs = {
     hero: useRef(null),
     intro: useRef(null),

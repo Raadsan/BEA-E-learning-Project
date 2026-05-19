@@ -7,7 +7,7 @@ import { useTheme } from "@/context/ThemeContext";
   
 export default function AcademicWritingProgram() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({ table: true });
+  const [visibleSections, setVisibleSections] = useState<any>({ table: true });
   const sectionRefs = {
     hero: useRef(null),
     intro: useRef(null),

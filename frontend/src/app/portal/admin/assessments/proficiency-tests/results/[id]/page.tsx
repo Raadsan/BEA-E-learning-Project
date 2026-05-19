@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 
-import { useGetAllProficiencyResultsQuery, useGetProficiencyTestByIdQuery, useGradeProficiencyTestMutation } from "@/redux/api/proficiencyTestApi";
+import { useGetAllProficiencyResultsQuery, useGetProficiencyTestByIdQuery, useGradeProficiencyTestMutation } from "@/lib/api/proficiencyTestApi";
 import { useToast } from "@/components/Toast";
 import { API_URL, API_BASE_URL } from "@/constants";
 

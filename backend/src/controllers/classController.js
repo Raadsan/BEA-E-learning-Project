@@ -70,6 +70,7 @@ export const getClasses = async (req, res) => {
 
     const populated = classes.map(cls => {
       const teacher_name = cls.teachers?.full_name || 'Unassigned';
+      const program_id = cls.subprograms?.program_id || null;
       const program_name = cls.subprograms?.programs?.title || 'N/A';
       const subprogram_name = cls.subprograms?.subprogram_name || 'N/A';
       const shift_name = cls.shifts?.shift_name || '';
@@ -79,6 +80,7 @@ export const getClasses = async (req, res) => {
       return {
         ...cls,
         teacher_name,
+        program_id,
         program_name,
         subprogram_name,
         shift_name,
@@ -143,6 +145,7 @@ export const getClass = async (req, res) => {
     };
 
     const teacher_name = classItem.teachers?.full_name || 'Unassigned';
+    const program_id = classItem.subprograms?.program_id || null;
     const program_name = classItem.subprograms?.programs?.title || 'N/A';
     const subprogram_name = classItem.subprograms?.subprogram_name || 'N/A';
     const shift_name = classItem.shifts?.shift_name || '';
@@ -152,6 +155,7 @@ export const getClass = async (req, res) => {
     res.json({
       ...classItem,
       teacher_name,
+      program_id,
       program_name,
       subprogram_name,
       shift_name,

@@ -28,7 +28,7 @@ export const reviewApi = createApi({
             query: (student_id) => student_id ? `/student-reviews/student/${student_id}` : '/student-reviews/my-reviews',
             providesTags: ['StudentReviews'],
         }),
-        getStudentReviewsByTeacher: builder.query({
+        getStudentReviewsByTeacher: builder.query<any, void>({
             query: () => '/student-reviews/my-reviews',
             providesTags: ['StudentReviews'],
         }),
@@ -46,15 +46,15 @@ export const reviewApi = createApi({
             query: (teacher_id) => teacher_id ? `/teacher-reviews/teacher/${teacher_id}` : '/teacher-reviews/my-reviews',
             providesTags: ['TeacherReviews'],
         }),
-        getTeachersToReview: builder.query({
+        getTeachersToReview: builder.query<any, void>({
             query: () => "/teacher-reviews/to-review",
             providesTags: ["Reviews"],
         }),
-        getAllTeacherReviews: builder.query({
+        getAllTeacherReviews: builder.query<any, void>({
             query: () => "/teacher-reviews/admin/all",
             providesTags: ["TeacherReviews"],
         }),
-        getAllStudentReviews: builder.query({
+        getAllStudentReviews: builder.query<any, void>({
             query: () => "/student-reviews/admin/all",
             providesTags: ["StudentReviews"],
         }),

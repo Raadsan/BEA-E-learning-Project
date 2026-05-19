@@ -15,11 +15,11 @@ export const materialApi = createApi({
     }),
     tagTypes: ["Materials"],
     endpoints: (builder) => ({
-        getMaterials: builder.query({
+        getMaterials: builder.query<any, void>({
             query: () => "/",
             providesTags: ["Materials"],
         }),
-        getStudentMaterials: builder.query({
+        getStudentMaterials: builder.query<any, void>({
             query: () => "/student",
             providesTags: ["Materials"],
         }),

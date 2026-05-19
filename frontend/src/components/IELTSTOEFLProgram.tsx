@@ -7,7 +7,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 export default function IELTSTOEFLProgram() {
   const { isDarkMode } = useTheme();
-  const [visibleSections, setVisibleSections] = useState({ table: true, comparison: true });
+  const [visibleSections, setVisibleSections] = useState<any>({ table: true, comparison: true });
 
   const sectionRefs = {
     hero: useRef(null),

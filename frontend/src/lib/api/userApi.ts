@@ -19,7 +19,15 @@ export const userApi = createApi({
             query: () => "/users",
             providesTags: ["User"],
         }),
+        bulkActionUsers: builder.mutation({
+            query: ({ userIds, action }) => ({
+                url: "/users/bulk-action",
+                method: "POST",
+                body: { userIds, action },
+            }),
+            invalidatesTags: ["User"],
+        }),
     }),
 });
 
-export const { useGetUsersQuery } = userApi;
+export const { useGetUsersQuery, useBulkActionUsersMutation } = userApi;
