@@ -5,8 +5,8 @@ import prisma from './src/lib/prisma.js';
 const port = process.env.PORT || 5000;
 const server = http.createServer(app);
 
-server.listen(port, () => {
-  console.log(`🚀 BEA Backend running at http://localhost:${port}`);
+server.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 BEA Backend running at http://0.0.0.0:${port}`);
 });
 
 // Handle server errors (like port already in use)
