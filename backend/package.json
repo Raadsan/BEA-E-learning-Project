@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "description": "BEA E-Learning Backend with Prisma",
   "main": "server.js",
-  "scripts": {
+   "scripts": {
     "start": "node server.js",
-    "dev:backend": "nodemon server.js",
-    "dev:frontend": "cd ../frontend && npm run dev",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "prisma generate",
+    "postinstall": "prisma generate",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "nodemon server.js --ignore 'client/'",
+    "client": "npm run dev --prefix ../frontend",
+    "dev": "concurrently \" npm run server \" \"npm run client\"",
+    "prod": "concurrently \"node server.js\" \"npm start --prefix ../frontend\""
   },
+  
   "keywords": [],
   "author": "",
   "license": "ISC",

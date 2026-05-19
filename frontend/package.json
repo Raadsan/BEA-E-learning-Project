@@ -3,10 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 2004",
     "dev:filtered": "node scripts/dev.js",
-    "build": "next build",
-    "start": "next start",
+    "build": "next build -p 2004",
     "lint": "eslint"
   },
   "dependencies": {
