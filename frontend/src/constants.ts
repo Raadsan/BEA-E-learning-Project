@@ -1,4 +1,4 @@
-const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").trim();
+const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://178.18.241.5:7004").trim();
 const cleanApiUrl = rawApiUrl.endsWith("/") ? rawApiUrl.slice(0, -1) : rawApiUrl;
 
 // Ensure API_BASE_URL is the root domain without /api
@@ -14,8 +14,8 @@ export const resolveMediaUrl = (url) => {
     if (!url) return null;
 
     // Case 1: Legacy localhost URL from DB
-    if (url.startsWith('http://localhost:5000')) {
-        return url.replace('http://localhost:5000', API_BASE_URL);
+    if (url.startsWith('http://178.18.241.5:7004') || url.startsWith('http://localhost:5000')) {
+        return url.replace(/http:\/\/(localhost:5000|178\.18\.241\.5:7004)/, API_BASE_URL);
     }
 
     // Case 2: Already an absolute external URL
