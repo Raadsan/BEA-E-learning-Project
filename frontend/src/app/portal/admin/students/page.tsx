@@ -444,7 +444,7 @@ export default function StudentsPage() {
                     <div className="w-10 h-10 rounded-full border border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0 shadow-sm relative">
                         {row.profile_picture ? (
                             <img
-                                src={`http://178.18.241.5:7004${row.profile_picture}`}
+                                src={`${API_BASE_URL}${row.profile_picture}`}
                                 alt={val}
                                 className="w-full h-full object-cover"
                                 onError={(e: any) => {
