@@ -86,12 +86,14 @@ npm run build
 
 ---
 
-## 6. PM2 — labada wada wad
+## 6. PM2 — labada wada wad (hal amar, gudaha `backend/`)
 
-Gudaha **root** folder-ka project (meesha `ecosystem.config.cjs` ku yaalo):
+`backend/package.json` wuxuu leeyahay `npm run prod` — wuxuu wada kiciyaa backend (7004) + frontend (2004).
 
 ```bash
-pm2 start ecosystem.config.cjs
+cd ~/BEA-E-learning-Project/backend
+pm2 delete bea   # haddii hore u jiray
+pm2 start npm --name bea -- run prod
 pm2 save
 pm2 startup   # raaci tillaha PM2 kuu soo bandhigi doono
 ```
@@ -104,9 +106,7 @@ Hubi:
 **Logs:**
 
 ```bash
-pm2 logs
-pm2 logs bea-backend
-pm2 logs bea-frontend
+pm2 logs bea
 ```
 
 **Update kadib code change:**
@@ -115,7 +115,7 @@ pm2 logs bea-frontend
 git pull
 cd backend && npm ci && npm run build
 cd ../frontend && npm ci && npm run build
-cd .. && pm2 restart all
+cd ../backend && pm2 restart bea
 ```
 
 ---
@@ -189,7 +189,7 @@ pm2 start server.js --name bea
 pm2 save
 ```
 
-Haddii aad isticmaaleyso `ecosystem.config.cjs`, hubi in `cwd` uu yahay **buugga backend** oo sax ah.
+PM2 waa inuu ka bilaabaa **gudaha `backend/`** (`npm run prod`).
 
 ### Tallaabo 6 — Node version
 
