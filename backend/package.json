@@ -4,13 +4,13 @@
   "description": "BEA E-Learning Backend with Prisma",
   "main": "server.js",
    "scripts": {
-    "start": "node server.js",
+    "start": "cross-env PORT=7004 node server.js",
     "build": "prisma generate",
     "postinstall": "prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "nodemon server.js --ignore 'client/'",
+    "server": "cross-env PORT=7004 nodemon server.js --ignore \"client/\"",
     "client": "npm run dev --prefix ../frontend",
-    "dev": "concurrently \" npm run server \" \"npm run client\"",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
     "prod": "concurrently \"node server.js\" \"npm start --prefix ../frontend\""
   },
   
@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
+    "cross-env": "^7.0.3",
     "nodemon": "^3.1.11",
     "prisma": "^7.8.0"
   }
