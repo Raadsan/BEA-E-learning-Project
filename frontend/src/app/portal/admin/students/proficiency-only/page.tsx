@@ -194,21 +194,21 @@ export default function ProficiencyCandidatesPage() {
             }
         },
 
-        {
-            key: "date_of_birth",
-            label: "Date Of Birth",
-            render: (val) => <span className="text-sm text-gray-600">{val ? new Date(val).toLocaleDateString() : '-'}</span>
-        },
-        {
-            key: "place_of_birth",
-            label: "Place Of Birth",
-            render: (val) => <span className="text-sm text-gray-600">{val || '-'}</span>
-        },
-        {
-            key: "program",
-            label: "Program",
-            render: () => <span className="text-sm text-gray-600">Proficiency Test</span>
-        },
+        // {
+        //     key: "date_of_birth",
+        //     label: "Date Of Birth",
+        //     render: (val) => <span className="text-sm text-gray-600">{val ? new Date(val).toLocaleDateString() : '-'}</span>
+        // },
+        // {
+        //     key: "place_of_birth",
+        //     label: "Place Of Birth",
+        //     render: (val) => <span className="text-sm text-gray-600">{val || '-'}</span>
+        // },
+        // {
+        //     key: "program",
+        //     label: "Program",
+        //     render: () => <span className="text-sm text-gray-600">Proficiency Test</span>
+        // },
         /* {
             key: "time_status",
             label: "Life Status",

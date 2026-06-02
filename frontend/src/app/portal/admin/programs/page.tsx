@@ -233,34 +233,34 @@ export default function ProgramsPage() {
 
   const columns = [
     { key: "title", label: "Title" },
-    {
-      key: "media", label: "Media (Image/Video)",
-      render: (_, row) => (
-        <div className="flex gap-2 items-center">
-          {row.image ? (
-            <div className="relative w-12 h-8 rounded overflow-hidden shadow-xs border border-gray-200/60 bg-gray-50 flex-shrink-0">
-              <img src={row.image} alt={row.title} className="object-cover w-full h-full" />
-            </div>
-          ) : (
-            <div className="w-12 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200/60 flex-shrink-0">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          )}
-          {row.video ? (
-            <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center shadow-xs" title="Promo Video Available">
-              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
-          ) : (
-            <span className="text-[10px] text-gray-400">No Video</span>
-          )}
-        </div>
-      )
-    },
-    { key: "description", label: "Description", render: (val) => <span className="truncate block max-w-xs">{val || "No description"}</span> },
+    // {
+    //   key: "media", label: "Media (Image/Video)",
+    //   render: (_, row) => (
+    //     <div className="flex gap-2 items-center">
+    //       {row.image ? (
+    //         <div className="relative w-12 h-8 rounded overflow-hidden shadow-xs border border-gray-200/60 bg-gray-50 flex-shrink-0">
+    //           <img src={row.image} alt={row.title} className="object-cover w-full h-full" />
+    //         </div>
+    //       ) : (
+    //         <div className="w-12 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200/60 flex-shrink-0">
+    //           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    //           </svg>
+    //         </div>
+    //       )}
+    //       {row.video ? (
+    //         <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center shadow-xs" title="Promo Video Available">
+    //           <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+    //             <path d="M8 5v14l11-7z" />
+    //           </svg>
+    //         </div>
+    //       ) : (
+    //         <span className="text-[10px] text-gray-400">No Video</span>
+    //       )}
+    //     </div>
+    //   )
+    // },
+    { key: "description", label: "Description", className: "text-left pl-4", render: (val) => <span className="truncate block max-w-xs">{val || "No description"}</span> },
     { key: "price", label: "Price", render: (_, row) => <div><span>${(parseFloat(row.price || 0) - parseFloat(row.discount || 0)).toFixed(2)}</span>{parseFloat(row.discount || 0) > 0 && <span className="block text-[10px] text-gray-400 line-through">${parseFloat(row.price || 0).toFixed(2)}</span>}</div> },
     { key: "status", label: "Status", render: (val, row) => <button onClick={() => handleStatusToggle(row)} className={`px-4 py-1.5 text-xs font-bold rounded-full ${val === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{val?.charAt(0).toUpperCase() + val?.slice(1)}</button> },
     {

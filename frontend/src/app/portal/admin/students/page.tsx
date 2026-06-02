@@ -435,50 +435,53 @@ export default function StudentsPage() {
     };
 
     const columns = [
-        { key: "student_id", label: "Student ID", render: (_, row) => <span className="font-bold">{row.student_id || "N/A"}</span> },
+        { key: "student_id", label: "Student ID", render: (_, row) => <span className="font-semibold">{row.student_id || "N/A"}</span> },
         {
             key: "full_name",
             label: "Student",
             render: (val, row) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full border border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0 shadow-sm relative">
-                        {row.profile_picture ? (
-                            <img
-                                src={`${API_BASE_URL}${row.profile_picture}`}
-                                alt={val}
-                                className="w-full h-full object-cover"
-                                onError={(e: any) => {
-                                    e.target.style.display = 'none';
-                                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
-                                }}
-                            />
-                        ) : null}
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm">
-                            {val ? val.charAt(0).toUpperCase() : "S"}
-                        </div>
-                    </div>
                     <div className="flex flex-col">
-                        <span className="font-semibold text-gray-900">{val}</span>
+                        <span className=" text-gray-900">{val}</span>
                         <span className="text-[11px] text-gray-400 font-medium">{row.email}</span>
                     </div>
                 </div>
             )
         },
         { key: "phone", label: "Phone", render: (val) => val || "N/A" },
-        { key: "age", label: "Age", render: (val) => val || "N/A" },
-        { key: "date_of_birth", label: "Date Of Birth", render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span> },
+        // { key: "age", label: "Age", render: (val) => val || "N/A" },
+        // { key: "date_of_birth", label: "Date Of Birth", render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span> },
+        // {
+        //     key: "address",
+        //     label: "Address",
+        //     render: (_, row) => {
+        //         const city = row.residency_city;
+        //         const country = row.residency_country;
+        //         if (city && country) return <span className="text-gray-700 font-medium text-xs">{`${city}, ${country}`}</span>;
+        //         return <span className="text-gray-700 font-medium text-xs">{city || country || '-'}</span>;
+        //     }
+        // },
         {
-            key: "address",
-            label: "Address",
-            render: (_, row) => {
-                const city = row.residency_city;
-                const country = row.residency_country;
-                if (city && country) return <span className="text-gray-700 font-medium text-xs">{`${city}, ${country}`}</span>;
-                return <span className="text-gray-700 font-medium text-xs">{city || country || '-'}</span>;
-            }
+      key: "chosen_program",
+      label: "Program",
+      width: "180px",
+      render: (val) => (
+        <span className="block truncate max-w-[160px]" title={val}>
+          {val || <span className="text-gray-400">-</span>}
+        </span>
+      ),
+    },
+        {
+            key: "class_name",
+            label: "Class",
+            width: "100px",
+            className: "text-right pr-12",
+            render: (val) => (
+                <span className="inline-block truncate max-w-[70px]" title={val}>
+                    {val || <span className="text-gray-400">-</span>}
+                </span>
+            )
         },
-        { key: "chosen_program", label: "Program" },
-        { key: "class_name", label: "Class", render: (val) => val || <span className="text-gray-400 italic">Unassigned</span> },
         {
             key: "approval_status", label: "Status",
             render: (val, row) => {

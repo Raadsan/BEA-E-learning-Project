@@ -474,7 +474,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                 <svg className={`w-5 h-5 ${openSection === 'assessments' ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
-                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'assessments' ? 'text-white' : 'text-gray-100'}`}>Assessments & Assignments</span>
+                <span className={`font-medium text-sm whitespace-nowrap ${openSection === 'assessments' ? 'text-white' : 'text-gray-100'}`}>Official BEA Assessments</span>
               </div>
               <svg className={`w-4 h-4 ${openSection === 'assessments' ? 'text-white' : 'text-gray-100'} transition-transform duration-200 ${openSection === 'assessments' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -526,7 +526,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-gray-400">•</span>
-                      <span className="text-gray-100">Professional Tests</span>
+                      <span className="text-gray-100">Proficiency Tests</span>
                     </div>
                     <svg className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${openSubSection === 'professionalTests' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -539,7 +539,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                           <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                           </svg>
-                          <span className="text-gray-100">Professional Tests</span>
+                          <span className="text-gray-100">Proficiency Tests</span>
                         </Link>
                       </li>
                       <li>
@@ -547,7 +547,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                           <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                           </svg>
-                          <span className="text-gray-100">Professional Results</span>
+                          <span className="text-gray-100">Proficiency Results</span>
                         </Link>
                       </li>
                     </ul>
@@ -593,14 +593,14 @@ export default function AdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/students-requests/freezing") ? 'text-white' : 'text-gray-100'}>Freezing Requests</span>
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link href="/portal/admin/students-requests/level-up" className={getSubMenuItemClasses("/portal/admin/students-requests/level-up")} style={getSubActiveStyle("/portal/admin/students-requests/level-up")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/students-requests/level-up") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                     <span className={isActive("/portal/admin/students-requests/level-up") ? 'text-white' : 'text-gray-100'}>Level Up Requests</span>
                   </Link>
-                </li>
+                </li> */}
               </ul>
             )}
           </li>
@@ -818,8 +818,6 @@ export default function AdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
-
-          
 
           {/* Reports & Analytics */}
           <li>

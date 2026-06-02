@@ -211,9 +211,33 @@ export default function SubprogramsPage() {
   };
 
   const columns = [
-    { key: "subprogram_name", label: "Subprogram Name" },
-    { key: "program_name", label: "Program", render: (val) => val || "N/A" },
-    { key: "description", label: "Description", render: (val) => <span className="dark:text-gray-300 max-w-xs truncate block">{val || <span className="text-gray-400">No description</span>}</span> },
+    {
+      key: "subprogram_name",
+      label: "Subprogram Name",
+      className: "whitespace-nowrap pr-8"
+    },
+    {
+      key: "program_name",
+      label: "Program",
+      width: "250px",
+      className: "text-left",
+      render: (val) => (
+        <span className="dark:text-gray-300 max-w-[230px] truncate block" title={val}>
+          {val || <span className="text-gray-400">-</span>}
+        </span>
+      )
+    },
+    {
+      key: "description",
+      label: "Description",
+      width: "300px",
+      className: "text-left pl-4",
+      render: (val) => (
+        <span className="dark:text-gray-300 max-w-[280px] truncate block" title={val}>
+          {val || <span className="text-gray-400">No description</span>}
+        </span>
+      ),
+    },
     { key: "status", label: "Status", render: (val, row) => <button onClick={() => handleStatusToggle(row)} className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full transition-all active:scale-95 ${val === 'active' ? 'bg-green-100 text-green-700' : val === 'archived' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{val === "active" ? "Active" : val === "archived" ? "Archived" : "Inactive"}</button> },
     {
       key: "actions", label: "Actions",

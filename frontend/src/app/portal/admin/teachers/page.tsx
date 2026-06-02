@@ -287,7 +287,7 @@ export default function TeachersPage() {
     { key: "phone", label: "Phone" },
     { key: "country", label: "Country" },
     { key: "hire_date", label: "Hired Date", render: (val) => val ? new Date(val).toLocaleDateString() : 'N/A' },
-    { key: "years_experience", label: "Years Experience" },
+    // { key: "years_experience", label: "Years Experience" },
     {
       key: "status",
       label: "Status",

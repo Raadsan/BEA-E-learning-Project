@@ -426,18 +426,18 @@ export default function IELTSTOEFLStudentsPage() {
         return <span className="text-gray-700 dark:text-gray-300 text-xs">{city || country || '-'}</span>;
       }
     },
-    {
-      key: "date_of_birth",
-      label: "Date Of Birth",
-      width: "120px",
-      render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span>,
-    },
-    {
-      key: "place_of_birth",
-      label: "Place Of Birth",
-      width: "120px",
-      render: (val) => val || <span className="text-gray-400">-</span>,
-    },
+    // {
+    //   key: "date_of_birth",
+    //   label: "Date Of Birth",
+    //   width: "120px",
+    //   render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span>,
+    // },
+    // {
+    //   key: "place_of_birth",
+    //   label: "Place Of Birth",
+    //   width: "120px",
+    //   render: (val) => val || <span className="text-gray-400">-</span>,
+    // },
     {
       key: "verification_method",
       label: "Verification",
@@ -537,6 +537,19 @@ export default function IELTSTOEFLStudentsPage() {
       ),
     },
   ];
+  if (isLoading) {
+    return (
+      <>
+        <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 transition-colors">
+          <div className="flex-1 w-full max-w-full px-4 sm:px-8 py-6 flex items-center justify-center">
+            <div className="text-center">
+              <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading students...</p>
+            </div>
+          </div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>

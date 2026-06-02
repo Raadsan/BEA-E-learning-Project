@@ -480,64 +480,72 @@ export default function GeneralStudentsPage() {
       label: "Student ID",
       width: "150px",
       render: (val) => (
-        <span className="font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
+        <span className="font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
           {val || "N/A"}
         </span>
       ),
     },
     {
       key: "full_name",
-      label: "Full Name",
-      width: "180px",
+      label: "Student",
+      render: (val, row) => (
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col">
+            <span className="text-gray-900">{val}</span>
+            <span className="text-[11px] text-gray-400 font-medium">{row.email}</span>
+          </div>
+        </div>
+      )
     },
-    {
-      key: "email",
-      label: "Email",
-      width: "220px",
-    },
-    {
-      key: "phone",
-      label: "Phone",
-      width: "150px",
-      render: (val) => val || <span className="text-gray-400">-</span>,
-    },
-    {
-      key: "age",
-      label: "Age",
-      width: "80px",
-      render: (val) => val || <span className="text-gray-400">-</span>,
-    },
+    // {
+    //   key: "email",
+    //   label: "Email",
+    //   width: "220px",
+    // },
+    // {
+    //   key: "phone",
+    //   label: "Phone",
+    //   width: "150px",
+    //   render: (val) => val || <span className="text-gray-400">-</span>,
+    // },
+    // {
+    //   key: "age",
+    //   label: "Age",
+    //   width: "80px",
+    //   render: (val) => val || <span className="text-gray-400">-</span>,
+    // },
 
-    {
-      key: "date_of_birth",
-      label: "Date Of Birth",
-      width: "120px",
-      render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span>,
-    },
-    {
-      key: "place_of_birth",
-      label: "Place Of Birth",
-      width: "120px",
-      render: (val) => val || <span className="text-gray-400">-</span>,
-    },
-    {
-      key: "address",
-      label: "Address",
-      width: "150px",
-      render: (_, row) => {
-        const city = row.residency_city;
-        const country = row.residency_country;
-        if (city && country) return <span className="text-gray-600 font-sans text-xs">{`${city}, ${country}`}</span>;
-        return <span className="text-gray-600 font-sans text-xs">{city || country || '-'}</span>;
-      }
-    },
+    // {
+    //   key: "date_of_birth",
+    //   label: "Date Of Birth",
+    //   width: "120px",
+    //   render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span>,
+    // },
+    // {
+    //   key: "place_of_birth",
+    //   label: "Place Of Birth",
+    //   width: "120px",
+    //   render: (val) => val || <span className="text-gray-400">-</span>,
+    // },
+    // {
+    //   key: "address",
+    //   label: "Address",
+    //   width: "150px",
+    //   render: (_, row) => {
+    //     const city = row.residency_city;
+    //     const country = row.residency_country;
+    //     if (city && country) return <span className="text-gray-600 font-sans text-xs">{`${city}, ${country}`}</span>;
+    //     return <span className="text-gray-600 font-sans text-xs">{city || country || '-'}</span>;
+    //   }
+    // },
 
     {
       key: "chosen_program",
       label: "Program",
       width: "180px",
+      className: "text-left pr-18",
       render: (val) => (
-        <span className="block truncate max-w-[160px]" title={val}>
+        <span className="block truncate max-w-[160px] " title={val}>
           {val || <span className="text-gray-400">-</span>}
         </span>
       ),
@@ -575,39 +583,39 @@ export default function GeneralStudentsPage() {
     {
       key: "class_id",
       label: "Class",
-      width: "150px",
+      width: "90px",
       render: (val, row) => {
         const className = getClassName(val);
         if (!className) {
           return (
             <button
               onClick={() => handleOpenAssignModal(row)}
-              className="px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 transition-colors"
+              className="px-3 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full uppercase transition-all hover:scale-105 bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200"
             >
               Assign Class
             </button>
           );
         }
         return (
-          <span className="block truncate max-w-[130px] font-medium text-blue-600 dark:text-blue-400">
+          <span className="block truncate max-w-[110px] font-medium text-gray-600 dark:text-gray-100">
             {className}
           </span>
         );
       },
     },
-    {
-      key: "created_at",
-      label: "Registration Date",
-      render: (val) => {
-        if (!val) return <span className="text-gray-400">-</span>;
-        const date = new Date(val);
-        return date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        });
-      },
-    },
+    // {
+    //   key: "created_at",
+    //   label: "Registration Date",
+    //   render: (val) => {
+    //     if (!val) return <span className="text-gray-400">-</span>;
+    //     const date = new Date(val);
+    //     return date.toLocaleDateString('en-US', {
+    //       year: 'numeric',
+    //       month: 'short',
+    //       day: 'numeric',
+    //     });
+    //   },
+    // },
     /* {
       key: "time_status",
       label: "Life Status",
@@ -1835,7 +1843,7 @@ export default function GeneralStudentsPage() {
               <p className={`text-sm mb-4 text-center ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                 Extend the entry window or placement test access for <strong>{studentToExtend.full_name}</strong>.
               </p>
-              
+
               <div className="space-y-2">
                 <label className={`block text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                   Extra Time (Minutes)
@@ -1887,7 +1895,7 @@ export default function GeneralStudentsPage() {
           </div>
         </div>
       )}
- 
+
     </>
   );
 }
