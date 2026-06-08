@@ -90,6 +90,7 @@ export const login = async (req, res) => {
               verification_method: user.verification_method,
               approval_status: user.status || 'Pending',
               is_ielts: true,
+              class_id: user.class_id,
               expiry_date: user.expiry_date,
               created_at: user.registration_date
             };
@@ -238,6 +239,7 @@ export const getCurrentUser = async (req, res) => {
               verification_method: user.verification_method,
               approval_status: user.status || 'Pending',
               is_ielts: true,
+              class_id: user.class_id,
               expiry_date: user.expiry_date,
               created_at: user.registration_date
             };

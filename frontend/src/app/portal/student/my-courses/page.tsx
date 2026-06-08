@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
@@ -17,7 +17,43 @@ import Modal from "@/components/Modal";
 import Image from "next/image";
 import { API_BASE_URL, API_URL } from "@/constants";
 import SubprogramCurriculumMap from "@/components/student/SubprogramCurriculumMap";
-import { isLevelClickable } from "@/utils/subprogramProgress";
+import { buildLevelMapSubprograms, isLevelClickable, isTestPrepProgramName } from "@/utils/subprogramProgress";
+
+function normalizeProgramName(name?: string | null) {
+    return String(name || "")
+        .toLowerCase()
+        .replace(/&/g, "and")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function findStudentProgram(
+    programs: Array<{ id?: number | string; title?: string; program_name?: string }>,
+    user?: { chosen_program?: string | number | null; is_ielts?: boolean; exam_type?: string | null } | null,
+    subprogram?: { program_id?: number | string | null } | null
+) {
+    const candidates = [subprogram?.program_id, user?.chosen_program].filter(
+        (value) => value !== undefined && value !== null && value !== ""
+    );
+
+    for (const candidate of candidates) {
+        const program = programs.find((item) => {
+            const title = item.title || item.program_name || "";
+            return (
+                Number(item.id) === Number(candidate) ||
+                normalizeProgramName(title) === normalizeProgramName(String(candidate)) ||
+                (isTestPrepProgramName(title) && isTestPrepProgramName(String(candidate)))
+            );
+        });
+        if (program) return program;
+    }
+
+    if (user?.is_ielts || user?.exam_type) {
+        return programs.find((item) => isTestPrepProgramName(item.title || item.program_name));
+    }
+
+    return null;
+}
 
 export default function MyCoursesPage() {
     const { isDark } = useDarkMode();
@@ -72,10 +108,22 @@ export default function MyCoursesPage() {
     );
 
     // Helper to identify if it's a general/multi-level program layout
+    const isTestPrepProgram =
+        isTestPrepProgramName(studentProgram?.title || studentProgram?.program_name) ||
+        Boolean(user?.is_ielts || user?.exam_type);
+
     const isGeneralProgram =
-        studentProgram?.program_name?.toLowerCase().includes("general") ||
-        studentProgram?.title?.toLowerCase().includes("general") ||
-        subprogramsData.length >= 4;
+        !isTestPrepProgram &&
+        (studentProgram?.program_name?.toLowerCase().includes("general") ||
+            studentProgram?.title?.toLowerCase().includes("general") ||
+            subprogramsData.length >= 4);
+
+    const showLevelMap = isGeneralProgram || isTestPrepProgram;
+
+    const levelMapSubprograms = useMemo(
+        () => buildLevelMapSubprograms(allSubprograms, programs),
+        [allSubprograms, programs]
+    );
 
     useEffect(() => {
         if (classData) {
@@ -98,18 +146,10 @@ export default function MyCoursesPage() {
 
             if (subprogram) {
                 setStudentSubprogram(subprogram);
-                const pId = subprogram.program_id || user.chosen_program;
-                const program = programs.find(p =>
-                    Number(p.id) == Number(pId) ||
-                    p.program_name?.toLowerCase() === pId?.toString().toLowerCase()
-                );
+                const program = findStudentProgram(programs, user, subprogram);
                 if (program) setStudentProgram(program);
-            } else if (user.chosen_program) {
-                // Fallback to chosen program if no subprogram yet
-                const program = programs.find(p =>
-                    Number(p.id) == Number(user.chosen_program) ||
-                    p.program_name?.toLowerCase() === user.chosen_program?.toString().toLowerCase()
-                );
+            } else {
+                const program = findStudentProgram(programs, user);
                 if (program) setStudentProgram(program);
             }
         }
@@ -358,18 +398,23 @@ export default function MyCoursesPage() {
                 </div>
 
                 <div className="flex flex-col gap-10">
-                    {isGeneralProgram ? (
+                    {showLevelMap ? (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-stretch w-full transition-all">
-                            {/* Left Column - Program Levels */}
-                            <div className="flex flex-col w-full min-w-0 h-[430px]">
+                            <div className="flex flex-col w-full min-w-0 h-[500px] lg:h-[520px]">
                                 <div className="flex justify-between items-center mb-1">
                                     <h2 className={`text-xl font-normal ${isDark ? "text-white" : "text-gray-900"}`}>
                                         Program Levels
                                     </h2>
                                     <span className={`text-[10px] font-normal px-2 py-0.5 rounded-full ${isDark ? "bg-gray-700 text-gray-400" : "bg-gray-100 text-gray-500"}`}>
-                                        {subprogramsData.length} Levels
+                                        {levelMapSubprograms.length} Levels
                                     </span>
                                 </div>
+
+                                {isTestPrepProgram && user?.exam_type && (
+                                    <p className={`text-xs mb-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                                        Your track: <span className="font-semibold text-[#010080]">{user.exam_type}</span>
+                                    </p>
+                                )}
 
                                 {unitEligibility?.showAB && (
                                     <p className={`text-xs mb-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
@@ -379,12 +424,12 @@ export default function MyCoursesPage() {
                                     </p>
                                 )}
 
-                                {subprogramsLoading ? (
+                                {subprogramsLoading && levelMapSubprograms.length === 0 ? (
                                     <p className="text-gray-500">Loading levels...</p>
                                 ) : (
                                     <div className="flex-1 min-h-0 w-full">
                                         <SubprogramCurriculumMap
-                                            subprograms={subprogramsData}
+                                            subprograms={levelMapSubprograms}
                                             user={user}
                                             studentClass={studentClass}
                                             showCertificateButton={hasCertificateTemplate}
@@ -397,17 +442,18 @@ export default function MyCoursesPage() {
                                 )}
                             </div>
 
-                            {/* Right Column - Image (50% width) */}
-                            <div className="flex flex-col w-full min-w-0 h-[430px]">
-                                <div className={`relative w-full h-full rounded-3xl overflow-hidden border-2 ${isDark ? "border-gray-800" : "border-gray-100 shadow-sm"}`}>
-                                    <Image
-                                        src="/images/My courses.jpg"
-                                        alt="My Courses"
-                                        fill
-                                        className="object-cover opacity-90"
-                                        priority
-                                        unoptimized
-                                    />
+                            <div className="flex flex-col w-full min-w-0 h-[500px] lg:h-[520px]">
+                                <div className={`relative w-full h-full rounded-3xl overflow-hidden border-2 p-3 ${isDark ? "border-gray-800 bg-gray-900" : "border-gray-100 bg-white shadow-sm"}`}>
+                                    <div className="relative w-full h-full">
+                                        <Image
+                                            src="/images/My courses.jpg"
+                                            alt="My Courses"
+                                            fill
+                                            className="object-contain object-center"
+                                            priority
+                                            unoptimized
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -625,7 +671,7 @@ export default function MyCoursesPage() {
                 </div>
 
                 {/* My Enrolled Classes - Only visible for 8-level General program */}
-                {isGeneralProgram && (
+                {showLevelMap && (
                     <div id="my-classes-section" className="mt-10 pb-20">
                         <div className="mb-6">
                             <h2 className={`text-3xl font-normal ${isDark ? "text-white" : "text-gray-900"}`}>

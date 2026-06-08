@@ -72,7 +72,7 @@ const CURRICULUM_SLOTS: CurriculumSlot[] = [
         band: "B2 - C1",
         step: 7,
     },
-    { type: "ils", ilsNumber: 4, name: "Integrated Language Skills 4", band: "C2" },
+    { type: "ils", ilsNumber: 4, name: "Integrated Language Skills 4", band: "B2 - C1" },
     { type: "main", match: /advanced\s*plus/i, band: "C2", step: 8 },
 ];
 
@@ -144,17 +144,112 @@ function assignStepNumbers(items: CurriculumSubprogram[]): CurriculumSubprogram[
     });
 }
 
+export function isTestPrepProgramName(name?: string | null): boolean {
+    if (!name) return false;
+    const normalized = name.toLowerCase();
+    return /ielts/.test(normalized) && /toefl/.test(normalized);
+}
+
+export function isTestPrepSubprogramName(name?: string | null): boolean {
+    if (!name) return false;
+    return /ielts|toefl/i.test(name);
+}
+
+export function buildTestPrepSequence(
+    subprograms: Array<{ id: number | string; subprogram_name?: string; name?: string }>
+): CurriculumSubprogram[] {
+    const findByExam = (pattern: RegExp) =>
+        subprograms.find((subprogram) =>
+            pattern.test(subprogram.subprogram_name || subprogram.name || "")
+        );
+
+    const sequence: CurriculumSubprogram[] = [];
+    const ielts = findByExam(/ielts/i);
+    const toefl = findByExam(/toefl/i);
+
+    if (ielts) {
+        sequence.push({
+            id: ielts.id,
+            subprogram_name: ielts.subprogram_name || ielts.name || "IELTS",
+            name: ielts.name,
+            cefrBand: "TEST PREP",
+            isIntegrated: true,
+        });
+    }
+
+    if (toefl) {
+        sequence.push({
+            id: toefl.id,
+            subprogram_name: toefl.subprogram_name || toefl.name || "TOEFL",
+            name: toefl.name,
+            cefrBand: "TEST PREP",
+            isIntegrated: true,
+        });
+    }
+
+    return sequence;
+}
+
+export function resolveTestPrepSubprogramId(
+    subprograms: Array<{ id: number | string; subprogram_name?: string; name?: string }>,
+    examType?: string | null
+) {
+    if (!examType) return null;
+    const normalized = examType.toLowerCase();
+    const match = subprograms.find((subprogram) => {
+        const name = (subprogram.subprogram_name || subprogram.name || "").toLowerCase();
+        return normalized.includes("ielts") ? /ielts/.test(name) : /toefl/.test(name);
+    });
+    return match?.id ?? null;
+}
+
+export function buildLevelMapSubprograms(
+    allSubprograms: Array<{ id: number | string; subprogram_name?: string; name?: string; program_id?: number | string }>,
+    programs: Array<{ id?: number | string; title?: string; program_name?: string }>
+) {
+    const gepProgram = programs.find((program) =>
+        (program.title || program.program_name || "").toLowerCase().includes("general english")
+    );
+    const testPrepProgram = programs.find((program) =>
+        isTestPrepProgramName(program.title || program.program_name)
+    );
+
+    const gepSubs = gepProgram
+        ? allSubprograms.filter(
+              (subprogram) => Number(subprogram.program_id) === Number(gepProgram.id)
+          )
+        : [];
+
+    const testPrepSubs = testPrepProgram
+        ? allSubprograms.filter((subprogram) =>
+              isTestPrepSubprogramName(subprogram.subprogram_name || subprogram.name)
+          )
+        : [];
+
+    return [...gepSubs, ...testPrepSubs];
+}
+
 export function buildCurriculumSequence(
     subprograms: Array<{ id: number | string; subprogram_name?: string; name?: string }>
 ): CurriculumSubprogram[] {
-    if (!subprograms.length) return [];
+    const testPrepSubs = subprograms.filter((subprogram) =>
+        isTestPrepSubprogramName(subprogram.subprogram_name || subprogram.name)
+    );
+    const gepSubs = subprograms.filter(
+        (subprogram) => !isTestPrepSubprogramName(subprogram.subprogram_name || subprogram.name)
+    );
+
+    if (testPrepSubs.length > 0 && gepSubs.length === 0) {
+        return buildTestPrepSequence(testPrepSubs);
+    }
+    if (!gepSubs.length && !testPrepSubs.length) return [];
 
     const usedIds = new Set<string>();
     const sequence: CurriculumSubprogram[] = [];
 
     CURRICULUM_SLOTS.forEach((slot) => {
         if (slot.type === "ils") {
-            const match = findIntegratedSubprogram(subprograms, slot.ilsNumber, usedIds);
+            const match = findIntegratedSubprogram(gepSubs, slot.ilsNumber, usedIds);
             if (!match) return;
 
             usedIds.add(String(match.id));
@@ -168,7 +263,7 @@ export function buildCurriculumSequence(
             return;
         }
 
-        const match = findMainSubprogram(subprograms, slot, usedIds);
+        const match = findMainSubprogram(gepSubs, slot, usedIds);
         if (!match) return;
 
         usedIds.add(String(match.id));
@@ -181,12 +276,13 @@ export function buildCurriculumSequence(
         });
     });
 
-    subprograms.forEach((subprogram) => {
+    gepSubs.forEach((subprogram) => {
         const id = String(subprogram.id);
         if (usedIds.has(id)) return;
 
         const name = subprogram.subprogram_name || subprogram.name || "";
-        const isIntegrated = INTEGRATED_PATTERN.test(name);
+        const isIntegrated =
+            INTEGRATED_PATTERN.test(name) && !isTestPrepSubprogramName(name);
 
         sequence.push({
             id: subprogram.id,
@@ -198,6 +294,14 @@ export function buildCurriculumSequence(
         usedIds.add(id);
     });
 
+    if (testPrepSubs.length > 0) {
+        buildTestPrepSequence(testPrepSubs).forEach((item) => {
+            if (usedIds.has(String(item.id))) return;
+            sequence.push(item);
+            usedIds.add(String(item.id));
+        });
+    }
+
     if (!sequence.length) {
         return assignStepNumbers(
             subprograms.map((subprogram) => {
@@ -207,7 +311,8 @@ export function buildCurriculumSequence(
                     subprogram_name: name,
                     name: subprogram.name,
                     cefrBand: getCefrBand(name) || "LEVEL",
-                    isIntegrated: INTEGRATED_PATTERN.test(name),
+                    isIntegrated:
+                        INTEGRATED_PATTERN.test(name) && !isTestPrepSubprogramName(name),
                 };
             })
         );
@@ -306,8 +411,34 @@ export function getCefrBand(subprogramName: string): string | undefined {
     return undefined;
 }
 
+function toTitleWords(value: string): string {
+    return value
+        .split(/\s+/)
+        .map((word) =>
+            word
+                .split("-")
+                .map((part) => (part ? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase() : part))
+                .join("-")
+        )
+        .join(" ");
+}
+
 export function formatPillarLabel(subprogramName: string): string {
-    return stripCefrPrefix(subprogramName).toUpperCase();
+    const name = stripCefrPrefix(subprogramName);
+    const lower = name.toLowerCase();
+
+    if (/ielts/.test(lower)) return "IELTS Academic Training";
+    if (/toefl/.test(lower)) return "TOEFL iBT Test";
+
+    const ilsMatch = lower.match(/integrated language skills\s*(\d)/i);
+    if (ilsMatch) return `Integrated Language Skills ${ilsMatch[1]}`;
+
+    return toTitleWords(name);
+}
+
+export function isIntegratedLanguageSkillsName(name?: string | null): boolean {
+    if (!name) return false;
+    return /integrated language skills/i.test(name);
 }
 
 export function buildSubprogramProgress({
@@ -320,6 +451,8 @@ export function buildSubprogramProgress({
     user?: {
         chosen_subprogram?: string | number | null;
         completed_subprograms?: unknown;
+        exam_type?: string | null;
+        is_ielts?: boolean;
     } | null;
     studentClass?: { subprogram_id?: number | string | null; class_name?: string | null } | null;
     curriculumSequence?: CurriculumSubprogram[];
@@ -331,7 +464,15 @@ export function buildSubprogramProgress({
     if (!orderedSubprograms.length) return [];
 
     const completedEntries = parseCompletedEntries(user?.completed_subprograms);
-    const currentSubprogramId = studentClass?.subprogram_id ?? user?.chosen_subprogram ?? null;
+    const isTestPrepSequence =
+        orderedSubprograms.length > 0 &&
+        orderedSubprograms.every((subprogram) => subprogram.isIntegrated && isTestPrepSubprogramName(subprogram.subprogram_name));
+
+    let currentSubprogramId = studentClass?.subprogram_id ?? user?.chosen_subprogram ?? null;
+
+    if (!currentSubprogramId && user?.exam_type) {
+        currentSubprogramId = resolveTestPrepSubprogramId(orderedSubprograms, user.exam_type);
+    }
     const currentIndex = orderedSubprograms.findIndex(
         (sub) =>
             !sub.isPlaceholder &&
@@ -388,7 +529,9 @@ export function buildSubprogramProgress({
 
     return orderedSubprograms.map((subprogram, index) => {
         const subprogramName = subprogram.subprogram_name || subprogram.name || `Level ${index + 1}`;
-        const showAB = !subprogram.isIntegrated && hasABSplit(subprogramName);
+        const showAB =
+            hasABSplit(subprogramName) &&
+            (!subprogram.isIntegrated || isTestPrepSubprogramName(subprogramName));
         const { aCompleted, bCompleted, isFullyCompleted } = levelCompletion[index];
 
         if (subprogram.isPlaceholder) {
@@ -420,12 +563,22 @@ export function buildSubprogramProgress({
             access = index === currentIndex + 1 && !isFullyCompleted ? "available" : "available";
         }
 
-        if (index === 0 && currentIndex === -1) {
-            access = "active";
-        }
+        if (isTestPrepSequence) {
+            access = index === currentIndex ? "active" : "locked";
+        } else if (isTestPrepSubprogramName(subprogramName)) {
+            const enrolledTrackId = resolveTestPrepSubprogramId(orderedSubprograms, user?.exam_type);
+            access =
+                enrolledTrackId && String(subprogram.id) === String(enrolledTrackId)
+                    ? "active"
+                    : "locked";
+        } else {
+            if (index === 0 && currentIndex === -1) {
+                access = "active";
+            }
 
-        if (!isPreviousFullyComplete(index) && index !== 0) {
-            access = "locked";
+            if (!isPreviousFullyComplete(index) && index !== 0) {
+                access = "locked";
+            }
         }
 
         if (isFullyCompleted) {

@@ -26,8 +26,8 @@ const WITHIN_GROUP_GAP = 10;
 const BETWEEN_GROUP_GAP = 3;
 
 function getPillarWidth(totalPillars: number, isIntegrated: boolean): number {
-    const base = totalPillars <= 8 ? 64 : totalPillars >= 12 ? 42 : 50;
-    return isIntegrated ? Math.max(base - 6, 34) : base;
+    const base = totalPillars <= 8 ? 68 : totalPillars >= 12 ? 46 : 54;
+    return isIntegrated ? Math.max(base - 6, 38) : base;
 }
 
 function UnitHeader({
@@ -52,11 +52,11 @@ function UnitHeader({
     };
 
     return (
-        <div className="flex w-full h-8 flex-shrink-0 overflow-hidden rounded-t-[16px]">
-            <div className={`flex-1 flex items-center justify-center text-[9px] font-bold border-r border-white/25 ${unitClass(unitA)}`}>
+        <div className="flex w-full h-9 flex-shrink-0 overflow-hidden rounded-t-[18px]">
+            <div className={`flex-1 flex items-center justify-center text-[10px] font-bold border-r border-white/25 ${unitClass(unitA)}`}>
                 A
             </div>
-            <div className={`flex-1 flex items-center justify-center text-[9px] font-bold ${unitClass(unitB)}`}>
+            <div className={`flex-1 flex items-center justify-center text-[10px] font-bold ${unitClass(unitB)}`}>
                 B
             </div>
         </div>
@@ -80,7 +80,7 @@ function PillarCard({
     const isCurrentLevel = progress.access === "active";
     const displayLabel = formatPillarLabel(progress.subprogramName);
     const isIntegrated = !progress.showAB;
-    const labelSize = isIntegrated ? "text-[6.5px]" : "text-[9px]";
+    const labelSize = isIntegrated ? "text-[7.5px]" : "text-[10.5px]";
 
     return (
         <div
@@ -95,7 +95,7 @@ function PillarCard({
                 title={progress.subprogramName}
             >
                 <div
-                    className={`rounded-[16px] overflow-hidden shadow-sm flex flex-col h-full ${
+                    className={`rounded-[18px] overflow-hidden shadow-sm flex flex-col h-full ${
                         isCurrentLevel ? "bg-[#010080]" : "bg-gray-500"
                     } ${!progress.showAB ? "pt-1" : ""}`}
                 >
@@ -118,14 +118,14 @@ function PillarCard({
 
             {progress.stepNumber ? (
                 <div
-                    className={`mt-2 flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white ${
+                    className={`mt-2 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold text-white ${
                         isCurrentLevel ? "bg-[#010080]" : "bg-gray-500"
                     }`}
                 >
                     {progress.stepNumber}
                 </div>
             ) : (
-                <div className="mt-2 h-7 flex-shrink-0" />
+                <div className="mt-2 h-8 flex-shrink-0" />
             )}
 
             {showCertificateButton && progress.isFullyCompleted && !isCurrentLevel && onDownloadCertificate && (
@@ -230,14 +230,14 @@ function LevelGroupBlock({
 
             {group.label ? (
                 <div
-                    className={`mt-3 flex-shrink-0 h-8 w-full rounded-full flex items-center justify-center text-[10px] font-bold text-white whitespace-nowrap px-3 ${
+                    className={`mt-3 flex-shrink-0 h-9 w-full rounded-full flex items-center justify-center text-[11px] font-bold text-white whitespace-nowrap px-3 ${
                         isActiveGroup ? "bg-[#010080]" : "bg-gray-500"
                     }`}
                 >
                     {group.label}
                 </div>
             ) : (
-                <div className="mt-3 h-8 flex-shrink-0" />
+                <div className="mt-3 h-9 flex-shrink-0" />
             )}
         </div>
     );
