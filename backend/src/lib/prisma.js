@@ -25,12 +25,20 @@ const prismaClientSingleton = () => {
     password,
     database,
     port,
-    connectionLimit: 10,
+    connectionLimit: 20,      // increased pool size
+    connectTimeout: 30000,    // 30s connection timeout
+    acquireTimeout: 30000,    // 30s acquire timeout
+    idleTimeoutMillis: 60000, // release idle connections after 60s
   });
 
   return new PrismaClient({ adapter });
 };
 
-const prisma = globalThis.prisma ?? prismaClientSingleton();
+// ✅ Fix: Always save back to globalThis so the singleton is truly shared
+if (!globalThis.prisma) {
+  globalThis.prisma = prismaClientSingleton();
+}
+
+const prisma = globalThis.prisma;
 
 export default prisma;

@@ -1,7 +1,7 @@
 import express from "express";
 import {
   createTeacher, getTeachers, getTeacher, updateTeacher, deleteTeacher,
-  getTeacherClasses, bulkActionTeachers
+  getTeacherClasses, bulkActionTeachers, getDashboardStats, getTeacherPrograms
 } from "../controllers/teacherController.js";
 import { verifyToken } from "../controllers/authController.js";
 import { upload } from "../controllers/uploadController.js";
@@ -9,6 +9,9 @@ import { upload } from "../controllers/uploadController.js";
 const router = express.Router();
 
 router.get("/my-classes", verifyToken, getTeacherClasses);
+router.get("/classes", verifyToken, getTeacherClasses);          // alias for frontend compatibility
+router.get("/programs", verifyToken, getTeacherPrograms);
+router.get("/dashboard/stats", verifyToken, getDashboardStats);
 router.post("/bulk-action", bulkActionTeachers);
 router.post("/", createTeacher);
 router.get("/", getTeachers);
@@ -17,3 +20,4 @@ router.put("/:id", upload.single("profile_picture"), updateTeacher);
 router.delete("/:id", deleteTeacher);
 
 export default router;
+

@@ -10,7 +10,9 @@ const router = express.Router();
 router.use(verifyToken);
 
 router.post("/", submitTeacherReview);
+router.post("/submit", submitTeacherReview);
 router.get("/teachers-to-review", getTeachersToReview);
+router.get("/to-review", getTeachersToReview);
 router.get("/teacher/:teacher_id", getTeacherReviews);
 router.get("/", isAdmin, getAllTeacherReviews);
 router.get("/admin/all", isAdmin, getAllTeacherReviews);

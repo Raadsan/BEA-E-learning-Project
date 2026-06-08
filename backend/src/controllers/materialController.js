@@ -4,8 +4,11 @@ export const createMaterial = async (req, res) => {
     try {
         const { title, type, program_id, subprogram_id, level, subject, description, url, status } = req.body;
         if (!title || !type || !url) return res.status(400).json({ error: 'Title, type, and URL required' });
+        
+        const dbStatus = (status === 'Published' || status === 'Active') ? 'Active' : 'Inactive';
+        
         const material = await prisma.learning_materials.create({
-            data: { title, type, program_id: program_id ? parseInt(program_id) : null, subprogram_id: subprogram_id ? parseInt(subprogram_id) : null, level, subject, description, url, status: status || 'Active' }
+            data: { title, type, program_id: program_id ? parseInt(program_id) : null, subprogram_id: subprogram_id ? parseInt(subprogram_id) : null, level, subject, description, url, status: dbStatus }
         });
         res.status(201).json(material);
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -74,7 +77,21 @@ export const getStudentMaterials = async (req, res) => {
 
 export const updateMaterial = async (req, res) => {
     try {
-        const updated = await prisma.learning_materials.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+        const data = { ...req.body };
+        if (data.status) {
+            data.status = (data.status === 'Published' || data.status === 'Active') ? 'Active' : 'Inactive';
+        }
+        if (data.program_id !== undefined) {
+            data.program_id = data.program_id ? parseInt(data.program_id) : null;
+        }
+        if (data.subprogram_id !== undefined) {
+            data.subprogram_id = data.subprogram_id ? parseInt(data.subprogram_id) : null;
+        }
+        
+        const updated = await prisma.learning_materials.update({
+            where: { id: parseInt(req.params.id) },
+            data
+        });
         res.json(updated);
     } catch (err) { res.status(500).json({ error: err.message }); }
 };

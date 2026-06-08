@@ -7,19 +7,22 @@ import { DarkModeProvider, useDarkMode } from "@/context/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useRouter, usePathname } from "next/navigation";
+import PortalNavProgress from "@/components/PortalNavProgress";
+import { usePortalNavFeedback } from "@/hooks/usePortalNavFeedback";
+import StudentRoutePrefetch from "@/components/student/StudentRoutePrefetch";
 
 function StudentLayoutContent({ children }) {
   const { isDark } = useDarkMode();
   const router = useRouter();
   const pathname = usePathname();
-  const { data: user, isLoading } = useGetCurrentUserQuery();
+  const { data: user } = useGetCurrentUserQuery();
   const [isApproved, setIsApproved] = useState(false);
   const [isPaid, setIsPaid] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTestExpired, setIsTestExpired] = useState(false);
+  const { isNavigating, startNavigation } = usePortalNavFeedback(pathname);
 
   useEffect(() => {
-    // Close sidebar on route change for mobile
     setIsSidebarOpen(false);
   }, [pathname]);
 
@@ -118,6 +121,7 @@ function StudentLayoutContent({ children }) {
       className="flex h-screen transition-colors overflow-hidden"
       style={isDark ? { background: 'linear-gradient(135deg, #03002e 0%, #050040 50%, #03002e 100%)' } : { backgroundColor: '#f3f4f6' }}
     >
+      <StudentRoutePrefetch />
       {/* Sidebar - Always visible on desktop, toggleable on mobile */}
       <StudentSidebar
         isApproved={isApproved}
@@ -138,7 +142,8 @@ function StudentLayoutContent({ children }) {
 
       {/* Main Content Area */}
       <div className={`flex-1 flex flex-col lg:ml-80 ml-0 transition-all duration-300 min-w-0 h-full`}>
-        <StudentHeader onMenuClick={() => setIsSidebarOpen(true)} />
+        <StudentHeader onMenuClick={() => setIsSidebarOpen(true)} onNavigate={startNavigation} />
+        <PortalNavProgress show={isNavigating} />
         <main className="flex-1 overflow-y-auto w-full">
           <div className="w-full">
             {children}

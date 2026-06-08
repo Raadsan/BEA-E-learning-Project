@@ -23,7 +23,8 @@ export const createEntry = async (req, res) => {
             teacher_id: req.body.teacher_id ? parseInt(req.body.teacher_id) : null,
             date: req.body.date ? new Date(req.body.date) : null,
             start_time: req.body.start_time ? new Date(`1970-01-01T${req.body.start_time}`) : null,
-            end_time: req.body.end_time ? new Date(`1970-01-01T${req.body.end_time}`) : null
+            end_time: req.body.end_time ? new Date(`1970-01-01T${req.body.end_time}`) : null,
+            day: req.body.day || req.body.day_of_week
         };
         if (req.body.year) {
             data.year = parseInt(req.body.year);
@@ -31,6 +32,7 @@ export const createEntry = async (req, res) => {
         if (req.body.week_number) {
             data.week_number = parseInt(req.body.week_number);
         }
+        delete data.day_of_week;
 
         const entry = await prisma.timetables.create({
             data
@@ -52,6 +54,10 @@ export const updateEntry = async (req, res) => {
         if (data.subprogram_id) data.subprogram_id = parseInt(data.subprogram_id);
         if (data.teacher_id) data.teacher_id = parseInt(data.teacher_id);
         if (data.week_number) data.week_number = parseInt(data.week_number);
+        if (data.day_of_week || data.day) {
+            data.day = data.day || data.day_of_week;
+        }
+        delete data.day_of_week;
 
         const updated = await prisma.timetables.update({
             where: { id: parseInt(req.params.id) },
@@ -100,11 +106,13 @@ export const createWeeklyEntry = async (req, res) => {
             ...req.body,
             program_id: parseInt(req.body.program_id),
             subprogram_id: parseInt(req.body.subprogram_id),
-            week_number: parseInt(req.body.week_number)
+            week_number: parseInt(req.body.week_number),
+            day: req.body.day || req.body.day_of_week
         };
         if (req.body.year) {
             data.year = parseInt(req.body.year);
         }
+        delete data.day_of_week;
 
         const entry = await prisma.timetables.create({
             data
@@ -133,11 +141,13 @@ export const bulkCreateWeeklyEntries = async (req, res) => {
                     ...e,
                     program_id: parseInt(e.program_id),
                     subprogram_id: parseInt(e.subprogram_id),
-                    week_number: parseInt(e.week_number)
+                    week_number: parseInt(e.week_number),
+                    day: e.day || e.day_of_week
                 };
                 if (e.year) {
                     item.year = parseInt(e.year);
                 }
+                delete item.day_of_week;
                 return item;
             })
         });

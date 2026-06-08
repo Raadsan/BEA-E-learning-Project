@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useGetPlacementTestByIdQuery } from "@/lib/api/placementTestApi";
 
 import Loader from "@/components/Loader";
+import { groupQuestionsByPartForAdminPreview } from "@/utils/testQuestions";
 
 export default function PlacementTestDetailsPage() {
     const router = useRouter();
@@ -41,12 +42,7 @@ export default function PlacementTestDetailsPage() {
             return normalized;
         }) : [];
 
-        return {
-            1: fetchedQuestions.filter(q => q.part === 1),
-            2: fetchedQuestions.filter(q => q.part === 2),
-            3: fetchedQuestions.filter(q => q.part === 3),
-            4: fetchedQuestions.filter(q => q.part === 4)
-        };
+        return groupQuestionsByPartForAdminPreview(fetchedQuestions, 4);
     }, [test]);
 
     if (isLoading) return <div className="flex justify-center items-center h-screen bg-gray-100"><Loader /></div>;
@@ -144,7 +140,7 @@ export default function PlacementTestDetailsPage() {
                                                     <span className="text-[10px] font-bold text-[#010080] bg-blue-50 px-2.5 py-1 rounded uppercase tracking-wide border border-blue-100">
                                                         {q.type}
                                                     </span>
-                                                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Item {idx + 1}</span>
+                                                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Question {q.questionNumber || idx + 1}</span>
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-sm font-bold text-[#010080]">{q.points} pt{q.points !== 1 ? 's' : ''}</p>
@@ -154,7 +150,7 @@ export default function PlacementTestDetailsPage() {
                                             {/* MCQ Rendering */}
                                             {q.type === 'mcq' && (
                                                 <div className="space-y-4">
-                                                    <h4 className="text-base font-bold text-gray-900 leading-snug">{q.questionText}</h4>
+                                                    <h4 className="text-base font-bold text-gray-900 leading-snug">{q.questionNumber}: {q.questionText}</h4>
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                         {q.options?.map((opt, oid) => (
                                                             <div key={oid} className={`flex items-center gap-3 p-3.5 rounded-lg border transition-all ${oid === q.correctOption ? 'bg-green-50 border-green-500' : 'bg-gray-50 border-transparent hover:bg-white hover:border-gray-200'}`}>
@@ -179,7 +175,7 @@ export default function PlacementTestDetailsPage() {
                                                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-50 pb-1">Questions:</p>
                                                         {q.subQuestions?.map((sq, si) => (
                                                             <div key={si} className="pl-4 border-l-2 border-blue-100 space-y-3">
-                                                                <p className="text-sm font-bold text-gray-800">{si + 1}. {sq.questionText}</p>
+                                                                <p className="text-sm font-bold text-gray-800">{sq.questionNumber || si + 1}: {sq.questionText}</p>
                                                                 <div className="flex flex-wrap gap-2">
                                                                     {sq.options?.map((opt, oi) => (
                                                                         <span key={oi} className={`text-[10px] font-semibold px-3 py-1.5 rounded-lg border ${oi === sq.correctOption ? 'bg-green-100 border-green-300 text-green-800' : 'bg-white border-gray-100 text-gray-500'}`}>
@@ -196,7 +192,7 @@ export default function PlacementTestDetailsPage() {
                                             {/* Essay Rendering */}
                                             {q.type === 'essay' && (
                                                 <div className="space-y-4">
-                                                    <h4 className="text-lg font-bold text-gray-900">{q.title}</h4>
+                                                    <h4 className="text-lg font-bold text-gray-900">{q.questionNumber}: {q.title}</h4>
                                                     <div className="p-6 bg-gray-50 rounded-lg border border-gray-100">
                                                         <p className="text-sm text-gray-700 leading-relaxed italic">{q.description || "No instructions provided."}</p>
                                                     </div>

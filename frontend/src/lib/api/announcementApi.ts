@@ -14,6 +14,7 @@ export const announcementApi = createApi({
         },
     }),
     tagTypes: ["Announcements"],
+    keepUnusedDataFor: 300,
     endpoints: (builder) => ({
         getAnnouncements: builder.query<any, void>({
             query: () => "/announcements",

@@ -8,8 +8,17 @@ import { API_BASE_URL } from "@/constants";
 
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
+import PassageSubQuestionsEditor from "@/components/admin/assessments/PassageSubQuestionsEditor";
 import { v4 as uuidv4 } from "uuid";
 import { useDarkMode } from "@/context/ThemeContext";
+import {
+    ensureQuestionNumbers,
+    formatQuestionLabel,
+    renumberQuestionsByPart,
+    sortByQuestionNumber,
+} from "@/utils/testQuestions";
+
+const PROFICIENCY_MAX_PART = 5;
 
 export default function EditProficiencyTestPage() {
     const { id } = useParams();
@@ -93,7 +102,7 @@ export default function EditProficiencyTestPage() {
                 }
                 return norm;
             });
-            setQuestions(normalized);
+            setQuestions(ensureQuestionNumbers(normalized, PROFICIENCY_MAX_PART));
         }
     }, [test]);
 
@@ -120,14 +129,16 @@ export default function EditProficiencyTestPage() {
             q = { ...currentAudio, part: currentStep };
         }
 
+        const nextQuestions =
+            editingIndex !== null
+                ? questions.map((item, idx) => (idx === editingIndex ? q : item))
+                : [...questions, q];
+
+        setQuestions(renumberQuestionsByPart(nextQuestions, PROFICIENCY_MAX_PART));
         if (editingIndex !== null) {
-            const updated = [...questions];
-            updated[editingIndex] = q;
-            setQuestions(updated);
             setEditingIndex(null);
             showToast("Question updated", "success");
         } else {
-            setQuestions([...questions, q]);
             showToast("Question added", "success");
         }
 
@@ -148,7 +159,10 @@ export default function EditProficiencyTestPage() {
     };
 
     const removeQuestionFromList = (idx) => {
-        const updated = questions.filter((_, i) => i !== idx);
+        const updated = renumberQuestionsByPart(
+            questions.filter((_, i) => i !== idx),
+            PROFICIENCY_MAX_PART
+        );
         setQuestions(updated);
         if (editingIndex === idx) setEditingIndex(null);
         showToast("Question removed", "info");
@@ -170,7 +184,11 @@ export default function EditProficiencyTestPage() {
         if (questions.filter(q => q.part === 5).length === 0) return showToast("Please add at least for Part 5", "error");
 
         try {
-            await updateTest({ id, ...testData, questions }).unwrap();
+            await updateTest({
+                id,
+                ...testData,
+                questions: renumberQuestionsByPart(questions, PROFICIENCY_MAX_PART),
+            }).unwrap();
             showToast("Proficiency Test Updated Successfully!", "success");
             router.push(`/portal/admin/assessments/proficiency-tests/${id}`);
         } catch (err) {
@@ -252,8 +270,11 @@ export default function EditProficiencyTestPage() {
 
                                 {steps[currentStep - 1].type === 'mcq' && (
                                     <div className="space-y-5">
+                                        <div className="flex justify-end items-center gap-1.5">
+                                            <label className="text-xs font-semibold text-gray-500 whitespace-nowrap">Marks for this question</label>
+                                            <input type="number" value={currentMCQ.points} onChange={e => setCurrentMCQ({ ...currentMCQ, points: parseInt(e.target.value) || 0 })} className="w-14 h-8 text-sm text-center border border-gray-300 rounded-lg px-2 focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none" min="1" />
+                                        </div>
                                         <div><label className="block text-sm font-bold text-gray-700 mb-2">Question Text</label><textarea value={currentMCQ.questionText || ""} onChange={e => setCurrentMCQ({ ...currentMCQ, questionText: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows={2} /></div>
-                                        <div><label className="block text-sm font-bold text-gray-700 mb-2">Points</label><input type="number" value={currentMCQ.points} onChange={e => setCurrentMCQ({ ...currentMCQ, points: parseInt(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg px-4 py-2" /></div>
                                         <div className="space-y-3">
                                             <label className="block text-sm font-bold text-gray-700">Options</label>
                                             {currentMCQ.options.map((opt, idx) => (
@@ -271,34 +292,12 @@ export default function EditProficiencyTestPage() {
                                 {steps[currentStep - 1].type === 'passage' && (
                                     <div className="space-y-5">
                                         <div><label className="block text-sm font-bold text-gray-700 mb-2">Passage Text</label><textarea value={currentPassage.passageText || ""} onChange={e => setCurrentPassage({ ...currentPassage, passageText: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2" rows={6} /></div>
-                                        <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                                            <div className="flex justify-between items-center mb-4"><span className="text-sm font-bold text-gray-700 uppercase">Sub-Questions</span><button onClick={() => { const sub = { id: uuidv4(), questionText: "", options: ["", ""], correctOption: 0, points: 2 }; setCurrentPassage({ ...currentPassage, subQuestions: [...currentPassage.subQuestions, sub] }); }} className="bg-[#010080] text-white px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all active:scale-95">+ Add MCQ sub</button></div>
-                                            {currentPassage.subQuestions.map((sq, i) => (
-                                                <div key={i} className="p-4 rounded-xl bg-white border border-blue-100 space-y-3 mb-3">
-                                                    <input value={sq.questionText} onChange={e => {
-                                                        const next = [...currentPassage.subQuestions];
-                                                        next[i] = { ...next[i], questionText: e.target.value };
-                                                        setCurrentPassage({ ...currentPassage, subQuestions: next });
-                                                    }} className="w-full text-sm font-bold outline-none border-b border-gray-50 pb-2" placeholder="Sub-question text..." />
-                                                    <div className="space-y-2">
-                                                        {sq.options.map((o, oi) => (
-                                                            <div key={oi} className="flex items-center gap-2">
-                                                                <input type="radio" checked={sq.correctOption === oi} onChange={() => { const next = [...currentPassage.subQuestions]; next[i].correctOption = oi; setCurrentPassage({ ...currentPassage, subQuestions: next }); }} className="accent-[#010080]" />
-                                                                <input value={o} onChange={e => { const next = [...currentPassage.subQuestions]; const upd = [...next[i].options]; upd[oi] = e.target.value; next[i].options = upd; setCurrentPassage({ ...currentPassage, subQuestions: next }); }} className="flex-1 text-xs border-b border-gray-50 outline-none" placeholder={`Op ${oi + 1}`} />
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                    <div className="flex justify-between items-center pt-2">
-                                                        <div className="flex items-center gap-2 font-bold text-[10px]"><span className="text-gray-400">PTS:</span><input type="number" value={sq.points} onChange={e => {
-                                                            const next = [...currentPassage.subQuestions];
-                                                            next[i] = { ...next[i], points: parseInt(e.target.value) || 0 };
-                                                            setCurrentPassage({ ...currentPassage, subQuestions: next });
-                                                        }} className="w-10 border-b border-gray-200 text-center outline-none" /></div>
-                                                        <button onClick={() => { const next = currentPassage.subQuestions.filter((_, idx) => idx !== i); setCurrentPassage({ ...currentPassage, subQuestions: next }); }} className="text-[10px] text-red-500 font-bold">REMOVE</button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                        <PassageSubQuestionsEditor
+                                            subQuestions={currentPassage.subQuestions}
+                                            onChange={(subQuestions) =>
+                                                setCurrentPassage({ ...currentPassage, subQuestions })
+                                            }
+                                        />
                                         <button onClick={addToTestList} className="w-full bg-[#010080] text-white py-3 rounded-lg font-bold">{editingIndex !== null ? 'Update Passage' : '+ Add Passage to List'}</button>
                                     </div>
                                 )}
@@ -382,7 +381,9 @@ export default function EditProficiencyTestPage() {
                             <div className="sticky top-8 space-y-4 max-h-[calc(100vh-100px)] overflow-y-auto pr-2">
                                 <h3 className="text-lg font-bold text-gray-900 px-2 tracking-tight">Part Overview</h3>
                                 {[1, 2, 3, 4, 5].map(pNum => {
-                                    const pQs = questions.filter(q => q.part === pNum);
+                                    const pQs = sortByQuestionNumber(
+                                        questions.filter((q) => q.part === pNum)
+                                    );
                                     const isActive = currentStep === pNum;
                                     return (
                                         <div key={pNum} className={`bg-white rounded-xl border p-4 shadow-sm transition-all ${isActive ? 'border-[#010080] ring-1 ring-[#010080]' : 'border-gray-200'}`}>
@@ -395,7 +396,7 @@ export default function EditProficiencyTestPage() {
                                                     const realIdx = questions.indexOf(q);
                                                     return (
                                                         <div key={qIdx} className={`group p-2.5 rounded-lg border text-[10px] font-bold relative transition-all cursor-pointer ${editingIndex === realIdx ? 'bg-[#010080] text-white border-[#010080]' : 'bg-gray-50 border-gray-50 hover:border-blue-200'}`} onClick={() => { setCurrentStep(pNum); handleEdit(realIdx); }}>
-                                                            <span className="line-clamp-1">{q.type === 'passage' ? "Reading Passage" : q.type === 'mcq' ? (q.questionText || "MCQ Question") : (q.title || "Subjective Q")}</span>
+                                                            <span className="line-clamp-1">{formatQuestionLabel(q, qIdx + 1)}</span>
                                                             <button onClick={(e) => { e.stopPropagation(); removeQuestionFromList(realIdx); }} className="absolute -right-2 -top-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">✕</button>
                                                         </div>
                                                     );

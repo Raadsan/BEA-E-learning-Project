@@ -167,7 +167,7 @@ export default function ClassesPage() {
     { key: "class_name", label: "Class Name" },
     { key: "description", label: "Description", render: (val) => val || "No description" },
     { key: "subprogram_name", label: "Subprogram", render: (val) => val || "Not assigned" },
-    { key: "program_name", label: "Program", render: (val) => val || "Not assigned" },
+    // { key: "program_name", label: "Program", render: (val) => val || "Not assigned" },
     { key: "teacher_name", label: "Assigned Teacher", render: (val) => val || "No assigned teacher" },
     {
       key: "shift_info", label: "Shift & Session", render: (_, row) => (

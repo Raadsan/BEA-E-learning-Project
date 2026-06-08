@@ -138,7 +138,7 @@ export default function CreateSchedulePage() {
         try {
             await bulkCreate({ entries }).unwrap();
             showToast(`Successfully created ${entries.length} activities!`, "success");
-            router.push("/portal/admin/academic-management/course-schedule");
+            router.push("/portal/admin/learning-resources/timetable");
         } catch (error) {
             console.error("Error creating schedule:", error);
             showToast(error?.data?.error || "Failed to create schedule", "error");

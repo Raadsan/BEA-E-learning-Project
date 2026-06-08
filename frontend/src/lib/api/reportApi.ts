@@ -149,7 +149,7 @@ export const reportApi = createApi({
     getStudentProgressReport: builder.query({
       query: ({ studentId, period }) => ({
         url: `/student-progress/${studentId}`,
-        params: { period }
+        params: period ? { period } : undefined,
       }),
       providesTags: ["Reports"],
       transformResponse: (response: any) => response.success ? response.data : response

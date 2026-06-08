@@ -115,7 +115,7 @@ export default function AdminDashboard() {
     <>
       {/* Dashboard Content */}
       <div className="flex-1 overflow-y-auto bg-gray-50 pt-2">
-        <div className="w-full px-8 py-6">
+        <div className="w-full min-w-0 px-4 sm:px-6 lg:px-8 py-6">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white  mb-2">Dashboard Overview</h1>
 
           {/* Summary Cards with Icons */}
@@ -239,41 +239,49 @@ export default function AdminDashboard() {
           </div>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Total Attendance Chart */}
-            <WeeklyAttendanceChart programs={programsData} classes={classesData} />
-
-            {/* Sex Distribution */}
-            <SexDistributionChart programs={programsData} classes={classesData} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 min-w-0 items-stretch">
+            <div className="min-w-0 h-full flex">
+              <WeeklyAttendanceChart programs={programsData} classes={classesData} />
+            </div>
+            <div className="min-w-0 h-full flex">
+              <SexDistributionChart programs={programsData} classes={classesData} />
+            </div>
           </div>
 
-          {/* Learning Hours and Assignment Completion */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <LearningHoursChart programs={programsData} classes={classesData} />
-            <AssignmentCompletionChart programs={programsData} classes={classesData} students={studentsArray} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 min-w-0 items-stretch">
+            <div className="min-w-0 h-full flex">
+              <LearningHoursChart programs={programsData} classes={classesData} />
+            </div>
+            <div className="min-w-0 h-full flex">
+              <AssignmentCompletionChart programs={programsData} classes={classesData} students={studentsArray} />
+            </div>
           </div>
 
-          {/* Performance Clusters and Student Locations */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <PerformanceClustersChart programs={programsData} classes={classesData} />
-            <StudentLocationsMap programs={programsData} classes={classesData} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 min-w-0 items-stretch">
+            <div className="min-w-0 h-full flex">
+              <PerformanceClustersChart programs={programsData} classes={classesData} />
+            </div>
+            <div className="min-w-0 h-full flex">
+              <StudentLocationsMap programs={programsData} classes={classesData} />
+            </div>
           </div>
 
-          {/* Programs Pie Chart and Upcoming Events */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 flex flex-col">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">All Programs</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0 items-stretch">
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100 flex flex-col min-w-0 h-full overflow-hidden">
+              <div className="mb-4 min-w-0 shrink-0">
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white whitespace-nowrap">Student Enrollment Data</h2>
               </div>
-              <div className="h-96 flex-1">
+              <div className="flex-1 min-w-0 min-h-[300px]">
                 <ProgramPieChart
                   data={programStats}
-                  unit="Programs"
+                  unit="Students"
                 />
               </div>
             </div>
 
-            <UpcomingEventsList />
+            <div className="min-w-0 h-full flex">
+              <UpcomingEventsList />
+            </div>
           </div>
 
           {/* Star Students - Full Width */}

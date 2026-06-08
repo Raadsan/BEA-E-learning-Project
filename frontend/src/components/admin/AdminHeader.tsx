@@ -9,7 +9,7 @@ import Image from "next/image";
 import { useGetNotificationsQuery } from "@/lib/api/notificationApi";
 import { API_BASE_URL } from "@/constants";
 
-export default function AdminHeader({ onMenuClick }) {
+export default function AdminHeader({ onMenuClick, onNavigate }) {
   const { isDark, toggleDarkMode } = useDarkMode();
   const router = useRouter();
   const { data: currentAdmin } = useGetCurrentUserQuery();
@@ -18,8 +18,9 @@ export default function AdminHeader({ onMenuClick }) {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
-  const handleProfileClick = () => {
-    router.push("/portal/admin/profile");
+  const navigateTo = (href: string) => {
+    onNavigate?.();
+    router.push(href);
   };
 
   return (
@@ -75,7 +76,7 @@ export default function AdminHeader({ onMenuClick }) {
 
           {/* Notifications */}
           <button
-            onClick={() => router.push('/portal/admin/notifications')}
+            onClick={() => navigateTo('/portal/admin/notifications')}
             className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             title="Notifications"
           >
@@ -123,7 +124,7 @@ export default function AdminHeader({ onMenuClick }) {
                 <div className="py-1">
                   <button
                     onClick={() => {
-                      router.push("/portal/admin/profile");
+                      navigateTo("/portal/admin/profile");
                       setIsOpen(false);
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"

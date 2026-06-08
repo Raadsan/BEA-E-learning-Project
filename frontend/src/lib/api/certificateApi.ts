@@ -19,6 +19,10 @@ export const certificateApi = createApi({
             query: () => "/",
             providesTags: ["Certificates"],
         }),
+        getGlobalCertificate: builder.query<any, void>({
+            query: () => "/global",
+            providesTags: ["Certificates"],
+        }),
         getCertificateByTarget: builder.query({
             query: ({ target_type, target_id }) => `/target/${target_type}/${target_id}`,
             providesTags: (result, error, { target_id }) => [{ type: "Certificates", id: target_id }],
@@ -51,6 +55,7 @@ export const certificateApi = createApi({
 
 export const {
     useGetCertificatesQuery,
+    useGetGlobalCertificateQuery,
     useGetCertificateByTargetQuery,
     useGetIssuedCertificatesQuery,
     useGetMyIssuedCertificatesQuery,

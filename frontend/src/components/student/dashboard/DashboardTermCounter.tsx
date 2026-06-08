@@ -1,6 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { useGetTimelinesQuery } from "@/lib/api/courseTimelineApi";
 import { useGetAcademicCalendarQuery } from "@/lib/api/academicCalendarApi";
+import { useGetClassQuery } from "@/lib/api/classApi";
+import { useGetSubprogramsQuery } from "@/lib/api/subprogramApi";
+import { resolveStudentSubprogramId } from "@/utils/resolveStudentSubprogram";
 
 const CountdownCircle = ({ value, label, max, color, isDark }) => {
     const radius = 32; // Slightly smaller for dashboard
@@ -55,9 +58,15 @@ const DashboardTermCounter = ({ isDark, user }) => {
         };
     }, []); // Only calculate once on mount or if we wanted to sync with daily changes
 
-    const subprogramId = user?.chosen_subprogram || user?.subprogram_id;
+    const { data: studentClass } = useGetClassQuery(user?.class_id, { skip: !user?.class_id });
+    const { data: allSubprograms = [] } = useGetSubprogramsQuery();
 
-    // Fetch Academic Calendar to check if classes are scheduled
+    const subprogramId = useMemo(
+        () => resolveStudentSubprogramId(user, studentClass, allSubprograms),
+        [user, studentClass, allSubprograms]
+    );
+
+    // Fetch Academic Timetable to check if classes are scheduled
     const { data: academicCalendar, isLoading: calendarLoading } = useGetAcademicCalendarQuery(
         useMemo(() => ({ subprogramId, month: currentMonth, year: currentYear }), [subprogramId, currentMonth, currentYear]),
         { skip: !subprogramId }

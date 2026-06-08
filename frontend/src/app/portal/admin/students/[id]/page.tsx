@@ -20,6 +20,8 @@ export default function StudentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [programs, setPrograms] = useState([]);
+  const [subprograms, setSubprograms] = useState([]);
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -33,7 +35,7 @@ export default function StudentDetailPage() {
 
         if (!studentRes.ok) throw new Error("Failed to fetch student details");
         const studentData = await studentRes.json();
-        setStudent(studentData);
+        setStudent(studentData.student || studentData);
 
         // Fetch attendance
         const attendanceRes = await fetch(`${API_URL}/attendance/student/${studentId}`, {
@@ -52,7 +54,39 @@ export default function StudentDetailPage() {
 
         if (paymentsRes.ok) {
           const paymentsData = await paymentsRes.json();
-          setPayments(paymentsData.payments || []);
+          let fetchedPayments = paymentsData.payments || [];
+          const actualStudent = studentData.student || studentData;
+          
+          // If no payment records exist but student has a funding status, create synthetic entry
+          if (fetchedPayments.length === 0 && actualStudent.funding_status && actualStudent.funding_status !== 'Unpaid') {
+            fetchedPayments = [{
+              id: 'synthetic-reg',
+              created_at: actualStudent.created_at || new Date().toISOString(),
+              amount: actualStudent.funding_amount || 0,
+              method: 'Manual / Registration',
+              status: actualStudent.funding_status === 'Paid' ? 'paid' : actualStudent.funding_status?.toLowerCase() || 'pending',
+              note: `Funding Month: ${actualStudent.funding_month || 'N/A'}`
+            }];
+          }
+          setPayments(fetchedPayments);
+        }
+
+        // Fetch programs
+        const programsRes = await fetch(`${API_URL}/programs`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (programsRes.ok) {
+          const programsData = await programsRes.json();
+          setPrograms(programsData.programs || programsData || []);
+        }
+
+        // Fetch subprograms
+        const subprogramsRes = await fetch(`${API_URL}/subprograms`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (subprogramsRes.ok) {
+          const subprogramsData = await subprogramsRes.json();
+          setSubprograms(subprogramsData.subprograms || subprogramsData || []);
         }
 
       } catch (err) {
@@ -66,6 +100,26 @@ export default function StudentDetailPage() {
       fetchStudentData();
     }
   }, [studentId]);
+
+  // Get subprogram name for display
+  const getSubprogramName = (subprogramIdOrName) => {
+    if (!subprogramIdOrName) return "N/A";
+    if (isNaN(Number(subprogramIdOrName))) {
+      return subprogramIdOrName;
+    }
+    const subprogram = subprograms.find(sp => sp.id == subprogramIdOrName);
+    return subprogram ? subprogram.subprogram_name : "N/A";
+  };
+
+  // Get program name for display
+  const getProgramName = (programIdOrName) => {
+    if (!programIdOrName) return "N/A";
+    if (isNaN(Number(programIdOrName))) {
+      return programIdOrName;
+    }
+    const program = programs.find(p => p.id == programIdOrName);
+    return program ? program.title : "N/A";
+  };
 
   // Calculate attendance statistics
   const attendanceStats = attendance.reduce((acc, record) => {
@@ -90,27 +144,28 @@ export default function StudentDetailPage() {
 
   // Attendance table columns
   const attendanceColumns = [
-    { label: "Date", key: "date", render: (row) => row.date ? new Date(row.date).toLocaleDateString() : "-" },
-    { label: "Student", key: "student_name", render: (row) => student?.full_name || "N/A" },
-    { label: "Class Name", key: "class_name", render: (row) => row.class_name || "N/A" },
-    { label: "Course", key: "course_title", render: (row) => row.course_title || "N/A" },
-    { label: "Program", key: "program_name", render: (row) => row.program_name || "N/A" },
-    { label: "Hour 1", key: "hour1", render: (row) => row.hour1 ? "Present" : "Absent" },
-    { label: "Hour 2", key: "hour2", render: (row) => row.hour2 ? "Present" : "Absent" }
+    { label: "Date", key: "date", render: (value) => value ? new Date(value).toLocaleDateString() : "-" },
+    { label: "Student", key: "student_name", render: () => student?.full_name || "N/A" },
+    { label: "Class Name", key: "class_name", render: (value) => value || "N/A" },
+    { label: "Program", key: "program_name", render: (value) => value || "N/A" },
+    { label: "Hour 1", key: "hour1", render: (value) => value ? "Present" : "Absent" },
+    { label: "Hour 2", key: "hour2", render: (value) => value ? "Present" : "Absent" }
   ];
 
   // Payment table columns
   const paymentColumns = [
-    { label: "Date", key: "payment_date", render: (row) => row.payment_date ? new Date(row.payment_date).toLocaleDateString() : "-" },
-    { label: "Amount", key: "amount", render: (row) => `$${row.amount || 0}` },
-    { label: "Method", key: "payment_method" },
+    { label: "Date", key: "created_at", render: (value) => value ? new Date(value).toLocaleDateString() : "-" },
+    { label: "Amount", key: "amount", render: (value) => `$${Number(value || 0).toFixed(2)}` },
+    { label: "Method", key: "method", render: (value) => value || 'N/A' },
+    { label: "Note", key: "note", render: (value) => value || '-' },
     {
-      label: "Status", key: "status", render: (row) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === 'completed' ? 'bg-green-100 text-green-800' :
-          row.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-            'bg-red-100 text-red-800'
-          }`}>
-          {row.status || 'Pending'}
+      label: "Status", key: "status", render: (value) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+          (value === 'completed' || value === 'paid') ? 'bg-green-100 text-green-800' :
+          value === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+          'bg-red-100 text-red-800'
+        }`}>
+          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'Pending'}
         </span>
       )
     }
@@ -203,101 +258,160 @@ export default function StudentDetailPage() {
 
           {/* Tab Content */}
           {activeTab === 'overview' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Personal Information */}
-              <div className={`p-6 rounded-xl shadow ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
-                <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Full Name:</span>
-                    <span>{student.full_name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Email:</span>
-                    <span>{student.email}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Phone:</span>
-                    <span>{student.phone || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Sex:</span>
-                    <span>{student.sex ? student.sex.charAt(0).toUpperCase() + student.sex.slice(1) : 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Age:</span>
-                    <span>{student.age || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Program:</span>
-                    <span>{student.chosen_program || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Subprogram:</span>
-                    <span>{student.chosen_subprogram || 'N/A'}</span>
-                  </div>
+            /* Personal Information - Full Width */
+            <div className={`p-6 rounded-xl shadow ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
+              <h2 className="text-xl font-semibold mb-6">Personal Information</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                <div className={`flex justify-between py-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+                  <span className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>Full Name</span>
+                  <span className="font-medium">{student.full_name}</span>
                 </div>
-              </div>
-
-              {/* Attendance Overview */}
-              <div className={`p-6 rounded-xl shadow ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
-                <h2 className="text-xl font-semibold mb-4">Attendance Overview</h2>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className={`p-3 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-50"}`}>
-                    <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Total Days</div>
-                    <div className="text-lg font-bold">{attendanceStats.totalDays}</div>
-                  </div>
-                  <div className={`p-3 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-50"}`}>
-                    <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Present Hours</div>
-                    <div className="text-lg font-bold text-green-600">{attendanceStats.presentHours}</div>
-                  </div>
+                <div className={`flex justify-between py-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+                  <span className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>Email</span>
+                  <span className="font-medium">{student.email}</span>
                 </div>
-                {attendanceStats.totalHours > 0 && (
-                  <div className="h-48">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={pieData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={60}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {pieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value) => [`${value} hours`, 'Count']} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
+                <div className={`flex justify-between py-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+                  <span className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>Phone</span>
+                  <span className="font-medium">{student.phone || 'N/A'}</span>
+                </div>
+                <div className={`flex justify-between py-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+                  <span className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>Sex</span>
+                  <span className="font-medium">{student.sex ? student.sex.charAt(0).toUpperCase() + student.sex.slice(1) : 'N/A'}</span>
+                </div>
+                <div className={`flex justify-between py-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+                  <span className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>Age</span>
+                  <span className="font-medium">{student.age || 'N/A'}</span>
+                </div>
+                <div className={`flex justify-between py-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+                  <span className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>Approval Status</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                    student.approval_status === 'approved' ? 'bg-green-100 text-green-800' :
+                    student.approval_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>{student.approval_status || 'Pending'}</span>
+                </div>
+                <div className={`flex justify-between py-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+                  <span className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>Program</span>
+                  <span className="font-medium">{getProgramName(student.chosen_program)}</span>
+                </div>
+                <div className={`flex justify-between py-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+                  <span className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>Subprogram</span>
+                  <span className="font-medium">{getSubprogramName(student.chosen_subprogram)}</span>
+                </div>
+                <div className={`flex justify-between py-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+                  <span className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>Funding Status</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                    student.funding_status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'
+                  }`}>{student.funding_status || 'N/A'}</span>
+                </div>
+                <div className={`flex justify-between py-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+                  <span className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>Residency</span>
+                  <span className="font-medium">{[student.residency_city, student.residency_country].filter(Boolean).join(', ') || 'N/A'}</span>
+                </div>
               </div>
             </div>
           )}
 
           {activeTab === 'attendance' && (
-            <div className={`p-6 rounded-xl shadow ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
-              <DataTable
-                title="Attendance Records"
-                columns={attendanceColumns}
-                data={attendance}
-                showAddButton={false}
-              />
+            <div className="space-y-6">
+              {/* Attendance Overview */}
+              <div className={`p-6 rounded-xl shadow ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
+                <h2 className="text-xl font-semibold mb-4">Attendance Overview</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className={`p-4 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-50"} border border-gray-100 dark:border-gray-700`}>
+                      <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"} uppercase font-semibold tracking-wider`}>Total Days</div>
+                      <div className="text-2xl font-bold mt-1">{attendanceStats.totalDays}</div>
+                    </div>
+                    <div className={`p-4 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-50"} border border-gray-100 dark:border-gray-700`}>
+                      <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"} uppercase font-semibold tracking-wider`}>Present Hours</div>
+                      <div className="text-2xl font-bold text-green-600 mt-1">{attendanceStats.presentHours}</div>
+                    </div>
+                    <div className={`p-4 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-50"} border border-gray-100 dark:border-gray-700`}>
+                      <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"} uppercase font-semibold tracking-wider`}>Absent Hours</div>
+                      <div className="text-2xl font-bold text-red-500 mt-1">{attendanceStats.absentHours}</div>
+                    </div>
+                    <div className={`p-4 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-50"} border border-gray-100 dark:border-gray-700`}>
+                      <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"} uppercase font-semibold tracking-wider`}>Attendance Rate</div>
+                      <div className="text-2xl font-bold text-blue-500 mt-1">
+                        {attendanceStats.totalHours > 0 ? `${Math.round((attendanceStats.presentHours / attendanceStats.totalHours) * 100)}%` : 'N/A'}
+                      </div>
+                    </div>
+                  </div>
+                  {attendanceStats.totalHours > 0 && (
+                    <div className="h-48 flex justify-center">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={pieData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={65}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {pieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value) => [`${value} hours`, 'Count']} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Attendance Table */}
+              <div className={`p-6 rounded-xl shadow ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
+                <DataTable
+                  title="Attendance Records"
+                  columns={attendanceColumns}
+                  data={attendance}
+                  showAddButton={false}
+                />
+              </div>
             </div>
           )}
 
           {activeTab === 'payments' && (
-            <div className={`p-6 rounded-xl shadow ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
-              <DataTable
-                title="Payment History"
-                columns={paymentColumns}
-                data={payments}
-                showAddButton={false}
-              />
+            <div className="space-y-6">
+              {/* Funding Summary */}
+              <div className={`p-6 rounded-xl shadow ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
+                <h2 className="text-xl font-semibold mb-4">Funding Summary</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className={`p-4 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-50"} border border-gray-100 dark:border-gray-700`}>
+                    <div className={`text-xs uppercase font-semibold tracking-wider ${isDark ? "text-gray-400" : "text-gray-500"}`}>Funding Status</div>
+                    <div className={`text-lg font-bold mt-1 ${
+                      student.funding_status === 'Paid' ? 'text-green-600' : 'text-yellow-600'
+                    }`}>{student.funding_status || 'N/A'}</div>
+                  </div>
+                  <div className={`p-4 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-50"} border border-gray-100 dark:border-gray-700`}>
+                    <div className={`text-xs uppercase font-semibold tracking-wider ${isDark ? "text-gray-400" : "text-gray-500"}`}>Amount</div>
+                    <div className="text-lg font-bold mt-1">${Number(student.funding_amount || 0).toFixed(2)}</div>
+                  </div>
+                  <div className={`p-4 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-50"} border border-gray-100 dark:border-gray-700`}>
+                    <div className={`text-xs uppercase font-semibold tracking-wider ${isDark ? "text-gray-400" : "text-gray-500"}`}>Funding Month</div>
+                    <div className="text-lg font-bold mt-1">{student.funding_month || 'N/A'}</div>
+                  </div>
+                  <div className={`p-4 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-50"} border border-gray-100 dark:border-gray-700`}>
+                    <div className={`text-xs uppercase font-semibold tracking-wider ${isDark ? "text-gray-400" : "text-gray-500"}`}>Paid Until</div>
+                    <div className="text-lg font-bold mt-1">{student.paid_until ? new Date(student.paid_until).toLocaleDateString() : 'N/A'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Records Table */}
+              <div className={`p-6 rounded-xl shadow ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
+                <DataTable
+                  title="Payment History"
+                  columns={paymentColumns}
+                  data={payments}
+                  showAddButton={false}
+                />
+              </div>
             </div>
           )}
         </div>

@@ -11,16 +11,25 @@ import {
     useUpdateAssignmentMutation,
     useDeleteAssignmentMutation
 } from "@/lib/api/assignmentApi";
-import { useGetClassesQuery } from "@/lib/api/classApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
+import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
 import { API_BASE_URL } from "@/constants";
 
 import DataTable from "@/components/DataTable";
+import { useAssignmentNow } from "@/hooks/useAssignmentNow";
+import {
+    getAssignmentWindowStatus,
+    getWindowStatusLabel,
+    getWindowStatusBadgeClass,
+    canOpenAssignmentWindow,
+    formatAssignmentCountdown,
+} from "@/utils/assignmentTime";
 
 export default function ExamsPage() {
     const router = useRouter();
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
+    const now = useAssignmentNow();
 
     // State
     const [selectedClassId, setSelectedClassId] = useState("");
@@ -36,7 +45,7 @@ export default function ExamsPage() {
 
     // Queries
     const { data: currentUser } = useGetCurrentUserQuery();
-    const { data: classes, isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: classes, isLoading: isLoadingClasses } = useGetTeacherClassesQuery();
 
     const { data: assignments, isLoading: isLoadingAssignments, refetch: refetchAssignments } = useGetAssignmentsQuery({
         type: 'exam',
@@ -207,6 +216,11 @@ export default function ExamsPage() {
     };
 
     const handleViewSubmissions = (exam) => {
+        const windowStatus = getAssignmentWindowStatus(exam, now);
+        if (!canOpenAssignmentWindow(windowStatus)) {
+            showToast("This exam is pending. Submissions open when the start time is reached.", "info");
+            return;
+        }
         setSelectedAssignmentId(exam.id);
         setView("submissions");
     };
@@ -351,8 +365,8 @@ export default function ExamsPage() {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold">Submissions: {selectedAssignment?.title}</h1>
-                        <p className="text-xs text-gray-500 uppercase font-semibold tracking-wider mt-1">{selectedAssignment?.class_name}</p>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Submissions: {selectedAssignment?.title}</h1>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider mt-1">{selectedAssignment?.class_name}</p>
                     </div>
                 </div>
 
@@ -402,8 +416,8 @@ export default function ExamsPage() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                         </button>
                         <div>
-                            <h1 className="text-2xl font-bold">Grade Exam Submission</h1>
-                            <p className="text-sm opacity-60">{gradingSubmission?.student_name} — {selectedAssignment?.title}</p>
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Grade Exam Submission</h1>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{gradingSubmission?.student_name} — {selectedAssignment?.title}</p>
                         </div>
                     </div>
 
@@ -623,8 +637,8 @@ export default function ExamsPage() {
             {/* Header section */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold uppercase tracking-tight">Exams</h1>
-                    <p className="text-sm opacity-60 mt-1">Manage, activate, and grade student paper exams and multi-part questions.</p>
+                    <h1 className="text-3xl font-extrabold uppercase tracking-tight text-gray-900 dark:text-white">Exams</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage, activate, and grade student paper exams and multi-part questions.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <select
@@ -657,30 +671,25 @@ export default function ExamsPage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {assignments?.map((exam) => (
+                    {assignments?.map((exam) => {
+                        const windowStatus = getAssignmentWindowStatus(exam, now);
+                        const submissionsDisabled = !canOpenAssignmentWindow(windowStatus);
+
+                        return (
                         <div
                             key={exam.id}
-                            className={`group p-6 rounded-2xl border shadow-sm transition-all duration-300 flex flex-col justify-between hover:shadow-xl hover:border-blue-200 ${
-                                isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
-                            }`}
+                            className={`group p-6 rounded-2xl border shadow-sm transition-all duration-300 flex flex-col justify-between ${
+                                submissionsDisabled ? 'opacity-80' : 'hover:shadow-xl hover:border-blue-200'
+                            } ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
                         >
                             <div>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                     </div>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleStatusToggle(exam); }}
-                                        className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full border ${
-                                            exam.status === 'inactive'
-                                                ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30'
-                                                : exam.status === 'draft'
-                                                    ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30'
-                                                    : 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30'
-                                        }`}
-                                    >
-                                        {exam.status || 'active'}
-                                    </button>
+                                    <span className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full border ${getWindowStatusBadgeClass(windowStatus)}`}>
+                                        {getWindowStatusLabel(windowStatus)}
+                                    </span>
                                 </div>
 
                                 <h3 className="text-lg font-bold mb-1 truncate">{exam.title}</h3>
@@ -690,15 +699,15 @@ export default function ExamsPage() {
 
                                 {/* Program | Subprogram (Parallel) */}
                                 <div className="grid grid-cols-2 gap-4 mb-3 pb-3 border-b border-gray-100 dark:border-gray-700/50">
-                                    <div className="flex flex-col">
+                                    <div className="flex flex-col min-w-0">
                                         <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Program</span>
                                         <span className={`text-sm font-semibold truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                             {exam.program_name || "N/A"}
                                         </span>
                                     </div>
-                                    <div className="flex flex-col">
+                                    <div className="flex flex-col items-end text-right min-w-0">
                                         <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Subprogram</span>
-                                        <span className={`text-sm font-semibold truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        <span className={`text-sm font-semibold truncate w-full ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                             {exam.subprogram_name || "N/A"}
                                         </span>
                                     </div>
@@ -733,14 +742,30 @@ export default function ExamsPage() {
                                         <span className="font-bold">{exam.total_points} Points</span>
                                     </div>
                                 </div>
+
+                                {windowStatus === "pending" && exam.start_date && (
+                                    <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2">
+                                        Opens in {formatAssignmentCountdown(exam.start_date, now)}
+                                    </p>
+                                )}
+                                {windowStatus === "active" && (exam.due_date || exam.end_date) && (
+                                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-2">
+                                        Completes in {formatAssignmentCountdown(exam.due_date || exam.end_date, now)}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
                                 <button
                                     onClick={() => handleViewSubmissions(exam)}
-                                    className="flex-1 py-3 bg-[#010080] hover:bg-blue-800 text-white rounded-xl font-bold text-sm transition-all active:scale-95"
+                                    disabled={submissionsDisabled}
+                                    className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 ${
+                                        submissionsDisabled
+                                            ? 'bg-gray-400 text-white cursor-not-allowed opacity-70'
+                                            : 'bg-[#010080] hover:bg-blue-800 text-white'
+                                    }`}
                                 >
-                                    View Submissions
+                                    {windowStatus === "pending" ? "Not Open Yet" : "View Submissions"}
                                 </button>
                                 <div className="flex gap-1">
                                     <button
@@ -760,7 +785,7 @@ export default function ExamsPage() {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    );})}
 
                     {assignments?.length === 0 && (
                         <div className="col-span-full py-20 text-center opacity-40">

@@ -225,9 +225,14 @@ export default function ProgramsPage() {
         showToast("Program created successfully", "success");
       }
       handleCloseModal();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save program:", error);
-      showToast("Failed to save program", "error");
+      const message =
+        error?.data?.error ||
+        error?.data?.message ||
+        (error?.status === 401 ? "Please log in as admin" : null) ||
+        "Failed to save program";
+      showToast(message, "error");
     }
   };
 

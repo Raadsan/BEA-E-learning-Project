@@ -10,6 +10,67 @@ import { useGetSubprogramsQuery } from "@/lib/api/subprogramApi";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetShiftsQuery } from "@/lib/api/shiftApi";
 import AdminConfirmationModal from "@/components/admin/admins/AdminConfirmationModal";
+import { resolveStudentSubprogramId } from "@/utils/resolveStudentSubprogram";
+
+function getMatchingClassesForRequest(
+    req: {
+        current_class_id?: number | null;
+        requested_class_id?: number | null;
+        subprogram_name?: string;
+        requested_shift_name?: string;
+        requested_class_type?: string;
+        requested_session_type?: string;
+    } | null | undefined,
+    student: {
+        class_id?: number | null;
+        chosen_subprogram?: string | number | null;
+        subprogram_id?: number | string | null;
+    },
+    allClasses: Array<{
+        id: number;
+        subprogram_id?: number | null;
+        subprogram_name?: string;
+        shift_name?: string;
+        shift_session?: string;
+    }>,
+    allSubprograms: Array<{ id: number; subprogram_name?: string }>
+) {
+    if (!req) return [];
+
+    if (req.requested_class_id) {
+        const direct = allClasses.find((c) => c.id === Number(req.requested_class_id));
+        if (direct) return [direct];
+    }
+
+    const currentClass = allClasses.find(
+        (c) => c.id === Number(req.current_class_id) || c.id === Number(student?.class_id)
+    );
+    const subprogramId = resolveStudentSubprogramId(
+        {
+            chosen_subprogram: req.subprogram_name || student?.chosen_subprogram,
+            subprogram_id: student?.subprogram_id,
+        },
+        currentClass,
+        allSubprograms
+    );
+
+    const reqShift = req.requested_shift_name;
+    const reqSess = req.requested_class_type || req.requested_session_type;
+
+    return allClasses.filter((c) => {
+        if (subprogramId) {
+            if (Number(c.subprogram_id) !== Number(subprogramId)) return false;
+        } else if (req.subprogram_name) {
+            const subName = String(req.subprogram_name).toLowerCase();
+            if (c.subprogram_name?.toLowerCase() !== subName) return false;
+        } else {
+            return false;
+        }
+        if (reqShift && c.shift_name?.toLowerCase() !== reqShift.toLowerCase()) return false;
+        if (reqSess && c.shift_session?.toLowerCase() !== reqSess.toLowerCase()) return false;
+        return true;
+    });
+}
 
 export default function AdminSessionRequestsPage() {
     const { isDark } = useDarkMode();
@@ -37,7 +98,6 @@ export default function AdminSessionRequestsPage() {
     const [selectedSessionType, setSelectedSessionType] = useState("");
     const [selectedClassId, setSelectedClassId] = useState("");
     const [adminNote, setAdminNote] = useState("");
-    const [internalNote, setInternalNote] = useState("");
     const [activeNotificationTab, setActiveNotificationTab] = useState<"email" | "sms">("email");
 
     // Confirmation modal state
@@ -55,39 +115,59 @@ export default function AdminSessionRequestsPage() {
     // Auto-select target request class configurations when active request changes
     useEffect(() => {
         if (selectedRequest) {
-            // Load saved internal note
-            const savedInternal = localStorage.getItem(`session_change_internal_note_${selectedRequest.id}`);
-            setInternalNote(savedInternal || "");
-            
             // Set public response admin note if already processed
             setAdminNote(selectedRequest.admin_response || "");
 
             if (selectedRequest.status === "pending") {
-                const studentProgramName = selectedRequest.program_name || studentDetail.chosen_program;
-                const targetSubName = selectedRequest.subprogram_name || studentDetail.chosen_subprogram_name;
-                const reqShift = selectedRequest.requested_shift_name;
-                const reqSess = selectedRequest.requested_class_type || selectedRequest.requested_session_type;
+                const matching = getMatchingClassesForRequest(
+                    selectedRequest,
+                    studentDetail,
+                    classes,
+                    subprograms
+                );
+                const currentClass = classes.find(
+                    (c) =>
+                        c.id === Number(selectedRequest.current_class_id) ||
+                        c.id === Number(studentDetail.class_id)
+                );
+                const subprogramId = resolveStudentSubprogramId(
+                    {
+                        chosen_subprogram:
+                            selectedRequest.subprogram_name || studentDetail.chosen_subprogram,
+                        subprogram_id: studentDetail.subprogram_id,
+                    },
+                    currentClass,
+                    subprograms
+                );
 
-                const exactMatch = classes.find(c => {
-                    const programMatch = c.program_name === studentProgramName;
-                    const subprogramMatch = c.subprogram_name === targetSubName;
-                    const shiftMatch = c.shift_name?.toLowerCase() === reqShift?.toLowerCase();
-                    const sessionMatch = c.shift_session?.toLowerCase() === reqSess?.toLowerCase();
-                    return programMatch && subprogramMatch && shiftMatch && sessionMatch;
-                });
-
-                if (exactMatch) {
-                    setSelectedLevelId(exactMatch.subprogram_id?.toString() || "");
-                    setSelectedShiftName(exactMatch.shift_name || "");
-                    setSelectedSessionType(exactMatch.shift_session || "");
-                    setSelectedClassId(exactMatch.id?.toString() || "");
+                if (matching.length > 0) {
+                    const target =
+                        matching.find((c) => c.id === Number(selectedRequest.requested_class_id)) ||
+                        matching[0];
+                    setSelectedLevelId(String(target.subprogram_id || subprogramId || ""));
+                    setSelectedShiftName(target.shift_name || "");
+                    setSelectedSessionType(target.shift_session || "");
+                    setSelectedClassId(
+                        selectedRequest.requested_class_id
+                            ? String(selectedRequest.requested_class_id)
+                            : matching.length === 1
+                                ? String(target.id)
+                                : ""
+                    );
+                } else if (subprogramId) {
+                    setSelectedLevelId(String(subprogramId));
+                    setSelectedShiftName(selectedRequest.requested_shift_name || "");
+                    setSelectedSessionType(
+                        selectedRequest.requested_class_type ||
+                            selectedRequest.requested_session_type ||
+                            ""
+                    );
+                    setSelectedClassId("");
                 } else {
-                    const levelMatch = subprograms.find(l => l.subprogram_name === targetSubName);
-                    if (levelMatch) {
-                        setSelectedLevelId(levelMatch.id.toString());
-                        if (reqShift) setSelectedShiftName(reqShift);
-                        if (reqSess) setSelectedSessionType(reqSess);
-                    }
+                    setSelectedLevelId("");
+                    setSelectedShiftName("");
+                    setSelectedSessionType("");
+                    setSelectedClassId("");
                 }
             } else {
                 // If processed, display historical class data if any
@@ -98,26 +178,6 @@ export default function AdminSessionRequestsPage() {
             }
         }
     }, [selectedRequestId, selectedRequest, classes, studentDetail, subprograms]);
-
-    // Handle saving internal note
-    const handleSaveInternalNote = () => {
-        if (!selectedRequest) return;
-        localStorage.setItem(`session_change_internal_note_${selectedRequest.id}`, internalNote);
-        
-        // Log action in audit history
-        const logEntry = {
-            id: Date.now(),
-            requestId: selectedRequest.id,
-            studentName: selectedRequest.student_name,
-            action: "Internal Note Saved",
-            details: "Administrator updated private internal notes.",
-            timestamp: new Date().toISOString()
-        };
-        const existingLogs = JSON.parse(localStorage.getItem("session_request_audit_logs") || "[]");
-        localStorage.setItem("session_request_audit_logs", JSON.stringify([logEntry, ...existingLogs]));
-
-        showToast("Internal notes updated successfully!", "success");
-    };
 
     // Process approval/rejection
     const handleProcessRequest = async (status: "approved" | "rejected") => {
@@ -186,28 +246,23 @@ export default function AdminSessionRequestsPage() {
         const warnings: string[] = [];
         if (!req) return warnings;
 
-        // Conflict 1: Class Capacity (Limit 20 students)
-        const targetClass = classes.find(c => {
-            const levelMatch = c.subprogram_name === req.subprogram_name;
-            const shiftMatch = c.shift_name?.toLowerCase() === req.requested_shift_name?.toLowerCase();
-            const sessionMatch = c.shift_session?.toLowerCase() === (req.requested_class_type || req.requested_session_type)?.toLowerCase();
-            return levelMatch && shiftMatch && sessionMatch;
-        });
+        const student = allStudents.find((s) => s.student_id === req.student_id) || {};
+        const matching = getMatchingClassesForRequest(req, student, classes, subprograms);
+        const targetClass = matching[0];
 
         if (targetClass) {
             const enrolledCount = allStudents.filter(s => s.class_id === targetClass.id).length;
             if (enrolledCount >= 20) {
-                warnings.push(`⚠️ Capacity Alert: Target class "${targetClass.class_name}" is at maximum capacity (${enrolledCount}/20). Assigning this student will exceed capacity.`);
+                warnings.push(`Capacity alert: "${targetClass.class_name}" is full (${enrolledCount}/20 students).`);
             } else if (enrolledCount >= 18) {
-                warnings.push(`⚠️ Near Limit: Target class "${targetClass.class_name}" is near maximum capacity (${enrolledCount}/20).`);
+                warnings.push(`Near capacity: "${targetClass.class_name}" has ${enrolledCount}/20 students.`);
             }
         } else {
-            warnings.push("⚠️ Missing Target Class: No active configured class fits this level, shift, and session combination yet.");
+            warnings.push("No class found for the requested level, shift, and session combination.");
         }
 
-        // Conflict 2: Time Overlap / Same Shift Request
         if (req.current_shift_name?.toLowerCase() === req.requested_shift_name?.toLowerCase()) {
-            warnings.push(`⚠️ Redundant Shift Request: Student is already in the requested shift "${req.requested_shift_name}".`);
+            warnings.push(`Student is already in shift "${req.requested_shift_name}".`);
         }
 
         return warnings;
@@ -252,6 +307,28 @@ export default function AdminSessionRequestsPage() {
     const availableSessions = [...new Set(sessionsForShift.map(cls => cls.shift_session))].filter(Boolean) as string[];
     const filteredClasses = selectedSessionType ? sessionsForShift.filter(cls => cls.shift_session === selectedSessionType) : [];
 
+    const matchingClassesForRequest = selectedRequest
+        ? getMatchingClassesForRequest(selectedRequest, studentDetail, classes, subprograms)
+        : [];
+    const hasAvailableClass = matchingClassesForRequest.length > 0;
+
+    const statusSteps = selectedRequest
+        ? [
+            { label: "Submitted", done: true, active: false, neutral: true },
+            {
+                label: "Admin Review",
+                done: selectedRequest.status !== "pending",
+                active: selectedRequest.status === "pending",
+            },
+            {
+                label: selectedRequest.status === "rejected" ? "Rejected" : "Approved",
+                done: selectedRequest.status !== "pending",
+                active: false,
+                error: selectedRequest.status === "rejected",
+            },
+        ]
+        : [];
+
     // Pending counts for sidebar indicators
     const pendingCount = requests.filter(r => r.status === "pending").length;
 
@@ -264,7 +341,7 @@ export default function AdminSessionRequestsPage() {
     }
 
     return (
-        <div className={`min-h-screen ${isDark ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'} p-6 transition-colors duration-300`}>
+        <div className={`min-h-screen ${isDark ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'} p-6`}>
             {/* Header Title Banner */}
             <div className="mb-6 flex justify-between items-center border-b border-gray-250 dark:border-gray-800 pb-4">
                 <div>
@@ -298,7 +375,7 @@ export default function AdminSessionRequestsPage() {
                                 placeholder="Search by student name or ID..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className={`w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border outline-none transition-all ${
+                                className={`w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border outline-none ${
                                     isDark 
                                         ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500' 
                                         : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
@@ -310,7 +387,7 @@ export default function AdminSessionRequestsPage() {
                         <div className="grid grid-cols-2 gap-2 bg-gray-100 dark:bg-gray-800/50 p-1 rounded-lg">
                             <button
                                 onClick={() => setQueueFilter("pending")}
-                                className={`py-1 text-xs font-bold rounded-md transition-all ${
+                                className={`py-1 text-xs font-bold rounded-md ${
                                     queueFilter === "pending"
                                         ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
                                         : "text-gray-500 hover:text-gray-900"
@@ -320,7 +397,7 @@ export default function AdminSessionRequestsPage() {
                             </button>
                             <button
                                 onClick={() => setQueueFilter("processed")}
-                                className={`py-1 text-xs font-bold rounded-md transition-all ${
+                                className={`py-1 text-xs font-bold rounded-md ${
                                     queueFilter === "processed"
                                         ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
                                         : "text-gray-500 hover:text-gray-900"
@@ -344,7 +421,7 @@ export default function AdminSessionRequestsPage() {
                                     <div
                                         key={req.id}
                                         onClick={() => setSelectedRequestId(req.id)}
-                                        className={`p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
+                                        className={`p-3 rounded-xl border cursor-pointer ${
                                             isSelected
                                                 ? "bg-blue-50/50 dark:bg-blue-900/10 border-blue-500 shadow-sm"
                                                 : isDark
@@ -394,7 +471,7 @@ export default function AdminSessionRequestsPage() {
                     {!selectedRequest ? (
                         /* Beautiful Blank State View */
                         <div className="flex-1 flex flex-col items-center justify-center text-center p-12 space-y-4">
-                            <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 text-2xl shadow-sm border dark:border-blue-800 animate-pulse">
+                            <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 text-2xl border dark:border-blue-800">
                                 📬
                             </div>
                             <h3 className="text-lg font-bold">Select a request to begin review</h3>
@@ -431,50 +508,62 @@ export default function AdminSessionRequestsPage() {
                                 </div>
                             </div>
 
-                            {/* 1.54. SMART STATUS PROGRESS TRACKER (Requirement 1.54) */}
-                            <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800/30 border-gray-800' : 'bg-gray-50 border-gray-200'}`}>
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">Smart Status Progress Tracker</h3>
-                                <div className="flex items-center justify-between relative">
-                                    {/* Progress background line */}
-                                    <div className="absolute left-0 right-0 h-0.5 bg-gray-250 dark:bg-gray-750 top-1/2 -translate-y-1/2 z-0" />
-                                    
-                                    {/* Dynamic Progress fill line */}
-                                    <div className={`absolute left-0 h-0.5 bg-green-500 top-1/2 -translate-y-1/2 z-0 transition-all duration-500`} 
-                                        style={{ 
-                                            width: selectedRequest.status === "approved" 
-                                                ? "100%" 
-                                                : selectedRequest.status === "rejected" 
-                                                    ? "100%" 
-                                                    : "50%" 
-                                        }} 
-                                    />
-
-                                    {/* Tracker Steps */}
-                                    {[
-                                        { label: "Submitted", active: true, done: true },
-                                        { label: "Faculty Review", active: true, done: selectedRequest.status !== "pending" },
-                                        { label: "Review Committee", active: true, done: selectedRequest.status !== "pending" },
-                                        { label: "Registrar Phase", active: true, done: selectedRequest.status !== "pending" },
-                                        { 
-                                            label: selectedRequest.status === "rejected" ? "Rejected" : "Completed", 
-                                            active: selectedRequest.status !== "pending", 
-                                            done: selectedRequest.status !== "pending", 
-                                            error: selectedRequest.status === "rejected" 
-                                        }
-                                    ].map((step, idx) => (
-                                        <div key={idx} className="flex flex-col items-center z-10 space-y-1.5">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center border font-bold text-xs transition-all duration-300 ${
-                                                step.error 
-                                                    ? "bg-red-500 border-red-600 text-white"
-                                                    : step.done 
-                                                        ? "bg-green-500 border-green-600 text-white" 
-                                                        : step.active 
-                                                            ? "bg-blue-600 border-blue-700 text-white animate-pulse" 
-                                                            : "bg-gray-200 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-500"
-                                            }`}>
-                                                {step.error ? "❌" : step.done ? "✓" : idx + 1}
+                            {/* Request Status */}
+                            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+                                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Request Status</h3>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 dark:divide-gray-800">
+                                    {statusSteps.map((step, idx) => (
+                                        <div
+                                            key={step.label}
+                                            className={`px-4 py-3 flex items-center gap-3 ${
+                                                step.error
+                                                    ? "bg-red-50 dark:bg-red-950/20"
+                                                    : step.active
+                                                        ? "bg-blue-50 dark:bg-blue-950/20"
+                                                        : step.done && step.neutral
+                                                            ? "bg-gray-50 dark:bg-gray-800/50"
+                                                            : step.done
+                                                                ? "bg-green-50 dark:bg-green-950/20"
+                                                                : "bg-white dark:bg-gray-900"
+                                            }`}
+                                        >
+                                            <span
+                                                className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-xs font-bold ${
+                                                    step.error
+                                                        ? "bg-red-600 text-white"
+                                                        : step.done && step.neutral
+                                                            ? "bg-[#010080] text-white"
+                                                            : step.done
+                                                                ? "bg-green-600 text-white"
+                                                                : step.active
+                                                                    ? "bg-[#010080] text-white"
+                                                                    : "bg-gray-200 dark:bg-gray-700 text-gray-500"
+                                                }`}
+                                            >
+                                                {step.done ? "✓" : idx + 1}
+                                            </span>
+                                            <div>
+                                                <p
+                                                    className={`text-sm font-semibold ${
+                                                        step.error
+                                                            ? "text-red-700 dark:text-red-300"
+                                                            : step.active
+                                                                ? "text-[#010080]"
+                                                                : step.done && step.neutral
+                                                                    ? "text-gray-700 dark:text-gray-200"
+                                                                    : step.done
+                                                                        ? "text-green-700 dark:text-green-300"
+                                                                        : "text-gray-500"
+                                                    }`}
+                                                >
+                                                    {step.label}
+                                                </p>
+                                                <p className="text-xs text-gray-400">
+                                                    {step.done ? "Complete" : step.active ? "In progress" : "Waiting"}
+                                                </p>
                                             </div>
-                                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 text-center">{step.label}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -509,152 +598,147 @@ export default function AdminSessionRequestsPage() {
                                 </blockquote>
                             </div>
 
-                            {/* 1.56. CONFLICT DETECTION INDICATORS (Requirement 1.56) */}
                             {selectedRequest.status === "pending" && (
-                                <div className="space-y-2">
-                                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">Security & Capacity Check</h3>
-                                    
-                                    {checkConflicts(selectedRequest).length === 0 ? (
-                                        <div className="p-3 rounded-lg border border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 text-xs text-green-700 dark:text-green-400 flex items-center gap-2 font-bold">
-                                            <span>🛡️</span>
-                                            <span>Conflict check passed: No schedule time conflicts or capacity overloads detected for this target shift.</span>
-                                        </div>
+                                <div className="bg-white dark:bg-gray-900 p-5 rounded-xl border border-gray-200 dark:border-gray-800 space-y-3">
+                                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">Security & Capacity Check</h3>
+                                    {!hasAvailableClass ? (
+                                        <p className="text-sm text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800 bg-yellow-100 dark:bg-yellow-950/30 rounded-lg px-4 py-3">
+                                            No class is available for this session. Create a matching class or reject the request.
+                                        </p>
+                                    ) : checkConflicts(selectedRequest).length === 0 ? (
+                                        <p className="text-sm text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800 bg-yellow-100 dark:bg-yellow-950/30 rounded-lg px-4 py-3">
+                                            No conflicts detected. Target shift has available capacity.
+                                        </p>
                                     ) : (
-                                        <div className="space-y-2">
+                                        <ul className="space-y-2">
                                             {checkConflicts(selectedRequest).map((warn, wIdx) => (
-                                                <div key={wIdx} className="p-3 rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20 text-xs text-amber-700 dark:text-amber-400 flex items-center gap-2 font-bold animate-pulse">
-                                                    <span>⚠️</span>
-                                                    <span>{warn}</span>
-                                                </div>
+                                                <li
+                                                    key={wIdx}
+                                                    className="text-sm text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800 bg-yellow-100 dark:bg-yellow-950/30 rounded-lg px-4 py-3"
+                                                >
+                                                    {warn}
+                                                </li>
                                             ))}
-                                        </div>
+                                        </ul>
                                     )}
                                 </div>
                             )}
 
-                            {/* 1.59. INTERNAL AUDIT NOTES (Admins Only - Requirement 1.59) */}
-                            <div className="p-4 rounded-xl border border-gray-250 dark:border-gray-800 bg-slate-50 dark:bg-slate-900/50 space-y-3 shadow-xs">
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-blue-500 font-bold">🔒</span>
-                                        <label className="text-xs font-extrabold uppercase tracking-wider text-gray-500">Internal Audit notes (Hidden from Students)</label>
-                                    </div>
-                                    {selectedRequest.status === "pending" && (
-                                        <button
-                                            onClick={handleSaveInternalNote}
-                                            className="px-2.5 py-1 bg-[#010080] hover:bg-[#010080]/90 text-white rounded text-[10px] font-bold transition-all shadow-xs"
-                                        >
-                                            Save Notes
-                                        </button>
-                                    )}
-                                </div>
-                                <textarea
-                                    value={internalNote}
-                                    onChange={(e) => setInternalNote(e.target.value)}
-                                    placeholder="Leave administrative or assessment notes here. This is fully locked away from students..."
-                                    rows={3}
-                                    disabled={selectedRequest.status !== "pending"} // Locked and not editable after processing (Requirement 1.60)
-                                    className={`w-full px-3 py-2 text-xs border rounded-lg outline-none focus:ring-1 focus:ring-blue-500 ${
-                                        selectedRequest.status !== "pending"
-                                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-200 cursor-not-allowed'
-                                            : isDark
-                                                ? 'bg-gray-800 border-gray-700 text-white'
-                                                : 'bg-white border-gray-300 text-gray-800'
-                                    }`}
-                                />
-                                {selectedRequest.status !== "pending" && (
-                                    <p className="text-[10px] text-gray-400 italic">🔒 Requirement 1.60: Request processed. Internal notes are archived and cannot be edited.</p>
-                                )}
-                            </div>
-
                             {/* Action Form & notification preview */}
                             {selectedRequest.status === "pending" ? (
-                                <div className="space-y-6 pt-4 border-t dark:border-gray-800">
-                                    <h3 className="font-bold text-sm text-gray-800 dark:text-white uppercase tracking-wider">Class Transfer & Resolution Panel</h3>
-                                    
-                                    <div className="space-y-4">
-                                        {/* Class selection mapping */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">1. Choose Level (Subprogram)</label>
-                                                <select
-                                                    value={selectedLevelId}
-                                                    onChange={(e) => {
-                                                        setSelectedLevelId(e.target.value);
-                                                        setSelectedShiftName("");
-                                                        setSelectedSessionType("");
-                                                        setSelectedClassId("");
-                                                    }}
-                                                    className={`w-full px-3 py-2 text-xs border rounded-lg outline-none focus:ring-1 focus:ring-blue-500 ${
-                                                        isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
-                                                    }`}
-                                                >
-                                                    <option value="">Select Level</option>
-                                                    {availableLevels.map(lvl => <option key={lvl.id} value={lvl.id}>{lvl.subprogram_name}</option>)}
-                                                </select>
-                                            </div>
+                                <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 space-y-5">
+                                    {hasAvailableClass ? (
+                                        <>
+                                            <h3 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3">
+                                                Class Transfer & Resolution Panel
+                                            </h3>
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                            Level (Subprogram)
+                                                        </label>
+                                                        <select
+                                                            value={selectedLevelId}
+                                                            onChange={(e) => {
+                                                                setSelectedLevelId(e.target.value);
+                                                                setSelectedShiftName("");
+                                                                setSelectedSessionType("");
+                                                                setSelectedClassId("");
+                                                            }}
+                                                            className={`w-full px-3 py-2 text-sm border rounded-lg outline-none focus:ring-1 focus:ring-[#010080] ${
+                                                                isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-300"
+                                                            }`}
+                                                        >
+                                                            <option value="">Select Level</option>
+                                                            {availableLevels.map((lvl) => (
+                                                                <option key={lvl.id} value={lvl.id}>
+                                                                    {lvl.subprogram_name}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
 
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div>
-                                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">2. Shift</label>
-                                                    <select
-                                                        value={selectedShiftName}
-                                                        disabled={!selectedLevelId}
-                                                        onChange={(e) => {
-                                                            setSelectedShiftName(e.target.value);
-                                                            setSelectedSessionType("");
-                                                            setSelectedClassId("");
-                                                        }}
-                                                        className={`w-full px-3 py-2 text-xs border rounded-lg outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 ${
-                                                            isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
-                                                        }`}
-                                                    >
-                                                        <option value="">Shift</option>
-                                                        {uniqueShiftNames.map(name => <option key={name} value={name}>{name}</option>)}
-                                                    </select>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Shift</label>
+                                                            <select
+                                                                value={selectedShiftName}
+                                                                disabled={!selectedLevelId}
+                                                                onChange={(e) => {
+                                                                    setSelectedShiftName(e.target.value);
+                                                                    setSelectedSessionType("");
+                                                                    setSelectedClassId("");
+                                                                }}
+                                                                className={`w-full px-3 py-2 text-sm border rounded-lg outline-none focus:ring-1 focus:ring-[#010080] disabled:opacity-50 ${
+                                                                    isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-300"
+                                                                }`}
+                                                            >
+                                                                <option value="">Shift</option>
+                                                                {uniqueShiftNames.map((name) => (
+                                                                    <option key={name} value={name}>{name}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Session</label>
+                                                            <select
+                                                                value={selectedSessionType}
+                                                                disabled={!selectedShiftName}
+                                                                onChange={(e) => {
+                                                                    setSelectedSessionType(e.target.value);
+                                                                    setSelectedClassId("");
+                                                                }}
+                                                                className={`w-full px-3 py-2 text-sm border rounded-lg outline-none focus:ring-1 focus:ring-[#010080] disabled:opacity-50 ${
+                                                                    isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-300"
+                                                                }`}
+                                                            >
+                                                                <option value="">Session</option>
+                                                                {availableSessions.map((sess) => (
+                                                                    <option key={sess} value={sess}>{sess}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    </div>
                                                 </div>
 
                                                 <div>
-                                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">3. Session</label>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                        Target Class
+                                                    </label>
                                                     <select
-                                                        value={selectedSessionType}
-                                                        disabled={!selectedShiftName}
-                                                        onChange={(e) => {
-                                                            setSelectedSessionType(e.target.value);
-                                                            setSelectedClassId("");
-                                                        }}
-                                                        className={`w-full px-3 py-2 text-xs border rounded-lg outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 ${
-                                                            isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
+                                                        value={selectedClassId}
+                                                        onChange={(e) => setSelectedClassId(e.target.value)}
+                                                        className={`w-full px-3 py-2 text-sm border rounded-lg outline-none focus:ring-1 focus:ring-[#010080] ${
+                                                            isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-300"
                                                         }`}
                                                     >
-                                                        <option value="">Session</option>
-                                                        {availableSessions.map(sess => <option key={sess} value={sess}>{sess}</option>)}
+                                                        <option value="">Select Target Class</option>
+                                                        {filteredClasses.map((cls) => (
+                                                            <option key={cls.id} value={cls.id}>
+                                                                {cls.class_name} ({allStudents.filter((s) => s.class_id === cls.id).length}/20 Students)
+                                                            </option>
+                                                        ))}
                                                     </select>
                                                 </div>
                                             </div>
+                                        </>
+                                    ) : (
+                                        <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 px-4 py-4">
+                                            <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-1">
+                                                No Class Available
+                                            </h3>
+                                            <p className="text-sm text-amber-800 dark:text-amber-300">
+                                                No class exists for this student&apos;s subprogram and requested session.
+                                                Create the class first, or reject this request with a note to the student.
+                                            </p>
                                         </div>
+                                    )}
 
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">4. Target Class Placement</label>
-                                            <select
-                                                value={selectedClassId}
-                                                disabled={!selectedSessionType}
-                                                onChange={(e) => setSelectedClassId(e.target.value)}
-                                                className={`w-full px-3 py-2 text-xs border rounded-lg outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 font-bold ${
-                                                    isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
-                                                }`}
-                                            >
-                                                <option value="">Select Target Class</option>
-                                                {filteredClasses.map(cls => (
-                                                    <option key={cls.id} value={cls.id}>
-                                                        {cls.class_name} ({allStudents.filter(s => s.class_id === cls.id).length}/20 Students)
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {filteredClasses.length === 0 && selectedSessionType && (
-                                                <p className="text-xs text-red-500 mt-1 italic">No active classes match this criteria.</p>
-                                            )}
-                                        </div>
+                                    <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-gray-800">
+                                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                                            Resolution
+                                        </h3>
 
                                         {/* Public Admin Note explanation */}
                                         <div>
@@ -725,21 +809,23 @@ export default function AdminSessionRequestsPage() {
                                         </div>
 
                                         {/* Action Process Buttons */}
-                                        <div className="flex gap-4 pt-2">
+                                        <div className="flex gap-3 pt-2">
                                             <button
                                                 disabled={isStatusUpdating || isStudentUpdating || !adminNote.trim()}
                                                 onClick={() => handleProcessRequest("rejected")}
-                                                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all shadow-md text-xs disabled:opacity-50"
+                                                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-sm disabled:opacity-50"
                                             >
-                                                {isStatusUpdating ? "Processing..." : "Reject request"}
+                                                {isStatusUpdating ? "Processing..." : "Reject Request"}
                                             </button>
-                                            <button
-                                                disabled={isStatusUpdating || isStudentUpdating || !selectedClassId}
-                                                onClick={() => handleProcessRequest("approved")}
-                                                className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all shadow-md text-xs disabled:opacity-50"
-                                            >
-                                                {isStatusUpdating ? "Processing..." : "Assign & Approve request"}
-                                            </button>
+                                            {hasAvailableClass && (
+                                                <button
+                                                    disabled={isStatusUpdating || isStudentUpdating || !selectedClassId}
+                                                    onClick={() => handleProcessRequest("approved")}
+                                                    className="flex-1 py-2.5 bg-[#010080] hover:bg-[#000066] text-white font-bold rounded-lg text-sm disabled:opacity-50"
+                                                >
+                                                    {isStatusUpdating ? "Processing..." : "Assign & Approve"}
+                                                </button>
+                                            )}
                                         </div>
 
                                     </div>

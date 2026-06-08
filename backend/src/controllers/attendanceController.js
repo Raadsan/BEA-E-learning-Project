@@ -89,7 +89,20 @@ export const getAttendanceReport = async (req, res) => {
             },
             orderBy: { date: 'desc' }
         });
-        res.json(report);
+
+        // Flatten nested relations into flat fields the frontend expects
+        const flattened = report.map(r => ({
+            id: r.id,
+            date: r.date,
+            student_id: r.student_id,
+            class_id: r.class_id,
+            hour1: r.hour1,
+            hour2: r.hour2,
+            student_name: r.students?.full_name || '-',
+            class_name: r.classes?.class_name || '-',
+        }));
+
+        res.json(flattened);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -124,3 +137,51 @@ export const getStats = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// GET STUDENT ATTENDANCE
+export const getStudentAttendance = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const records = await prisma.attendance.findMany({
+            where: {
+                student_id: studentId
+            },
+            include: {
+                classes: {
+                    select: {
+                        class_name: true,
+                        courses: {
+                            select: {
+                                course_title: true
+                            }
+                        },
+                        subprograms: {
+                            select: {
+                                subprogram_name: true,
+                                programs: {
+                                    select: {
+                                        title: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: { date: 'desc' }
+        });
+
+        // Map it to include course_title, program_name, class_name
+        const formattedRecords = records.map(r => ({
+            ...r,
+            class_name: r.classes?.class_name || "N/A",
+            course_title: r.classes?.courses?.course_title || r.classes?.subprograms?.subprogram_name || "N/A",
+            program_name: r.classes?.subprograms?.programs?.title || "N/A"
+        }));
+
+        res.json({ success: true, records: formattedRecords });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+

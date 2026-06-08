@@ -6,6 +6,7 @@ import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import Loader from "@/components/Loader";
 import DataTable from "@/components/DataTable";
+import { resolveMediaUrl } from "@/constants";
 
 export default function ResourcesPage() {
   const { isDark } = useDarkMode();
@@ -17,7 +18,7 @@ export default function ResourcesPage() {
     {
       key: "title",
       label: "Title",
-      render: (row) => (
+      render: (_, row) => (
         <span className={`font-bold ${isDark ? 'text-white' : 'text-black'}`}>
           {row.title}
         </span>
@@ -27,7 +28,7 @@ export default function ResourcesPage() {
     {
       key: "type",
       label: "Type",
-      render: (row) => (
+      render: (_, row) => (
         <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${row.type === 'Drive'
             ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
             : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800'
@@ -40,7 +41,7 @@ export default function ResourcesPage() {
     {
       key: "subprogram_name",
       label: "Level / Subprogram",
-      render: (row) => (
+      render: (_, row) => (
         <span className={isDark ? 'text-gray-300' : 'text-black'}>
           {row.subprogram_name || "General"}
         </span>
@@ -50,7 +51,7 @@ export default function ResourcesPage() {
     {
       key: "subject",
       label: "Subject",
-      render: (row) => (
+      render: (_, row) => (
         <span className={isDark ? 'text-gray-300' : 'text-black'}>
           {row.subject || "-"}
         </span>
@@ -60,23 +61,26 @@ export default function ResourcesPage() {
     {
       key: "url",
       label: "Access Link",
-      render: (row) => (
-        <a
-          href={row.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`px-3 py-1.5 rounded text-sm transition-colors ${row.type === 'Drive'
-              ? isDark
-                ? 'bg-orange-600 hover:bg-orange-700 text-white'
-                : 'bg-orange-500 hover:bg-orange-600 text-white'
-              : isDark
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-[#010080] hover:bg-blue-700 text-white'
-            }`}
-        >
-          {row.type === 'Drive' ? 'Open Drive' : 'Access'}
-        </a>
-      ),
+      render: (_, row) => {
+        const resolvedUrl = row.url?.startsWith('http') ? row.url : resolveMediaUrl(row.url);
+        return (
+          <a
+            href={resolvedUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`px-3 py-1.5 rounded text-sm transition-colors ${row.type === 'Drive'
+                ? isDark
+                  ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                  : 'bg-orange-500 hover:bg-orange-600 text-white'
+                : isDark
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-[#010080] hover:bg-blue-700 text-white'
+              }`}
+          >
+            {row.type === 'Drive' ? 'Open Drive' : 'Access'}
+          </a>
+        );
+      },
       width: "160px"
     }
   ];

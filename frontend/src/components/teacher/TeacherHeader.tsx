@@ -9,9 +9,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { API_BASE_URL } from "@/constants";
 
-export default function TeacherHeader({ onMenuClick }) {
+export default function TeacherHeader({ onMenuClick, onNavigate }) {
   const { isDark, toggleDarkMode } = useDarkMode();
   const router = useRouter();
+
+  const navigateTo = (href) => {
+    onNavigate?.();
+    router.push(href);
+  };
   const { data: currentUser } = useGetCurrentUserQuery();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -118,7 +123,7 @@ export default function TeacherHeader({ onMenuClick }) {
                 <div className="py-1">
                   <button
                     onClick={() => {
-                      router.push("/portal/teacher/profile");
+                      navigateTo("/portal/teacher/profile");
                       setIsOpen(false);
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"

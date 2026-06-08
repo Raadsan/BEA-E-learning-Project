@@ -1,25 +1,16 @@
+"use client";
+
 import Select from 'react-select';
-import { Country } from 'country-state-city';
 import { useId } from 'react';
+import { useCountryOptions } from '@/utils/countryData';
 
 export default function CountrySelect({ value, onChange, isDark = false, placeholder = "Select country" }) {
     const id = useId();
-    const countries = Country.getAllCountries();
-
-    const options = countries.map(country => ({
-        value: country.name,
-        label: country.name,
-        flag: country.flag,
-        isoCode: country.isoCode
-    }));
+    const { options, loading } = useCountryOptions();
 
     const selectedOption = options.find(opt => opt.value === value) || null;
 
-    // Custom format to show only country name (no flags or codes)
-    const formatOptionLabel = (option, { context }) => {
-        // Show only country name in both dropdown and selected value
-        return option.label;
-    };
+    const formatOptionLabel = (option) => option.label;
 
     const customStyles = {
         control: (provided, state) => ({
@@ -93,9 +84,10 @@ export default function CountrySelect({ value, onChange, isDark = false, placeho
             onChange={(option) => onChange(option ? option.value : '')}
             styles={customStyles}
             formatOptionLabel={formatOptionLabel}
-            placeholder={placeholder}
+            placeholder={loading ? "Loading countries..." : placeholder}
             isSearchable={true}
             isClearable={false}
+            isLoading={loading}
             className="country-select"
         />
     );

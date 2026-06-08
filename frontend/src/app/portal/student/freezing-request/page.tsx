@@ -10,7 +10,7 @@ import DataTable from "@/components/DataTable";
 export default function FreezingRequestPage() {
   const { isDark } = useDarkMode();
   const [createRequest, { isLoading: submitting }] = useCreateFreezingRequestMutation();
-  const { data: history = [], isLoading: loadingHistory } = useGetMyFreezingRequestsQuery();
+  const { data: history = [], isLoading: loadingHistory, refetch } = useGetMyFreezingRequestsQuery();
 
   const [formData, setFormData] = useState({
     reason: "",
@@ -19,11 +19,13 @@ export default function FreezingRequestPage() {
     description: "",
   });
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [autoRejected, setAutoRejected] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setAutoRejected(false);
     try {
       await createRequest({
         reason: formData.reason,
@@ -33,8 +35,14 @@ export default function FreezingRequestPage() {
       }).unwrap();
       setSubmitted(true);
       setFormData({ reason: "", startDate: "", endDate: "", description: "" });
-    } catch (err) {
-      setError(err?.data?.error || "Failed to submit request");
+    } catch (err: any) {
+      if (err?.data?.auto_rejected) {
+        setAutoRejected(true);
+        setError(err.data.error);
+        refetch(); // immediately refresh the history table to show the auto-rejected record
+      } else {
+        setError(err?.data?.error || "Failed to submit request");
+      }
     }
   };
 
@@ -79,7 +87,7 @@ export default function FreezingRequestPage() {
       label: "Academy Feedback",
       render: (row) => row.admin_response ? (
         <div className="max-w-xs truncate text-xs italic opacity-80" title={row.admin_response}>
-          "{row.admin_response}"
+          {row.admin_response}
         </div>
       ) : <span className="text-gray-400">-</span>
     }
@@ -117,11 +125,24 @@ export default function FreezingRequestPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className={`p-6 rounded-xl shadow ${card} space-y-6`}>
-                {error && (
+                {autoRejected && error ? (
+                  <div className="p-4 bg-red-50 border border-red-300 rounded-xl">
+                    <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-12.728 12.728M5.636 5.636l12.728 12.728" />
+                      </svg>
+                      <span className="font-bold text-red-700 text-sm">Request Automatically Rejected</span>
+                    </div>
+                    <p className="text-red-600 text-sm">{error}</p>
+                    <button type="button" onClick={() => { setError(null); setAutoRejected(false); }} className="mt-3 text-xs text-red-500 underline">
+                      Dismiss
+                    </button>
+                  </div>
+                ) : error ? (
                   <div className="p-4 bg-red-100 text-red-700 rounded-lg text-sm font-bold">
                     {error}
                   </div>
-                )}
+                ) : null}
 
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
@@ -202,16 +223,16 @@ export default function FreezingRequestPage() {
             </h2>
             <ul className={`space-y-4 text-sm ${textSub}`}>
               <li className="flex gap-2">
-                <span className="text-blue-500 font-bold">•</span>
-                <span>Students may freeze their course up to **two times** during their study period.</span>
+                <span className="text-red-500 font-bold">•</span>
+                <span><strong>Max duration:</strong> Each freeze request may not exceed <strong>30 days</strong>. Requests over this limit are automatically rejected.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-red-500 font-bold">•</span>
+                <span><strong>Max freezes:</strong> Students are allowed a maximum of <strong>2 approved freezes</strong> in total. Further requests will be automatically rejected.</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-blue-500 font-bold">•</span>
-                <span>Requests must be submitted at least **one week** before the intended start date.</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-blue-500 font-bold">•</span>
-                <span>Consecutive freezing for more than 2 months may require a level reassessment.</span>
+                <span>Requests must be submitted at least <strong>one week</strong> before the intended start date.</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-blue-500 font-bold">•</span>

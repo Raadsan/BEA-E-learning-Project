@@ -210,6 +210,7 @@ export const getCurrentUser = async (req, res) => {
             residency_city: user.residency_city,
             chosen_program: user.chosen_program,
             chosen_subprogram: user.chosen_subprogram,
+            completed_subprograms: user.completed_subprograms,
             sponsor_name: user.sponsor_name,
             approval_status: user.approval_status,
             class_id: user.class_id,

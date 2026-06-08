@@ -1,12 +1,13 @@
 import express from "express";
 import { downloadCertificate, getIssuedCertificates, getMyIssuedCertificates } from "../controllers/studentCertificateController.js";
-import { getCertificates, getCertificateByTarget, upsertCertificate, deleteCertificate } from "../controllers/certificateController.js";
+import { getCertificates, getGlobalCertificate, getCertificateByTarget, upsertCertificate, deleteCertificate } from "../controllers/certificateController.js";
 import { verifyToken, isAdmin } from "../controllers/authController.js";
 
 const router = express.Router();
 
 // Certificate Configuration / Admin Routes
 router.get("/", verifyToken, getCertificates);
+router.get("/global", verifyToken, getGlobalCertificate);
 router.get("/target/:target_type/:target_id", verifyToken, getCertificateByTarget);
 router.post("/", verifyToken, isAdmin, upsertCertificate);
 router.delete("/:id", verifyToken, isAdmin, deleteCertificate);

@@ -16,6 +16,7 @@ export const notificationApi = createApi({
         },
     }),
     tagTypes: ["Notifications"],
+    keepUnusedDataFor: 300,
     endpoints: (builder) => ({
         getNotifications: builder.query({
             query: () => "/notifications",

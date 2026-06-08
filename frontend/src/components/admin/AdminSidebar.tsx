@@ -3,17 +3,18 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useLogoutMutation } from "@/lib/api/authApi";
+import { usePortalNavFeedback } from "@/hooks/usePortalNavFeedback";
 
-export default function AdminSidebar({ isOpen, onClose }) {
+export default function BAdminSidebar({ isOpen, onClose }) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const currentTab = searchParams.get('tab') || 'configuration';
+  const [currentTab, setCurrentTab] = useState('configuration');
   const { isDark } = useDarkMode();
   const [logout] = useLogoutMutation();
+  const { activePath, handleNavClick } = usePortalNavFeedback(pathname, onClose);
 
   const handleLogout = async () => {
     try {
@@ -31,6 +32,12 @@ export default function AdminSidebar({ isOpen, onClose }) {
   // State for all collapsible sections - only one can be open at a time
   const [openSection, setOpenSection] = useState(null);
   const [openSubSection, setOpenSubSection] = useState(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    setCurrentTab(tab || "configuration");
+  }, [pathname]);
 
   // Auto-open sections based on current path
   useEffect(() => {
@@ -131,18 +138,18 @@ export default function AdminSidebar({ isOpen, onClose }) {
 
   const isActive = (href) => {
     if (href === "/portal/admin") {
-      return pathname === href;
+      return activePath === href;
     }
     // For /portal/admin/students, only active if exact match (not /general or /ielts-toefl)
     if (href === "/portal/admin/students") {
-      return pathname === href || pathname === href + "/";
+      return activePath === href || activePath === href + "/";
     }
-    return pathname?.startsWith(href);
+    return activePath?.startsWith(href);
   };
 
   // Helper function for menu item classes
   const getMenuItemClasses = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
+    const active = exact ? (activePath === href) : isActive(href);
     return `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
       ? 'text-white font-semibold'
       : 'text-gray-100 hover:bg-white/10 hover:text-white'
@@ -159,7 +166,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
 
   // Helper function to get active background style for main menu items
   const getActiveStyle = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
+    const active = exact ? (activePath === href) : isActive(href);
     return active ? { backgroundColor: '#f40606' } : {};
   };
 
@@ -183,12 +190,12 @@ export default function AdminSidebar({ isOpen, onClose }) {
   };
 
   const getIconClasses = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
+    const active = exact ? (activePath === href) : isActive(href);
     return `w-5 h-5 ${active ? 'text-white' : 'text-gray-100'}`;
   };
 
   const getTextClasses = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
+    const active = exact ? (activePath === href) : isActive(href);
     return `font-medium text-sm ${active ? 'text-white' : 'text-gray-100'}`;
   };
 
@@ -220,7 +227,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 overflow-y-auto py-2 px-2">
+      <nav className="flex-1 overflow-y-auto py-2 px-2" onClick={handleNavClick}>
         <ul className="space-y-0.5">
           {/* Dashboard */}
           <li>
@@ -252,7 +259,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
             </Link>
           </li>
 
-           {/* Teacher Management */}
+          {/* Teacher Management */}
           <li>
             <Link href="/portal/admin/teachers" className={getSubMenuItemClasses("/portal/admin/teachers")} style={getSubActiveStyle("/portal/admin/teachers")}>
               <svg className={`w-4 h-4 ${isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -301,7 +308,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/students/general") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
-                    <span className={isActive("/portal/admin/students/general") ? 'text-white' : 'text-gray-100'}>General Program Students</span>
+                    <span className={isActive("/portal/admin/students/general") ? 'text-white' : 'text-gray-100'}>All Admitted Students</span>
                   </Link>
                 </li>
                 <li>
@@ -309,7 +316,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/students/ielts-toefl") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span className={isActive("/portal/admin/students/ielts-toefl") ? 'text-white' : 'text-gray-100'}>IELTS / TOEFL Students</span>
+                    <span className={isActive("/portal/admin/students/ielts-toefl") ? 'text-white' : 'text-gray-100'}>IELTOEF Program Students</span>
                   </Link>
                 </li>
                 <li>

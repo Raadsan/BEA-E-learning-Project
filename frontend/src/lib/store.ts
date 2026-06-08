@@ -35,6 +35,7 @@ import { shiftApi } from "./api/shiftApi";
 import { reviewApi } from "./api/reviewApi";
 import { reportApi } from "./api/reportApi";
 import { levelUpApi } from "./api/levelUpApi";
+import { unitProgressApi } from "./api/unitProgressApi";
 import { certificateApi } from "./api/certificateApi";
 
 export const store = configureStore({
@@ -75,6 +76,7 @@ export const store = configureStore({
         [reviewApi.reducerPath]: reviewApi.reducer,
         [reportApi.reducerPath]: reportApi.reducer,
         [levelUpApi.reducerPath]: levelUpApi.reducer,
+        [unitProgressApi.reducerPath]: unitProgressApi.reducer,
         [certificateApi.reducerPath]: certificateApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
@@ -115,6 +117,7 @@ export const store = configureStore({
             reviewApi.middleware,
             reportApi.middleware,
             levelUpApi.middleware,
+            unitProgressApi.middleware,
             certificateApi.middleware
         ),
 });

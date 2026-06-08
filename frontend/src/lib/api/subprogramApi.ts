@@ -15,6 +15,7 @@ export const subprogramApi = createApi({
     },
   }),
   tagTypes: ["Subprograms"],
+  keepUnusedDataFor: 600,
   endpoints: (builder) => ({
     getSubprograms: builder.query<any, void>({
       query: () => "/",

@@ -21,6 +21,38 @@ import { useGetClassQuery } from "@/lib/api/classApi";
 import StudentReviewForm from "@/components/ReviewFlows/StudentReviewForm";
 import DashboardTermCounter from "@/components/student/dashboard/DashboardTermCounter";
 
+const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+
+const parseApiDate = (dateVal) => {
+    if (!dateVal) return null;
+    if (dateVal instanceof Date) return dateVal;
+    const dStr = dateVal.toString();
+    const isoStr = dStr.includes("T") ? dStr : dStr.replace(" ", "T");
+    const finalStr = isoStr.includes("Z") || isoStr.includes("+") ? isoStr : `${isoStr}Z`;
+    const d = new Date(finalStr);
+    return isNaN(d.getTime()) ? null : d;
+};
+
+/** Clamp legacy 45-day expiry to 24h from registration */
+const getEffectiveTestExpiry = (user) => {
+    const expiry = parseApiDate(user?.expiry_date);
+    if (!expiry) return null;
+    const created = parseApiDate(user?.created_at);
+    if (created) {
+        const windowEnd = new Date(created.getTime() + TWENTY_FOUR_HOURS_MS);
+        return expiry.getTime() > windowEnd.getTime() ? windowEnd : expiry;
+    }
+    return expiry;
+};
+
+const formatCountdownHHMMSS = (hours, minutes, seconds) => {
+    const total = Math.max(0, hours * 3600 + minutes * 60 + seconds);
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+};
+
 const ProficiencyDashboard = ({ user, results, timeLeft, isExpired, isDark, router }) => {
     const hasCompleted = results && results.length > 0;
     const latestResult = hasCompleted ? results[0] : null;
@@ -56,8 +88,8 @@ const ProficiencyDashboard = ({ user, results, timeLeft, isExpired, isDark, rout
                                     </svg>
                                 </div>
                                 <div>
-                                    <div className={`text-sm font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                                        {timeLeft.hours > 0 && `${timeLeft.hours}h `}{timeLeft.minutes}m {timeLeft.seconds}s
+                                    <div className={`text-2xl font-black tabular-nums ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                        {formatCountdownHHMMSS(timeLeft.hours, timeLeft.minutes, timeLeft.seconds)}
                                     </div>
                                     <div className="text-[9px] font-bold uppercase tracking-widest opacity-40">Entry Window Remaining</div>
                                 </div>
@@ -339,61 +371,43 @@ export default function StudentDashboard() {
         };
     };
 
-    // Assessment Expiry Countdown Timer
+    // Assessment Expiry Countdown Timer (24h window, HH:MM:SS)
     useEffect(() => {
-        const expiryDateStr = user?.expiry_date;
-        // Skip countdown for Proficiency-Only students (they have 100yr window)
         if (isProficiencyOnly) {
             setTimeUntilExpiry({ hours: 0, minutes: 0, seconds: 0, isExpired: false });
             return;
         }
 
         if ((assessmentType === 'proficiency' && !hasCompletedProficiency) || (assessmentType === 'placement' && !hasCompletedPlacement)) {
-            if (!expiryDateStr) return;
-
             const updateTimer = () => {
-                const getParsedExpiry = (dateVal) => {
-                    if (!dateVal) return null;
-                    if (dateVal instanceof Date) return dateVal;
-                    const dStr = dateVal.toString();
-                    const isoStr = dStr.includes('T') ? dStr : dStr.replace(' ', 'T');
-                    const finalStr = isoStr.includes('Z') || isoStr.includes('+') ? isoStr : `${isoStr}Z`;
-                    return new Date(finalStr);
-                };
+                const expiry = getEffectiveTestExpiry(user);
+                if (!expiry) return;
 
-                const expiry = getParsedExpiry(expiryDateStr);
-                const now = new Date();
+                const diffMs = expiry.getTime() - Date.now();
+                const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
 
-                if (expiry && !isNaN(expiry.getTime())) {
-                    const diffMs = expiry.getTime() - now.getTime();
-                    const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
-
-                    console.log('⏰ Timer Debug:', {
-                        expiryStr: expiryDateStr,
-                        parsedExpiry: expiry.toISOString(),
-                        browserNow: now.toISOString(),
-                        diffMs,
-                        totalSeconds
-                    });
-
-                    setTimeUntilExpiry({
-                        hours: Math.floor(totalSeconds / 3600),
-                        minutes: Math.floor((totalSeconds % 3600) / 60),
-                        seconds: totalSeconds % 60,
-                        isExpired: totalSeconds <= 0
-                    });
-                } else {
-                    console.warn('⏰ Timer Debug: Invalid Expiry Date', { expiryDateStr });
-                }
+                setTimeUntilExpiry({
+                    hours: Math.floor(totalSeconds / 3600),
+                    minutes: Math.floor((totalSeconds % 3600) / 60),
+                    seconds: totalSeconds % 60,
+                    isExpired: totalSeconds <= 0
+                });
             };
 
             updateTimer();
             const interval = setInterval(updateTimer, 1000);
             return () => clearInterval(interval);
         }
-    }, [user, assessmentType, hasCompletedProficiency, hasCompletedPlacement]);
+    }, [user, assessmentType, hasCompletedProficiency, hasCompletedPlacement, isProficiencyOnly]);
 
     const pendingInfo = getPendingInfo();
+    const assessmentComplete =
+        assessmentType === "placement"
+            ? hasCompletedPlacement
+            : assessmentType === "proficiency"
+              ? hasCompletedProficiency
+              : true;
+    const showPendingDashboard = approvalStatus !== "approved";
 
     useEffect(() => {
         if (user && user.approval_status) {
@@ -484,6 +498,80 @@ export default function StudentDashboard() {
                         isDark={isDark}
                         router={router}
                     />
+                ) : showPendingDashboard ? (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div>
+                            <h1 className={`text-3xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                Welcome, {user?.full_name?.split(' ')[0] || 'Student'}!
+                            </h1>
+                            <p className={`text-sm font-medium opacity-50 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Complete your assessment to finalize registration
+                            </p>
+                        </div>
+
+                        <div
+                            onClick={() => {
+                                if (pendingInfo.type === 'blocked') return;
+                                if (pendingInfo.link) router.push(pendingInfo.link);
+                            }}
+                            className={`rounded-2xl p-8 border-2 transition-all ${pendingInfo.type === 'action'
+                                ? isDark ? 'bg-blue-600/10 border-blue-500/50 hover:bg-blue-600/20 cursor-pointer' : 'bg-blue-50 border-blue-200 hover:bg-blue-100 cursor-pointer'
+                                : pendingInfo.type === 'blocked'
+                                    ? isDark ? 'bg-red-600/10 border-red-500/50' : 'bg-red-50 border-red-200'
+                                    : pendingInfo.type === 'completed'
+                                        ? isDark ? 'bg-green-600/10 border-green-500/50' : 'bg-green-50 border-green-200'
+                                        : isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-200'
+                                }`}
+                        >
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                                <div className="flex items-start gap-4">
+                                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 ${pendingInfo.type === 'action' ? 'bg-blue-600 text-white'
+                                        : pendingInfo.type === 'blocked' ? 'bg-red-600 text-white'
+                                            : pendingInfo.type === 'completed' ? 'bg-green-600 text-white'
+                                                : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
+                                        }`}>
+                                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={pendingInfo.icon} />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h2 className={`text-xl font-bold mb-2 ${pendingInfo.type === 'blocked' ? 'text-red-500' : isDark ? 'text-white' : 'text-gray-900'}`}>
+                                            {pendingInfo.title}
+                                        </h2>
+                                        <p className={`text-sm font-medium leading-relaxed max-w-xl ${pendingInfo.type === 'blocked' ? 'text-red-400' : isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                            {pendingInfo.description}
+                                        </p>
+                                        {pendingInfo.type === 'action' && pendingInfo.link && (
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); router.push(pendingInfo.link); }}
+                                                className="mt-4 px-6 py-2.5 bg-[#010080] hover:bg-blue-800 text-white rounded-xl text-sm font-semibold transition-all"
+                                            >
+                                                {pendingInfo.btnText || 'Start Test'}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                {pendingInfo.isCountdown && !assessmentComplete && (
+                                    <div className={`text-center md:text-right px-6 py-4 rounded-xl ${isDark ? 'bg-[#0b0f19] border border-gray-800' : 'bg-white border border-gray-100 shadow-sm'}`}>
+                                        <div className={`text-3xl font-black tabular-nums tracking-wider ${timeUntilExpiry.isExpired ? 'text-red-500' : isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                            {formatCountdownHHMMSS(timeUntilExpiry.hours, timeUntilExpiry.minutes, timeUntilExpiry.seconds)}
+                                        </div>
+                                        <div className="text-[10px] font-bold uppercase tracking-widest opacity-40 mt-1">
+                                            Hours : Minutes : Seconds (24h Window)
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {pendingInfo.type === 'completed' && (
+                            <div className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-200'}`}>
+                                <p className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Your account is pending admin approval. You will get full dashboard access once approved.
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 ) : (
                     <>
                         {/* Welcome Header (Simple Text) */}

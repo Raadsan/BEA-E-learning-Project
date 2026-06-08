@@ -6,11 +6,16 @@ export const programApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: `${API_URL}/programs`,
     prepareHeaders: (headers) => {
-      // Let the browser set the Content-Type for FormData (multipart/form-data)
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+      // Do not set Content-Type — browser sets multipart boundary for FormData
       return headers;
     },
   }),
   tagTypes: ["Programs"],
+  keepUnusedDataFor: 600,
   endpoints: (builder) => ({
 
     // ✔ GET ALL programs

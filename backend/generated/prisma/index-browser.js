@@ -292,6 +292,7 @@ exports.Prisma.CertificatesScalarFieldEnum = {
   name_y: 'name_y',
   font_size: 'font_size',
   font_color: 'font_color',
+  fields_config: 'fields_config',
   created_at: 'created_at',
   updated_at: 'updated_at',
   uploader_id: 'uploader_id'
@@ -1002,6 +1003,17 @@ exports.Prisma.attendanceOrderByRelevanceFieldEnum = {
   student_id: 'student_id'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
 exports.Prisma.certificatesOrderByRelevanceFieldEnum = {
   template_url: 'template_url',
   font_color: 'font_color'
@@ -1073,17 +1085,6 @@ exports.Prisma.freezing_requestsOrderByRelevanceFieldEnum = {
   reason: 'reason',
   description: 'description',
   admin_response: 'admin_response'
-};
-
-exports.Prisma.JsonNullValueFilter = {
-  DbNull: Prisma.DbNull,
-  JsonNull: Prisma.JsonNull,
-  AnyNull: Prisma.AnyNull
-};
-
-exports.Prisma.QueryMode = {
-  default: 'default',
-  insensitive: 'insensitive'
 };
 
 exports.Prisma.ielts_registrationsOrderByRelevanceFieldEnum = {

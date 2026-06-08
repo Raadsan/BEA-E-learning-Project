@@ -1,7 +1,7 @@
 "use client";
 
 import { useDarkMode } from "@/context/ThemeContext";
-import { API_BASE_URL, UPLOADS_URL } from "@/constants";
+import { resolveSubmissionFileUrl } from "@/constants";
 
 export default function SubmissionDetailsModal({ assignment, onClose }) {
     const { isDark } = useDarkMode();
@@ -13,9 +13,7 @@ export default function SubmissionDetailsModal({ assignment, onClose }) {
         : "N/A";
 
     const isGraded = assignment.submission_status === 'graded';
-    const fileUrl = assignment.file_url
-        ? (assignment.file_url.startsWith('/') ? `${API_BASE_URL}${assignment.file_url}` : `${UPLOADS_URL}/${assignment.file_url}`)
-        : null;
+    const fileUrl = resolveSubmissionFileUrl(assignment.file_url);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">

@@ -20,5 +20,7 @@ router.get('/class-assessment-activity', reportController.getClassAssessmentActi
 router.get('/payment-stats', reportController.getPaymentStats);
 router.get('/payment-distribution', reportController.getPaymentDistribution);
 router.get('/payment-detailed', reportController.getDetailedPaymentList);
+router.get('/student-available-periods/:studentId', reportController.getStudentAvailablePeriods);
+router.get('/student-progress/:studentId', reportController.getStudentProgressReport);
 
 export default router;

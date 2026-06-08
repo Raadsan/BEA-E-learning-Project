@@ -7,15 +7,17 @@ import TeacherSidebar from "@/components/teacher/TeacherSidebar";
 import TeacherHeader from "@/components/teacher/TeacherHeader";
 import { DarkModeProvider, useDarkMode } from "@/context/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PortalNavProgress from "@/components/PortalNavProgress";
+import { usePortalNavFeedback } from "@/hooks/usePortalNavFeedback";
 
 function TeacherLayoutContent({ children }) {
   const { isDark } = useDarkMode();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { isNavigating, startNavigation } = usePortalNavFeedback(pathname);
 
   useEffect(() => {
-    // Close sidebar on route change for mobile
     setIsSidebarOpen(false);
   }, [pathname]);
 
@@ -37,7 +39,8 @@ function TeacherLayoutContent({ children }) {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col lg:ml-80 ml-0 transition-all duration-300 min-w-0 overflow-hidden h-full">
-        <TeacherHeader onMenuClick={() => setIsSidebarOpen(true)} />
+        <TeacherHeader onMenuClick={() => setIsSidebarOpen(true)} onNavigate={startNavigation} />
+        <PortalNavProgress show={isNavigating} />
         <main className="flex-1 overflow-y-auto pt-20">
           {children}
         </main>

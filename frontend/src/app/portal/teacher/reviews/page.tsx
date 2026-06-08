@@ -5,9 +5,14 @@ import { useGetClassesQuery } from "@/lib/api/classApi";
 import { useGetStudentsByClassQuery } from "@/lib/api/studentApi";
 import TeacherReviewForm from "@/components/ReviewFlows/TeacherReviewForm";
 import DataTable from "@/components/DataTable";
+import { getCurrentTerm } from "@/lib/timelineData";
 
 export default function TeacherReviewsPage() {
     const { data: classes = [], isLoading: classesLoading } = useGetClassesQuery();
+
+    // Current active term
+    const currentTerm = getCurrentTerm();
+    const termSerial = currentTerm?.termSerial || `BEA-${new Date().getMonth() + 1}/${new Date().getFullYear()}`;
 
     // State for hierarchical selection
     const [selectedProgram, setSelectedProgram] = useState("");
@@ -61,7 +66,7 @@ export default function TeacherReviewsPage() {
                 <TeacherReviewForm
                     student={student}
                     classId={selectedClassId}
-                    termSerial="2026-1"
+                    termSerial={termSerial}
                     onComplete={refetchStudents}
                 />
             ),
@@ -71,7 +76,7 @@ export default function TeacherReviewsPage() {
 
     return (
         <div className="p-6 space-y-6">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Student Reviews</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Student Reviews</h1>
 
             {/* Filters Container */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
-import { useGetCertificatesQuery, useGetMyIssuedCertificatesQuery } from "@/lib/api/certificateApi";
+import { useGetGlobalCertificateQuery, useGetMyIssuedCertificatesQuery } from "@/lib/api/certificateApi";
+import { buildAvailableCertificates } from "@/utils/certificateFields";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
 import { useToast } from "@/components/Toast";
@@ -44,115 +45,24 @@ export default function MyCertificationPage() {
     { skip: !searchForm.programId && !studentProgramId }
   );
 
-  const { data: allConfigs = [], isLoading: loadingConfigs } = useGetCertificatesQuery(undefined);
+  const { data: globalTemplate, isLoading: loadingConfigs } = useGetGlobalCertificateQuery();
   const { data: myHistory = [], isLoading: loadingHistory, refetch: refetchHistory } = useGetMyIssuedCertificatesQuery(undefined);
 
   const bg = isDark ? "bg-gray-900" : "bg-gray-50";
   const card = isDark ? "bg-gray-800 text-white" : "bg-white text-gray-700";
   const border = isDark ? "border-gray-700" : "border-gray-200";
 
-  // Identify certificates for courses (subprograms/programs) the student has completed
-  const availableCertificates = useMemo(() => {
-    if (!user || !subprogramsData.length || !allConfigs.length) return [];
-
-    const currentSubId = String(user.chosen_subprogram || "").toLowerCase().trim();
-
-    // Parse completed subprograms from user data (comma-separated string or array)
-    const completedSubprograms = user.completed_subprograms
-      ? (typeof user.completed_subprograms === 'string'
-        ? user.completed_subprograms.split(',').map(s => s.trim().toLowerCase())
-        : Array.isArray(user.completed_subprograms)
-          ? user.completed_subprograms.map(s => String(s).trim().toLowerCase())
-          : [])
-      : [];
-
-    // Find where the student is currently
-    const activeIndex = subprogramsData.findIndex(s => {
-      const sId = String(s.id);
-      const sName = String(s.subprogram_name || s.name || "").toLowerCase().trim();
-      return sId === currentSubId || (currentSubId && sName === currentSubId);
-    });
-
-    return allConfigs.map(config => {
-      // Enriched config with actual subprogram name if missing
-      let enrichedName = config.target_name;
-      let subIndex = -1;
-
-      if (config.target_type === 'subprogram') {
-        subIndex = subprogramsData.findIndex(s => {
-          const sId = String(s.id);
-          const sName = String(s.subprogram_name || s.name || "").toLowerCase().trim();
-          const targetId = String(config.target_id);
-          const targetName = String(config.target_name || "").toLowerCase().trim();
-
-          const idMatch = sId === targetId;
-          const nameMatch = targetName && sName === targetName;
-
-          if (idMatch || nameMatch) {
-            if (!enrichedName) enrichedName = s.subprogram_name || s.name;
-            return true;
-          }
-          return false;
-        });
-      }
-
-      return { ...config, subIndex, enrichedName };
-    }).filter(config => {
-      // Logic for Subprograms: Check completed_subprograms field
-      if (config.target_type === 'subprogram') {
-        const targetId = String(config.target_id).toLowerCase();
-        const targetName = String(config.enrichedName || config.target_name || "").toLowerCase().trim();
-
-        // Debug logging
-        console.log('🔍 Certificate check:', {
-          targetId,
-          targetName,
-          completedList: completedSubprograms,
-          configName: config.target_name
-        });
-
-        // Check if this subprogram is in the completed list (by ID or name)
-        const isInCompletedList = completedSubprograms.some(completed => {
-          const match = completed === targetId || completed === targetName;
-          console.log(`  Comparing '${completed}' with '${targetId}' or '${targetName}': ${match}`);
-          return match;
-        });
-
-        // Also check if student has moved past this level (legacy logic)
-        const hasMovedPast = config.subIndex !== -1 && (activeIndex === -1 || config.subIndex < activeIndex);
-
-        console.log('✅ Result:', { isInCompletedList, hasMovedPast });
-        const isCompleted = isInCompletedList || hasMovedPast;
-
-        const alreadyClaimed = myHistory.some(h =>
-          String(h.target_id) === String(config.target_id) ||
-          (config.enrichedName && String(h.target_name || "").toLowerCase().trim() === String(config.enrichedName).toLowerCase().trim())
-        );
-        return isCompleted && !alreadyClaimed;
-      }
-
-      // Logic for Programs: Graduation check
-      if (config.target_type === 'program') {
-        const pId = String(studentProgramId);
-        const targetPId = String(config.target_id);
-        const targetPName = String(config.target_name || "").toLowerCase().trim();
-        const userPName = String(user.chosen_program || "").toLowerCase().trim();
-
-        const isMyProgram = pId === targetPId || (targetPName && userPName.includes(targetPName));
-        const allLevelsFinished = activeIndex === -1; // If they are not in the list anymore
-
-        const alreadyClaimed = myHistory.some(h =>
-          h.target_type === 'program' && (
-            String(h.target_id) === targetPId ||
-            (targetPName && String(h.target_name || "").toLowerCase().trim() === targetPName)
-          )
-        );
-        return isMyProgram && allLevelsFinished && !alreadyClaimed;
-      }
-
-      return false;
-    }).map(c => ({ ...c, target_name: c.enrichedName || c.target_name }));
-  }, [user, subprogramsData, allConfigs, myHistory, studentProgramId]);
+  const availableCertificates = useMemo(
+    () =>
+      buildAvailableCertificates({
+        user,
+        subprograms: subprogramsData,
+        globalTemplate,
+        myHistory,
+        studentProgramId,
+      }),
+    [user, subprogramsData, globalTemplate, myHistory, studentProgramId]
+  );
 
   const handleGenerateCertificate = async (cert) => {
     setIsGenerating(true);
@@ -228,22 +138,22 @@ export default function MyCertificationPage() {
     setTimeout(() => {
       setIsSearching(false);
 
-      // Search in all configurations, not just unclaimed ones
-      const found = allConfigs.find(c =>
-        String(c.target_id) === String(subprogramId) &&
-        c.target_type === 'subprogram'
+      if (!globalTemplate) {
+        showToast("Certificate template is not configured yet. Please contact admin.", "error");
+        return;
+      }
+
+      const sub = subprogramsData.find((s) => String(s.id) === String(subprogramId));
+      const found = availableCertificates.find(
+        (c) => String(c.target_id) === String(subprogramId) && c.target_type === "subprogram"
       );
 
       if (found) {
-        // Enrich the found config with names if needed
-        const sub = subprogramsData.find(s => String(s.id) === String(subprogramId));
-        const enrichedFound = { ...found, target_name: sub?.subprogram_name || found.target_name };
-
-        setSelectedCert(enrichedFound);
+        setSelectedCert({ ...found, target_name: sub?.subprogram_name || found.target_name });
         setIsFindModalOpen(false);
         showToast("Certificate found!", "success");
       } else {
-        showToast("No certificate found for this subprogram. Make sure you have completed it.", "error");
+        showToast("No certificate available for this subprogram yet. Make sure you have completed it.", "error");
       }
     }, 500);
   };

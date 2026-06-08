@@ -108,43 +108,57 @@ export default function ClassSessionsPage() {
         }
 
         try {
-            const promises = sessionRows.map(row => {
-                // Ensure date is in YYYY-MM-DD format
+            const buildScheduleData = (row) => {
                 let dateToSend = row.scheduleDate;
                 if (dateToSend) {
                     dateToSend = String(dateToSend).split('T')[0].split(' ')[0].trim();
                 }
 
-                const scheduleData = {
-                    schedule_date: dateToSend,
-                    zoom_link: row.meetingLink || null,
-                    start_time: row.startTime ? (row.startTime.length === 5 ? `${row.startTime}:00` : row.startTime) : null,
-                    end_time: row.endTime ? (row.endTime.length === 5 ? `${row.endTime}:00` : row.endTime) : null,
-                    title: row.title || `Session`,
+                const formatTime = (time) => {
+                    if (!time) return null;
+                    const value = String(time).trim();
+                    if (value.length === 5) return `${value}:00`;
+                    return value;
                 };
 
-                if (editingSession) {
-                    return updateSchedule({
-                        id: editingSession.id,
-                        class_id: classId,
-                        ...scheduleData
-                    }).unwrap();
-                } else {
-                    return createSchedule({
-                        classId: classId,
-                        ...scheduleData
-                    }).unwrap();
-                }
-            });
+                return {
+                    schedule_date: dateToSend,
+                    zoom_link: row.meetingLink || null,
+                    start_time: formatTime(row.startTime),
+                    end_time: formatTime(row.endTime),
+                    title: row.title || "Session",
+                };
+            };
 
-            await Promise.all(promises);
+            if (editingSession) {
+                await updateSchedule({
+                    id: editingSession.id,
+                    class_id: classId,
+                    ...buildScheduleData(sessionRows[0]),
+                }).unwrap();
+            } else if (sessionRows.length === 1) {
+                await createSchedule({
+                    classId,
+                    ...buildScheduleData(sessionRows[0]),
+                }).unwrap();
+            } else {
+                await createSchedule({
+                    classId,
+                    schedules: sessionRows.map((row) => buildScheduleData(row)),
+                }).unwrap();
+            }
 
             handleCloseModal();
             showToast(editingSession ? "Session updated!" : `Successfully created ${sessionRows.length} sessions!`, "success");
 
         } catch (error) {
             console.error("Error saving schedule:", error);
-            showToast(error?.data?.error || "Failed to save sessions", "error");
+            const message =
+                error?.data?.error ||
+                error?.data?.message ||
+                (error?.status ? `Request failed (${error.status})` : null) ||
+                "Failed to save sessions";
+            showToast(message, "error");
         }
     };
 
@@ -193,29 +207,47 @@ export default function ClassSessionsPage() {
         return "Scheduled";
     };
 
+    const getCleanTime = (timeStr) => {
+        if (!timeStr) return "";
+        const str = String(timeStr);
+        if (str.includes('T')) {
+            const parts = str.split('T')[1];
+            return parts ? parts.substring(0, 5) : "";
+        }
+        return str.substring(0, 5);
+    };
+
     // Transform and sort sessions
     const sessions = useMemo(() => {
         if (!rawSessions) return [];
-        return rawSessions.map(schedule => ({
-            id: schedule.id,
-            title: schedule.title || schedule.class_name || "Class Session",
-            platform: schedule.zoom_link?.includes('zoom') ? 'Zoom' :
-                schedule.zoom_link?.includes('meet.google') ? 'Google Meet' :
-                    schedule.zoom_link?.includes('teams') ? 'Microsoft Teams' : 'Other',
-            meetingLink: schedule.zoom_link || "",
-            meetingId: extractMeetingId(schedule.zoom_link),
-            passcode: "-",
-            scheduleDate: schedule.schedule_date || "",
-            startTime: schedule.start_time ? String(schedule.start_time).substring(0, 5) : "",
-            endTime: schedule.end_time ? String(schedule.end_time).substring(0, 5) : "",
-            status: getSessionStatus(
-                schedule.schedule_date || "",
-                schedule.start_time ? String(schedule.start_time).substring(0, 8) : "",
-                schedule.end_time ? String(schedule.end_time).substring(0, 8) : ""
-            ),
-            class_id: schedule.class_id,
-            description: schedule.description || "",
-        })).sort((a, b) => new Date(`${b.scheduleDate}T${b.startTime || '00:00'}`).getTime() - new Date(`${a.scheduleDate}T${a.startTime || '00:00'}`).getTime());
+        return rawSessions.map(schedule => {
+            const cleanStartTime = getCleanTime(schedule.start_time);
+            const cleanEndTime = getCleanTime(schedule.end_time);
+            const dateStr = schedule.schedule_date 
+                ? (typeof schedule.schedule_date === 'string' ? schedule.schedule_date.split('T')[0] : schedule.schedule_date)
+                : "";
+            
+            return {
+                id: schedule.id,
+                title: schedule.session_title || schedule.title || "Class Session",
+                platform: schedule.zoom_link?.includes('zoom') ? 'Zoom' :
+                    schedule.zoom_link?.includes('meet.google') ? 'Google Meet' :
+                        schedule.zoom_link?.includes('teams') ? 'Microsoft Teams' : 'Other',
+                meetingLink: schedule.zoom_link || "",
+                meetingId: extractMeetingId(schedule.zoom_link),
+                passcode: "-",
+                scheduleDate: dateStr,
+                startTime: cleanStartTime,
+                endTime: cleanEndTime,
+                status: getSessionStatus(
+                    dateStr,
+                    cleanStartTime ? cleanStartTime + ":00" : "",
+                    cleanEndTime ? cleanEndTime + ":00" : ""
+                ),
+                class_id: schedule.class_id,
+                description: schedule.description || "",
+            };
+        }).sort((a, b) => new Date(`${b.scheduleDate}T${b.startTime || '00:00'}`).getTime() - new Date(`${a.scheduleDate}T${a.startTime || '00:00'}`).getTime());
     }, [rawSessions]);
 
 

@@ -37,9 +37,9 @@ const TeacherReviewForm = ({ student, classId, termSerial, onComplete }: { stude
             setLocallyReviewed(true);
             handleClose();
             if (onComplete) onComplete();
-        } catch (err) {
-            console.error(err);
-            showToast(err.data?.error || "Failed to submit review.", "error");
+        } catch (err: any) {
+            console.error("Submit review error:", JSON.stringify(err));
+            showToast(err?.data?.error || err?.error || "Failed to submit review.", "error");
         }
     };
 

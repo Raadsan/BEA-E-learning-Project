@@ -12,7 +12,7 @@ import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetSubprogramsQuery } from "@/lib/api/subprogramApi";
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
-import { API_URL } from "@/constants";
+import { API_URL, resolveMediaUrl } from "@/constants";
 
 export default function CourseMaterialsPage() {
   const { showToast } = useToast();
@@ -26,6 +26,7 @@ export default function CourseMaterialsPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Filters, Pagination and Selection States
   const [selectedProgramId, setSelectedProgramId] = useState("");
@@ -194,6 +195,7 @@ export default function CourseMaterialsPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSaving(true);
     try {
       if (editingMaterial) {
         await updateMaterial({ id: editingMaterial.id, ...formData }).unwrap();
@@ -203,8 +205,11 @@ export default function CourseMaterialsPage() {
         showToast("Material created successfully!", "success");
       }
       handleCloseModal();
+      // Refresh the page immediately so the table reflects the new data
+      window.location.reload();
     } catch (err) {
       showToast(err.data?.error || "Failed to save material", "error");
+      setIsSaving(false);
     }
   };
 
@@ -319,20 +324,11 @@ export default function CourseMaterialsPage() {
 
       // Autofill form
       setFormData(prev => {
-        let guessedType = "PDF";
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (["doc", "docx"].includes(ext)) guessedType = "Document";
-        else if (["ppt", "pptx"].includes(ext)) guessedType = "Presentation";
-        else if (["mp3", "wav", "m4a"].includes(ext)) guessedType = "Audio";
-        else if (["mp4", "mov", "avi"].includes(ext)) guessedType = "Video";
-        else if (["pdf"].includes(ext)) guessedType = "PDF";
-        else guessedType = "Link";
-
         return {
           ...prev,
           title: prev.title || file.name.replace(/\.[^/.]+$/, ""), // Strip extension
           url: result.url,
-          type: guessedType
+          type: "Document"
         };
       });
 
@@ -434,11 +430,7 @@ export default function CourseMaterialsPage() {
       key: "type",
       label: "Type",
       render: (_, row) => (
-        <span className={`px-2.5 py-0.5 inline-flex text-xs font-semibold rounded-full border ${
-          row.type === 'Drive'
-            ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
-            : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800'
-        }`}>
+        <span className="text-xs font-semibold text-gray-700 dark:text-gray-400">
           {row.type}
         </span>
       ),
@@ -482,9 +474,11 @@ export default function CourseMaterialsPage() {
     {
       key: "url",
       label: "Link",
-      render: (_, row) => (
+      render: (_, row) => {
+        const resolvedUrl = row.url?.startsWith('http') ? row.url : resolveMediaUrl(row.url);
+        return (
         <a
-          href={row.url}
+          href={resolvedUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-bold text-xs flex items-center gap-1.5 transition-colors"
@@ -495,7 +489,8 @@ export default function CourseMaterialsPage() {
           </svg>
           {row.type === 'Drive' ? 'Open Drive' : 'Open Link'}
         </a>
-      ),
+        );
+      },
     },
     {
       key: "actions",
@@ -786,62 +781,7 @@ export default function CourseMaterialsPage() {
               </button>
             </div>
 
-            {/* Smart Drag-and-Drop upload zone container (Requirement 1.48) */}
-            <div className="px-6 pt-6">
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
-                  isDragging
-                    ? "border-[#010080] bg-blue-50/50 dark:bg-gray-700/50 scale-[1.01]"
-                    : "border-gray-300 dark:border-gray-600 hover:border-[#010080]/50"
-                }`}
-              >
-                <input
-                  type="file"
-                  id="drag-drop-input"
-                  className="hidden"
-                  onChange={handleFileSelect}
-                />
-                <label
-                  htmlFor="drag-drop-input"
-                  className="flex flex-col items-center justify-center cursor-pointer space-y-3"
-                >
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
-                    isDragging ? "bg-[#010080] text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-500"
-                  } transition-all`}>
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
-                      Drag & Drop files here or <span className="text-[#010080] underline">browse your desktop</span>
-                    </p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                      Supports PDFs, Word docs, video clips, PowerPoint slides up to 50MB
-                    </p>
-                  </div>
-                </label>
 
-                {/* Uploading progress overlay */}
-                {isUploading && (
-                  <div className="mt-4 max-w-xs mx-auto">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1 font-bold">
-                      <span>Uploading resource file...</span>
-                      <span>{uploadProgress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-[#010080] h-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {/* Material Information Section */}
@@ -880,12 +820,8 @@ export default function CourseMaterialsPage() {
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#010080] bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm cursor-pointer"
                     >
                       <option value="">Select Type</option>
-                      <option value="PDF">PDF Document</option>
-                      <option value="Document">Word Document</option>
-                      <option value="Presentation">PowerPoint Slide</option>
-                      <option value="Video">Video Link/Clip</option>
-                      <option value="Drive">Google Drive Link</option>
-                      <option value="Link">External Website URL</option>
+                      <option value="Document">Document</option>
+                      <option value="Drive">Google Drive</option>
                     </select>
                   </div>
 
@@ -961,21 +897,63 @@ export default function CourseMaterialsPage() {
 
               {/* Resource Details */}
               <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="url" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    Resource Link / URL <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="url"
-                    name="url"
-                    value={formData.url}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="https://google.drive/..."
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#010080] bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                  />
-                </div>
+                {formData.type === "Document" ? (
+                  <div className="space-y-1.5 w-full">
+                    <label htmlFor="file-upload" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Upload File
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="file"
+                        id="file-upload"
+                        className="hidden"
+                        onChange={handleFileSelect}
+                      />
+                      <label
+                        htmlFor="file-upload"
+                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-750 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors text-sm font-semibold cursor-pointer"
+                      >
+                        Browse File...
+                      </label>
+                      {formData.url ? (
+                        <span className="text-xs text-green-600 font-semibold truncate max-w-[200px] md:max-w-md">
+                          Selected: {formData.url.split("/").pop()}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">No file selected</span>
+                      )}
+                    </div>
+                    {isUploading && (
+                      <div className="mt-2 w-full max-w-xs">
+                        <div className="flex justify-between text-xs text-gray-500 mb-1 font-bold">
+                          <span>Uploading file...</span>
+                          <span>{uploadProgress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-[#010080] h-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <label htmlFor="url" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Resource Link / URL
+                    </label>
+                    <input
+                      type="text"
+                      id="url"
+                      name="url"
+                      value={formData.url}
+                      onChange={handleInputChange}
+                      placeholder="https://google.drive/..."
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#010080] bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <label htmlFor="description" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -997,15 +975,27 @@ export default function CourseMaterialsPage() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-300 transition-colors text-sm font-semibold"
+                  disabled={isSaving}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-300 transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#010080] text-white rounded-lg hover:bg-[#0200a0] transition-colors shadow-lg shadow-blue-500/20 text-sm font-semibold"
+                  disabled={isSaving}
+                  className="px-5 py-2 bg-[#010080] text-white rounded-lg hover:bg-[#0200a0] transition-colors shadow-lg shadow-blue-500/20 text-sm font-semibold flex items-center gap-2 disabled:opacity-80 disabled:cursor-not-allowed min-w-[130px] justify-center"
                 >
-                  {editingMaterial ? "Update Material" : "Save Material"}
+                  {isSaving ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    editingMaterial ? "Update Material" : "Save Material"
+                  )}
                 </button>
               </div>
             </form>

@@ -6,12 +6,14 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useLogoutMutation } from "@/lib/api/authApi";
+import { usePortalNavFeedback } from "@/hooks/usePortalNavFeedback";
 
 export default function TeacherSidebar({ isOpen, onClose }) {
   const pathname = usePathname();
   const router = useRouter();
   const { isDark } = useDarkMode();
   const [logout] = useLogoutMutation();
+  const { activePath, handleNavClick } = usePortalNavFeedback(pathname, onClose);
 
   const handleLogout = async () => {
     try {
@@ -49,14 +51,14 @@ export default function TeacherSidebar({ isOpen, onClose }) {
 
   const isActive = (href) => {
     if (href === "/portal/teacher") {
-      return pathname === href;
+      return activePath === href;
     }
-    return pathname?.startsWith(href);
+    return activePath?.startsWith(href);
   };
 
   // Menu Item Classes
   const getMenuItemClasses = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
+    const active = exact ? (activePath === href) : isActive(href);
     return `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
       ? 'text-white font-semibold'
       : 'text-gray-100 hover:bg-white/10 hover:text-white'
@@ -73,7 +75,7 @@ export default function TeacherSidebar({ isOpen, onClose }) {
 
   // Active Background Style (Brand Red)
   const getActiveStyle = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
+    const active = exact ? (activePath === href) : isActive(href);
     return active ? { backgroundColor: '#f40606' } : {};
   };
 
@@ -95,7 +97,7 @@ export default function TeacherSidebar({ isOpen, onClose }) {
   };
 
   const getIconClasses = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
+    const active = exact ? (activePath === href) : isActive(href);
     return `w-5 h-5 ${active ? 'text-white' : 'text-gray-100'}`;
   };
 
@@ -127,7 +129,7 @@ export default function TeacherSidebar({ isOpen, onClose }) {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 overflow-y-auto py-2 px-2">
+      <nav className="flex-1 overflow-y-auto py-2 px-2" onClick={handleNavClick}>
         <ul className="space-y-0.5">
           {/* Dashboard */}
           <li>
@@ -167,7 +169,7 @@ export default function TeacherSidebar({ isOpen, onClose }) {
               <svg className={getIconClasses("/portal/teacher/course-work")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
-              <span className="font-medium text-sm">Course Work</span>
+              <span className="font-medium text-sm">Coursework</span>
             </Link>
           </li>
 
@@ -244,14 +246,14 @@ export default function TeacherSidebar({ isOpen, onClose }) {
 
 
           {/* My Profile */}
-          <li>
+          {/* <li>
             <Link href="/portal/teacher/settings" className={getMenuItemClasses("/portal/teacher/settings")} style={getActiveStyle("/portal/teacher/settings")}>
               <svg className={getIconClasses("/portal/teacher/settings")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <span className="font-medium text-sm">My Profile</span>
             </Link>
-          </li>
+          </li> */}
         </ul>
       </nav>
 

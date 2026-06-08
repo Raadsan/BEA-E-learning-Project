@@ -622,64 +622,71 @@ export default function ProficiencyCandidatesPage() {
             <Modal
                 isOpen={infoModalOpen}
                 onClose={() => { setInfoModalOpen(false); setSelectedCandidate(null); }}
-
                 title="Candidate Information"
             >
                 {selectedCandidate && (
-                    <div className="space-y-4">
-                        <div className="bg-gray-50 p-4 rounded-lg flex items-center justify-between border">
+                    <div className="space-y-5">
+                        {/* Student ID Banner */}
+                        <div className={`p-4 rounded-lg border flex items-center justify-between ${isDark ? 'bg-gray-700/40 border-gray-600' : 'bg-blue-50 border-blue-200'}`}>
                             <div>
-                                <p className="text-xs text-gray-500 uppercase font-bold">Student ID</p>
-                                <p className="text-lg font-mono font-bold text-blue-600">{selectedCandidate.student_id}</p>
+                                <p className={`text-xs font-bold uppercase tracking-wide mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Student ID</p>
+                                <p className={`text-lg font-mono font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{selectedCandidate.student_id}</p>
                             </div>
-                            <div className="h-10 w-1 bg-blue-600 rounded-full" />
+                            <div className="h-10 w-1 bg-blue-500 rounded-full" />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Full Name</p>
-                                <p className="text-sm font-medium">{selectedCandidate.first_name} {selectedCandidate.last_name}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Status</p>
-                                <span className={`px-2 py-0.5 rounded text-xs font-bold ${selectedCandidate.status === 'Approved' ? 'bg-green-100 text-green-700' : selectedCandidate.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                                    {selectedCandidate.status}
-                                </span>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Email</p>
-                                <p className="text-sm font-medium break-all">{selectedCandidate.email}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Phone</p>
-                                <p className="text-sm font-medium">{selectedCandidate.phone}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Location</p>
-                                <p className="text-sm font-medium">{selectedCandidate.residency_city}, {selectedCandidate.residency_country}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Education</p>
-                                <p className="text-sm font-medium">{selectedCandidate.educational_level}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Age / Sex</p>
-                                <p className="text-sm font-medium">{selectedCandidate.age} / {selectedCandidate.sex}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Date of Birth</p>
-                                <p className="text-sm font-medium">{selectedCandidate.date_of_birth ? new Date(selectedCandidate.date_of_birth).toLocaleDateString() : 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Place of Birth</p>
-                                <p className="text-sm font-medium">{selectedCandidate.place_of_birth || 'N/A'}</p>
+                        {/* Personal Information */}
+                        <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                            <h4 className={`text-xs font-bold uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Personal Information</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                {[
+                                    { label: 'First Name', value: selectedCandidate.first_name },
+                                    { label: 'Last Name', value: selectedCandidate.last_name },
+                                    { label: 'Email', value: selectedCandidate.email },
+                                    { label: 'Phone', value: selectedCandidate.phone },
+                                    { label: 'Age', value: selectedCandidate.age },
+                                    { label: 'Sex', value: selectedCandidate.sex },
+                                    { label: 'Date of Birth', value: selectedCandidate.date_of_birth ? new Date(selectedCandidate.date_of_birth).toLocaleDateString() : null },
+                                    { label: 'Place of Birth', value: selectedCandidate.place_of_birth },
+                                    { label: 'Country', value: selectedCandidate.residency_country },
+                                    { label: 'City', value: selectedCandidate.residency_city },
+                                    { label: 'Education Level', value: selectedCandidate.educational_level },
+                                ].map(({ label, value }) => (
+                                    <div key={label}>
+                                        <p className={`text-xs mb-1 font-semibold uppercase tracking-wide ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{label}</p>
+                                        <input
+                                            type="text"
+                                            readOnly
+                                            value={value !== undefined && value !== null && value !== '' ? String(value) : 'N/A'}
+                                            className={`w-full px-2 py-1.5 rounded border text-sm font-medium outline-none cursor-default select-all
+                                                ${isDark ? 'bg-gray-800/60 border-gray-600 text-gray-100' : 'bg-white border-gray-200 text-gray-900'}`}
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
-                        <div className="flex justify-end pt-4">
+                        {/* Status */}
+                        <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                            <h4 className={`text-xs font-bold uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Status</h4>
+                            <input
+                                type="text"
+                                readOnly
+                                value={selectedCandidate.status || 'Pending'}
+                                className={`w-full px-2 py-1.5 rounded border text-sm font-bold outline-none cursor-default select-all
+                                    ${selectedCandidate.status === 'Approved'
+                                        ? (isDark ? 'bg-green-900/30 border-green-700 text-green-400' : 'bg-green-50 border-green-300 text-green-700')
+                                        : selectedCandidate.status === 'Rejected'
+                                            ? (isDark ? 'bg-red-900/30 border-red-700 text-red-400' : 'bg-red-50 border-red-300 text-red-700')
+                                            : (isDark ? 'bg-yellow-900/30 border-yellow-700 text-yellow-400' : 'bg-yellow-50 border-yellow-300 text-yellow-700')
+                                    }`}
+                            />
+                        </div>
+
+                        <div className="flex justify-end pt-2">
                             <button
                                 onClick={() => setInfoModalOpen(false)}
-                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm font-medium"
+                                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                             >
                                 Close
                             </button>
@@ -696,11 +703,17 @@ export default function ProficiencyCandidatesPage() {
             >
                 {selectedCandidate && (
                     <div className="space-y-4">
-                        <div className="p-4 bg-gray-50 rounded-lg border">
-                            <h4 className="font-bold text-gray-700 mb-2">Why are you asking for an English Proficiency Certificate?</h4>
-                            <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">
-                                {selectedCandidate.reason_essay}
-                            </p>
+                        <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                            <h4 className={`font-bold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Why are you asking for an English Proficiency Certificate?</h4>
+                            <textarea
+                                readOnly
+                                value={selectedCandidate.reason_essay || ''}
+                                rows={8}
+                                className={`w-full px-3 py-2 rounded border text-sm leading-relaxed outline-none cursor-default resize-none select-all
+                                    ${isDark
+                                        ? 'bg-gray-800 border-gray-600 text-gray-100'
+                                        : 'bg-white border-gray-200 text-gray-700'}`}
+                            />
                         </div>
                         <div className="flex justify-end gap-2">
                             <button

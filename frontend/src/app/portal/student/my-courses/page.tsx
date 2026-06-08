@@ -10,16 +10,19 @@ import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetSubprogramsQuery, useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
 import { useGetStudentAttendanceQuery } from "@/lib/api/attendanceApi";
 import { useCheckLevelUpEligibilityQuery, useCreateLevelUpRequestMutation } from "@/lib/api/levelUpApi";
-import { useGetCertificatesQuery } from "@/lib/api/certificateApi";
+import { useCheckUnitEligibilityQuery, useCompleteCurrentUnitMutation } from "@/lib/api/unitProgressApi";
+import { useGetGlobalCertificateQuery } from "@/lib/api/certificateApi";
 import { useToast } from "@/components/Toast";
 import Modal from "@/components/Modal";
 import Image from "next/image";
 import { API_BASE_URL, API_URL } from "@/constants";
+import SubprogramCurriculumMap from "@/components/student/SubprogramCurriculumMap";
+import { isLevelClickable } from "@/utils/subprogramProgress";
 
 export default function MyCoursesPage() {
     const { isDark } = useDarkMode();
     const router = useRouter();
-    const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
+    const { data: user, isLoading: userLoading, refetch: refetchUser } = useGetCurrentUserQuery();
     const [studentClass, setStudentClass] = useState(null);
     const [studentProgram, setStudentProgram] = useState(null);
     const [studentSubprogram, setStudentSubprogram] = useState(null);
@@ -30,8 +33,13 @@ export default function MyCoursesPage() {
     const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false);
     const [levelUpDescription, setLevelUpDescription] = useState("");
 
-    const { data: eligibility } = useCheckLevelUpEligibilityQuery(undefined);
-    const { data: certificates = [] } = useGetCertificatesQuery(undefined);
+    const [extrasReady, setExtrasReady] = useState(false);
+
+    const { data: eligibility, refetch: refetchLevelUpEligibility } = useCheckLevelUpEligibilityQuery(undefined, { skip: !extrasReady });
+    const { data: unitEligibility, refetch: refetchUnitEligibility } = useCheckUnitEligibilityQuery(undefined, { skip: !extrasReady });
+    const [completeCurrentUnit, { isLoading: isCompletingUnit }] = useCompleteCurrentUnitMutation();
+    const { data: globalTemplate } = useGetGlobalCertificateQuery(undefined, { skip: !extrasReady });
+    const hasCertificateTemplate = Boolean(globalTemplate?.template_url);
     const [createRequest] = useCreateLevelUpRequestMutation();
     const { showToast } = useToast();
 
@@ -43,12 +51,10 @@ export default function MyCoursesPage() {
     );
 
     // Fetch all classes (for detail lookup)
-    const { data: allClasses = [] } = useGetClassesQuery(); // Added useGetClassesQuery
+    const { data: allClasses = [] } = useGetClassesQuery(undefined, { skip: !extrasReady });
 
-    // Fetch programs
     const { data: programs = [] } = useGetProgramsQuery();
 
-    // Fetch all subprograms
     const { data: allSubprograms = [] } = useGetSubprogramsQuery();
 
     // Fetch subprograms for the student's program
@@ -58,18 +64,18 @@ export default function MyCoursesPage() {
     );
 
     // Fetch ALL courses to filter manually (since we want "every level's" classes assigned)
-    const { data: allCourses = [], isLoading: allCoursesLoading } = useGetCoursesQuery(undefined);
+    const { data: allCourses = [] } = useGetCoursesQuery(undefined, { skip: !extrasReady });
 
-    // Fetch student attendance to find past classes
-    const { data: attendanceData, isLoading: attendanceLoading } = useGetStudentAttendanceQuery( // Added useGetStudentAttendanceQuery
+    const { data: attendanceData } = useGetStudentAttendanceQuery(
         user?.id,
-        { skip: !user?.id }
+        { skip: !extrasReady || !user?.id }
     );
 
     // Helper to identify if it's a general/multi-level program layout
-    const isGeneralProgram = studentProgram?.program_name?.toLowerCase().includes("general") ||
+    const isGeneralProgram =
+        studentProgram?.program_name?.toLowerCase().includes("general") ||
         studentProgram?.title?.toLowerCase().includes("general") ||
-        subprogramsData.length >= 8;
+        subprogramsData.length >= 4;
 
     useEffect(() => {
         if (classData) {
@@ -144,10 +150,13 @@ export default function MyCoursesPage() {
     }, [allClasses, allSubprograms, studentProgram]);
 
     useEffect(() => {
-        if (!userLoading && !classLoading && !subprogramsLoading && !allCoursesLoading && !attendanceLoading) {
-            setLoading(false);
-        }
-    }, [userLoading, classLoading, subprogramsLoading, allCoursesLoading, attendanceLoading]);
+        if (userLoading) return;
+        if (user?.class_id && classLoading) return;
+        if (!studentProgram && (programs.length === 0 || allSubprograms.length === 0)) return;
+        setLoading(false);
+        const timer = window.setTimeout(() => setExtrasReady(true), 50);
+        return () => window.clearTimeout(timer);
+    }, [userLoading, classLoading, user?.class_id, studentProgram, programs.length, allSubprograms.length]);
 
     const handleDownloadCertificate = async (type, id, name) => {
         try {
@@ -179,14 +188,25 @@ export default function MyCoursesPage() {
         }
     };
 
-    // Handle subprogram click - Scrolls to the main classes section
-    const handleSubprogramClick = (subprogram, isLocked) => {
-        if (isLocked) return;
+    const handleSubprogramClick = (subprogram, progress) => {
+        if (!isLevelClickable(progress)) return;
 
         setSelectedSubprogramId(subprogram.id);
-        const section = document.getElementById('my-classes-section');
+        const section = document.getElementById("my-classes-section");
         if (section) {
             section.scrollIntoView({ behavior: "smooth" });
+        }
+    };
+
+    const handleCompleteUnit = async () => {
+        try {
+            const result = await completeCurrentUnit().unwrap();
+            showToast(result.message || "Unit completed successfully!", "success");
+            await refetchUser();
+            refetchUnitEligibility();
+            refetchLevelUpEligibility();
+        } catch (error) {
+            showToast(error?.data?.error || "Could not complete unit.", "error");
         }
     };
 
@@ -273,7 +293,20 @@ export default function MyCoursesPage() {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
+                        {unitEligibility?.canComplete ? (
+                            <button
+                                onClick={handleCompleteUnit}
+                                disabled={isCompletingUnit}
+                                className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-bold rounded-2xl transition-all whitespace-nowrap shadow-xl"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {isCompletingUnit ? "Processing..." : unitEligibility.actionLabel || "Complete Unit"}
+                            </button>
+                        ) : null}
+
                         {eligibility?.isEligible ? (
                             <button
                                 onClick={() => setIsLevelUpModalOpen(true)}
@@ -310,7 +343,7 @@ export default function MyCoursesPage() {
                             </a>
                         )}
 
-                        {certificates.some(c => c.target_id === studentProgram?.id && c.target_type === 'program') && (
+                        {hasCertificateTemplate && (
                             <button
                                 onClick={() => handleDownloadCertificate('program', studentProgram.id, studentProgram.title || studentProgram.program_name)}
                                 className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-green-600 text-white text-sm font-bold rounded-2xl transition-all shadow-xl hover:bg-green-700 active:scale-95"
@@ -326,135 +359,58 @@ export default function MyCoursesPage() {
 
                 <div className="flex flex-col gap-10">
                     {isGeneralProgram ? (
-                        <>
-                            {/* === GENERAL PROGRAM LAYOUT (PILLARS) === */}
-
-                            {/* Top Section: Levels (Left) & Image (Right) - 50/50 split */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start w-full transition-all">
-
-                                {/* Left Column - Subprograms (Graduating Pillars) */}
-                                <div className="flex flex-col w-full h-[400px]">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <h2 className={`text-xl font-normal ${isDark ? "text-white" : "text-gray-900"}`}>
-                                            Program Levels
-                                        </h2>
-                                        <span className={`text-[10px] font-normal px-2 py-0.5 rounded-full ${isDark ? "bg-gray-700 text-gray-400" : "bg-gray-100 text-gray-500"}`}>
-                                            {subprogramsData.length} Levels
-                                        </span>
-                                    </div>
-
-                                    {subprogramsLoading ? (
-                                        <p className="text-gray-500">Loading levels...</p>
-                                    ) : (
-                                        <div className="flex flex-row gap-2 items-end px-0 w-full h-[360px] overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar">
-                                            {(() => {
-                                                const activeIndex = subprogramsData.findIndex(s =>
-                                                    (studentClass && Number(s.id) == Number(studentClass.subprogram_id)) ||
-                                                    (!studentClass && user && Number(s.id) == Number(user.chosen_subprogram))
-                                                );
-
-                                                const shortCodes = ["A1", "A2", "A2+", "B1", "B1+", "B2", "C1", "C2"];
-
-                                                return subprogramsData.map((subprogram, index) => {
-                                                    const isActive = Number(subprogram.id) == Number(selectedSubprogramId);
-                                                    const isEnrolled = studentClass
-                                                        ? Number(subprogram.id) == Number(studentClass.subprogram_id)
-                                                        : user && Number(subprogram.id) == Number(user.chosen_subprogram);
-                                                    const isPast = index < activeIndex;
-                                                    const isLocked = !isEnrolled && !isPast;
-
-                                                    return (
-                                                        <div
-                                                            key={subprogram.id}
-                                                            onClick={() => handleSubprogramClick(subprogram, isLocked)}
-                                                            className={`group flex flex-col items-center flex-shrink-0 w-16 h-full justify-end ${isLocked ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}`}
-                                                        >
-                                                            <div className={`mb-2 text-[10px] font-bold ${isActive ? "text-green-600" : "text-gray-400"}`}>
-                                                                {shortCodes[index] || `L${index + 1}`}
-                                                            </div>
-
-                                                            {/* Uniform Height Pillar */}
-                                                            <div
-                                                                className={`
-                              w-[85%] rounded-xl transition-all duration-300 relative h-full
-                              flex flex-col justify-between items-center py-4
-                              ${isActive
-                                                                        ? "bg-green-600 shadow-lg shadow-green-600/20 z-10 scale-[1.03]"
-                                                                        : isDark ? "bg-gray-800 border border-gray-700 opacity-60 hover:opacity-100 hover:scale-[1.01]" : "bg-gray-200 border border-gray-300 opacity-60 hover:opacity-100 hover:scale-[1.01]"
-                                                                    }
-                            `}
-                                                            >
-                                                                <div className="flex justify-center w-full">
-                                                                    {isEnrolled ? (
-                                                                        <div className="w-6 h-6 rounded-full bg-white text-green-600 flex items-center justify-center shadow-md">
-                                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
-                                                                            </svg>
-                                                                        </div>
-                                                                    ) : isPast ? (
-                                                                        <div className="w-5 h-5 rounded-full bg-green-600/20 text-green-600 flex items-center justify-center">
-                                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
-                                                                            </svg>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div className={`w-5 h-5 flex items-center justify-center ${isDark ? "text-gray-600" : "text-gray-400"}`}>
-                                                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                                            </svg>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-
-                                                                <div className="flex-1 flex items-center justify-center overflow-hidden text-center px-1">
-                                                                    <span className={`text-[9px] font-normal uppercase tracking-widest -rotate-90 whitespace-nowrap ${isActive ? "text-white" : "text-gray-500 opacity-40"}`}>
-                                                                        {subprogram.subprogram_name}
-                                                                    </span>
-                                                                </div>
-
-                                                                <div className={`w-8 h-1 rounded-full ${isActive ? "bg-white/40" : "bg-gray-400/20"}`}></div>
-
-                                                                {/* Download Button for Completed Pillar */}
-                                                                {isPast && certificates.some(c => c.target_id === subprogram.id && c.target_type === 'subprogram') && (
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleDownloadCertificate('subprogram', subprogram.id, subprogram.subprogram_name);
-                                                                        }}
-                                                                        className="absolute -bottom-10 left-1/2 -translate-x-1/2 p-2 bg-green-500 text-white rounded-full shadow-lg hover:scale-110 transition-all z-20"
-                                                                        title="Download Certificate"
-                                                                    >
-                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                                        </svg>
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                });
-                                            })()}
-                                        </div>
-                                    )}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-stretch w-full transition-all">
+                            {/* Left Column - Program Levels */}
+                            <div className="flex flex-col w-full min-w-0 h-[430px]">
+                                <div className="flex justify-between items-center mb-1">
+                                    <h2 className={`text-xl font-normal ${isDark ? "text-white" : "text-gray-900"}`}>
+                                        Program Levels
+                                    </h2>
+                                    <span className={`text-[10px] font-normal px-2 py-0.5 rounded-full ${isDark ? "bg-gray-700 text-gray-400" : "bg-gray-100 text-gray-500"}`}>
+                                        {subprogramsData.length} Levels
+                                    </span>
                                 </div>
 
-                                {/* Right Column - Image (50% Width, 400px Height) */}
-                                <div className="flex flex-col w-full h-[400px]">
-                                    <div className={`relative w-full h-full rounded-3xl overflow-hidden border-2 ${isDark ? "border-gray-800" : "border-gray-100 shadow-sm"}`}>
-                                        <Image
-                                            src="/images/My courses.jpg"
-                                            alt="My Courses"
-                                            fill
-                                            className="object-cover opacity-90"
-                                            priority
-                                            unoptimized
+                                {unitEligibility?.showAB && (
+                                    <p className={`text-xs mb-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                                        Current unit: <span className="font-semibold text-[#010080]">Unit {unitEligibility.currentUnit}</span>
+                                        {unitEligibility.unitACompleted ? " · A done" : ""}
+                                        {unitEligibility.unitBCompleted ? " · B done" : ""}
+                                    </p>
+                                )}
+
+                                {subprogramsLoading ? (
+                                    <p className="text-gray-500">Loading levels...</p>
+                                ) : (
+                                    <div className="flex-1 min-h-0 w-full">
+                                        <SubprogramCurriculumMap
+                                            subprograms={subprogramsData}
+                                            user={user}
+                                            studentClass={studentClass}
+                                            showCertificateButton={hasCertificateTemplate}
+                                            onSelect={handleSubprogramClick}
+                                            onDownloadCertificate={(subprogram) =>
+                                                handleDownloadCertificate("subprogram", subprogram.id, subprogram.subprogram_name)
+                                            }
                                         />
                                     </div>
-                                </div>
-
+                                )}
                             </div>
 
-                        </>
+                            {/* Right Column - Image (50% width) */}
+                            <div className="flex flex-col w-full min-w-0 h-[430px]">
+                                <div className={`relative w-full h-full rounded-3xl overflow-hidden border-2 ${isDark ? "border-gray-800" : "border-gray-100 shadow-sm"}`}>
+                                    <Image
+                                        src="/images/My courses.jpg"
+                                        alt="My Courses"
+                                        fill
+                                        className="object-cover opacity-90"
+                                        priority
+                                        unoptimized
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     ) : (
                         /* === OTHER PROGRAMS LAYOUT (PREMIUM CARD DESIGN) === */
                         <div className="flex flex-col gap-8">
@@ -644,7 +600,7 @@ export default function MyCoursesPage() {
                                                     )}
 
                                                     {/* Certificate Download Button for Subprogram */}
-                                                    {!isLocked && progress === 100 && certificates.some(c => c.target_id === subprogram.id && c.target_type === 'subprogram') && (
+                                                    {!isLocked && progress === 100 && hasCertificateTemplate && (
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();

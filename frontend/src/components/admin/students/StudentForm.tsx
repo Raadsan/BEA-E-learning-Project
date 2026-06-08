@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 
-import { Country } from "country-state-city";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import CountrySelect from '@/components/CountrySelect';
+import { useCitiesForCountry, useCountryIsoCode } from "@/utils/countryData";
 import { API_BASE_URL, API_URL } from "@/constants";
 
 export default function StudentForm({
@@ -17,9 +17,9 @@ export default function StudentForm({
     handleSubmit,
     isDark,
     programs,
-    cities,
+    cities: citiesProp,
     showParentInfo,
-    parentCities,
+    parentCities: parentCitiesProp,
     viewingPayments,
     isCreating,
     isUpdating,
@@ -30,6 +30,12 @@ export default function StudentForm({
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isUploadingFile, setIsUploadingFile] = useState(false);
+    const residencyCities = useCitiesForCountry(formData.residency_country);
+    const parentCitiesLoaded = useCitiesForCountry(formData.parent_res_county);
+    const residencyPhoneCountry = useCountryIsoCode(formData.residency_country);
+    const parentPhoneCountry = useCountryIsoCode(formData.parent_res_county);
+    const cities = citiesProp?.length ? citiesProp : residencyCities;
+    const parentCities = parentCitiesProp?.length ? parentCitiesProp : parentCitiesLoaded;
 
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
@@ -324,13 +330,7 @@ export default function StudentForm({
                                         Phone Number
                                     </label>
                                     <PhoneInput
-                                        country={(() => {
-                                            if (formData.residency_country) {
-                                                const c = Country.getAllCountries().find(c => c.name === formData.residency_country);
-                                                return c ? c.isoCode.toLowerCase() : 'us';
-                                            }
-                                            return 'us';
-                                        })()}
+                                        country={residencyPhoneCountry}
                                         enableSearch={true}
                                         value={formData.phone}
                                         onChange={phone => setFormData(prev => ({ ...prev, phone }))}
@@ -868,13 +868,7 @@ export default function StudentForm({
                                             Parent Phone Number
                                         </label>
                                         <PhoneInput
-                                            country={(() => {
-                                                if (formData.parent_res_county) {
-                                                    const c = Country.getAllCountries().find(c => c.name === formData.parent_res_county);
-                                                    return c ? c.isoCode.toLowerCase() : 'us';
-                                                }
-                                                return 'us';
-                                            })()}
+                                            country={parentPhoneCountry}
                                             enableSearch={true}
                                             value={formData.parent_phone}
                                             onChange={phone => setFormData(prev => ({ ...prev, parent_phone: phone }))}

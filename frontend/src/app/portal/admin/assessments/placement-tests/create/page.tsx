@@ -11,6 +11,15 @@ import {
 import { useToast } from "@/components/Toast";
 import { v4 as uuidv4 } from "uuid";
 import { useDarkMode } from "@/context/ThemeContext";
+import PassageSubQuestionsEditor from "@/components/admin/assessments/PassageSubQuestionsEditor";
+import {
+  ensureQuestionNumbers,
+  formatQuestionLabel,
+  renumberQuestionsByPart,
+  sortByQuestionNumber,
+} from "@/utils/testQuestions";
+
+const PLACEMENT_MAX_PART = 4;
 
 
 export default function CreatePlacementTestPage() {
@@ -77,7 +86,7 @@ export default function CreatePlacementTestPage() {
       const parsedQuestions = typeof existingTest.questions === 'string'
         ? JSON.parse(existingTest.questions)
         : existingTest.questions;
-      setQuestions(parsedQuestions || []);
+      setQuestions(ensureQuestionNumbers(parsedQuestions || [], PLACEMENT_MAX_PART));
     }
   }, [existingTest]);
 
@@ -113,14 +122,16 @@ export default function CreatePlacementTestPage() {
       q = { ...currentEssay, part: currentStep };
     }
 
+    const nextQuestions =
+      editingIndex !== null
+        ? questions.map((item, idx) => (idx === editingIndex ? q : item))
+        : [...questions, q];
+
+    setQuestions(renumberQuestionsByPart(nextQuestions, PLACEMENT_MAX_PART));
     if (editingIndex !== null) {
-      const updated = [...questions];
-      updated[editingIndex] = q;
-      setQuestions(updated);
       setEditingIndex(null);
       showToast("Question updated", "success");
     } else {
-      setQuestions([...questions, q]);
       showToast("Question added", "success");
     }
 
@@ -132,9 +143,22 @@ export default function CreatePlacementTestPage() {
 
   const handleEdit = (idx) => {
     const q = questions[idx];
-    if (q.type === "mcq") setCurrentMCQ(q);
-    else if (q.type === "passage") setCurrentPassage(q);
-    else setCurrentEssay(q);
+    if (q.type === "mcq") {
+      setCurrentMCQ({
+        ...q,
+        options: Array.isArray(q.options) ? [...q.options] : ["", ""],
+      });
+    } else if (q.type === "passage") {
+      setCurrentPassage({
+        ...q,
+        subQuestions: Array.isArray(q.subQuestions)
+          ? q.subQuestions.map((sq) => ({
+              ...sq,
+              options: Array.isArray(sq.options) ? [...sq.options] : ["", ""],
+            }))
+          : [],
+      });
+    } else setCurrentEssay({ ...q });
     setEditingIndex(idx);
   };
 
@@ -152,10 +176,19 @@ export default function CreatePlacementTestPage() {
   };
 
   const handleSaveDraft = async () => {
-    if (!testData.title) return showToast("Title is required to save draft", "error");
+    const draftTitle =
+      testData.title?.trim() || `Placement Test Draft ${new Date().toLocaleDateString()}`;
+    if (!testData.title?.trim()) {
+      setTestData((prev) => ({ ...prev, title: draftTitle }));
+    }
 
     try {
-      const payload = { ...testData, questions, status: 'draft' };
+      const payload = {
+        ...testData,
+        title: draftTitle,
+        questions: renumberQuestionsByPart(questions, PLACEMENT_MAX_PART),
+        status: "draft",
+      };
       if (testId) {
         await updateTest({ id: testId, ...payload }).unwrap();
         showToast("Draft updated successfully", "success");
@@ -175,7 +208,11 @@ export default function CreatePlacementTestPage() {
     if (questions.filter(q => q.part === 4).length === 0) return showToast("Please add at least one question for Part 4", "error");
 
     try {
-      const payload = { ...testData, questions, status: 'active' };
+      const payload = {
+        ...testData,
+        questions: renumberQuestionsByPart(questions, PLACEMENT_MAX_PART),
+        status: "active",
+      };
       if (testId) {
         await updateTest({ id: testId, ...payload }).unwrap();
       } else {
@@ -331,6 +368,19 @@ export default function CreatePlacementTestPage() {
                 {/* MCQ Form (Steps 1 and 4) */}
                 {steps[currentStep - 1].type === 'mcq' && (
                   <div className="space-y-5">
+                    <div className="flex justify-end items-center gap-1.5">
+                      <label className="text-xs font-semibold text-gray-500 whitespace-nowrap">
+                        Marks for this question
+                      </label>
+                      <input
+                        type="number"
+                        value={currentMCQ.points}
+                        onChange={e => setCurrentMCQ({ ...currentMCQ, points: parseInt(e.target.value) || 0 })}
+                        className="w-14 h-8 text-sm text-center border border-gray-300 rounded-lg px-2 focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none transition-colors"
+                        min="1"
+                      />
+                    </div>
+
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Question Text</label>
                       <textarea
@@ -339,17 +389,6 @@ export default function CreatePlacementTestPage() {
                         className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-colors"
                         rows={2}
                         placeholder="Type your question here..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Marks for this question</label>
-                      <input
-                        type="number"
-                        value={currentMCQ.points}
-                        onChange={e => setCurrentMCQ({ ...currentMCQ, points: parseInt(e.target.value) || 0 })}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none transition-colors"
-                        min="1"
                       />
                     </div>
 
@@ -428,113 +467,12 @@ export default function CreatePlacementTestPage() {
                       />
                     </div>
 
-                    <div className="bg-blue-50/30 p-4 rounded-lg border border-blue-100">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-sm font-semibold text-gray-700">MCQ Sub-questions</span>
-                        <button
-                          onClick={() => {
-                            const sub = { id: uuidv4(), questionText: "", options: ["", ""], correctOption: 0, points: 2 };
-                            setCurrentPassage({ ...currentPassage, subQuestions: [...currentPassage.subQuestions, sub] });
-                          }}
-                          className="bg-[#010080] text-white px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider shadow-sm hover:opacity-90 transition-all active:scale-95"
-                        >
-                          Add MCQ Question
-                        </button>
-                      </div>
-                      {currentPassage.subQuestions.map((sq, i) => (
-                        <div key={i} className="p-4 rounded-lg bg-white border border-blue-100 space-y-3 mb-3 shadow-sm">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-semibold text-[#010080] uppercase">Question {i + 1}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400">Marks</span>
-                              <input
-                                type="number"
-                                value={sq.points}
-                                onChange={e => {
-                                  const next = [...currentPassage.subQuestions];
-                                  next[i].points = parseInt(e.target.value) || 0;
-                                  setCurrentPassage({ ...currentPassage, subQuestions: next });
-                                }}
-                                className="w-10 text-xs font-medium text-center border-b border-blue-200 bg-transparent outline-none"
-                              />
-                            </div>
-                          </div>
-                          <input
-                            value={sq.questionText}
-                            onChange={e => {
-                              const next = [...currentPassage.subQuestions];
-                              next[i].questionText = e.target.value;
-                              setCurrentPassage({ ...currentPassage, subQuestions: next });
-                            }}
-                            className="w-full text-sm font-medium outline-none border-b border-gray-100 py-1"
-                            placeholder="Type sub-question here..."
-                          />
-                          <div className="space-y-2">
-                            {sq.options.map((o, oi) => (
-                              <div key={oi} className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  checked={sq.correctOption === oi}
-                                  onChange={() => {
-                                    const next = [...currentPassage.subQuestions];
-                                    next[i] = { ...next[i], correctOption: oi };
-                                    setCurrentPassage({ ...currentPassage, subQuestions: next });
-                                  }}
-                                  className="accent-[#010080]"
-                                />
-                                <input
-                                  value={o}
-                                  onChange={e => {
-                                    const next = [...currentPassage.subQuestions];
-                                    const updatedOptions = [...next[i].options];
-                                    updatedOptions[oi] = e.target.value;
-                                    next[i] = { ...next[i], options: updatedOptions };
-                                    setCurrentPassage({ ...currentPassage, subQuestions: next });
-                                  }}
-                                  className="flex-1 text-xs border-b border-gray-50 outline-none py-1 font-normal"
-                                  placeholder={`Option ${oi + 1}`}
-                                />
-                                {sq.options.length > 2 && (
-                                  <button
-                                    onClick={() => {
-                                      const next = [...currentPassage.subQuestions];
-                                      const updatedOptions = next[i].options.filter((_, idx) => idx !== oi);
-                                      next[i] = { ...next[i], options: updatedOptions, correctOption: next[i].correctOption >= updatedOptions.length ? 0 : next[i].correctOption };
-                                      setCurrentPassage({ ...currentPassage, subQuestions: next });
-                                    }}
-                                    className="text-red-300 hover:text-red-500 font-medium text-xs"
-                                  >
-                                    ✕
-                                  </button>
-                                )}
-                              </div>
-                            ))}
-                            <button
-                              onClick={() => {
-                                const next = [...currentPassage.subQuestions];
-                                const updatedOptions = [...next[i].options, ""];
-                                next[i] = { ...next[i], options: updatedOptions };
-                                setCurrentPassage({ ...currentPassage, subQuestions: next });
-                              }}
-                              className="text-xs text-[#010080] font-semibold"
-                            >
-                              + ADD OPTION
-                            </button>
-                          </div>
-                          <div className="flex justify-end pt-1 border-t border-gray-50">
-                            <button
-                              onClick={() => {
-                                const next = currentPassage.subQuestions.filter((_, idx) => idx !== i);
-                                setCurrentPassage({ ...currentPassage, subQuestions: next });
-                              }}
-                              className="text-xs text-red-400 font-medium hover:text-red-600"
-                            >
-                              Remove Question
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <PassageSubQuestionsEditor
+                      subQuestions={currentPassage.subQuestions}
+                      onChange={(subQuestions) =>
+                        setCurrentPassage({ ...currentPassage, subQuestions })
+                      }
+                    />
 
                     <button
                       onClick={addToTestList}
@@ -663,7 +601,9 @@ export default function CreatePlacementTestPage() {
                 <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 space-y-4 mb-6">
 
                   {[1, 2, 3, 4].map(partNum => {
-                    const partQuestions = questions.filter(q => q.part === partNum);
+                    const partQuestions = sortByQuestionNumber(
+                      questions.filter((q) => q.part === partNum)
+                    );
                     const isActivePart = currentStep === partNum;
 
                     return (
@@ -696,11 +636,7 @@ export default function CreatePlacementTestPage() {
                                   className={`p-3 rounded-xl border cursor-pointer transition-all ${editingIndex === originalIndex ? 'bg-[#010080]/5 border-[#010080] shadow-sm' : 'bg-gray-50/50 border-gray-100 hover:bg-white hover:border-blue-200'}`}
                                 >
                                   <p className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-tight mb-2">
-                                    {q.type === 'passage'
-                                      ? (q.passageText || q.passage || q.questionText || "Passage Content")
-                                      : q.type === 'mcq'
-                                        ? (q.questionText || q.question || "MCQ Question")
-                                        : (q.title || q.questionText || q.question || "Essay Prompt")}
+                                    {formatQuestionLabel(q, idx + 1)}
                                   </p>
                                   <div className="flex justify-between items-center">
                                     <span className="text-[8px] font-bold text-gray-300 uppercase tracking-tighter">{q.type}</span>

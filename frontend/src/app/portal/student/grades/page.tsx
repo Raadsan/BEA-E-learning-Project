@@ -7,6 +7,7 @@ import { useGetMyClassesQuery } from "@/lib/api/studentApi";
 import { useToast } from "@/components/Toast";
 import DataTable from "@/components/DataTable";
 import { API_URL } from "@/constants";
+import { getAssignmentWindowStatus } from "@/utils/assignmentTime";
 
 export default function GradesPage() {
   const { isDark } = useDarkMode();
@@ -23,21 +24,54 @@ export default function GradesPage() {
     return myClasses?.reduce((acc, cls) => {
       if (cls.subprogram_name && !acc.find(l => l.subprogram_name === cls.subprogram_name)) {
         acc.push({
-          subprogram_id: cls.subprogram_id, // Use actual subprogram_id from class data
+          subprogram_id: cls.subprogram_id,
           subprogram_name: cls.subprogram_name,
-          program_name: cls.program_name
+          program_name: cls.program_name,
+          class_id: cls.class_id,
         });
       }
       return acc;
     }, []) || [];
   }, [myClasses]);
 
-  // Auto-select current level
+  const selectedLevel = useMemo(
+    () => levels.find((l) => l.subprogram_name === selectedSubprogramName),
+    [levels, selectedSubprogramName]
+  );
+
+  const belongsToStudentClass = (assignment, level, studentClassId) => {
+    if (!assignment) return false;
+
+    const classId = level?.class_id || studentClassId;
+    if (classId) {
+      if (assignment.class_id) {
+        return Number(assignment.class_id) === Number(classId);
+      }
+      // Program-wide exams for this subprogram still belong to the class level
+      if (level?.subprogram_id && assignment.subprogram_id) {
+        return Number(assignment.subprogram_id) === Number(level.subprogram_id);
+      }
+      return false;
+    }
+
+    if (level?.subprogram_id && assignment.subprogram_id) {
+      return Number(assignment.subprogram_id) === Number(level.subprogram_id);
+    }
+
+    return assignment.subprogram_name === level?.subprogram_name;
+  };
+
+  // Auto-select current level (prefer student's enrolled subprogram)
   useEffect(() => {
     if (levels.length > 0 && !selectedSubprogramName) {
-      setSelectedSubprogramName(levels[0].subprogram_name);
+      const currentLevel = levels.find(
+        (level) =>
+          level.subprogram_name === user?.chosen_subprogram_name ||
+          String(level.subprogram_id) === String(user?.chosen_subprogram)
+      );
+      setSelectedSubprogramName(currentLevel?.subprogram_name || levels[0].subprogram_name);
     }
-  }, [levels.length, selectedSubprogramName]);
+  }, [levels, user?.chosen_subprogram, user?.chosen_subprogram_name, selectedSubprogramName]);
 
   // Fetch assignments for selected level using subprogram_id
   useEffect(() => {
@@ -49,15 +83,24 @@ export default function GradesPage() {
         const token = localStorage.getItem("token");
 
         // Get the subprogram_id for the selected level
-        const selectedLevel = levels.find(l => l.subprogram_name === selectedSubprogramName);
+        const level = levels.find(l => l.subprogram_name === selectedSubprogramName);
 
-        if (!selectedLevel) {
+        if (!level) {
           setIsLoading(false);
           return;
         }
 
-        // Fetch assignments using subprogram_id parameter
-        const url = `${API_URL}/assignments?subprogram_id=${selectedLevel.subprogram_id}`;
+        const params = new URLSearchParams();
+        if (level.subprogram_id) {
+          params.set("subprogram_id", String(level.subprogram_id));
+        }
+        if (level.class_id) {
+          params.set("class_id", String(level.class_id));
+        } else if (user?.class_id) {
+          params.set("class_id", String(user.class_id));
+        }
+
+        const url = `${API_URL}/assignments?${params.toString()}`;
 
         const response = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -84,18 +127,79 @@ export default function GradesPage() {
     };
 
     fetchAssignments();
-  }, [selectedSubprogramName]);
+  }, [selectedSubprogramName, levels, user?.class_id]);
 
-  // Show ALL assignments returned by the API
-  const grades = (assignments || []).filter(a => a).map((a, index) => ({
-    ...a,
-    _id: a.id ? `${a.type || 'item'}-${a.id}` : `grade-${index}`
-  }));
+  // All assignments for the student's class / selected level only
+  const grades = useMemo(() => {
+    return (assignments || [])
+      .filter((a) => belongsToStudentClass(a, selectedLevel, user?.class_id))
+      .map((a, index) => ({
+        ...a,
+        _id: a.id ? `${a.type || "item"}-${a.id}` : `grade-${index}`,
+      }));
+  }, [assignments, selectedLevel, user?.class_id]);
 
-  // Calculate metrics
-  const totalEarnedMarks = grades.reduce((sum, g) => sum + (Number(g?.score) || 0), 0);
-  const totalPossibleMarks = grades.reduce((sum, g) => sum + (Number(g?.total_points) || 0), 0);
-  const successRate = totalPossibleMarks > 0 ? Math.round((totalEarnedMarks / totalPossibleMarks) * 100) : 0;
+  const gradeMetrics = useMemo(() => {
+    const now = new Date();
+
+    // Real grade: count every assigned task except those not yet open (upcoming).
+    // Earned marks come only from graded submissions; unsubmitted tasks count as 0.
+    const accountable = grades.filter((g) => {
+      const windowStatus = getAssignmentWindowStatus(g, now);
+      return windowStatus !== "pending";
+    });
+
+    const gradedRecords = accountable.filter((g) => g.submission_status === "graded");
+
+    const totalEarnedMarks = accountable.reduce((sum, g) => {
+      if (g.submission_status === "graded") {
+        return sum + (Number(g.score) || 0);
+      }
+      return sum;
+    }, 0);
+
+    const totalPossibleMarks = accountable.reduce(
+      (sum, g) => sum + (Number(g.total_points) || 100),
+      0
+    );
+
+    const successRate =
+      totalPossibleMarks > 0
+        ? Math.round((totalEarnedMarks / totalPossibleMarks) * 100)
+        : 0;
+
+    return {
+      accountable,
+      gradedRecords,
+      totalEarnedMarks,
+      totalPossibleMarks,
+      successRate,
+      gradedCount: gradedRecords.length,
+      accountableCount: accountable.length,
+    };
+  }, [grades]);
+
+  const {
+    gradedRecords,
+    totalEarnedMarks,
+    totalPossibleMarks,
+    successRate,
+    gradedCount,
+    accountableCount,
+  } = gradeMetrics;
+
+  const getSubmissionLabel = (row) => {
+    if (row.submission_status === "graded") {
+      return `${row.score} / ${row.total_points || 100}`;
+    }
+    if (row.submission_status === "submitted") {
+      return "pending";
+    }
+    if (getAssignmentWindowStatus(row, new Date()) === "complete") {
+      return "missed";
+    }
+    return "open";
+  };
 
   const handleDownloadFeedbackFile = async (fileUrl) => {
     if (!fileUrl) return;
@@ -137,21 +241,33 @@ export default function GradesPage() {
       label: 'Grade / Marks',
       render: (_, row) => {
         if (!row) return null;
+        const label = getSubmissionLabel(row);
+
+        if (label !== "pending" && label !== "missed" && label !== "open") {
+          return <div className={isDark ? "text-white" : "text-gray-900"}>{label}</div>;
+        }
+
+        const badgeClass =
+          label === "pending"
+            ? "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30"
+            : label === "missed"
+              ? "text-red-600 bg-red-100 dark:bg-red-900/30"
+              : "text-gray-500 bg-gray-100 dark:bg-gray-800";
+
+        const badgeText =
+          label === "pending"
+            ? "Pending Grading"
+            : label === "missed"
+              ? "Not Submitted (Closed)"
+              : "Not Submitted";
+
         return (
-          <div className={isDark ? 'text-white' : 'text-gray-900'}>
-            {row.submission_status === 'graded'
-              ? `${row.score} / ${row.total_points || 100}`
-              : <span className={`text-xs uppercase font-bold px-2 py-1 rounded ${!row.submission_status ? 'text-gray-500 bg-gray-100 dark:bg-gray-800' :
-                row.submission_status === 'submitted' ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30' :
-                  'text-blue-500 bg-blue-100 dark:bg-blue-900/30'
-                }`}>
-                {!row.submission_status ? 'Not Submitted' :
-                  row.submission_status === 'submitted' ? 'Pending Grading' :
-                    row.submission_status}
-              </span>
-            }
+          <div className={isDark ? "text-white" : "text-gray-900"}>
+            <span className={`text-xs uppercase font-bold px-2 py-1 rounded ${badgeClass}`}>
+              {badgeText}
+            </span>
           </div>
-        )
+        );
       }
     },
     {
@@ -237,18 +353,22 @@ export default function GradesPage() {
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Marks</span>
             <div className="flex items-baseline gap-1.5">
               <span className={`text-2xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                {grades.length > 0 ? totalEarnedMarks : "000"}
+                {accountableCount > 0 ? totalEarnedMarks : "0"}
               </span>
-              <span className="text-sm font-medium opacity-40">/ {totalPossibleMarks || "000"}</span>
+              <span className="text-sm font-medium opacity-40">/ {accountableCount > 0 ? totalPossibleMarks : "0"}</span>
             </div>
+            <p className="text-[10px] text-gray-400 mt-1">
+              {gradedCount} graded of {accountableCount} due
+            </p>
           </div>
 
           {/* Success Rate */}
           <div className={`col-span-1 p-4 rounded-xl border flex flex-col justify-center ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Success Rate</span>
             <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {grades.length > 0 ? `${successRate}%` : "0%"}
+              {accountableCount > 0 ? `${successRate}%` : "0%"}
             </div>
+            <p className="text-[10px] text-gray-400 mt-1">Based on submitted &amp; closed tasks</p>
           </div>
         </div>
 
@@ -260,9 +380,10 @@ export default function GradesPage() {
           <DataTable
             columns={columns}
             data={grades}
+            getRowId={(row) => row._id || `${row.type || "item"}-${row.id}`}
             isLoading={isLoading}
             showAddButton={false}
-            emptyMessage="No assignments found for this level yet."
+            emptyMessage="No assignments found for your class yet."
           />
         </div>
       </div >

@@ -18,7 +18,7 @@ export default function ProgressReportPage() {
 
   // 1. Get current user to identify the student
   const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
-  const studentId = user?.id;
+  const studentId = user?.student_id || user?.id;
 
   // 2. Get available periods for this student
   const { data: availablePeriods = [], isLoading: periodsLoading } = useGetStudentAvailablePeriodsQuery(studentId, {
@@ -57,11 +57,13 @@ export default function ProgressReportPage() {
     attendance_rate: reportData.progressSummary.attendanceRate,
     overall_gpa: reportData.examResult || 0,
     completion_rate: reportData.progressSummary.completionRate || 0,
+    cefr_level: reportData.progressSummary.cefrLevel,
     total_assignments: 0
   } : {
     attendance_rate: 0,
     overall_gpa: 0,
-    completion_rate: 0
+    completion_rate: 0,
+    cefr_level: null
   };
 
   const formattedPerformance = reportData?.skillPerformance ? Object.entries(reportData.skillPerformance).map(([key, val]) => ({

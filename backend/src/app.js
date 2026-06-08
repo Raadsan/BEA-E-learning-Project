@@ -35,6 +35,7 @@ import materialRoutes from './routes/materialRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import freezingRequestRoutes from './routes/freezingRequestRoutes.js';
 import levelUpRequestRoutes from './routes/levelUpRequestRoutes.js';
+import unitProgressRoutes from './routes/unitProgressRoutes.js';
 import sessionRequestRoutes from './routes/sessionRequestRoutes.js';
 import studentReviewRoutes from './routes/studentReviewRoutes.js';
 import teacherReviewRoutes from './routes/teacherReviewRoutes.js';
@@ -85,6 +86,7 @@ app.use('/api/testimonials', testimonialsRoutes);
 app.use('/api/materials', materialRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/level-up-requests', levelUpRequestRoutes);
+app.use('/api/unit-progress', unitProgressRoutes);
 app.use('/api/session-requests', sessionRequestRoutes);
 app.use('/api/student-reviews', studentReviewRoutes);
 app.use('/api/teacher-reviews', teacherReviewRoutes);
@@ -115,6 +117,13 @@ app.get('/', (req, res) => {
 });
 
 // Static uploads serve
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.toLowerCase().endsWith('.pdf')) {
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'inline');
+        }
+    }
+}));
 
 export default app;

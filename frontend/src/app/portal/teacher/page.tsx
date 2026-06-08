@@ -1,196 +1,203 @@
 "use client";
 
 import UpcomingEventsList from "@/components/UpcomingEventsList";
+import WeeklyAttendanceChart from "@/components/WeeklyAttendanceChart";
+import PerformanceClustersChart from "@/components/PerformanceClustersChart";
+import AssignmentCompletionChart from "@/components/AssignmentCompletionChart";
 import React, { useState } from 'react';
-import { useGetTeacherDashboardStatsQuery, useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
-import { useGetAssignmentStatsQuery, useGetPerformanceClustersQuery } from "@/lib/api/assignmentApi";
-import { useDarkMode } from "@/context/ThemeContext";
+import { useGetTeacherDashboardStatsQuery, useGetTeacherClassesQuery, useGetTeacherProgramsQuery } from "@/lib/api/teacherApi";
+import { useGetStudentsQuery } from "@/lib/api/studentApi";
 import DataTable from "@/components/DataTable";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  AreaChart,
-  Area
-} from 'recharts';
-
-const BRAND_COLORS = ['#010080', '#f40606', '#4b47a4', '#f95150', '#18178a', '#8b5cf6'];
 
 export default function TeacherDashboard() {
-  const { isDark } = useDarkMode();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  // Fetch Teacher Stats with month/year
   const { data: stats, isLoading: statsLoading } = useGetTeacherDashboardStatsQuery({ month: selectedMonth, year: selectedYear });
   const { data: classes = [], isLoading: classesLoading } = useGetTeacherClassesQuery();
-  const { data: performanceData } = useGetPerformanceClustersQuery({});
-  const { data: submissionStats } = useGetAssignmentStatsQuery({});
+  const { data: programs = [] } = useGetTeacherProgramsQuery();
+  const { data: studentsData } = useGetStudentsQuery();
+  const students = Array.isArray(studentsData) ? studentsData : (studentsData?.students || []);
 
-  // Extract counts from stats API
-  const totalClasses = stats?.totalClasses || 0;
-  const totalStudents = stats?.activeStudents || 0;
-  const activeStudents = stats?.activeStudents || 0;
-  const totalPrograms = stats?.totalPrograms || 0;
-
-  // Weekly Attendance data for Recharts
-  const weeklyAttendance = stats?.weeklyAttendance || [];
-
-  const courseCompletion = stats?.classAttendanceData?.map(row => ({
-    name: row.className,
-    value: row.attended + row.absent > 0 ? Math.round((row.attended / (row.attended + row.absent)) * 100) : 0,
-  })) || [{ name: "No Data", value: 100 }];
-
-  const classColumns = [
-    { key: "id", label: "Class ID" },
-    { key: "class_name", label: "Class Name" },
-    { key: "subprogram_name", label: "Subprogram" },
-    { key: "created_at", label: "Start Date", render: (val) => val ? new Date(val).toLocaleDateString() : 'N/A' },
-    {
-      key: "status", label: "Status", render: (val) => (
-        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${val === 'active' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
-          {val || 'Active'}
-        </span>
-      )
-    }
-  ];
+  const totalClasses = stats?.totalClasses ?? 0;
+  const totalStudents = stats?.totalStudents ?? 0;
+  const activeStudents = stats?.activeStudents ?? 0;
+  const totalPrograms = stats?.totalPrograms ?? 0;
 
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
 
+  const classColumns = [
+    {
+      key: "id", label: "Class ID",
+      render: (val) => <span className="font-mono text-xs text-gray-400">#{val}</span>
+    },
+    {
+      key: "class_name", label: "Class Name",
+      render: (val) => <span className="font-semibold text-gray-800">{val || 'N/A'}</span>
+    },
+    {
+      key: "subprogram_name", label: "Subprogram",
+      render: (val, row) => {
+        const name = row?.subprograms?.subprogram_name || val || 'N/A';
+        return <span className="text-[#010080] font-medium text-sm">{name}</span>;
+      }
+    },
+    {
+      key: "students_count", label: "Students",
+      render: (val, row) => {
+        const count = row?._count?.students ?? '-';
+        return (
+          <span className="inline-flex items-center gap-1 font-bold text-gray-800">
+            <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            {count}
+          </span>
+        );
+      }
+    },
+    {
+      key: "created_at", label: "Created",
+      render: (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'
+    },
+    {
+      key: "status", label: "Status",
+      render: () => (
+        <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-700">
+          Active
+        </span>
+      )
+    }
+  ];
+
   return (
-    <main className="flex-1 overflow-y-auto p-4 lg:p-8 py-6 bg-gray-50 dark:bg-gray-900 transition-colors">
-      <div className="w-full">
+    <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors">
+      <div className="w-full px-8 py-6">
+
+        {/* Header */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-              Welcome back Teacher, {statsLoading ? 'Teacher' : (stats?.fullName || 'Teacher')}! 👋
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+              Welcome back, {statsLoading ? '...' : (stats?.fullName || 'Teacher')}! 👋
             </h1>
-            <p className="text-sm text-gray-500 mt-1">Real-time class analytics and performance tracking</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Real-time class analytics and performance tracking</p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1.5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                className="bg-transparent text-sm font-bold border-none focus:ring-0 outline-none px-2 text-[#010080] dark:text-white cursor-pointer"
-              >
-                {months.map((m, i) => (
-                  <option key={m} value={i + 1} className="dark:bg-gray-800">{m}</option>
-                ))}
-              </select>
-              <div className="w-px h-4 bg-gray-200 dark:bg-gray-600"></div>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="bg-transparent text-sm font-bold border-none focus:ring-0 outline-none px-2 text-[#010080] dark:text-white cursor-pointer"
-              >
-                {[2024, 2025, 2026].map(y => (
-                  <option key={y} value={y} className="dark:bg-gray-800">{y}</option>
-                ))}
-              </select>
-            </div>
+          {/* Month / Year filter */}
+          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1.5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+              className="bg-transparent text-sm font-bold border-none focus:ring-0 outline-none px-2 text-[#010080] dark:text-white cursor-pointer"
+            >
+              {months.map((m, i) => (
+                <option key={m} value={i + 1} className="dark:bg-gray-800">{m}</option>
+              ))}
+            </select>
+            <div className="w-px h-4 bg-gray-200 dark:bg-gray-600" />
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              className="bg-transparent text-sm font-bold border-none focus:ring-0 outline-none px-2 text-[#010080] dark:text-white cursor-pointer"
+            >
+              {[2024, 2025, 2026].map(y => (
+                <option key={y} value={y} className="dark:bg-gray-800">{y}</option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Total Students Card */}
-          <div className={`rounded-xl shadow-md p-6 transition-all hover:shadow-lg hover:-translate-y-1 duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border border-gray-100'}`}>
+        {/* Summary Cards — same design as admin */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+          {/* Total Students */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-transform hover:-translate-y-1 duration-300">
             <div className="flex items-start justify-between">
               <div>
-                <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Students</p>
-                <h3 className={`text-5xl font-black mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">Total Students</p>
+                <h3 className="text-5xl font-black text-gray-900 dark:text-white mb-2">
                   {statsLoading ? '...' : totalStudents}
                 </h3>
-                <div className="flex items-center gap-1 text-sm font-medium text-blue-600">
+                <div className="flex items-center gap-1 text-sm font-medium text-green-600">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
-                  <span>{stats?.studentGrowth || 0}% growth</span>
+                  <span>Enrolled</span>
                 </div>
               </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <svg className="w-8 h-8 text-[#010080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
               </div>
             </div>
           </div>
 
-          {/* Active Students Card */}
-          <div className={`rounded-xl shadow-md p-6 transition-all hover:shadow-lg hover:-translate-y-1 duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border border-gray-100'}`}>
+          {/* Active Students */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-transform hover:-translate-y-1 duration-300">
             <div className="flex items-start justify-between">
               <div>
-                <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Active Students</p>
-                <h3 className={`text-5xl font-black mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">Active Students</p>
+                <h3 className="text-5xl font-black text-gray-900 dark:text-white mb-2">
                   {statsLoading ? '...' : activeStudents}
                 </h3>
-                <div className="flex items-center gap-1 text-sm font-medium text-blue-700">
+                <div className="flex items-center gap-1 text-sm font-medium text-green-600">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>Enrolled</span>
+                  <span>In class</span>
                 </div>
               </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <svg className="w-8 h-8 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
           </div>
 
-          {/* Total Programs Card */}
-          <div className={`rounded-xl shadow-md p-6 transition-all hover:shadow-lg hover:-translate-y-1 duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border border-gray-100'}`}>
+          {/* Total Programs */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-transform hover:-translate-y-1 duration-300">
             <div className="flex items-start justify-between">
               <div>
-                <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Programs</p>
-                <h3 className={`text-5xl font-black mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">Total Programs</p>
+                <h3 className="text-5xl font-black text-gray-900 dark:text-white mb-2">
                   {statsLoading ? '...' : totalPrograms}
                 </h3>
-                <div className="flex items-center gap-1 text-sm font-medium text-indigo-600">
+                <div className="flex items-center gap-1 text-sm font-medium text-purple-600">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                   <span>Assigned</span>
                 </div>
               </div>
-              <div className="p-3 bg-indigo-50 rounded-lg">
-                <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
             </div>
           </div>
 
-          {/* Total Classes Card */}
-          <div className={`rounded-xl shadow-md p-6 transition-all hover:shadow-lg hover:-translate-y-1 duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border border-gray-100'}`}>
+          {/* Total Classes */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-transform hover:-translate-y-1 duration-300">
             <div className="flex items-start justify-between">
               <div>
-                <p className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Classes</p>
-                <h3 className={`text-5xl font-black mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">Total Classes</p>
+                <h3 className="text-5xl font-black text-gray-900 dark:text-white mb-2">
                   {statsLoading ? '...' : totalClasses}
                 </h3>
-                <div className="flex items-center gap-1 text-sm font-medium text-[#f40606]">
+                <div className="flex items-center gap-1 text-sm font-medium text-red-500">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                   <span>Schedule</span>
                 </div>
               </div>
-              <div className="p-3 bg-red-50 rounded-lg">
-                <svg className="w-8 h-8 text-[#f40606]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
@@ -198,102 +205,19 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Weekly Attendance Bar Chart */}
-          <div className={`rounded-xl shadow-md p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-            <h2 className={`text-lg font-bold mb-6 ${isDark ? 'text-white' : 'text-[#010080]'}`}>Weekly Attendance Trends</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={weeklyAttendance}>
-                  <defs>
-                    <linearGradient id="colorThis" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#010080" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#010080" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="colorLast" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f40606" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#f40606" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f3f4f6'} vertical={false} />
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: isDark ? '#9ca3af' : '#64748b', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: isDark ? '#9ca3af' : '#64748b', fontSize: 12 }} />
-                  <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                  <Legend iconType="circle" />
-                  <Area type="monotone" dataKey="thisWeek" name="Second Half" stroke="#010080" fillOpacity={1} fill="url(#colorThis)" />
-                  <Area type="monotone" dataKey="lastWeek" name="First Half" stroke="#f40606" fillOpacity={1} fill="url(#colorLast)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Performance Competition Pie Chart */}
-          <div className={`rounded-xl shadow-md p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-            <h2 className={`text-lg font-bold mb-6 ${isDark ? 'text-white' : 'text-[#f40606]'}`}>Class Performance Competition</h2>
-            <div className="h-64 flex items-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={courseCompletion}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {courseCompletion.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={BRAND_COLORS[index % BRAND_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+        {/* Charts Row 1 — Attendance + Performance Clusters (same components as admin) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <WeeklyAttendanceChart programs={programs} classes={classes} />
+          <PerformanceClustersChart programs={programs} classes={classes} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Performance Clusters Bar Chart */}
-          <div className={`rounded-xl shadow-md p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-            <h2 className={`text-lg font-bold mb-6 ${isDark ? 'text-white' : 'text-[#4b47a4]'}`}>Student Performance Clusters</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f3f4f6'} vertical={false} />
-                  <XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fill: isDark ? '#9ca3af' : '#64748b', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: isDark ? '#9ca3af' : '#64748b', fontSize: 12 }} />
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
-                  <Bar dataKey="count" name="Students" fill="#4b47a4" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Submission Activity Area Chart */}
-          <div className={`rounded-xl shadow-md p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-            <h2 className={`text-lg font-bold mb-6 ${isDark ? 'text-white' : 'text-[#f95150]'}`}>Submission Activity</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={submissionStats}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f3f4f6'} vertical={false} />
-                  <XAxis
-                    dataKey="type"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: isDark ? '#9ca3af' : '#64748b', fontSize: 11 }}
-                    tickFormatter={(val) => val.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                  />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: isDark ? '#9ca3af' : '#64748b', fontSize: 12 }} />
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
-                  <Bar dataKey="completionRate" name="Completion Rate (%)" fill="#f95150" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+        {/* Charts Row 2 — Assignment Completion + Upcoming Events */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <AssignmentCompletionChart programs={programs} classes={classes} students={students} />
+          <UpcomingEventsList />
         </div>
 
+        {/* My Classes Table */}
         <div className="mb-8">
           <DataTable
             title="My Assigned Classes"
@@ -305,11 +229,7 @@ export default function TeacherDashboard() {
           />
         </div>
 
-        <div className="mt-8">
-          <UpcomingEventsList />
-        </div>
       </div>
-    </main>
+    </div>
   );
 }
-

@@ -377,7 +377,7 @@ export default function RegistrationPage() {
             {/* Visual Stepper (visual only) */}
             <div className="flex items-center justify-center gap-8 mb-6">
               {[1, 2, 3, 4].map((id) => {
-                const labels = ['Personalize Info', 'Program', 'Payment', 'Review'];
+                const labels = ['Personal Info', 'Program', 'Payment', 'Review'];
                 const done = currentStep > id;
                 const active = currentStep === id;
                 return (
@@ -392,7 +392,7 @@ export default function RegistrationPage() {
             {/* Section Title (dynamic) */}
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-800">
-                {currentStep === 1 ? 'Personalize Info' : currentStep === 2 ? 'Program Selection' : currentStep === 3 ? 'Payment' : 'Review'}
+                {currentStep === 1 ? 'Personal Info' : currentStep === 2 ? 'Program Selection' : currentStep === 3 ? 'Payment' : 'Review'}
               </h3>
               <p className="text-sm text-gray-500">
                 {currentStep === 1 && 'Please provide your personal details to begin the admission process.'}
@@ -435,37 +435,12 @@ export default function RegistrationPage() {
                     />
                   </div>
 
-                  {/* DOB & POB - Row 5 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Date of Birth <span className="text-red-500">*</span></label>
-                      <input
-                        type="date"
-                        name="date_of_birth"
-                        value={formData.date_of_birth}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Place of Birth <span className="text-red-500">*</span></label>
-                      <input
-                        type="text"
-                        name="place_of_birth"
-                        value={formData.place_of_birth}
-                        onChange={handleChange}
-                        placeholder="City/Country"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
-                        required
-                      />
-                    </div>
-                  </div>
+                  
 
                   {/* Country & City - Row 3 */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Residency Country</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
                       <CountrySelect
                         value={formData.residency_country}
                         onChange={(val) => setFormData(prev => ({ ...prev, residency_country: val, residency_city: "" }))}
@@ -474,7 +449,7 @@ export default function RegistrationPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Residency City</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
                       <div className="relative">
                         <select
                           name="residency_city"
@@ -541,7 +516,33 @@ export default function RegistrationPage() {
                       </div>
                     </div>
                   </div>
-
+                  
+                  {/* DOB & POB - Row 5 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Date of Birth <span className="text-red-500">*</span></label>
+                      <input
+                        type="date"
+                        name="date_of_birth"
+                        value={formData.date_of_birth}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Place of Birth <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        name="place_of_birth"
+                        value={formData.place_of_birth}
+                        onChange={handleChange}
+                        placeholder="City/Country"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
+                        required
+                      />
+                    </div>
+                  </div>
 
 
                   {/* Age (Half Width now, maybe combine with password or keep separate row?) - Row 5 */}

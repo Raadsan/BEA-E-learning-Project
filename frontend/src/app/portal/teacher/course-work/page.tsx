@@ -9,25 +9,32 @@ import {
     useGetAssignmentSubmissionsQuery,
     useGradeSubmissionMutation,
     useCreateAssignmentMutation,
-    useUpdateAssignmentMutation
+    useUpdateAssignmentMutation,
+    useDeleteAssignmentMutation
 } from "@/lib/api/assignmentApi";
-import { useGetClassesQuery } from "@/lib/api/classApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
-import { API_BASE_URL } from "@/constants";
+import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
+import { resolveSubmissionFileUrl } from "@/constants";
 
 import DataTable from "@/components/DataTable";
+import { useAssignmentNow } from "@/hooks/useAssignmentNow";
+import { getAssignmentWindowStatus, getWindowStatusLabel } from "@/utils/assignmentTime";
 
 export default function CourseWorkPage() {
     const router = useRouter();
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
+    const now = useAssignmentNow();
 
     // State
+    const [selectedSubprogramId, setSelectedSubprogramId] = useState("");
     const [selectedClassId, setSelectedClassId] = useState("");
     const [selectedAssignmentId, setSelectedAssignmentId] = useState("");
     const [gradingSubmission, setGradingSubmission] = useState(null);
     const [gradeData, setGradeData] = useState({ score: "", feedback: "" });
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
     const [createFormData, setCreateFormData] = useState({
         title: "",
         description: "",
@@ -44,36 +51,34 @@ export default function CourseWorkPage() {
 
     // Queries
     const { data: currentUser } = useGetCurrentUserQuery();
+    const { data: classes, isLoading: isLoadingClasses } = useGetTeacherClassesQuery();
 
-    // getClasses for teachers is automatically filtered by the backend
-    const { data: classes, isLoading: isLoadingClasses } = useGetClassesQuery();
-
-    // Derived Data for Cascading Dropdowns
-    const uniquePrograms = useMemo(() => {
+    // Derived Data for Cascading Dropdowns (subprogram → class)
+    const teacherSubprograms = useMemo(() => {
         if (!classes) return [];
-        const programs = new Map();
-        classes.forEach(c => {
-            if (c.program_id && c.program_name) {
-                programs.set(c.program_id, { id: c.program_id, title: c.program_name });
-            }
-        });
-        return Array.from(programs.values());
-    }, [classes]);
-
-    const filteredSubprograms = useMemo(() => {
-        if (!classes || !createFormData.program_id) return [];
         const subprograms = new Map();
         classes.forEach(c => {
-            if (c.program_id == createFormData.program_id && c.subprogram_id && c.subprogram_name) {
-                subprograms.set(c.subprogram_id, { id: c.subprogram_id, title: c.subprogram_name });
-            }
+            const spId = c.subprogram_id || c.subprograms?.id;
+            const spName = c.subprogram_name || c.subprograms?.subprogram_name;
+            if (spId && spName) subprograms.set(spId, { id: spId, title: spName });
         });
         return Array.from(subprograms.values());
-    }, [classes, createFormData.program_id]);
+    }, [classes]);
 
-    const filteredClasses = useMemo(() => {
+    const filterClasses = useMemo(() => {
+        if (!classes || !selectedSubprogramId) return [];
+        return classes.filter(c => {
+            const spId = c.subprogram_id || c.subprograms?.id;
+            return spId == selectedSubprogramId;
+        });
+    }, [classes, selectedSubprogramId]);
+
+    const formClasses = useMemo(() => {
         if (!classes || !createFormData.subprogram_id) return [];
-        return classes.filter(c => c.subprogram_id == createFormData.subprogram_id);
+        return classes.filter(c => {
+            const spId = c.subprogram_id || c.subprograms?.id;
+            return spId == createFormData.subprogram_id;
+        });
     }, [classes, createFormData.subprogram_id]);
 
     const { data: assignments, isLoading: isLoadingAssignments } = useGetAssignmentsQuery({
@@ -93,16 +98,35 @@ export default function CourseWorkPage() {
     const [gradeSubmission] = useGradeSubmissionMutation();
     const [createAssignment, { isLoading: isCreating }] = useCreateAssignmentMutation();
     const [updateAssignment, { isLoading: isUpdating }] = useUpdateAssignmentMutation();
+    const [deleteAssignment] = useDeleteAssignmentMutation();
+
+    const handleDeleteClick = (id) => {
+        setDeleteId(id);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await deleteAssignment({ id: deleteId, type: 'course_work' }).unwrap();
+            showToast("Course work deleted successfully", "success");
+            setShowDeleteModal(false);
+            setDeleteId(null);
+            if (selectedAssignmentId === String(deleteId)) setSelectedAssignmentId("");
+        } catch (err) {
+            showToast("Failed to delete course work", "error");
+        }
+    };
 
     const handleCreateDataChange = (e) => {
         const { name, value } = e.target;
         setCreateFormData(prev => ({ ...prev, [name]: value }));
 
-        // Reset dependent fields
-        if (name === 'program_id') {
-            setCreateFormData(prev => ({ ...prev, program_id: value, subprogram_id: "", class_id: "" }));
-        } else if (name === 'subprogram_id') {
-            setCreateFormData(prev => ({ ...prev, subprogram_id: value, class_id: "" }));
+        if (name === 'subprogram_id') {
+            setCreateFormData(prev => ({ ...prev, subprogram_id: value, class_id: "", program_id: "" }));
+        } else if (name === 'class_id') {
+            const classInfo = classes?.find(c => c.id == value);
+            const programId = classInfo?.program_id || classInfo?.subprograms?.program_id || "";
+            setCreateFormData(prev => ({ ...prev, class_id: value, program_id: String(programId) }));
         }
     };
 
@@ -128,12 +152,14 @@ export default function CourseWorkPage() {
 
         // Find class to get program info (for cascading dropdowns to work properly)
         const classInfo = classes?.find(c => c.id == selectedAssignment.class_id);
+        const spId = classInfo?.subprogram_id || classInfo?.subprograms?.id || selectedAssignment.subprogram_id || "";
+        const programId = classInfo?.program_id || classInfo?.subprograms?.program_id || "";
 
         setCreateFormData({
             title: selectedAssignment.title,
             description: selectedAssignment.description || "",
-            program_id: classInfo?.program_id || "",
-            subprogram_id: classInfo?.subprogram_id || "",
+            program_id: programId ? String(programId) : "",
+            subprogram_id: spId ? String(spId) : "",
             class_id: selectedAssignment.class_id,
             unit: selectedAssignment.unit || "",
             start_date: selectedAssignment.start_date ? new Date(selectedAssignment.start_date).toISOString().slice(0, 16) : "",
@@ -148,22 +174,32 @@ export default function CourseWorkPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!createFormData.subprogram_id) {
+            showToast("Please select a subprogram", "error");
+            return;
+        }
         if (!createFormData.class_id) {
             showToast("Please select a class", "error");
             return;
         }
 
+        const classInfo = classes?.find(c => c.id == createFormData.class_id);
+        const payload = {
+            ...createFormData,
+            program_id: classInfo?.program_id || classInfo?.subprograms?.program_id || createFormData.program_id,
+        };
+
         try {
             if (isEditing) {
                 await updateAssignment({
                     id: selectedAssignment.id,
-                    ...createFormData,
+                    ...payload,
                     type: 'course_work'
                 }).unwrap();
                 showToast("Course work updated successfully!", "success");
             } else {
                 await createAssignment({
-                    ...createFormData,
+                    ...payload,
                     type: 'course_work',
                     questions: [],
                     submission_format: 'text'
@@ -295,17 +331,26 @@ export default function CourseWorkPage() {
                     <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white uppercase tracking-tight">Course Work Manager</h1>
-                            <p className="text-sm text-gray-500 mt-1">Select a class and coursework item to review student submissions.</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Select a class and coursework item to review student submissions.</p>
                         </div>
                         <div className="flex gap-2">
                             {selectedAssignmentId && (
-                                <button
-                                    onClick={handleEditClick}
-                                    className="flex items-center gap-2 px-6 py-2.5 bg-yellow-500 text-white rounded-lg font-semibold hover:bg-yellow-600 shadow-lg shadow-yellow-500/10 transition-all active:scale-95 w-fit"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                    Edit Course Work
-                                </button>
+                                <>
+                                    <button
+                                        onClick={handleEditClick}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-yellow-500 text-white rounded-lg font-semibold hover:bg-yellow-600 shadow-lg shadow-yellow-500/10 transition-all active:scale-95 w-fit"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteClick(selectedAssignmentId)}
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-rose-600 text-white rounded-lg font-semibold hover:bg-rose-700 shadow-lg shadow-rose-500/10 transition-all active:scale-95 w-fit"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        Delete
+                                    </button>
+                                </>
                             )}
                             <button
                                 onClick={handleOpenCreate}
@@ -321,25 +366,44 @@ export default function CourseWorkPage() {
 
                     {/* Filter Section */}
                     <div className={`p-6 rounded-2xl border mb-8 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Select Class</label>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Select Subprogram</label>
+                                <select
+                                    value={selectedSubprogramId}
+                                    onChange={(e) => {
+                                        setSelectedSubprogramId(e.target.value);
+                                        setSelectedClassId("");
+                                        setSelectedAssignmentId("");
+                                    }}
+                                    disabled={isLoadingClasses}
+                                    className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500/20 outline-none transition-all ${isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                                >
+                                    <option value="">Select Subprogram</option>
+                                    {teacherSubprograms.map(sp => (
+                                        <option key={sp.id} value={sp.id}>{sp.title}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className={`block text-xs font-bold uppercase tracking-widest mb-2 ${!selectedSubprogramId ? 'text-gray-300' : 'text-gray-400'}`}>Select Class</label>
                                 <select
                                     value={selectedClassId}
                                     onChange={(e) => {
                                         setSelectedClassId(e.target.value);
-                                        setSelectedAssignmentId(""); // Reset assignment when class changes
+                                        setSelectedAssignmentId("");
                                     }}
-                                    className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500/20 outline-none transition-all ${isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                                    disabled={!selectedSubprogramId}
+                                    className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-blue-500/20 outline-none transition-all ${isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900 disabled:opacity-50'}`}
                                 >
-                                    <option value="">All Classes</option>
-                                    {classes?.map(cls => (
+                                    <option value="">Select Class</option>
+                                    {filterClasses.map(cls => (
                                         <option key={cls.id} value={cls.id}>{cls.class_name}</option>
                                     ))}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Select Course Work Item</label>
+                                <label className={`block text-xs font-bold uppercase tracking-widest mb-2 ${!selectedClassId ? 'text-gray-300' : 'text-gray-400'}`}>Select Course Work Item</label>
                                 <select
                                     value={selectedAssignmentId}
                                     onChange={(e) => setSelectedAssignmentId(e.target.value)}
@@ -348,7 +412,9 @@ export default function CourseWorkPage() {
                                 >
                                     <option value="">Select Course Work</option>
                                     {assignments?.map(asgn => (
-                                        <option key={asgn.id} value={asgn.id}>{asgn.title}</option>
+                                        <option key={asgn.id} value={asgn.id}>
+                                            {asgn.title} ({getWindowStatusLabel(getAssignmentWindowStatus(asgn, now))})
+                                        </option>
                                     ))}
                                 </select>
                             </div>
@@ -357,6 +423,12 @@ export default function CourseWorkPage() {
 
                     {/* Submissions Table */}
                     {selectedAssignmentId ? (
+                        getAssignmentWindowStatus(selectedAssignment, now) === "pending" ? (
+                            <div className={`p-16 rounded-2xl border-2 border-dashed text-center ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+                                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>This coursework is pending</p>
+                                <p className="text-gray-500 mt-2">Submissions will be available when the start time is reached.</p>
+                            </div>
+                        ) : (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <DataTable
                                 title={`Submissions: ${selectedAssignment?.title}`}
@@ -367,6 +439,7 @@ export default function CourseWorkPage() {
                                 emptyMessage="No submissions found for this coursework item."
                             />
                         </div>
+                        )
                     ) : (
                         <div className={`p-20 rounded-2xl border-2 border-dashed text-center flex flex-col items-center justify-center ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
                             <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${isDark ? 'bg-gray-700 text-gray-500' : 'bg-gray-50 text-gray-300'}`}>
@@ -375,7 +448,7 @@ export default function CourseWorkPage() {
                                 </svg>
                             </div>
                             <h3 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>View Submissions</h3>
-                            <p className="text-gray-500 max-w-xs mx-auto">Please select a class and a specific coursework item to view student work.</p>
+                            <p className="text-gray-500 max-w-xs mx-auto">Please select a subprogram, class, and coursework item to view student work.</p>
                         </div>
                     )}
                 </div>
@@ -400,43 +473,22 @@ export default function CourseWorkPage() {
                         <div className="flex-1 overflow-y-auto">
                             <form onSubmit={handleSubmit} className="p-6 space-y-6">
 
-                                {/* Program Selection */}
+                                {/* Subprogram & Class Selection */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1.5 opacity-80">Program</label>
-                                        <select
-                                            name="program_id"
-                                            value={createFormData.program_id}
-                                            onChange={handleCreateDataChange}
-                                            className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
-                                        >
-                                            <option value="">Select Program</option>
-                                            {uniquePrograms.map(p => (
-                                                <option key={p.id} value={p.id}>{p.title}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Subprogram Selection */}
                                     <div>
                                         <label className="block text-sm font-medium mb-1.5 opacity-80">Subprogram</label>
                                         <select
                                             name="subprogram_id"
                                             value={createFormData.subprogram_id}
                                             onChange={handleCreateDataChange}
-                                            disabled={!createFormData.program_id}
-                                            className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'} ${!createFormData.program_id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
                                         >
                                             <option value="">Select Subprogram</option>
-                                            {filteredSubprograms.map(sp => (
+                                            {teacherSubprograms.map(sp => (
                                                 <option key={sp.id} value={sp.id}>{sp.title}</option>
                                             ))}
                                         </select>
                                     </div>
-                                </div>
-
-                                {/* Class & Unit Selection */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium mb-1.5 opacity-80">Class</label>
                                         <select
@@ -447,13 +499,17 @@ export default function CourseWorkPage() {
                                             className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'} ${!createFormData.subprogram_id ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
                                             <option value="">Select Class</option>
-                                            {filteredClasses.map(c => (
+                                            {formClasses.map(c => (
                                                 <option key={c.id} value={c.id}>{c.class_name}</option>
                                             ))}
                                         </select>
                                     </div>
+                                </div>
 
-                                    <div>
+                                {/* Unit */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                    <div className="md:col-span-2">
                                         <label className="block text-sm font-medium mb-1.5 opacity-80">Unit</label>
                                         <input
                                             type="text"
@@ -597,10 +653,9 @@ export default function CourseWorkPage() {
                                 {gradingSubmission.file_url ? (
                                     <div className="flex flex-col gap-4">
                                         <a
-                                            href={`${API_BASE_URL}${gradingSubmission.file_url}`}
+                                            href={resolveSubmissionFileUrl(gradingSubmission.file_url) || "#"}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            download
                                             className="flex items-center gap-4 px-4 py-3 rounded-lg border bg-white dark:bg-gray-800 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors w-full group"
                                         >
                                             <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
@@ -673,6 +728,40 @@ export default function CourseWorkPage() {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
+                    <div className={`relative w-full max-w-sm rounded-2xl shadow-2xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                        <div className="flex flex-col items-center text-center gap-4">
+                            <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-900/20 flex items-center justify-center">
+                                <svg className="w-7 h-7 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 className={`text-lg font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Delete Course Work?</h3>
+                                <p className="text-sm text-gray-500">This will permanently delete this course work and all its student submissions. This action cannot be undone.</p>
+                            </div>
+                            <div className="flex gap-3 w-full mt-2">
+                                <button
+                                    onClick={() => setShowDeleteModal(false)}
+                                    className={`flex-1 py-2.5 rounded-xl border font-semibold transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold transition-all active:scale-95"
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

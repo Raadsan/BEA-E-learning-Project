@@ -11,6 +11,9 @@ import { useGetShiftsQuery } from "@/lib/api/shiftApi";
 import { useGetSessionRequestsQuery } from "@/lib/api/sessionRequestApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import StudentViewModal from "@/components/admin/students/StudentViewModal";
+import { API_URL } from "@/constants";
+
 
 const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
   const [timeLeft, setTimeLeft] = useState("");
@@ -78,6 +81,7 @@ export default function GeneralStudentsPage() {
   // Modal state for viewing student
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingStudent, setViewingStudent] = useState(null);
+  const [viewingPayments, setViewingPayments] = useState([]);
 
   // Modal state for editing student
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -256,15 +260,24 @@ export default function GeneralStudentsPage() {
   };
 
   // Handle opening view modal
-  const handleOpenViewModal = (student) => {
+  const handleOpenViewModal = async (student) => {
     setViewingStudent(student);
     setIsViewModalOpen(true);
+    try {
+      const searchId = student.original_id || student.student_id || student.id;
+      const res = await fetch(`${API_URL}/payments/student/${searchId}`);
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.success) setViewingPayments(json.payments || []);
+    } catch (err) {
+      console.error('Failed to fetch payments', err);
+    }
   };
 
   // Handle closing view modal
   const handleCloseViewModal = () => {
     setIsViewModalOpen(false);
     setViewingStudent(null);
+    setViewingPayments([]);
   };
 
   // Handle opening edit modal
@@ -1076,127 +1089,13 @@ export default function GeneralStudentsPage() {
       })()}
 
       {/* View Student Modal */}
-      {isViewModalOpen && viewingStudent && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            aria-hidden="true"
-            onClick={handleCloseViewModal}
-          />
-          <div className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-            <div className={`sticky top-0 z-10 px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                Student Details
-              </h3>
-              <button
-                onClick={handleCloseViewModal}
-                className={`p-1 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Student Info Header */}
-              <div className="flex items-center gap-4">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
-                  {viewingStudent.full_name?.charAt(0)?.toUpperCase() || 'S'}
-                </div>
-                <div>
-                  <h4 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.full_name}</h4>
-                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{viewingStudent.email}</p>
-                </div>
-              </div>
-
-              {/* Personal Information */}
-              <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                <h5 className={`text-sm font-semibold uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Personal Information</h5>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Student ID</p>
-                    <p className={`font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{viewingStudent.student_id || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Full Name</p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.full_name}</p>
-                  </div>
-                  <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Age</p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.age || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Sex</p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.sex || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Country</p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.residency_country || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>City</p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.residency_city || 'N/A'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Program Information */}
-              <div className={`p-4 rounded-lg border ${isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-100'}`}>
-                <h5 className={`text-sm font-semibold uppercase tracking-wide mb-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Program Information</h5>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Program</p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewingStudent.chosen_program || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Subprogram</p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{getSubprogramName(viewingStudent.chosen_subprogram)}</p>
-                  </div>
-                  <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Class</p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{getClassName(viewingStudent.class_id) || viewingStudent.class_name || 'Not assigned'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Registration Info */}
-              <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                <h5 className={`text-sm font-semibold uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Registration</h5>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Status</p>
-                    <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${viewingStudent.approval_status === 'approved'
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                      : viewingStudent.approval_status === 'inactive'
-                        ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                      }`}>
-                      {viewingStudent.approval_status === 'approved' ? 'Active' : viewingStudent.approval_status.charAt(0).toUpperCase() + viewingStudent.approval_status.slice(1)}
-                    </span>
-                  </div>
-                  <div>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Registration Date</p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {viewingStudent.created_at ? new Date(viewingStudent.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Close Button */}
-              <div className="flex justify-end">
-                <button
-                  onClick={handleCloseViewModal}
-                  className={`px-6 py-2.5 rounded-lg border font-semibold transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <StudentViewModal
+        isOpen={isViewModalOpen}
+        onClose={handleCloseViewModal}
+        viewingStudent={viewingStudent}
+        viewingPayments={viewingPayments}
+        isDark={isDark}
+      />
 
       {/* Edit Student Modal */}
       {isEditModalOpen && editingStudent && (() => {

@@ -1,8 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
-  // Improve stability and prevent crashes
   reactStrictMode: true,
+  experimental: {
+    optimizePackageImports: [
+      "country-state-city",
+      "recharts",
+      "react-select",
+      "@heroicons/react",
+      "date-fns",
+    ],
+  },
   images: {
     unoptimized: true,
     remotePatterns: [

@@ -15,6 +15,7 @@ export const courseApi = createApi({
     },
   }),
   tagTypes: ["Courses"],
+  keepUnusedDataFor: 600,
   endpoints: (builder) => ({
     getCourses: builder.query({
       query: () => "/",

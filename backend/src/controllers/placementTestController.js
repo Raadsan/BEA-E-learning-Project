@@ -30,39 +30,105 @@ export const getPlacementTestById = async (req, res) => {
     }
 };
 
+const scorePlacementAnswers = (questions, answers) => {
+    let score = 0;
+    let total_questions = 0;
+    let hasEssay = false;
+
+    const list = Array.isArray(questions) ? questions : [];
+
+    list.forEach((q) => {
+        if (q.type === "mcq" || q.type === "multiple_choice") {
+            total_questions++;
+            const correct = q.options?.[q.correctOption];
+            if (answers[q.id] === correct) score++;
+        } else if (q.type === "essay") {
+            hasEssay = true;
+        } else if (q.type === "passage" && Array.isArray(q.subQuestions)) {
+            q.subQuestions.forEach((sq) => {
+                if (sq.type === "essay") {
+                    hasEssay = true;
+                } else if (sq.options && sq.correctOption !== undefined) {
+                    total_questions++;
+                    const correct = sq.options[sq.correctOption];
+                    if (answers[sq.id] === correct) score++;
+                }
+            });
+        }
+    });
+
+    const percentage = total_questions > 0 ? (score / total_questions) * 100 : 0;
+    return { score, total_questions, percentage, hasEssay };
+};
+
 export const submitPlacementTest = async (req, res) => {
     try {
         const { test_id, student_id, answers } = req.body;
+
+        if (!test_id || !student_id || !answers) {
+            return res.status(400).json({ error: "test_id, student_id, and answers are required" });
+        }
+
         const test = await prisma.placement_tests.findUnique({ where: { id: parseInt(test_id) } });
         if (!test) return res.status(404).json({ error: "Test not found" });
 
-        const questions = typeof test.questions === 'string' ? JSON.parse(test.questions) : test.questions;
-        let score = 0;
-        let total_questions = 0;
-        let hasEssay = false;
-
-        questions.forEach(q => {
-            if (q.type === 'mcq') {
-                total_questions++;
-                if (answers[q.id] === q.options[q.correctOption]) score++;
-            } else if (q.type === 'essay') {
-                hasEssay = true;
-            }
+        const existing = await prisma.placement_test_results.findFirst({
+            where: { test_id: parseInt(test_id), student_id: String(student_id) },
         });
+        if (existing) {
+            return res.status(400).json({ error: "You have already submitted this placement test", result: existing });
+        }
 
-        const percentage = total_questions > 0 ? (score / total_questions) * 100 : 0;
+        const questions = typeof test.questions === "string" ? JSON.parse(test.questions) : test.questions;
+        const { score, total_questions, percentage, hasEssay } = scorePlacementAnswers(questions, answers);
+
         const result = await prisma.placement_test_results.create({
             data: {
                 test_id: parseInt(test_id),
-                student_id,
+                student_id: String(student_id),
                 score,
                 total_questions,
                 percentage,
-                answers: JSON.stringify(answers),
-                status: hasEssay ? 'pending' : 'completed'
-            }
+                answers,
+                status: hasEssay ? "pending_review" : "completed",
+            },
         });
         res.status(201).json(result);
+    } catch (err) {
+        console.error("❌ Submit placement test error:", err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const getStudentPlacementResults = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const results = await prisma.placement_test_results.findMany({
+            where: { student_id: studentId },
+            orderBy: { submitted_at: "desc" },
+        });
+        res.json(results);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const gradePlacementTest = async (req, res) => {
+    try {
+        const resultId = parseInt(req.params.resultId);
+        const { essay_marks, oral_review_marks, feedback_file, recommended_level, status } = req.body;
+
+        const updated = await prisma.placement_test_results.update({
+            where: { id: resultId },
+            data: {
+                essay_marks: essay_marks ? JSON.stringify(essay_marks) : undefined,
+                oral_review_marks: oral_review_marks !== undefined && oral_review_marks !== "" ? parseFloat(oral_review_marks) : undefined,
+                feedback_file: feedback_file || undefined,
+                recommended_level: recommended_level || undefined,
+                status: status || "completed",
+            },
+        });
+        res.json(updated);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

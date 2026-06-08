@@ -36,10 +36,17 @@ export default function TeacherAnnouncementsPage() {
     };
 
     return (
-        <div className={`min-h-screen ${isDark ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} transition-colors duration-200`}>
-            <div className="w-full px-8 py-6 pt-24">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold">My Announcements</h1>
+        <>
+            <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors min-h-screen">
+            <div className="w-full px-8 py-6">
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Announcements</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                            View important updates and announcements from the administration.
+                        </p>
+                    </div>
                 </div>
 
                 {isLoading ? (
@@ -106,6 +113,7 @@ export default function TeacherAnnouncementsPage() {
                     </div>
                 )}
             </div>
-        </div >
+        </div>
+        </>
     );
 }

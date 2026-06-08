@@ -23,6 +23,7 @@ import StudentApprovalModal from "@/components/admin/students/StudentApprovalMod
 import StudentViewModal from "@/components/admin/students/StudentViewModal";
 import StudentForm from "@/components/admin/students/StudentForm";
 import { Country, City } from "country-state-city";
+import { API_URL } from "@/constants";
 
 const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick, isExtended }) => {
   const [timeLeft, setTimeLeft] = useState(null);
@@ -110,10 +111,42 @@ export default function IELTSTOEFLStudentsPage() {
   const [selectedClassId, setSelectedClassId] = useState("");
   const [studentToDelete, setStudentToDelete] = useState(null);
 
+  const getStudentProgram = (student) => {
+    if (!student) return null;
+    const programName = student.chosen_program || student.exam_type;
+    if (!programName) return null;
+    return programs.find(
+      (p) => p.title === programName || p.title?.toLowerCase() === programName?.toLowerCase()
+    ) || null;
+  };
+
+  const getSubprogramsForStudentProgram = (student) => {
+    const program = getStudentProgram(student);
+    if (!program) return [];
+    return subprograms.filter((sp) => sp.program_id === program.id);
+  };
+
+  const getClassesForStudentProgram = (student) => {
+    const subprogramIds = getSubprogramsForStudentProgram(student).map((sp) => sp.id);
+    if (subprogramIds.length > 0) {
+      return classes.filter((cls) => subprogramIds.includes(cls.subprogram_id));
+    }
+
+    const programName = student?.chosen_program || student?.exam_type;
+    if (!programName) return [];
+
+    return classes.filter(
+      (cls) =>
+        cls.program_name === programName ||
+        cls.program_name?.toLowerCase() === programName?.toLowerCase()
+    );
+  };
+
   // View/Edit state
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [viewingPayments, setViewingPayments] = useState([]);
   const [editFormData, setEditFormData] = useState({
     first_name: "",
     last_name: "",
@@ -318,9 +351,17 @@ export default function IELTSTOEFLStudentsPage() {
     setIsEditModalOpen(true);
   };
 
-  const handleViewClick = (student) => {
+  const handleViewClick = async (student) => {
     setSelectedCandidate(student);
     setIsViewModalOpen(true);
+    try {
+      const searchId = student.original_id || student.student_id || student.id;
+      const res = await fetch(`${API_URL}/payments/student/${searchId}`);
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.success) setViewingPayments(json.payments || []);
+    } catch (err) {
+      console.error('Failed to fetch payments', err);
+    }
   };
 
   const handleBulkActions = async () => {
@@ -632,7 +673,8 @@ export default function IELTSTOEFLStudentsPage() {
           isApproving={isLoading}
           isRejecting={isLoading}
           isDark={isDark}
-          classes={classes.filter(c => c.program_name?.toLowerCase().includes('ielts') || c.program_name?.toLowerCase().includes('toefl'))}
+          classes={getClassesForStudentProgram(studentToApprove)}
+          subprograms={getSubprogramsForStudentProgram(studentToApprove)}
           selectedClassId={selectedClassId}
           setSelectedClassId={setSelectedClassId}
         />
@@ -666,9 +708,9 @@ export default function IELTSTOEFLStudentsPage() {
 
         <StudentViewModal
           isOpen={isViewModalOpen}
-          onClose={() => { setIsViewModalOpen(false); setSelectedCandidate(null); }}
+          onClose={() => { setIsViewModalOpen(false); setSelectedCandidate(null); setViewingPayments([]); }}
           viewingStudent={selectedCandidate ? { ...selectedCandidate, full_name: `${selectedCandidate.first_name} ${selectedCandidate.last_name}` } : null}
-          viewingPayments={undefined}
+          viewingPayments={viewingPayments}
           isDark={isDark}
         />
 

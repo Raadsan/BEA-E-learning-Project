@@ -17,6 +17,14 @@ export const UPLOADS_URL = `${API_BASE_URL}/uploads`;
  * Resolves a media URL to an absolute URL, handling relative paths
  * and fixing legacy development localhost URLs.
  */
+/** Build a browser-openable URL for a student submission file. */
+export const resolveSubmissionFileUrl = (fileUrl?: string | null) => {
+    if (!fileUrl) return null;
+    if (fileUrl.startsWith("http")) return fileUrl;
+    if (fileUrl.startsWith("/")) return `${API_BASE_URL}${fileUrl}`;
+    return `${UPLOADS_URL}/${fileUrl}`;
+};
+
 export const resolveMediaUrl = (url) => {
     if (!url) return null;
 

@@ -12,16 +12,25 @@ import {
     useUpdateAssignmentMutation,
     useDeleteAssignmentMutation
 } from "@/lib/api/assignmentApi";
-import { useGetClassesQuery } from "@/lib/api/classApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
-import { API_BASE_URL } from "@/constants";
+import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
+import { resolveSubmissionFileUrl } from "@/constants";
 
 import DataTable from "@/components/DataTable";
+import { useAssignmentNow } from "@/hooks/useAssignmentNow";
+import {
+    getAssignmentWindowStatus,
+    getWindowStatusLabel,
+    getWindowStatusBadgeClass,
+    canOpenAssignmentWindow,
+    formatAssignmentCountdown,
+} from "@/utils/assignmentTime";
 
 export default function WritingTasksPage() {
     const router = useRouter();
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
+    const now = useAssignmentNow();
 
     // State
     const [selectedClassId, setSelectedClassId] = useState("");
@@ -52,15 +61,17 @@ export default function WritingTasksPage() {
 
     // Queries
     const { data: currentUser } = useGetCurrentUserQuery();
-    const { data: classes, isLoading: isLoadingClasses } = useGetClassesQuery();
+    const { data: classes, isLoading: isLoadingClasses } = useGetTeacherClassesQuery();
 
     // Derived Data for Cascading Dropdowns
     const uniquePrograms = useMemo(() => {
         if (!classes) return [];
         const programs = new Map();
         classes.forEach(c => {
-            if (c.program_id && c.program_name) {
-                programs.set(c.program_id, { id: c.program_id, title: c.program_name });
+            const pId = c.program_id || c.subprograms?.program_id;
+            const pName = c.program_name || c.subprograms?.programs?.title;
+            if (pId && pName) {
+                programs.set(pId, { id: pId, title: pName });
             }
         });
         return Array.from(programs.values());
@@ -70,8 +81,11 @@ export default function WritingTasksPage() {
         if (!classes || !createFormData.program_id) return [];
         const subprograms = new Map();
         classes.forEach(c => {
-            if (c.program_id == createFormData.program_id && c.subprogram_id && c.subprogram_name) {
-                subprograms.set(c.subprogram_id, { id: c.subprogram_id, title: c.subprogram_name });
+            const spId = c.subprogram_id || c.subprograms?.id;
+            const spName = c.subprogram_name || c.subprograms?.subprogram_name;
+            const pId = c.program_id || c.subprograms?.program_id;
+            if (pId == createFormData.program_id && spId && spName) {
+                subprograms.set(spId, { id: spId, title: spName });
             }
         });
         return Array.from(subprograms.values());
@@ -79,7 +93,10 @@ export default function WritingTasksPage() {
 
     const filteredClasses = useMemo(() => {
         if (!classes || !createFormData.subprogram_id) return [];
-        return classes.filter(c => c.subprogram_id == createFormData.subprogram_id);
+        return classes.filter(c => {
+            const spId = c.subprogram_id || c.subprograms?.id;
+            return spId == createFormData.subprogram_id;
+        });
     }, [classes, createFormData.subprogram_id]);
 
     const { data: assignments, isLoading: isLoadingAssignments, refetch: refetchAssignments } = useGetAssignmentsQuery({
@@ -198,6 +215,11 @@ export default function WritingTasksPage() {
     };
 
     const handleViewSubmissions = (assignment) => {
+        const windowStatus = getAssignmentWindowStatus(assignment, now);
+        if (!canOpenAssignmentWindow(windowStatus)) {
+            showToast("This task is pending. Submissions open when the start time is reached.", "info");
+            return;
+        }
         setSelectedAssignmentId(assignment.id);
         setView("submissions");
     };
@@ -229,55 +251,64 @@ export default function WritingTasksPage() {
             setGradingSubmission(null);
             setView("submissions");
         } catch (err) {
-            showToast("Failed to grade submission", "error");
+            showToast(err?.data?.error || "Failed to grade submission", "error");
         }
     };
 
     const getSubmissionColumns = () => [
         {
-            header: "Student Name",
-            accessor: "student_name",
-            render: (value) => <span className="font-semibold text-gray-900 dark:text-white">{value}</span>
+            key: "student_name",
+            label: "Student Name",
+            render: (value) => (
+                <span className="font-semibold text-gray-900 dark:text-white">{value || "Unknown Student"}</span>
+            ),
         },
         {
-            header: "Status",
-            accessor: "status",
+            key: "status",
+            label: "Status",
             render: (value) => (
                 <span className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded-full border ${
-                    value === 'graded'
-                        ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800'
-                        : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-400 dark:border-yellow-800'
+                    value === "graded"
+                        ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800"
+                        : "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-400 dark:border-yellow-800"
                 }`}>
-                    {value || 'pending'}
+                    {value || "pending"}
                 </span>
-            )
+            ),
         },
         {
-            header: "Score",
-            accessor: "score",
-            render: (value, row) => (
-                <span className="font-semibold text-sm">
-                    {value !== null ? `${value} / ${selectedAssignment?.total_points}` : <span className="text-gray-400 font-normal italic">Ungraded</span>}
-                </span>
-            )
+            key: "score",
+            label: "Score",
+            render: (value) => {
+                const totalPoints = selectedAssignment?.total_points || 100;
+                return (
+                    <span className="font-semibold text-sm">
+                        {value !== null && value !== undefined ? (
+                            `${value} / ${totalPoints}`
+                        ) : (
+                            <span className="text-gray-400 font-normal italic">Ungraded</span>
+                        )}
+                    </span>
+                );
+            },
         },
         {
-            header: "Submission Date",
-            accessor: "submission_date",
-            render: (value) => <span>{value ? new Date(value).toLocaleString() : 'N/A'}</span>
+            key: "submission_date",
+            label: "Submission Date",
+            render: (value) => <span>{value ? new Date(value).toLocaleString() : "N/A"}</span>,
         },
         {
-            header: "Actions",
-            accessor: "id",
-            render: (value, row) => (
+            key: "id",
+            label: "Actions",
+            render: (_, row) => (
                 <button
                     onClick={() => handleGradeClick(row)}
                     className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg text-xs hover:bg-blue-700 transition-all active:scale-95 shadow-sm"
                 >
                     Grade Now
                 </button>
-            )
-        }
+            ),
+        },
     ];
 
     if (view === 'submissions') {
@@ -291,8 +322,8 @@ export default function WritingTasksPage() {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold">Submissions: {selectedAssignment?.title}</h1>
-                        <p className="text-xs text-gray-500 uppercase font-semibold tracking-wider mt-1">{selectedAssignment?.class_name}</p>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Submissions: {selectedAssignment?.title}</h1>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider mt-1">{selectedAssignment?.class_name}</p>
                     </div>
                 </div>
 
@@ -301,6 +332,7 @@ export default function WritingTasksPage() {
                     data={submissions || []}
                     isLoading={isLoadingSubmissions}
                     title="Student Submissions"
+                    searchKey="student_name"
                 />
             </div>
         );
@@ -317,8 +349,8 @@ export default function WritingTasksPage() {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold">Grade Student Submission</h1>
-                        <p className="text-sm opacity-60">{gradingSubmission?.student_name} — {selectedAssignment?.title}</p>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Grade Student Submission</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{gradingSubmission?.student_name} — {selectedAssignment?.title}</p>
                     </div>
                 </div>
 
@@ -330,7 +362,7 @@ export default function WritingTasksPage() {
                             {gradingSubmission.file_url ? (
                                 <div className="space-y-4">
                                     <a
-                                        href={`${API_BASE_URL}/files/download/${gradingSubmission.file_url}`}
+                                        href={resolveSubmissionFileUrl(gradingSubmission.file_url) || "#"}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-4 px-4 py-3 rounded-lg border bg-white dark:bg-gray-900 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors w-full group"
@@ -405,8 +437,8 @@ export default function WritingTasksPage() {
             {/* Header section */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold uppercase tracking-tight">Writing Tasks</h1>
-                    <p className="text-sm opacity-60 mt-1">Manage and grade descriptive and essays tasks assigned to students.</p>
+                    <h1 className="text-3xl font-extrabold uppercase tracking-tight text-gray-900 dark:text-white">Writing Tasks</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage and grade descriptive and essays tasks assigned to students.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <select
@@ -439,24 +471,24 @@ export default function WritingTasksPage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {assignments?.map((assignment) => (
+                    {assignments?.map((assignment) => {
+                        const windowStatus = getAssignmentWindowStatus(assignment, now);
+                        const submissionsDisabled = !canOpenAssignmentWindow(windowStatus);
+
+                        return (
                         <div
                             key={assignment.id}
-                            className={`group p-6 rounded-2xl border shadow-sm transition-all duration-300 flex flex-col justify-between hover:shadow-xl hover:border-blue-200 ${
-                                isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
-                            }`}
+                            className={`group p-6 rounded-2xl border shadow-sm transition-all duration-300 flex flex-col justify-between ${
+                                submissionsDisabled ? 'opacity-80' : 'hover:shadow-xl hover:border-blue-200'
+                            } ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
                         >
                             <div>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                     </div>
-                                    <span className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full border ${
-                                        assignment.status === 'inactive'
-                                            ? 'bg-gray-100 text-gray-500 border-gray-200'
-                                            : 'bg-green-100 text-green-700 border-green-200'
-                                    }`}>
-                                        {assignment.status || 'active'}
+                                    <span className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full border ${getWindowStatusBadgeClass(windowStatus)}`}>
+                                        {getWindowStatusLabel(windowStatus)}
                                     </span>
                                 </div>
 
@@ -467,15 +499,15 @@ export default function WritingTasksPage() {
 
                                 {/* Program | Subprogram (Parallel) */}
                                 <div className="grid grid-cols-2 gap-4 mb-3 pb-3 border-b border-gray-100 dark:border-gray-700/50">
-                                    <div className="flex flex-col">
+                                    <div className="flex flex-col min-w-0">
                                         <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Program</span>
                                         <span className={`text-sm font-semibold truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                             {assignment.program_name || "N/A"}
                                         </span>
                                     </div>
-                                    <div className="flex flex-col">
+                                    <div className="flex flex-col items-end text-right min-w-0">
                                         <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Subprogram</span>
-                                        <span className={`text-sm font-semibold truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        <span className={`text-sm font-semibold truncate w-full ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                             {assignment.subprogram_name || "N/A"}
                                         </span>
                                     </div>
@@ -510,14 +542,30 @@ export default function WritingTasksPage() {
                                         <span className="font-bold">{assignment.total_points} Points</span>
                                     </div>
                                 </div>
+
+                                {windowStatus === "pending" && assignment.start_date && (
+                                    <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2">
+                                        Opens in {formatAssignmentCountdown(assignment.start_date, now)}
+                                    </p>
+                                )}
+                                {windowStatus === "active" && assignment.due_date && (
+                                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-2">
+                                        Completes in {formatAssignmentCountdown(assignment.due_date, now)}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
                                 <button
                                     onClick={() => handleViewSubmissions(assignment)}
-                                    className="flex-1 py-3 bg-[#010080] hover:bg-blue-800 text-white rounded-xl font-bold text-sm transition-all active:scale-95"
+                                    disabled={submissionsDisabled}
+                                    className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 ${
+                                        submissionsDisabled
+                                            ? 'bg-gray-400 text-white cursor-not-allowed opacity-70'
+                                            : 'bg-[#010080] hover:bg-blue-800 text-white'
+                                    }`}
                                 >
-                                    View Submissions
+                                    {windowStatus === "pending" ? "Not Open Yet" : "View Submissions"}
                                 </button>
                                 <div className="flex gap-1">
                                     <button
@@ -537,7 +585,7 @@ export default function WritingTasksPage() {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    );})}
 
                     {assignments?.length === 0 && (
                         <div className="col-span-full py-20 text-center opacity-40">

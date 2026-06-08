@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
     useCreateAssignmentMutation,
     useUpdateAssignmentMutation,
     useGetAssignmentsQuery
 } from "@/lib/api/assignmentApi";
-import { useGetClassesQuery } from "@/lib/api/classApi";
-import { useGetProgramsQuery } from "@/lib/api/programApi";
-import { useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
+import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
 import { useUploadFileMutation } from "@/lib/api/uploadApi";
 
 import { useToast } from "@/components/Toast";
@@ -39,8 +37,7 @@ export default function CreateExamPage() {
     const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();
 
     // Queries
-    const { data: classes } = useGetClassesQuery();
-    const { data: programs } = useGetProgramsQuery();
+    const { data: classes } = useGetTeacherClassesQuery();
 
     // Form State
     const [basicInfo, setBasicInfo] = useState({
@@ -56,10 +53,33 @@ export default function CreateExamPage() {
         duration: 60,
     });
 
-    // Conditional Query for Subprograms (Levels)
-    const { data: subprograms } = useGetSubprogramsByProgramIdQuery(basicInfo.program_id, {
-        skip: !basicInfo.program_id
-    });
+    // Derived Data for Cascading Dropdowns
+    const uniquePrograms = useMemo(() => {
+        if (!classes) return [];
+        const programsMap = new Map();
+        classes.forEach(c => {
+            const pId = c.program_id || c.subprograms?.program_id;
+            const pName = c.program_name || c.subprograms?.programs?.title;
+            if (pId && pName) {
+                programsMap.set(pId, { id: pId, title: pName });
+            }
+        });
+        return Array.from(programsMap.values());
+    }, [classes]);
+
+    const filteredSubprograms = useMemo(() => {
+        if (!classes || !basicInfo.program_id) return [];
+        const subprogramsMap = new Map();
+        classes.forEach(c => {
+            const spId = c.subprogram_id || c.subprograms?.id;
+            const spName = c.subprogram_name || c.subprograms?.subprogram_name;
+            const pId = c.program_id || c.subprograms?.program_id;
+            if (pId == basicInfo.program_id && spId && spName) {
+                subprogramsMap.set(spId, { id: spId, title: spName });
+            }
+        });
+        return Array.from(subprogramsMap.values());
+    }, [classes, basicInfo.program_id]);
 
     // Validations & Steps
     const [currentStep, setCurrentStep] = useState(1);
@@ -139,7 +159,12 @@ export default function CreateExamPage() {
     }, [editingAssignment]);
 
     const handleInfoChange = (e) => {
-        setBasicInfo({ ...basicInfo, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setBasicInfo(prev => ({ ...prev, [name]: value }));
+
+        if (name === 'program_id') {
+            setBasicInfo(prev => ({ ...prev, program_id: value, subprogram_id: "" }));
+        }
     };
 
     // --- Actions ---
@@ -417,7 +442,7 @@ export default function CreateExamPage() {
                                                 className="w-1/2 p-2.5 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm"
                                             >
                                                 <option value="">Select Program...</option>
-                                                {programs?.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+                                                {uniquePrograms?.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
                                             </select>
                                             <select
                                                 name="subprogram_id"
@@ -427,7 +452,7 @@ export default function CreateExamPage() {
                                                 disabled={!basicInfo.program_id}
                                             >
                                                 <option value="">Select Level...</option>
-                                                {subprograms?.map(s => <option key={s.id} value={s.id}>{s.subprogram_name} {s.title}</option>)}
+                                                {filteredSubprograms?.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
                                             </select>
                                         </div>
                                     </div>

@@ -52,16 +52,22 @@ export default function ClassStudentsPage() {
   }, [allStudents, classId]);
 
   // Get subprogram name for display
-  const getSubprogramName = (subprogramId) => {
-    if (!subprogramId) return "N/A";
-    const subprogram = subprograms.find(sp => sp.id == subprogramId);
+  const getSubprogramName = (subprogramIdOrName) => {
+    if (!subprogramIdOrName) return "N/A";
+    if (isNaN(Number(subprogramIdOrName))) {
+      return subprogramIdOrName;
+    }
+    const subprogram = subprograms.find(sp => sp.id == subprogramIdOrName);
     return subprogram ? subprogram.subprogram_name : "N/A";
   };
 
   // Get program name for display
-  const getProgramName = (programId) => {
-    if (!programId) return "N/A";
-    const program = programs.find(p => p.id == programId);
+  const getProgramName = (programIdOrName) => {
+    if (!programIdOrName) return "N/A";
+    if (isNaN(Number(programIdOrName))) {
+      return programIdOrName;
+    }
+    const program = programs.find(p => p.id == programIdOrName);
     return program ? program.title : "N/A";
   };
 
@@ -138,7 +144,7 @@ export default function ClassStudentsPage() {
     {
       key: "sex",
       label: "Sex",
-      render: (row) => row.sex ? row.sex.charAt(0).toUpperCase() + row.sex.slice(1) : "N/A",
+      render: (_, row) => row.sex ? row.sex.charAt(0).toUpperCase() + row.sex.slice(1) : "N/A",
     },
     {
       key: "age",
@@ -147,17 +153,17 @@ export default function ClassStudentsPage() {
     {
       key: "chosen_program",
       label: "Program",
-      render: (row) => getProgramName(row.chosen_program_id || row.chosen_program),
+      render: (_, row) => row.chosen_program_name || getProgramName(row.chosen_program_id || row.chosen_program),
     },
     {
       key: "chosen_subprogram",
       label: "Subprogram",
-      render: (row) => getSubprogramName(row.chosen_subprogram),
+      render: (_, row) => row.chosen_subprogram_name || getSubprogramName(row.chosen_subprogram),
     },
     {
       key: "approval_status",
       label: "Status",
-      render: (row) => (
+      render: (_, row) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.approval_status === 'approved' ? 'bg-green-100 text-green-800' :
           row.approval_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
             'bg-red-100 text-red-800'
@@ -169,9 +175,9 @@ export default function ClassStudentsPage() {
     {
       key: "actions",
       label: "Actions",
-      render: (row) => (
+      render: (_, row) => (
         <button
-          onClick={() => router.push(`/portal/admin/students/${row.id}`)}
+          onClick={() => router.push(`/portal/admin/students/${row.student_id || row.id}`)}
           className={`px-3 py-1 rounded text-sm font-medium transition-colors ${isDark
             ? 'bg-blue-600 hover:bg-blue-700 text-white'
             : 'bg-blue-500 hover:bg-blue-600 text-white'

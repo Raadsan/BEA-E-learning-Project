@@ -115,7 +115,14 @@ export const getTeacherClasses = async (req, res) => {
     const teacherId = req.user.userId;
     const classes = await prisma.classes.findMany({
       where: { teacher_id: parseInt(teacherId) },
-      include: { subprograms: true }
+      include: {
+        subprograms: {
+          include: {
+            programs: true
+          }
+        },
+        _count: { select: { students: true } }
+      }
     });
     res.json(classes);
   } catch (err) {
@@ -154,4 +161,114 @@ export const bulkActionTeachers = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// GET TEACHER DASHBOARD STATS
+export const getDashboardStats = async (req, res) => {
+  try {
+    const teacherId = parseInt(req.user.userId);
+    const { month, year } = req.query;
+
+    // Fetch teacher info
+    const teacher = await prisma.teachers.findUnique({ where: { id: teacherId } });
+
+    // Get classes assigned to this teacher
+    const classes = await prisma.classes.findMany({
+      where: { teacher_id: teacherId },
+      include: { subprograms: { include: { programs: true } } }
+    });
+
+    const classIds = classes.map(c => c.id);
+
+    // Total students across all teacher's classes
+    const students = classIds.length > 0
+      ? await prisma.students.findMany({ where: { class_id: { in: classIds } } })
+      : [];
+
+    const totalStudents = students.length;
+
+    // Unique programs
+    const programSet = new Set();
+    classes.forEach(c => { if (c.subprograms?.programs?.id) programSet.add(c.subprograms.programs.id); });
+    const totalPrograms = programSet.size;
+
+    // Build weekly attendance data for current month/year
+    const now = new Date();
+    const targetMonth = parseInt(month) || (now.getMonth() + 1);
+    const targetYear = parseInt(year) || now.getFullYear();
+
+    // Generate day-of-week breakdown from attendance records this month
+    const firstDay = new Date(targetYear, targetMonth - 1, 1);
+    const lastDay = new Date(targetYear, targetMonth, 0);
+
+    const attendanceRecords = classIds.length > 0
+      ? await prisma.attendance.findMany({
+          where: {
+            class_id: { in: classIds },
+            date: { gte: firstDay, lte: lastDay }
+          }
+        })
+      : [];
+
+    // Aggregate per week-day label
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weekMap = {};
+    attendanceRecords.forEach(rec => {
+      const d = new Date(rec.date);
+      const label = dayNames[d.getDay()];
+      if (!weekMap[label]) weekMap[label] = { day: label, thisWeek: 0, lastWeek: 0 };
+      const isPresent = (rec.hour1 || 0) + (rec.hour2 || 0) > 0;
+      // Rough split: records in the 2nd half of the month → thisWeek, 1st half → lastWeek
+      if (d.getDate() > 15) weekMap[label].thisWeek += isPresent ? 1 : 0;
+      else weekMap[label].lastWeek += isPresent ? 1 : 0;
+    });
+    const weeklyAttendance = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day =>
+      weekMap[day] || { day, thisWeek: 0, lastWeek: 0 }
+    );
+
+    // Per-class attendance breakdown for pie chart
+    const classAttendanceData = await Promise.all(classes.map(async (cls) => {
+      const recs = await prisma.attendance.findMany({
+        where: { class_id: cls.id, date: { gte: firstDay, lte: lastDay } }
+      });
+      const attended = recs.filter(r => (r.hour1 || 0) + (r.hour2 || 0) > 0).length;
+      const absent = recs.length - attended;
+      return { className: cls.class_name, attended, absent };
+    }));
+
+    res.json({
+      fullName: teacher?.full_name || 'Teacher',
+      totalClasses: classes.length,
+      totalStudents,
+      activeStudents: totalStudents,
+      totalPrograms,
+      studentGrowth: 0,
+      weeklyAttendance,
+      classAttendanceData
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// GET TEACHER PROGRAMS
+export const getTeacherPrograms = async (req, res) => {
+  try {
+    const teacherId = parseInt(req.user.userId);
+    const classes = await prisma.classes.findMany({
+      where: { teacher_id: teacherId },
+      include: { subprograms: { include: { programs: true } } }
+    });
+
+    const programMap = {};
+    classes.forEach(c => {
+      const prog = c.subprograms?.programs;
+      if (prog) programMap[prog.id] = prog;
+    });
+
+    res.json(Object.values(programMap));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 

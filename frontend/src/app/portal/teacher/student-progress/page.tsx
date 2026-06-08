@@ -135,10 +135,12 @@ export default function StudentProgressPage() {
         const formattedSummary = reportData?.progressSummary ? {
             attendance_rate: reportData.progressSummary.attendanceRate,
             overall_gpa: reportData.examResult || 0,
+            cefr_level: reportData.progressSummary.cefrLevel,
             total_assignments: 0
         } : {
             attendance_rate: 0,
-            overall_gpa: basicInfo?.progress_percentage || 0
+            overall_gpa: basicInfo?.progress_percentage || 0,
+            cefr_level: null
         };
 
         const formattedPerformance = reportData?.skillPerformance ? Object.entries(reportData.skillPerformance).map(([key, val]) => ({
@@ -220,10 +222,10 @@ export default function StudentProgressPage() {
     return (
         <div className="p-8">
             <div className="mb-8">
-                <h1 className={`text-4xl font-black tracking-tight ${isDark ? 'text-white' : 'text-[#010080]'}`}>
+                <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white">
                     Student Tracking Registry
                 </h1>
-                <p className={`mt-2 font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-2">
                     Comprehensive academic performance monitoring and periodic reporting.
                 </p>
             </div>

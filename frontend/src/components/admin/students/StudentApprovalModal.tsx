@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 export default function StudentApprovalModal({
     isOpen,
     onClose,
@@ -10,10 +12,38 @@ export default function StudentApprovalModal({
     isRejecting,
     isDark,
     classes = [],
+    subprograms = [],
     selectedClassId,
     setSelectedClassId
 }) {
+    const [selectedSubprogramId, setSelectedSubprogramId] = useState("");
+
+    useEffect(() => {
+        if (!isOpen || !student) return;
+
+        const chosen = student.chosen_subprogram?.toString() || "";
+        const matchedSubprogram = subprograms.find(
+            (sp) => String(sp.id) === chosen || sp.subprogram_name === chosen
+        );
+
+        setSelectedSubprogramId(matchedSubprogram ? String(matchedSubprogram.id) : "");
+        setSelectedClassId?.("");
+    }, [isOpen, student?.id, student?.chosen_subprogram, subprograms, setSelectedClassId]);
+
     if (!isOpen || !student) return null;
+
+    const classesForSubprogram = selectedSubprogramId
+        ? classes.filter((cls) => String(cls.subprogram_id) === String(selectedSubprogramId))
+        : [];
+
+    const selectClass = (e) => {
+        setSelectedClassId(e.target.value);
+    };
+
+    const selectSubprogram = (e) => {
+        setSelectedSubprogramId(e.target.value);
+        setSelectedClassId("");
+    };
 
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -58,22 +88,59 @@ export default function StudentApprovalModal({
                         <p>Give him approve or reject for this student application.</p>
                     </div>
 
-                    {/* Class Selection Dropdown (Added for integrated approval) */}
                     {onApprove && setSelectedClassId && (
-                        <div className="mb-6 space-y-2">
-                            <label className={`block text-xs font-bold uppercase tracking-widest ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                Assign to Class (Optional)
-                            </label>
-                            <select
-                                value={selectedClassId || ""}
-                                onChange={(e) => setSelectedClassId(e.target.value)}
-                                className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-                            >
-                                <option value="">No Class Assigned</option>
-                                {classes.map(cls => (
-                                    <option key={cls.id} value={cls.id}>{cls.class_name} ({cls.program_name})</option>
-                                ))}
-                            </select>
+                        <div className="mb-6 space-y-4">
+                            {student.chosen_program && (
+                                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    Program: <span className={`font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{student.chosen_program}</span>
+                                </p>
+                            )}
+
+                            <div className="space-y-2">
+                                <label className={`block text-xs font-bold uppercase tracking-widest ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    Select Subprogram (Optional)
+                                </label>
+                                {subprograms.length === 0 ? (
+                                    <p className={`text-sm px-3 py-2 rounded-lg border ${isDark ? 'bg-amber-900/20 border-amber-700 text-amber-200' : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
+                                        No subprograms available for this program.
+                                    </p>
+                                ) : (
+                                    <select
+                                        value={selectedSubprogramId}
+                                        onChange={selectSubprogram}
+                                        className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                    >
+                                        <option value="">No Subprogram</option>
+                                        {subprograms.map((sp) => (
+                                            <option key={sp.id} value={sp.id}>{sp.subprogram_name}</option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
+
+                            {selectedSubprogramId && (
+                                <div className="space-y-2">
+                                    <label className={`block text-xs font-bold uppercase tracking-widest ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        Assign to Class (Optional)
+                                    </label>
+                                    {classesForSubprogram.length === 0 ? (
+                                        <p className={`text-sm px-3 py-2 rounded-lg border ${isDark ? 'bg-amber-900/20 border-amber-700 text-amber-200' : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
+                                            No classes available for this subprogram.
+                                        </p>
+                                    ) : (
+                                        <select
+                                            value={selectedClassId || ""}
+                                            onChange={selectClass}
+                                            className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                        >
+                                            <option value="">No Class Assigned</option>
+                                            {classesForSubprogram.map((cls) => (
+                                                <option key={cls.id} value={cls.id}>{cls.class_name}</option>
+                                            ))}
+                                        </select>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
 

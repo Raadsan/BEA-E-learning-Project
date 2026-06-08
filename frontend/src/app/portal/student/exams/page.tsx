@@ -1,280 +1,209 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from "@/lib/api/assignmentApi";
+import { useGetAssignmentsQuery } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useToast } from "@/components/Toast";
-import Loader from "@/components/Loader";
 import { useRouter } from "next/navigation";
+import {
+  getAssignmentTimeStatus,
+  getAssignmentTimeStatusBadgeClass,
+  getAssignmentTimeStatusLabel,
+  getAssignmentTimeButtonLabel,
+  isAssignmentTimeActionDisabled,
+  formatAssignmentDateTime,
+  formatAssignmentCountdown,
+} from "@/utils/assignmentTime";
 
 export default function ExamsPage() {
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
   const router = useRouter();
-  const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
-  // Use localStorage as a fallback for user data to avoid blocking the UI
-  const localUser = useMemo(() => {
-    if (typeof window !== "undefined") {
-      try {
-        return JSON.parse(localStorage.getItem("user") || "{}");
-      } catch (e) {
-        return null;
-      }
-    }
-    return null;
-  }, []);
+  const { data: user } = useGetCurrentUserQuery();
+  const [now, setNow] = useState(() => new Date());
 
-  // Prepare query parameters - Memoized to prevent render loops
-  const queryParams = useMemo(() => {
-    const activeUser = user || localUser;
-    if (!activeUser || !activeUser.id) return null;
-
-    const params: {
-      class_id: any;
-      subprogram_id: number | undefined;
-      type: string;
-      program_id?: number;
-    } = {
-      class_id: activeUser.class_id,
-      subprogram_id: activeUser.chosen_subprogram ? Number(activeUser.chosen_subprogram) : undefined,
-      type: "exam"
-    };
-
-    if (activeUser.chosen_program && !isNaN(Number(activeUser.chosen_program))) {
-      params.program_id = Number(activeUser.chosen_program);
-    }
-
-    return params;
-  }, [user, localUser]);
-
-  const { data: tests, isLoading: testsLoading, error } = useGetAssignmentsQuery(
-    queryParams as any,
-    { skip: !queryParams }
+  const { data: tests, isLoading, error } = useGetAssignmentsQuery(
+    { class_id: user?.class_id, type: "exam" },
+    { skip: !user?.class_id }
   );
 
   useEffect(() => {
-    if (error) {
-      console.error("Error fetching exams:", error);
-      showToast("Failed to load exams", "error");
-    }
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (error) showToast("Failed to load exams", "error");
   }, [error, showToast]);
 
-  const [submitAssignment] = useSubmitAssignmentMutation();
-  const [selectedTest, setSelectedTest] = useState(null);
-
   const handleOpenTest = (test) => {
-    if (test.submission_status === 'submitted' || test.submission_status === 'graded') {
+    const status = getAssignmentTimeStatus(test, now);
+
+    if (status === "upcoming") {
+      showToast("This exam is not open yet. Please wait until the start time.", "info");
+      return;
+    }
+    if (status === "complete") {
+      showToast("This exam is complete.", "warning");
+      return;
+    }
+    if (status === "submitted" || status === "graded") {
       router.push(`/portal/student/exams/results?id=${test.id}`);
     } else {
       router.push(`/portal/student/exams/take?id=${test.id}`);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
+
+  const visibleTests = tests?.filter((t) => t.status !== "inactive") || [];
+
   return (
-    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Exams
-        </h1>
-        <p className={`text-sm opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-          Access your exams assignments and submit your work.
+    <div className={`min-h-screen p-8 transition-colors ${isDark ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"}`}>
+      <div className="mb-8 mt-4">
+        <h1 className="text-2xl font-bold mb-1">Exams</h1>
+        <p className={`text-sm opacity-60 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+          View your exams. Tasks open at the start time and complete when the end time is reached.
         </p>
       </div>
 
-      {/* Main Content Area */}
-      {testsLoading && !tests ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-12 h-12 rounded-full border-4 border-blue-600 border-t-transparent animate-spin mb-4"></div>
-          <p className="text-sm font-bold text-blue-600 uppercase tracking-widest animate-pulse">Loading Assessments...</p>
-        </div>
-      ) : (() => {
-        const now = new Date();
-        const visibleTests = tests?.filter(t => {
-          if (t.status === 'inactive') return false;
-          if (t.start_date) {
-            const start = new Date(t.start_date);
-            if (now < start) return false;
-          }
-          return true;
-        }) || [];
-
-        if (visibleTests.length === 0) {
-          return (
-            <div className={`p-16 rounded-xl border-2 border-dashed text-center ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
-              <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                <svg className={`w-10 h-10 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No Active Exams</h3>
-              <p className="text-gray-400">No active exams assignments yet.</p>
-            </div>
-          );
-        }
-
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {visibleTests.map((test) => {
-              const isGraded = test.submission_status === 'graded';
-              const isSubmitted = test.submission_status === 'submitted';
-              const isPending = !isSubmitted && !isGraded;
-              const isClosed = (test.due_date && now > new Date(test.due_date)) || (test.end_date && now > new Date(test.end_date));
-
-              const handleBtnClick = () => {
-                if (isClosed && !isSubmitted && !isGraded) {
-                  showToast("This exam is closed as the deadline has passed.", "warning");
-                  return;
-                }
-                handleOpenTest(test);
-              };
-
-              return (
-                <div
-                  key={test.id}
-                  onClick={handleBtnClick}
-                  className={`relative p-6 rounded-xl border transition-all group ${
-                    (isClosed && !isSubmitted && !isGraded)
-                      ? 'bg-gray-100 border-gray-200 dark:bg-gray-800/40 dark:border-gray-800 opacity-60 cursor-not-allowed'
-                      : `cursor-pointer hover:shadow-lg ${isDark
-                          ? 'bg-gray-800 border-gray-700 hover:border-blue-500'
-                          : 'bg-white border-gray-200 hover:border-blue-400'
-                        }`
-                  }`}
-                >
-                  {/* Status Badge */}
-                  <div className="absolute top-4 right-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${isGraded
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
-                      : isSubmitted
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400'
-                        : isClosed
-                          ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
-                          : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
-                      }`}>
-                      {isGraded ? 'Graded' : isSubmitted ? 'Submitted' : isClosed ? 'Closed' : 'Pending'}
-                    </span>
-                  </div>
-
-                  {/* Test Icon */}
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 ${isDark ? 'bg-blue-900/30' : 'bg-blue-50'
-                    }`}>
-                    <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-
-                  {/* Test Title */}
-                  <h3 className={`text-xl font-bold mb-3 line-clamp-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {test.title}
-                  </h3>
-
-                  {/* Test Info */}
-                  <div className="space-y-2 mb-4">
-                    {test.program_name && (
-                      <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                        <span className="font-medium">{test.program_name}</span>
-                      </div>
-                    )}
-
-                    {test.subprogram_name && (
-                      <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                        </svg>
-                        <span>{test.subprogram_name}</span>
-                      </div>
-                    )}
-
-                    {test.duration && (
-                      <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>{test.duration} minutes</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Date Range */}
-                  <div className={`pt-4 border-t ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-                    {test.start_date && test.end_date ? (
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                            Start Date
-                          </div>
-                          <div className={`text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {new Date(test.start_date).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <div>
-                          <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                            End Date
-                          </div>
-                          <div className={`text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {new Date(test.end_date).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </div>
-                    ) : test.due_date ? (
-                      <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span>Due: {new Date(test.due_date).toLocaleDateString()}</span>
-                      </div>
-                    ) : (
-                      <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>No due date</div>
-                    )}
-                  </div>
-
-                  {/* Score Display */}
-                  {isGraded && (
-                    <div className={`mt-4 pt-4 border-t ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                          Your Score
-                        </span>
-                        <span className="text-xl font-bold text-green-600 dark:text-green-400">
-                          {test.score} / {test.total_points}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Points Display for Pending/Submitted */}
-                  {!isGraded && (
-                    <div className={`mt-4 pt-4 border-t ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                          Total Points
-                        </span>
-                        <span className={`text-lg font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                          {test.total_points}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Hover Effect Arrow */}
-                  {!isClosed && (
-                    <div className={`absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {!user?.class_id ? (
+          <div className="col-span-full py-20 text-center opacity-50">
+            <p className="text-xl">No class assigned yet.</p>
           </div>
-        );
-      })()}
+        ) : visibleTests.length === 0 ? (
+          <div className="col-span-full py-20 text-center opacity-50">
+            <p className="text-xl">No exams assigned yet.</p>
+          </div>
+        ) : (
+          visibleTests.map((test) => {
+            const status = getAssignmentTimeStatus(test, now);
+            const isDisabled = isAssignmentTimeActionDisabled(status);
+            const isGraded = status === "graded";
+            const isSubmitted = status === "submitted";
+            const isUpcoming = status === "upcoming";
+            const isActive = status === "active";
+            const endDate = test.due_date || test.end_date;
+
+            const buttonLabel = getAssignmentTimeButtonLabel(status, {
+              scoreText: isGraded ? `${test.score}/${test.total_points}` : undefined,
+              activeLabel: "Take Exam",
+            });
+
+            return (
+              <div
+                key={test.id}
+                className={`flex flex-col rounded-lg p-5 border transition-all ${
+                  isDisabled ? "opacity-70" : ""
+                } ${
+                  isDark
+                    ? "bg-gray-800 border-gray-700 hover:border-gray-600"
+                    : "bg-white border-gray-200 hover:border-blue-300"
+                }`}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <span className={`text-xs font-bold uppercase tracking-wide opacity-50 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                    Exam
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getAssignmentTimeStatusBadgeClass(status)}`}
+                  >
+                    {getAssignmentTimeStatusLabel(status)}
+                  </span>
+                </div>
+
+                <h3 className="text-lg font-bold mb-1.5 line-clamp-1">{test.title}</h3>
+                <p className={`text-sm mb-4 line-clamp-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                  {test.description ||
+                    (test.duration ? `${test.duration} minutes` : "No description provided.")}
+                </p>
+
+                <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col gap-3">
+                  <div
+                    className={`flex items-center justify-between text-xs font-medium opacity-70 ${isDark ? "text-gray-400" : "text-gray-500"}`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                        />
+                      </svg>
+                      <span>{test.total_points || 0} Marks</span>
+                    </div>
+                    {isGraded && (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                        {test.score}/{test.total_points}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className={`text-xs space-y-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                    <div className="flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                      <span>Starts: {formatAssignmentDateTime(test.start_date)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                      <span>Ends: {formatAssignmentDateTime(endDate)}</span>
+                    </div>
+                    {isUpcoming && test.start_date && (
+                      <p className="text-blue-600 dark:text-blue-400 font-semibold pt-1">
+                        Opens in {formatAssignmentCountdown(test.start_date, now)}
+                      </p>
+                    )}
+                    {isActive && endDate && (
+                      <p className="text-amber-600 dark:text-amber-400 font-semibold pt-1">
+                        Completes in {formatAssignmentCountdown(endDate, now)}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => handleOpenTest(test)}
+                    disabled={isDisabled}
+                    className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all ${
+                      isGraded || isSubmitted
+                        ? isDark
+                          ? "bg-gray-700 hover:bg-gray-600 text-gray-200"
+                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                        : isDisabled
+                          ? "bg-gray-400 cursor-not-allowed text-white opacity-70"
+                          : "bg-blue-600 hover:bg-blue-700 text-white"
+                    }`}
+                  >
+                    {buttonLabel}
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }

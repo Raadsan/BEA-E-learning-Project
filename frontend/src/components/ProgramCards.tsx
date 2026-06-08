@@ -202,9 +202,9 @@ export default function ProgramCards() {
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
-            <a href="/website/programs" className={`font-semibold text-xs sm:text-sm md:text-base whitespace-nowrap border rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 hover:text-white transition-all duration-300 self-start sm:self-auto ${isDarkMode ? 'text-white border-white hover:bg-white hover:text-[#010080]' : ''}`} style={{ color: isDarkMode ? 'white' : '#010080', borderColor: isDarkMode ? 'white' : '#010080' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = isDarkMode ? 'white' : '#010080'; e.currentTarget.style.color = isDarkMode ? '#010080' : 'white'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = isDarkMode ? 'white' : '#010080'; }}>
+            <Link href="/website/programs" className={`font-semibold text-xs sm:text-sm md:text-base whitespace-nowrap border rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 hover:text-white transition-all duration-300 self-start sm:self-auto ${isDarkMode ? 'text-white border-white hover:bg-white hover:text-[#010080]' : ''}`} style={{ color: isDarkMode ? 'white' : '#010080', borderColor: isDarkMode ? 'white' : '#010080' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = isDarkMode ? 'white' : '#010080'; e.currentTarget.style.color = isDarkMode ? '#010080' : 'white'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = isDarkMode ? 'white' : '#010080'; }}>
               → View all programs
-            </a>
+            </Link>
           </div>
 
           {/* Loading State */}

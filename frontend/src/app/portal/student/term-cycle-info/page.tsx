@@ -4,12 +4,13 @@ import { useState, useMemo, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
-import { useGetTimetableQuery } from "@/lib/api/timetableApi";
+import { useGetClassQuery } from "@/lib/api/classApi";
 import { useGetEventsQuery } from "@/lib/api/eventApi";
 import { useGetAcademicCalendarQuery } from "@/lib/api/academicCalendarApi";
 import { useGetStudentReviewsQuery, useGetTeachersToReviewQuery } from "@/lib/api/reviewApi";
 import { useGetAssignmentsQuery } from "@/lib/api/assignmentApi";
-import { useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
+import { useGetSubprogramsQuery, useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
+import { resolveStudentSubprogramId } from "@/utils/resolveStudentSubprogram";
 import { useCreateNotificationMutation } from "@/lib/api/notificationApi";
 import { useToast } from "@/components/Toast";
 import { useCreateLevelUpRequestMutation } from "@/lib/api/levelUpApi";
@@ -126,8 +127,20 @@ export default function TermCycleInfoPage() {
   const [createLevelUpRequest] = useCreateLevelUpRequestMutation();
 
   const { data: user } = useGetCurrentUserQuery();
-  const subprogramId = user?.chosen_subprogram || user?.subprogram_id;
-  const programId = user?.program_id || user?.chosen_program_id || user?.chosen_program;
+  const { data: studentClass } = useGetClassQuery(user?.class_id, { skip: !user?.class_id });
+  const { data: allSubprograms = [] } = useGetSubprogramsQuery();
+
+  const subprogramId = useMemo(
+    () => resolveStudentSubprogramId(user, studentClass, allSubprograms),
+    [user, studentClass, allSubprograms]
+  );
+
+  const studentSubprogram = useMemo(
+    () => allSubprograms.find((sp) => sp.id === subprogramId) || null,
+    [allSubprograms, subprogramId]
+  );
+
+  const programId = studentSubprogram?.program_id || user?.program_id || user?.chosen_program_id;
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('en-US', { month: 'long' }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -177,10 +190,6 @@ export default function TermCycleInfoPage() {
   const startOfMonth = new Date(selectedYear, monthIndex, 1).toISOString().split('T')[0];
   const endOfMonth = new Date(selectedYear, monthIndex + 1, 0).toISOString().split('T')[0];
 
-  const { data: weeklyTimetable = [], isLoading: timetableLoading } = useGetTimetableQuery(subprogramId, {
-    skip: !subprogramId
-  });
-
   const { data: events = [], isLoading: eventsLoading } = useGetEventsQuery({
     subprogramId,
     start: startOfMonth,
@@ -204,11 +213,13 @@ export default function TermCycleInfoPage() {
 
     for (let w = 1; w <= maxWeeks; w++) {
       const row = { id: w, week: `Week ${w}` };
-      days.forEach(d => row[d] = "-");
+      days.forEach((d) => { row[d] = "-"; });
 
-      academicCalendar.forEach(entry => {
-        if (entry.week_number === w && days.includes(entry.day)) {
-          row[entry.day] = entry.activity_title;
+      academicCalendar.forEach((entry) => {
+        const day = entry.day || entry.day_of_week;
+        const title = entry.activity_title || entry.subject;
+        if (Number(entry.week_number) === w && day && days.includes(day) && title) {
+          row[day] = title;
         }
       });
       rows.push(row);
@@ -287,10 +298,9 @@ export default function TermCycleInfoPage() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
-      <div className="w-full">
+    <div className="space-y-8 p-6 md:p-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <h1 className={`text-3xl font-semibold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
               Term Cycle Information
@@ -298,6 +308,12 @@ export default function TermCycleInfoPage() {
             <p className={`text-base font-normal ${isDark ? "text-slate-400" : "text-slate-500"}`}>
               Access your academic schedule and term progress.
             </p>
+            {studentSubprogram && (
+              <p className={`text-sm mt-2 font-medium ${isDark ? "text-blue-400" : "text-blue-700"}`}>
+                Course: {studentSubprogram.subprogram_name}
+                {studentClass?.class_name ? ` · Class: ${studentClass.class_name}` : ""}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center gap-4">
@@ -329,16 +345,23 @@ export default function TermCycleInfoPage() {
           <TermCountdown isDark={isDark} />
         )}
 
-        {/* Weekly Schedule Grid */}
-        <div className="mb-12">
-          <DataTable
-            title={`Weekly Academic Plan - ${selectedMonth} ${selectedYear}`}
-            columns={calendarColumns}
-            data={calendarRows}
-            showAddButton={false}
-            isLoading={timetableLoading || eventsLoading || calendarLoading}
-            emptyMessage="No academic plan scheduled for this month."
-          />
+        {/* Weekly Schedule Grid — reads from Admin Academic Timetable */}
+        <div>
+          {!subprogramId ? (
+            <div className={`p-12 rounded-xl border-2 border-dashed text-center ${isDark ? "border-gray-700 text-gray-400" : "border-gray-200 text-gray-500"}`}>
+              <p className="text-lg font-medium">No class or course assigned yet.</p>
+              <p className="text-sm mt-2">Your weekly academic plan will appear here once you are assigned to a class.</p>
+            </div>
+          ) : (
+            <DataTable
+              title={`Weekly Academic Plan - ${selectedMonth} ${selectedYear}`}
+              columns={calendarColumns}
+              data={calendarRows}
+              showAddButton={false}
+              isLoading={eventsLoading || calendarLoading}
+              emptyMessage={`No academic timetable scheduled for ${studentSubprogram?.subprogram_name || "your course"} in ${selectedMonth} ${selectedYear}.`}
+            />
+          )}
         </div>
 
         {/* Holiday / Special Events Section */}
@@ -370,12 +393,11 @@ export default function TermCycleInfoPage() {
         )}
 
         {/* Footer Note */}
-        <div className={`mt-12 text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+        <div className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
           * Specific holiday dates may vary based on lunar sightings for Eid celebrations.
           <br />
           * Weekly classes follow the pattern established by the administration.
         </div>
-      </div>
 
       {/* Request Modal */}
       {showRequestModal && (

@@ -125,7 +125,7 @@ export default function MyClassesPage() {
 
                         <div className="mb-8 flex justify-between items-end">
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{selectedClass.class_name}</h1>
+                                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{selectedClass.class_name}</h1>
                                 <p className="text-gray-500 dark:text-gray-400 mt-1">
                                     {selectedClass.course_title} • {selectedClass.program_name}
                                 </p>
@@ -158,8 +158,8 @@ export default function MyClassesPage() {
                     {/* Header Section */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">My Classes</h1>
-                            <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Classes</h1>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                                 View and manage all your assigned classes and programs.
                             </p>
                         </div>

@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma.js';
 import { createNotificationInternal } from './notificationController.js';
+import { isSubprogramFullyCompleted, parseCompletedEntries } from '../utils/unitProgress.js';
 
 export const createRequest = async (req, res) => {
     try {
@@ -49,12 +50,29 @@ export const checkEligibility = async (req, res) => {
         const totalPossible = submissions.length * 100;
         const avgGrades = totalPossible > 0 ? (totalEarned / totalPossible) * 100 : 0;
 
-        const isEligible = avgGrades >= 50 && hasCompletedEvaluation && !existingPending;
+        const studentClass = student.class_id
+            ? await prisma.classes.findUnique({ where: { id: student.class_id } })
+            : null;
+        const currentSubprogramId = studentClass?.subprogram_id;
+        const completedEntries = parseCompletedEntries(student.completed_subprograms);
+        const hasCompletedCurrentLevel = currentSubprogramId
+            ? isSubprogramFullyCompleted(completedEntries, currentSubprogramId)
+            : false;
+
+        const isEligible =
+            avgGrades >= 50 &&
+            hasCompletedEvaluation &&
+            hasCompletedCurrentLevel &&
+            !existingPending;
 
         res.json({
             isEligible,
             hasPending: !!existingPending,
-            details: { grades: avgGrades.toFixed(2), teacherReview: hasCompletedEvaluation }
+            hasCompletedCurrentLevel,
+            details: {
+                grades: avgGrades.toFixed(2),
+                teacherReview: hasCompletedEvaluation,
+            },
         });
     } catch (err) { res.status(500).json({ error: err.message }); }
 };

@@ -16052,6 +16052,7 @@ export namespace Prisma {
     name_y: number
     font_size: number
     font_color: number
+    fields_config: number
     created_at: number
     updated_at: number
     uploader_id: number
@@ -16114,6 +16115,7 @@ export namespace Prisma {
     name_y?: true
     font_size?: true
     font_color?: true
+    fields_config?: true
     created_at?: true
     updated_at?: true
     uploader_id?: true
@@ -16215,6 +16217,7 @@ export namespace Prisma {
     name_y: number | null
     font_size: number | null
     font_color: string | null
+    fields_config: JsonValue | null
     created_at: Date | null
     updated_at: Date | null
     uploader_id: number | null
@@ -16248,6 +16251,7 @@ export namespace Prisma {
     name_y?: boolean
     font_size?: boolean
     font_color?: boolean
+    fields_config?: boolean
     created_at?: boolean
     updated_at?: boolean
     uploader_id?: boolean
@@ -16266,12 +16270,13 @@ export namespace Prisma {
     name_y?: boolean
     font_size?: boolean
     font_color?: boolean
+    fields_config?: boolean
     created_at?: boolean
     updated_at?: boolean
     uploader_id?: boolean
   }
 
-  export type certificatesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "target_id" | "target_type" | "template_url" | "name_x" | "name_y" | "font_size" | "font_color" | "created_at" | "updated_at" | "uploader_id", ExtArgs["result"]["certificates"]>
+  export type certificatesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "target_id" | "target_type" | "template_url" | "name_x" | "name_y" | "font_size" | "font_color" | "fields_config" | "created_at" | "updated_at" | "uploader_id", ExtArgs["result"]["certificates"]>
   export type certificatesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     issued_certificates?: boolean | certificates$issued_certificatesArgs<ExtArgs>
     _count?: boolean | CertificatesCountOutputTypeDefaultArgs<ExtArgs>
@@ -16291,6 +16296,7 @@ export namespace Prisma {
       name_y: number | null
       font_size: number | null
       font_color: string | null
+      fields_config: Prisma.JsonValue | null
       created_at: Date | null
       updated_at: Date | null
       uploader_id: number | null
@@ -16672,6 +16678,7 @@ export namespace Prisma {
     readonly name_y: FieldRef<"certificates", 'Int'>
     readonly font_size: FieldRef<"certificates", 'Int'>
     readonly font_color: FieldRef<"certificates", 'String'>
+    readonly fields_config: FieldRef<"certificates", 'Json'>
     readonly created_at: FieldRef<"certificates", 'DateTime'>
     readonly updated_at: FieldRef<"certificates", 'DateTime'>
     readonly uploader_id: FieldRef<"certificates", 'Int'>
@@ -62504,6 +62511,7 @@ export namespace Prisma {
     name_y: 'name_y',
     font_size: 'font_size',
     font_color: 'font_color',
+    fields_config: 'fields_config',
     created_at: 'created_at',
     updated_at: 'updated_at',
     uploader_id: 'uploader_id'
@@ -63385,6 +63393,23 @@ export namespace Prisma {
   export type attendanceOrderByRelevanceFieldEnum = (typeof attendanceOrderByRelevanceFieldEnum)[keyof typeof attendanceOrderByRelevanceFieldEnum]
 
 
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+  export const QueryMode: {
+    default: 'default',
+    insensitive: 'insensitive'
+  };
+
+  export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
   export const certificatesOrderByRelevanceFieldEnum: {
     template_url: 'template_url',
     font_color: 'font_color'
@@ -63489,23 +63514,6 @@ export namespace Prisma {
   };
 
   export type freezing_requestsOrderByRelevanceFieldEnum = (typeof freezing_requestsOrderByRelevanceFieldEnum)[keyof typeof freezing_requestsOrderByRelevanceFieldEnum]
-
-
-  export const JsonNullValueFilter: {
-    DbNull: typeof DbNull,
-    JsonNull: typeof JsonNull,
-    AnyNull: typeof AnyNull
-  };
-
-  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
-
-
-  export const QueryMode: {
-    default: 'default',
-    insensitive: 'insensitive'
-  };
-
-  export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
   export const ielts_registrationsOrderByRelevanceFieldEnum: {
@@ -63947,6 +63955,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
    * Reference to a field of type 'course_work_status'
    */
   export type Enumcourse_work_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'course_work_status'>
@@ -63978,20 +64000,6 @@ export namespace Prisma {
    * Reference to a field of type 'freezing_requests_status'
    */
   export type Enumfreezing_requests_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'freezing_requests_status'>
-    
-
-
-  /**
-   * Reference to a field of type 'Json'
-   */
-  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-  /**
-   * Reference to a field of type 'QueryMode'
-   */
-  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -65168,6 +65176,7 @@ export namespace Prisma {
     name_y?: IntNullableFilter<"certificates"> | number | null
     font_size?: IntNullableFilter<"certificates"> | number | null
     font_color?: StringNullableFilter<"certificates"> | string | null
+    fields_config?: JsonNullableFilter<"certificates">
     created_at?: DateTimeNullableFilter<"certificates"> | Date | string | null
     updated_at?: DateTimeNullableFilter<"certificates"> | Date | string | null
     uploader_id?: IntNullableFilter<"certificates"> | number | null
@@ -65183,6 +65192,7 @@ export namespace Prisma {
     name_y?: SortOrderInput | SortOrder
     font_size?: SortOrderInput | SortOrder
     font_color?: SortOrderInput | SortOrder
+    fields_config?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     updated_at?: SortOrderInput | SortOrder
     uploader_id?: SortOrderInput | SortOrder
@@ -65203,6 +65213,7 @@ export namespace Prisma {
     name_y?: IntNullableFilter<"certificates"> | number | null
     font_size?: IntNullableFilter<"certificates"> | number | null
     font_color?: StringNullableFilter<"certificates"> | string | null
+    fields_config?: JsonNullableFilter<"certificates">
     created_at?: DateTimeNullableFilter<"certificates"> | Date | string | null
     updated_at?: DateTimeNullableFilter<"certificates"> | Date | string | null
     uploader_id?: IntNullableFilter<"certificates"> | number | null
@@ -65218,6 +65229,7 @@ export namespace Prisma {
     name_y?: SortOrderInput | SortOrder
     font_size?: SortOrderInput | SortOrder
     font_color?: SortOrderInput | SortOrder
+    fields_config?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     updated_at?: SortOrderInput | SortOrder
     uploader_id?: SortOrderInput | SortOrder
@@ -65240,6 +65252,7 @@ export namespace Prisma {
     name_y?: IntNullableWithAggregatesFilter<"certificates"> | number | null
     font_size?: IntNullableWithAggregatesFilter<"certificates"> | number | null
     font_color?: StringNullableWithAggregatesFilter<"certificates"> | string | null
+    fields_config?: JsonNullableWithAggregatesFilter<"certificates">
     created_at?: DateTimeNullableWithAggregatesFilter<"certificates"> | Date | string | null
     updated_at?: DateTimeNullableWithAggregatesFilter<"certificates"> | Date | string | null
     uploader_id?: IntNullableWithAggregatesFilter<"certificates"> | number | null
@@ -70180,6 +70193,7 @@ export namespace Prisma {
     name_y?: number | null
     font_size?: number | null
     font_color?: string | null
+    fields_config?: NullableJsonNullValueInput | InputJsonValue
     created_at?: Date | string | null
     updated_at?: Date | string | null
     uploader_id?: number | null
@@ -70195,6 +70209,7 @@ export namespace Prisma {
     name_y?: number | null
     font_size?: number | null
     font_color?: string | null
+    fields_config?: NullableJsonNullValueInput | InputJsonValue
     created_at?: Date | string | null
     updated_at?: Date | string | null
     uploader_id?: number | null
@@ -70209,6 +70224,7 @@ export namespace Prisma {
     name_y?: NullableIntFieldUpdateOperationsInput | number | null
     font_size?: NullableIntFieldUpdateOperationsInput | number | null
     font_color?: NullableStringFieldUpdateOperationsInput | string | null
+    fields_config?: NullableJsonNullValueInput | InputJsonValue
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     uploader_id?: NullableIntFieldUpdateOperationsInput | number | null
@@ -70224,6 +70240,7 @@ export namespace Prisma {
     name_y?: NullableIntFieldUpdateOperationsInput | number | null
     font_size?: NullableIntFieldUpdateOperationsInput | number | null
     font_color?: NullableStringFieldUpdateOperationsInput | string | null
+    fields_config?: NullableJsonNullValueInput | InputJsonValue
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     uploader_id?: NullableIntFieldUpdateOperationsInput | number | null
@@ -70239,6 +70256,7 @@ export namespace Prisma {
     name_y?: number | null
     font_size?: number | null
     font_color?: string | null
+    fields_config?: NullableJsonNullValueInput | InputJsonValue
     created_at?: Date | string | null
     updated_at?: Date | string | null
     uploader_id?: number | null
@@ -70252,6 +70270,7 @@ export namespace Prisma {
     name_y?: NullableIntFieldUpdateOperationsInput | number | null
     font_size?: NullableIntFieldUpdateOperationsInput | number | null
     font_color?: NullableStringFieldUpdateOperationsInput | string | null
+    fields_config?: NullableJsonNullValueInput | InputJsonValue
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     uploader_id?: NullableIntFieldUpdateOperationsInput | number | null
@@ -70266,6 +70285,7 @@ export namespace Prisma {
     name_y?: NullableIntFieldUpdateOperationsInput | number | null
     font_size?: NullableIntFieldUpdateOperationsInput | number | null
     font_color?: NullableStringFieldUpdateOperationsInput | string | null
+    fields_config?: NullableJsonNullValueInput | InputJsonValue
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     uploader_id?: NullableIntFieldUpdateOperationsInput | number | null
@@ -75475,6 +75495,29 @@ export namespace Prisma {
     notIn?: $Enums.certificates_target_type[]
     not?: NestedEnumcertificates_target_typeFilter<$PrismaModel> | $Enums.certificates_target_type
   }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type Issued_certificatesListRelationFilter = {
     every?: issued_certificatesWhereInput
@@ -75506,6 +75549,7 @@ export namespace Prisma {
     name_y?: SortOrder
     font_size?: SortOrder
     font_color?: SortOrder
+    fields_config?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     uploader_id?: SortOrder
@@ -75565,6 +75609,32 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumcertificates_target_typeFilter<$PrismaModel>
     _max?: NestedEnumcertificates_target_typeFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type class_schedulesOrderByRelevanceInput = {
@@ -76407,29 +76477,6 @@ export namespace Prisma {
     _min?: NestedEnumfreezing_requests_statusNullableFilter<$PrismaModel>
     _max?: NestedEnumfreezing_requests_statusNullableFilter<$PrismaModel>
   }
-  export type JsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
 
   export type ielts_registrationsOrderByRelevanceInput = {
     fields: ielts_registrationsOrderByRelevanceFieldEnum | ielts_registrationsOrderByRelevanceFieldEnum[]
@@ -76489,32 +76536,6 @@ export namespace Prisma {
   export type ielts_registrationsSumOrderByAggregateInput = {
     id?: SortOrder
     age?: SortOrder
-  }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type Enumissued_certificates_target_typeFilter<$PrismaModel = never> = {
@@ -81693,6 +81714,29 @@ export namespace Prisma {
     _min?: NestedEnumcertificates_target_typeFilter<$PrismaModel>
     _max?: NestedEnumcertificates_target_typeFilter<$PrismaModel>
   }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type NestedEnumcourse_work_statusNullableFilter<$PrismaModel = never> = {
     equals?: $Enums.course_work_status | Enumcourse_work_statusFieldRefInput<$PrismaModel> | null
@@ -81777,29 +81821,6 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumfreezing_requests_statusNullableFilter<$PrismaModel>
     _max?: NestedEnumfreezing_requests_statusNullableFilter<$PrismaModel>
-  }
-  export type NestedJsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<NestedJsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type NestedEnumissued_certificates_target_typeFilter<$PrismaModel = never> = {
@@ -84746,6 +84767,7 @@ export namespace Prisma {
     name_y?: number | null
     font_size?: number | null
     font_color?: string | null
+    fields_config?: NullableJsonNullValueInput | InputJsonValue
     created_at?: Date | string | null
     updated_at?: Date | string | null
     uploader_id?: number | null
@@ -84760,6 +84782,7 @@ export namespace Prisma {
     name_y?: number | null
     font_size?: number | null
     font_color?: string | null
+    fields_config?: NullableJsonNullValueInput | InputJsonValue
     created_at?: Date | string | null
     updated_at?: Date | string | null
     uploader_id?: number | null
@@ -84789,6 +84812,7 @@ export namespace Prisma {
     name_y?: NullableIntFieldUpdateOperationsInput | number | null
     font_size?: NullableIntFieldUpdateOperationsInput | number | null
     font_color?: NullableStringFieldUpdateOperationsInput | string | null
+    fields_config?: NullableJsonNullValueInput | InputJsonValue
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     uploader_id?: NullableIntFieldUpdateOperationsInput | number | null
@@ -84803,6 +84827,7 @@ export namespace Prisma {
     name_y?: NullableIntFieldUpdateOperationsInput | number | null
     font_size?: NullableIntFieldUpdateOperationsInput | number | null
     font_color?: NullableStringFieldUpdateOperationsInput | string | null
+    fields_config?: NullableJsonNullValueInput | InputJsonValue
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     uploader_id?: NullableIntFieldUpdateOperationsInput | number | null

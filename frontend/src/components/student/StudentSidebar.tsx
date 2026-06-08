@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useLogoutMutation } from "@/lib/api/authApi";
 import { useGetAnnouncementsQuery } from "@/lib/api/announcementApi";
+import { usePortalNavFeedback } from "@/hooks/usePortalNavFeedback";
 import { useState, useEffect } from "react";
 
 // Course-related paths that should show My Courses menu
@@ -30,8 +31,12 @@ export default function StudentSidebar({ isApproved, isPaid = true, isTestExpire
   const router = useRouter();
   const [logout] = useLogoutMutation();
   const [showMyCourses, setShowMyCourses] = useState(false);
+  const { activePath, handleNavClick } = usePortalNavFeedback(pathname, onClose);
 
-  const { data: announcements } = useGetAnnouncementsQuery();
+  const { data: announcements } = useGetAnnouncementsQuery(undefined, {
+    pollingInterval: 0,
+    refetchOnMountOrArgChange: false,
+  });
   const [hasNewUpdates, setHasNewUpdates] = useState(false);
 
   // Check for new updates
@@ -70,9 +75,9 @@ export default function StudentSidebar({ isApproved, isPaid = true, isTestExpire
 
   const isActive = (href) => {
     if (href === "/portal/student") {
-      return pathname === href;
+      return activePath === href;
     }
-    return pathname?.startsWith(href);
+    return activePath?.startsWith(href);
   };
 
   const handleLogout = async () => {
@@ -91,7 +96,7 @@ export default function StudentSidebar({ isApproved, isPaid = true, isTestExpire
 
   // Helper function for menu item classes
   const getMenuItemClasses = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
+    const active = exact ? (activePath === href) : isActive(href);
     return `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
       ? 'text-white font-semibold'
       : 'text-gray-100 hover:bg-white/10 hover:text-white'
@@ -100,17 +105,17 @@ export default function StudentSidebar({ isApproved, isPaid = true, isTestExpire
 
   // Helper function to get active background style for main menu items
   const getActiveStyle = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
+    const active = exact ? (activePath === href) : isActive(href);
     return active ? { backgroundColor: '#f40606' } : {};
   };
 
   const getIconClasses = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
+    const active = exact ? (activePath === href) : isActive(href);
     return `w-5 h-5 ${active ? 'text-white' : 'text-gray-100'}`;
   };
 
   const getTextClasses = (href, exact = false) => {
-    const active = exact ? (pathname === href) : isActive(href);
+    const active = exact ? (activePath === href) : isActive(href);
     return `font-medium text-sm ${active ? 'text-white' : 'text-gray-100'}`;
   };
 
@@ -142,7 +147,7 @@ export default function StudentSidebar({ isApproved, isPaid = true, isTestExpire
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 overflow-y-auto py-2 px-2">
+      <nav className="flex-1 overflow-y-auto py-2 px-2" onClick={handleNavClick}>
         {showMyCourses ? (
           /* My Courses Submenu */
           <ul className="space-y-0.5">

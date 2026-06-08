@@ -23,6 +23,7 @@ export const authApi = createApi({
     },
   }),
   tagTypes: ["Auth"],
+  keepUnusedDataFor: 3600,
   endpoints: (builder) => ({
     // LOGIN
     login: builder.mutation({
@@ -47,6 +48,7 @@ export const authApi = createApi({
     getCurrentUser: builder.query<any, void>({
       query: () => "/me",
       providesTags: ["Auth"],
+      keepUnusedDataFor: 3600,
       transformResponse: (response: any) => {
         if (response.success) {
           // Update localStorage with fresh user data

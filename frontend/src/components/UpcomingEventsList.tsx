@@ -40,7 +40,7 @@ const UpcomingEventsList = () => {
         : [];
 
     return (
-        <div className={`p-6 rounded-xl shadow-md border flex flex-col h-[500px] ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-100'}`}>
+        <div className={`p-4 sm:p-6 rounded-xl shadow-md border flex flex-col h-full w-full min-h-[420px] ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-100'}`}>
             <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-[#010080]'}`}>
                 <span>📅</span> Upcoming Events & News
             </h3>

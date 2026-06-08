@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function PopularCourses() {
   const [isVisible, setIsVisible] = useState(false);
@@ -67,9 +68,9 @@ export default function PopularCourses() {
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
-            <a href="/website/programs" className="text-gray-800 font-semibold hover:underline text-xs sm:text-sm md:text-base border border-purple-300 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap hover:bg-purple-50 transition-colors self-start sm:self-auto">
+            <Link href="/website/programs" className="text-gray-800 font-semibold hover:underline text-xs sm:text-sm md:text-base border border-purple-300 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap hover:bg-purple-50 transition-colors self-start sm:self-auto">
               → View all courses
-            </a>
+            </Link>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">

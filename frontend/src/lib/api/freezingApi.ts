@@ -18,7 +18,7 @@ export const freezingApi = createApi({
     endpoints: (builder) => ({
         createFreezingRequest: builder.mutation({
             query: (data) => ({
-                url: '/freezing-requests/create',
+                url: '/freezing-requests',
                 method: 'POST',
                 body: data,
             }),
@@ -34,7 +34,7 @@ export const freezingApi = createApi({
         }),
         updateFreezingRequestStatus: builder.mutation({
             query: ({ id, ...body }) => ({
-                url: `/freezing-requests/status/${id}`,
+                url: `/freezing-requests/${id}/status`,
                 method: 'PATCH',
                 body,
             }),

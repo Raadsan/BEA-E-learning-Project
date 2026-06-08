@@ -8,6 +8,9 @@ import {
   useGetStudentPlacementResultsQuery
 } from "@/lib/api/placementTestApi";
 import { useSendTestReminderEmailMutation } from "@/lib/api/notificationApi";
+import { ensureQuestionNumbers } from "@/utils/testQuestions";
+
+const PLACEMENT_MAX_PART = 4;
 
 export default function TakePlacementTestPage() {
   const router = useRouter();
@@ -36,6 +39,7 @@ export default function TakePlacementTestPage() {
     if (!test) return [];
     let fetchedQuestions = typeof test.questions === "string" ? JSON.parse(test.questions) : test.questions;
     if (!Array.isArray(fetchedQuestions)) return [];
+    fetchedQuestions = ensureQuestionNumbers(fetchedQuestions, PLACEMENT_MAX_PART);
 
     // Deterministic shuffle helper
     const deterministicShuffle = (array, seed) => {
@@ -161,8 +165,15 @@ export default function TakePlacementTestPage() {
         answers: answers,
       }).unwrap();
       router.push(`/portal/student/placement-test/results?id=${result.id}`);
-    } catch (err) {
-      alert("Failed to submit. Please try again.");
+    } catch (err: any) {
+      const message =
+        err?.data?.error ||
+        (err?.status === 400 && err?.data?.result ? "You have already submitted this test." : null) ||
+        "Failed to submit. Please try again.";
+      alert(message);
+      if (err?.data?.result?.id) {
+        router.push(`/portal/student/placement-test/results?id=${err.data.result.id}`);
+      }
     }
     setShowSubmitModal(false);
   };
@@ -180,7 +191,7 @@ export default function TakePlacementTestPage() {
   // For passages, we might want to stay on the same "Question X" or indicate sub-step.
   // Let's keep "Question X of Y" referring to the MAIN questions for simplicity, 
   // maybe add "Sub-question A of B" logic if needed, but for now strict to main.
-  const currentQuestionInPartIdx = currentPartQuestions.findIndex(q => q.id === currentQ.id) + 1;
+  const storedQuestionNumber = currentQ?.questionNumber;
 
   const handleNext = () => {
     // PASSAGE SUB-QUESTION NAVIGATION
@@ -264,14 +275,16 @@ export default function TakePlacementTestPage() {
         <div className="bg-white p-10 rounded-xl border border-gray-200 min-h-[450px] shadow-sm">
           <div className="flex justify-between items-center mb-10 pb-4 border-b">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-              Part {currentPart}: Question {currentQuestionInPartIdx} of {currentPartQuestions.length}
+              Part {currentPart}: Question {storedQuestionNumber} of {currentPartQuestions.length}
             </span>
             <span className="text-[10px] font-bold text-[#010080] bg-blue-50 px-3 py-1 rounded uppercase">{currentQ?.type}</span>
           </div>
 
           {currentQ?.type === "mcq" && (
             <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-gray-800 leading-relaxed">{currentQ.questionText}</h2>
+              <h2 className="text-lg font-semibold text-gray-800 leading-relaxed">
+                {storedQuestionNumber}: {currentQ.questionText}
+              </h2>
               <div className="space-y-3 pt-2">
                 {currentQ.options.map((opt, i) => (
                   <label key={i} className={`flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${answers[currentQ.id] === opt ? 'border-[#010080] bg-blue-50/20' : 'border-gray-100 hover:border-gray-200'}`}>
@@ -298,7 +311,7 @@ export default function TakePlacementTestPage() {
                   return (
                     <div key={currentSubQuestionIdx} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                       <p className="text-base font-semibold text-gray-900">
-                        {currentSubQuestionIdx + 1}. {sq.questionText}
+                        {sq.questionNumber || currentSubQuestionIdx + 1}: {sq.questionText}
                       </p>
                       <div className="space-y-2">
                         {sq.options.map((opt, oi) => (
@@ -329,7 +342,7 @@ export default function TakePlacementTestPage() {
 
           {currentQ?.type === "essay" && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">{currentQ.title}</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{storedQuestionNumber}: {currentQ.title}</h2>
               <p className="text-sm text-gray-600 font-medium leading-relaxed">{currentQ.description}</p>
               <textarea
                 value={answers[currentQ.id] || ""}

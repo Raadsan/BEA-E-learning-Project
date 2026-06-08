@@ -8,6 +8,7 @@ router.use(verifyToken);
 
 router.post("/", createRequest);
 router.get("/my", getMyRequests);
+router.get("/my-requests", getMyRequests);
 router.get("/", isAdmin, getAllRequests);
 router.patch("/:id/status", isAdmin, updateRequestStatus);
 

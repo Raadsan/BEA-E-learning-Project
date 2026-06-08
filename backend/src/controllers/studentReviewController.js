@@ -13,6 +13,13 @@ export const submitStudentReview = async (req, res) => {
         res.status(201).json(review);
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
+export const getTeacherSubmittedReviews = async (req, res) => {
+    try {
+        const teacher_id = String(req.user.userId);
+        const reviews = await prisma.student_reviews.findMany({ where: { teacher_id } });
+        res.json(reviews);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+};
 
 export const getStudentReviews = async (req, res) => {
     try {

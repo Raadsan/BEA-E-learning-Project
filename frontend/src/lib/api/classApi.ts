@@ -15,6 +15,7 @@ export const classApi = createApi({
     },
   }),
   tagTypes: ["Classes", "ClassSchedules"],
+  keepUnusedDataFor: 600,
   endpoints: (builder) => ({
     getClasses: builder.query<any, void>({
       query: () => "/",
@@ -61,11 +62,14 @@ export const classApi = createApi({
       providesTags: ["ClassSchedules"],
     }),
     createClassSchedule: builder.mutation({
-      query: ({ classId, ...body }) => ({
-        url: `/${classId}/schedules`,
-        method: "POST",
-        body,
-      }),
+      query: (arg) => {
+        const { classId, schedules, ...body } = arg;
+        return {
+          url: `/${classId}/schedules`,
+          method: "POST",
+          body: Array.isArray(schedules) ? schedules : body,
+        };
+      },
       invalidatesTags: (result, error, { classId }) => [
         { type: "ClassSchedules", id: classId },
         "ClassSchedules",

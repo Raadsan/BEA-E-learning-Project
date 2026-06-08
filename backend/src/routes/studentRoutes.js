@@ -2,7 +2,7 @@ import express from "express";
 import {
   createStudent, getStudents, getStudent, updateStudent, deleteStudent,
   approveStudent, rejectStudent, extendStudentDeadline, getSexDistribution, getStudentLocations,
-  getTopStudents
+  getTopStudents, getStudentsByClass, getMyClasses, getStudentProgress
 } from "../controllers/studentController.js";
 import { verifyToken } from "../controllers/authController.js";
 import { upload } from "../controllers/uploadController.js";
@@ -16,6 +16,9 @@ router.get("/", getStudents);
 router.get("/sex-distribution", verifyToken, getSexDistribution);
 router.get("/locations", verifyToken, getStudentLocations);
 router.get("/top-students", verifyToken, getTopStudents);
+router.get("/my-classes", verifyToken, getMyClasses);
+router.get("/progress", verifyToken, getStudentProgress);
+router.get("/class/:classId", getStudentsByClass);
 
 router.patch("/:id/approve", approveStudent);
 router.patch("/:id/reject", rejectStudent);

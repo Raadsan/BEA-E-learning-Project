@@ -31,7 +31,7 @@ router.put("/update/:id", isTeacherOrAdmin, updateAssignment);
 router.delete("/delete/:id", isTeacherOrAdmin, deleteAssignment);
 
 router.post("/submit", upload.single("file"), submitAssignment);
-router.patch("/grade/:id", isTeacherOrAdmin, gradeSubmission);
-router.put("/grade/:id", isTeacherOrAdmin, gradeSubmission);
+router.patch("/grade/:id", isTeacherOrAdmin, upload.single("feedbackFile"), gradeSubmission);
+router.put("/grade/:id", isTeacherOrAdmin, upload.single("feedbackFile"), gradeSubmission);
 
 export default router;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 
 import DataTable from "@/components/DataTable";
 import { useGetStudentsQuery, useCreateStudentMutation, useUpdateStudentMutation, useDeleteStudentMutation, useApproveStudentMutation, useRejectStudentMutation } from "@/lib/api/studentApi";
@@ -18,16 +19,14 @@ import {
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL, API_URL } from "@/constants";
-import { Country, City } from "country-state-city";
 
-// Extracted Components
-import StudentForm from "@/components/admin/students/StudentForm";
-import StudentViewModal from "@/components/admin/students/StudentViewModal";
-import StudentApprovalModal from "@/components/admin/students/StudentApprovalModal";
-import SubprogramsModal from "@/components/admin/students/SubprogramsModal";
-import AssignClassModal from "@/components/admin/students/AssignClassModal";
-import AssignSubprogramModal from "@/components/admin/students/AssignSubprogramModal";
-import ConfirmationModal from "@/components/ConfirmationModal";
+const StudentForm = dynamic(() => import("@/components/admin/students/StudentForm"), { ssr: false });
+const StudentViewModal = dynamic(() => import("@/components/admin/students/StudentViewModal"), { ssr: false });
+const StudentApprovalModal = dynamic(() => import("@/components/admin/students/StudentApprovalModal"), { ssr: false });
+const SubprogramsModal = dynamic(() => import("@/components/admin/students/SubprogramsModal"), { ssr: false });
+const AssignClassModal = dynamic(() => import("@/components/admin/students/AssignClassModal"), { ssr: false });
+const AssignSubprogramModal = dynamic(() => import("@/components/admin/students/AssignSubprogramModal"), { ssr: false });
+const ConfirmationModal = dynamic(() => import("@/components/ConfirmationModal"), { ssr: false });
 
 export default function StudentsPage() {
     const { isDark } = useDarkMode();
@@ -84,7 +83,8 @@ export default function StudentsPage() {
     const { data: programs = [] } = useGetProgramsQuery();
     const { data: allSubprograms = [] } = useGetSubprogramsQuery();
     const { data: classes = [] } = useGetClassesQuery();
-    const { data: paymentPackages = [] } = useGetPaymentPackagesQuery();
+    const needsFormData = isModalOpen || isViewModalOpen;
+    const { data: paymentPackages = [] } = useGetPaymentPackagesQuery(undefined, { skip: !needsFormData });
 
     // Mutations
     const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
@@ -98,19 +98,38 @@ export default function StudentsPage() {
     const [rejectIeltsStudent, { isLoading: isRejectingIelts }] = useRejectIeltsToeflStudentMutation();
     const [createIeltsStudent, { isLoading: isCreatingIelts }] = useCreateIeltsToeflStudentMutation();
 
-    // Helper values
-    const cities = (() => {
-        if (!formData.residency_country) return [];
-        const country = Country.getAllCountries().find(c => c.name === formData.residency_country);
-        return country ? City.getCitiesOfCountry(country.isoCode) : [];
-    })();
-
-    const parentCities = (() => {
-        if (!formData.parent_res_county) return [];
-        const country = Country.getAllCountries().find(c => c.name === formData.parent_res_county);
-        return country ? City.getCitiesOfCountry(country.isoCode) : [];
-    })();
     const showParentInfo = formData.age && parseInt(formData.age) < 18;
+
+    const getStudentProgram = (student) => {
+        if (!student) return null;
+        const programName = student.chosen_program || student.exam_type;
+        if (!programName) return null;
+        return programs.find(
+            (p) => p.title === programName || p.title?.toLowerCase() === programName?.toLowerCase()
+        ) || null;
+    };
+
+    const getSubprogramsForStudentProgram = (student) => {
+        const program = getStudentProgram(student);
+        if (!program) return [];
+        return allSubprograms.filter((sp) => sp.program_id === program.id);
+    };
+
+    const getClassesForStudentProgram = (student) => {
+        const subprogramIds = getSubprogramsForStudentProgram(student).map((sp) => sp.id);
+        if (subprogramIds.length > 0) {
+            return classes.filter((cls) => subprogramIds.includes(cls.subprogram_id));
+        }
+
+        const programName = student?.chosen_program || student?.exam_type;
+        if (!programName) return [];
+
+        return classes.filter(
+            (cls) =>
+                cls.program_name === programName ||
+                cls.program_name?.toLowerCase() === programName?.toLowerCase()
+        );
+    };
 
     // Filter States
     const [selectedProgram, setSelectedProgram] = useState("");
@@ -705,27 +724,30 @@ export default function StudentsPage() {
                 />
             </main>
 
-            <StudentForm
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                editingStudent={editingStudent}
-                formData={formData}
-                handleInputChange={handleInputChange}
-                setFormData={setFormData}
-                handleSubmit={handleSubmit}
-                isDark={isDark}
-                programs={programs}
-                paymentPackages={paymentPackages}
-                cities={cities}
-                showParentInfo={showParentInfo}
-                parentCities={parentCities}
-                viewingPayments={viewingPayments}
-                isUpdating={isUpdating}
-                isUpdatingIelts={isUpdatingIelts}
-                isCreatingIelts={isCreatingIelts}
-                isCreating={isCreating}
-            />
-            <StudentViewModal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} viewingStudent={viewingStudent} viewingPayments={viewingPayments} isDark={isDark} />
+            {isModalOpen && (
+                <StudentForm
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    editingStudent={editingStudent}
+                    formData={formData}
+                    handleInputChange={handleInputChange}
+                    setFormData={setFormData}
+                    handleSubmit={handleSubmit}
+                    isDark={isDark}
+                    programs={programs}
+                    paymentPackages={paymentPackages}
+                    showParentInfo={showParentInfo}
+                    viewingPayments={viewingPayments}
+                    isUpdating={isUpdating}
+                    isUpdatingIelts={isUpdatingIelts}
+                    isCreatingIelts={isCreatingIelts}
+                    isCreating={isCreating}
+                />
+            )}
+            {isViewModalOpen && (
+                <StudentViewModal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} viewingStudent={viewingStudent} viewingPayments={viewingPayments} isDark={isDark} />
+            )}
+            {isApprovalModalOpen && (
             <StudentApprovalModal
                 isOpen={isApprovalModalOpen}
                 onClose={() => { setIsApprovalModalOpen(false); setStudentToApprove(null); setSelectedClassId(""); }}
@@ -735,12 +757,18 @@ export default function StudentsPage() {
                 isApproving={isApproving}
                 isRejecting={isRejecting}
                 isDark={isDark}
-                classes={classes}
+                classes={getClassesForStudentProgram(studentToApprove)}
+                subprograms={getSubprogramsForStudentProgram(studentToApprove)}
                 selectedClassId={selectedClassId}
                 setSelectedClassId={setSelectedClassId}
             />
-            <AssignClassModal isOpen={isAssignClassModalOpen} onClose={() => setIsAssignClassModalOpen(false)} assigningStudent={assigningStudent} selectedClassId={selectedClassId} setSelectedClassId={setSelectedClassId} handleSubmit={handleAssignClassSubmit} isUpdating={isUpdating} isUpdatingIelts={isUpdatingIelts} classes={classes} isDark={isDark} />
-            <AssignSubprogramModal isOpen={isAssignSubprogramModalOpen} onClose={() => setIsAssignSubprogramModalOpen(false)} assigningStudent={assigningStudent} programs={programs} allSubprograms={allSubprograms} handleSubmit={handleAssignSubprogramSubmit} isUpdating={isUpdating} isDark={isDark} />
+            )}
+            {isAssignClassModalOpen && (
+                <AssignClassModal isOpen={isAssignClassModalOpen} onClose={() => setIsAssignClassModalOpen(false)} assigningStudent={assigningStudent} selectedClassId={selectedClassId} setSelectedClassId={setSelectedClassId} handleSubmit={handleAssignClassSubmit} isUpdating={isUpdating} isUpdatingIelts={isUpdatingIelts} classes={getClassesForStudentProgram(assigningStudent)} isDark={isDark} />
+            )}
+            {isAssignSubprogramModalOpen && (
+                <AssignSubprogramModal isOpen={isAssignSubprogramModalOpen} onClose={() => setIsAssignSubprogramModalOpen(false)} assigningStudent={assigningStudent} programs={programs} allSubprograms={allSubprograms} handleSubmit={handleAssignSubprogramSubmit} isUpdating={isUpdating} isDark={isDark} />
+            )}
             {isSubprogramsModalOpen && <SubprogramsModal program={selectedProgramForSubprograms} onClose={() => setIsSubprogramsModalOpen(false)} isDark={isDark} />}
 
             {/* Bulk Actions Modal */}
@@ -842,16 +870,18 @@ export default function StudentsPage() {
                 </div>
             )}
 
-            <ConfirmationModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={handleConfirmDelete}
-                title="Delete Student"
-                message={`Are you sure you want to delete ${studentToDelete?.full_name}? This action cannot be undone.`}
-                confirmText="Delete"
-                isDanger={true}
-                isLoading={isDeleting || isDeletingIelts}
-            />
+            {isDeleteModalOpen && (
+                <ConfirmationModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => setIsDeleteModalOpen(false)}
+                    onConfirm={handleConfirmDelete}
+                    title="Delete Student"
+                    message={`Are you sure you want to delete ${studentToDelete?.full_name}? This action cannot be undone.`}
+                    confirmText="Delete"
+                    isDanger={true}
+                    isLoading={isDeleting || isDeletingIelts}
+                />
+            )}
         </>
     );
 }

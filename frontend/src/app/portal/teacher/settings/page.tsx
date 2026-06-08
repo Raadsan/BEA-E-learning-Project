@@ -138,10 +138,10 @@ export default function TeacherSettingsPage() {
       <div className="w-full">
         {/* Header */}
         <div className="mb-12">
-          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className="text-4xl font-bold mb-4 tracking-tight text-gray-900 dark:text-white">
             Teacher Settings
           </h1>
-          <p className={`text-lg font-medium opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className="text-lg font-medium text-gray-500 dark:text-gray-400 mt-1">
             Manage your teacher profile and change your password
           </p>
         </div>

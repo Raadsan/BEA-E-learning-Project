@@ -28,7 +28,7 @@ export const sessionRequestApi = createApi({
             providesTags: ['SessionRequest'],
         }),
         getMySessionRequests: builder.query({
-            query: () => '/session-requests/my-requests',
+            query: () => '/session-requests/my',
             providesTags: ['SessionRequest'],
         }),
         updateSessionRequestStatus: builder.mutation({

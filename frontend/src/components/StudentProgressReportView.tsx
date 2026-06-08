@@ -20,6 +20,7 @@ import {
     BriefcaseIcon
 } from "@heroicons/react/24/outline";
 import DataTable from "./DataTable";
+import { parseCefrFromSubprogram } from "@/utils/cefr";
 
 const BRAND_COLOR = "#010080";
 const ACCENT_RED = "#f40606";
@@ -54,18 +55,9 @@ const StudentProgressReportView = ({
     const attendanceRate = summary?.attendance_rate || 0;
     const overallGPA = summary?.overall_gpa || 0;
 
-    // CEFR Mapping
-    const getCEFRLevel = (score) => {
-        if (score >= 95) return { level: "C2", desc: "Proficient" };
-        if (score >= 90) return { level: "C1", desc: "Advanced" };
-        if (score >= 85) return { level: "B2", desc: "Upper Intermediate" };
-        if (score >= 75) return { level: "B1", desc: "Intermediate" };
-        if (score >= 60) return { level: "A2+", desc: "Pre-Intermediate" };
-        if (score >= 50) return { level: "A2", desc: "Elementary" };
-        return { level: "A1", desc: "Beginner" };
-    };
-
-    const cefr = getCEFRLevel(overallGPA);
+    const cefr = parseCefrFromSubprogram(
+        student?.subprogram_name || summary?.cefr_level
+    );
 
 
     const ledgerColumns = [
@@ -243,7 +235,7 @@ const StudentProgressReportView = ({
                         </div>
 
                         <h4 className={`text-base font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{cefr.level} - {cefr.desc}</h4>
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">ESTIMATED PROFICIENCY</p>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">COURSE LEVEL</p>
                     </div>
 
                     {/* Skill Performance Card */}

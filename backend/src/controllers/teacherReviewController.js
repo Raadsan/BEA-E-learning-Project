@@ -80,8 +80,12 @@ export const getTeachersToReview = async (req, res) => {
         const student_id = req.user.userId;
         const student = await prisma.students.findUnique({ where: { student_id } });
         if (!student?.class_id) return res.status(404).json({ error: 'Student class not found' });
-        const cls = await prisma.classes.findUnique({ where: { id: student.class_id }, include: { teachers: true } });
-        res.json(cls?.teachers ? [cls.teachers] : []);
+        const cls = await prisma.classes.findUnique({
+            where: { id: student.class_id },
+            include: { teachers: true },
+        });
+        if (!cls?.teachers) return res.json([]);
+        res.json([cls.teachers]);
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
 

@@ -33,7 +33,7 @@ export const levelUpApi = createApi({
             providesTags: ['LevelUpRequest'],
         }),
         checkLevelUpEligibility: builder.query({
-            query: () => '/check-eligibility',
+            query: () => '/eligibility',
             providesTags: ['LevelUpRequest'],
         }),
         updateLevelUpRequestStatus: builder.mutation({

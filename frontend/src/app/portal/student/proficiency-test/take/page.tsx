@@ -12,6 +12,9 @@ import {
 } from "@/lib/api/proficiencyTestApi";
 import { useGetIeltsToeflStudentQuery } from "@/lib/api/ieltsToeflApi";
 import { useSendTestReminderEmailMutation } from "@/lib/api/notificationApi";
+import { ensureQuestionNumbers } from "@/utils/testQuestions";
+
+const PROFICIENCY_MAX_PART = 5;
 
 export default function TakeProficiencyTestPage() {
     const { isDark } = useDarkMode();
@@ -41,6 +44,7 @@ export default function TakeProficiencyTestPage() {
         if (!test) return [];
         let fetchedQuestions = typeof test.questions === "string" ? JSON.parse(test.questions) : test.questions;
         if (!Array.isArray(fetchedQuestions)) return [];
+        fetchedQuestions = ensureQuestionNumbers(fetchedQuestions, PROFICIENCY_MAX_PART);
 
         const deterministicShuffle = (array, seed) => {
             let m = array.length, t, i;
@@ -65,7 +69,7 @@ export default function TakeProficiencyTestPage() {
 
         const baseSeed = studentIdHash(user.id || user.student_id || "guest");
 
-        const parts = { 1: [], 2: [], 3: [], 4: [] };
+        const parts: Record<number, typeof fetchedQuestions> = { 1: [], 2: [], 3: [], 4: [], 5: [] };
         fetchedQuestions.forEach(q => {
             const p = q.part || 1;
             if (parts[p]) parts[p].push(q);
@@ -73,7 +77,7 @@ export default function TakeProficiencyTestPage() {
         });
 
         const shuffled = [];
-        [1, 2, 3, 4].forEach(p => {
+        [1, 2, 3, 4, 5].forEach(p => {
             if (parts[p].length > 0) {
                 const shuffledPart = deterministicShuffle([...parts[p]], baseSeed + p);
                 const finalPart = shuffledPart.map((q, idx) => {
@@ -178,7 +182,7 @@ export default function TakeProficiencyTestPage() {
     const isLast = currentQuestionIdx === questions.length - 1;
     const currentPart = currentQ.part || 1;
     const currentPartQuestions = questions.filter(q => (q.part || 1) === currentPart);
-    const currentQuestionInPartIdx = currentPartQuestions.findIndex(q => q.id === currentQ.id) + 1;
+    const storedQuestionNumber = currentQ?.questionNumber;
 
     const formatTime = (s) => {
         if (s === null) return "00:00:00";
@@ -197,10 +201,26 @@ export default function TakeProficiencyTestPage() {
             setCurrentSubQuestionIdx(prev => prev + 1);
             return;
         }
-        if (currentQuestionIdx < questions.length - 1) {
-            setCurrentQuestionIdx(prev => prev + 1);
-            setCurrentSubQuestionIdx(0);
+
+        const nextIdx = currentQuestionIdx + 1;
+        if (nextIdx >= questions.length) return;
+
+        const nextPart = questions[nextIdx].part || 1;
+        if (nextPart !== currentPart) {
+            const isComplete = currentPartQuestions.every(q => {
+                if (q.type === 'passage' && Array.isArray(q.subQuestions)) {
+                    return q.subQuestions.every(sq => answers[sq.id]);
+                }
+                return answers[q.id];
+            });
+            if (!isComplete) {
+                alert(`Please answer all questions in Part ${currentPart} before proceeding to Part ${nextPart}.`);
+                return;
+            }
         }
+
+        setCurrentQuestionIdx(nextIdx);
+        setCurrentSubQuestionIdx(0);
     };
 
     const handlePrevious = () => {
@@ -243,7 +263,7 @@ export default function TakeProficiencyTestPage() {
                     <div className="flex justify-between items-center mb-10 pb-4 border-b dark:border-gray-700">
                         <div className="flex flex-col gap-1">
                             <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-500 opacity-60">Part {currentPart}</span>
-                            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Question {currentQuestionInPartIdx} of {currentPartQuestions.length}</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Question {storedQuestionNumber} of {currentPartQuestions.length}</span>
                         </div>
                         <span className="text-[10px] font-bold px-3 py-1 rounded-full uppercase bg-blue-100 text-blue-600 self-start">
                             {currentQ.type === 'multiple_choice' ? 'MCQ' : currentQ.type.toUpperCase()}
@@ -253,7 +273,9 @@ export default function TakeProficiencyTestPage() {
                     <div className="flex-1">
                         {(currentQ.type === "mcq" || currentQ.type === "multiple_choice") && (
                             <div className="space-y-6">
-                                <h2 className={`text-xl font-semibold leading-relaxed mb-8 ${textColor}`}>{currentQ.questionText || currentQ.question}</h2>
+                                <h2 className={`text-xl font-semibold leading-relaxed mb-8 ${textColor}`}>
+                                    {storedQuestionNumber}: {currentQ.questionText || currentQ.question}
+                                </h2>
                                 <div className="space-y-4">
                                     {currentQ.options.map((opt, i) => (
                                         <label key={i} className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all cursor-pointer group ${answers[currentQ.id] === opt ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-900/20' : 'border-gray-50 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-800'}`}>
@@ -275,7 +297,7 @@ export default function TakeProficiencyTestPage() {
                                     if (!sq) return null;
                                     return (
                                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                            <h3 className={`text-lg font-bold ${textColor}`}>Q{currentSubQuestionIdx + 1}. {sq.questionText}</h3>
+                                            <h3 className={`text-lg font-bold ${textColor}`}>{sq.questionNumber || currentSubQuestionIdx + 1}: {sq.questionText}</h3>
                                             <div className="space-y-3">
                                                 {sq.options.map((opt, oi) => (
                                                     <label key={oi} className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${answers[sq.id] === opt ? 'border-blue-600 bg-blue-50/50' : 'border-gray-50 dark:border-gray-700 hover:border-blue-100'}`}>
@@ -293,7 +315,7 @@ export default function TakeProficiencyTestPage() {
 
                         {(currentQ.type === "essay" || currentQ.type === "audio") && (
                             <div className="space-y-6">
-                                <h2 className={`text-xl font-bold ${textColor}`}>{currentQ.title || "Subjective and Writing"}</h2>
+                                <h2 className={`text-xl font-bold ${textColor}`}>{storedQuestionNumber}: {currentQ.title || "Subjective and Writing"}</h2>
                                 {currentQ.type === "audio" && (
                                     <div className={`p-4 rounded-2xl flex items-center gap-4 ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
                                         <audio controls className="w-full h-10">

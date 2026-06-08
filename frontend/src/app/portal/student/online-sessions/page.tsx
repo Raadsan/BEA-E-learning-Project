@@ -62,6 +62,16 @@ export default function OnlineSessionsPage() {
     return "Scheduled";
   };
 
+  const getCleanTime = (timeStr) => {
+    if (!timeStr) return "";
+    const str = String(timeStr);
+    if (str.includes('T')) {
+      const parts = str.split('T')[1];
+      return parts ? parts.substring(0, 5) : "";
+    }
+    return str.substring(0, 5);
+  };
+
   const { upcomingSessions, pastSessions } = useMemo(() => {
     if (!schedulesData || schedulesData.length === 0 || !studentClass) {
       return { upcomingSessions: [], pastSessions: [] };
@@ -77,26 +87,28 @@ export default function OnlineSessionsPage() {
         : schedule.schedule_date;
 
       const [year, month, day] = dateStr.split('-').map(Number);
+      const cleanStartTime = getCleanTime(schedule.start_time);
+      const cleanEndTime = getCleanTime(schedule.end_time);
 
       let sessionEndDateTime = new Date(year, month - 1, day, 23, 59, 59);
-      if (schedule.end_time) {
-        const [endHours, endMinutes] = schedule.end_time.split(':').map(Number);
+      if (cleanEndTime) {
+        const [endHours, endMinutes] = cleanEndTime.split(':').map(Number);
         sessionEndDateTime = new Date(year, month - 1, day, endHours, endMinutes, 0);
-      } else if (schedule.start_time) {
-        const [startHours, startMinutes] = schedule.start_time.split(':').map(Number);
+      } else if (cleanStartTime) {
+        const [startHours, startMinutes] = cleanStartTime.split(':').map(Number);
         sessionEndDateTime = new Date(year, month - 1, day, startHours + 1, startMinutes, 0);
       }
 
       const sessionData = {
         id: schedule.id || schedule._id,
         date: dateStr,
-        startTime: schedule.start_time || "",
-        endTime: schedule.end_time || "",
+        startTime: cleanStartTime,
+        endTime: cleanEndTime,
         zoomLink: schedule.zoom_link,
         classId: schedule.class_id,
         className: studentClass.class_name || "Class",
         description: schedule.description || "",
-        status: getSessionStatus(dateStr, schedule.start_time || "", schedule.end_time || ""),
+        status: getSessionStatus(dateStr, cleanStartTime, cleanEndTime),
       };
 
       if (sessionEndDateTime >= now) {
@@ -167,7 +179,7 @@ export default function OnlineSessionsPage() {
 
   const formatTime = (timeString) => {
     if (!timeString) return "N/A";
-    return timeString.substring(0, 5);
+    return timeString;
   };
 
   if (loading) {

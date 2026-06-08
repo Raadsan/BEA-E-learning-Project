@@ -31,7 +31,7 @@ export default function TeacherNewsPage() {
         <div className={`min-h-screen ${isDark ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} transition-colors duration-200`}>
             <div className="w-full px-8 py-6">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold">News & Events</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">News & Events</h1>
                 </div>
 
                 {isLoading ? (

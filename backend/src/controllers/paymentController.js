@@ -125,3 +125,21 @@ export const getPayments = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// GET STUDENT PAYMENTS
+export const getStudentPayments = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const payments = await prisma.payments.findMany({
+            where: {
+                student_id: studentId
+            },
+            orderBy: { created_at: 'desc' }
+        });
+
+        res.json({ success: true, payments });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+

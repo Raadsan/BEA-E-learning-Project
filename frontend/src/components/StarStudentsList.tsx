@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useGetTopStudentsQuery } from '@/lib/api/studentApi';
 import DataTable from './DataTable';
+import { CHART_FILTER_SELECT_CLASS } from '@/components/dashboard/chartShared';
 
 const StarStudentsList = ({ programs = [], classes = [] }) => {
     const [selectedProgram, setSelectedProgram] = useState('');
@@ -79,11 +80,11 @@ const StarStudentsList = ({ programs = [], classes = [] }) => {
     ];
 
     const filters = (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <select
                 value={selectedProgram}
                 onChange={(e) => setSelectedProgram(e.target.value)}
-                className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                className={CHART_FILTER_SELECT_CLASS}
             >
                 <option value="">All Programs</option>
                 {programs.map((program) => (
@@ -93,12 +94,14 @@ const StarStudentsList = ({ programs = [], classes = [] }) => {
             <select
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                className={CHART_FILTER_SELECT_CLASS}
             >
                 <option value="">All Classes</option>
-                {classes.map((cls) => (
-                    <option key={cls.id} value={cls.id}>{cls.class_name}</option>
-                ))}
+                {classes
+                    .filter(cls => !selectedProgram || cls.program_id == selectedProgram)
+                    .map((cls) => (
+                        <option key={cls.id} value={cls.id}>{cls.class_name}</option>
+                    ))}
             </select>
         </div>
     );

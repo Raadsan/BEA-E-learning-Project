@@ -3,36 +3,47 @@
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useGetStudentLocationsQuery } from '@/lib/api/studentApi';
+import {
+    CHART_CARD_CLASS,
+    ChartCanvas,
+    ChartEmpty,
+    ChartError,
+    ChartFilterSelect,
+    ChartHeader,
+    ChartLoading,
+} from '@/components/dashboard/chartShared';
+import { getDynamicBarSize, useChartContainer } from '@/hooks/useChartContainer';
 
 const StudentLocationsMap = ({ programs = [], classes = [] }) => {
     const [selectedProgram, setSelectedProgram] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
+    const { ref: chartRef, width: chartWidth } = useChartContainer();
 
     const { data: locations = [], isLoading, isError } = useGetStudentLocationsQuery({
         program_id: selectedProgram || undefined,
         class_id: selectedClass || undefined
     });
 
-    // Sort locations by count desc and take top 10 for cleaner chart
     const chartData = [...locations]
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
 
+    const barSize = getDynamicBarSize(chartWidth, chartData.length || 1, 1);
+    const yAxisWidth = Math.min(140, Math.max(72, ...chartData.map((d) => (d.country?.length || 0) * 7)));
+
     return (
-        <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-            <div className="flex flex-col mb-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <h3 className="text-lg font-bold text-[#010080] flex items-center gap-2">
-                        <span className="text-xl">🌍</span> Student Locations
-                    </h3>
-                    <div className="flex gap-2">
-                        <select
+        <div className={CHART_CARD_CLASS}>
+            <ChartHeader
+                title="Student Locations"
+                icon={<span className="text-xl">🌍</span>}
+                filters={
+                    <>
+                        <ChartFilterSelect
                             value={selectedProgram}
                             onChange={(e) => {
                                 setSelectedProgram(e.target.value);
-                                setSelectedClass(''); // Reset class on program change
+                                setSelectedClass('');
                             }}
-                            className="w-full md:w-auto px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                         >
                             <option value="">All Programs</option>
                             {programs.map((program) => (
@@ -40,13 +51,12 @@ const StudentLocationsMap = ({ programs = [], classes = [] }) => {
                                     {program.title}
                                 </option>
                             ))}
-                        </select>
-                        <select
+                        </ChartFilterSelect>
+                        <ChartFilterSelect
                             value={selectedClass}
                             onChange={(e) => setSelectedClass(e.target.value)}
                             disabled={!selectedProgram}
-                            className={`w-full md:w-auto px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer transition-colors
-                                ${!selectedProgram ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 hover:bg-white text-gray-700'}`}
+                            className={!selectedProgram ? 'opacity-50 cursor-not-allowed' : ''}
                         >
                             <option value="">{selectedProgram ? 'All Classes' : 'Select Program First'}</option>
                             {classes
@@ -56,38 +66,33 @@ const StudentLocationsMap = ({ programs = [], classes = [] }) => {
                                         {cls.class_name}
                                     </option>
                                 ))}
-                        </select>
-                    </div>
-                </div>
-            </div>
+                        </ChartFilterSelect>
+                    </>
+                }
+            />
 
-            <div className="h-[400px] w-full">
+            <ChartCanvas chartRef={chartRef}>
                 {isLoading ? (
-                    <div className="flex items-center justify-center h-full">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#010080]"></div>
-                    </div>
+                    <ChartLoading />
                 ) : isError ? (
-                    <div className="flex items-center justify-center h-full">
-                        <p className="text-red-500">Failed to load location data</p>
-                    </div>
+                    <ChartError message="Failed to load location data" />
                 ) : chartData.length === 0 ? (
-                    <div className="flex items-center justify-center h-full">
-                        <p className="text-gray-400">No location data available</p>
-                    </div>
+                    <ChartEmpty message="No location data available" />
                 ) : (
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                             layout="vertical"
                             data={chartData}
-                            margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                            margin={{ top: 5, right: 20, left: 4, bottom: 5 }}
+                            barCategoryGap="12%"
                         >
                             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f0f0f0" />
                             <XAxis type="number" hide />
                             <YAxis
                                 dataKey="country"
                                 type="category"
-                                width={100}
-                                tick={{ fill: '#4b5563', fontSize: 13 }}
+                                width={yAxisWidth}
+                                tick={{ fill: '#4b5563', fontSize: 12 }}
                                 axisLine={false}
                                 tickLine={false}
                             />
@@ -100,9 +105,8 @@ const StudentLocationsMap = ({ programs = [], classes = [] }) => {
                                 }}
                                 cursor={{ fill: 'rgba(243, 244, 246, 0.5)' }}
                             />
-                            <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                            <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={barSize}>
                                 {chartData.map((entry, index) => {
-                                    // Cycle through provided palette
                                     const colors = ['#010080', '#18178a', '#4b47a4', '#f95150', '#f40606'];
                                     return (
                                         <Cell
@@ -115,7 +119,7 @@ const StudentLocationsMap = ({ programs = [], classes = [] }) => {
                         </BarChart>
                     </ResponsiveContainer>
                 )}
-            </div>
+            </ChartCanvas>
         </div>
     );
 };

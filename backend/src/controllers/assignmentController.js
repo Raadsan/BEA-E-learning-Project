@@ -7,6 +7,60 @@ const tableMapping = {
     'course_work': { main: 'course_work', sub: 'course_work_submissions' }
 };
 
+const TYPES_WITH_SUBPROGRAM = new Set(['exam', 'oral_assignment', 'course_work']);
+/** Models where class_id is required (non-nullable) — cannot use class_id: null in filters. */
+const TYPES_WITH_REQUIRED_CLASS = new Set(['writing_task', 'course_work', 'oral_assignment']);
+
+const resolveSubprogramId = (subprogram_id, class_id, classSubprogramMap, allSubprograms) => {
+    if (subprogram_id !== undefined && subprogram_id !== null && subprogram_id !== '') {
+        const numeric = parseInt(subprogram_id, 10);
+        if (!Number.isNaN(numeric)) return numeric;
+
+        const name = String(subprogram_id).trim();
+        const byName = allSubprograms.find(
+            (sp) =>
+                sp.subprogram_name === name ||
+                sp.subprogram_name?.toLowerCase() === name.toLowerCase()
+        );
+        if (byName) return byName.id;
+    }
+
+    if (class_id) {
+        const classIdInt = parseInt(class_id, 10);
+        if (!Number.isNaN(classIdInt) && classSubprogramMap[classIdInt]) {
+            return classSubprogramMap[classIdInt];
+        }
+    }
+
+    return null;
+};
+
+const buildStudentAssignmentWhere = (type, class_id, resolvedSubprogramId) => {
+    const where = { status: 'active' };
+    const and = [];
+    const classIdInt = class_id ? parseInt(class_id, 10) : NaN;
+
+    if (!Number.isNaN(classIdInt)) {
+        if (TYPES_WITH_REQUIRED_CLASS.has(type)) {
+            where.class_id = classIdInt;
+        } else {
+            // exams may have null class_id for program-wide assignments
+            and.push({
+                OR: [{ class_id: classIdInt }, { class_id: null }],
+            });
+        }
+    }
+
+    if (TYPES_WITH_SUBPROGRAM.has(type) && resolvedSubprogramId) {
+        and.push({
+            OR: [{ subprogram_id: resolvedSubprogramId }, { subprogram_id: null }],
+        });
+    }
+
+    if (and.length > 0) where.AND = and;
+    return where;
+};
+
 // GET ASSIGNMENTS
 export const getAssignments = async (req, res) => {
     try {
@@ -18,7 +72,7 @@ export const getAssignments = async (req, res) => {
 
         // Fetch all classes, programs, and subprograms to map names manually
         const allClasses = await prisma.classes.findMany({
-            select: { id: true, class_name: true }
+            select: { id: true, class_name: true, subprogram_id: true }
         });
         const allPrograms = await prisma.programs.findMany({
             select: { id: true, title: true }
@@ -28,13 +82,22 @@ export const getAssignments = async (req, res) => {
         });
 
         const classMap = {};
-        allClasses.forEach(c => { classMap[c.id] = c.class_name; });
+        const classSubprogramMap = {};
+        allClasses.forEach(c => { 
+            classMap[c.id] = c.class_name; 
+            classSubprogramMap[c.id] = c.subprogram_id;
+        });
 
         const programMap = {};
         allPrograms.forEach(p => { programMap[p.id] = p.title; });
 
         const subprogramMap = {};
         allSubprograms.forEach(sp => { subprogramMap[sp.id] = sp.subprogram_name; });
+
+        const resolvedSubprogramId =
+            role === 'student'
+                ? resolveSubprogramId(subprogram_id, class_id, classSubprogramMap, allSubprograms)
+                : null;
 
         for (const t of typesToQuery) {
             const modelName = tableMapping[t]?.main;
@@ -43,15 +106,10 @@ export const getAssignments = async (req, res) => {
 
             const where = {};
             if (role === 'student') {
-                where.status = 'active';
-                // Simplified logic: filter by class_id or subprogram_id if provided
-                if (class_id) {
-                    where.OR = [
-                        { class_id: parseInt(class_id) },
-                        { class_id: null }
-                    ];
-                }
-                if (subprogram_id) where.subprogram_id = parseInt(subprogram_id);
+                Object.assign(
+                    where,
+                    buildStudentAssignmentWhere(t, class_id, resolvedSubprogramId)
+                );
             } else {
                 if (class_id) where.class_id = parseInt(class_id);
                 if (program_id) where.program_id = parseInt(program_id);
@@ -63,12 +121,15 @@ export const getAssignments = async (req, res) => {
             });
 
             // Map class, program, and subprogram names
-            const mappedAssignments = assignments.map(a => ({
-                ...a,
-                class_name: classMap[a.class_id] || "General",
-                program_name: programMap[a.program_id] || "N/A",
-                subprogram_name: subprogramMap[a.subprogram_id] || "N/A"
-            }));
+            const mappedAssignments = assignments.map(a => {
+                const spId = a.subprogram_id || classSubprogramMap[a.class_id];
+                return {
+                    ...a,
+                    class_name: classMap[a.class_id] || "General",
+                    program_name: programMap[a.program_id] || "N/A",
+                    subprogram_name: subprogramMap[spId] || "N/A"
+                };
+            });
 
             // If student, also fetch their submissions for these assignments
             if (role === 'student') {
@@ -90,6 +151,11 @@ export const getAssignments = async (req, res) => {
                         a.file_url = submission.file_url;
                         a.student_content = submission.content;
                         a.feedback_file_url = submission.feedback_file_url;
+                        a.feedback_file = submission.feedback_file_url;
+                        a.submission_date = submission.submission_date;
+                        a.graded_at = submission.status === 'graded'
+                            ? (submission.updated_at || submission.submission_date)
+                            : null;
                     } else {
                         a.submission_status = null;
                     }
@@ -196,17 +262,38 @@ export const gradeSubmission = async (req, res) => {
         const subModelName = tableMapping[type]?.sub;
         if (!subModelName) return res.status(400).json({ error: "Invalid type" });
 
-        const updated = await prisma[subModelName].update({
-            where: { id: parseInt(id) },
-            data: {
-                score: parseFloat(score),
-                feedback,
-                status: 'graded'
+        const parsedScore = score !== undefined && score !== "" ? parseInt(score, 10) : NaN;
+        if (Number.isNaN(parsedScore) || parsedScore < 0) {
+            return res.status(400).json({ error: "Valid score is required" });
+        }
+
+        const updateData = {
+            score: parsedScore,
+            feedback: feedback?.trim() || null,
+            status: "graded",
+        };
+
+        if (req.file) {
+            const filePath = `/uploads/${req.file.filename}`;
+            if (subModelName === "assignment_submissions") {
+                updateData.feedback = updateData.feedback
+                    ? `${updateData.feedback}\n\nFeedback file: ${filePath}`
+                    : `Feedback file: ${filePath}`;
+            } else {
+                updateData.feedback_file_url = req.file.filename;
             }
+        }
+
+        const updated = await prisma[subModelName].update({
+            where: { id: parseInt(id, 10) },
+            data: updateData,
         });
 
         res.json({ message: "Graded successfully", submission: updated });
     } catch (err) {
+        if (err?.code === "P2025") {
+            return res.status(404).json({ error: "Submission not found" });
+        }
         res.status(500).json({ error: err.message });
     }
 };

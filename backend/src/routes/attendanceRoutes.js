@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  saveAttendance, getAttendance, getAttendanceReport, getStats
+  saveAttendance, getAttendance, getAttendanceReport, getStats, getStudentAttendance
 } from "../controllers/attendanceController.js";
 import { getLearningHours, getLearningHoursSummary } from "../controllers/learningHoursController.js";
 import { verifyToken } from "../controllers/authController.js";
@@ -18,6 +18,7 @@ router.get("/learning-hours", getLearningHours);
 router.get("/learning-hours/summary", getLearningHoursSummary);
 router.get("/learning-hours/admin", getLearningHours);
 
+router.get("/student/:studentId", getStudentAttendance);
 router.get("/:classId/:date", getAttendance);
 
 export default router;

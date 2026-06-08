@@ -13,10 +13,17 @@ import {
     useGetAssignmentSubmissionsQuery,
     useGradeSubmissionMutation
 } from "@/lib/api/assignmentApi";
-import { useGetClassesQuery } from "@/lib/api/classApi";
-import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
+import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
 import { API_URL } from "@/constants";
+import { useAssignmentNow } from "@/hooks/useAssignmentNow";
+import {
+    getAssignmentWindowStatus,
+    getWindowStatusLabel,
+    getWindowStatusBadgeClass,
+    canOpenAssignmentWindow,
+    formatAssignmentCountdown,
+} from "@/utils/assignmentTime";
 
 export default function OralAssignmentPage() {
     const type = "oral_assignment";
@@ -26,6 +33,7 @@ export default function OralAssignmentPage() {
     const router = useRouter();
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
+    const now = useAssignmentNow();
     const { data: currentUser } = useGetCurrentUserQuery();
 
     const [view, setView] = useState("list"); // 'list', 'submissions', 'grading'
@@ -102,16 +110,17 @@ export default function OralAssignmentPage() {
         type,
         created_by: currentUser?.id
     });
-    const { data: classes } = useGetClassesQuery();
-    const { data: programs } = useGetProgramsQuery();
+    const { data: classes } = useGetTeacherClassesQuery();
 
     // Cascading Dropdown Logic
     const uniquePrograms = useMemo(() => {
         if (!classes) return [];
         const programsMap = new Map();
         classes.forEach(c => {
-            if (c.program_id && c.program_name) {
-                programsMap.set(c.program_id, { id: c.program_id, title: c.program_name });
+            const pId = c.program_id || c.subprograms?.program_id;
+            const pName = c.program_name || c.subprograms?.programs?.title;
+            if (pId && pName) {
+                programsMap.set(pId, { id: pId, title: pName });
             }
         });
         return Array.from(programsMap.values());
@@ -121,8 +130,11 @@ export default function OralAssignmentPage() {
         if (!classes || !formData.program_id) return [];
         const subprogramsMap = new Map();
         classes.forEach(c => {
-            if (c.program_id == formData.program_id && c.subprogram_id && c.subprogram_name) {
-                subprogramsMap.set(c.subprogram_id, { id: c.subprogram_id, title: c.subprogram_name });
+            const spId = c.subprogram_id || c.subprograms?.id;
+            const spName = c.subprogram_name || c.subprograms?.subprogram_name;
+            const pId = c.program_id || c.subprograms?.program_id;
+            if (pId == formData.program_id && spId && spName) {
+                subprogramsMap.set(spId, { id: spId, title: spName });
             }
         });
         return Array.from(subprogramsMap.values());
@@ -130,7 +142,10 @@ export default function OralAssignmentPage() {
 
     const filteredClasses = useMemo(() => {
         if (!classes || !formData.subprogram_id) return [];
-        return classes.filter(c => c.subprogram_id == formData.subprogram_id);
+        return classes.filter(c => {
+            const spId = c.subprogram_id || c.subprograms?.id;
+            return spId == formData.subprogram_id;
+        });
     }, [classes, formData.subprogram_id]);
 
     // Fetch submissions for selected assignment
@@ -228,6 +243,11 @@ export default function OralAssignmentPage() {
     };
 
     const handleViewSubmissions = (assignment) => {
+        const windowStatus = getAssignmentWindowStatus(assignment, now);
+        if (!canOpenAssignmentWindow(windowStatus)) {
+            showToast("This assignment is pending. Submissions open when the start time is reached.", "info");
+            return;
+        }
         setSelectedAssignment(assignment);
         setView("submissions");
         setGradingSubmission(null);
@@ -317,7 +337,7 @@ export default function OralAssignmentPage() {
         {
             key: "title",
             label: "Assignment Title",
-            render: (row) => (
+            render: (_, row) => (
                 <div className="flex flex-col">
                     <span className="font-semibold text-gray-900 dark:text-white">{row.title}</span>
                     <span className="text-[11px] text-gray-500 uppercase">{row.class_name || "General"}</span>
@@ -327,28 +347,28 @@ export default function OralAssignmentPage() {
         {
             key: "program",
             label: "Program",
-            render: (row) => <span className="text-sm opacity-80">{row.program_name || "N/A"}</span>
+            render: (_, row) => <span className="text-sm opacity-80">{row.program_name || "N/A"}</span>
         },
         {
             key: "subprogram",
             label: "Subprogram",
-            render: (row) => <span className="text-sm opacity-80">{row.subprogram_name || "N/A"}</span>
+            render: (_, row) => <span className="text-sm opacity-80">{row.subprogram_name || "N/A"}</span>
         },
         { label: "Duration", key: "duration" },
         {
             label: "Due Date",
-            render: (row) => {
+            render: (_, row) => {
                 const due = row.due_date ? new Date(row.due_date).toLocaleDateString() : null;
                 return <span className="text-sm text-gray-600 dark:text-gray-400">{due || "N/A"}</span>;
             }
         },
         {
             label: "Points",
-            render: (row) => <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{row.total_points}</span>
+            render: (_, row) => <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{row.total_points}</span>
         },
         {
             label: "Status",
-            render: (row) => (
+            render: (_, row) => (
                 <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full border ${row.status === 'inactive'
                     ? 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
                     : 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
@@ -359,7 +379,7 @@ export default function OralAssignmentPage() {
         },
         {
             label: "Actions",
-            render: (row) => (
+            render: (_, row) => (
                 <div className="flex gap-2">
                     <button
                         onClick={() => handleStatusToggle(row)}
@@ -659,21 +679,24 @@ export default function OralAssignmentPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {assignments?.map((assignment) => (
+                    {assignments?.map((assignment) => {
+                        const windowStatus = getAssignmentWindowStatus(assignment, now);
+                        const submissionsDisabled = !canOpenAssignmentWindow(windowStatus);
+
+                        return (
                         <div
                             key={assignment.id}
-                            className={`group p-6 rounded-2xl border shadow-sm transition-all duration-300 flex flex-col justify-between hover:shadow-xl hover:border-blue-200 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
+                            className={`group p-6 rounded-2xl border shadow-sm transition-all duration-300 flex flex-col justify-between ${
+                                submissionsDisabled ? 'opacity-80' : 'hover:shadow-xl hover:border-blue-200'
+                            } ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
                         >
                             <div>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
                                     </div>
-                                    <span className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full border ${assignment.status === 'inactive'
-                                        ? 'bg-gray-100 text-gray-500 border-gray-200'
-                                        : 'bg-green-100 text-green-700 border-green-200'
-                                        }`}>
-                                        {assignment.status || 'active'}
+                                    <span className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full border ${getWindowStatusBadgeClass(windowStatus)}`}>
+                                        {getWindowStatusLabel(windowStatus)}
                                     </span>
                                 </div>
 
@@ -684,15 +707,15 @@ export default function OralAssignmentPage() {
 
                                 {/* Program | Subprogram (Parallel) */}
                                 <div className="grid grid-cols-2 gap-4 mb-3 pb-3 border-b border-gray-100 dark:border-gray-700/50">
-                                    <div className="flex flex-col">
+                                    <div className="flex flex-col min-w-0">
                                         <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Program</span>
                                         <span className={`text-sm font-semibold truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                             {assignment.program_name || "N/A"}
                                         </span>
                                     </div>
-                                    <div className="flex flex-col">
+                                    <div className="flex flex-col items-end text-right min-w-0">
                                         <span className={`text-[10px] uppercase font-bold opacity-60 mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Subprogram</span>
-                                        <span className={`text-sm font-semibold truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        <span className={`text-sm font-semibold truncate w-full ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                             {assignment.subprogram_name || "N/A"}
                                         </span>
                                     </div>
@@ -721,14 +744,30 @@ export default function OralAssignmentPage() {
                                     <span className="text-xs font-bold uppercase">Total Points</span>
                                     <span className="text-sm font-bold">{assignment.total_points} Points</span>
                                 </div>
+
+                                {windowStatus === "pending" && assignment.start_date && (
+                                    <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                        Opens in {formatAssignmentCountdown(assignment.start_date, now)}
+                                    </p>
+                                )}
+                                {windowStatus === "active" && assignment.due_date && (
+                                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                                        Completes in {formatAssignmentCountdown(assignment.due_date, now)}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => handleViewSubmissions(assignment)}
-                                    className="flex-1 py-3 bg-[#010080] hover:bg-blue-800 text-white rounded-xl font-bold text-sm transition-all active:scale-95"
+                                    disabled={submissionsDisabled}
+                                    className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 ${
+                                        submissionsDisabled
+                                            ? 'bg-gray-400 text-white cursor-not-allowed opacity-70'
+                                            : 'bg-[#010080] hover:bg-blue-800 text-white'
+                                    }`}
                                 >
-                                    View Submissions
+                                    {windowStatus === "pending" ? "Not Open Yet" : "View Submissions"}
                                 </button>
                                 <div className="flex gap-1">
                                     <button
@@ -748,7 +787,7 @@ export default function OralAssignmentPage() {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    );})}
 
                     {assignments?.length === 0 && !isLoading && (
                         <div className="col-span-full py-20 text-center opacity-40">

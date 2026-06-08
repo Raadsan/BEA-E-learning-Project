@@ -1,18 +1,61 @@
 import prisma from '../lib/prisma.js';
 import { createNotificationInternal } from './notificationController.js';
 
+// Policy constants
+const MAX_FREEZE_DAYS = 30;
+const MAX_APPROVED_FREEZES = 2;
+
 export const createRequest = async (req, res) => {
     try {
         const { reason, start_date, end_date, description } = req.body;
         const student_id = req.user.userId;
         if (!reason || !start_date || !end_date) return res.status(400).json({ error: 'Reason, start and end date required' });
 
+        const student = await prisma.students.findUnique({ where: { student_id } });
+        const studentName = student?.full_name || 'A student';
+
+        // Helper: create + immediately update to rejected (bypasses MySQL DEFAULT override on create)
+        const autoReject = async (autoRejectReason) => {
+            const record = await prisma.freezing_requests.create({
+                data: { student_id, reason, description, start_date: new Date(start_date), end_date: new Date(end_date) }
+            });
+            const rejected = await prisma.freezing_requests.update({
+                where: { id: record.id },
+                data: { status: 'rejected', admin_response: autoRejectReason }
+            });
+            await createNotificationInternal({
+                user_id: student_id, sender_id: null, type: 'freezing_response',
+                title: 'Freezing Request Rejected',
+                message: autoRejectReason,
+                metadata: { requestId: rejected.id, status: 'rejected', adminResponse: autoRejectReason }
+            });
+            return rejected;
+        };
+
+        // --- Policy Check 1: Duration limit ---
+        const durationDays = Math.ceil(
+            (new Date(end_date).getTime() - new Date(start_date).getTime()) / (1000 * 60 * 60 * 24)
+        );
+        if (durationDays > MAX_FREEZE_DAYS) {
+            const msg = `Your request was automatically rejected: the requested freeze duration is ${durationDays} days, which exceeds the maximum allowed limit of ${MAX_FREEZE_DAYS} days.`;
+            const rejected = await autoReject(msg);
+            return res.status(422).json({ error: msg, auto_rejected: true, request: rejected });
+        }
+
+        // --- Policy Check 2: Max approved freezes limit ---
+        const approvedCount = await prisma.freezing_requests.count({
+            where: { student_id, status: 'approved' }
+        });
+        if (approvedCount >= MAX_APPROVED_FREEZES) {
+            const msg = `Your request was automatically rejected: you have already used ${approvedCount} approved freeze(s). The maximum allowed is ${MAX_APPROVED_FREEZES} per student.`;
+            const rejected = await autoReject(msg);
+            return res.status(422).json({ error: msg, auto_rejected: true, request: rejected });
+        }
+
+        // --- All checks passed: create pending request ---
         const request = await prisma.freezing_requests.create({
             data: { student_id, reason, start_date: new Date(start_date), end_date: new Date(end_date), description }
         });
-
-        const student = await prisma.students.findUnique({ where: { student_id } });
-        const studentName = student?.full_name || 'A student';
 
         await createNotificationInternal({
             user_id: null, sender_id: student_id, type: 'freezing_request',

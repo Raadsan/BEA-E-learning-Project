@@ -6,6 +6,7 @@ import { useGetProficiencyTestByIdQuery } from "@/lib/api/proficiencyTestApi";
 import { API_BASE_URL } from "@/constants";
 
 import Loader from "@/components/Loader";
+import { groupQuestionsByPartForAdminPreview } from "@/utils/testQuestions";
 
 export default function ProficiencyTestDetailsPage() {
     const router = useRouter();
@@ -55,13 +56,7 @@ export default function ProficiencyTestDetailsPage() {
             return normalized;
         }) : [];
 
-        return {
-            1: fetchedQuestions.filter(q => q.part === 1),
-            2: fetchedQuestions.filter(q => q.part === 2),
-            3: fetchedQuestions.filter(q => q.part === 3),
-            4: fetchedQuestions.filter(q => q.part === 4),
-            5: fetchedQuestions.filter(q => q.part === 5)
-        };
+        return groupQuestionsByPartForAdminPreview(fetchedQuestions, 5);
     }, [test]);
 
     if (isLoading) return <div className="flex justify-center items-center h-screen bg-white"><Loader /></div>;
@@ -159,7 +154,7 @@ export default function ProficiencyTestDetailsPage() {
                                                     <span className="text-[10px] font-bold text-[#010080] bg-blue-50 px-2.5 py-1 rounded uppercase tracking-wide border border-blue-100">
                                                         {q.type}
                                                     </span>
-                                                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Item {idx + 1}</span>
+                                                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Question {q.questionNumber || idx + 1}</span>
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-sm font-bold text-[#010080]">{q.points} pt{q.points !== 1 ? 's' : ''}</p>
@@ -169,7 +164,7 @@ export default function ProficiencyTestDetailsPage() {
                                             {/* MCQ Rendering */}
                                             {q.type === 'mcq' && (
                                                 <div className="space-y-4">
-                                                    <h4 className="text-base font-bold text-gray-900 leading-snug">{q.questionText}</h4>
+                                                    <h4 className="text-base font-bold text-gray-900 leading-snug">{q.questionNumber}: {q.questionText}</h4>
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                         {q.options?.map((opt, oIdx) => (
                                                             <div key={oIdx} className={`flex items-center gap-3 p-3.5 rounded-lg border transition-all ${oIdx === q.correctOption ? 'bg-green-50 border-green-500' : 'bg-gray-50 border-transparent hover:bg-white hover:border-gray-200'}`}>
@@ -194,7 +189,7 @@ export default function ProficiencyTestDetailsPage() {
                                                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-50 pb-1">Questions:</p>
                                                         {q.subQuestions?.map((sq, sIdx) => (
                                                             <div key={sIdx} className="pl-4 border-l-2 border-blue-100 space-y-3">
-                                                                <p className="text-sm font-bold text-gray-900">{sIdx + 1}. {sq.questionText}</p>
+                                                                <p className="text-sm font-bold text-gray-900">{sq.questionNumber || sIdx + 1}: {sq.questionText}</p>
                                                                 <div className="flex flex-wrap gap-2">
                                                                     {sq.options?.map((opt, oi) => (
                                                                         <span key={oi} className={`text-[10px] font-semibold px-3 py-1.5 rounded-lg border ${oi === sq.correctOption ? 'bg-green-100 border-green-300 text-green-800' : 'bg-white border-gray-100 text-gray-500'}`}>
@@ -211,7 +206,7 @@ export default function ProficiencyTestDetailsPage() {
                                             {/* Essay Rendering */}
                                             {q.type === 'essay' && (
                                                 <div className="space-y-4">
-                                                    <h4 className="text-lg font-bold text-gray-900">{q.title}</h4>
+                                                    <h4 className="text-lg font-bold text-gray-900">{q.questionNumber}: {q.title}</h4>
                                                     <div className="p-6 bg-gray-50 rounded-lg border border-gray-100">
                                                         <p className="text-sm text-gray-700 leading-relaxed italic">{q.description || "No instructions provided."}</p>
                                                     </div>
@@ -225,7 +220,7 @@ export default function ProficiencyTestDetailsPage() {
                                             {/* Audio Rendering */}
                                             {q.type === 'audio' && (
                                                 <div className="space-y-5">
-                                                    <h4 className="text-lg font-bold text-gray-900">{q.title}</h4>
+                                                    <h4 className="text-lg font-bold text-gray-900">{q.questionNumber}: {q.title}</h4>
                                                     <div className="bg-gray-800 p-4 rounded-xl flex items-center gap-4">
                                                         <div className="w-10 h-10 rounded-full bg-[#010080] flex items-center justify-center text-white shrink-0">
                                                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" /></svg>

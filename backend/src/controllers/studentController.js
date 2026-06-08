@@ -56,9 +56,8 @@ export const createStudent = async (req, res) => {
       initialPaidUntil = new Date(now.setDate(now.getDate() + 30));
     }
 
-    // Student User Activation Period: 45 days
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 45);
+    // Placement / proficiency entry window: 24 hours from registration
+    const expiryDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     // Payment Logic (Simplified for brevity, but matching old logic structure)
     let paymentStatus = 'Pending';
@@ -140,6 +139,24 @@ export const createStudent = async (req, res) => {
     res.status(201).json({ success: true, student });
   } catch (err) {
     console.error("❌ Create student error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// GET STUDENTS BY CLASS
+export const getStudentsByClass = async (req, res) => {
+  try {
+    const classId = parseInt(req.params.classId);
+    if (isNaN(classId)) {
+        return res.status(400).json({ success: false, error: "Invalid class ID" });
+    }
+    const students = await prisma.students.findMany({
+      where: { class_id: classId },
+      include: { classes: true },
+      orderBy: { created_at: 'desc' }
+    });
+    res.json({ success: true, students });
+  } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -431,6 +448,162 @@ export const getTopStudents = async (req, res) => {
       success: true,
       students: populated
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+const formatStudentClassEntry = (cls, student, subprogram = null) => {
+  const sp = subprogram || cls?.subprograms;
+  return {
+    id: cls?.id || null,
+    class_id: cls?.id || student?.class_id || null,
+    class_name: cls?.class_name || null,
+    subprogram_id: sp?.id || cls?.subprogram_id || null,
+    subprogram_name: sp?.subprogram_name || 'N/A',
+    program_id: sp?.program_id || null,
+    program_name: sp?.programs?.title || student?.chosen_program || 'N/A',
+    teacher_name: cls?.teachers?.full_name || 'N/A',
+  };
+};
+
+async function resolveSubprogramRecord(value) {
+  if (!value) return null;
+  const asNumber = parseInt(value, 10);
+  if (!Number.isNaN(asNumber)) {
+    return prisma.subprograms.findUnique({
+      where: { id: asNumber },
+      include: { programs: true },
+    });
+  }
+  return prisma.subprograms.findFirst({
+    where: { subprogram_name: String(value).trim() },
+    include: { programs: true },
+  });
+}
+
+// GET MY CLASSES (student enrollment history / current level)
+export const getMyClasses = async (req, res) => {
+  try {
+    const studentId = req.user.userId;
+    const student = await prisma.students.findUnique({
+      where: { student_id: studentId },
+      include: {
+        classes: {
+          include: {
+            subprograms: { include: { programs: true } },
+            teachers: true,
+          },
+        },
+      },
+    });
+
+    if (!student) {
+      return res.status(404).json({ success: false, error: 'Student not found' });
+    }
+
+    const classesMap = new Map();
+
+    const addEntry = (entry) => {
+      if (!entry) return;
+      const key = entry.subprogram_id || entry.subprogram_name;
+      if (key && !classesMap.has(key)) {
+        classesMap.set(key, entry);
+      }
+    };
+
+    if (student.classes) {
+      addEntry(formatStudentClassEntry(student.classes, student));
+    }
+
+    const currentSubprogram = await resolveSubprogramRecord(student.chosen_subprogram);
+    if (currentSubprogram) {
+      addEntry({
+        id: student.class_id,
+        class_id: student.class_id,
+        class_name: student.classes?.class_name || null,
+        subprogram_id: currentSubprogram.id,
+        subprogram_name: currentSubprogram.subprogram_name,
+        program_id: currentSubprogram.program_id,
+        program_name: currentSubprogram.programs?.title || student.chosen_program || 'N/A',
+        teacher_name: student.classes?.teachers?.full_name || 'N/A',
+      });
+    }
+
+    if (student.completed_subprograms) {
+      const completedParts = student.completed_subprograms
+        .split(',')
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+      for (const part of completedParts) {
+        const completedSubprogram = await resolveSubprogramRecord(part);
+        if (completedSubprogram) {
+          addEntry({
+            id: null,
+            class_id: null,
+            class_name: null,
+            subprogram_id: completedSubprogram.id,
+            subprogram_name: completedSubprogram.subprogram_name,
+            program_id: completedSubprogram.program_id,
+            program_name: completedSubprogram.programs?.title || 'N/A',
+            teacher_name: 'N/A',
+          });
+        }
+      }
+    }
+
+    res.json({ success: true, classes: Array.from(classesMap.values()) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// GET STUDENT PROGRESS (teacher dashboard)
+export const getStudentProgress = async (req, res) => {
+  try {
+    const { userId, role } = req.user;
+    let where = {};
+
+    if (role === 'teacher') {
+      const teacherClasses = await prisma.classes.findMany({
+        where: { teacher_id: parseInt(userId, 10) },
+        select: { id: true },
+      });
+      const classIds = teacherClasses.map((cls) => cls.id);
+      if (!classIds.length) {
+        return res.json({ success: true, students: [] });
+      }
+      where.class_id = { in: classIds };
+    }
+
+    const students = await prisma.students.findMany({
+      where,
+      include: { classes: true },
+    });
+
+    const populated = await Promise.all(students.map(async (student) => {
+      const submissions = await prisma.assignment_submissions.findMany({
+        where: { student_id: student.student_id, status: 'graded' },
+        select: { score: true },
+      });
+      const gradedScores = submissions.map((s) => Number(s.score) || 0).filter((s) => s > 0);
+      const progress_percentage = gradedScores.length
+        ? Math.round(gradedScores.reduce((sum, score) => sum + score, 0) / gradedScores.length)
+        : 0;
+
+      return {
+        id: student.student_id,
+        student_id: student.student_id,
+        full_name: student.full_name,
+        email: student.email,
+        class_name: student.classes?.class_name || 'Not Assigned',
+        progress_percentage,
+        status: progress_percentage >= 75 ? 'On Track' : progress_percentage >= 50 ? 'At Risk' : 'Inactive',
+      };
+    }));
+
+    res.json({ success: true, students: populated });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

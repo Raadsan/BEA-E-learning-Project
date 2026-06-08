@@ -2,8 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useGetClassesQuery } from "@/lib/api/classApi";
-import { useGetProgramsQuery } from "@/lib/api/programApi";
+import { useGetTeacherClassesQuery, useGetTeacherProgramsQuery } from "@/lib/api/teacherApi";
 import {
     useCreateAssignmentMutation,
     useUpdateAssignmentMutation,
@@ -23,8 +22,8 @@ function OralAssignmentCreateContent() {
     const { showToast } = useToast();
 
     // Queries
-    const { data: classes } = useGetClassesQuery();
-    const { data: programs } = useGetProgramsQuery();
+    const { data: classes } = useGetTeacherClassesQuery();
+    const { data: programs } = useGetTeacherProgramsQuery();
     // Fetch if editing, but simpler to just fetch all assignments and find by ID locally for now or modify API to get single
     // For simplicity, we assume we can fetch list and find, or just build form. 
     // Ideally we should have useGetAssignmentByIdQuery.

@@ -97,12 +97,12 @@ export default function AttendancePage() {
             <label className="flex items-center justify-center cursor-pointer">
               <input
                 type="checkbox"
-                className="w-5 h-5 rounded text-[#f40606] focus:ring-[#f40606]/50 cursor-pointer"
+                className="w-5 h-5 rounded text-blue-600 focus:ring-blue-600/50 cursor-pointer"
                 checked={isExcused}
                 onChange={() => handleToggleExcused(row.student_id)}
               />
             </label>
-            <span className={`font-bold w-4 text-center ${excusedCount > 0 ? 'text-[#f40606]' : 'text-gray-300'}`}>
+            <span className={`font-medium w-4 text-center ${excusedCount > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
               {excusedCount}
             </span>
           </div>
@@ -251,17 +251,17 @@ export default function AttendancePage() {
           <>
             <div className="flex flex-col gap-6 mb-8">
               <div className="flex items-center justify-between">
-                <h1 className="text-4xl font-bold text-[#010080] dark:text-white">Attendance Manager</h1>
+                <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">Attendance Manager</h1>
                 <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                  <span className="text-sm font-bold text-[#f40606]">Selected Date:</span>
-                  <span className="text-sm font-bold">{new Date(date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  <span className="text-sm font-medium text-blue-600">Selected Date:</span>
+                  <span className="text-sm font-medium">{new Date(date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
               </div>
 
               {/* Enhanced Controls */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
                 <div className="lg:col-span-4 space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Step 1: Select Class</label>
+                  <label className="text-xs font-medium uppercase tracking-wider text-gray-500">Step 1: Select Class</label>
                   <select
                     className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#010080]/20 outline-none transition-all font-bold ${isDark ? 'bg-[#06102b] text-white border-[#07203c]' : 'bg-gray-50 text-gray-900 border-gray-200'}`}
                     value={selectedClass?.id || ''}
@@ -279,7 +279,7 @@ export default function AttendancePage() {
                 </div>
 
                 <div className="lg:col-span-3 space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Step 2: Choose Date</label>
+                  <label className="text-xs font-medium uppercase tracking-wider text-gray-500">Step 2: Choose Date</label>
                   <input
                     type="date"
                     className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#010080]/20 outline-none transition-all font-bold ${isDark ? 'bg-[#06102b] text-white border-[#07203c]' : 'bg-gray-50 text-gray-900 border-gray-200'}`}
@@ -294,19 +294,19 @@ export default function AttendancePage() {
                       <div className="flex gap-4">
                         <label className="flex items-center gap-2 cursor-pointer group">
                           <input type="checkbox" className="w-5 h-5 rounded text-[#010080] border-gray-300 focus:ring-[#010080]/20" onChange={(e) => handleMarkAllHour1(e.target.checked)} />
-                          <span className="text-xs font-bold text-gray-600 dark:text-gray-300 group-hover:text-[#010080] transition-colors uppercase">All H-1</span>
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-300 group-hover:text-[#010080] transition-colors uppercase">All H-1</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer group">
                           <input type="checkbox" className="w-5 h-5 rounded text-[#010080] border-gray-300 focus:ring-[#010080]/20" onChange={(e) => handleMarkAllHour2(e.target.checked)} />
-                          <span className="text-xs font-bold text-gray-600 dark:text-gray-300 group-hover:text-[#010080] transition-colors uppercase">All H-2</span>
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-300 group-hover:text-[#010080] transition-colors uppercase">All H-2</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer group">
-                          <input type="checkbox" className="w-5 h-5 rounded text-[#f40606] border-gray-300 focus:ring-[#f40606]/20" onChange={(e) => handleMarkAllExcused(e.target.checked)} />
-                          <span className="text-xs font-bold text-[#f40606] uppercase">Excused</span>
+                          <input type="checkbox" className="w-5 h-5 rounded text-blue-600 border-gray-300 focus:ring-blue-600/20" onChange={(e) => handleMarkAllExcused(e.target.checked)} />
+                          <span className="text-xs font-medium text-blue-600 uppercase">Excused</span>
                         </label>
                       </div>
                       <button
-                        className="flex-1 lg:flex-none px-10 py-3 rounded-xl bg-[#010080] text-white disabled:opacity-50 hover:bg-blue-800 shadow-lg shadow-blue-900/20 active:scale-95 transition-all font-bold uppercase tracking-wide"
+                        className="flex-1 lg:flex-none px-10 py-3 rounded-xl bg-[#010080] text-white disabled:opacity-50 hover:bg-blue-800 shadow-lg shadow-blue-900/20 active:scale-95 transition-all font-semibold uppercase tracking-wide"
                         onClick={handleSave}
                         disabled={saving}
                       >
@@ -320,19 +320,19 @@ export default function AttendancePage() {
               {/* Attendance History Logs */}
               <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
                 <div className="flex items-center gap-3 mb-4">
-                  <svg className="w-5 h-5 text-[#f40606]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500">Attendance History Logs</h3>
+                  <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500">Attendance History Logs</h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {historyDates.map((histDate) => (
                     <button
                       key={histDate}
                       onClick={() => setDate(histDate)}
-                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${date === histDate
-                        ? 'bg-[#f40606] text-white border-[#f40606] shadow-md'
-                        : 'bg-gray-50 dark:bg-[#06102b] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-[#f40606] hover:text-[#f40606]'
+                      className={`px-4 py-2 rounded-lg text-xs font-medium transition-all border ${date === histDate
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                        : 'bg-gray-50 dark:bg-[#06102b] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-blue-600 hover:text-blue-600'
                         }`}
                     >
                       {new Date(histDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
@@ -355,24 +355,7 @@ export default function AttendancePage() {
             ) : (
               <>
                 <div className="mt-6">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-6">
-                    <div className={`p-6 rounded-2xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow-md`}>
-                      <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Class Name</div>
-                      <div className="text-lg font-bold text-[#010080] dark:text-white truncate">{selectedClass.class_name}</div>
-                    </div>
-                    <div className={`p-6 rounded-2xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow-md border-l-4 border-l-blue-600`}>
-                      <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Present</div>
-                      <div className="text-3xl font-black text-[#010080]">{presentStudentCount}</div>
-                    </div>
-                    <div className={`p-6 rounded-2xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow-md border-l-4 border-l-[#f40606]`}>
-                      <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Excused</div>
-                      <div className="text-3xl font-black text-[#f40606]">{excusedStudentCount}</div>
-                    </div>
-                    <div className={`p-6 rounded-2xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow-md border-l-4 border-l-gray-400`}>
-                      <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Absent</div>
-                      <div className="text-3xl font-black text-gray-400">{absentStudentCount}</div>
-                    </div>
-                  </div>
+
 
                   <div className={`rounded-3xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700`}>
                     <DataTable

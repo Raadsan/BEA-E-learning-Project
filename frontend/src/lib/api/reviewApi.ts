@@ -18,36 +18,36 @@ export const reviewApi = createApi({
         // --- STUDENT REVIEWS (Teachers reviewing Students) ---
         submitStudentReview: builder.mutation({
             query: (data) => ({
-                url: '/student-reviews/submit',
+                url: '/student-reviews',
                 method: 'POST',
                 body: data,
             }),
             invalidatesTags: ['StudentReviews'],
         }),
         getStudentReviews: builder.query({
-            query: (student_id) => student_id ? `/student-reviews/student/${student_id}` : '/student-reviews/my-reviews',
+            query: (student_id) => student_id ? `/student-reviews/my/${student_id}` : '/student-reviews',
             providesTags: ['StudentReviews'],
         }),
         getStudentReviewsByTeacher: builder.query<any, void>({
-            query: () => '/student-reviews/my-reviews',
+            query: () => '/student-reviews/submitted-by-me',
             providesTags: ['StudentReviews'],
         }),
 
         // --- TEACHER REVIEWS (Students reviewing Teachers) ---
         submitTeacherReview: builder.mutation({
             query: (data) => ({
-                url: '/teacher-reviews/submit',
+                url: '/teacher-reviews',
                 method: 'POST',
                 body: data,
             }),
             invalidatesTags: ['TeacherReviews'],
         }),
         getTeacherReviews: builder.query({
-            query: (teacher_id) => teacher_id ? `/teacher-reviews/teacher/${teacher_id}` : '/teacher-reviews/my-reviews',
+            query: (teacher_id) => `/teacher-reviews/teacher/${teacher_id}`,
             providesTags: ['TeacherReviews'],
         }),
         getTeachersToReview: builder.query<any, void>({
-            query: () => "/teacher-reviews/to-review",
+            query: () => "/teacher-reviews/teachers-to-review",
             providesTags: ["Reviews"],
         }),
         getAllTeacherReviews: builder.query<any, void>({

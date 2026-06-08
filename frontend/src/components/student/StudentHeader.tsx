@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useGetAnnouncementsQuery } from "@/lib/api/announcementApi";
@@ -10,27 +10,81 @@ import { useGetNotificationsQuery } from "@/lib/api/notificationApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { API_BASE_URL } from "@/constants";
 
-export default function StudentHeader({ onMenuClick }) {
+const EMPTY_LIST = [];
+
+const loadReadAnnouncements = () => {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = JSON.parse(localStorage.getItem("student_read_announcements") || "[]");
+    return Array.isArray(stored) ? stored : [];
+  } catch {
+    return [];
+  }
+};
+
+export default function StudentHeader({ onMenuClick, onNavigate }) {
   const { isDark, toggleDarkMode } = useDarkMode();
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [deferAlerts, setDeferAlerts] = useState(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDeferAlerts(false), 1200);
+    return () => window.clearTimeout(timer);
+  }, [pathname]);
+
+  const navigateTo = (href: string) => {
+    onNavigate?.();
+    router.push(href);
+  };
 
   // Use Redux hook for reactive user data
   const { data: currentStudent } = useGetCurrentUserQuery();
 
   // Notification Logic
-  const { data: notifications = [] } = useGetNotificationsQuery(undefined, { pollingInterval: 30000 });
-  const { data: announcements = [] } = useGetAnnouncementsQuery(undefined, { pollingInterval: 30000 });
+  const { data: notifications } = useGetNotificationsQuery(undefined, {
+    skip: deferAlerts,
+    pollingInterval: 120000,
+  });
+  const { data: announcements } = useGetAnnouncementsQuery(undefined, {
+    skip: deferAlerts,
+    pollingInterval: 120000,
+  });
 
-  const [readAnnouncements, setReadAnnouncements] = useState([]);
+  const notificationList = notifications ?? EMPTY_LIST;
+  const announcementList = announcements ?? EMPTY_LIST;
+
+  const [readAnnouncements, setReadAnnouncements] = useState(loadReadAnnouncements);
+
+  // Re-sync from localStorage after navigation or tab focus (e.g. read announcements page)
+  useEffect(() => {
+    const stored = loadReadAnnouncements();
+    setReadAnnouncements((prev) => {
+      if (prev.length === stored.length && prev.every((id, i) => id === stored[i])) {
+        return prev;
+      }
+      return stored;
+    });
+  }, [pathname]);
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("student_read_announcements") || "[]");
-    setReadAnnouncements(stored);
-  }, [announcements]);
+    const syncReads = () => {
+      const stored = loadReadAnnouncements();
+      setReadAnnouncements((prev) => {
+        if (prev.length === stored.length && prev.every((id, i) => id === stored[i])) {
+          return prev;
+        }
+        return stored;
+      });
+    };
 
-  const unreadNotificationsCount = notifications.filter(n => !n.is_read).length;
-  const unreadAnnouncementsCount = announcements.filter(a => !readAnnouncements.includes(a.id)).length;
+    window.addEventListener("focus", syncReads);
+    return () => window.removeEventListener("focus", syncReads);
+  }, []);
+
+  const unreadNotificationsCount = notificationList.filter((n) => !n.is_read).length;
+  const unreadAnnouncementsCount = announcementList.filter((a) => !readAnnouncements.includes(a.id)).length;
   const unreadCount = unreadNotificationsCount + unreadAnnouncementsCount;
 
   // Calculate payment status
@@ -103,7 +157,7 @@ export default function StudentHeader({ onMenuClick }) {
 
             {/* Notification Icon */}
             <button
-              onClick={() => router.push("/portal/student/notifications")}
+              onClick={() => navigateTo("/portal/student/notifications")}
               className={`relative p-2 rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
                 }`}
               title="Notifications"
@@ -152,7 +206,7 @@ export default function StudentHeader({ onMenuClick }) {
                   <div className="py-1">
                     <button
                       onClick={() => {
-                        router.push("/portal/student/profile");
+                        navigateTo("/portal/student/profile");
                         setIsOpen(false);
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"

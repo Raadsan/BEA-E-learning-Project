@@ -108,45 +108,45 @@ export default function SessionChangePage() {
     {
       label: "Date",
       key: "created_at",
-      render: (row) => new Date(row.created_at).toLocaleDateString()
+      render: (_, row) => (row?.created_at ? new Date(row.created_at).toLocaleDateString() : "N/A"),
     },
     {
       label: "Current Session",
-      render: (row) => (
+      render: (_, row) => (
         <div>
           <div className="font-medium text-sm">
-            {row.current_shift_name && row.current_session_type
+            {row?.current_shift_name && row?.current_session_type
               ? `${row.current_shift_name} - ${row.current_session_type}`
-              : row.current_session_type || row.requested_session_type || "N/A"}
+              : row?.current_session_type || row?.requested_session_type || "N/A"}
           </div>
-          {row.current_class_name && (
+          {row?.current_class_name && (
             <div className={`text-xs ${textSub}`}>{row.current_class_name}</div>
           )}
         </div>
-      )
+      ),
     },
     {
       label: "Requested Session",
-      render: (row) => (
+      render: (_, row) => (
         <div>
           <div className="font-medium text-sm text-blue-600 dark:text-blue-400">
-            {row.requested_shift_name && row.requested_class_type
+            {row?.requested_shift_name && row?.requested_class_type
               ? `${row.requested_shift_name} - ${row.requested_class_type}`
-              : row.requested_session_type || "N/A"}
+              : row?.requested_session_type || "N/A"}
           </div>
-          {row.requested_class_name && (
+          {row?.requested_class_name && (
             <div className={`text-xs ${textSub}`}>{row.requested_class_name}</div>
           )}
         </div>
-      )
+      ),
     },
     {
       label: "Reason & Response",
-      render: (row) => (
+      render: (_, row) => (
         <div className="max-w-xs break-words">
-          <div className="text-sm">{row.reason}</div>
-          {row.admin_response && (
-            <div className="mt-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-xs border border-blue-100 dark:border-blue-800 shadow-sm animate-in fade-in slide-in-from-top-1 duration-300">
+          <div className="text-sm">{row?.reason || "-"}</div>
+          {row?.admin_response && (
+            <div className="mt-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-xs border border-blue-100 dark:border-blue-800 shadow-sm">
               <span className="font-bold text-blue-700 dark:text-blue-300 block mb-1 flex items-center gap-1">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -157,12 +157,13 @@ export default function SessionChangePage() {
             </div>
           )}
         </div>
-      )
+      ),
     },
     {
       label: "Status",
-      render: (row) => getStatusBadge(row.status)
-    }
+      key: "status",
+      render: (_, row) => getStatusBadge(row?.status),
+    },
   ];
 
   return (
