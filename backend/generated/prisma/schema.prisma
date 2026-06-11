@@ -661,6 +661,7 @@ model programs {
   discount                 Decimal?                   @default(0.00) @db.Decimal(10, 2)
   curriculum_file          String?                    @db.VarChar(255)
   test_required            programs_test_required?    @default(none)
+  show_on_website          Boolean                    @default(true)
   academic_calendar        academic_calendar[]
   learning_materials       learning_materials[]
   program_payment_packages program_payment_packages[]

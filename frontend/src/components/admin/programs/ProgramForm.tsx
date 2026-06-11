@@ -201,6 +201,23 @@ export default function ProgramForm({
                         </div>
                     </div>
 
+                    <div className={`flex items-center gap-3 p-4 rounded-lg border ${isDark ? 'bg-gray-700/40 border-gray-600' : 'bg-blue-50/50 border-blue-100'}`}>
+                        <input
+                            type="checkbox"
+                            id="show_on_website"
+                            name="show_on_website"
+                            checked={Boolean(formData.show_on_website)}
+                            onChange={handleInputChange}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor="show_on_website" className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                            Show on public website
+                            <span className={`block text-xs font-normal mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Display this program on the home page and programs portfolio.
+                            </span>
+                        </label>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {!editingProgram && (
                             <div>

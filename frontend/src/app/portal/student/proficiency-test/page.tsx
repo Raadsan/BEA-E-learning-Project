@@ -6,6 +6,7 @@ import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useGetProficiencyTestsQuery, useGetStudentProficiencyResultsQuery } from "@/lib/api/proficiencyTestApi";
+import { isProficiencyOnlyStudent } from "@/utils/programCatalog";
 import { useGetIeltsToeflStudentQuery } from "@/lib/api/ieltsToeflApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 
@@ -67,7 +68,7 @@ export default function ProficiencyTestPage() {
     }, [tests]);
 
     const prog = (user?.chosen_program || user?.program || "").toString().toLowerCase();
-    const isProficiencyOnly = prog.trim() === "proficiency test" || user?.role === 'proficiency_student';
+    const isProficiencyOnly = isProficiencyOnlyStudent(user);
     const hasTakenTest = results?.find(r => r.test_id === activeTest?.id);
 
     React.useEffect(() => {
@@ -120,7 +121,7 @@ export default function ProficiencyTestPage() {
 
     return (
         <main className={`flex-1 overflow-y-auto ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-            <div className="w-full px-8 pt-6 pb-6 flex items-center justify-center min-h-full">
+            <div className="w-full px-8 pt-4 pb-6 flex items-center justify-center min-h-full">
                 <div className={`rounded-3xl shadow-lg p-12 max-w-2xl w-full border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
                     }`}>
 
@@ -158,11 +159,11 @@ export default function ProficiencyTestPage() {
                         </div>
                     </div>
 
-                    <h1 className={`text-3xl font-bold text-center mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <h1 className={`text-4xl font-bold text-center mb-4 ${isDark ? 'text-white' : 'text-[#010080]'}`}>
                         {activeTest.title}
                     </h1>
 
-                    <p className={`text-center mb-10 leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <p className={`text-lg text-center mb-10 leading-relaxed ${isDark ? 'text-gray-400' : 'text-black'}`}>
                         {activeTest.description || "This comprehensive test will assess your English language proficiency across multiple skill areas including grammar, vocabulary, and writing."}
                     </p>
 

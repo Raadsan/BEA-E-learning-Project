@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function TutorialsPage() {
   const { isDark } = useDarkMode();
@@ -11,14 +12,12 @@ export default function TutorialsPage() {
   const card = isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900";
 
   return (
-    <div className={`min-h-screen transition-colors px-8 ${bg}`}>
-      <div className="py-6">
-        <div className={`mb-6 p-6 rounded-xl shadow ${card}`}>
-          <h1 className="text-2xl font-bold mb-2">Tutorials</h1>
-          <p className={isDark ? "text-gray-300" : "text-gray-600"}>
-            Access helpful tutorials and guides to enhance your learning experience.
-          </p>
-        </div>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+      <div>
+        <StudentPageHeader
+          title="Tutorials"
+          description="Access helpful tutorials and guides to enhance your learning experience."
+        />
 
         {tutorials.length === 0 ? (
           <div className={`p-6 rounded-xl shadow ${card} text-center`}>

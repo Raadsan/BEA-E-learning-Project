@@ -10,6 +10,7 @@ import {
 import StudentProgressReportView from "@/components/StudentProgressReportView";
 import OfficialReportModal from "@/components/OfficialReportModal";
 import { PrinterIcon } from "@heroicons/react/24/outline";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function ProgressReportPage() {
   const { isDark } = useDarkMode();
@@ -83,11 +84,15 @@ export default function ProgressReportPage() {
   })) : [];
 
   return (
-    <main className={`min-h-screen pt-12 pb-12 w-full sm:px-10 transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <div className="flex justify-between items-center mb-8 no-print">
-        <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-          Student Progress Report
-        </h2>
+    <main className={`min-h-screen pt-4 pb-12 w-full sm:px-10 transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="flex justify-between items-center mb-6 no-print">
+        <div className="flex-1 min-w-0">
+          <StudentPageHeader
+            title="Student Progress Report"
+            description="Review your academic performance and progress by term."
+            className="mb-0"
+          />
+        </div>
         <div className="flex items-center gap-4">
           {transformedPeriods.length > 0 && (
             <select

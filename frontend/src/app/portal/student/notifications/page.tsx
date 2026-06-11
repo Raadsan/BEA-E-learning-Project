@@ -5,6 +5,7 @@ import { useDarkMode } from "@/context/ThemeContext";
 import { useGetNotificationsQuery, useMarkAsReadMutation } from "@/lib/api/notificationApi";
 import { useGetAnnouncementsQuery } from "@/lib/api/announcementApi";
 import Image from "next/image";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function StudentNotificationsPage() {
   const { isDark } = useDarkMode();
@@ -92,14 +93,17 @@ export default function StudentNotificationsPage() {
   const modalBg = isDark ? "bg-gray-800" : "bg-white";
 
   return (
-    <div className={`min-h-[calc(100vh-80px)] transition-colors w-full px-8 py-6 pb-20 ${bg}`}>
+    <div className={`min-h-[calc(100vh-80px)] transition-colors w-full px-8 pt-4 pb-20 ${bg}`}>
       <div className="w-full">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className={`text-3xl font-bold ${textMain}`}>Notifications</h1>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
-            {allItems.filter(n => !n.is_read).length} Unread
-          </span>
-        </div>
+        <StudentPageHeader
+          title="Notifications"
+          description="Your latest alerts, updates, and class announcements."
+          actions={
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
+              {allItems.filter(n => !n.is_read).length} Unread
+            </span>
+          }
+        />
 
         {isLoading ? (
           <div className="flex justify-center p-12">

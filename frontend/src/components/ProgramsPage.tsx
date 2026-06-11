@@ -6,6 +6,13 @@ import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { getProgramRoute } from "@/utils/programRoutes";
+import {
+  getWebsitePrograms,
+  sortProgramsForDisplay,
+  formatProgramDescription,
+  isEslProficiencyCertificationProgram,
+} from "@/utils/programCatalog";
+
 import { API_BASE_URL } from "@/constants";
 
 // Program Card Component with Video Support
@@ -90,31 +97,32 @@ function ProgramCard({ program, index, isDarkMode, isVisible, playingVideos, set
                 (e.target as HTMLImageElement).src = "/images/book1.jpg";
               }}
             />
-            {/* Play Icon Overlay for images */}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors rounded-tl-xl rounded-tr-xl">
-              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                </svg>
+            {!isEslProficiencyCertificationProgram(program.title) && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors rounded-tl-xl rounded-tr-xl">
+                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
+                  <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                  </svg>
+                </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-6 flex-1 flex flex-col">
-        <h3 className={`text-sm sm:text-base font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+      <div className="p-4 sm:p-5 flex-1 flex flex-col">
+        <h3 className={`text-xs sm:text-sm font-bold mb-2 line-clamp-2 leading-snug ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {program.title}
         </h3>
 
-        <p className={`text-[12px] sm:text-xs leading-relaxed mb-4 flex-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+        <p className={`text-[10px] sm:text-[11px] leading-relaxed mb-3 flex-1 line-clamp-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           {program.description}
         </p>
 
         {/* Read More Button */}
         <div
-          className={`px-6 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base w-full text-center block header-keep-white ${isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}
+          className={`px-4 py-1.5 rounded-lg font-semibold transition-colors text-xs w-full text-center block header-keep-white ${isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-blue-800 text-white hover:bg-blue-900'}`}
           style={isDarkMode ? { color: '#010080' } : {}}
         >
           {program.buttonText || "Read more"}
@@ -155,10 +163,13 @@ export default function ProgramsPage() {
     return () => observers.forEach(obs => obs.disconnect());
   }, []);
 
+  // Filter active programs from API first (status lives on raw backend rows)
+  const activePrograms = sortProgramsForDisplay(getWebsitePrograms(backendPrograms || []));
+
   // Map backend data to frontend format
-  const programs = backendPrograms?.map((program) => {
+  const programs = activePrograms.map((program) => {
     // Ensure image URL is properly formatted from backend
-    let imageUrl = "/images/book1.jpg"; // Default fallback
+    let imageUrl = "/images/book1.jpg";
     if (program.image) {
       // If image path starts with /, use it directly with backend URL
       if (program.image.startsWith('/')) {
@@ -182,26 +193,16 @@ export default function ProgramsPage() {
     return {
       id: program.id,
       title: program.title,
-      description: program.description || "",
+      description: formatProgramDescription(program.description),
       video: videoUrl,
       image: imageUrl, // Image from backend
       alt: program.title || "Program image",
       buttonText: "Read more",
       link: getProgramRoute(program.title) // Map to correct route based on title
     };
-  }) || [];
-
-  // Sort programs: id 3 first, id 9 last, others in between
-  const sortedPrograms = [...programs].sort((a, b) => {
-    // Program 3 should be first
-    if (a.id === 3) return -1;
-    if (b.id === 3) return 1;
-    // Program 9 should be last
-    if (a.id === 9) return 1;
-    if (b.id === 9) return -1;
-    // Others sorted by id ascending
-    return a.id - b.id;
   });
+
+  const sortedPrograms = programs;
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
@@ -226,7 +227,7 @@ export default function ProgramsPage() {
       {/* Introductory Text Section */}
       <section ref={sectionRefs.intro} className="py-8 sm:py-12 overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`max-w-5xl mx-auto space-y-6 leading-relaxed text-base sm:text-lg ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+          <div className={`max-w-5xl mx-auto space-y-4 leading-relaxed text-sm sm:text-base ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
             <p className={`${visibleSections.intro ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               We offer a unique portfolio of programs designed to redefine English learning through purpose, innovation, and global relevance.
             </p>
@@ -245,12 +246,12 @@ export default function ProgramsPage() {
       {/* BEA Programs Portfolio Section */}
       <section ref={sectionRefs.portfolio} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#04003a]' : 'bg-white'}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <div className={`mb-10 sm:mb-12 ${visibleSections.portfolio ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <div className="max-w-7xl mx-auto">
+            <div className={`mb-8 sm:mb-10 ${visibleSections.portfolio ? 'animate-fade-in-up' : 'opacity-0'}`}>
+              <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 BEA Programs Portfolio
               </h2>
-              <p className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 Learn more about BEA&apos;s unique program portfolio.
               </p>
             </div>
@@ -306,7 +307,7 @@ export default function ProgramsPage() {
 
             {/* Programs Grid */}
             {!isLoading && !isError && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {sortedPrograms.length === 0 ? (
                   <div className={`col-span-full text-center py-12 ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
                     No programs available.
@@ -318,7 +319,7 @@ export default function ProgramsPage() {
                       program={program}
                       index={index}
                       isDarkMode={isDarkMode}
-                      isVisible={visibleSections.portfolio}
+                      isVisible={visibleSections.portfolio || sortedPrograms.length > 0}
                       playingVideos={playingVideos}
                       setPlayingVideos={setPlayingVideos}
                     />

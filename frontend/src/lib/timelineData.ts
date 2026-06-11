@@ -73,3 +73,55 @@ export const getNextTerm = () => {
   return upcomingTerms.length > 0 ? upcomingTerms[0] : null;
 };
 
+export function toTimelineDate(value) {
+  if (!value) return null;
+  if (typeof value === "string" && value.includes("/")) {
+    const d = parseDate(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+export function formatDisplayDate(value) {
+  const d = toTimelineDate(value);
+  if (!d) return String(value || "");
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+/** Map API (snake_case) and static (camelCase) timeline rows to one shape. */
+export function normalizeTimelineRecord(item) {
+  const startRaw = item?.startDate ?? item?.start_date;
+  const endRaw = item?.endDate ?? item?.end_date;
+  const startObj = toTimelineDate(startRaw);
+  const endObj = toTimelineDate(endRaw);
+  if (!startObj || !endObj) return null;
+
+  const endWithTime = new Date(endObj);
+  endWithTime.setHours(23, 59, 59, 999);
+
+  return {
+    ...item,
+    termSerial: String(item?.termSerial ?? item?.term_serial ?? ""),
+    startDate: formatDisplayDate(startRaw),
+    endDate: formatDisplayDate(endRaw),
+    holidays: String(item?.holidays ?? ""),
+    startObj,
+    endObj: endWithTime,
+  };
+}
+
+export function normalizeTimelineRecords(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((item) => normalizeTimelineRecord(item))
+    .filter(Boolean);
+}
+
+export function getTimelineYear(item) {
+  return String(item.startObj.getFullYear());
+}
+

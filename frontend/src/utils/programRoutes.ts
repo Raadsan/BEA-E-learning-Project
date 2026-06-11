@@ -1,5 +1,11 @@
+import { isEslProficiencyCertificationProgram } from "@/utils/programCatalog";
+
 // Function to map program titles to their routes
 export const getProgramRoute = (title) => {
+  if (isEslProficiencyCertificationProgram(title)) {
+    return "/website/programs/esl-proficiency-certification";
+  }
+
   const routeMap = {
     "General English Program For Adults": "/website/programs/8-level-general-english",
     "English for Specific Purposes (ESP) Program": "/website/programs/esp",
@@ -34,6 +40,9 @@ export const getProgramRoute = (title) => {
   }
   if (titleLower.includes("digital literacy") || titleLower.includes("virtual communication")) {
     return "/website/programs/digital-literacy";
+  }
+  if (titleLower.includes("esl") && (titleLower.includes("proficien") || titleLower.includes("certification"))) {
+    return "/website/programs/esl-proficiency-certification";
   }
 
   // Default fallback

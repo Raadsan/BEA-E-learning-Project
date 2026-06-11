@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function StudentSupportPage() {
   const { isDark } = useDarkMode();
@@ -29,14 +30,12 @@ export default function StudentSupportPage() {
   const card = isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900";
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
       <div className="w-full">
-        <div className={`mb-6 p-6 rounded-xl shadow ${card}`}>
-          <h1 className="text-2xl font-bold mb-2">Student Support</h1>
-          <p className={isDark ? "text-gray-300" : "text-gray-600"}>
-            Get help and support from our team. We're here to assist you!
-          </p>
-        </div>
+        <StudentPageHeader
+          title="Student Support"
+          description="Get help and support from our team. We're here to assist you!"
+        />
 
         {submitted ? (
           <div className={`p-6 rounded-xl shadow ${card}`}>

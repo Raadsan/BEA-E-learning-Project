@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useGetStudentSchedulesQuery } from "@/lib/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function StudentCalendarPage() {
   const { isDark } = useDarkMode();
@@ -60,7 +61,7 @@ export default function StudentCalendarPage() {
 
   if (isLoading) {
     return (
-      <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12">
             <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading calendar...</p>
@@ -71,16 +72,12 @@ export default function StudentCalendarPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="w-full">
-        <div className="mb-12">
-          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
-            My Class Calendar
-          </h1>
-          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-            Track your class schedules and important academic events.
-          </p>
-        </div>
+        <StudentPageHeader
+          title="My Class Calendar"
+          description="Track your class schedules and important academic events."
+        />
 
         <div className={`rounded-2xl shadow-sm border p-8 ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
           <div className="flex items-center justify-between mb-8">

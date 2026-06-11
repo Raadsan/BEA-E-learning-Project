@@ -48,7 +48,10 @@ function StudentLayoutContent({ children }) {
         // Proficiency-Only students (role: proficiency_student or program: proficiency test) 
         // are excluded from 24h block.
         const prog = (user?.chosen_program || user?.program || "").toString().toLowerCase();
-        const isProficiencyOnly = prog.trim() === "proficiency test" || user?.role === 'proficiency_student';
+        const isProficiencyOnly =
+          user?.role === "proficiency_student" ||
+          (prog.includes("esl") && (prog.includes("proficien") || prog.includes("certification"))) ||
+          prog.trim() === "proficiency test";
 
         if (isProficiencyOnly) {
           setIsTestExpired(false);

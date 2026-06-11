@@ -5,6 +5,7 @@ import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetStudentAttendanceQuery } from "@/lib/api/attendanceApi";
 import { useGetMyClassesQuery } from "@/lib/api/studentApi";
 import { useDarkMode } from "@/context/ThemeContext";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 import {
   PieChart,
   Pie,
@@ -126,18 +127,13 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
       <div className="w-full">
 
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className={`text-4xl font-bold tracking-tight mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
-            Attendance
-          </h1>
-          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-            Your recorded attendance by date and class.
-          </p>
-        </div>
+        <StudentPageHeader
+          title="Attendance"
+          description="Your recorded attendance by date and class."
+        />
 
         {/* Academic Selection Dashboard - Matching Grades Page */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

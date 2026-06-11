@@ -61,7 +61,10 @@ export default function StudentSidebar({ isApproved, isPaid = true, isTestExpire
 
   const prog = (user?.chosen_program || user?.program || "").toString().toLowerCase();
   const sub = user?.chosen_subprogram_name?.toString().toLowerCase() || "";
-  const isProficiencyOnly = prog.trim() === "proficiency test" || user?.role === 'proficiency_student';
+  const isProficiencyOnly =
+    user?.role === "proficiency_student" ||
+    (prog.includes("esl") && (prog.includes("proficien") || prog.includes("certification"))) ||
+    prog.trim() === "proficiency test";
 
   // Auto-detect if we're on a course-related page
   useEffect(() => {

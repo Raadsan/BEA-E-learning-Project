@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function AssignmentsPage() {
   return (
     <>
       <main className="flex-1 overflow-y-auto">
-        <div className="w-full py-6">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Assignments & Assessments</h1>
+        <div className="w-full pt-4 pb-6 px-6 sm:px-10">
+          <StudentPageHeader
+            title="Assignments & Assessments"
+            description="Access placement tests, proficiency tests, and other academic assessments."
+          />
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Placement Test Card */}

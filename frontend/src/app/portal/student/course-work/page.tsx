@@ -7,6 +7,7 @@ import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useToast } from "@/components/Toast";
 import SubmissionModal from "@/components/student/course-work/SubmissionModal";
 import SubmissionDetailsModal from "@/components/student/course-work/SubmissionDetailsModal";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function StudentCourseWorkPage() {
   const { isDark } = useDarkMode();
@@ -47,15 +48,11 @@ export default function StudentCourseWorkPage() {
   }
 
   return (
-    <div className={`min-h-screen p-8 transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-
-      {/* Header */}
-      <div className="mb-8 mt-4">
-        <h1 className="text-2xl font-bold mb-1">My Course Work</h1>
-        <p className={`text-sm opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          View and submit your assignments.
-        </p>
-      </div>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+      <StudentPageHeader
+        title="My Course Work"
+        description="View and submit your assignments."
+      />
 
       {/* Content Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

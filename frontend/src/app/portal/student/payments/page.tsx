@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
@@ -147,35 +148,27 @@ export default function StudentPaymentsPage() {
 
   if (userLoading || paymentsLoading) {
     return (
-      <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-[#0b0f19]' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-[#0b0f19]' : 'bg-gray-50'}`}>
         <Loader fullPage />
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-[#0b0f19]' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-[#0b0f19]' : 'bg-gray-50'}`}>
       <div className="w-full">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Payment History
-            </h1>
-            <p className={`text-lg font-medium opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              View and manage your academic financial transactions and receipts
-            </p>
-          </div>
-
-          {!isPaid && (
+        <StudentPageHeader
+          title="Payment History"
+          description="View and manage your academic financial transactions and receipts."
+          actions={!isPaid ? (
             <button
               onClick={() => router.push("/portal/student/payments/upgrade")}
               className="px-8 py-4 bg-[#010080] text-white hover:bg-blue-900 rounded-xl font-normal shadow-xl uppercase tracking-wider text-sm border-b-4 border-blue-900 active:border-b-0 active:translate-y-1 transition-all"
             >
               Upgrade Plan Now
             </button>
-          )}
-        </div>
+          ) : undefined}
+        />
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">

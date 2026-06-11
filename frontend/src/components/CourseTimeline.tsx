@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
-import { timelineData as staticTimelineData } from "@/lib/timelineData";
+import {
+  timelineData as staticTimelineData,
+  normalizeTimelineRecords,
+  getTimelineYear,
+} from "@/lib/timelineData";
 import { API_URL } from "@/constants";
 
 export default function CourseTimeline() {
@@ -24,26 +28,13 @@ export default function CourseTimeline() {
         if (!response.ok) throw new Error("Failed to fetch timeline data");
         const data = await response.json();
 
-        let finalData = [];
-        // Use database data if available, otherwise use static data
-        if (data && data.length > 0) {
-          finalData = data;
-          console.log("✅ Timeline data loaded from database");
-        } else {
-          finalData = staticTimelineData;
-          console.log("⚠️ Database empty, using static data");
-        }
-
+        const raw = data?.length > 0 ? data : staticTimelineData;
+        const finalData = normalizeTimelineRecords(raw);
         setTimelineData(finalData);
 
-        // Extract unique years and sort them
-        const extractedYears = [...new Set(finalData.map(item => {
-          const dateStr = item.startDate || item.start_date;
-          if (dateStr && dateStr.includes('/')) {
-            return dateStr.split('/')[2];
-          }
-          return new Date(dateStr).getFullYear().toString();
-        }))].sort((a, b) => parseInt(a as string) - parseInt(b as string));
+        const extractedYears = [...new Set(finalData.map(getTimelineYear))].sort(
+          (a, b) => parseInt(a) - parseInt(b)
+        );
 
         setYears(extractedYears);
 
@@ -56,9 +47,12 @@ export default function CourseTimeline() {
         setError(null);
       } catch (err) {
         console.warn("⚠️ API failed, using static data:", err.message);
-        setTimelineData(staticTimelineData);
+        const fallback = normalizeTimelineRecords(staticTimelineData);
+        setTimelineData(fallback);
 
-        const extractedYears = [...new Set(staticTimelineData.map(item => item.startDate.split('/')[2]))].sort((a, b) => parseInt(a as string) - parseInt(b as string));
+        const extractedYears = [...new Set(fallback.map(getTimelineYear))].sort(
+          (a, b) => parseInt(a) - parseInt(b)
+        );
         setYears(extractedYears);
         setError(null);
       } finally {
@@ -71,16 +65,7 @@ export default function CourseTimeline() {
 
   // Filter data when selectedYear or timelineData changes
   useEffect(() => {
-    const filtered = timelineData.filter(item => {
-      const dateStr = item.startDate || item.start_date;
-      let itemYear;
-      if (dateStr && dateStr.includes('/')) {
-        itemYear = dateStr.split('/')[2];
-      } else {
-        itemYear = new Date(dateStr).getFullYear().toString();
-      }
-      return itemYear === selectedYear;
-    });
+    const filtered = timelineData.filter((item) => getTimelineYear(item) === selectedYear);
     setFilteredData(filtered);
   }, [selectedYear, timelineData]);
 
@@ -107,10 +92,10 @@ export default function CourseTimeline() {
         <div className="max-w-5xl mx-auto">
           <div className={`mb-8 sm:mb-10 text-center ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
-              Course Timeline {new Date().getFullYear()}
+              Course Timeline {selectedYear}
             </h2>
             <p className={`text-base sm:text-lg ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
-              Plan ahead with our comprehensive {new Date().getFullYear()} course calendar. All courses include recorded sessions if you miss a live class.
+              Plan ahead with our comprehensive {selectedYear} course calendar. All courses include recorded sessions if you miss a live class.
             </p>
           </div>
 
@@ -128,7 +113,7 @@ export default function CourseTimeline() {
             ) : filteredData.length === 0 ? (
               <div className="p-8 text-center">
                 <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  No timeline data available for {new Date().getFullYear()}.
+                  No timeline data available for {selectedYear}.
                 </p>
               </div>
             ) : (

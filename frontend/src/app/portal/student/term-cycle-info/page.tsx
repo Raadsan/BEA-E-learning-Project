@@ -15,6 +15,7 @@ import { useCreateNotificationMutation } from "@/lib/api/notificationApi";
 import { useToast } from "@/components/Toast";
 import { useCreateLevelUpRequestMutation } from "@/lib/api/levelUpApi";
 import { timelineData, parseDate } from "@/lib/timelineData";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 const CountdownCircle = ({ value, label, max, color, isDark }) => {
   const radius = 40;
@@ -298,25 +299,11 @@ export default function TermCycleInfoPage() {
   };
 
   return (
-    <div className="space-y-8 p-6 md:p-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <h1 className={`text-3xl font-semibold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
-              Term Cycle Information
-            </h1>
-            <p className={`text-base font-normal ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-              Access your academic schedule and term progress.
-            </p>
-            {studentSubprogram && (
-              <p className={`text-sm mt-2 font-medium ${isDark ? "text-blue-400" : "text-blue-700"}`}>
-                Course: {studentSubprogram.subprogram_name}
-                {studentClass?.class_name ? ` · Class: ${studentClass.class_name}` : ""}
-              </p>
-            )}
-          </div>
-
-          <div className="flex items-center gap-4">
+    <div className="space-y-8 px-6 md:px-8 pt-4 pb-6 md:pb-8">
+        <StudentPageHeader
+          title="Term Cycle Information"
+          description="Access your academic schedule and term progress."
+          actions={
             <div className="flex items-center gap-3">
               <select
                 value={selectedMonth}
@@ -337,8 +324,14 @@ export default function TermCycleInfoPage() {
                 ))}
               </select>
             </div>
-          </div>
-        </div>
+          }
+        />
+        {studentSubprogram && (
+          <p className={`-mt-2 mb-6 text-sm font-medium ${isDark ? "text-blue-400" : "text-blue-700"}`}>
+            Course: {studentSubprogram.subprogram_name}
+            {studentClass?.class_name ? ` · Class: ${studentClass.class_name}` : ""}
+          </p>
+        )}
 
         {/* Term Countdown Timer - Only show if academic plan is created for this month */}
         {!calendarLoading && (academicCalendar || []).length > 0 && (

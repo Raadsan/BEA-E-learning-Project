@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "@/context/ThemeContext";
-import { timelineData as staticTimelineData, parseDate } from "@/lib/timelineData";
+import { timelineData as staticTimelineData, normalizeTimelineRecords } from "@/lib/timelineData";
 import { API_URL } from "@/constants";
 
 export default function CountdownTimer() {
@@ -28,14 +28,11 @@ export default function CountdownTimer() {
         if (!response.ok) throw new Error("Failed to fetch timeline data");
         const data = await response.json();
 
-        if (data && data.length > 0) {
-          setTimelineData(data);
-        } else {
-          setTimelineData(staticTimelineData);
-        }
+        const raw = data?.length > 0 ? data : staticTimelineData;
+        setTimelineData(normalizeTimelineRecords(raw));
       } catch (err) {
         console.warn("CountdownTimer: API failed, using static data", err);
-        setTimelineData(staticTimelineData);
+        setTimelineData(normalizeTimelineRecords(staticTimelineData));
       } finally {
         setLoading(false);
       }
@@ -67,48 +64,27 @@ export default function CountdownTimer() {
 
     const calculateTimeLeft = () => {
       const now = new Date();
-      const currentYear = now.getFullYear();
+      const processedTerms = timelineData;
 
-      // Process all terms to have Date objects
-      const processedTerms = timelineData.map(term => {
-        let startObj, endObj;
-        if (term.startDate && typeof term.startDate === 'string' && term.startDate.includes('/')) {
-          startObj = parseDate(term.startDate);
-          endObj = parseDate(term.endDate);
-        } else {
-          startObj = new Date(term.start_date || term.startDate);
-          endObj = new Date(term.end_date || term.endDate);
-        }
-        endObj.setHours(23, 59, 59, 999);
-        return { ...term, startObj, endObj };
-      });
-
-      // 1. Check if there's an ACTIVE term (Now is between start and end)
-      const active = processedTerms.find(term => now >= term.startObj && now <= term.endObj);
+      const active = processedTerms.find((term) => now >= term.startObj && now <= term.endObj);
 
       if (active) {
         setNextTerm(active);
         setMode("active");
-
-        const difference = active.endObj.getTime() - now.getTime();
-        updateTimer(difference);
+        updateTimer(active.endObj.getTime() - now.getTime());
         return;
       }
 
-      // 2. No active term, look for the NEXT upcoming term in the CURRENT year
       const upcoming = processedTerms
-        .filter(term => term.startObj > now && term.startObj.getFullYear() === currentYear)
+        .filter((term) => term.startObj > now)
         .sort((a, b) => a.startObj.getTime() - b.startObj.getTime());
 
       if (upcoming.length > 0) {
         const next = upcoming[0];
         setNextTerm(next);
         setMode("upcoming");
-
-        // No live counting for upcoming terms - keep at zero until it starts
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        updateTimer(next.startObj.getTime() - now.getTime());
       } else {
-        // 3. No active or upcoming terms for this year
         setNextTerm(null);
         setMode("waiting");
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -209,7 +185,7 @@ export default function CountdownTimer() {
           </h2>
           {nextTerm ? (
             <p className="text-white text-sm sm:text-base md:text-lg px-4 sm:px-0">
-              {nextTerm.termSerial} {mode === "active" ? "ends" : "starts"} on {mode === "active" ? (nextTerm.endDate || nextTerm.end_date_display || nextTerm.end_date) : (nextTerm.startDate || nextTerm.start_date_display || nextTerm.start_date)}
+              {nextTerm.termSerial} {mode === "active" ? "ends" : "starts"} on {mode === "active" ? nextTerm.endDate : nextTerm.startDate}
             </p>
           ) : (
             <p className="text-white text-sm sm:text-base md:text-lg px-4 sm:px-0">

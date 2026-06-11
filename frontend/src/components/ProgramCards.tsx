@@ -6,6 +6,11 @@ import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { getProgramRoute } from "@/utils/programRoutes";
+import {
+  getWebsitePrograms,
+  sortProgramsForDisplay,
+  formatProgramDescription,
+} from "@/utils/programCatalog";
 import { API_BASE_URL, resolveMediaUrl } from "@/constants";
 
 // Video Card Component
@@ -34,7 +39,7 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
     <Link
       key={program.id}
       href={program.link || "#"}
-      className={`rounded-lg border overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
+      className={`rounded-lg border overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 flex flex-col ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
         } ${isDarkMode ? 'bg-[#050040] border-[#1a1a3e]' : 'bg-white border-gray-200'}`}
       style={{ animationDelay: `${0.1 + index * 0.1}s` }}
     >
@@ -99,10 +104,10 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
       </div>
 
       {/* Content */}
-      <div className="p-4 sm:p-5">
+      <div className="p-4 sm:p-5 flex flex-col flex-1">
         {/* Title with Heart Icon */}
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-xs sm:text-sm md:text-base font-bold flex-1" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
+          <h3 className="text-xs sm:text-sm font-bold flex-1 line-clamp-2" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
             {program.title}
           </h3>
           <button className={`transition-colors ml-2 ${isDarkMode ? 'text-white hover:text-red-500' : 'text-gray-400 hover:text-red-500'}`}>
@@ -113,20 +118,18 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
         </div>
 
         {/* Description */}
-        <p className={`text-[11px] sm:text-xs leading-relaxed mb-3 sm:mb-4 ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
+        <p className={`text-[10px] sm:text-[11px] leading-relaxed mb-3 sm:mb-4 line-clamp-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           {program.description}
         </p>
 
-        {/* Explore more */}
+        {/* Explore more — full width like Programs page */}
         <div
-          className={`text-xs font-semibold inline-flex items-center gap-1 ${program.color === "red"
-            ? "text-red-600 hover:text-red-700"
-            : "text-blue-600 hover:text-blue-700"
-            }`}
+          className={`mt-auto px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm w-full text-center inline-flex items-center justify-center gap-1 transition-colors ${isDarkMode ? 'bg-white hover:bg-gray-100' : 'bg-[#010080] text-white hover:bg-blue-900'}`}
+          style={isDarkMode ? { color: '#010080' } : {}}
         >
           <span>Explore more</span>
           <svg
-            className="w-4 h-4"
+            className="w-3.5 h-3.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -164,41 +167,26 @@ export default function ProgramCards() {
     return () => observer.disconnect();
   }, []);
 
-  // Map backend data to frontend format
-  const programs = backendPrograms?.map((program) => ({
+  const sortedPrograms = sortProgramsForDisplay(getWebsitePrograms(backendPrograms || [])).map((program, index) => ({
     id: program.id,
     title: program.title,
-    description: program.description || "",
+    description: formatProgramDescription(program.description),
     video: resolveMediaUrl(program.video),
     image: resolveMediaUrl(program.image) || "/images/book1.jpg",
-    link: getProgramRoute(program.title), // Map to correct route based on title
-  })) || [];
-
-  // Sort programs: id 3 first, id 9 last, others in between
-  const sortedPrograms = [...programs].sort((a, b) => {
-    // Program 3 should be first
-    if (a.id === 3) return -1;
-    if (b.id === 3) return 1;
-    // Program 9 should be last
-    if (a.id === 9) return 1;
-    if (b.id === 9) return -1;
-    // Others sorted by id ascending
-    return a.id - b.id;
-  }).map((program, index) => ({
-    ...program,
-    color: index % 2 === 0 ? "blue" : "red", // Alternate colors based on sorted position
+    link: getProgramRoute(program.title),
+    color: index % 2 === 0 ? "blue" : "red",
   }));
 
   return (
     <section ref={sectionRef} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
-          <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 sm:mb-10 lg:mb-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+        <div className="max-w-7xl mx-auto">
+          <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                 BEA Programs Portfolio
               </h2>
-              <p className={`text-xs sm:text-sm lg:text-base ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
+              <p className={`text-[11px] sm:text-xs ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
                 Choose from our expertly designed courses tailored to your level and goals.
               </p>
             </div>
@@ -227,14 +215,14 @@ export default function ProgramCards() {
 
           {/* Programs Grid */}
           {!isLoading && !isError && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-              {sortedPrograms.slice(0, 3).map((program, index) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {sortedPrograms.map((program, index) => (
                 <VideoProgramCard
                   key={program.id}
                   program={program}
                   index={index}
                   isDarkMode={isDarkMode}
-                  isVisible={isVisible}
+                  isVisible={isVisible || sortedPrograms.length > 0}
                 />
               ))}
             </div>

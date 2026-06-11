@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useDarkMode } from "@/context/ThemeContext";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { useGetClassQuery } from "@/lib/api/classApi";
 import { useGetCoursesBySubprogramIdQuery } from "@/lib/api/courseApi";
 
@@ -48,17 +49,12 @@ export default function MyClassPage() {
   const card = isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900";
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
       <div className="w-full">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
-            My Class
-          </h1>
-          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-            Complete information about your assigned class, courses, and schedule.
-          </p>
-        </div>
+        <StudentPageHeader
+          title="My Class"
+          description="Complete information about your assigned class, courses, and schedule."
+        />
 
         {userLoading || loading ? (
           <div className={`p-6 rounded-xl shadow ${card}`}>

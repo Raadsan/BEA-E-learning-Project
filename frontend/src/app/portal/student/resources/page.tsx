@@ -7,6 +7,7 @@ import { useDarkMode } from "@/context/ThemeContext";
 import Loader from "@/components/Loader";
 import DataTable from "@/components/DataTable";
 import { resolveMediaUrl } from "@/constants";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function ResourcesPage() {
   const { isDark } = useDarkMode();
@@ -94,17 +95,12 @@ export default function ResourcesPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="w-full">
-        {/* Header Section */}
-        <div className="mb-8">
-          <h1 className={`text-4xl font-bold mb-4 ${isDark ? "text-white" : "text-[#010080]"}`}>
-            Learning Resources
-          </h1>
-          <p className={`text-lg ${isDark ? "text-gray-400" : "text-black"}`}>
-            Explore academic materials specifically curated for your subprogram.
-          </p>
-        </div>
+        <StudentPageHeader
+          title="Learning Resources"
+          description="Explore academic materials specifically curated for your subprogram."
+        />
 
         {/* Table Section */}
         <DataTable

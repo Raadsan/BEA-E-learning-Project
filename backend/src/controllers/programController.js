@@ -2,6 +2,12 @@ import prisma from '../lib/prisma.js';
 import fs from "fs";
 import path from "path";
 
+const parseShowOnWebsite = (value, fallback = true) => {
+  if (value === undefined || value === null || value === "") return fallback;
+  if (typeof value === "boolean") return value;
+  return ["true", "1", "yes", "on"].includes(String(value).toLowerCase());
+};
+
 // CREATE PROGRAM
 export const createProgram = async (req, res) => {
   try {
@@ -14,7 +20,7 @@ export const createProgram = async (req, res) => {
     const video = videoFile ? `/uploads/${videoFile.filename}` : null;
     const curriculum_file = curriculumFile ? `/uploads/${curriculumFile.filename}` : null;
 
-    const { title, description, status, price, discount, test_required } = req.body;
+    const { title, description, status, price, discount, test_required, show_on_website } = req.body;
     if (!title) return res.status(400).json({ error: "Title is required" });
 
     const program = await prisma.programs.create({
@@ -22,7 +28,8 @@ export const createProgram = async (req, res) => {
         title, description, status, 
         price: price ? parseFloat(price) : 0,
         discount: discount ? parseFloat(discount) : 0,
-        test_required, image, video, curriculum_file
+        test_required, image, video, curriculum_file,
+        show_on_website: parseShowOnWebsite(show_on_website, true),
       }
     });
 
@@ -78,6 +85,9 @@ export const updateProgram = async (req, res) => {
 
     if (data.price) data.price = parseFloat(data.price);
     if (data.discount) data.discount = parseFloat(data.discount);
+    if (data.show_on_website !== undefined) {
+      data.show_on_website = parseShowOnWebsite(data.show_on_website, existing.show_on_website ?? true);
+    }
 
     const updated = await prisma.programs.update({
       where: { id: parseInt(id) },

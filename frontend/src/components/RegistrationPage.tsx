@@ -15,6 +15,7 @@ import { Country, City } from "country-state-city";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import CountrySelect from "@/components/CountrySelect";
+import { getGeneralRegistrationPrograms, type ProgramRecord } from "@/utils/programCatalog";
 const PhoneInputComponent = PhoneInput as any;
 
 const EyeIcon = ({ size = 20 }) => (
@@ -143,7 +144,7 @@ export default function RegistrationPage() {
 
     try {
       // Find program/subprogram titles for consistent database storage
-      const chosenProgram = programs.find(p => p.id === formData.chosen_program);
+      const chosenProgram = programs.find(p => String(p.id) === String(formData.chosen_program));
       const chosenSubprogram = subprograms.find(s => s.id === formData.chosen_subprogram);
 
       // Prepare student data with payment info
@@ -750,15 +751,14 @@ export default function RegistrationPage() {
                     ) : programs && programs.length === 0 ? (
                       <div className="col-span-full py-20 text-center text-gray-400">No active programs available.</div>
                     ) : (
-                      programs
-                        .filter(p => p.status === 'active' && !p.title.includes('Proficiency Test') && !p.title.includes('IELTS'))
+                      getGeneralRegistrationPrograms(programs as ProgramRecord[])
                         .map((program) => {
-                          const isSelected = formData.chosen_program === program.id;
+                          const isSelected = String(formData.chosen_program) === String(program.id);
                           return (
                             <button
                               type="button"
                               key={program.id}
-                              onClick={() => setFormData(prev => ({ ...prev, chosen_program: program.id }))}
+                              onClick={() => setFormData(prev => ({ ...prev, chosen_program: String(program.id) }))}
                               className={`group text-left p-6 bg-white border-2 rounded-2xl transition-all duration-300 hover:shadow-lg ${isSelected
                                 ? 'border-[#010080] shadow-md ring-1 ring-[#010080]/10'
                                 : 'border-gray-100'

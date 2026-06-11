@@ -17,6 +17,7 @@ import Modal from "@/components/Modal";
 import Image from "next/image";
 import { API_BASE_URL, API_URL } from "@/constants";
 import SubprogramCurriculumMap from "@/components/student/SubprogramCurriculumMap";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { buildLevelMapSubprograms, isLevelClickable, isTestPrepProgramName } from "@/utils/subprogramProgress";
 
 function normalizeProgramName(name?: string | null) {
@@ -320,20 +321,12 @@ export default function MyCoursesPage() {
     }
 
     return (
-        <div className={`min-h-screen transition-colors pt-8 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+        <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
             <div className="w-full">
-                {/* Header */}
-                <div className="mb-12 flex flex-col md:flex-row justify-between items-start gap-6">
-                    <div>
-                        <h1 className={`text-4xl font-normal tracking-tight mb-3 ${isDark ? "text-white" : "text-gray-900"}`}>
-                            My Courses
-                        </h1>
-                        <p className={`text-lg font-normal opacity-40 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                            Available Courses
-                        </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4">
+                <StudentPageHeader
+                    title="My Courses"
+                    description="Available courses for your program and level."
+                    actions={<div className="flex flex-wrap items-center gap-4">
                         {unitEligibility?.canComplete ? (
                             <button
                                 onClick={handleCompleteUnit}
@@ -394,8 +387,8 @@ export default function MyCoursesPage() {
                                 Download Program Certificate
                             </button>
                         )}
-                    </div>
-                </div>
+                    </div>}
+                />
 
                 <div className="flex flex-col gap-10">
                     {showLevelMap ? (

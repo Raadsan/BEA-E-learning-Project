@@ -93,7 +93,7 @@ export default function CheckoutPage() {
     if (!selectedPackage) return null;
 
     return (
-        <div className={`min-h-screen transition-colors pt-12 pb-20 w-full px-6 sm:px-10 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+        <div className={`min-h-screen transition-colors pt-4 pb-20 w-full px-6 sm:px-10 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
             <div className="max-w-2xl mx-auto">
                 <Link
                     href="/portal/student/payments/upgrade"

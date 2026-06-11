@@ -15,6 +15,7 @@ import {
     formatAssignmentDateTime,
     formatAssignmentCountdown,
 } from "@/utils/assignmentTime";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 
 export default function StudentAssignmentList({ type, title, externalAssignment = null, onLeaveWorkspace }) {
@@ -776,13 +777,11 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
     }
 
     return (
-        <div className={`min-h-screen p-8 transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-            <div className="mb-8 mt-4">
-                <h1 className="text-2xl font-bold mb-1">{title}</h1>
-                <p className={`text-sm opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    View your {title.toLowerCase()}. Tasks open at the start time and complete when the end time is reached.
-                </p>
-            </div>
+        <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+            <StudentPageHeader
+                title={title}
+                description={`View your ${title.toLowerCase()}. Tasks open at the start time and complete when the end time is reached.`}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {(() => {

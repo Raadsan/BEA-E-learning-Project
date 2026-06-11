@@ -94,8 +94,8 @@ export default function CreateExamPage() {
     const [papers, setPapers] = useState({
         paper1: {
             title: "Writing [Paper 1]",
-            editing: [], // { id, text, correction, points }
-            essay: { id: uuidv4(), prompt: "", points: 20 }
+            editing: [], // { id, text, options, correctOption, correction, points }
+            essay: { id: uuidv4(), prompt: "", points: 20, wordCount: 300 }
         },
         paper2: {
             title: "Comprehension/Reading [Paper 2]",
@@ -119,7 +119,13 @@ export default function CreateExamPage() {
     });
 
     // Temporary Inputs (Buffer before adding to list)
-    const [tempEditing, setTempEditing] = useState({ text: "", correction: "", points: 2 });
+    const emptyEditingQuestion = () => ({
+        text: "",
+        options: ["", "", "", ""],
+        correctOption: 0,
+        points: 2,
+    });
+    const [tempEditing, setTempEditing] = useState(emptyEditingQuestion());
     const [editingItemId, setEditingItemId] = useState(null); // Track which item is being edited
     const [tempReadingQ, setTempReadingQ] = useState({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, correctAnswer: '', points: 2 });
     const [tempListeningQ, setTempListeningQ] = useState({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, points: 2 });
@@ -169,39 +175,69 @@ export default function CreateExamPage() {
 
     // --- Actions ---
 
+    const buildEditingPayload = () => ({
+        ...tempEditing,
+        correction: tempEditing.options[tempEditing.correctOption] || "",
+    });
+
     const handleSaveEditingItem = () => {
-        if (!tempEditing.text || !tempEditing.correction) return showToast("Please fill all fields", "error");
+        if (!tempEditing.text?.trim()) return showToast("Question text is required", "error");
+        if (tempEditing.options.some((opt) => !String(opt || "").trim())) {
+            return showToast("Please fill all 4 options (A, B, C, D)", "error");
+        }
+
+        const payload = buildEditingPayload();
 
         if (editingItemId) {
-            // Update existing
             setPapers(prev => ({
                 ...prev,
                 paper1: {
                     ...prev.paper1,
                     editing: prev.paper1.editing.map(item =>
-                        item.id === editingItemId ? { ...tempEditing, id: editingItemId } : item
+                        item.id === editingItemId ? { ...payload, id: editingItemId } : item
                     )
                 }
             }));
             setEditingItemId(null);
             showToast("Question updated", "success");
         } else {
-            // Add new
             setPapers(prev => ({
                 ...prev,
                 paper1: {
                     ...prev.paper1,
-                    editing: [...prev.paper1.editing, { ...tempEditing, id: uuidv4() }]
+                    editing: [...prev.paper1.editing, { ...payload, id: uuidv4() }]
                 }
             }));
+            showToast("Question added", "success");
         }
-        setTempEditing({ text: "", correction: "", points: 2 });
+        setTempEditing(emptyEditingQuestion());
     };
 
     const startEditing = (item) => {
-        setTempEditing({ text: item.text, correction: item.correction, points: item.points });
+        if (item.options?.length) {
+            setTempEditing({
+                text: item.text || "",
+                options: [...item.options],
+                correctOption: item.correctOption ?? 0,
+                points: item.points ?? 2,
+            });
+        } else {
+            const options = ["", "", "", ""];
+            if (item.correction) options[0] = item.correction;
+            setTempEditing({
+                text: item.text || "",
+                options,
+                correctOption: 0,
+                points: item.points ?? 2,
+            });
+        }
         setEditingItemId(item.id);
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); // Optional scroll hint or just letting them see the form
+    };
+
+    const handleEditingOptionChange = (index, value) => {
+        const options = [...tempEditing.options];
+        options[index] = value;
+        setTempEditing({ ...tempEditing, options });
     };
 
     const removeEditingItem = (id) => {
@@ -245,8 +281,14 @@ export default function CreateExamPage() {
             }));
             showToast("Audio uploaded!", "success");
         } catch (err) {
-            console.error(err);
-            showToast("Upload failed", "error");
+            const message =
+                err?.data?.error ||
+                err?.error ||
+                (typeof err?.status === "number" ? `Upload failed (${err.status})` : "Upload failed");
+            console.error("Audio upload failed:", message, err);
+            showToast(message, "error");
+        } finally {
+            e.target.value = "";
         }
     };
 
@@ -516,14 +558,28 @@ export default function CreateExamPage() {
                                                         <div className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm ${editingItemId === item.id ? 'bg-[#010080] text-white' : 'bg-gray-100 text-gray-500'}`}>
                                                             {i + 1}
                                                         </div>
-                                                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div>
-                                                                <label className="text-[10px] font-bold uppercase text-gray-400">Incorrect Sentence</label>
-                                                                <div className="text-red-500 line-through font-medium">{item.text}</div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-gray-800 dark:text-gray-200 font-medium mb-2">
+                                                                <span className="font-bold text-[#010080] mr-1">{i + 1}:</span>
+                                                                {item.text}
                                                             </div>
-                                                            <div>
-                                                                <label className="text-[10px] font-bold uppercase text-gray-400">Correct Answer</label>
-                                                                <div className="text-green-600 font-bold">{item.correction}</div>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                {(item.options?.length ? item.options : [item.correction]).filter(Boolean).map((opt, optIdx) => {
+                                                                    const labels = ["A", "B", "C", "D"];
+                                                                    const isCorrect = item.options?.length
+                                                                        ? optIdx === item.correctOption
+                                                                        : optIdx === 0;
+                                                                    return (
+                                                                        <div
+                                                                            key={optIdx}
+                                                                            className={`text-xs px-3 py-2 rounded-lg border ${isCorrect ? "bg-green-50 border-green-300 text-green-800 font-semibold" : "bg-gray-50 border-gray-200 text-gray-600"}`}
+                                                                        >
+                                                                            <span className="font-bold mr-1">{labels[optIdx] || optIdx + 1}.</span>
+                                                                            {opt}
+                                                                            {isCorrect && <span className="ml-1 text-[10px]">✓</span>}
+                                                                        </div>
+                                                                    );
+                                                                })}
                                                             </div>
                                                         </div>
                                                         <div className="flex flex-col items-end gap-2">
@@ -553,40 +609,67 @@ export default function CreateExamPage() {
                                                     </label>
                                                     {editingItemId && (
                                                         <button
-                                                            onClick={() => { setEditingItemId(null); setTempEditing({ text: "", correction: "", points: 2 }); }}
+                                                            onClick={() => { setEditingItemId(null); setTempEditing(emptyEditingQuestion()); }}
                                                             className="text-xs text-gray-500 underline hover:text-gray-700"
                                                         >
                                                             Cancel Edit
                                                         </button>
                                                     )}
                                                 </div>
-                                                <div className="flex flex-col gap-3">
+                                                <div className="space-y-3 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
                                                     <input
-                                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#010080]/20 outline-none"
-                                                        placeholder="Type the Incorrect Sentence (e.g. He go home)"
+                                                        className="w-full font-semibold border-b pb-2 outline-none"
+                                                        placeholder="Type the question / sentence (e.g. He go home every day)"
                                                         value={tempEditing.text}
                                                         onChange={(e) => setTempEditing({ ...tempEditing, text: e.target.value })}
                                                     />
-                                                    <div className="flex gap-2">
-                                                        <input
-                                                            className="flex-1 p-3 border rounded-lg bg-green-50/50 focus:ring-2 focus:ring-green-500/20 outline-none"
-                                                            placeholder="Type the Correct Sentence (e.g. He goes home)"
-                                                            value={tempEditing.correction}
-                                                            onChange={(e) => setTempEditing({ ...tempEditing, correction: e.target.value })}
-                                                        />
-                                                        <div className="w-24 relative">
-                                                            <span className="absolute right-8 top-3.5 text-xs font-bold text-gray-400">pts</span>
+                                                    <div className="space-y-2 mt-2">
+                                                        <p className="text-[10px] font-bold uppercase text-gray-400">Select the correct answer ↓</p>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                            {tempEditing.options.map((opt, idx) => {
+                                                                const labels = ["A", "B", "C", "D"];
+                                                                return (
+                                                                    <label
+                                                                        key={idx}
+                                                                        className={`flex gap-2 items-center px-3 py-2 rounded-lg border cursor-pointer transition-all ${tempEditing.correctOption === idx ? "bg-green-50 border-green-400 ring-1 ring-green-300" : "border-gray-200 hover:bg-gray-50"}`}
+                                                                    >
+                                                                        <input
+                                                                            type="radio"
+                                                                            name="correctEditing"
+                                                                            checked={tempEditing.correctOption === idx}
+                                                                            onChange={() => setTempEditing({ ...tempEditing, correctOption: idx })}
+                                                                            className="accent-green-600"
+                                                                        />
+                                                                        <span className="text-xs font-bold text-gray-500 shrink-0 w-6">{labels[idx]}.</span>
+                                                                        <input
+                                                                            className="flex-1 text-sm outline-none bg-transparent min-w-0"
+                                                                            placeholder="Enter answer choice"
+                                                                            value={opt}
+                                                                            onChange={(e) => handleEditingOptionChange(idx, e.target.value)}
+                                                                        />
+                                                                        {tempEditing.correctOption === idx && (
+                                                                            <span className="text-[10px] font-bold text-green-600 shrink-0">✓ Correct</span>
+                                                                        )}
+                                                                    </label>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 justify-between mt-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs font-bold text-gray-500">Points:</span>
                                                             <input
-                                                                type="number" className="w-full p-3 border rounded-lg text-center font-bold"
+                                                                type="number"
+                                                                className="w-16 p-1 border rounded text-center text-sm font-bold"
                                                                 value={tempEditing.points}
-                                                                onChange={(e) => setTempEditing({ ...tempEditing, points: parseInt(e.target.value) })}
+                                                                onChange={(e) => setTempEditing({ ...tempEditing, points: parseInt(e.target.value) || 1 })}
                                                             />
                                                         </div>
                                                         <button
                                                             onClick={handleSaveEditingItem}
-                                                            className={`px-6 py-2 text-white rounded-lg font-bold shadow-md flex items-center gap-2 whitespace-nowrap transition-colors ${editingItemId ? 'bg-orange-600 hover:bg-orange-700' : 'bg-[#010080] hover:bg-blue-900'}`}
+                                                            className={`py-2 px-6 text-white rounded-lg font-bold text-sm transition-colors ${editingItemId ? "bg-orange-600 hover:bg-orange-700" : "bg-[#010080] hover:opacity-90"}`}
                                                         >
-                                                            <span>{editingItemId ? 'Update' : '+ Add Question'}</span>
+                                                            {editingItemId ? "Update Question" : "+ Add Question"}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -594,7 +677,14 @@ export default function CreateExamPage() {
                                         </div>
                                         {/* Part B: Essay */}
                                         <div>
-                                            <h3 className="font-bold text-[#010080] mb-2">B. Essay Writing</h3>
+                                            <h3 className="font-bold text-[#010080] mb-2">
+                                                B. Essay Writing
+                                                {papers.paper1.essay.prompt && (
+                                                    <span className="ml-2 text-sm font-bold text-gray-500">
+                                                        ({papers.paper1.editing.length + 1}: Essay)
+                                                    </span>
+                                                )}
+                                            </h3>
                                             <textarea
                                                 className="w-full p-4 border rounded-xl focus:ring-2 ring-blue-500/20 outline-none"
                                                 rows={4}
@@ -602,12 +692,60 @@ export default function CreateExamPage() {
                                                 value={papers.paper1.essay.prompt}
                                                 onChange={(e) => setPapers(prev => ({ ...prev, paper1: { ...prev.paper1, essay: { ...prev.paper1.essay, prompt: e.target.value } } }))}
                                             />
-                                            <div className="mt-2 text-right">
-                                                <label className="text-sm font-bold mr-2">Essay Points:</label>
-                                                <input type="number" className="w-20 p-2 border rounded-lg text-center"
-                                                    value={papers.paper1.essay.points}
-                                                    onChange={(e) => setPapers(prev => ({ ...prev, paper1: { ...prev.paper1, essay: { ...prev.paper1.essay, points: parseInt(e.target.value) || 0 } } }))}
-                                                />
+                                            <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <label className="text-sm font-bold">Word Count:</label>
+                                                    <input
+                                                        type="number"
+                                                        min={1}
+                                                        className="w-24 p-2 border rounded-lg text-center font-bold"
+                                                        value={papers.paper1.essay.wordCount ?? 300}
+                                                        onChange={(e) => setPapers(prev => ({
+                                                            ...prev,
+                                                            paper1: {
+                                                                ...prev.paper1,
+                                                                essay: {
+                                                                    ...prev.paper1.essay,
+                                                                    wordCount: e.target.value === "" ? "" : Math.max(1, parseInt(e.target.value) || 1)
+                                                                }
+                                                            }
+                                                        }))}
+                                                        onBlur={(e) => {
+                                                            const val = parseInt(e.target.value);
+                                                            if (!val || val < 1) {
+                                                                setPapers(prev => ({
+                                                                    ...prev,
+                                                                    paper1: { ...prev.paper1, essay: { ...prev.paper1.essay, wordCount: 300 } }
+                                                                }));
+                                                            }
+                                                        }}
+                                                    />
+                                                    <span className="text-sm text-gray-500">words</span>
+                                                    <span className="text-xs text-gray-400 hidden sm:inline">| Quick:</span>
+                                                    {[200, 300, 500].map((count) => (
+                                                        <button
+                                                            key={count}
+                                                            type="button"
+                                                            onClick={() => setPapers(prev => ({
+                                                                ...prev,
+                                                                paper1: { ...prev.paper1, essay: { ...prev.paper1.essay, wordCount: count } }
+                                                            }))}
+                                                            className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-colors ${(papers.paper1.essay.wordCount || 300) === count
+                                                                ? "bg-[#010080] text-white border-[#010080]"
+                                                                : "bg-white text-gray-600 border-gray-200 hover:border-[#010080]/40"
+                                                                }`}
+                                                        >
+                                                            {count}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <div>
+                                                    <label className="text-sm font-bold mr-2">Essay Points:</label>
+                                                    <input type="number" className="w-20 p-2 border rounded-lg text-center"
+                                                        value={papers.paper1.essay.points}
+                                                        onChange={(e) => setPapers(prev => ({ ...prev, paper1: { ...prev.paper1, essay: { ...prev.paper1.essay, points: parseInt(e.target.value) || 0 } } }))}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -705,6 +843,26 @@ export default function CreateExamPage() {
                                                 </div>
                                             </div>
                                         </div>
+                                        {papers.paper2.questions.length > 0 && (
+                                            <div className="space-y-2">
+                                                <p className="text-xs font-bold uppercase text-gray-400">Added Questions ({papers.paper2.questions.length})</p>
+                                                {papers.paper2.questions.map((q, i) => (
+                                                    <div key={q.id} className="flex items-start justify-between gap-3 p-3 bg-white rounded-lg border border-gray-100">
+                                                        <p className="text-sm text-gray-800 flex-1">
+                                                            <span className="font-bold text-[#010080] mr-1">{i + 1}:</span>
+                                                            {q.questionText}
+                                                        </p>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeReadingItem(q.id)}
+                                                            className="text-gray-400 hover:text-red-500 shrink-0"
+                                                        >
+                                                            <TrashIcon className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
@@ -777,6 +935,26 @@ export default function CreateExamPage() {
                                                 </button>
                                             </div>
                                         </div>
+                                        {papers.paper3.questions.length > 0 && (
+                                            <div className="space-y-2">
+                                                <p className="text-xs font-bold uppercase text-gray-400">Added Questions ({papers.paper3.questions.length})</p>
+                                                {papers.paper3.questions.map((q, i) => (
+                                                    <div key={q.id} className="flex items-start justify-between gap-3 p-3 bg-white rounded-lg border border-gray-100">
+                                                        <p className="text-sm text-gray-800 flex-1">
+                                                            <span className="font-bold text-[#010080] mr-1">{i + 1}:</span>
+                                                            {q.questionText}
+                                                        </p>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeListeningItem(q.id)}
+                                                            className="text-gray-400 hover:text-red-500 shrink-0"
+                                                        >
+                                                            <TrashIcon className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

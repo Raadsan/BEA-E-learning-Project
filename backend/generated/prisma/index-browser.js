@@ -657,7 +657,8 @@ exports.Prisma.ProgramsScalarFieldEnum = {
   price: 'price',
   discount: 'discount',
   curriculum_file: 'curriculum_file',
-  test_required: 'test_required'
+  test_required: 'test_required',
+  show_on_website: 'show_on_website'
 };
 
 exports.Prisma.Session_change_requestsScalarFieldEnum = {

@@ -14,6 +14,7 @@ import { Country, City } from "country-state-city";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import CountrySelect from "@/components/CountrySelect";
+import { findProficiencyCertificationProgram } from "@/utils/programCatalog";
 
 export default function ProficiencyTestRegistration() {
     const { isDarkMode } = useTheme();
@@ -55,7 +56,8 @@ export default function ProficiencyTestRegistration() {
 
     // Fetch programs for dynamic pricing
     const { data: programs } = useGetProgramsQuery();
-    const proficiencyProgram = programs?.find(p => p.title.toLowerCase().trim() === 'proficiency test');
+    const proficiencyProgram = findProficiencyCertificationProgram(programs);
+    const proficiencyProgramTitle = proficiencyProgram?.title || "ESL Proficiency Certification Program";
 
     // Calculate fee: Price - Discount (default to 20 if not found)
     const APPLICATION_FEE = proficiencyProgram
@@ -147,7 +149,7 @@ export default function ProficiencyTestRegistration() {
                 reason_essay: formData.reason_essay,
                 status: "Pending",
                 payment_status: "paid", // Auto-confirm for now or integrate real payment
-                chosen_program: "Proficiency Test",
+                chosen_program: proficiencyProgramTitle,
                 payment: {
                     method: paymentMethod,
                     amount: APPLICATION_FEE,
@@ -372,7 +374,7 @@ export default function ProficiencyTestRegistration() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Program Selection</label>
-                                            <input type="text" value="Proficiency Test" readOnly className="w-full px-4 py-3 border border-gray-200 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed font-medium" />
+                                            <input type="text" value={proficiencyProgramTitle} readOnly className="w-full px-4 py-3 border border-gray-200 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed font-medium" />
                                         </div>
                                     </div>
 

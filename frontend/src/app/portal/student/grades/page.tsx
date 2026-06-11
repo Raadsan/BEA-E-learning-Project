@@ -6,6 +6,7 @@ import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetMyClassesQuery } from "@/lib/api/studentApi";
 import { useToast } from "@/components/Toast";
 import DataTable from "@/components/DataTable";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { API_URL } from "@/constants";
 import { getAssignmentWindowStatus } from "@/utils/assignmentTime";
 
@@ -308,12 +309,12 @@ export default function GradesPage() {
   ];
 
   return (
-    <div className={`min-h-screen transition-colors px-6 pt-8 pb-10 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`min-h-screen transition-colors px-6 pt-4 pb-10 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       <div className="w-full max-w-full mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">My Academic Grades</h1>
-          <p className="text-gray-500 dark:text-gray-400">Track your progress and review instructor feedback.</p>
-        </div>
+        <StudentPageHeader
+          title="My Academic Grades"
+          description="Track your progress and review instructor feedback."
+        />
 
         {/* Academic Summary Dashboard */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

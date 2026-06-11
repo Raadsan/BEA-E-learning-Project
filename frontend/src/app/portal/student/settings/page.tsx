@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useUpdateStudentMutation } from "@/lib/api/studentApi";
 import { useToast } from "@/components/Toast";
@@ -132,17 +133,12 @@ export default function StudentSettingsPage() {
     }
 
     return (
-        <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <div className="w-full">
-                {/* Header */}
-                <div className="mb-12">
-                    <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        Account Settings
-                    </h1>
-                    <p className={`text-lg font-medium opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Manage your personal information and preferences
-                    </p>
-                </div>
+                <StudentPageHeader
+                    title="Account Settings"
+                    description="Manage your personal information and preferences."
+                />
 
                 <div className={`rounded-xl shadow-lg overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                     {/* Profile Header */}

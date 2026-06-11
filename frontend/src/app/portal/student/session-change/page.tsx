@@ -6,6 +6,7 @@ import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useCreateSessionRequestMutation, useGetMySessionRequestsQuery } from "@/lib/api/sessionRequestApi";
 import { useGetClassesQuery } from "@/lib/api/classApi";
 import DataTable from "@/components/DataTable";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function SessionChangePage() {
   const { isDark } = useDarkMode();
@@ -167,14 +168,12 @@ export default function SessionChangePage() {
   ];
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
       <div className="w-full">
-        <div className={`mb-6 p-6 rounded-xl shadow ${card}`}>
-          <h1 className="text-2xl font-bold mb-2">Session Change Request</h1>
-          <p className={isDark ? "text-gray-300" : "text-gray-600"}>
-            Request to change your current class session.
-          </p>
-        </div>
+        <StudentPageHeader
+          title="Session Change Request"
+          description="Request to change your current class session."
+        />
 
         {/* Form Section */}
         {submitted ? (

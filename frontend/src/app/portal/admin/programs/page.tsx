@@ -41,7 +41,7 @@ export default function ProgramsPage() {
   });
 
   const [formData, setFormData] = useState({
-    title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none"
+    title: "", description: "", status: "active", show_on_website: true, image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none"
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
@@ -82,7 +82,7 @@ export default function ProgramsPage() {
 
   const handleAddProgram = () => {
     setEditingProgram(null);
-    setFormData({ title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none" });
+    setFormData({ title: "", description: "", status: "active", show_on_website: true, image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none" });
     setImagePreview(null); setVideoPreview(null);
     setIsModalOpen(true);
   };
@@ -93,10 +93,37 @@ export default function ProgramsPage() {
       title: program.title || "", description: program.description || "",
       status: program.status || "active", image: null, video: null, curriculum: null,
       curriculum_file: program.curriculum_file || null,
-      price: program.price || "", discount: program.discount || "", test_required: program.test_required || "none"
+      price: program.price || "", discount: program.discount || "", test_required: program.test_required || "none",
+      show_on_website: program.show_on_website !== false && program.show_on_website !== 0 && program.show_on_website !== "0" && program.show_on_website !== "false",
     });
     setImagePreview(program.image || null); setVideoPreview(program.video || null);
     setIsModalOpen(true);
+  };
+
+  const handleWebsiteToggle = (program) => {
+    const currentlyShown = program.show_on_website !== false && program.show_on_website !== 0 && program.show_on_website !== "0" && program.show_on_website !== "false";
+    const newValue = !currentlyShown;
+    setConfirmationModal({
+      isOpen: true,
+      title: "Website Visibility",
+      message: `${newValue ? "Show" : "Hide"} "${program.title}" on the public website?`,
+      onConfirm: async () => {
+        setConfirmationModal((prev) => ({ ...prev, isLoading: true }));
+        try {
+          const submitFormData = new FormData();
+          submitFormData.append("show_on_website", newValue ? "true" : "false");
+          await updateProgram({ id: program.id, formData: submitFormData }).unwrap();
+          showToast(`Program ${newValue ? "shown on" : "hidden from"} website`, "success");
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "blue" });
+        } catch (error) {
+          setConfirmationModal((prev) => ({ ...prev, isLoading: false }));
+          console.error("Failed to update website visibility:", error);
+          showToast("Failed to update website visibility", "error");
+        }
+      },
+      isLoading: false,
+      confirmButtonColor: "blue",
+    });
   };
 
   // handleStatusToggle
@@ -179,13 +206,16 @@ export default function ProgramsPage() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false); setEditingProgram(null);
-    setFormData({ title: "", description: "", status: "active", image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none" });
+    setFormData({ title: "", description: "", status: "active", show_on_website: true, image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none" });
     setImagePreview(null); setVideoPreview(null);
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -215,6 +245,7 @@ export default function ProgramsPage() {
       submitFormData.append("price", String(formData.price || 0));
       submitFormData.append("discount", String(formData.discount || 0));
       submitFormData.append("test_required", formData.test_required || "none");
+      submitFormData.append("show_on_website", formData.show_on_website ? "true" : "false");
 
       if (editingProgram) {
         await updateProgram({ id: editingProgram.id, formData: submitFormData }).unwrap();
@@ -268,6 +299,22 @@ export default function ProgramsPage() {
     { key: "description", label: "Description", className: "text-left pl-4", render: (val) => <span className="truncate block max-w-xs">{val || "No description"}</span> },
     { key: "price", label: "Price", render: (_, row) => <div><span>${(parseFloat(row.price || 0) - parseFloat(row.discount || 0)).toFixed(2)}</span>{parseFloat(row.discount || 0) > 0 && <span className="block text-[10px] text-gray-400 line-through">${parseFloat(row.price || 0).toFixed(2)}</span>}</div> },
     { key: "status", label: "Status", render: (val, row) => <button onClick={() => handleStatusToggle(row)} className={`px-4 py-1.5 text-xs font-bold rounded-full ${val === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{val?.charAt(0).toUpperCase() + val?.slice(1)}</button> },
+    {
+      key: "show_on_website",
+      label: "Website",
+      render: (_, row) => {
+        const isShown = row.show_on_website !== false && row.show_on_website !== 0 && row.show_on_website !== "0" && row.show_on_website !== "false";
+        return (
+          <button
+            onClick={() => handleWebsiteToggle(row)}
+            className={`px-3 py-1.5 text-xs font-bold rounded-full ${isShown ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}
+            title={isShown ? "Visible on website" : "Hidden from website"}
+          >
+            {isShown ? "Visible" : "Hidden"}
+          </button>
+        );
+      },
+    },
     {
       key: "actions", label: "Actions",
       render: (_, row) => (

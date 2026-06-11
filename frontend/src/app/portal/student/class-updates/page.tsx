@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useGetAnnouncementsQuery } from "@/lib/api/announcementApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useDarkMode } from "@/context/ThemeContext";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function ClassUpdatesPage() {
   const { isDark } = useDarkMode();
@@ -38,16 +39,12 @@ export default function ClassUpdatesPage() {
   );
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
       <div className="w-full">
-        <div className="mb-12">
-          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
-            Class Updates
-          </h1>
-          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-            Stay informed with the latest announcements, schedule changes, and important notices from your instructors.
-          </p>
-        </div>
+        <StudentPageHeader
+          title="Class Updates"
+          description="Stay informed with the latest announcements, schedule changes, and important notices from your instructors."
+        />
 
         <div>
           {isLoading ? loadingSkeleton : error ? (

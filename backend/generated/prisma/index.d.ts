@@ -44085,6 +44085,7 @@ export namespace Prisma {
     discount: Decimal | null
     curriculum_file: string | null
     test_required: $Enums.programs_test_required | null
+    show_on_website: boolean | null
   }
 
   export type ProgramsMaxAggregateOutputType = {
@@ -44099,6 +44100,7 @@ export namespace Prisma {
     discount: Decimal | null
     curriculum_file: string | null
     test_required: $Enums.programs_test_required | null
+    show_on_website: boolean | null
   }
 
   export type ProgramsCountAggregateOutputType = {
@@ -44113,6 +44115,7 @@ export namespace Prisma {
     discount: number
     curriculum_file: number
     test_required: number
+    show_on_website: number
     _all: number
   }
 
@@ -44141,6 +44144,7 @@ export namespace Prisma {
     discount?: true
     curriculum_file?: true
     test_required?: true
+    show_on_website?: true
   }
 
   export type ProgramsMaxAggregateInputType = {
@@ -44155,6 +44159,7 @@ export namespace Prisma {
     discount?: true
     curriculum_file?: true
     test_required?: true
+    show_on_website?: true
   }
 
   export type ProgramsCountAggregateInputType = {
@@ -44169,6 +44174,7 @@ export namespace Prisma {
     discount?: true
     curriculum_file?: true
     test_required?: true
+    show_on_website?: true
     _all?: true
   }
 
@@ -44270,6 +44276,7 @@ export namespace Prisma {
     discount: Decimal | null
     curriculum_file: string | null
     test_required: $Enums.programs_test_required | null
+    show_on_website: boolean
     _count: ProgramsCountAggregateOutputType | null
     _avg: ProgramsAvgAggregateOutputType | null
     _sum: ProgramsSumAggregateOutputType | null
@@ -44303,6 +44310,7 @@ export namespace Prisma {
     discount?: boolean
     curriculum_file?: boolean
     test_required?: boolean
+    show_on_website?: boolean
     academic_calendar?: boolean | programs$academic_calendarArgs<ExtArgs>
     learning_materials?: boolean | programs$learning_materialsArgs<ExtArgs>
     program_payment_packages?: boolean | programs$program_payment_packagesArgs<ExtArgs>
@@ -44325,9 +44333,10 @@ export namespace Prisma {
     discount?: boolean
     curriculum_file?: boolean
     test_required?: boolean
+    show_on_website?: boolean
   }
 
-  export type programsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "image" | "title" | "description" | "created_at" | "video" | "status" | "price" | "discount" | "curriculum_file" | "test_required", ExtArgs["result"]["programs"]>
+  export type programsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "image" | "title" | "description" | "created_at" | "video" | "status" | "price" | "discount" | "curriculum_file" | "test_required" | "show_on_website", ExtArgs["result"]["programs"]>
   export type programsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     academic_calendar?: boolean | programs$academic_calendarArgs<ExtArgs>
     learning_materials?: boolean | programs$learning_materialsArgs<ExtArgs>
@@ -44358,6 +44367,7 @@ export namespace Prisma {
       discount: Prisma.Decimal | null
       curriculum_file: string | null
       test_required: $Enums.programs_test_required | null
+      show_on_website: boolean
     }, ExtArgs["result"]["programs"]>
     composites: {}
   }
@@ -44743,6 +44753,7 @@ export namespace Prisma {
     readonly discount: FieldRef<"programs", 'Decimal'>
     readonly curriculum_file: FieldRef<"programs", 'String'>
     readonly test_required: FieldRef<"programs", 'programs_test_required'>
+    readonly show_on_website: FieldRef<"programs", 'Boolean'>
   }
     
 
@@ -62957,7 +62968,8 @@ export namespace Prisma {
     price: 'price',
     discount: 'discount',
     curriculum_file: 'curriculum_file',
-    test_required: 'test_required'
+    test_required: 'test_required',
+    show_on_website: 'show_on_website'
   };
 
   export type ProgramsScalarFieldEnum = (typeof ProgramsScalarFieldEnum)[keyof typeof ProgramsScalarFieldEnum]
@@ -67498,6 +67510,7 @@ export namespace Prisma {
     discount?: DecimalNullableFilter<"programs"> | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: StringNullableFilter<"programs"> | string | null
     test_required?: Enumprograms_test_requiredNullableFilter<"programs"> | $Enums.programs_test_required | null
+    show_on_website?: BoolFilter<"programs"> | boolean
     academic_calendar?: Academic_calendarListRelationFilter
     learning_materials?: Learning_materialsListRelationFilter
     program_payment_packages?: Program_payment_packagesListRelationFilter
@@ -67517,6 +67530,7 @@ export namespace Prisma {
     discount?: SortOrderInput | SortOrder
     curriculum_file?: SortOrderInput | SortOrder
     test_required?: SortOrderInput | SortOrder
+    show_on_website?: SortOrder
     academic_calendar?: academic_calendarOrderByRelationAggregateInput
     learning_materials?: learning_materialsOrderByRelationAggregateInput
     program_payment_packages?: program_payment_packagesOrderByRelationAggregateInput
@@ -67540,6 +67554,7 @@ export namespace Prisma {
     discount?: DecimalNullableFilter<"programs"> | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: StringNullableFilter<"programs"> | string | null
     test_required?: Enumprograms_test_requiredNullableFilter<"programs"> | $Enums.programs_test_required | null
+    show_on_website?: BoolFilter<"programs"> | boolean
     academic_calendar?: Academic_calendarListRelationFilter
     learning_materials?: Learning_materialsListRelationFilter
     program_payment_packages?: Program_payment_packagesListRelationFilter
@@ -67559,6 +67574,7 @@ export namespace Prisma {
     discount?: SortOrderInput | SortOrder
     curriculum_file?: SortOrderInput | SortOrder
     test_required?: SortOrderInput | SortOrder
+    show_on_website?: SortOrder
     _count?: programsCountOrderByAggregateInput
     _avg?: programsAvgOrderByAggregateInput
     _max?: programsMaxOrderByAggregateInput
@@ -67581,6 +67597,7 @@ export namespace Prisma {
     discount?: DecimalNullableWithAggregatesFilter<"programs"> | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: StringNullableWithAggregatesFilter<"programs"> | string | null
     test_required?: Enumprograms_test_requiredNullableWithAggregatesFilter<"programs"> | $Enums.programs_test_required | null
+    show_on_website?: BoolWithAggregatesFilter<"programs"> | boolean
   }
 
   export type session_change_requestsWhereInput = {
@@ -72699,6 +72716,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     academic_calendar?: academic_calendarCreateNestedManyWithoutProgramsInput
     learning_materials?: learning_materialsCreateNestedManyWithoutProgramsInput
     program_payment_packages?: program_payment_packagesCreateNestedManyWithoutProgramsInput
@@ -72718,6 +72736,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     academic_calendar?: academic_calendarUncheckedCreateNestedManyWithoutProgramsInput
     learning_materials?: learning_materialsUncheckedCreateNestedManyWithoutProgramsInput
     program_payment_packages?: program_payment_packagesUncheckedCreateNestedManyWithoutProgramsInput
@@ -72736,6 +72755,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     academic_calendar?: academic_calendarUpdateManyWithoutProgramsNestedInput
     learning_materials?: learning_materialsUpdateManyWithoutProgramsNestedInput
     program_payment_packages?: program_payment_packagesUpdateManyWithoutProgramsNestedInput
@@ -72755,6 +72775,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     academic_calendar?: academic_calendarUncheckedUpdateManyWithoutProgramsNestedInput
     learning_materials?: learning_materialsUncheckedUpdateManyWithoutProgramsNestedInput
     program_payment_packages?: program_payment_packagesUncheckedUpdateManyWithoutProgramsNestedInput
@@ -72774,6 +72795,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
   }
 
   export type programsUpdateManyMutationInput = {
@@ -72787,6 +72809,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type programsUncheckedUpdateManyInput = {
@@ -72801,6 +72824,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type session_change_requestsCreateInput = {
@@ -77755,6 +77779,11 @@ export namespace Prisma {
     not?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel> | $Enums.programs_test_required | null
   }
 
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
   export type Academic_calendarListRelationFilter = {
     every?: academic_calendarWhereInput
     some?: academic_calendarWhereInput
@@ -77813,6 +77842,7 @@ export namespace Prisma {
     discount?: SortOrder
     curriculum_file?: SortOrder
     test_required?: SortOrder
+    show_on_website?: SortOrder
   }
 
   export type programsAvgOrderByAggregateInput = {
@@ -77833,6 +77863,7 @@ export namespace Prisma {
     discount?: SortOrder
     curriculum_file?: SortOrder
     test_required?: SortOrder
+    show_on_website?: SortOrder
   }
 
   export type programsMinOrderByAggregateInput = {
@@ -77847,6 +77878,7 @@ export namespace Prisma {
     discount?: SortOrder
     curriculum_file?: SortOrder
     test_required?: SortOrder
+    show_on_website?: SortOrder
   }
 
   export type programsSumOrderByAggregateInput = {
@@ -77873,6 +77905,14 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel>
     _max?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel>
+  }
+
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type Enumsession_change_requests_statusNullableFilter<$PrismaModel = never> = {
@@ -80348,6 +80388,10 @@ export namespace Prisma {
     set?: $Enums.programs_test_required | null
   }
 
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
+  }
+
   export type academic_calendarUpdateManyWithoutProgramsNestedInput = {
     create?: XOR<academic_calendarCreateWithoutProgramsInput, academic_calendarUncheckedCreateWithoutProgramsInput> | academic_calendarCreateWithoutProgramsInput[] | academic_calendarUncheckedCreateWithoutProgramsInput[]
     connectOrCreate?: academic_calendarCreateOrConnectWithoutProgramsInput | academic_calendarCreateOrConnectWithoutProgramsInput[]
@@ -82125,6 +82169,11 @@ export namespace Prisma {
     not?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel> | $Enums.programs_test_required | null
   }
 
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
   export type NestedEnumprograms_statusNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.programs_status | Enumprograms_statusFieldRefInput<$PrismaModel> | null
     in?: $Enums.programs_status[] | null
@@ -82143,6 +82192,14 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel>
     _max?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel>
+  }
+
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type NestedEnumsession_change_requests_statusNullableFilter<$PrismaModel = never> = {
@@ -82309,6 +82366,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     learning_materials?: learning_materialsCreateNestedManyWithoutProgramsInput
     program_payment_packages?: program_payment_packagesCreateNestedManyWithoutProgramsInput
     subprograms?: subprogramsCreateNestedManyWithoutProgramsInput
@@ -82327,6 +82385,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     learning_materials?: learning_materialsUncheckedCreateNestedManyWithoutProgramsInput
     program_payment_packages?: program_payment_packagesUncheckedCreateNestedManyWithoutProgramsInput
     subprograms?: subprogramsUncheckedCreateNestedManyWithoutProgramsInput
@@ -82396,6 +82455,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     learning_materials?: learning_materialsUpdateManyWithoutProgramsNestedInput
     program_payment_packages?: program_payment_packagesUpdateManyWithoutProgramsNestedInput
     subprograms?: subprogramsUpdateManyWithoutProgramsNestedInput
@@ -82414,6 +82474,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     learning_materials?: learning_materialsUncheckedUpdateManyWithoutProgramsNestedInput
     program_payment_packages?: program_payment_packagesUncheckedUpdateManyWithoutProgramsNestedInput
     subprograms?: subprogramsUncheckedUpdateManyWithoutProgramsNestedInput
@@ -84844,6 +84905,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     academic_calendar?: academic_calendarCreateNestedManyWithoutProgramsInput
     program_payment_packages?: program_payment_packagesCreateNestedManyWithoutProgramsInput
     subprograms?: subprogramsCreateNestedManyWithoutProgramsInput
@@ -84862,6 +84924,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     academic_calendar?: academic_calendarUncheckedCreateNestedManyWithoutProgramsInput
     program_payment_packages?: program_payment_packagesUncheckedCreateNestedManyWithoutProgramsInput
     subprograms?: subprogramsUncheckedCreateNestedManyWithoutProgramsInput
@@ -84931,6 +84994,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     academic_calendar?: academic_calendarUpdateManyWithoutProgramsNestedInput
     program_payment_packages?: program_payment_packagesUpdateManyWithoutProgramsNestedInput
     subprograms?: subprogramsUpdateManyWithoutProgramsNestedInput
@@ -84949,6 +85013,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     academic_calendar?: academic_calendarUncheckedUpdateManyWithoutProgramsNestedInput
     program_payment_packages?: program_payment_packagesUncheckedUpdateManyWithoutProgramsNestedInput
     subprograms?: subprogramsUncheckedUpdateManyWithoutProgramsNestedInput
@@ -85618,6 +85683,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     academic_calendar?: academic_calendarCreateNestedManyWithoutProgramsInput
     learning_materials?: learning_materialsCreateNestedManyWithoutProgramsInput
     subprograms?: subprogramsCreateNestedManyWithoutProgramsInput
@@ -85636,6 +85702,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     academic_calendar?: academic_calendarUncheckedCreateNestedManyWithoutProgramsInput
     learning_materials?: learning_materialsUncheckedCreateNestedManyWithoutProgramsInput
     subprograms?: subprogramsUncheckedCreateNestedManyWithoutProgramsInput
@@ -85697,6 +85764,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     academic_calendar?: academic_calendarUpdateManyWithoutProgramsNestedInput
     learning_materials?: learning_materialsUpdateManyWithoutProgramsNestedInput
     subprograms?: subprogramsUpdateManyWithoutProgramsNestedInput
@@ -85715,6 +85783,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     academic_calendar?: academic_calendarUncheckedUpdateManyWithoutProgramsNestedInput
     learning_materials?: learning_materialsUncheckedUpdateManyWithoutProgramsNestedInput
     subprograms?: subprogramsUncheckedUpdateManyWithoutProgramsNestedInput
@@ -86988,6 +87057,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     academic_calendar?: academic_calendarCreateNestedManyWithoutProgramsInput
     learning_materials?: learning_materialsCreateNestedManyWithoutProgramsInput
     program_payment_packages?: program_payment_packagesCreateNestedManyWithoutProgramsInput
@@ -87006,6 +87076,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     academic_calendar?: academic_calendarUncheckedCreateNestedManyWithoutProgramsInput
     learning_materials?: learning_materialsUncheckedCreateNestedManyWithoutProgramsInput
     program_payment_packages?: program_payment_packagesUncheckedCreateNestedManyWithoutProgramsInput
@@ -87211,6 +87282,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     academic_calendar?: academic_calendarUpdateManyWithoutProgramsNestedInput
     learning_materials?: learning_materialsUpdateManyWithoutProgramsNestedInput
     program_payment_packages?: program_payment_packagesUpdateManyWithoutProgramsNestedInput
@@ -87229,6 +87301,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     academic_calendar?: academic_calendarUncheckedUpdateManyWithoutProgramsNestedInput
     learning_materials?: learning_materialsUncheckedUpdateManyWithoutProgramsNestedInput
     program_payment_packages?: program_payment_packagesUncheckedUpdateManyWithoutProgramsNestedInput
@@ -87594,6 +87667,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     academic_calendar?: academic_calendarCreateNestedManyWithoutProgramsInput
     learning_materials?: learning_materialsCreateNestedManyWithoutProgramsInput
     program_payment_packages?: program_payment_packagesCreateNestedManyWithoutProgramsInput
@@ -87612,6 +87686,7 @@ export namespace Prisma {
     discount?: Decimal | DecimalJsLike | number | string | null
     curriculum_file?: string | null
     test_required?: $Enums.programs_test_required | null
+    show_on_website?: boolean
     academic_calendar?: academic_calendarUncheckedCreateNestedManyWithoutProgramsInput
     learning_materials?: learning_materialsUncheckedCreateNestedManyWithoutProgramsInput
     program_payment_packages?: program_payment_packagesUncheckedCreateNestedManyWithoutProgramsInput
@@ -87735,6 +87810,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     academic_calendar?: academic_calendarUpdateManyWithoutProgramsNestedInput
     learning_materials?: learning_materialsUpdateManyWithoutProgramsNestedInput
     program_payment_packages?: program_payment_packagesUpdateManyWithoutProgramsNestedInput
@@ -87753,6 +87829,7 @@ export namespace Prisma {
     discount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     curriculum_file?: NullableStringFieldUpdateOperationsInput | string | null
     test_required?: NullableEnumprograms_test_requiredFieldUpdateOperationsInput | $Enums.programs_test_required | null
+    show_on_website?: BoolFieldUpdateOperationsInput | boolean
     academic_calendar?: academic_calendarUncheckedUpdateManyWithoutProgramsNestedInput
     learning_materials?: learning_materialsUncheckedUpdateManyWithoutProgramsNestedInput
     program_payment_packages?: program_payment_packagesUncheckedUpdateManyWithoutProgramsNestedInput

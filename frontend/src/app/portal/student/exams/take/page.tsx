@@ -51,66 +51,93 @@ export default function TakeExamPage() {
         return Math.abs(hash);
     };
 
-    // Flattening Logic
+    const getShuffledOptions = (q, optionsSeed) => {
+        if (q?.type === "true_false") return ["True", "False"];
+        if (q?.type === "short_answer") return [];
+        const opts = (q?.options || []).filter((o) => String(o || "").trim());
+        if (!opts.length) return [];
+        return deterministicShuffle([...opts], optionsSeed);
+    };
+
+    const shufflePart = (items, partSeed) => deterministicShuffle([...items], partSeed);
+
+    // Flattening Logic — random order within each part; display numbers 1→N follow shuffled order
     const flattenedSteps = useMemo(() => {
-        if (!assignment?.questions || !user?.id) return [];
+        const studentId = user?.id || user?.student_id;
+        if (!assignment?.questions || !studentId) return [];
         try {
             const raw = typeof assignment.questions === 'string' ? JSON.parse(assignment.questions) : assignment.questions;
-            const seed = strHash(user.id);
+            const seed = strHash(studentId);
             const steps = [];
 
-            // Paper 1: Writing
+            // Paper 1: Grammar + Essay (shuffled together within part)
             if (raw.paper1) {
-                const editingItems = deterministicShuffle([...(raw.paper1.editing || [])], seed + 1);
-                editingItems.forEach((item, idx) => {
-                    steps.push({
-                        id: `p1_editing_${item.id}`,
-                        part: 1,
-                        type: "editing",
-                        questionText: item.text,
-                        badge: "Grammar"
-                    });
+                const paper1Items = [
+                    ...(raw.paper1.editing || []).map((item) => ({ kind: "editing", data: item })),
+                    ...(raw.paper1.essay?.prompt ? [{ kind: "essay", data: raw.paper1.essay }] : []),
+                ];
+                shufflePart(paper1Items, seed + 1).forEach((item, idx) => {
+                    const optionsSeed = seed + 100 + idx;
+                    if (item.kind === "editing") {
+                        const editing = item.data;
+                        const options = editing.options?.length
+                            ? getShuffledOptions({ type: "mcq", options: editing.options }, optionsSeed)
+                            : editing.correction
+                                ? [editing.correction]
+                                : [];
+                        steps.push({
+                            id: `p1_editing_${editing.id}`,
+                            part: 1,
+                            type: "editing",
+                            questionText: editing.text,
+                            options,
+                            badge: "Grammar"
+                        });
+                    } else {
+                        const essay = item.data;
+                        steps.push({
+                            id: `p1_essay`,
+                            part: 1,
+                            type: "essay",
+                            questionText: essay.prompt,
+                            title: "Writing Task",
+                            description: essay.prompt,
+                            wordCount: essay.wordCount || 300,
+                            badge: "Essay"
+                        });
+                    }
                 });
-                if (raw.paper1.essay) {
-                    steps.push({
-                        id: `p1_essay`,
-                        part: 1,
-                        type: "essay",
-                        questionText: raw.paper1.essay.prompt, // Matching placement search title
-                        title: "Writing Task",
-                        description: raw.paper1.essay.prompt,
-                        badge: "Essay"
-                    });
-                }
             }
 
             // Paper 2: Reading
-            if (raw.paper2) {
-                const readingQs = deterministicShuffle([...(raw.paper2.questions || [])], seed + 2);
-                readingQs.forEach((q, idx) => {
+            if (raw.paper2?.questions?.length) {
+                shufflePart(raw.paper2.questions, seed + 2).forEach((q, idx) => {
+                    const optionsSeed = seed + 200 + idx;
                     steps.push({
                         id: `p2_q_${q.id}`,
                         part: 2,
-                        type: "reading_mcq",
+                        type: q.type === "short_answer" ? "reading_short" : "reading_mcq",
                         passage: raw.paper2.passage,
                         questionText: q.questionText,
-                        options: deterministicShuffle([...(q.options || [])], seed + 20 + idx),
+                        options: getShuffledOptions(q, optionsSeed),
+                        questionType: q.type || "mcq",
                         badge: "Reading"
                     });
                 });
             }
 
             // Paper 3: Listening
-            if (raw.paper3) {
-                const listeningQs = deterministicShuffle([...(raw.paper3.questions || [])], seed + 3);
-                listeningQs.forEach((q, idx) => {
+            if (raw.paper3?.questions?.length) {
+                shufflePart(raw.paper3.questions, seed + 3).forEach((q, idx) => {
+                    const optionsSeed = seed + 300 + idx;
                     steps.push({
                         id: `p3_q_${q.id}`,
                         part: 3,
-                        type: "listening_mcq",
+                        type: q.type === "short_answer" ? "listening_short" : "listening_mcq",
                         audioUrl: raw.paper3.audioUrl,
                         questionText: q.questionText,
-                        options: deterministicShuffle([...(q.options || [])], seed + 30 + idx),
+                        options: getShuffledOptions(q, optionsSeed),
+                        questionType: q.type || "mcq",
                         badge: "Listening"
                     });
                 });
@@ -206,8 +233,25 @@ export default function TakeExamPage() {
         return () => clearInterval(timer);
     }, [timeRemaining, timerKey]);
 
+    const countWords = (text) => {
+        const trimmed = String(text || "").trim();
+        return trimmed ? trimmed.split(/\s+/).length : 0;
+    };
+
+    const limitToWordCount = (text, maxWords) => {
+        const trimmed = String(text || "").trim();
+        if (!trimmed || !maxWords) return text;
+        const words = trimmed.split(/\s+/);
+        if (words.length <= maxWords) return text;
+        return words.slice(0, maxWords).join(" ");
+    };
+
     const handleAnswerChange = (key, value) => {
         setAnswers(prev => ({ ...prev, [key]: value }));
+    };
+
+    const handleEssayChange = (key, value, maxWords) => {
+        handleAnswerChange(key, limitToWordCount(value, maxWords));
     };
 
     const handleFileChange = (e) => {
@@ -233,7 +277,7 @@ export default function TakeExamPage() {
     // Authenticated Audio Fetching
     useEffect(() => {
         const currentStep = flattenedSteps[currentStepIdx];
-        if (currentStep?.type === "listening_mcq" && currentStep.audioUrl) {
+        if (currentStep?.type?.startsWith("listening") && currentStep.audioUrl) {
             const fetchAudio = async () => {
                 setIsLoadingAudio(true);
                 try {
@@ -317,7 +361,7 @@ export default function TakeExamPage() {
 
     const currentPart = currentStep.part;
     const partSteps = flattenedSteps.filter(s => s.part === currentPart);
-    const stepInPartIdx = partSteps.findIndex(s => s.id === currentStep.id) + 1;
+    const displayQuestionNumber = partSteps.findIndex((s) => s.id === currentStep.id) + 1;
 
     const formatTime = (s) => {
         if (s === null) return "00:00";
@@ -358,7 +402,7 @@ export default function TakeExamPage() {
                 <div className={`p-10 rounded-xl border border-gray-200 min-h-[450px] shadow-sm relative ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
                     <div className="flex justify-between items-center mb-4">
                         <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-                            Part {currentStep.part}: Question {stepInPartIdx} of {partSteps.length}
+                            Part {currentStep.part}: Question {displayQuestionNumber} of {partSteps.length}
                         </span>
                         <span className="text-[10px] font-bold text-[#010080] bg-blue-50 px-3 py-1 rounded uppercase">
                             {currentStep.badge}
@@ -369,14 +413,14 @@ export default function TakeExamPage() {
 
                     <div className="animate-in fade-in slide-in-from-right-4 duration-500">
                         {/* MCQ / Editing Types */}
-                        {(currentStep.type === "editing" || currentStep.type === "reading_mcq" || currentStep.type === "listening_mcq") && (
+                        {(currentStep.type === "editing" || currentStep.type === "reading_mcq" || currentStep.type === "listening_mcq" || currentStep.type === "reading_short" || currentStep.type === "listening_short") && (
                             <div className="space-y-6">
-                                {currentStep.type === "reading_mcq" && (
+                                {(currentStep.type === "reading_mcq" || currentStep.type === "reading_short") && (
                                     <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-sm text-gray-700 leading-relaxed font-normal mb-8 max-h-[300px] overflow-y-auto">
                                         {currentStep.passage}
                                     </div>
                                 )}
-                                {currentStep.type === "listening_mcq" && (
+                                {(currentStep.type === "listening_mcq" || currentStep.type === "listening_short") && (
                                     <div className="bg-blue-50/20 p-6 rounded-xl border border-blue-100 mb-8">
                                         {isLoadingAudio ? (
                                             <div className="flex items-center gap-3 text-[#010080] font-medium">
@@ -396,48 +440,66 @@ export default function TakeExamPage() {
                                 )}
 
                                 <h2 className="text-lg font-semibold text-gray-800 leading-relaxed dark:text-gray-100">
-                                    {currentStep.type === "editing" ? `Correct the following sentence: "${currentStep.questionText}"` : currentStep.questionText}
+                                    {displayQuestionNumber}: {currentStep.questionText}
                                 </h2>
 
-                                {currentStep.type === "editing" ? (
-                                    <input
-                                        type="text"
-                                        placeholder="Type correctly..."
-                                        value={answers[currentStep.id] || ""}
-                                        onChange={(e) => handleAnswerChange(currentStep.id, e.target.value)}
-                                        className="w-full p-4 h-14 rounded-xl border border-gray-100 focus:border-[#010080] outline-none text-sm font-normal bg-gray-50 focus:bg-white transition-all mt-4"
-                                    />
-                                ) : (
-                                    <div className="space-y-3 pt-2">
-                                        {currentStep.options?.map((opt, i) => {
-                                            const isChecked = answers[currentStep.id]?.index === i || answers[currentStep.id] === opt;
-                                            return (
-                                                <label key={i} className={`flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${isChecked ? 'border-[#010080] bg-blue-50/20' : 'border-gray-50 hover:border-gray-100 dark:border-gray-700'}`}>
-                                                    <input
-                                                        type="radio"
-                                                        name={currentStep.id}
-                                                        checked={isChecked}
-                                                        onChange={() => handleAnswerChange(currentStep.id, { value: opt, index: i })}
-                                                        className="w-4 h-4 accent-[#010080]"
-                                                    />
-                                                    <span className={`text-sm font-medium ${isChecked ? 'text-[#010080]' : 'text-gray-600 dark:text-gray-400'}`}>{opt}</span>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                )}
+                                <div className="space-y-3 pt-2">
+                                    {(currentStep.type === "reading_short" || currentStep.type === "listening_short") ? (
+                                        <input
+                                            type="text"
+                                            placeholder="Type your answer..."
+                                            value={answers[currentStep.id] || ""}
+                                            onChange={(e) => handleAnswerChange(currentStep.id, e.target.value)}
+                                            className="w-full p-4 h-14 rounded-xl border border-gray-100 focus:border-[#010080] outline-none text-sm font-normal bg-gray-50 focus:bg-white transition-all"
+                                        />
+                                    ) : currentStep.options?.map((opt, i) => {
+                                        const optionLabels = ["A", "B", "C", "D"];
+                                        const isChecked = answers[currentStep.id]?.index === i || answers[currentStep.id] === opt;
+                                        return (
+                                            <label key={i} className={`flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${isChecked ? 'border-[#010080] bg-blue-50/20' : 'border-gray-50 hover:border-gray-100 dark:border-gray-700'}`}>
+                                                <input
+                                                    type="radio"
+                                                    name={currentStep.id}
+                                                    checked={isChecked}
+                                                    onChange={() => handleAnswerChange(currentStep.id, { value: opt, index: i })}
+                                                    className="w-4 h-4 accent-[#010080]"
+                                                />
+                                                <span className={`text-xs font-bold uppercase shrink-0 w-6 ${isChecked ? 'text-[#010080]' : 'text-gray-400'}`}>
+                                                    {optionLabels[i] || i + 1}.
+                                                </span>
+                                                <span className={`text-sm font-medium flex-1 ${isChecked ? 'text-[#010080]' : 'text-gray-600 dark:text-gray-400'}`}>{opt}</span>
+                                            </label>
+                                        );
+                                    })}
+                                    {currentStep.type === "editing" && (!currentStep.options || currentStep.options.length === 0) && (
+                                        <input
+                                            type="text"
+                                            placeholder="Type correctly..."
+                                            value={answers[currentStep.id] || ""}
+                                            onChange={(e) => handleAnswerChange(currentStep.id, e.target.value)}
+                                            className="w-full p-4 h-14 rounded-xl border border-gray-100 focus:border-[#010080] outline-none text-sm font-normal bg-gray-50 focus:bg-white transition-all"
+                                        />
+                                    )}
+                                </div>
                             </div>
                         )}
 
                         {/* Essay Type */}
                         {currentStep.type === "essay" && (
                             <div className="space-y-6">
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{currentStep.title}</h2>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{displayQuestionNumber}: {currentStep.title}</h2>
                                 <p className="text-sm text-gray-600 font-medium leading-relaxed dark:text-gray-400">{currentStep.description}</p>
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-[#010080] text-xs font-bold border border-blue-100">
+                                        Write up to {currentStep.wordCount || 300} words only
+                                    </span>
+                                    <span className={`text-xs font-bold ${countWords(answers[currentStep.id]) >= (currentStep.wordCount || 300) ? "text-rose-600" : "text-gray-500"}`}>
+                                        {countWords(answers[currentStep.id])} / {currentStep.wordCount || 300} words
+                                    </span>
+                                </div>
                                 <textarea
                                     value={answers[currentStep.id] || ""}
-                                    onChange={(e) => handleAnswerChange(currentStep.id, e.target.value)}
-                                    // Security: Disable Copy/Paste/Cut and Browser Assists
+                                    onChange={(e) => handleEssayChange(currentStep.id, e.target.value, currentStep.wordCount || 300)}
                                     onPaste={(e) => e.preventDefault()}
                                     onCopy={(e) => e.preventDefault()}
                                     onCut={(e) => e.preventDefault()}
@@ -446,7 +508,7 @@ export default function TakeExamPage() {
                                     autoCapitalize="off"
                                     autoComplete="off"
                                     className="w-full p-6 border border-gray-100 rounded-xl min-h-[400px] focus:border-[#010080] outline-none bg-gray-50 focus:bg-white transition-all text-sm font-normal dark:bg-gray-900/40 dark:border-gray-700"
-                                    placeholder="Type your response here..."
+                                    placeholder={`Type your essay here (maximum ${currentStep.wordCount || 300} words)...`}
                                 />
                             </div>
                         )}

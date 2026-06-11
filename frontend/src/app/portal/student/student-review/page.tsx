@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetTimelinesQuery } from "@/lib/api/courseTimelineApi";
 import { useGetTeachersToReviewQuery, useSubmitTeacherReviewMutation, useGetQuestionsQuery, useGetStudentReviewsQuery } from "@/lib/api/reviewApi";
 import { useToast } from "@/components/Toast";
+import { isProficiencyOnlyStudent } from "@/utils/programCatalog";
 
 // Sub-component for individual teacher accordion
 const TeacherReviewAccordion = ({ teacher, isOpen, onToggle, questions, classId, termSerial, refetchReviews, isReviewed, onReviewSuccess }) => {
@@ -218,7 +220,7 @@ export default function StudentReviewPage() {
   const { data: timelines = [] } = useGetTimelinesQuery();
   const { data: questions = [] } = useGetQuestionsQuery("teacher");
 
-  const isProficiencyOnly = (user?.chosen_program || user?.program || "").toString().toLowerCase().trim() === 'proficiency test' || user?.role === 'proficiency_student';
+  const isProficiencyOnly = isProficiencyOnlyStudent(user);
 
   const { data: teachersToReview = [], isLoading: teachersLoading, refetch } = useGetTeachersToReviewQuery(undefined, {
     skip: !user || isProficiencyOnly
@@ -265,17 +267,12 @@ export default function StudentReviewPage() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="w-full">
-        {/* Header - Plain Style */}
-        <div className="mb-10 pl-2">
-          <h1 className={`text-4xl font-normal mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Evaluate Your Instructors
-          </h1>
-          <p className={`text-lg font-medium opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Select a teacher below to expand the evaluation form. Your feedback helps us improve.
-          </p>
-        </div>
+        <StudentPageHeader
+          title="Evaluate Your Instructors"
+          description="Select a teacher below to expand the evaluation form. Your feedback helps us improve."
+        />
 
         {/* Teachers List (Accordions) */}
         <div className="space-y-4">

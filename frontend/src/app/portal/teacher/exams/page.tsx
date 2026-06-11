@@ -141,7 +141,10 @@ export default function ExamsPage() {
             }
 
             const qId = prefix || q.id || idx;
-            const studentAns = studentAnswers[qId] !== undefined ? studentAnswers[qId] : studentAnswers[String(qId)];
+            const studentAnsRaw = studentAnswers[qId] !== undefined ? studentAnswers[qId] : studentAnswers[String(qId)];
+            const studentAns = typeof studentAnsRaw === "object" && studentAnsRaw?.value != null
+                ? studentAnsRaw.value
+                : studentAnsRaw;
             const correctAns = q.options && q.correctOption !== undefined
                 ? q.options[q.correctOption]
                 : (q.correctAnswer || q.answer || q.correction);
@@ -497,20 +500,38 @@ export default function ExamsPage() {
                                     <div className="space-y-6">
                                         {paper.editing && paper.editing.map((item, eIdx) => {
                                             const qId = `${paperPrefix}_editing_${item.id || eIdx}`;
-                                            const studAns = studentAnswers[qId];
-                                            const corrAns = item.correction;
+                                            const studAnsRaw = studentAnswers[qId];
+                                            const studAns = typeof studAnsRaw === "object" && studAnsRaw?.value != null
+                                                ? studAnsRaw.value
+                                                : studAnsRaw;
+                                            const corrAns = item.options?.length && item.correctOption !== undefined
+                                                ? item.options[item.correctOption]
+                                                : item.correction;
                                             const isCorrect = normalize(studAns) === normalize(corrAns);
+                                            const optionLabels = ["A", "B", "C", "D"];
 
                                             return (
                                                 <div key={eIdx} className="p-4 rounded-xl border bg-gray-50/30 dark:bg-gray-900/30">
                                                     <div className="flex justify-between items-center mb-2">
-                                                        <span className="text-[10px] font-bold uppercase bg-blue-50 text-blue-600 dark:bg-blue-900/20 px-2 py-0.5 rounded">Editing Part {eIdx + 1}</span>
-                                                        <span className={`text-[10px] font-bold uppercase ${isCorrect ? 'text-green-600' : 'text-rose-600'}`}>{isCorrect ? 'Correct (+1 PTS)' : 'Incorrect (0 PTS)'}</span>
+                                                        <span className="text-[10px] font-bold uppercase bg-blue-50 text-blue-600 dark:bg-blue-900/20 px-2 py-0.5 rounded">Grammar {eIdx + 1}</span>
+                                                        <span className={`text-[10px] font-bold uppercase ${isCorrect ? 'text-green-600' : 'text-rose-600'}`}>{isCorrect ? `Correct (+${item.points || 1} PTS)` : 'Incorrect (0 PTS)'}</span>
                                                     </div>
                                                     <p className="text-sm font-semibold mb-3">{item.text}</p>
+                                                    {item.options?.length ? (
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                                                            {item.options.map((opt, optIdx) => (
+                                                                <div
+                                                                    key={optIdx}
+                                                                    className={`text-xs px-3 py-2 rounded-lg border ${optIdx === item.correctOption ? "bg-green-50 border-green-300 text-green-800" : "bg-white border-gray-200 text-gray-600"}`}
+                                                                >
+                                                                    <span className="font-bold mr-1">{optionLabels[optIdx]}.</span> {opt}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : null}
                                                     <div className="grid grid-cols-2 gap-4 text-xs">
                                                         <div>
-                                                            <p className="opacity-60 mb-1 font-bold">Student Correction:</p>
+                                                            <p className="opacity-60 mb-1 font-bold">Student Answer:</p>
                                                             <p className={`p-2 rounded font-semibold ${isCorrect ? 'bg-green-50 text-green-700 dark:bg-green-950/20' : 'bg-rose-50 text-rose-700 dark:bg-rose-950/20'}`}>{studAns || "Blank"}</p>
                                                         </div>
                                                         <div>
@@ -569,10 +590,23 @@ export default function ExamsPage() {
                                                         <span className="text-[10px] font-bold">/ {paper.essay.points || 30} PTS</span>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm font-semibold opacity-85 mb-3">{paper.essay.prompt}</p>
+                                                <p className="text-sm font-semibold opacity-85 mb-1">{paper.essay.prompt}</p>
+                                                {paper.essay.wordCount && (
+                                                    <p className="text-xs font-bold text-[#010080] mb-3">
+                                                        Required length: up to {paper.essay.wordCount} words
+                                                    </p>
+                                                )}
                                                 <div className="space-y-2">
                                                     <div className="flex justify-between items-center">
-                                                        <p className="text-xs font-bold uppercase opacity-65">Student Essay Response:</p>
+                                                        <p className="text-xs font-bold uppercase opacity-65">
+                                                            Student Essay Response
+                                                            {studentAnswers[`${paperPrefix}_essay`] && (
+                                                                <span className="ml-2 normal-case text-gray-500">
+                                                                    ({String(studentAnswers[`${paperPrefix}_essay`] || "").trim().split(/\s+/).filter(Boolean).length} words)
+                                                                </span>
+                                                            )}
+                                                            :
+                                                        </p>
                                                         <button
                                                             onClick={() => handleDownloadDoc(paper.essay.prompt, studentAnswers[`${paperPrefix}_essay`] || "No response.")}
                                                             className="flex items-center gap-1.5 px-3 py-1.5 bg-white border dark:bg-gray-800 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"

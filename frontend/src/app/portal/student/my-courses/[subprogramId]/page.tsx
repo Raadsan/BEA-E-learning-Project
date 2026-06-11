@@ -132,7 +132,7 @@ export default function CourseOverviewPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
       <div className="w-full">
         {/* Back Button Only */}
         <div className="mb-6">

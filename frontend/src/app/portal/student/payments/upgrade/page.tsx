@@ -7,6 +7,7 @@ import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetPaymentPackagesQuery } from "@/lib/api/paymentPackageApi";
 import { useToast } from "@/components/Toast";
 import Link from "next/link";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function UpgradePaymentPage() {
     const { isDark } = useDarkMode();
@@ -32,26 +33,21 @@ export default function UpgradePaymentPage() {
     };
 
     return (
-        <div className={`min-h-screen transition-colors pt-8 pb-20 w-full px-6 sm:px-10 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+        <div className={`min-h-screen transition-colors pt-4 pb-20 w-full px-6 sm:px-10 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
             <div className="w-full">
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
-                    <div className="flex-1">
-                        <Link
-                            href="/portal/student/payments"
-                            className="inline-flex items-center gap-2 text-sm text-black mb-4 hover:underline"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                            Back to History
-                        </Link>
-                        <h1 className="text-3xl font-bold tracking-tight mb-1">Upgrade Packages</h1>
-                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Choose your renewal cycle for <span className={`${isDark ? 'text-blue-400 font-semibold' : 'text-black font-semibold'}`}>{user?.chosen_program}</span>
-                        </p>
-                    </div>
-                </div>
+                <Link
+                    href="/portal/student/payments"
+                    className="inline-flex items-center gap-2 text-sm mb-4 hover:underline text-[#010080]"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back to History
+                </Link>
+                <StudentPageHeader
+                    title="Upgrade Packages"
+                    description={`Choose your renewal cycle for ${user?.chosen_program || "your program"}.`}
+                />
 
                 {/* Packages Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

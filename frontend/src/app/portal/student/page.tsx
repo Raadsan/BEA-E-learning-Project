@@ -9,6 +9,7 @@ import { useGetLearningHoursSummaryQuery } from "@/lib/api/learningHoursApi";
 import { useGetTopStudentsQuery, useGetStudentProgressQuery } from "@/lib/api/studentApi";
 import { useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
 import { useGetProgramQuery } from "@/lib/api/programApi";
+import { isProficiencyOnlyStudent } from "@/utils/programCatalog";
 import { useGetStudentPlacementResultsQuery } from "@/lib/api/placementTestApi";
 import { useGetStudentProficiencyResultsQuery } from "@/lib/api/proficiencyTestApi";
 import { useGetIeltsToeflStudentQuery } from "@/lib/api/ieltsToeflApi";
@@ -203,7 +204,7 @@ export default function StudentDashboard() {
     const router = useRouter();
     const { isDark } = useDarkMode();
     const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
-    const isProficiencyOnly = (user?.chosen_program || user?.program || "").toString().toLowerCase().trim() === 'proficiency test' || user?.role === 'proficiency_student';
+    const isProficiencyOnly = isProficiencyOnlyStudent(user);
 
     const [approvalStatus, setApprovalStatus] = useState('pending');
     const [isPaid, setIsPaid] = useState(true);
@@ -487,7 +488,7 @@ export default function StudentDashboard() {
     }
 
     return (
-        <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-[#0b0f19]' : 'bg-gray-50'}`}>
+        <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-[#0b0f19]' : 'bg-gray-50'}`}>
             <div className="w-full">
                 {isProficiencyOnly ? (
                     <ProficiencyDashboard

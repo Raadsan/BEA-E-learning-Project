@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetClassQuery, useGetClassSchedulesQuery } from "@/lib/api/classApi";
 import { useToast } from "@/components/Toast";
@@ -204,9 +205,9 @@ export default function OnlineSessionsPage() {
     const blocksEmbedding = isGoogleMeet || isZoom;
 
     return (
-      <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+      <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
         <div className="max-w-7xl mx-auto h-full flex flex-col">
-          <div className="mb-10 flex items-center justify-between">
+          <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={handleBackToSessions}
@@ -334,21 +335,17 @@ export default function OnlineSessionsPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
       <div className="w-full">
-        <div className="mb-12">
-          <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
-            Online Sessions
-          </h1>
-          <p className={`text-lg font-medium opacity-60 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-            View and join your scheduled online class sessions.
-            {studentClass && (
-              <span className="ml-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold">
-                Class: {studentClass.class_name}
-              </span>
-            )}
-          </p>
-        </div>
+        <StudentPageHeader
+          title="Online Sessions"
+          description="View and join your scheduled online class sessions."
+          actions={studentClass ? (
+            <span className={`px-3 py-1 rounded-full text-xs font-bold ${isDark ? "bg-blue-900/30 text-blue-400" : "bg-blue-100 text-[#010080]"}`}>
+              Class: {studentClass.class_name}
+            </span>
+          ) : undefined}
+        />
 
         {upcomingSessions.length > 0 && (
           <div className="mb-8">

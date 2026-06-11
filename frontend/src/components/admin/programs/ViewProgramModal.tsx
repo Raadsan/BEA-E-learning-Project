@@ -78,6 +78,16 @@ export default function ViewProgramModal({ program, onClose, isDark }) {
                                 </div>
                                 <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
                                     <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                        }`}>Website</label>
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${program.show_on_website !== false && program.show_on_website !== 0 && program.show_on_website !== "0" && program.show_on_website !== "false"
+                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                        : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300'
+                                        }`}>
+                                        {program.show_on_website !== false && program.show_on_website !== 0 && program.show_on_website !== "0" && program.show_on_website !== "false" ? "Visible" : "Hidden"}
+                                    </span>
+                                </div>
+                                <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
+                                    <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
                                         }`}>Pricing</label>
                                     <p className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                         Price: ${parseFloat(program.price).toFixed(2)}

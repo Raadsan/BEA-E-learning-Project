@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { useGetNewsQuery } from "@/lib/api/newsApi";
 
 export default function StudentNewsPage() {
@@ -39,17 +40,12 @@ export default function StudentNewsPage() {
     const bg = isDark ? "bg-gray-900" : "bg-gray-50";
 
     return (
-        <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+        <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
             <div className="w-full">
-                {/* Header Section */}
-                <div className="mb-12">
-                    <h1 className={`text-4xl font-bold mb-4 tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
-                        Events & News
-                    </h1>
-                    <p className={`text-lg font-medium opacity-60 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-                        Stay updated with the latest happenings, exams, and deadlines.
-                    </p>
-                </div>
+                <StudentPageHeader
+                    title="Events & News"
+                    description="Stay updated with the latest happenings, exams, and deadlines."
+                />
 
                 {isLoading ? (
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

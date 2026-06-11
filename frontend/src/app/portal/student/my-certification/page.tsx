@@ -8,6 +8,7 @@ import { buildAvailableCertificates } from "@/utils/certificateFields";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
 import { useToast } from "@/components/Toast";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { API_URL } from "@/constants";
 import Modal from "@/components/Modal";
 
@@ -163,32 +164,26 @@ export default function MyCertificationPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors pt-12 w-full px-6 sm:px-10 pb-20 ${bg}`}>
+    <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
       <div className="w-full">
-        {/* Simple Header */}
-        <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <h1 className={`text-4xl font-bold tracking-tight mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
-              Certificates
-            </h1>
-            <p className={`text-lg font-medium opacity-60 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-              Access and manage your earned certificates from Blueprint English Academy.
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              setIsFindModalOpen(true);
-              // Auto-select student's program when opening
-              setSearchForm({ programId: studentProgramId || "", subprogramId: "" });
-            }}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[#010080] text-white hover:bg-blue-800 rounded-xl font-medium transition-all shadow-lg active:scale-95"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            Find my Certificates
-          </button>
-        </div>
+        <StudentPageHeader
+          title="Certificates"
+          description="Access and manage your earned certificates from Blueprint English Academy."
+          actions={
+            <button
+              onClick={() => {
+                setIsFindModalOpen(true);
+                setSearchForm({ programId: studentProgramId || "", subprogramId: "" });
+              }}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#010080] text-white hover:bg-blue-800 rounded-xl font-medium transition-all shadow-lg active:scale-95"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Find my Certificates
+            </button>
+          }
+        />
 
         {/* Section: Your History (Claimed Certificates) */}
         <div className="space-y-6">
