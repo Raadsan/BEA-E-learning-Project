@@ -2,7 +2,12 @@ import prisma from '../lib/prisma.js';
 import bcrypt from 'bcryptjs';
 import { validateEmailRobust } from '../utils/emailValidator.js';
 import { validatePassword, passwordPolicyMessage } from '../utils/passwordValidator.js';
-import { sendWaafiPayment } from '../utils/waafiPayment.js';
+import {
+  sendWaafiPayment,
+  isWaafiPaymentSuccess,
+  getWaafiErrorMessage,
+  getWaafiTransactionId
+} from '../utils/waafiPayment.js';
 
 // CREATE STUDENT
 export const createStudent = async (req, res) => {
@@ -34,13 +39,16 @@ export const createStudent = async (req, res) => {
       });
     }
 
-    // Check if email already exists for this program
-    const existing = await prisma.students.findFirst({
-      where: { email: emailStr, chosen_program }
+    const existing = await prisma.students.findUnique({
+      where: { email: emailStr }
     });
 
     if (existing) {
-      return res.status(400).json({ success: false, error: `Already registered for ${chosen_program}.` });
+      const programLabel = existing.chosen_program || "a program";
+      return res.status(400).json({
+        success: false,
+        error: `This email is already registered for ${programLabel}.`
+      });
     }
 
     if (!validatePassword(password)) {
@@ -64,20 +72,27 @@ export const createStudent = async (req, res) => {
     let transactionId = null;
     const paymentAmount = req.body.payment?.amount ? parseFloat(req.body.payment.amount) : 0;
 
-    if (req.body.payment && req.body.payment.method === 'waafi' && paymentAmount > 0) {
+    const paymentMethod = req.body.payment?.method;
+
+    if (paymentMethod === 'waafi' && paymentAmount > 0) {
       const waafiResponse = await sendWaafiPayment({
         transactionId: `REG-${Date.now()}`,
         accountNo: req.body.payment.payerPhone || req.body.payment.accountNumber,
         amount: paymentAmount,
         description: `Registration: ${chosen_program}`
       });
-      if (waafiResponse?.responseCode === '0000' || waafiResponse?.status === 'SUCCESS') {
+      if (isWaafiPaymentSuccess(waafiResponse)) {
         paymentStatus = 'Paid';
-        transactionId = waafiResponse?.serviceParams?.transactionId || `WAAFI-${Date.now()}`;
+        transactionId = getWaafiTransactionId(waafiResponse, `WAAFI-${Date.now()}`);
       } else {
-        return res.status(400).json({ success: false, error: waafiResponse?.message || "Payment failed" });
+        return res.status(400).json({
+          success: false,
+          error: getWaafiErrorMessage(waafiResponse)
+        });
       }
-    } else if (req.body.payment && paymentAmount === 0) {
+    } else if (paymentMethod === 'bank' && paymentAmount > 0) {
+      paymentStatus = 'Pending';
+    } else if (paymentAmount === 0) {
       paymentStatus = 'Paid';
       transactionId = `FREE-${Date.now()}`;
     }
@@ -121,15 +136,28 @@ export const createStudent = async (req, res) => {
       }
     });
 
-    if (paymentStatus === 'Paid' && transactionId) {
+    if (req.body.payment && transactionId) {
       await prisma.payments.create({
         data: {
           student_id: student.student_id,
-          method: 'waafi',
+          method: paymentMethod || 'waafi',
           provider_transaction_id: transactionId,
           amount: paymentAmount || 0.01,
           currency: 'USD',
-          status: 'paid',
+          status: paymentStatus === 'Paid' ? 'paid' : 'pending',
+          payer_phone: req.body.payment.payerPhone || null,
+          program_id: chosen_program
+        }
+      });
+    } else if (paymentMethod === 'bank' && paymentAmount > 0) {
+      await prisma.payments.create({
+        data: {
+          student_id: student.student_id,
+          method: 'bank',
+          provider_transaction_id: `BANK-PENDING-${Date.now()}`,
+          amount: paymentAmount,
+          currency: 'USD',
+          status: 'pending',
           payer_phone: req.body.payment.payerPhone || null,
           program_id: chosen_program
         }

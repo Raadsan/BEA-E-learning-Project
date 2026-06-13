@@ -29,8 +29,8 @@ export const newsApi = createApi({
         }),
         updateNews: builder.mutation({
             query: ({ id, ...updatedNews }) => ({
-                url: `/news/update/${id}`,
-                method: "POST",
+                url: `/news/${id}`,
+                method: "PUT",
                 body: updatedNews,
             }),
             invalidatesTags: ["News"],

@@ -15,6 +15,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import CountrySelect from "@/components/CountrySelect";
 import { findProficiencyCertificationProgram } from "@/utils/programCatalog";
+import { calculateAgeFromDateOfBirth } from "@/utils/calculateAge";
 
 export default function ProficiencyTestRegistration() {
     const { isDarkMode } = useTheme();
@@ -82,10 +83,17 @@ export default function ProficiencyTestRegistration() {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === "checkbox" ? checked : value
-        }));
+        setFormData((prev) => {
+            const next = {
+                ...prev,
+                [name]: type === "checkbox" ? checked : value,
+            };
+            if (name === "date_of_birth") {
+                const age = calculateAgeFromDateOfBirth(value);
+                next.age = age !== null ? String(age) : "";
+            }
+            return next;
+        });
     };
 
     const validateStep = () => {
@@ -370,7 +378,7 @@ export default function ProficiencyTestRegistration() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Age</label>
-                                            <input type="number" name="age" value={formData.age} onChange={handleChange} placeholder="18" className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-blue-100" required />
+                                            <input type="number" name="age" value={formData.age} onChange={handleChange} placeholder="18" readOnly={Boolean(formData.date_of_birth)} className={`w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-blue-100 ${formData.date_of_birth ? "bg-gray-50 cursor-not-allowed" : ""}`} required />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Program Selection</label>

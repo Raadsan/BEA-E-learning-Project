@@ -16,6 +16,8 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import CountrySelect from "@/components/CountrySelect";
 import { getGeneralRegistrationPrograms, type ProgramRecord } from "@/utils/programCatalog";
+import { calculateAgeFromDateOfBirth } from "@/utils/calculateAge";
+import { getApiErrorMessage } from "@/utils/apiError";
 const PhoneInputComponent = PhoneInput as any;
 
 const EyeIcon = ({ size = 20 }) => (
@@ -76,7 +78,9 @@ export default function RegistrationPage() {
   const [pin, setPin] = useState('');
 
   // Calculate dynamic application fee based on selected program
-  const selectedProgramObj = programs.find(p => p.id === parseInt(formData.chosen_program));
+  const selectedProgramObj = programs.find(
+    (p) => String(p.id) === String(formData.chosen_program)
+  );
   const APPLICATION_FEE = selectedProgramObj
     ? Math.max(0, parseFloat(selectedProgramObj.price || 0) - parseFloat(selectedProgramObj.discount || 0))
     : 0.01;
@@ -114,6 +118,14 @@ export default function RegistrationPage() {
     setShowParentSection(!isNaN(age) && age < 18);
   }, [formData.age]);
 
+  useEffect(() => {
+    if (!formData.date_of_birth) return;
+    const calculated = calculateAgeFromDateOfBirth(formData.date_of_birth);
+    if (calculated !== null && String(calculated) !== formData.age) {
+      setFormData((prev) => ({ ...prev, age: String(calculated) }));
+    }
+  }, [formData.date_of_birth]);
+
   // Load draft if present
   useEffect(() => {
     try {
@@ -131,10 +143,17 @@ export default function RegistrationPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value
-    }));
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+      if (name === "date_of_birth") {
+        const age = calculateAgeFromDateOfBirth(value);
+        next.age = age !== null ? String(age) : "";
+      }
+      return next;
+    });
   };
 
   // Final submit — sends data to backend which handles Waafi payment and account creation
@@ -208,8 +227,8 @@ export default function RegistrationPage() {
         throw new Error(response.error || 'Failed to create student account');
       }
     } catch (error) {
-      console.error('Registration/Payment error:', error);
-      const errorMsg = error?.data?.error || error?.message || 'Failed to complete registration';
+      const errorMsg = getApiErrorMessage(error, "Failed to complete registration");
+      console.error("Registration/Payment error:", errorMsg, error);
       setPaymentError(errorMsg);
       showToast(errorMsg, "error");
     } finally {
@@ -239,11 +258,19 @@ export default function RegistrationPage() {
           showToast("Passwords do not match", "error");
           return;
         }
-        // Basic length check or complex regex if needed
-        if (formData.password.length < 6) {
-          showToast("Password must be at least 6 characters", "error");
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
+        if (!passwordRegex.test(formData.password)) {
+          showToast(
+            "Password must be at least 6 characters and include uppercase, lowercase, number, and symbol",
+            "error"
+          );
           return;
         }
+      }
+
+      if (currentStep === 3 && paymentMethod === "waafi" && !paymentAccountNumber.trim()) {
+        showToast("Please enter your EVC/Waafi account number", "error");
+        return;
       }
 
       const nextStep = Math.min(4, currentStep + 1);
@@ -558,7 +585,8 @@ export default function RegistrationPage() {
                         onChange={handleChange}
                         placeholder="16"
                         min="1"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-md bg-white text-gray-800 outline-none focus:ring-2 focus:ring-blue-200"
+                        readOnly={Boolean(formData.date_of_birth)}
+                        className={`w-full px-4 py-3 border border-gray-200 rounded-md text-gray-800 outline-none focus:ring-2 focus:ring-blue-200 ${formData.date_of_birth ? "bg-gray-50 cursor-not-allowed" : "bg-white"}`}
                       />
                     </div>
                     {/* Empty div for spacing if we want Age strictly half width on a row, or we can put Password here? 

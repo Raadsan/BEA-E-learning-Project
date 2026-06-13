@@ -1,0 +1,56 @@
+export type UploadResponse = {
+  url: string;
+  filename?: string;
+  mimetype?: string;
+  message?: string;
+  error?: string;
+};
+
+/** Same-origin upload proxy (forwards to backend, with fallback paths). */
+const UPLOAD_PROXY_URL = "/api/upload";
+
+export async function uploadFileRequest(file: File): Promise<UploadResponse> {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  if (!token) {
+    throw new Error("You must be logged in to upload files.");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  let response: Response;
+  try {
+    response = await fetch(UPLOAD_PROXY_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+  } catch {
+    throw new Error(
+      "Could not reach the upload server. Check that the backend is running."
+    );
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  const data = (
+    contentType.includes("application/json")
+      ? await response.json().catch(() => ({}))
+      : {}
+  ) as UploadResponse;
+
+  if (!response.ok) {
+    throw new Error(
+      data.error ||
+        data.message ||
+        `Upload failed (${response.status})`
+    );
+  }
+
+  if (!data.url) {
+    throw new Error("Upload failed: no file URL returned");
+  }
+
+  return data;
+}

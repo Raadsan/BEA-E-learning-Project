@@ -5,7 +5,8 @@ import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
 import Image from "next/image";
-import { API_BASE_URL, API_URL, resolveMediaUrl } from "@/constants";
+import { API_URL, resolveMediaUrl } from "@/constants";
+import { uploadFileRequest } from "@/utils/uploadFile";
 
 export default function TestimonialsPage() {
     const { isDark } = useDarkMode();
@@ -44,7 +45,10 @@ export default function TestimonialsPage() {
             setTestimonials(data);
         } catch (err) {
             console.error("Error fetching testimonials:", err);
-            showToast("Failed to load testimonials", "error");
+            showToast(
+                "Could not reach the server. Restart the frontend after config changes, and ensure the backend is running.",
+                "error"
+            );
             setTestimonials([]);
         } finally {
             setLoading(false);
@@ -77,32 +81,15 @@ export default function TestimonialsPage() {
 
         try {
             setIsUploading(true);
-            const token = localStorage.getItem("token");
-            const formDataUpload = new FormData();
-            formDataUpload.append('file', file);
-
-            const response = await fetch(`${API_URL}/uploads`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                body: formDataUpload,
-            });
-
-            if (!response.ok) throw new Error("Upload failed");
-
-            const data = await response.json();
-            // Prefix with full URL for absolute path if needed, 
-            // but the components handle relative `/uploads/...` paths
-            setFormData(prev => ({
+            const data = await uploadFileRequest(file);
+            setFormData((prev) => ({
                 ...prev,
-                image_url: resolveMediaUrl(data.url)
+                image_url: data.url,
             }));
-
             showToast("Photo uploaded successfully!", "success");
         } catch (err) {
             console.error("Upload error:", err);
-            showToast("Failed to upload photo", "error");
+            showToast(err instanceof Error ? err.message : "Failed to upload photo", "error");
         } finally {
             setIsUploading(false);
         }

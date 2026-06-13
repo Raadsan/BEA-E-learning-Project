@@ -1,47 +1,70 @@
 const envApiUrl = (process.env.NEXT_PUBLIC_API_URL || "").trim();
 
-const defaultApiBaseUrl =
+const serverBackendOrigin = (() => {
+  const raw = envApiUrl || "http://127.0.0.1:7004";
+  return raw.replace(/\/api\/?$/, "");
+})();
+
+/** Browser uses same-origin `/api` (proxied by Next.js). SSR uses direct backend URL. */
+export const API_BASE_URL =
+  typeof window !== "undefined" ? "" : serverBackendOrigin;
+
+export const API_URL =
+  typeof window !== "undefined" ? "/api" : `${serverBackendOrigin}/api`;
+
+export const UPLOADS_URL =
+  typeof window !== "undefined" ? "/uploads" : `${serverBackendOrigin}/uploads`;
+
+const clientBackendOrigin =
   typeof window !== "undefined"
-    ? `${window.location.protocol}//${window.location.hostname}:7004`
-    : "http://localhost:7004";
+    ? (process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:7004`)
+        .trim()
+        .replace(/\/api\/?$/, "")
+    : serverBackendOrigin;
 
-const rawApiUrl = (envApiUrl || defaultApiBaseUrl).trim();
-const cleanApiUrl = rawApiUrl.endsWith("/") ? rawApiUrl.slice(0, -1) : rawApiUrl;
+/** Multipart uploads must hit the backend directly — Next.js rewrites break FormData. */
+export const DIRECT_API_URL =
+  typeof window !== "undefined"
+    ? `${clientBackendOrigin}/api`
+    : `${serverBackendOrigin}/api`;
 
-// Ensure API_BASE_URL is the root domain without /api
-export const API_BASE_URL = cleanApiUrl.replace(/\/api$/, "");
-export const API_URL = `${API_BASE_URL}/api`;
-export const UPLOADS_URL = `${API_BASE_URL}/uploads`;
+export const UPLOAD_ENDPOINT = `${DIRECT_API_URL}/uploads`;
 
-/**
- * Resolves a media URL to an absolute URL, handling relative paths
- * and fixing legacy development localhost URLs.
- */
+const mediaOrigin =
+  typeof window !== "undefined" ? window.location.origin : serverBackendOrigin;
+
 /** Build a browser-openable URL for a student submission file. */
 export const resolveSubmissionFileUrl = (fileUrl?: string | null) => {
-    if (!fileUrl) return null;
-    if (fileUrl.startsWith("http")) return fileUrl;
-    if (fileUrl.startsWith("/")) return `${API_BASE_URL}${fileUrl}`;
-    return `${UPLOADS_URL}/${fileUrl}`;
+  if (!fileUrl) return null;
+  if (fileUrl.startsWith("http")) return fileUrl;
+  if (fileUrl.startsWith("/")) {
+    return typeof window !== "undefined" ? fileUrl : `${serverBackendOrigin}${fileUrl}`;
+  }
+  return `${UPLOADS_URL}/${fileUrl}`;
 };
 
-export const resolveMediaUrl = (url) => {
-    if (!url) return null;
+export const resolveMediaUrl = (url: string | null | undefined) => {
+  if (!url) return null;
 
-    // Case 1: Legacy localhost URL from DB
-    if (
-        url.startsWith('http://178.18.241.5:7004') ||
-        url.startsWith('http://localhost:5000') ||
-        url.startsWith('http://localhost:7004')
-    ) {
-        return url.replace(/http:\/\/(localhost:(5000|7004)|178\.18\.241\.5:7004)/, API_BASE_URL);
-    }
+  if (
+    url.startsWith("http://178.18.241.5:7004") ||
+    url.startsWith("http://localhost:5000") ||
+    url.startsWith("http://localhost:7004") ||
+    url.startsWith("http://127.0.0.1:7004")
+  ) {
+    return url.replace(
+      /http:\/\/(localhost:(5000|7004)|127\.0\.0\.1:7004|178\.18\.241\.5:7004)/,
+      mediaOrigin
+    );
+  }
 
-    // Case 2: Already an absolute external URL
-    if (url.startsWith('http')) {
-        return url;
-    }
+  if (url.startsWith("http")) {
+    return url;
+  }
 
-    // Case 3: Relative path (e.g., /uploads/...)
-    return `${API_BASE_URL}${url}`;
+  if (url.startsWith("/")) {
+    return typeof window !== "undefined" ? url : `${serverBackendOrigin}${url}`;
+  }
+
+  return `${UPLOADS_URL}/${url}`;
 };

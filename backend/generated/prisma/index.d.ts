@@ -31951,6 +31951,8 @@ export namespace Prisma {
     title: string | null
     description: string | null
     event_date: Date | null
+    image_url: string | null
+    location: string | null
     type: $Enums.news_events_type | null
     status: $Enums.news_events_status | null
     created_at: Date | null
@@ -31962,6 +31964,8 @@ export namespace Prisma {
     title: string | null
     description: string | null
     event_date: Date | null
+    image_url: string | null
+    location: string | null
     type: $Enums.news_events_type | null
     status: $Enums.news_events_status | null
     created_at: Date | null
@@ -31973,6 +31977,8 @@ export namespace Prisma {
     title: number
     description: number
     event_date: number
+    image_url: number
+    location: number
     type: number
     status: number
     created_at: number
@@ -31994,6 +32000,8 @@ export namespace Prisma {
     title?: true
     description?: true
     event_date?: true
+    image_url?: true
+    location?: true
     type?: true
     status?: true
     created_at?: true
@@ -32005,6 +32013,8 @@ export namespace Prisma {
     title?: true
     description?: true
     event_date?: true
+    image_url?: true
+    location?: true
     type?: true
     status?: true
     created_at?: true
@@ -32016,6 +32026,8 @@ export namespace Prisma {
     title?: true
     description?: true
     event_date?: true
+    image_url?: true
+    location?: true
     type?: true
     status?: true
     created_at?: true
@@ -32114,6 +32126,8 @@ export namespace Prisma {
     title: string
     description: string | null
     event_date: Date
+    image_url: string | null
+    location: string | null
     type: $Enums.news_events_type | null
     status: $Enums.news_events_status | null
     created_at: Date | null
@@ -32144,6 +32158,8 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     event_date?: boolean
+    image_url?: boolean
+    location?: boolean
     type?: boolean
     status?: boolean
     created_at?: boolean
@@ -32157,13 +32173,15 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     event_date?: boolean
+    image_url?: boolean
+    location?: boolean
     type?: boolean
     status?: boolean
     created_at?: boolean
     updated_at?: boolean
   }
 
-  export type news_eventsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "event_date" | "type" | "status" | "created_at" | "updated_at", ExtArgs["result"]["news_events"]>
+  export type news_eventsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "event_date" | "image_url" | "location" | "type" | "status" | "created_at" | "updated_at", ExtArgs["result"]["news_events"]>
 
   export type $news_eventsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "news_events"
@@ -32173,6 +32191,8 @@ export namespace Prisma {
       title: string
       description: string | null
       event_date: Date
+      image_url: string | null
+      location: string | null
       type: $Enums.news_events_type | null
       status: $Enums.news_events_status | null
       created_at: Date | null
@@ -32550,6 +32570,8 @@ export namespace Prisma {
     readonly title: FieldRef<"news_events", 'String'>
     readonly description: FieldRef<"news_events", 'String'>
     readonly event_date: FieldRef<"news_events", 'DateTime'>
+    readonly image_url: FieldRef<"news_events", 'String'>
+    readonly location: FieldRef<"news_events", 'String'>
     readonly type: FieldRef<"news_events", 'news_events_type'>
     readonly status: FieldRef<"news_events", 'news_events_status'>
     readonly created_at: FieldRef<"news_events", 'DateTime'>
@@ -62773,6 +62795,8 @@ export namespace Prisma {
     title: 'title',
     description: 'description',
     event_date: 'event_date',
+    image_url: 'image_url',
+    location: 'location',
     type: 'type',
     status: 'status',
     created_at: 'created_at',
@@ -63574,7 +63598,9 @@ export namespace Prisma {
 
   export const news_eventsOrderByRelevanceFieldEnum: {
     title: 'title',
-    description: 'description'
+    description: 'description',
+    image_url: 'image_url',
+    location: 'location'
   };
 
   export type news_eventsOrderByRelevanceFieldEnum = (typeof news_eventsOrderByRelevanceFieldEnum)[keyof typeof news_eventsOrderByRelevanceFieldEnum]
@@ -66537,6 +66563,8 @@ export namespace Prisma {
     title?: StringFilter<"news_events"> | string
     description?: StringNullableFilter<"news_events"> | string | null
     event_date?: DateTimeFilter<"news_events"> | Date | string
+    image_url?: StringNullableFilter<"news_events"> | string | null
+    location?: StringNullableFilter<"news_events"> | string | null
     type?: Enumnews_events_typeNullableFilter<"news_events"> | $Enums.news_events_type | null
     status?: Enumnews_events_statusNullableFilter<"news_events"> | $Enums.news_events_status | null
     created_at?: DateTimeNullableFilter<"news_events"> | Date | string | null
@@ -66548,6 +66576,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     event_date?: SortOrder
+    image_url?: SortOrderInput | SortOrder
+    location?: SortOrderInput | SortOrder
     type?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -66563,6 +66593,8 @@ export namespace Prisma {
     title?: StringFilter<"news_events"> | string
     description?: StringNullableFilter<"news_events"> | string | null
     event_date?: DateTimeFilter<"news_events"> | Date | string
+    image_url?: StringNullableFilter<"news_events"> | string | null
+    location?: StringNullableFilter<"news_events"> | string | null
     type?: Enumnews_events_typeNullableFilter<"news_events"> | $Enums.news_events_type | null
     status?: Enumnews_events_statusNullableFilter<"news_events"> | $Enums.news_events_status | null
     created_at?: DateTimeNullableFilter<"news_events"> | Date | string | null
@@ -66574,6 +66606,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     event_date?: SortOrder
+    image_url?: SortOrderInput | SortOrder
+    location?: SortOrderInput | SortOrder
     type?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -66593,6 +66627,8 @@ export namespace Prisma {
     title?: StringWithAggregatesFilter<"news_events"> | string
     description?: StringNullableWithAggregatesFilter<"news_events"> | string | null
     event_date?: DateTimeWithAggregatesFilter<"news_events"> | Date | string
+    image_url?: StringNullableWithAggregatesFilter<"news_events"> | string | null
+    location?: StringNullableWithAggregatesFilter<"news_events"> | string | null
     type?: Enumnews_events_typeNullableWithAggregatesFilter<"news_events"> | $Enums.news_events_type | null
     status?: Enumnews_events_statusNullableWithAggregatesFilter<"news_events"> | $Enums.news_events_status | null
     created_at?: DateTimeNullableWithAggregatesFilter<"news_events"> | Date | string | null
@@ -71666,6 +71702,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     event_date: Date | string
+    image_url?: string | null
+    location?: string | null
     type?: $Enums.news_events_type | null
     status?: $Enums.news_events_status | null
     created_at?: Date | string | null
@@ -71677,6 +71715,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     event_date: Date | string
+    image_url?: string | null
+    location?: string | null
     type?: $Enums.news_events_type | null
     status?: $Enums.news_events_status | null
     created_at?: Date | string | null
@@ -71687,6 +71727,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     event_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
     type?: NullableEnumnews_events_typeFieldUpdateOperationsInput | $Enums.news_events_type | null
     status?: NullableEnumnews_events_statusFieldUpdateOperationsInput | $Enums.news_events_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -71698,6 +71740,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     event_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
     type?: NullableEnumnews_events_typeFieldUpdateOperationsInput | $Enums.news_events_type | null
     status?: NullableEnumnews_events_statusFieldUpdateOperationsInput | $Enums.news_events_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -71709,6 +71753,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     event_date: Date | string
+    image_url?: string | null
+    location?: string | null
     type?: $Enums.news_events_type | null
     status?: $Enums.news_events_status | null
     created_at?: Date | string | null
@@ -71719,6 +71765,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     event_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
     type?: NullableEnumnews_events_typeFieldUpdateOperationsInput | $Enums.news_events_type | null
     status?: NullableEnumnews_events_statusFieldUpdateOperationsInput | $Enums.news_events_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -71730,6 +71778,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     event_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
     type?: NullableEnumnews_events_typeFieldUpdateOperationsInput | $Enums.news_events_type | null
     status?: NullableEnumnews_events_statusFieldUpdateOperationsInput | $Enums.news_events_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -76833,6 +76883,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     event_date?: SortOrder
+    image_url?: SortOrder
+    location?: SortOrder
     type?: SortOrder
     status?: SortOrder
     created_at?: SortOrder
@@ -76848,6 +76900,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     event_date?: SortOrder
+    image_url?: SortOrder
+    location?: SortOrder
     type?: SortOrder
     status?: SortOrder
     created_at?: SortOrder
@@ -76859,6 +76913,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     event_date?: SortOrder
+    image_url?: SortOrder
+    location?: SortOrder
     type?: SortOrder
     status?: SortOrder
     created_at?: SortOrder

@@ -1,7 +1,11 @@
 import prisma from '../lib/prisma.js';
 import bcrypt from 'bcryptjs';
 import { validateEmailRobust } from '../utils/emailValidator.js';
-import { sendWaafiPayment } from '../utils/waafiPayment.js';
+import {
+    sendWaafiPayment,
+    isWaafiPaymentSuccess,
+    getWaafiErrorMessage
+} from '../utils/waafiPayment.js';
 
 export const registerCandidate = async (req, res) => {
     try {
@@ -38,9 +42,9 @@ export const registerCandidate = async (req, res) => {
                 amount: parseFloat(payment.amount),
                 description: `Proficiency Test Registration: ${rest.first_name} ${rest.last_name}`
             });
-            const respCode = waafiResponse?.responseCode || waafiResponse?.code;
-            const success = ['0000', '0', '2001'].includes(respCode) || waafiResponse?.serviceParams?.status === 'SUCCESS';
-            if (!success) return res.status(400).json({ error: waafiResponse?.responseMsg || 'Payment failed' });
+            if (!isWaafiPaymentSuccess(waafiResponse)) {
+                return res.status(400).json({ error: getWaafiErrorMessage(waafiResponse) });
+            }
             paymentStatus = 'paid';
         } else if (payment?.method === 'bank') {
             paymentStatus = 'unpaid';

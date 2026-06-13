@@ -177,6 +177,8 @@ export default function ProgramCards() {
     color: index % 2 === 0 ? "blue" : "red",
   }));
 
+  const displayPrograms = sortedPrograms.slice(0, 3);
+
   return (
     <section ref={sectionRef} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -216,13 +218,13 @@ export default function ProgramCards() {
           {/* Programs Grid */}
           {!isLoading && !isError && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              {sortedPrograms.map((program, index) => (
+              {displayPrograms.map((program, index) => (
                 <VideoProgramCard
                   key={program.id}
                   program={program}
                   index={index}
                   isDarkMode={isDarkMode}
-                  isVisible={isVisible || sortedPrograms.length > 0}
+                  isVisible={isVisible || displayPrograms.length > 0}
                 />
               ))}
             </div>

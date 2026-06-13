@@ -498,6 +498,8 @@ exports.Prisma.News_eventsScalarFieldEnum = {
   title: 'title',
   description: 'description',
   event_date: 'event_date',
+  image_url: 'image_url',
+  location: 'location',
   type: 'type',
   status: 'status',
   created_at: 'created_at',
@@ -1122,7 +1124,9 @@ exports.Prisma.level_up_requestsOrderByRelevanceFieldEnum = {
 
 exports.Prisma.news_eventsOrderByRelevanceFieldEnum = {
   title: 'title',
-  description: 'description'
+  description: 'description',
+  image_url: 'image_url',
+  location: 'location'
 };
 
 exports.Prisma.newslettersOrderByRelevanceFieldEnum = {

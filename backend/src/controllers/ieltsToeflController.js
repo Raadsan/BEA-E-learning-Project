@@ -2,7 +2,12 @@ import prisma from '../lib/prisma.js';
 import { validateEmailRobust } from '../utils/emailValidator.js';
 import bcrypt from "bcryptjs";
 import { generateStudentId } from "../utils/idGenerator.js";
-import { sendWaafiPayment } from "../utils/waafiPayment.js";
+import {
+    sendWaafiPayment,
+    isWaafiPaymentSuccess,
+    getWaafiErrorMessage,
+    getWaafiTransactionId
+} from "../utils/waafiPayment.js";
 
 export const getAllIeltsStudents = async (req, res) => {
     try {
@@ -61,13 +66,13 @@ export const createIeltsStudent = async (req, res) => {
                 amount: parseFloat(payment.amount),
                 description: `IELTS Registration`
             });
-            if (waafiResponse?.responseCode === '0000') {
+            if (isWaafiPaymentSuccess(waafiResponse)) {
                 data.payment_method = 'mwallet_account';
-                data.transaction_id = waafiResponse.serviceParams?.transactionId;
+                data.transaction_id = getWaafiTransactionId(waafiResponse, `WAAFI-${Date.now()}`);
                 data.payment_amount = parseFloat(payment.amount);
                 data.payer_phone = payment.payerPhone;
             } else {
-                return res.status(400).json({ error: "Payment failed" });
+                return res.status(400).json({ error: getWaafiErrorMessage(waafiResponse) });
             }
         }
 

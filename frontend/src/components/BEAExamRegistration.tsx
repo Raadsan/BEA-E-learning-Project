@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { calculateAgeFromDateOfBirth } from "@/utils/calculateAge";
 import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -46,10 +47,17 @@ export default function BEAExamRegistration({ isOpen, onClose, examType = "profi
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+      if (name === "date_of_birth") {
+        const age = calculateAgeFromDateOfBirth(value);
+        next.age = age !== null ? String(age) : "";
+      }
+      return next;
+    });
   };
 
   const handleSubmit = (e) => {
@@ -166,7 +174,7 @@ export default function BEAExamRegistration({ isOpen, onClose, examType = "profi
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Age</label>
-                <input type="number" name="age" value={formData.age} onChange={handleChange} placeholder="Age" min="5" max="100" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-gray-800 text-sm" required />
+                <input type="number" name="age" value={formData.age} onChange={handleChange} placeholder="Age" min="5" max="100" readOnly={Boolean(formData.date_of_birth)} className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-transparent outline-none text-gray-800 text-sm ${formData.date_of_birth ? "bg-gray-50 cursor-not-allowed" : ""}`} required />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Sex</label>

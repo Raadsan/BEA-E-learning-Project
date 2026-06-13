@@ -1,3 +1,23 @@
+const WAAFI_SUCCESS_CODES = new Set(["0000", "0", "2001"]);
+
+export const isWaafiPaymentSuccess = (response) => {
+  if (!response) return false;
+  const code = String(response.responseCode ?? response.code ?? "");
+  if (WAAFI_SUCCESS_CODES.has(code)) return true;
+  if (response.status === "SUCCESS") return true;
+  if (response.serviceParams?.status === "SUCCESS") return true;
+  if (response.params?.state === "APPROVED") return true;
+  return false;
+};
+
+export const getWaafiErrorMessage = (response) =>
+  response?.responseMsg || response?.message || "Payment failed";
+
+export const getWaafiTransactionId = (response, fallback) =>
+  response?.params?.transactionId ||
+  response?.serviceParams?.transactionId ||
+  fallback;
+
 export const sendWaafiPayment = async ({ transactionId, accountNo, amount, description }) => {
   // Trim credentials to avoid whitespace issues
   const merchantUid = (process.env.WAAFI_MERCHANT_UID || "").trim();

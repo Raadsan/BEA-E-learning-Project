@@ -1,5 +1,10 @@
 import prisma from '../lib/prisma.js';
-import { sendWaafiPayment } from '../utils/waafiPayment.js';
+import {
+    sendWaafiPayment,
+    isWaafiPaymentSuccess,
+    getWaafiErrorMessage,
+    getWaafiTransactionId
+} from '../utils/waafiPayment.js';
 
 // Helper to extend subscription
 async function extendSubscription(studentEmail, packageId) {
@@ -73,7 +78,7 @@ export const createWaafiPayment = async (req, res) => {
             description: 'BEA Payment'
         });
 
-        const isSuccess = json?.responseCode === '0000' || json?.status === 'SUCCESS';
+        const isSuccess = isWaafiPaymentSuccess(json);
 
         if (studentEmail) {
             const student = await prisma.students.findUnique({ where: { email: studentEmail } });
@@ -82,7 +87,7 @@ export const createWaafiPayment = async (req, res) => {
                     data: {
                         student_id: student.student_id,
                         method: 'waafi',
-                        provider_transaction_id: json?.serviceParams?.transactionId || transactionId,
+                        provider_transaction_id: getWaafiTransactionId(json, transactionId),
                         amount: parseFloat(amount),
                         status: isSuccess ? 'paid' : 'failed',
                         payer_phone: payerPhone,
@@ -94,7 +99,7 @@ export const createWaafiPayment = async (req, res) => {
             }
         }
 
-        if (!isSuccess) return res.status(400).json({ success: false, error: json?.responseMsg || "Payment failed" });
+        if (!isSuccess) return res.status(400).json({ success: false, error: getWaafiErrorMessage(json) });
         res.json({ success: true, transactionId, raw: json });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });

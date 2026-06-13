@@ -1,10 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_URL } from "@/constants";
 
 export const uploadApi = createApi({
     reducerPath: "uploadApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: `${API_URL}/uploads`,
+        baseUrl: "",
         prepareHeaders: (headers) => {
             const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
             if (token) {
@@ -16,7 +15,7 @@ export const uploadApi = createApi({
     endpoints: (builder) => ({
         uploadFile: builder.mutation({
             query: (formData) => ({
-                url: "/",
+                url: "/api/upload",
                 method: "POST",
                 body: formData,
             }),
