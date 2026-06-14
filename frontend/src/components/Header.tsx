@@ -81,22 +81,22 @@ export default function Header() {
       </div>
 
       <div className="container mx-auto px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-[4.25rem] md:h-[4.5rem] lg:h-[5.25rem] xl:h-28">
+        <div className="flex items-center justify-between h-14 sm:h-16 md:h-[4.25rem] lg:h-20 xl:h-24 overflow-visible">
           {/* 1. Logo (Left Column) */}
-          <div className="flex items-center relative h-full">
-            <Link href="/" className="flex-shrink-0 flex items-center transition-transform hover:scale-105 duration-300 relative z-10">
+          <div className="flex items-center relative h-full overflow-visible">
+            <Link href="/" className="flex-shrink-0 flex items-center h-full overflow-visible transition-transform hover:scale-105 duration-300 relative z-10">
               <Image
                 src={isDarkMode ? "/images/footerlogo-removebg-preview.png" : "/images/headerlogo.png"}
                 alt="BEA Logo"
-                width={420}
-                height={140}
-                className="h-12 sm:h-14 md:h-16 lg:h-[4.5rem] xl:h-28 2xl:h-32 w-auto object-contain drop-shadow-md scale-110 origin-left"
+                width={520}
+                height={170}
+                className="h-10 sm:h-11 md:h-12 lg:h-14 xl:h-16 w-auto object-contain drop-shadow-md scale-[2] sm:scale-[2.15] lg:scale-[2.35] xl:scale-[2.55] origin-[left_center]"
                 priority
               />
             </Link>
           </div>
 
-          <nav className="hidden lg:flex items-center justify-start gap-2 lg:gap-3 xl:gap-4 2xl:gap-6 ml-10 lg:ml-20 xl:ml-36 2xl:ml-44 mr-2 lg:mr-3 xl:mr-4 flex-1 font-nav">
+          <nav className="hidden lg:flex items-center justify-start gap-2 lg:gap-3 xl:gap-4 2xl:gap-6 ml-16 lg:ml-32 xl:ml-52 2xl:ml-60 mr-2 lg:mr-3 xl:mr-4 flex-1 font-nav">
             <Link href="/" className={`text-base 2xl:text-lg font-medium tracking-wide transition-colors ${isDarkMode ? 'text-gray-200 hover:text-white' : 'text-[#010080] hover:text-blue-700'}`}>
               Home
             </Link>
