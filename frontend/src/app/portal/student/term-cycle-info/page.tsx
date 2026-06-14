@@ -163,7 +163,7 @@ export default function TermCycleInfoPage() {
   }, []);
 
   // 2. Pass Check (Success Rate >= 50%)
-  const { data: assignments = [] } = useGetAssignmentsQuery({ subprogram_id: subprogramId }, { skip: !subprogramId });
+  const { data: assignments = [] } = useGetAssignmentsQuery({ subprogram_id: subprogramId ? String(subprogramId) : undefined }, { skip: !subprogramId });
   const hasPassed = useMemo(() => {
     if (!assignments || assignments.length === 0) return false;
     const totalEarned = assignments.reduce((sum, a) => sum + (Number(a.score) || 0), 0);

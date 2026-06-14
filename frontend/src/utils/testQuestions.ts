@@ -7,7 +7,19 @@ export type TestQuestion = {
   passageText?: string;
   title?: string;
   description?: string;
-  subQuestions?: Array<{ id?: string; questionNumber?: number; questionText?: string }>;
+  points?: number | string;
+  options?: string[];
+  correctOption?: number;
+  maxWords?: number;
+  audioUrl?: string;
+  subQuestions?: Array<{
+    id?: string;
+    questionNumber?: number;
+    questionText?: string;
+    points?: number | string;
+    options?: string[];
+    correctOption?: number;
+  }>;
   [key: string]: unknown;
 };
 

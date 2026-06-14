@@ -19,6 +19,7 @@ import {
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL, API_URL } from "@/constants";
+import { Country, City } from "country-state-city";
 
 const StudentForm = dynamic(() => import("@/components/admin/students/StudentForm"), { ssr: false });
 const StudentViewModal = dynamic(() => import("@/components/admin/students/StudentViewModal"), { ssr: false });
@@ -99,6 +100,18 @@ export default function StudentsPage() {
     const [createIeltsStudent, { isLoading: isCreatingIelts }] = useCreateIeltsToeflStudentMutation();
 
     const showParentInfo = formData.age && parseInt(formData.age) < 18;
+
+    const cities = (() => {
+        if (!formData.residency_country) return [];
+        const country = Country.getAllCountries().find((c) => c.name === formData.residency_country);
+        return country ? City.getCitiesOfCountry(country.isoCode) : [];
+    })();
+
+    const parentCities = (() => {
+        if (!formData.parent_res_county) return [];
+        const country = Country.getAllCountries().find((c) => c.name === formData.parent_res_county);
+        return country ? City.getCitiesOfCountry(country.isoCode) : [];
+    })();
 
     const getStudentProgram = (student) => {
         if (!student) return null;
@@ -735,6 +748,8 @@ export default function StudentsPage() {
                     handleSubmit={handleSubmit}
                     isDark={isDark}
                     programs={programs}
+                    cities={cities}
+                    parentCities={parentCities}
                     paymentPackages={paymentPackages}
                     showParentInfo={showParentInfo}
                     viewingPayments={viewingPayments}

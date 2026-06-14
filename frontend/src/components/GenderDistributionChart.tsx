@@ -87,7 +87,12 @@ const SexDistributionChart = ({ programs = [], classes = [] }) => {
                                 cx="50%"
                                 cy={isCompact ? "45%" : "50%"}
                                 labelLine={!isCompact}
-                                label={isCompact ? false : ((entry: { sex: string; percentage: number }) => `${entry.sex}: ${entry.percentage}%`)}
+                                label={
+                                    isCompact
+                                        ? undefined
+                                        : (props: { sex?: string; percentage?: number; name?: string; percent?: number }) =>
+                                              `${props.sex ?? props.name ?? ""}: ${props.percentage ?? Math.round((props.percent ?? 0) * 100)}%`
+                                }
                                 outerRadius={outerRadius}
                                 fill="#8884d8"
                                 dataKey="count"

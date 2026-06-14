@@ -59,9 +59,9 @@ export function formatProgramDescription(description?: string | null, maxLength 
   return `${clean.slice(0, maxLength).trim()}...`;
 }
 
-export function findProficiencyCertificationProgram<T extends { title?: string | null }>(
-  programs?: T[] | null
-): T | undefined {
+export function findProficiencyCertificationProgram(
+  programs?: ProgramRecord[] | null
+): ProgramRecord | undefined {
   if (!programs?.length) return undefined;
   return (
     programs.find((p) => isEslProficiencyCertificationProgram(p.title)) ||
@@ -97,7 +97,7 @@ export function isProficiencyOnlyStudent(user?: {
 
 /** Preferred display order for public program cards. */
 export function sortProgramsForDisplay<
-  T extends { id?: number | null; title?: string | null }
+  T extends { id?: number | string | null; title?: string | null }
 >(programs: T[]) {
   const priority = (program: T) => {
     const title = normalizeProgramTitle(program.title);
@@ -114,6 +114,6 @@ export function sortProgramsForDisplay<
   return [...programs].sort((a, b) => {
     const diff = priority(a) - priority(b);
     if (diff !== 0) return diff;
-    return (a.id || 0) - (b.id || 0);
+    return Number(a.id || 0) - Number(b.id || 0);
   });
 }

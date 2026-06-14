@@ -62,7 +62,7 @@ export default function ProficiencyTestRegistration() {
 
     // Calculate fee: Price - Discount (default to 20 if not found)
     const APPLICATION_FEE = proficiencyProgram
-        ? Math.max(0, parseFloat(proficiencyProgram.price || 0) - parseFloat(proficiencyProgram.discount || 0))
+        ? Math.max(0, Number(proficiencyProgram.price || 0) - Number(proficiencyProgram.discount || 0))
         : 20.00;
 
 

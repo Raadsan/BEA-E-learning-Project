@@ -157,7 +157,9 @@ export default function ProficiencyTestDetailsPage() {
                                                     <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Question {q.questionNumber || idx + 1}</span>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-sm font-bold text-[#010080]">{q.points} pt{q.points !== 1 ? 's' : ''}</p>
+                                                    <p className="text-sm font-bold text-[#010080]">
+                                                        {Number(q.points) || 0} pt{Number(q.points) !== 1 ? "s" : ""}
+                                                    </p>
                                                 </div>
                                             </div>
 
@@ -226,7 +228,14 @@ export default function ProficiencyTestDetailsPage() {
                                                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" /></svg>
                                                         </div>
                                                         <audio controls className="h-8 flex-1 opacity-90">
-                                                            <source src={q.audioUrl?.startsWith('/') ? `${API_BASE_URL}${q.audioUrl}` : q.audioUrl} type="audio/mpeg" />
+                                                            <source
+                                                                src={
+                                                                    q.audioUrl?.startsWith("/")
+                                                                        ? `${API_BASE_URL}${q.audioUrl}`
+                                                                        : q.audioUrl
+                                                                }
+                                                                type="audio/mpeg"
+                                                            />
                                                             Your browser does not support the audio element.
                                                         </audio>
                                                     </div>

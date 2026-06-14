@@ -143,7 +143,9 @@ export default function PlacementTestDetailsPage() {
                                                     <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Question {q.questionNumber || idx + 1}</span>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-sm font-bold text-[#010080]">{q.points} pt{q.points !== 1 ? 's' : ''}</p>
+                                                    <p className="text-sm font-bold text-[#010080]">
+                                                        {Number(q.points) || 0} pt{Number(q.points) !== 1 ? "s" : ""}
+                                                    </p>
                                                 </div>
                                             </div>
 

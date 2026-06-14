@@ -19,7 +19,7 @@ export const unitProgressApi = createApi({
             query: () => "/eligibility",
             providesTags: ["UnitProgress"],
         }),
-        completeCurrentUnit: builder.mutation({
+        completeCurrentUnit: builder.mutation<{ message?: string }, void>({
             query: () => ({
                 url: "/complete",
                 method: "POST",

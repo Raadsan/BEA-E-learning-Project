@@ -28,6 +28,7 @@ function getMatchingClassesForRequest(
     },
     allClasses: Array<{
         id: number;
+        class_name?: string;
         subprogram_id?: number | null;
         subprogram_name?: string;
         shift_name?: string;
@@ -253,9 +254,9 @@ export default function AdminSessionRequestsPage() {
         if (targetClass) {
             const enrolledCount = allStudents.filter(s => s.class_id === targetClass.id).length;
             if (enrolledCount >= 20) {
-                warnings.push(`Capacity alert: "${targetClass.class_name}" is full (${enrolledCount}/20 students).`);
+                warnings.push(`Capacity alert: "${targetClass.class_name || "Class"}" is full (${enrolledCount}/20 students).`);
             } else if (enrolledCount >= 18) {
-                warnings.push(`Near capacity: "${targetClass.class_name}" has ${enrolledCount}/20 students.`);
+                warnings.push(`Near capacity: "${targetClass.class_name || "Class"}" has ${enrolledCount}/20 students.`);
             }
         } else {
             warnings.push("No class found for the requested level, shift, and session combination.");

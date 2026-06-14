@@ -18,7 +18,7 @@ import {
 import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 
-export default function StudentAssignmentList({ type, title, externalAssignment = null, onLeaveWorkspace }) {
+export default function StudentAssignmentList({ type, title, externalAssignment = null, onLeaveWorkspace = undefined }) {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
     const { data: user } = useGetCurrentUserQuery();

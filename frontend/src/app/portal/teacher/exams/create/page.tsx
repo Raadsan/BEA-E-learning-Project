@@ -706,7 +706,7 @@ export default function CreateExamPage() {
                                                                 ...prev.paper1,
                                                                 essay: {
                                                                     ...prev.paper1.essay,
-                                                                    wordCount: e.target.value === "" ? "" : Math.max(1, parseInt(e.target.value) || 1)
+                                                                    wordCount: Math.max(1, parseInt(e.target.value, 10) || 1)
                                                                 }
                                                             }
                                                         }))}
