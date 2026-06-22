@@ -1,6 +1,12 @@
 import prisma from '../lib/prisma.js';
 import fs from "fs";
 import path from "path";
+import {
+  buildCreateAudit,
+  buildUpdateAudit,
+  enrichWithAudit,
+  backfillMissingCreatedBy,
+} from '../utils/auditTrail.js';
 
 const parseShowOnWebsite = (value, fallback = true) => {
   if (value === undefined || value === null || value === "") return fallback;
@@ -23,6 +29,8 @@ export const createProgram = async (req, res) => {
     const { title, description, status, price, discount, test_required, show_on_website } = req.body;
     if (!title) return res.status(400).json({ error: "Title is required" });
 
+    const createAudit = await buildCreateAudit(req, 'System');
+
     const program = await prisma.programs.create({
       data: {
         title, description, status, 
@@ -30,6 +38,7 @@ export const createProgram = async (req, res) => {
         discount: discount ? parseFloat(discount) : 0,
         test_required, image, video, curriculum_file,
         show_on_website: parseShowOnWebsite(show_on_website, true),
+        ...createAudit,
       }
     });
 
@@ -42,11 +51,12 @@ export const createProgram = async (req, res) => {
 // GET ALL PROGRAMS
 export const getPrograms = async (req, res) => {
   try {
+    await backfillMissingCreatedBy(prisma.programs);
     const programs = await prisma.programs.findMany({
       include: { subprograms: true },
       orderBy: { title: 'asc' }
     });
-    res.json(programs);
+    res.json(await enrichWithAudit(programs));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -60,7 +70,7 @@ export const getProgram = async (req, res) => {
       include: { subprograms: true }
     });
     if (!program) return res.status(404).json({ error: "Not found" });
-    res.json(program);
+    res.json(await enrichWithAudit(program));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -88,6 +98,11 @@ export const updateProgram = async (req, res) => {
     if (data.show_on_website !== undefined) {
       data.show_on_website = parseShowOnWebsite(data.show_on_website, existing.show_on_website ?? true);
     }
+    delete data.created_by;
+    delete data.created_by_name;
+    delete data.updated_by;
+    delete data.updated_by_name;
+    Object.assign(data, await buildUpdateAudit(req));
 
     const updated = await prisma.programs.update({
       where: { id: parseInt(id) },

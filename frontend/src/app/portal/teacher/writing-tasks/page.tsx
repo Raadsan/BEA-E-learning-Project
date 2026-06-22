@@ -294,8 +294,21 @@ export default function WritingTasksPage() {
         },
         {
             key: "submission_date",
-            label: "Submission Date",
+            label: "Submitted At",
             render: (value) => <span>{value ? new Date(value).toLocaleString() : "N/A"}</span>,
+        },
+        {
+            key: "is_auto_submit",
+            label: "How Submitted",
+            render: (value) => (
+                <span className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded-full border ${
+                    value
+                        ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800"
+                        : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800"
+                }`}>
+                    {value ? "Auto (Time Expired)" : "Manual Submit"}
+                </span>
+            ),
         },
         {
             key: "id",
@@ -357,6 +370,18 @@ export default function WritingTasksPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Left: Student Submission */}
                     <div className="lg:col-span-8 space-y-6">
+                        <div className={`p-4 rounded-xl border text-sm ${isDark ? 'bg-gray-800/60 border-gray-700' : 'bg-blue-50/50 border-blue-100'}`}>
+                            <div className="flex flex-wrap gap-4">
+                                <div>
+                                    <span className="text-xs font-bold uppercase text-gray-500">Submitted At</span>
+                                    <p className="font-semibold">{gradingSubmission?.submission_date ? new Date(gradingSubmission.submission_date).toLocaleString() : "N/A"}</p>
+                                </div>
+                                <div>
+                                    <span className="text-xs font-bold uppercase text-gray-500">Submission Type</span>
+                                    <p className="font-semibold">{gradingSubmission?.is_auto_submit ? "Auto-submit (time expired)" : "Manual submit"}</p>
+                                </div>
+                            </div>
+                        </div>
                         <div className={`p-6 rounded-xl border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
                             <h2 className="text-lg font-bold mb-4">Submitted Essay / Writing Content</h2>
                             {gradingSubmission.file_url ? (
@@ -533,6 +558,10 @@ export default function WritingTasksPage() {
 
                                 {/* Essay specifics */}
                                 <div className="mb-4 space-y-2 opacity-70">
+                                    <div className="flex justify-between text-xs">
+                                        <span>Duration:</span>
+                                        <span className="font-bold">{assignment.duration ? `${assignment.duration} min` : "No limit"}</span>
+                                    </div>
                                     <div className="flex justify-between text-xs">
                                         <span>Word Count Limit:</span>
                                         <span className="font-bold">{assignment.word_count || "Unlimited"}</span>

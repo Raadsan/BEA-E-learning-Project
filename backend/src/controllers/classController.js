@@ -1,4 +1,10 @@
 import prisma from '../lib/prisma.js';
+import {
+  buildCreateAudit,
+  buildUpdateAudit,
+  enrichWithAudit,
+  backfillMissingCreatedBy,
+} from '../utils/auditTrail.js';
 
 // CREATE CLASS
 export const createClass = async (req, res) => {
@@ -9,13 +15,16 @@ export const createClass = async (req, res) => {
     const existing = await prisma.classes.findUnique({ where: { class_name } });
     if (existing) return res.status(400).json({ error: "Class name already exists" });
 
+    const createAudit = await buildCreateAudit(req, 'System');
+
     const classItem = await prisma.classes.create({
       data: {
         class_name,
         description,
         subprogram_id: subprogram_id ? parseInt(subprogram_id) : null,
         teacher_id: teacher_id ? parseInt(teacher_id) : null,
-        shift_id: shift_id ? parseInt(shift_id) : null
+        shift_id: shift_id ? parseInt(shift_id) : null,
+        ...createAudit,
       }
     });
     res.status(201).json({ message: "Class created", class: classItem });
@@ -38,6 +47,7 @@ export const getClasses = async (req, res) => {
       shifts: true
     };
 
+    await backfillMissingCreatedBy(prisma.classes, 'Not recorded');
     let classes;
     if (role === 'teacher') {
       classes = await prisma.classes.findMany({
@@ -68,12 +78,13 @@ export const getClasses = async (req, res) => {
       return str;
     };
 
-    const populated = classes.map(cls => {
+    const populated = await enrichWithAudit(classes.map(cls => {
       const teacher_name = cls.teachers?.full_name || 'Unassigned';
       const program_id = cls.subprograms?.program_id || null;
       const program_name = cls.subprograms?.programs?.title || 'N/A';
       const subprogram_name = cls.subprograms?.subprogram_name || 'N/A';
       const shift_name = cls.shifts?.shift_name || '';
+      const shift_session = cls.shifts?.session_type || '';
       const shift_start = cls.shifts ? formatTime(cls.shifts.start_time) : '';
       const shift_end = cls.shifts ? formatTime(cls.shifts.end_time) : '';
 
@@ -84,10 +95,11 @@ export const getClasses = async (req, res) => {
         program_name,
         subprogram_name,
         shift_name,
+        shift_session,
         shift_start,
         shift_end
       };
-    });
+    }));
 
     res.json(populated);
   } catch (err) {
@@ -149,19 +161,21 @@ export const getClass = async (req, res) => {
     const program_name = classItem.subprograms?.programs?.title || 'N/A';
     const subprogram_name = classItem.subprograms?.subprogram_name || 'N/A';
     const shift_name = classItem.shifts?.shift_name || '';
+    const shift_session = classItem.shifts?.session_type || '';
     const shift_start = classItem.shifts ? formatTime(classItem.shifts.start_time) : '';
     const shift_end = classItem.shifts ? formatTime(classItem.shifts.end_time) : '';
 
-    res.json({
+    res.json(await enrichWithAudit({
       ...classItem,
       teacher_name,
       program_id,
       program_name,
       subprogram_name,
       shift_name,
+      shift_session,
       shift_start,
       shift_end
-    });
+    }));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -175,6 +189,11 @@ export const updateClass = async (req, res) => {
     if (data.subprogram_id) data.subprogram_id = parseInt(data.subprogram_id);
     if (data.teacher_id) data.teacher_id = parseInt(data.teacher_id);
     if (data.shift_id) data.shift_id = parseInt(data.shift_id);
+    delete data.created_by;
+    delete data.created_by_name;
+    delete data.updated_by;
+    delete data.updated_by_name;
+    Object.assign(data, await buildUpdateAudit(req));
 
     const updated = await prisma.classes.update({
       where: { id: parseInt(id) },

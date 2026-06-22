@@ -67,7 +67,7 @@ export default function StudentsPage() {
         confirmPassword: "", parent_name: "", parent_email: "", parent_phone: "",
         parent_relation: "", parent_res_county: "", parent_res_city: "",
         funding_status: "Paid", sponsorship_package: "",
-        funding_amount: "", funding_month: "", scholarship_percentage: "",
+        funding_amount: "", funding_month: "", scholarship_percentage: "", paid_months: "1",
         sponsor_name: "",
         verification_method: "Proficiency Exam",
         certificate_institution: "",
@@ -212,7 +212,7 @@ export default function StudentsPage() {
             confirmPassword: "", parent_name: "", parent_email: "", parent_phone: "",
             parent_relation: "", parent_res_county: "", parent_res_city: "",
             funding_status: "Paid", sponsorship_package: "",
-            funding_amount: "", funding_month: "", scholarship_percentage: "",
+            funding_amount: "", funding_month: "", scholarship_percentage: "", paid_months: "1",
             sponsor_name: "",
             verification_method: "Proficiency Exam",
             certificate_institution: "",
@@ -243,6 +243,7 @@ export default function StudentsPage() {
             funding_amount: student.funding_amount || "",
             funding_month: student.funding_month || "",
             scholarship_percentage: student.scholarship_percentage || "",
+            paid_months: student.paid_months?.toString() || "1",
             sponsor_name: student.sponsor_name || "",
             verification_method: student.verification_method || "Proficiency Exam",
             certificate_institution: student.certificate_institution || "",
@@ -292,8 +293,9 @@ export default function StudentsPage() {
             // Sanitize numeric fields: convert "" to null or parse to number
             submitData.age = submitData.age === "" ? null : parseInt(submitData.age);
             submitData.funding_amount = submitData.funding_amount === "" ? null : parseFloat(submitData.funding_amount);
-            submitData.funding_month = submitData.funding_month === "" ? null : parseInt(submitData.funding_month);
-            submitData.scholarship_percentage = submitData.scholarship_percentage === "" ? null : parseInt(submitData.scholarship_percentage);
+            submitData.funding_month = submitData.funding_month === "" ? null : String(submitData.funding_month);
+            submitData.paid_months = submitData.paid_months === "" ? null : parseInt(submitData.paid_months, 10);
+            submitData.scholarship_percentage = submitData.scholarship_percentage === "" ? null : parseInt(submitData.scholarship_percentage, 10);
 
             if (!submitData.password || submitData.password.trim() === "") delete submitData.password;
             if (submitData.chosen_subprogram === "") submitData.chosen_subprogram = null;

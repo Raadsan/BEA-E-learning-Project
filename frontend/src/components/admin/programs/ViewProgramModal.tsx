@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
+import AuditTrailSection from "@/components/admin/AuditTrailSection";
 
 export default function ViewProgramModal({ program, onClose, isDark }) {
     const { data: subprograms, isLoading, isError } = useGetSubprogramsByProgramIdQuery(program?.id, {
@@ -147,6 +148,8 @@ export default function ViewProgramModal({ program, onClose, isDark }) {
                             </div>
                         )}
                     </div>
+
+                    <AuditTrailSection record={program} isDark={isDark} />
 
                     {/* Subprograms Section */}
                     <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-purple-50/50 border-purple-200'

@@ -1,4 +1,10 @@
 import prisma from '../lib/prisma.js';
+import {
+  buildCreateAudit,
+  buildUpdateAudit,
+  enrichWithAudit,
+  backfillMissingCreatedBy,
+} from '../utils/auditTrail.js';
 
 // CREATE SUBPROGRAM
 export const createSubprogram = async (req, res) => {
@@ -14,12 +20,15 @@ export const createSubprogram = async (req, res) => {
     });
     if (existing) return res.status(400).json({ error: "Duplicate subprogram name" });
 
+    const createAudit = await buildCreateAudit(req, 'System');
+
     const subprogram = await prisma.subprograms.create({
       data: {
         subprogram_name,
         program_id: parseInt(program_id),
         description,
-        status
+        status,
+        ...createAudit,
       }
     });
     res.status(201).json({ message: "Created", subprogram });
@@ -31,12 +40,13 @@ export const createSubprogram = async (req, res) => {
 // GET ALL SUBPROGRAMS
 export const getSubprograms = async (req, res) => {
   try {
+    await backfillMissingCreatedBy(prisma.subprograms);
     const subprograms = await prisma.subprograms.findMany({
       include: { programs: true },
       orderBy: { subprogram_name: 'asc' }
     });
 
-    const mappedSubprograms = subprograms.map((sub) => ({
+    const mappedSubprograms = (await enrichWithAudit(subprograms)).map((sub) => ({
       ...sub,
       program_name: sub.programs?.title || sub.programs?.program_name || sub.programs?.name || 'N/A',
     }));
@@ -67,7 +77,7 @@ export const getSubprogram = async (req, res) => {
       include: { programs: true }
     });
     if (!subprogram) return res.status(404).json({ error: "Not found" });
-    res.json(subprogram);
+    res.json(await enrichWithAudit(subprogram));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -79,6 +89,11 @@ export const updateSubprogram = async (req, res) => {
     const { id } = req.params;
     const data = { ...req.body };
     if (data.program_id) data.program_id = parseInt(data.program_id);
+    delete data.created_by;
+    delete data.created_by_name;
+    delete data.updated_by;
+    delete data.updated_by_name;
+    Object.assign(data, await buildUpdateAudit(req));
 
     const updated = await prisma.subprograms.update({
       where: { id: parseInt(id) },

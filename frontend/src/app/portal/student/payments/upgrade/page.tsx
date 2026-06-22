@@ -4,10 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
-import { useGetPaymentPackagesQuery } from "@/lib/api/paymentPackageApi";
-import { useToast } from "@/components/Toast";
-import Link from "next/link";
-import StudentPageHeader from "@/components/student/StudentPageHeader";
+import { mapPackagePrograms, getPackagePriceForStudent } from "@/utils/studentPayment";
 
 export default function UpgradePaymentPage() {
     const { isDark } = useDarkMode();
@@ -16,13 +13,16 @@ export default function UpgradePaymentPage() {
     const { data: user } = useGetCurrentUserQuery();
     const { data: packages = [] } = useGetPaymentPackagesQuery();
 
-    // Filter packages strictly matching student's program
-    const studentPackages = packages.map(pkg => {
-        const progMatch = pkg.programs?.find(p => p.title === user?.chosen_program);
+    const studentPackages = packages
+        .map((pkg) => mapPackagePrograms(pkg))
+        .map((pkg) => {
+        const progMatch = pkg.programs?.find((p) => p.title === user?.chosen_program);
         if (!progMatch) return null;
+        const studentPrice = getPackagePriceForStudent(pkg, user?.chosen_program, user);
         return {
             ...pkg,
-            studentPrice: progMatch.price ? parseFloat(progMatch.price) * (pkg.duration_months || 1) : 0
+            studentPrice,
+            originalPrice: Number(progMatch.price || 0) * (pkg.duration_months || 1),
         };
     }).filter(Boolean)
         .sort((a, b) => (a.duration_months || 0) - (b.duration_months || 0));
@@ -73,6 +73,11 @@ export default function UpgradePaymentPage() {
                                         /{pkg.duration_months}month
                                     </span>
                                 </div>
+                                {pkg.originalPrice > pkg.studentPrice && (
+                                    <p className="text-sm text-green-600 mt-2 font-semibold">
+                                        Scholarship/discount applied (was ${pkg.originalPrice.toFixed(2)})
+                                    </p>
+                                )}
                             </div>
 
                             {/* Features List */}

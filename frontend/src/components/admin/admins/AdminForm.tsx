@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { TECHNICAL_ADMIN_PERMISSION_OPTIONS } from "@/constants/adminPermissions";
 
 export default function AdminForm({
     isOpen,
@@ -7,6 +8,7 @@ export default function AdminForm({
     editingAdmin,
     formData,
     handleInputChange,
+    handlePermissionToggle,
     handleSubmit,
     isDark,
     isCreating,
@@ -126,12 +128,42 @@ export default function AdminForm({
 
                             {/* Password Fields - Deprived if Technical Admin */}
                             {isTechnicalAdmin ? (
-                                <div className={`p-4 rounded-xl border flex items-start gap-3 mt-2 ${isDark ? 'bg-blue-950/40 border-blue-900/60 text-blue-300' : 'bg-blue-50 border-blue-100 text-blue-800'}`}>
-                                    <svg className="w-5 h-5 mt-0.5 shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <div className="text-xs font-semibold leading-relaxed">
-                                        Technical Admins are deprived of the authority to configure or change their passwords.
+                                <div className="space-y-4 mt-2">
+                                    <div className={`p-4 rounded-xl border flex items-start gap-3 ${isDark ? 'bg-blue-950/40 border-blue-900/60 text-blue-300' : 'bg-blue-50 border-blue-100 text-blue-800'}`}>
+                                        <svg className="w-5 h-5 mt-0.5 shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div className="text-xs font-semibold leading-relaxed">
+                                            Technical Admins cannot set their own password. A temporary password will be emailed to them automatically.
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className={`block text-sm font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Portal Permissions *
+                                        </label>
+                                        <p className={`text-xs mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            Select only the sections this Technical Admin can access after login.
+                                        </p>
+                                        <div className={`grid grid-cols-1 sm:grid-cols-2 gap-2 p-4 rounded-xl border max-h-56 overflow-y-auto ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-white border-blue-100'}`}>
+                                            {TECHNICAL_ADMIN_PERMISSION_OPTIONS.map((option) => {
+                                                const checked = (formData.permissions || []).includes(option.key);
+                                                return (
+                                                    <label
+                                                        key={option.key}
+                                                        className={`flex items-center gap-2 text-sm cursor-pointer rounded-lg px-2 py-1.5 ${isDark ? 'hover:bg-gray-700' : 'hover:bg-blue-50'}`}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={checked}
+                                                            onChange={() => handlePermissionToggle(option.key)}
+                                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                        />
+                                                        <span className={isDark ? 'text-gray-200' : 'text-gray-700'}>{option.label}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
                             ) : (

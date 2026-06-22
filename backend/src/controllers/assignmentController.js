@@ -153,6 +153,7 @@ export const getAssignments = async (req, res) => {
                         a.feedback_file_url = submission.feedback_file_url;
                         a.feedback_file = submission.feedback_file_url;
                         a.submission_date = submission.submission_date;
+                        a.is_auto_submit = submission.is_auto_submit;
                         a.graded_at = submission.status === 'graded'
                             ? (submission.updated_at || submission.submission_date)
                             : null;
@@ -196,6 +197,7 @@ export const createAssignment = async (req, res) => {
             prismaData.word_count = data.word_count ? parseInt(data.word_count) : null;
             prismaData.requirements = data.requirements;
             prismaData.start_date = data.start_date ? new Date(data.start_date) : null;
+            prismaData.duration = data.duration ? parseInt(data.duration) : null;
         } else if (['exam', 'oral_assignment', 'course_work'].includes(type)) {
             prismaData.subprogram_id = data.subprogram_id ? parseInt(data.subprogram_id) : null;
             prismaData.questions = data.questions ? (typeof data.questions === 'string' ? data.questions : JSON.stringify(data.questions)) : null;
@@ -218,12 +220,13 @@ export const createAssignment = async (req, res) => {
 // SUBMIT ASSIGNMENT
 export const submitAssignment = async (req, res) => {
     try {
-        const { assignment_id, content, type } = req.body;
+        const { assignment_id, content, type, is_auto_submit } = req.body;
         const student_id = req.user.userId;
         const subModelName = tableMapping[type]?.sub;
         if (!subModelName) return res.status(400).json({ error: "Invalid type" });
 
         const file_url = req.file ? req.file.filename : null;
+        const autoSubmitted = is_auto_submit === true || is_auto_submit === 'true';
 
         const submission = await prisma[subModelName].upsert({
             where: {
@@ -233,18 +236,20 @@ export const submitAssignment = async (req, res) => {
                 }
             },
             update: {
-                content: typeof content === 'object' ? JSON.stringify(content) : content,
+                content: typeof content === 'object' ? JSON.stringify(content) : (content ?? ''),
                 file_url: file_url || undefined,
                 submission_date: new Date(),
-                status: 'submitted'
+                status: 'submitted',
+                is_auto_submit: autoSubmitted,
             },
             create: {
                 assignment_id: parseInt(assignment_id),
                 student_id,
-                content: typeof content === 'object' ? JSON.stringify(content) : content,
+                content: typeof content === 'object' ? JSON.stringify(content) : (content ?? ''),
                 file_url,
                 submission_date: new Date(),
-                status: 'submitted'
+                status: 'submitted',
+                is_auto_submit: autoSubmitted,
             }
         });
 

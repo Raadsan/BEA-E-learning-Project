@@ -8,13 +8,21 @@ import {
     getWaafiErrorMessage,
     getWaafiTransactionId
 } from "../utils/waafiPayment.js";
+import {
+    buildCreateAudit,
+    buildUpdateAudit,
+    enrichWithAudit,
+    backfillMissingCreatedBy,
+} from '../utils/auditTrail.js';
 
 export const getAllIeltsStudents = async (req, res) => {
     try {
+        await backfillMissingCreatedBy(prisma.IELTSTOEFL);
         const students = await prisma.IELTSTOEFL.findMany({
             orderBy: { registration_date: 'desc' }
         });
-        res.json({ success: true, students });
+        const withClasses = await attachClassNames(students);
+        res.json({ success: true, students: await enrichWithAudit(withClasses, { createdAtField: 'registration_date', updatedAtField: 'updated_at' }) });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -49,6 +57,8 @@ export const createIeltsStudent = async (req, res) => {
             hashedPassword = await bcrypt.hash(password, salt);
         }
 
+        const createAudit = await buildCreateAudit(req, 'Self registration');
+
         const data = {
             ...rest,
             student_id,
@@ -56,7 +66,8 @@ export const createIeltsStudent = async (req, res) => {
             chosen_program,
             password: hashedPassword,
             status: 'Pending',
-            expiry_date: new Date(Date.now() + 1440 * 60000)
+            expiry_date: new Date(Date.now() + 1440 * 60000),
+            ...createAudit,
         };
 
         if (payment && payment.method === 'mwallet_account') {
@@ -89,7 +100,7 @@ export const getIeltsStudent = async (req, res) => {
             where: { student_id: req.params.id }
         });
         if (!student) return res.status(404).json({ error: "Not found" });
-        res.json({ success: true, student });
+        res.json({ success: true, student: await enrichWithAudit(student, { createdAtField: 'registration_date', updatedAtField: 'updated_at' }) });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -102,6 +113,11 @@ export const updateIeltsStudent = async (req, res) => {
             const salt = await bcrypt.genSalt(10);
             data.password = await bcrypt.hash(data.password, salt);
         }
+        delete data.created_by;
+        delete data.created_by_name;
+        delete data.updated_by;
+        delete data.updated_by_name;
+        Object.assign(data, await buildUpdateAudit(req));
         const updated = await prisma.IELTSTOEFL.update({
             where: { student_id: req.params.id },
             data
@@ -118,5 +134,137 @@ export const deleteIeltsStudent = async (req, res) => {
         res.json({ success: true, message: "Deleted" });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+};
+
+function normalizeProgramName(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function programsMatch(a, b) {
+    if (!a || !b) return true;
+    const na = normalizeProgramName(a);
+    const nb = normalizeProgramName(b);
+    if (na === nb) return true;
+    const ieltsHint = (s) => s.includes('ielts') || s.includes('toefl');
+    return ieltsHint(na) && ieltsHint(nb);
+}
+
+async function attachClassNames(students) {
+    const classIds = [...new Set(students.map((s) => s.class_id).filter(Boolean))];
+    if (classIds.length === 0) {
+        return students.map((s) => ({ ...s, class_name: null }));
+    }
+    const classRows = await prisma.classes.findMany({
+        where: { id: { in: classIds.map((id) => parseInt(id, 10)) } },
+        select: { id: true, class_name: true },
+    });
+    const nameById = Object.fromEntries(classRows.map((c) => [c.id, c.class_name]));
+    return students.map((s) => ({
+        ...s,
+        class_name: s.class_id ? nameById[parseInt(s.class_id, 10)] || null : null,
+    }));
+}
+
+async function validateClassForStudent(student, classId) {
+    const parsedClassId = parseInt(classId, 10);
+    if (!parsedClassId) {
+        throw new Error('Valid class is required');
+    }
+
+    const classItem = await prisma.classes.findUnique({
+        where: { id: parsedClassId },
+        include: {
+            subprograms: {
+                include: { programs: true },
+            },
+        },
+    });
+
+    if (!classItem) {
+        throw new Error('Class not found');
+    }
+
+    const classProgram = classItem.subprograms?.programs?.title;
+    const studentProgram = student.chosen_program || student.exam_type;
+
+    if (classProgram && studentProgram && !programsMatch(classProgram, studentProgram)) {
+        throw new Error('This class does not belong to the student\'s program');
+    }
+
+    return classItem;
+}
+
+export const approveIeltsStudent = async (req, res) => {
+    try {
+        const updated = await prisma.IELTSTOEFL.update({
+            where: { student_id: req.params.id },
+            data: {
+                status: 'Approved',
+                ...(await buildUpdateAudit(req)),
+            },
+        });
+        res.json({ success: true, student: updated });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const rejectIeltsStudent = async (req, res) => {
+    try {
+        const updated = await prisma.IELTSTOEFL.update({
+            where: { student_id: req.params.id },
+            data: {
+                status: 'Rejected',
+                ...(await buildUpdateAudit(req)),
+            },
+        });
+        res.json({ success: true, student: updated });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const extendIeltsDeadline = async (req, res) => {
+    try {
+        const { durationMinutes = 1440 } = req.body;
+        const updated = await prisma.IELTSTOEFL.update({
+            where: { student_id: req.params.id },
+            data: {
+                expiry_date: new Date(Date.now() + Number(durationMinutes) * 60000),
+                is_extended: true,
+                reminder_sent: false,
+                ...(await buildUpdateAudit(req)),
+            },
+        });
+        res.json({ success: true, student: updated });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const assignIeltsClass = async (req, res) => {
+    try {
+        const { classId } = req.body;
+        const student = await prisma.IELTSTOEFL.findUnique({
+            where: { student_id: req.params.id },
+        });
+        if (!student) return res.status(404).json({ error: 'Student not found' });
+
+        await validateClassForStudent(student, classId);
+
+        const updated = await prisma.IELTSTOEFL.update({
+            where: { student_id: req.params.id },
+            data: {
+                class_id: parseInt(classId, 10),
+                status: student.status === 'Pending' ? 'Approved' : student.status,
+                ...(await buildUpdateAudit(req)),
+            },
+        });
+
+        const [withClass] = await attachClassNames([updated]);
+        res.json({ success: true, student: withClass });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
     }
 };

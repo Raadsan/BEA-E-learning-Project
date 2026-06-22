@@ -9,6 +9,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useRegisterCandidateMutation } from "@/lib/api/proficiencyTestStudentsApi";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useLoginMutation } from "@/lib/api/authApi";
+import { handlePostRegistrationLogin } from "@/utils/authSession";
 
 import { Country, City } from "country-state-city";
 import PhoneInput from "react-phone-input-2";
@@ -175,8 +176,8 @@ export default function ProficiencyTestRegistration() {
                 showToast("Registration successful! Redirecting...", 'success');
                 // Auto-login attempt
                 try {
-                    await login({ email: formData.email, password: formData.password }).unwrap();
-                    router.push('/portal/student');
+                    const loginResult = await login({ email: formData.email, password: formData.password }).unwrap();
+                    handlePostRegistrationLogin(loginResult, formData.email, router);
                 } catch (e) {
                     router.push('/auth/login');
                 }

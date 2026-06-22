@@ -34,7 +34,7 @@ export default function StudentApprovalModal({
 
     const classesForSubprogram = selectedSubprogramId
         ? classes.filter((cls) => String(cls.subprogram_id) === String(selectedSubprogramId))
-        : [];
+        : classes;
 
     const selectClass = (e) => {
         setSelectedClassId(e.target.value);
@@ -139,6 +139,24 @@ export default function StudentApprovalModal({
                                             ))}
                                         </select>
                                     )}
+                                </div>
+                            )}
+
+                            {!selectedSubprogramId && classesForSubprogram.length > 0 && (
+                                <div className="space-y-2">
+                                    <label className={`block text-xs font-bold uppercase tracking-widest ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        Assign to Class (Optional)
+                                    </label>
+                                    <select
+                                        value={selectedClassId || ""}
+                                        onChange={selectClass}
+                                        className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                    >
+                                        <option value="">No Class Assigned</option>
+                                        {classesForSubprogram.map((cls) => (
+                                            <option key={cls.id} value={cls.id}>{cls.class_name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             )}
                         </div>

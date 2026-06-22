@@ -11,14 +11,6 @@ const prismaClientSingleton = () => {
   const database = process.env.DATABASE_NAME || process.env.DB_NAME || "bea";
   const port = parseInt(process.env.DATABASE_PORT || process.env.DB_PORT || "3306");
 
-  console.log("⚡ Prisma initializing with adapter credentials:", {
-    host,
-    user,
-    database,
-    port,
-    passwordProvided: password ? "YES" : "NO"
-  });
-
   const adapter = new PrismaMariaDb({
     host,
     user,

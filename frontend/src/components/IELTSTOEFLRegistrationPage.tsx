@@ -8,6 +8,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useCreateIeltsToeflStudentMutation } from "@/lib/api/ieltsToeflApi";
 import { useLoginMutation } from "@/lib/api/authApi";
+import { handlePostRegistrationLogin } from "@/utils/authSession";
 import { useToast } from "@/components/Toast";
 import { Country, City } from "country-state-city";
 import PhoneInput from "react-phone-input-2";
@@ -183,10 +184,10 @@ export default function IELTSTOEFLRegistrationPage() {
         showToast("Registration successful! Redirecting...", "success");
         // Attempt auto-login
         try {
-          await login({ email: formData.email, password: formData.password }).unwrap();
-          router.push('/portal/student');
+          const loginResult = await login({ email: formData.email, password: formData.password }).unwrap();
+          handlePostRegistrationLogin(loginResult, formData.email, router);
         } catch (e) {
-          router.push('/login');
+          router.push('/auth/login');
         }
       } else {
         throw new Error(response.error || 'Registration failed');

@@ -15,8 +15,15 @@ import { useToast } from "@/components/Toast";
 
 // Extracted Components
 import AdminForm from "@/components/admin/admins/AdminForm";
+import AdminViewModal from "@/components/admin/admins/AdminViewModal";
+import { useAdminPermissions } from "@/hooks/useAdminPermissions";
+import { parsePermissions } from "@/constants/adminPermissions";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function AdminsPage() {
+  const router = useRouter();
+  const { isSuperAdmin } = useAdminPermissions();
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
 
@@ -35,10 +42,18 @@ export default function AdminsPage() {
   const [sortOption, setSortOption] = useState("default");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [viewingAdmin, setViewingAdmin] = useState(null);
   const [editingAdmin, setEditingAdmin] = useState(null);
   const [formData, setFormData] = useState({
-    full_name: "", username: "", email: "", password: "", confirmPassword: "", role: "super", status: "active"
+    full_name: "", username: "", email: "", password: "", confirmPassword: "", role: "super", status: "active", permissions: [] as string[]
   });
+
+  useEffect(() => {
+    if (!isSuperAdmin) {
+      router.replace("/portal/admin");
+    }
+  }, [isSuperAdmin, router]);
 
   // Bulk Action Confirmation Modal State
   const [bulkModal, setBulkModal] = useState({
@@ -120,7 +135,7 @@ export default function AdminsPage() {
   const handleAddClick = () => {
     setEditingAdmin(null);
     setFormData({
-      full_name: "", username: "", email: "", password: "", confirmPassword: "", role: "super", status: "active"
+      full_name: "", username: "", email: "", password: "", confirmPassword: "", role: "super", status: "active", permissions: []
     });
     setIsModalOpen(true);
   };
@@ -134,7 +149,8 @@ export default function AdminsPage() {
       password: "",
       confirmPassword: "",
       role: admin.role || "super",
-      status: admin.status || "active"
+      status: admin.status || "active",
+      permissions: parsePermissions(admin.permissions),
     });
     setIsModalOpen(true);
   };
@@ -144,24 +160,63 @@ export default function AdminsPage() {
     setEditingAdmin(null);
   };
 
+  const handleViewClick = (admin) => {
+    setViewingAdmin(admin);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+    setViewingAdmin(null);
+  };
+
+  const formatAdminDate = (value) => {
+    if (!value) return "N/A";
+    return new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      const next = { ...prev, [name]: value };
+      if (name === "role" && value === "super") {
+        next.permissions = [];
+      }
+      if (name === "role" && value === "technical" && !prev.permissions?.length) {
+        next.permissions = ["dashboard"];
+      }
+      return next;
+    });
+  };
+
+  const handlePermissionToggle = (permissionKey) => {
+    setFormData((prev) => {
+      const current = prev.permissions || [];
+      const permissions = current.includes(permissionKey)
+        ? current.filter((key) => key !== permissionKey)
+        : [...current, permissionKey];
+      return { ...prev, permissions };
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Deprived of passwords if role is technical
     if (formData.role === "technical") {
-      delete formData.password;
-      delete formData.confirmPassword;
+      if (!formData.permissions?.length) {
+        showToast("Select at least one permission for Technical Admin", "error");
+        return;
+      }
     } else {
+      if (!editingAdmin && !formData.password) {
+        showToast("Password is required for Super Admin", "error");
+        return;
+      }
       if (formData.password && formData.password !== formData.confirmPassword) {
         showToast("Passwords do not match", "error");
         return;
       }
-      if (formData.password && editingAdmin) {
+      if (formData.password) {
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
         if (!passwordRegex.test(formData.password)) {
           showToast("Password must be at least 6 characters and include uppercase, lowercase, number, and symbol", "error");
@@ -172,9 +227,15 @@ export default function AdminsPage() {
 
     try {
       const payload = { ...formData };
-      if (editingAdmin && !payload.password) {
+      if (formData.role === "technical") {
         delete payload.password;
         delete payload.confirmPassword;
+      } else {
+        delete payload.permissions;
+        if (editingAdmin && !payload.password) {
+          delete payload.password;
+          delete payload.confirmPassword;
+        }
       }
       delete payload.confirmPassword;
 
@@ -275,17 +336,17 @@ export default function AdminsPage() {
       )
     },
     {
-      key: "footprint",
-      label: "Admin Footprint",
+      key: "created_info",
+      label: "Created By",
       render: (_, row) => (
-        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-0.5 font-medium">
-          <div className="flex items-center gap-1">
-            <span className="text-gray-400 font-bold">Created:</span>
-            <span>{row.created_at ? new Date(row.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) : "N/A"}</span>
+        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-0.5 font-medium min-w-[180px]">
+          <div className="flex items-start gap-1">
+            <span className="text-gray-400 font-bold shrink-0">By:</span>
+            <span className="text-gray-700 dark:text-gray-200">{row.created_by_name || "Not recorded"}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-gray-400 font-bold">Updated:</span>
-            <span>{row.updated_at ? new Date(row.updated_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) : "N/A"}</span>
+          <div className="flex items-start gap-1">
+            <span className="text-gray-400 font-bold shrink-0">At:</span>
+            <span>{formatAdminDate(row.created_at)}</span>
           </div>
         </div>
       )
@@ -295,6 +356,16 @@ export default function AdminsPage() {
       label: "Actions",
       render: (_, row) => (
         <div className="flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleViewClick(row)}
+            className="text-blue-600 p-2 hover:bg-blue-50 rounded-lg transition-colors dark:text-blue-400 dark:hover:bg-blue-950/20"
+            title="View"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
           <button
             onClick={() => handleEditClick(row)}
             className="text-green-600 p-2 hover:bg-green-50 rounded-lg transition-colors dark:text-green-400 dark:hover:bg-green-950/20"
@@ -407,6 +478,10 @@ export default function AdminsPage() {
 
 
 
+  if (!isSuperAdmin) {
+    return null;
+  }
+
   if (isLoading) {
     return (
       <div className={`flex-1 min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -443,10 +518,18 @@ export default function AdminsPage() {
         editingAdmin={editingAdmin}
         formData={formData}
         handleInputChange={handleInputChange}
+        handlePermissionToggle={handlePermissionToggle}
         handleSubmit={handleSubmit}
         isDark={isDark}
         isCreating={isCreating}
         isUpdating={isUpdating}
+      />
+
+      <AdminViewModal
+        isOpen={isViewModalOpen}
+        onClose={handleCloseViewModal}
+        admin={viewingAdmin}
+        isDark={isDark}
       />
 
       {/* Custom Premium Bulk Confirmation Modal matching Users page */}

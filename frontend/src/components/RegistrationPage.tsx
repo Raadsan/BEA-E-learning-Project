@@ -10,6 +10,7 @@ import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetSubprogramsQuery } from "@/lib/api/subprogramApi";
 import { useCreateStudentMutation } from "@/lib/api/studentApi";
 import { useLoginMutation } from "@/lib/api/authApi";
+import { handlePostRegistrationLogin } from "@/utils/authSession";
 import { useToast } from "@/components/Toast";
 import { Country, City } from "country-state-city";
 import PhoneInput from 'react-phone-input-2';
@@ -209,14 +210,13 @@ export default function RegistrationPage() {
 
         // Try to auto-login
         try {
-          await login({
+          const loginResult = await login({
             email: formData.email,
             password: formData.password
           }).unwrap();
 
-          // Clear draft and redirect to dashboard
           localStorage.removeItem('registrationDraft');
-          router.push('/portal/student');
+          handlePostRegistrationLogin(loginResult, formData.email, router);
         } catch (loginError) {
           console.error('Auto-login failed:', loginError);
           // Redirect to login page if auto-login fails

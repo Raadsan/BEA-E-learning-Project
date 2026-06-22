@@ -12,8 +12,19 @@ import { useGetSessionRequestsQuery } from "@/lib/api/sessionRequestApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import StudentViewModal from "@/components/admin/students/StudentViewModal";
+import { useGetPaymentPackagesQuery } from "@/lib/api/paymentPackageApi";
+import StudentFundingFields from "@/components/admin/students/StudentFundingFields";
 import { API_URL } from "@/constants";
 
+
+function inferPaidMonthsFromStudent(student) {
+  if (student?.funding_status === "Full Scholarship") return "12";
+  const sp = student?.sponsorship_package;
+  if (sp === "Year") return "12";
+  if (sp === "Months_6") return "6";
+  if (sp === "Months_3") return "3";
+  return "1";
+}
 
 const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
   const [timeLeft, setTimeLeft] = useState("");
@@ -85,6 +96,7 @@ export default function GeneralStudentsPage() {
 
   // Modal state for editing student
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { data: paymentPackages = [] } = useGetPaymentPackagesQuery(undefined, { skip: !isEditModalOpen });
   const [editingStudent, setEditingStudent] = useState(null);
   const [editFormData, setEditFormData] = useState({
     full_name: "",
@@ -111,6 +123,7 @@ export default function GeneralStudentsPage() {
     funding_amount: "",
     funding_month: "",
     scholarship_percentage: "",
+    paid_months: "1",
     sponsor_name: ""
   });
   const [editSelectedSubprogramId, setEditSelectedSubprogramId] = useState("");
@@ -317,6 +330,7 @@ export default function GeneralStudentsPage() {
       funding_amount: student.funding_amount || "",
       funding_month: student.funding_month || "",
       scholarship_percentage: student.scholarship_percentage || "",
+      paid_months: inferPaidMonthsFromStudent(student),
       sponsor_name: student.sponsor_name || ""
     });
     setIsEditModalOpen(true);
@@ -361,6 +375,7 @@ export default function GeneralStudentsPage() {
       funding_amount: "",
       funding_month: "",
       scholarship_percentage: "",
+      paid_months: "1",
       sponsor_name: ""
     });
   };
@@ -395,8 +410,9 @@ export default function GeneralStudentsPage() {
         funding_status: editFormData.funding_status || "Paid",
         sponsorship_package: editFormData.sponsorship_package || "None",
         funding_amount: editFormData.funding_amount === "" ? null : parseFloat(editFormData.funding_amount),
-        funding_month: editFormData.funding_month === "" ? null : parseInt(editFormData.funding_month),
-        scholarship_percentage: editFormData.scholarship_percentage === "" ? null : parseInt(editFormData.scholarship_percentage),
+        funding_month: editFormData.funding_month === "" ? null : String(editFormData.funding_month),
+        paid_months: editFormData.paid_months === "" ? null : parseInt(editFormData.paid_months, 10),
+        scholarship_percentage: editFormData.scholarship_percentage === "" ? null : parseInt(editFormData.scholarship_percentage, 10),
         sponsor_name: editFormData.sponsor_name || null
       }).unwrap();
 
@@ -1284,6 +1300,14 @@ export default function GeneralStudentsPage() {
                     </div>
                   </div>
                 </div>
+
+                <StudentFundingFields
+                  formData={editFormData}
+                  setFormData={setEditFormData}
+                  handleInputChange={handleEditInputChange}
+                  isDark={isDark}
+                  paymentPackages={paymentPackages}
+                />
 
                 {/* Management Section */}
                 <div className={`p-5 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-orange-50/50 border-orange-100'}`}>

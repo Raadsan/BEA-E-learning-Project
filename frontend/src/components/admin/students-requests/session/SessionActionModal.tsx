@@ -39,26 +39,42 @@ export default function SessionActionModal({
         }
     }, [isOpen, modalType]);
 
+    const getClassSession = (cls) => cls.shift_session || cls.shifts?.session_type || "";
+
+    const parseRequestedSession = (req) => {
+        let shift = req.requested_shift_name || "";
+        let session = req.requested_class_type || "";
+        if ((!shift || !session) && req.requested_session_type) {
+            const parts = String(req.requested_session_type).split(" - ").map((s) => s.trim());
+            if (parts.length >= 2) {
+                shift = shift || parts[0];
+                session = session || parts.slice(1).join(" - ");
+            } else if (!session) {
+                session = String(req.requested_session_type).trim();
+            }
+        }
+        return { shift, session };
+    };
+
     // Automatic Selection Logic when switching to Approve
     useEffect(() => {
         if (isOpen && modalType === 'approve' && request && classes.length > 0) {
             const studentProgramName = request.program_name || studentDetail.chosen_program;
             const targetSubName = request.subprogram_name || studentDetail.chosen_subprogram_name;
-            const reqShift = request.requested_shift_name;
-            const reqSess = request.requested_class_type || request.requested_session_type;
+            const { shift: reqShift, session: reqSess } = parseRequestedSession(request);
 
             const exactMatch = classes.find(c => {
                 const programMatch = c.program_name === studentProgramName;
                 const subprogramMatch = c.subprogram_name === targetSubName;
                 const shiftMatch = c.shift_name?.toLowerCase() === reqShift?.toLowerCase();
-                const sessionMatch = c.shift_session?.toLowerCase() === reqSess?.toLowerCase();
+                const sessionMatch = getClassSession(c).toLowerCase() === reqSess?.toLowerCase();
                 return programMatch && subprogramMatch && shiftMatch && sessionMatch;
             });
 
             if (exactMatch) {
                 setSelectedLevelId(exactMatch.subprogram_id?.toString() || "");
                 setSelectedShiftName(exactMatch.shift_name || "");
-                setSelectedSessionType(exactMatch.shift_session || "");
+                setSelectedSessionType(getClassSession(exactMatch) || "");
                 setSelectedClassId(exactMatch.id?.toString() || "");
             } else {
                 const levelMatch = subprograms.find(l => l.subprogram_name === targetSubName);
@@ -92,8 +108,8 @@ export default function SessionActionModal({
     const shiftsForLevel = selectedLevelId ? classes.filter(cls => cls.subprogram_id == selectedLevelId) : [];
     const uniqueShiftNames = [...new Set(shiftsForLevel.map(cls => cls.shift_name))].filter(Boolean);
     const sessionsForShift = selectedShiftName ? shiftsForLevel.filter(cls => cls.shift_name === selectedShiftName) : [];
-    const availableSessions = [...new Set(sessionsForShift.map(cls => cls.shift_session))].filter(Boolean);
-    const filteredClasses = selectedSessionType ? sessionsForShift.filter(cls => cls.shift_session === selectedSessionType) : [];
+    const availableSessions = [...new Set(sessionsForShift.map(cls => getClassSession(cls)))].filter(Boolean);
+    const filteredClasses = selectedSessionType ? sessionsForShift.filter(cls => getClassSession(cls) === selectedSessionType) : [];
 
     return (
         <Modal

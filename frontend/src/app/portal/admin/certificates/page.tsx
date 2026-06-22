@@ -22,6 +22,7 @@ import {
 
 import CertificateForm from "@/components/admin/certificates/CertificateForm";
 import ProgramConfirmationModal from "@/components/admin/programs/ProgramConfirmationModal";
+import AuditTrailSection from "@/components/admin/AuditTrailSection";
 
 export default function CertificatesPage() {
     const { isDark } = useDarkMode();
@@ -233,6 +234,10 @@ export default function CertificatesPage() {
                                                 </button>
                                             )}
                                         </div>
+
+                                        {globalTemplate && (
+                                            <AuditTrailSection record={globalTemplate} isDark={isDark} />
+                                        )}
                                     </div>
 
                                     <div className="w-full lg:w-[280px]">

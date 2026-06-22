@@ -157,7 +157,11 @@ exports.Prisma.IELTSTOEFLScalarFieldEnum = {
   reminder_sent: 'reminder_sent',
   is_extended: 'is_extended',
   expiry_date: 'expiry_date',
-  admin_expiry_notified: 'admin_expiry_notified'
+  admin_expiry_notified: 'admin_expiry_notified',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.ProficiencyTestStudentsScalarFieldEnum = {
@@ -182,7 +186,11 @@ exports.Prisma.ProficiencyTestStudentsScalarFieldEnum = {
   date_of_birth: 'date_of_birth',
   place_of_birth: 'place_of_birth',
   residency_country: 'residency_country',
-  residency_city: 'residency_city'
+  residency_city: 'residency_city',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.MigrationsScalarFieldEnum = {
@@ -221,7 +229,12 @@ exports.Prisma.AdminsScalarFieldEnum = {
   full_name: 'full_name',
   bio: 'bio',
   profile_image: 'profile_image',
-  profile_picture: 'profile_picture'
+  profile_picture: 'profile_picture',
+  permissions: 'permissions',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.AnnouncementsScalarFieldEnum = {
@@ -248,7 +261,8 @@ exports.Prisma.Assignment_submissionsScalarFieldEnum = {
   file_url: 'file_url',
   created_at: 'created_at',
   updated_at: 'updated_at',
-  content: 'content'
+  content: 'content',
+  is_auto_submit: 'is_auto_submit'
 };
 
 exports.Prisma.AssignmentsScalarFieldEnum = {
@@ -295,7 +309,11 @@ exports.Prisma.CertificatesScalarFieldEnum = {
   fields_config: 'fields_config',
   created_at: 'created_at',
   updated_at: 'updated_at',
-  uploader_id: 'uploader_id'
+  uploader_id: 'uploader_id',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.Class_schedulesScalarFieldEnum = {
@@ -320,7 +338,11 @@ exports.Prisma.ClassesScalarFieldEnum = {
   created_at: 'created_at',
   updated_at: 'updated_at',
   subprogram_id: 'subprogram_id',
-  shift_id: 'shift_id'
+  shift_id: 'shift_id',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.ContactsScalarFieldEnum = {
@@ -480,7 +502,11 @@ exports.Prisma.Learning_materialsScalarFieldEnum = {
   url: 'url',
   status: 'status',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.Level_up_requestsScalarFieldEnum = {
@@ -660,7 +686,12 @@ exports.Prisma.ProgramsScalarFieldEnum = {
   discount: 'discount',
   curriculum_file: 'curriculum_file',
   test_required: 'test_required',
-  show_on_website: 'show_on_website'
+  show_on_website: 'show_on_website',
+  updated_at: 'updated_at',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.Session_change_requestsScalarFieldEnum = {
@@ -763,6 +794,10 @@ exports.Prisma.StudentsScalarFieldEnum = {
   reset_password_token: 'reset_password_token',
   reset_password_expires: 'reset_password_expires',
   class_id: 'class_id',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name',
   profile_picture: 'profile_picture'
 };
 
@@ -773,7 +808,11 @@ exports.Prisma.SubprogramsScalarFieldEnum = {
   description: 'description',
   status: 'status',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.Teacher_review_questionsScalarFieldEnum = {
@@ -937,7 +976,9 @@ exports.Prisma.IELTSTOEFLOrderByRelevanceFieldEnum = {
   chosen_program: 'chosen_program',
   payment_method: 'payment_method',
   transaction_id: 'transaction_id',
-  payer_phone: 'payer_phone'
+  payer_phone: 'payer_phone',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.ProficiencyTestStudentsOrderByRelevanceFieldEnum = {
@@ -951,7 +992,9 @@ exports.Prisma.ProficiencyTestStudentsOrderByRelevanceFieldEnum = {
   sex: 'sex',
   place_of_birth: 'place_of_birth',
   residency_country: 'residency_country',
-  residency_city: 'residency_city'
+  residency_city: 'residency_city',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.migrationsOrderByRelevanceFieldEnum = {
@@ -978,7 +1021,10 @@ exports.Prisma.adminsOrderByRelevanceFieldEnum = {
   full_name: 'full_name',
   bio: 'bio',
   profile_image: 'profile_image',
-  profile_picture: 'profile_picture'
+  profile_picture: 'profile_picture',
+  permissions: 'permissions',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.announcementsOrderByRelevanceFieldEnum = {
@@ -1019,7 +1065,9 @@ exports.Prisma.QueryMode = {
 
 exports.Prisma.certificatesOrderByRelevanceFieldEnum = {
   template_url: 'template_url',
-  font_color: 'font_color'
+  font_color: 'font_color',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.class_schedulesOrderByRelevanceFieldEnum = {
@@ -1030,7 +1078,9 @@ exports.Prisma.class_schedulesOrderByRelevanceFieldEnum = {
 exports.Prisma.classesOrderByRelevanceFieldEnum = {
   class_name: 'class_name',
   description: 'description',
-  schedule: 'schedule'
+  schedule: 'schedule',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.contactsOrderByRelevanceFieldEnum = {
@@ -1113,7 +1163,9 @@ exports.Prisma.learning_materialsOrderByRelevanceFieldEnum = {
   level: 'level',
   subject: 'subject',
   description: 'description',
-  url: 'url'
+  url: 'url',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.level_up_requestsOrderByRelevanceFieldEnum = {
@@ -1200,7 +1252,9 @@ exports.Prisma.programsOrderByRelevanceFieldEnum = {
   title: 'title',
   description: 'description',
   video: 'video',
-  curriculum_file: 'curriculum_file'
+  curriculum_file: 'curriculum_file',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.session_change_requestsOrderByRelevanceFieldEnum = {
@@ -1256,12 +1310,16 @@ exports.Prisma.studentsOrderByRelevanceFieldEnum = {
   parent_res_county: 'parent_res_county',
   parent_res_city: 'parent_res_city',
   reset_password_token: 'reset_password_token',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name',
   profile_picture: 'profile_picture'
 };
 
 exports.Prisma.subprogramsOrderByRelevanceFieldEnum = {
   subprogram_name: 'subprogram_name',
-  description: 'description'
+  description: 'description',
+  created_by_name: 'created_by_name',
+  updated_by_name: 'updated_by_name'
 };
 
 exports.Prisma.teacher_review_questionsOrderByRelevanceFieldEnum = {

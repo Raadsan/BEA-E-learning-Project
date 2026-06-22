@@ -20,8 +20,11 @@ const getCachedUser = () => {
   }
 };
 
+const isAdminPortalRole = (role?: string | null) =>
+  role === "admin" || role === "super" || role === "technical";
+
 const redirectByRole = (router, role) => {
-  if (role === "admin") {
+  if (isAdminPortalRole(role)) {
     router.replace("/portal/admin");
   } else if (role === "teacher") {
     router.replace("/portal/teacher");
@@ -64,7 +67,11 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
 
     const cachedUser = getCachedUser();
     if (cachedUser?.role) {
-      if (allowedRoles.length > 0 && !allowedRoles.includes(cachedUser.role)) {
+      const roleAllowed =
+        allowedRoles.length === 0 ||
+        allowedRoles.includes(cachedUser.role) ||
+        (allowedRoles.includes("admin") && isAdminPortalRole(cachedUser.role));
+      if (!roleAllowed) {
         redirectByRole(router, cachedUser.role);
         setIsLoading(false);
         return;
@@ -93,10 +100,16 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
     const cachedUser = getCachedUser();
 
     if (error || !user) {
-      if (cachedUser?.role && (allowedRoles.length === 0 || allowedRoles.includes(cachedUser.role))) {
-        setIsAuthorized(true);
-        setIsLoading(false);
-        return;
+      if (cachedUser?.role) {
+        const roleAllowed =
+          allowedRoles.length === 0 ||
+          allowedRoles.includes(cachedUser.role) ||
+          (allowedRoles.includes("admin") && isAdminPortalRole(cachedUser.role));
+        if (roleAllowed) {
+          setIsAuthorized(true);
+          setIsLoading(false);
+          return;
+        }
       }
 
       localStorage.removeItem("token");
@@ -106,7 +119,11 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
       return;
     }
 
-    if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+    const roleAllowed =
+      allowedRoles.length === 0 ||
+      allowedRoles.includes(user.role) ||
+      (allowedRoles.includes("admin") && isAdminPortalRole(user.role));
+    if (!roleAllowed) {
       redirectByRole(router, user.role);
       setIsLoading(false);
       return;

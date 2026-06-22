@@ -4,6 +4,23 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { validatePassword, passwordPolicyMessage } from '../utils/passwordValidator.js';
+// OTP login disabled — uncomment to re-enable email verification
+// import { createOtpSession, verifyOtpSession, refreshOtpCode } from '../utils/otpStore.js';
+// import { sendLoginOtp } from '../utils/emailService.js';
+import { isSuperAdminRole, parseAdminPermissions } from '../utils/adminPermissions.js';
+
+function buildAdminAuthUser(admin) {
+  const adminRole = admin.role || 'super';
+  return {
+    id: admin.id,
+    full_name: admin.full_name,
+    email: admin.email,
+    role: 'admin',
+    adminRole,
+    permissions: isSuperAdminRole(adminRole) ? null : parseAdminPermissions(admin.permissions),
+    status: admin.status,
+  };
+}
 
 // Generate JWT Token
 const generateToken = (userId, role, email) => {
@@ -14,7 +31,118 @@ const generateToken = (userId, role, email) => {
   );
 };
 
-// LOGIN - Automatically detects role by checking all tables
+async function findUserByEmail(email) {
+  let user = await prisma.admins.findUnique({ where: { email } });
+  if (user) {
+    return {
+      user,
+      userData: buildAdminAuthUser(user),
+    };
+  }
+
+  user = await prisma.teachers.findUnique({ where: { email } });
+  if (user) {
+    return {
+      user,
+      userData: {
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        role: 'teacher',
+        specialization: user.specialization,
+        status: user.status
+      }
+    };
+  }
+
+  user = await prisma.students.findUnique({ where: { email } });
+  if (user) {
+    return {
+      user,
+      userData: {
+        id: user.student_id,
+        full_name: user.full_name,
+        email: user.email,
+        role: 'student',
+        phone: user.phone,
+        residency_country: user.residency_country,
+        residency_city: user.residency_city,
+        chosen_program: user.chosen_program,
+        chosen_subprogram: user.chosen_subprogram,
+        sponsor_name: user.sponsor_name,
+        approval_status: user.approval_status,
+        class_id: user.class_id,
+        paid_until: user.paid_until,
+        expiry_date: user.expiry_date
+      }
+    };
+  }
+
+  user = await prisma.IELTSTOEFL.findFirst({ where: { email } });
+  if (user) {
+    return {
+      user,
+      userData: {
+        id: user.student_id,
+        full_name: `${user.first_name} ${user.last_name}`,
+        email: user.email,
+        role: 'student',
+        phone: user.phone,
+        residency_country: user.residency_country,
+        residency_city: user.residency_city,
+        chosen_program: user.chosen_program,
+        exam_type: user.exam_type,
+        verification_method: user.verification_method,
+        approval_status: user.status || 'Pending',
+        is_ielts: true,
+        class_id: user.class_id,
+        expiry_date: user.expiry_date,
+        created_at: user.registration_date
+      }
+    };
+  }
+
+  user = await prisma.ProficiencyTestStudents.findUnique({ where: { email } });
+  if (user) {
+    return {
+      user,
+      userData: {
+        id: user.student_id,
+        full_name: `${user.first_name} ${user.last_name}`,
+        email: user.email,
+        role: 'proficiency_student',
+        phone: user.phone,
+        residency_country: user.residency_country,
+        residency_city: user.residency_city,
+        program: 'Proficiency Test',
+        approval_status: user.status,
+        status: user.status,
+        expiry_date: user.expiry_date,
+        is_extended: user.is_extended
+      }
+    };
+  }
+
+  return null;
+}
+
+function isUserInactive(user) {
+  return user.status === 'inactive' || user.approval_status === 'inactive';
+}
+
+// OTP disabled — uncomment sendOtpForUser + login OTP block below to re-enable
+// async function sendOtpForUser(email, userData) {
+//   const { sessionId, otp, expiresInMinutes } = createOtpSession({ email, userData });
+//   await sendLoginOtp({
+//     to: email,
+//     name: userData.full_name,
+//     otp,
+//     expiresInMinutes,
+//   });
+//   return sessionId;
+// }
+
+// LOGIN — verify credentials and issue JWT (OTP step disabled)
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -23,116 +151,31 @@ export const login = async (req, res) => {
       return res.status(400).json({ success: false, error: "Email and password are required" });
     }
 
-    let user = null;
-    let userData = null;
-    let detectedRole = null;
-
-    // 1. Check admin
-    user = await prisma.admins.findUnique({ where: { email } });
-    if (user) {
-      detectedRole = 'admin';
-      userData = {
-        id: user.id,
-        full_name: user.full_name,
-        email: user.email,
-        role: user.role || 'admin',
-        status: user.status
-      };
-    } else {
-      // 2. Check teacher
-      user = await prisma.teachers.findUnique({ where: { email } });
-      if (user) {
-        detectedRole = 'teacher';
-        userData = {
-          id: user.id,
-          full_name: user.full_name,
-          email: user.email,
-          role: 'teacher',
-          specialization: user.specialization,
-          status: user.status
-        };
-      } else {
-        // 3. Check student
-        user = await prisma.students.findUnique({ where: { email } });
-        if (user) {
-          detectedRole = 'student';
-          userData = {
-            id: user.student_id,
-            full_name: user.full_name,
-            email: user.email,
-            role: 'student',
-            phone: user.phone,
-            residency_country: user.residency_country,
-            residency_city: user.residency_city,
-            chosen_program: user.chosen_program,
-            chosen_subprogram: user.chosen_subprogram,
-            sponsor_name: user.sponsor_name,
-            approval_status: user.approval_status,
-            class_id: user.class_id,
-            paid_until: user.paid_until,
-            expiry_date: user.expiry_date
-          };
-        } else {
-          // 4. Check IELTS
-          user = await prisma.IELTSTOEFL.findFirst({ where: { email } });
-          if (user) {
-            detectedRole = 'student';
-            userData = {
-              id: user.student_id,
-              full_name: `${user.first_name} ${user.last_name}`,
-              email: user.email,
-              role: 'student',
-              phone: user.phone,
-              residency_country: user.residency_country,
-              residency_city: user.residency_city,
-              chosen_program: user.chosen_program,
-              exam_type: user.exam_type,
-              verification_method: user.verification_method,
-              approval_status: user.status || 'Pending',
-              is_ielts: true,
-              class_id: user.class_id,
-              expiry_date: user.expiry_date,
-              created_at: user.registration_date
-            };
-          } else {
-            // 5. Check Proficiency Test
-            user = await prisma.ProficiencyTestStudents.findUnique({ where: { email } });
-            if (user) {
-              detectedRole = 'proficiency_student';
-              userData = {
-                id: user.student_id,
-                full_name: `${user.first_name} ${user.last_name}`,
-                email: user.email,
-                role: 'proficiency_student',
-                phone: user.phone,
-                residency_country: user.residency_country,
-                residency_city: user.residency_city,
-                program: 'Proficiency Test',
-                approval_status: user.status,
-                status: user.status,
-                expiry_date: user.expiry_date,
-                is_extended: user.is_extended
-              };
-            }
-          }
-        }
-      }
-    }
-
-    if (!user) {
+    const found = await findUserByEmail(email);
+    if (!found) {
       return res.status(401).json({ success: false, error: "Invalid email or password" });
     }
 
-    // Check Status
-    if (user.status === 'inactive' || user.approval_status === 'inactive') {
+    const { user, userData } = found;
+
+    if (isUserInactive(user)) {
       return res.status(403).json({ success: false, error: "Your account is inactive. Please contact support." });
     }
 
-    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, error: "Invalid email or password" });
     }
+
+    // OTP disabled — direct login success
+    // const otpSessionId = await sendOtpForUser(email, userData);
+    // res.json({
+    //   success: true,
+    //   requiresOtp: true,
+    //   otpSessionId,
+    //   message: "A verification code has been sent to your email. Enter it to access the portal.",
+    //   email,
+    // });
 
     const token = generateToken(userData.id, userData.role, userData.email);
 
@@ -140,12 +183,66 @@ export const login = async (req, res) => {
       success: true,
       message: "Login successful",
       token,
-      user: userData
+      user: userData,
     });
   } catch (err) {
     console.error("❌ Login error:", err);
     res.status(500).json({ success: false, error: "Server error: " + err.message });
   }
+};
+
+// VERIFY OTP — disabled (uncomment to re-enable)
+export const verifyOtp = async (req, res) => {
+  return res.status(503).json({ success: false, error: "OTP verification is currently disabled." });
+  // try {
+  //   const { otpSessionId, otp } = req.body;
+  //   if (!otpSessionId || !otp) {
+  //     return res.status(400).json({ success: false, error: "Verification code is required" });
+  //   }
+  //   const result = verifyOtpSession(otpSessionId, otp);
+  //   if (!result.ok) {
+  //     return res.status(401).json({ success: false, error: result.error });
+  //   }
+  //   const userData = result.userData;
+  //   const token = generateToken(userData.id, userData.role, userData.email);
+  //   res.json({
+  //     success: true,
+  //     message: "Login successful",
+  //     token,
+  //     user: userData,
+  //   });
+  // } catch (err) {
+  //   console.error("❌ Verify OTP error:", err);
+  //   res.status(500).json({ success: false, error: "Server error: " + err.message });
+  // }
+};
+
+// RESEND OTP — disabled (uncomment to re-enable)
+export const resendOtp = async (req, res) => {
+  return res.status(503).json({ success: false, error: "OTP verification is currently disabled." });
+  // try {
+  //   const { otpSessionId } = req.body;
+  //   if (!otpSessionId) {
+  //     return res.status(400).json({ success: false, error: "Session is required" });
+  //   }
+  //   const refreshed = refreshOtpCode(otpSessionId);
+  //   if (!refreshed) {
+  //     return res.status(400).json({ success: false, error: "Session expired. Please sign in again." });
+  //   }
+  //   if (refreshed.tooSoon) {
+  //     return res.status(429).json({ success: false, error: "Please wait a moment before requesting a new code." });
+  //   }
+  //   await sendLoginOtp({
+  //     to: refreshed.email,
+  //     name: refreshed.name,
+  //     otp: refreshed.otp,
+  //     expiresInMinutes: 10,
+  //   });
+  //   res.json({ success: true, message: "A new verification code has been sent to your email." });
+  // } catch (err) {
+  //   console.error("❌ Resend OTP error:", err);
+  //   res.status(500).json({ success: false, error: "Server error: " + err.message });
+  // }
 };
 
 // VERIFY TOKEN - Middleware helper
@@ -177,22 +274,21 @@ export const getCurrentUser = async (req, res) => {
 
     switch (role) {
       case 'admin':
-        user = await prisma.admins.findUnique({ where: { id: parseInt(userId) } });
-        if (user) {
+      case 'super':
+      case 'technical': {
+        const admin = await prisma.admins.findUnique({ where: { id: parseInt(userId) } });
+        if (admin) {
           user = {
-            id: user.id,
-            full_name: user.full_name,
-            username: user.username,
-            email: user.email,
-            phone: user.phone,
-            bio: user.bio,
-            profile_picture: user.profile_picture,
-            role: user.role || 'admin',
-            status: user.status,
-            created_at: user.created_at
+            ...buildAdminAuthUser(admin),
+            username: admin.username,
+            phone: admin.phone,
+            bio: admin.bio,
+            profile_picture: admin.profile_picture,
+            created_at: admin.created_at,
           };
         }
         break;
+      }
 
       case 'student':
         user = await prisma.students.findUnique({ where: { student_id: userId } });
@@ -217,6 +313,8 @@ export const getCurrentUser = async (req, res) => {
             class_id: user.class_id,
             profile_picture: user.profile_picture,
             paid_until: user.paid_until,
+            funding_status: user.funding_status,
+            scholarship_percentage: user.scholarship_percentage,
             expiry_date: user.expiry_date,
             created_at: user.created_at,
             program_test_required: programDetails?.test_required || 'none',
@@ -297,7 +395,8 @@ export const getCurrentUser = async (req, res) => {
 // ADMIN AUTHORIZATION MIDDLEWARE
 export const isAdmin = async (req, res, next) => {
   try {
-    if (!req.user || req.user.role !== 'admin') {
+    const adminRoles = ['admin', 'super', 'technical'];
+    if (!req.user || !adminRoles.includes(req.user.role)) {
       return res.status(403).json({ success: false, error: "Access denied. Admin privileges required." });
     }
     next();

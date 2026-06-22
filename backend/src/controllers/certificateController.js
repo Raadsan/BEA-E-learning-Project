@@ -4,6 +4,12 @@ import {
     GLOBAL_CERTIFICATE_TARGET_TYPE,
     normalizeFieldsConfig,
 } from '../utils/certificateFields.js';
+import {
+    buildCreateAudit,
+    buildUpdateAudit,
+    enrichWithAudit,
+    backfillMissingCreatedBy,
+} from '../utils/auditTrail.js';
 
 const globalTemplateWhere = {
     target_id: GLOBAL_CERTIFICATE_TARGET_ID,
@@ -12,27 +18,30 @@ const globalTemplateWhere = {
 
 function mapCertificate(cert, admins) {
     if (!cert) return null;
-    const admin = admins.find((a) => a.id === cert.uploader_id);
-    const adminName = admin
-        ? (admin.first_name ? `${admin.first_name} ${admin.last_name || ''}`.trim() : admin.username)
-        : 'Administrator';
+    const admin = admins.find((a) => a.id === cert.uploader_id || a.id === cert.created_by);
+    const adminName = cert.created_by_name || (admin
+        ? (admin.full_name || admin.username || admin.email)
+        : 'Not recorded');
 
     return {
         ...cert,
         fields_config: normalizeFieldsConfig(cert.fields_config, cert),
         uploaded_by: adminName,
+        created_by_name: adminName,
         is_global: cert.target_id === GLOBAL_CERTIFICATE_TARGET_ID && cert.target_type === GLOBAL_CERTIFICATE_TARGET_TYPE,
     };
 }
 
 export const getCertificates = async (req, res) => {
     try {
+        await backfillMissingCreatedBy(prisma.certificates);
         const certs = await prisma.certificates.findMany({ orderBy: { created_at: 'desc' } });
         const admins = await prisma.admins.findMany({
-            select: { id: true, first_name: true, last_name: true, username: true },
+            select: { id: true, first_name: true, last_name: true, username: true, full_name: true, email: true },
         });
 
-        res.json(certs.map((cert) => mapCertificate(cert, admins)));
+        const enriched = await enrichWithAudit(certs);
+        res.json(enriched.map((cert) => mapCertificate(cert, admins)));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -44,10 +53,10 @@ export const getGlobalCertificate = async (req, res) => {
         if (!cert) return res.json(null);
 
         const admins = await prisma.admins.findMany({
-            select: { id: true, first_name: true, last_name: true, username: true },
+            select: { id: true, first_name: true, last_name: true, username: true, full_name: true, email: true },
         });
 
-        res.json(mapCertificate(cert, admins));
+        res.json(mapCertificate(await enrichWithAudit(cert), admins));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -62,10 +71,10 @@ export const getCertificateByTarget = async (req, res) => {
         if (!cert) return res.json(null);
 
         const admins = await prisma.admins.findMany({
-            select: { id: true, first_name: true, last_name: true, username: true },
+            select: { id: true, first_name: true, last_name: true, username: true, full_name: true, email: true },
         });
 
-        res.json(mapCertificate(cert, admins));
+        res.json(mapCertificate(await enrichWithAudit(cert), admins));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -99,6 +108,16 @@ export const upsertCertificate = async (req, res) => {
             font_color,
         });
 
+        const existing = await prisma.certificates.findFirst({
+            where: {
+                target_id: resolvedTargetId,
+                target_type: resolvedTargetType,
+            },
+        });
+
+        const createAudit = existing ? await buildUpdateAudit(req) : await buildCreateAudit(req, 'System');
+        const actorId = req.user?.userId ? parseInt(req.user.userId, 10) : null;
+
         const payload = {
             template_url,
             name_x: normalizedFields.student_name.x,
@@ -106,7 +125,8 @@ export const upsertCertificate = async (req, res) => {
             font_size: normalizedFields.student_name.font_size,
             font_color: normalizedFields.student_name.font_color,
             fields_config: normalizedFields,
-            uploader_id: req.user.userId,
+            uploader_id: actorId,
+            ...createAudit,
         };
 
         await prisma.certificates.upsert({

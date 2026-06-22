@@ -11,12 +11,14 @@ import { useToast } from "@/components/Toast";
 // Extracted Components
 import SubprogramForm from "@/components/admin/subprograms/SubprogramForm";
 import SubprogramConfirmationModal from "@/components/admin/subprograms/SubprogramConfirmationModal";
+import SubprogramViewModal from "@/components/admin/subprograms/SubprogramViewModal";
 
 export default function SubprogramsPage() {
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubprogram, setEditingSubprogram] = useState(null);
+  const [viewingSubprogram, setViewingSubprogram] = useState(null);
 
   // Selection and Filter States
   const [selectedProgramId, setSelectedProgramId] = useState("");
@@ -82,6 +84,10 @@ export default function SubprogramsPage() {
       status: "active",
     });
     setIsModalOpen(true);
+  };
+
+  const handleView = (subprogram) => {
+    setViewingSubprogram(subprogram);
   };
 
   const handleEdit = (subprogram) => {
@@ -243,6 +249,9 @@ export default function SubprogramsPage() {
       key: "actions", label: "Actions",
       render: (_, row) => (
         <div className="flex gap-2">
+          <button onClick={() => handleView(row)} className="text-gray-600 hover:text-gray-900 transition-colors p-1 rounded hover:bg-gray-50" title="View">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+          </button>
           <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-900 transition-colors p-1 rounded hover:bg-blue-50" title="Edit">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
           </button>
@@ -252,7 +261,7 @@ export default function SubprogramsPage() {
         </div>
       ),
     },
-  ];
+  ]; 
 
   if (isLoading) return <main className="flex-1 bg-gray-50"><div className="w-full px-8 py-6 text-center py-12 text-gray-600">Loading subprograms...</div></main>;
   if (isError) return <main className="flex-1 bg-gray-50"><div className="w-full px-8 py-6 text-center py-12 text-red-600">Error: {(error as any)?.data?.error || "Unknown error"}</div></main>;
@@ -414,6 +423,9 @@ export default function SubprogramsPage() {
       </main>
 
       <SubprogramForm isOpen={isModalOpen} onClose={handleCloseModal} editingSubprogram={editingSubprogram} formData={formData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} isDark={isDark} programs={programs} isCreating={isCreating} isUpdating={isUpdating} />
+      {viewingSubprogram && (
+        <SubprogramViewModal subprogram={viewingSubprogram} onClose={() => setViewingSubprogram(null)} isDark={isDark} />
+      )}
       <SubprogramConfirmationModal isOpen={confirmationModal.isOpen} onClose={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))} title={confirmationModal.title} message={confirmationModal.message} onConfirm={confirmationModal.onConfirm} isLoading={confirmationModal.isLoading} confirmButtonColor={confirmationModal.confirmButtonColor} isDark={isDark} />
 
       {/* Bulk Actions Modal */}

@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useLogoutMutation } from "@/lib/api/authApi";
 import { usePortalNavFeedback } from "@/hooks/usePortalNavFeedback";
+import { useAdminPermissions } from "@/hooks/useAdminPermissions";
 
 export default function BAdminSidebar({ isOpen, onClose }) {
   const pathname = usePathname();
@@ -15,6 +16,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
   const { isDark } = useDarkMode();
   const [logout] = useLogoutMutation();
   const { activePath, handleNavClick } = usePortalNavFeedback(pathname, onClose);
+  const { can, isSuperAdmin } = useAdminPermissions();
+  const allow = (permission) => isSuperAdmin || can(permission);
 
   const handleLogout = async () => {
     try {
@@ -230,6 +233,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
       <nav className="flex-1 overflow-y-auto py-2 px-2" onClick={handleNavClick}>
         <ul className="space-y-0.5">
           {/* Dashboard */}
+          {allow("dashboard") && (
           <li>
             <Link href="/portal/admin" className={getMenuItemClasses("/portal/admin", true)} style={getActiveStyle("/portal/admin", true)}>
               <svg className={getIconClasses("/portal/admin", true)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -238,8 +242,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               <span className={getTextClasses("/portal/admin", true)}>Dashboard</span>
             </Link>
           </li>
+          )}
 
           {/* Users */}
+          {allow("users") && (
           <li>
             <Link href="/portal/admin/users" className={getMenuItemClasses("/portal/admin/users")} style={getActiveStyle("/portal/admin/users")}>
               <svg className={getIconClasses("/portal/admin/users")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,8 +254,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               <span className={getTextClasses("/portal/admin/users")}>Users</span>
             </Link>
           </li>
+          )}
 
           {/* Admins */}
+          {isSuperAdmin && (
           <li>
             <Link href="/portal/admin/admins" className={getMenuItemClasses("/portal/admin/admins")} style={getActiveStyle("/portal/admin/admins")}>
               <svg className={getIconClasses("/portal/admin/admins")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,8 +266,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               <span className={getTextClasses("/portal/admin/admins")}>Admins</span>
             </Link>
           </li>
+          )}
 
           {/* Teacher Management */}
+          {allow("teachers") && (
           <li>
             <Link href="/portal/admin/teachers" className={getSubMenuItemClasses("/portal/admin/teachers")} style={getSubActiveStyle("/portal/admin/teachers")}>
               <svg className={`w-4 h-4 ${isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,8 +278,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               <span className={isActive("/portal/admin/teachers") && !pathname?.includes('/assign') ? 'text-white' : 'text-gray-100'}>Teachers</span>
             </Link>
           </li>
+          )}
 
           {/* Student Management */}
+          {allow("student_management") && (
           <li>
             <button
               onClick={() => toggleSection('studentManagement')}
@@ -330,8 +342,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
+          )}
 
           {/* Academic Management */}
+          {allow("academic_management") && (
           <li>
             <button
               onClick={() => toggleSection('academicManagement')}
@@ -416,8 +430,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
+          )}
 
           {/* Class Management */}
+          {allow("class_management") && (
           <li>
             <button
               onClick={() => toggleSection('learningResources')}
@@ -470,8 +486,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
+          )}
 
           {/* Assessments & Assignments */}
+          {allow("assessments") && (
           <li>
             <button
               onClick={() => toggleSection('assessments')}
@@ -564,8 +582,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
+          )}
 
           {/* Student Requests Dropdown */}
+          {allow("student_requests") && (
           <li>
             <button
               onClick={() => toggleSection('studentRequests')}
@@ -611,8 +631,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
+          )}
 
           {/* Reviews Management */}
+          {allow("reviews") && (
           <li>
             <button
               onClick={() => toggleSection('reviews')}
@@ -693,8 +715,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
+          )}
 
           {/* Communication */}
+          {allow("communication") && (
           <li>
             <button
               onClick={() => toggleSection('communication')}
@@ -747,8 +771,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
+          )}
 
           {/* Contact management Section */}
+          {allow("inquiries") && (
           <li>
             <button
               onClick={() => toggleSection('inquiries')}
@@ -786,8 +812,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
+          )}
 
           {/* Payments */}
+          {allow("payments") && (
           <li>
             <button
               onClick={() => toggleSection('payments')}
@@ -825,8 +853,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
+          )}
 
           {/* Reports & Analytics */}
+          {allow("reports") && (
           <li>
             <button
               onClick={() => toggleSection('reports')}
@@ -879,7 +909,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
               </ul>
             )}
           </li>
-
+          )}
 
 
         </ul>

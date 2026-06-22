@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import PortalNavProgress from "@/components/PortalNavProgress";
 import { usePortalNavFeedback } from "@/hooks/usePortalNavFeedback";
+import AdminAccessGuard from "@/components/admin/AdminAccessGuard";
 import AdminRoutePrefetch from "@/components/admin/AdminRoutePrefetch";
 
 function AdminLayoutContent({ children }) {
@@ -39,7 +40,9 @@ function AdminLayoutContent({ children }) {
         <AdminHeader onMenuClick={() => setIsSidebarOpen(true)} onNavigate={startNavigation} />
         <PortalNavProgress show={isNavigating} />
         <main className="flex-1 overflow-y-auto pt-20">
-          {children}
+          <AdminAccessGuard>
+            {children}
+          </AdminAccessGuard>
         </main>
       </div>
     </div>

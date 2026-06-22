@@ -48,7 +48,7 @@ export const paymentApi = createApi({
                 method: "POST",
                 body,
             }),
-            invalidatesTags: ["Payments"],
+            invalidatesTags: ["Payments", "Auth"],
         }),
         createBankPayment: builder.mutation({
             query: (body) => ({
@@ -56,7 +56,7 @@ export const paymentApi = createApi({
                 method: "POST",
                 body,
             }),
-            invalidatesTags: ["Payments"],
+            invalidatesTags: ["Payments", "Auth"],
         }),
         createWaafiPayment: builder.mutation({
             query: (body) => ({
@@ -64,7 +64,7 @@ export const paymentApi = createApi({
                 method: "POST",
                 body,
             }),
-            invalidatesTags: ["Payments"],
+            invalidatesTags: ["Payments", "Auth"],
         }),
     }),
 });

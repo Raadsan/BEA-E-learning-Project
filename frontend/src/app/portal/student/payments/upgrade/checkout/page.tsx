@@ -49,32 +49,31 @@ export default function CheckoutPage() {
         }
     };
 
+    if (!selectedPackage) return null;
+
+    const amountDue = Number(selectedPackage.studentPrice || 0);
+    const isFree = amountDue <= 0;
+
     const handlePayment = async () => {
         if (!selectedPackage || isProcessing) return;
-        if (!phone) {
+        const amountDue = Number(selectedPackage.studentPrice || 0);
+        if (!isFree && !phone) {
             showToast("Please enter your mobile number", "error");
             return;
         }
 
         setIsProcessing(true);
         try {
-            const payload = {
-                student: { id: user.id || user.student_id, email: user.email },
-                programId: selectedPackage.id,
-                amount: selectedPackage.studentPrice,
-                accountNumber: phone
-            };
-
             const res = await createWaafi({
-                payerPhone: phone,
-                amount: selectedPackage.studentPrice,
+                payerPhone: phone || "000000000",
+                amount: amountDue,
                 programId: selectedPackage.id,
                 studentEmail: user.email,
                 description: `${selectedPackage.package_name} for ${user.full_name}`
             }).unwrap();
 
             if (res.success) {
-                showToast("Payment submitted! Awaiting verification.", "success");
+                showToast(res.message || "Payment submitted! Access updated.", "success");
                 localStorage.removeItem("selectedUpgradePackage");
                 router.push("/portal/student/payments");
             }
@@ -90,8 +89,6 @@ export default function CheckoutPage() {
         }
     };
 
-    if (!selectedPackage) return null;
-
     return (
         <div className={`min-h-screen transition-colors pt-4 pb-20 w-full px-6 sm:px-10 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
             <div className="max-w-2xl mx-auto">
@@ -106,6 +103,27 @@ export default function CheckoutPage() {
                 </Link>
 
                 <div className="space-y-10">
+                    <section>
+                        <h2 className="text-lg font-semibold mb-4">Order summary</h2>
+                        <div className={`p-5 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
+                            <p className="font-semibold">{selectedPackage.package_name}</p>
+                            <p className="text-sm opacity-60 mt-1">{selectedPackage.duration_months} month(s) access</p>
+                            <p className={`text-3xl font-bold mt-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                ${amountDue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </p>
+                            {selectedPackage.originalPrice > amountDue && (
+                                <p className="text-sm text-green-600 mt-2 font-medium">
+                                    Your scholarship/discount was applied (regular price ${selectedPackage.originalPrice.toFixed(2)})
+                                </p>
+                            )}
+                            {isFree && (
+                                <p className="text-sm text-green-600 mt-2 font-medium">
+                                    No payment required — your scholarship covers this package.
+                                </p>
+                            )}
+                        </div>
+                    </section>
+
                     {/* Contact Information */}
                     <section>
                         <h2 className="text-lg font-semibold mb-4">Contact information</h2>
@@ -118,6 +136,7 @@ export default function CheckoutPage() {
                     </section>
 
                     {/* Payment Method - Stripe/Cursor Style */}
+                    {!isFree && (
                     <section>
                         <h2 className="text-lg font-semibold">Payment method</h2>
 
@@ -150,6 +169,7 @@ export default function CheckoutPage() {
                             </div>
                         </div>
                     </section>
+                    )}
 
                     {/* Subscribe Button & Disclaimer */}
                     <section className="pt-6">
@@ -159,7 +179,7 @@ export default function CheckoutPage() {
                             className={`w-full py-4 rounded-xl text-sm font-normal uppercase tracking-widest transition-all ${isProcessing ? 'opacity-50 grayscale' : ''
                                 } bg-[#010080] hover:bg-blue-900 text-white`}
                         >
-                            {isProcessing ? 'Processing...' : 'Pay Now'}
+                            {isProcessing ? 'Processing...' : isFree ? 'Activate Access' : 'Pay Now'}
                         </button>
 
                         <p className="text-[11px] text-center opacity-40 mt-6 leading-relaxed">

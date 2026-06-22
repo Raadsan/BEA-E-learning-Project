@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE_URL } from "@/constants";
+import AuditTrailSection from "@/components/admin/AuditTrailSection";
 
 const ReadField = ({ label, value, isDark, colorClass = "", span = false }: {
     label: string;
@@ -50,7 +51,7 @@ export default function StudentViewModal({
                 {/* Header */}
                 <div className={`sticky top-0 border-b px-6 py-4 flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                        Student Profile: {viewingStudent.full_name}
+                        Student Profile: {viewingStudent.full_name || `${viewingStudent.first_name || ''} ${viewingStudent.last_name || ''}`.trim() || 'Student'}
                     </h2>
                     <button
                         onClick={onClose}
@@ -239,6 +240,12 @@ export default function StudentViewModal({
                             </p>
                         )}
                     </div>
+
+                    <AuditTrailSection
+                        record={viewingStudent}
+                        isDark={isDark}
+                        createdAtKey={viewingStudent.registration_date ? "registration_date" : "created_at"}
+                    />
 
                 </div>
             </div>

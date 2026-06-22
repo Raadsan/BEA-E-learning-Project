@@ -6,6 +6,12 @@ import {
     isWaafiPaymentSuccess,
     getWaafiErrorMessage
 } from '../utils/waafiPayment.js';
+import {
+    buildCreateAudit,
+    buildUpdateAudit,
+    enrichWithAudit,
+    backfillMissingCreatedBy,
+} from '../utils/auditTrail.js';
 
 export const registerCandidate = async (req, res) => {
     try {
@@ -52,13 +58,16 @@ export const registerCandidate = async (req, res) => {
             paymentStatus = 'paid';
         }
 
+        const createAudit = await buildCreateAudit(req, 'Self registration');
+
         const candidate = await prisma.ProficiencyTestStudents.create({
             data: {
                 ...rest,
                 email: emailStr,
                 password: hashedPassword,
                 payment_status: paymentStatus,
-                expiry_date: new Date(Date.now() + 1440 * 60000)
+                expiry_date: new Date(Date.now() + 1440 * 60000),
+                ...createAudit,
             }
         });
 
@@ -73,6 +82,11 @@ export const updateCandidate = async (req, res) => {
     try {
         const data = { ...req.body };
         if (data.password) data.password = await bcrypt.hash(data.password, 10);
+        delete data.created_by;
+        delete data.created_by_name;
+        delete data.updated_by;
+        delete data.updated_by_name;
+        Object.assign(data, await buildUpdateAudit(req));
         const updated = await prisma.ProficiencyTestStudents.update({
             where: { student_id: req.params.id },
             data
@@ -83,8 +97,9 @@ export const updateCandidate = async (req, res) => {
 
 export const getCandidates = async (req, res) => {
     try {
+        await backfillMissingCreatedBy(prisma.ProficiencyTestStudents);
         const candidates = await prisma.ProficiencyTestStudents.findMany({ orderBy: { registration_date: 'desc' } });
-        res.json(candidates);
+        res.json(await enrichWithAudit(candidates, { createdAtField: 'registration_date', updatedAtField: 'registration_date' }));
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
 

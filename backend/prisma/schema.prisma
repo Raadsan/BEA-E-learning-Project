@@ -50,6 +50,10 @@ model IELTSTOEFL {
   is_extended             Boolean?        @default(false)
   expiry_date             DateTime?       @db.DateTime(0)
   admin_expiry_notified   Boolean?        @default(false)
+  created_by              Int?
+  updated_by              Int?
+  created_by_name         String?         @db.VarChar(200)
+  updated_by_name         String?         @db.VarChar(200)
 }
 
 model ProficiencyTestStudents {
@@ -75,6 +79,10 @@ model ProficiencyTestStudents {
   place_of_birth        String?                                   @db.VarChar(255)
   residency_country     String?                                   @db.VarChar(255)
   residency_city        String?                                   @db.VarChar(255)
+  created_by              Int?
+  updated_by              Int?
+  created_by_name         String?                                   @db.VarChar(200)
+  updated_by_name         String?                                   @db.VarChar(200)
 }
 
 model migrations {
@@ -121,6 +129,11 @@ model admins {
   bio                    String?   @db.Text
   profile_image          String?   @db.VarChar(500)
   profile_picture        String?   @db.VarChar(255)
+  permissions            String?   @db.Text
+  created_by             Int?
+  updated_by             Int?
+  created_by_name        String?   @db.VarChar(200)
+  updated_by_name        String?   @db.VarChar(200)
 
   @@index([email], map: "idx_email")
 }
@@ -150,6 +163,7 @@ model assignment_submissions {
   created_at      DateTime?                      @default(now()) @db.Timestamp(0)
   updated_at      DateTime?                      @default(now()) @db.Timestamp(0)
   content         String?                        @db.LongText
+  is_auto_submit  Boolean?                       @default(false)
   assignments     assignments                    @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "assignment_submissions_ibfk_1")
   students        students?                      @relation(fields: [student_id], references: [student_id], onDelete: NoAction, onUpdate: NoAction, map: "assignment_submissions_ibfk_2")
 
@@ -216,6 +230,10 @@ model certificates {
   created_at          DateTime?                @default(now()) @db.Timestamp(0)
   updated_at          DateTime?                @default(now()) @db.Timestamp(0)
   uploader_id         Int?
+  created_by          Int?
+  updated_by          Int?
+  created_by_name     String?                  @db.VarChar(200)
+  updated_by_name     String?                  @db.VarChar(200)
   issued_certificates issued_certificates[]
 
   @@unique([target_id, target_type], map: "unique_target")
@@ -248,6 +266,10 @@ model classes {
   updated_at                                                                  DateTime                  @default(now()) @db.Timestamp(0)
   subprogram_id                                                               Int?
   shift_id                                                                    Int?
+  created_by                                                                  Int?
+  updated_by                                                                  Int?
+  created_by_name                                                             String?                   @db.VarChar(200)
+  updated_by_name                                                             String?                   @db.VarChar(200)
   assignments                                                                 assignments[]
   attendance                                                                  attendance[]
   class_schedules                                                             class_schedules[]
@@ -451,6 +473,10 @@ model learning_materials {
   status        learning_materials_status? @default(Active)
   created_at    DateTime?                  @default(now()) @db.Timestamp(0)
   updated_at    DateTime?                  @default(now()) @db.Timestamp(0)
+  created_by    Int?
+  updated_by    Int?
+  created_by_name String?                  @db.VarChar(200)
+  updated_by_name String?                  @db.VarChar(200)
   programs      programs?                  @relation(fields: [program_id], references: [id], onUpdate: NoAction, map: "fk_material_program")
   subprograms   subprograms?               @relation(fields: [subprogram_id], references: [id], onUpdate: NoAction, map: "fk_material_subprogram")
 
@@ -669,6 +695,11 @@ model programs {
   curriculum_file          String?                    @db.VarChar(255)
   test_required            programs_test_required?    @default(none)
   show_on_website          Boolean                    @default(true)
+  updated_at               DateTime?                  @default(now()) @updatedAt @db.Timestamp(0)
+  created_by               Int?
+  updated_by               Int?
+  created_by_name          String?                    @db.VarChar(200)
+  updated_by_name          String?                    @db.VarChar(200)
   academic_calendar        academic_calendar[]
   learning_materials       learning_materials[]
   program_payment_packages program_payment_packages[]
@@ -793,6 +824,10 @@ model students {
   reset_password_token   String?                       @db.VarChar(255)
   reset_password_expires DateTime?                     @db.DateTime(0)
   class_id               Int?
+  created_by             Int?
+  updated_by             Int?
+  created_by_name        String?                       @db.VarChar(200)
+  updated_by_name        String?                       @db.VarChar(200)
   profile_picture        String?                       @db.VarChar(255)
   assignment_submissions assignment_submissions[]
   attendance             attendance[]
@@ -811,7 +846,11 @@ model subprograms {
   description        String?              @db.Text
   status             subprograms_status?  @default(active)
   created_at         DateTime             @default(now()) @db.Timestamp(0)
-  updated_at         DateTime             @default(now()) @db.Timestamp(0)
+  updated_at         DateTime             @default(now()) @updatedAt @db.Timestamp(0)
+  created_by         Int?
+  updated_by         Int?
+  created_by_name    String?              @db.VarChar(200)
+  updated_by_name    String?              @db.VarChar(200)
   academic_calendar  academic_calendar[]
   classes            classes[]
   courses            courses[]

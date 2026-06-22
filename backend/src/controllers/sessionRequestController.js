@@ -1,6 +1,94 @@
 import prisma from '../lib/prisma.js';
 import { createNotificationInternal } from './notificationController.js';
 
+function parseSessionTypeLabel(label) {
+    if (!label) return { shift: '', session: '' };
+    const parts = String(label).split(' - ').map((s) => s.trim());
+    if (parts.length >= 2) {
+        return { shift: parts[0], session: parts.slice(1).join(' - ') };
+    }
+    return { shift: '', session: String(label).trim() };
+}
+
+function resolveShiftFields(shiftRecord, requestedSessionType) {
+    let shift_name = shiftRecord?.shift_name || '';
+    let session_type = shiftRecord?.session_type || '';
+
+    if ((!shift_name || !session_type) && requestedSessionType) {
+        const parsed = parseSessionTypeLabel(requestedSessionType);
+        shift_name = shift_name || parsed.shift;
+        session_type = session_type || parsed.session;
+    }
+
+    return { shift_name, session_type };
+}
+
+async function populateSessionRequest(request) {
+    let student_name = '-';
+    let program_name = '-';
+    let subprogram_name = '-';
+    let current_class_name = 'N/A';
+    let current_shift_name = '';
+    let current_session_type = '';
+    let requested_class_name = 'N/A';
+    let requested_shift_name = '';
+    let requested_class_type = '';
+
+    if (request.student_id) {
+        const student = await prisma.students.findUnique({
+            where: { student_id: request.student_id }
+        });
+        if (student) {
+            student_name = student.full_name || '-';
+            program_name = student.chosen_program || '-';
+            subprogram_name = student.chosen_subprogram || '-';
+        }
+    }
+
+    if (request.current_class_id) {
+        const cls = await prisma.classes.findUnique({
+            where: { id: request.current_class_id },
+            include: { shifts: true }
+        });
+        if (cls) {
+            current_class_name = cls.class_name || 'N/A';
+            const currentShift = resolveShiftFields(cls.shifts, null);
+            current_shift_name = currentShift.shift_name;
+            current_session_type = currentShift.session_type;
+        }
+    }
+
+    if (request.requested_class_id) {
+        const reqCls = await prisma.classes.findUnique({
+            where: { id: request.requested_class_id },
+            include: { shifts: true }
+        });
+        if (reqCls) {
+            requested_class_name = reqCls.class_name || 'N/A';
+            const requestedShift = resolveShiftFields(reqCls.shifts, request.requested_session_type);
+            requested_shift_name = requestedShift.shift_name;
+            requested_class_type = requestedShift.session_type;
+        }
+    } else if (request.requested_session_type) {
+        const parsed = parseSessionTypeLabel(request.requested_session_type);
+        requested_shift_name = parsed.shift;
+        requested_class_type = parsed.session;
+    }
+
+    return {
+        ...request,
+        student_name,
+        program_name,
+        subprogram_name,
+        current_class_name,
+        current_shift_name,
+        current_session_type,
+        requested_class_name,
+        requested_shift_name,
+        requested_class_type
+    };
+}
+
 export const createRequest = async (req, res) => {
     try {
         const { current_class_id, requested_class_id, requested_session_type, reason } = req.body;
@@ -31,71 +119,7 @@ export const createRequest = async (req, res) => {
 export const getAllRequests = async (req, res) => {
     try {
         const requests = await prisma.session_change_requests.findMany({ orderBy: { created_at: 'desc' } });
-
-        const populated = await Promise.all(requests.map(async (request) => {
-            let student_name = '-';
-            let program_name = '-';
-            let subprogram_name = '-';
-            let current_class_name = 'N/A';
-            let current_shift_name = '';
-            let current_session_type = '';
-            let requested_class_name = 'N/A';
-            let requested_shift_name = '';
-            let requested_class_type = '';
-
-            if (request.student_id) {
-                const student = await prisma.students.findUnique({
-                    where: { student_id: request.student_id }
-                });
-                if (student) {
-                    student_name = student.full_name || '-';
-                    program_name = student.chosen_program || '-';
-                    subprogram_name = student.chosen_subprogram || '-';
-                }
-            }
-
-            if (request.current_class_id) {
-                const cls = await prisma.classes.findUnique({
-                    where: { id: request.current_class_id },
-                    include: { shifts: true }
-                });
-                if (cls) {
-                    current_class_name = cls.class_name || 'N/A';
-                    if (cls.shifts) {
-                        current_shift_name = cls.shifts.shift_name || '';
-                        current_session_type = cls.shifts.session_type || '';
-                    }
-                }
-            }
-
-            if (request.requested_class_id) {
-                const reqCls = await prisma.classes.findUnique({
-                    where: { id: request.requested_class_id },
-                    include: { shifts: true }
-                });
-                if (reqCls) {
-                    requested_class_name = reqCls.class_name || 'N/A';
-                    if (reqCls.shifts) {
-                        requested_shift_name = reqCls.shifts.shift_name || '';
-                        requested_class_type = reqCls.shifts.session_type || '';
-                    }
-                }
-            }
-
-            return {
-                ...request,
-                student_name,
-                program_name,
-                subprogram_name,
-                current_class_name,
-                current_shift_name,
-                current_session_type,
-                requested_class_name,
-                requested_shift_name,
-                requested_class_type
-            };
-        }));
-
+        const populated = await Promise.all(requests.map(populateSessionRequest));
         res.json(populated);
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
@@ -105,71 +129,7 @@ export const getMyRequests = async (req, res) => {
         const requests = await prisma.session_change_requests.findMany({
             where: { student_id: req.user.userId }, orderBy: { created_at: 'desc' }
         });
-
-        const populated = await Promise.all(requests.map(async (request) => {
-            let student_name = '-';
-            let program_name = '-';
-            let subprogram_name = '-';
-            let current_class_name = 'N/A';
-            let current_shift_name = '';
-            let current_session_type = '';
-            let requested_class_name = 'N/A';
-            let requested_shift_name = '';
-            let requested_class_type = '';
-
-            if (request.student_id) {
-                const student = await prisma.students.findUnique({
-                    where: { student_id: request.student_id }
-                });
-                if (student) {
-                    student_name = student.full_name || '-';
-                    program_name = student.chosen_program || '-';
-                    subprogram_name = student.chosen_subprogram || '-';
-                }
-            }
-
-            if (request.current_class_id) {
-                const cls = await prisma.classes.findUnique({
-                    where: { id: request.current_class_id },
-                    include: { shifts: true }
-                });
-                if (cls) {
-                    current_class_name = cls.class_name || 'N/A';
-                    if (cls.shifts) {
-                        current_shift_name = cls.shifts.shift_name || '';
-                        current_session_type = cls.shifts.session_type || '';
-                    }
-                }
-            }
-
-            if (request.requested_class_id) {
-                const reqCls = await prisma.classes.findUnique({
-                    where: { id: request.requested_class_id },
-                    include: { shifts: true }
-                });
-                if (reqCls) {
-                    requested_class_name = reqCls.class_name || 'N/A';
-                    if (reqCls.shifts) {
-                        requested_shift_name = reqCls.shifts.shift_name || '';
-                        requested_class_type = reqCls.shifts.session_type || '';
-                    }
-                }
-            }
-
-            return {
-                ...request,
-                student_name,
-                program_name,
-                subprogram_name,
-                current_class_name,
-                current_shift_name,
-                current_session_type,
-                requested_class_name,
-                requested_shift_name,
-                requested_class_type
-            };
-        }));
-
+        const populated = await Promise.all(requests.map(populateSessionRequest));
         res.json(populated);
     } catch (err) { res.status(500).json({ error: err.message }); }
 };

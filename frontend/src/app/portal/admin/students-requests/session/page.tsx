@@ -12,6 +12,31 @@ import { useGetShiftsQuery } from "@/lib/api/shiftApi";
 import AdminConfirmationModal from "@/components/admin/admins/AdminConfirmationModal";
 import { resolveStudentSubprogramId } from "@/utils/resolveStudentSubprogram";
 
+function getClassSession(cls: { shift_session?: string; shifts?: { session_type?: string } }) {
+    return cls.shift_session || cls.shifts?.session_type || "";
+}
+
+function parseRequestedSession(req: {
+    requested_shift_name?: string;
+    requested_class_type?: string;
+    requested_session_type?: string;
+}) {
+    let shift = req.requested_shift_name || "";
+    let session = req.requested_class_type || "";
+
+    if ((!shift || !session) && req.requested_session_type) {
+        const parts = String(req.requested_session_type).split(" - ").map((s) => s.trim());
+        if (parts.length >= 2) {
+            shift = shift || parts[0];
+            session = session || parts.slice(1).join(" - ");
+        } else if (!session) {
+            session = String(req.requested_session_type).trim();
+        }
+    }
+
+    return { shift, session };
+}
+
 function getMatchingClassesForRequest(
     req: {
         current_class_id?: number | null;
@@ -55,8 +80,8 @@ function getMatchingClassesForRequest(
         allSubprograms
     );
 
-    const reqShift = req.requested_shift_name;
-    const reqSess = req.requested_class_type || req.requested_session_type;
+    const reqShift = parseRequestedSession(req).shift;
+    const reqSess = parseRequestedSession(req).session;
 
     return allClasses.filter((c) => {
         if (subprogramId) {
@@ -68,7 +93,7 @@ function getMatchingClassesForRequest(
             return false;
         }
         if (reqShift && c.shift_name?.toLowerCase() !== reqShift.toLowerCase()) return false;
-        if (reqSess && c.shift_session?.toLowerCase() !== reqSess.toLowerCase()) return false;
+        if (reqSess && getClassSession(c).toLowerCase() !== reqSess.toLowerCase()) return false;
         return true;
     });
 }
@@ -147,7 +172,7 @@ export default function AdminSessionRequestsPage() {
                         matching[0];
                     setSelectedLevelId(String(target.subprogram_id || subprogramId || ""));
                     setSelectedShiftName(target.shift_name || "");
-                    setSelectedSessionType(target.shift_session || "");
+                    setSelectedSessionType(getClassSession(target) || "");
                     setSelectedClassId(
                         selectedRequest.requested_class_id
                             ? String(selectedRequest.requested_class_id)
@@ -157,12 +182,9 @@ export default function AdminSessionRequestsPage() {
                     );
                 } else if (subprogramId) {
                     setSelectedLevelId(String(subprogramId));
-                    setSelectedShiftName(selectedRequest.requested_shift_name || "");
-                    setSelectedSessionType(
-                        selectedRequest.requested_class_type ||
-                            selectedRequest.requested_session_type ||
-                            ""
-                    );
+                    const parsed = parseRequestedSession(selectedRequest);
+                    setSelectedShiftName(parsed.shift);
+                    setSelectedSessionType(parsed.session);
                     setSelectedClassId("");
                 } else {
                     setSelectedLevelId("");
@@ -209,12 +231,15 @@ export default function AdminSessionRequestsPage() {
                     // 2. If approved, update Student's class in DB
                     if (status === "approved") {
                         const selectedClass = classes.find(c => c.id === parseInt(selectedClassId));
-                        const subprogramId = selectedClass?.subprogram_id || null;
+                        const subprogramName =
+                            selectedClass?.subprogram_name ||
+                            subprograms.find((sp) => sp.id === selectedClass?.subprogram_id)?.subprogram_name ||
+                            null;
 
                         await updateStudent({
                             id: selectedRequest.student_id,
                             class_id: parseInt(selectedClassId),
-                            chosen_subprogram: subprogramId
+                            chosen_subprogram: subprogramName,
                         }).unwrap();
                     }
 
@@ -305,8 +330,8 @@ export default function AdminSessionRequestsPage() {
     const shiftsForLevel = selectedLevelId ? classes.filter(cls => cls.subprogram_id == selectedLevelId) : [];
     const uniqueShiftNames = [...new Set(shiftsForLevel.map(cls => cls.shift_name))].filter(Boolean) as string[];
     const sessionsForShift = selectedShiftName ? shiftsForLevel.filter(cls => cls.shift_name === selectedShiftName) : [];
-    const availableSessions = [...new Set(sessionsForShift.map(cls => cls.shift_session))].filter(Boolean) as string[];
-    const filteredClasses = selectedSessionType ? sessionsForShift.filter(cls => cls.shift_session === selectedSessionType) : [];
+    const availableSessions = [...new Set(sessionsForShift.map(cls => getClassSession(cls)))].filter(Boolean) as string[];
+    const filteredClasses = selectedSessionType ? sessionsForShift.filter(cls => getClassSession(cls) === selectedSessionType) : [];
 
     const matchingClassesForRequest = selectedRequest
         ? getMatchingClassesForRequest(selectedRequest, studentDetail, classes, subprograms)
@@ -584,7 +609,9 @@ export default function AdminSessionRequestsPage() {
                                     <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">Requested Placement</p>
                                     <h4 className="text-sm font-extrabold mt-1 text-blue-800 dark:text-blue-300">{selectedRequest.requested_class_name || "Any Available"}</h4>
                                     <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
-                                        Requested Shift: <span className="font-bold">{selectedRequest.requested_shift_name}</span> | Level: {selectedRequest.subprogram_name || "-"}
+                                        Requested Shift: <span className="font-bold">{selectedRequest.requested_shift_name || parseRequestedSession(selectedRequest).shift || "N/A"}</span>
+                                        {" | "}Session: <span className="font-bold">{selectedRequest.requested_class_type || parseRequestedSession(selectedRequest).session || "N/A"}</span>
+                                        {" | "}Level: {selectedRequest.subprogram_name || "-"}
                                     </p>
                                 </div>
                             </div>

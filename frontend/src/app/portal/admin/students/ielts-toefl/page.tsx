@@ -111,13 +111,48 @@ export default function IELTSTOEFLStudentsPage() {
   const [selectedClassId, setSelectedClassId] = useState("");
   const [studentToDelete, setStudentToDelete] = useState(null);
 
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [studentToAssign, setStudentToAssign] = useState(null);
+  const [assignSubprogramId, setAssignSubprogramId] = useState("");
+  const [assignClassId, setAssignClassId] = useState("");
+
+  const getClassName = (classId) => {
+    if (!classId) return null;
+    return classes.find((c) => c.id == classId)?.class_name || null;
+  };
+
+  const programMatchesStudent = (programTitle, student) => {
+    if (!programTitle || !student) return false;
+    const studentProgram = student.chosen_program || student.exam_type;
+    if (!studentProgram) return false;
+    if (programTitle === studentProgram) return true;
+    const norm = (v) => String(v).toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (norm(programTitle) === norm(studentProgram)) return true;
+    const ieltsLike = (v) => {
+      const n = norm(v);
+      return n.includes("ielts") || n.includes("toefl");
+    };
+    return ieltsLike(programTitle) && ieltsLike(studentProgram);
+  };
+
   const getStudentProgram = (student) => {
     if (!student) return null;
     const programName = student.chosen_program || student.exam_type;
     if (!programName) return null;
-    return programs.find(
+
+    const exact = programs.find(
       (p) => p.title === programName || p.title?.toLowerCase() === programName?.toLowerCase()
-    ) || null;
+    );
+    if (exact) return exact;
+
+    const norm = programName.toLowerCase();
+    if (norm.includes("ielts") || norm.includes("toefl")) {
+      return programs.find((p) => {
+        const t = p.title?.toLowerCase() || "";
+        return t.includes("ielts") || t.includes("toefl");
+      }) || null;
+    }
+    return null;
   };
 
   const getSubprogramsForStudentProgram = (student) => {
@@ -127,19 +162,74 @@ export default function IELTSTOEFLStudentsPage() {
   };
 
   const getClassesForStudentProgram = (student) => {
-    const subprogramIds = getSubprogramsForStudentProgram(student).map((sp) => sp.id);
-    if (subprogramIds.length > 0) {
-      return classes.filter((cls) => subprogramIds.includes(cls.subprogram_id));
+    if (!student) return [];
+
+    const program = getStudentProgram(student);
+    if (program) {
+      const subprogramIds = subprograms
+        .filter((sp) => sp.program_id === program.id)
+        .map((sp) => sp.id);
+      if (subprogramIds.length > 0) {
+        return classes.filter((cls) => subprogramIds.includes(cls.subprogram_id));
+      }
     }
 
-    const programName = student?.chosen_program || student?.exam_type;
-    if (!programName) return [];
+    return classes.filter((cls) => programMatchesStudent(cls.program_name, student));
+  };
 
-    return classes.filter(
-      (cls) =>
-        cls.program_name === programName ||
-        cls.program_name?.toLowerCase() === programName?.toLowerCase()
-    );
+  const getBulkEligibleSubprograms = () => {
+    const selected = (ieltsStudents || []).filter((s) => selectedStudentIds.includes(s.student_id));
+    const programIds = new Set();
+    selected.forEach((student) => {
+      const program = getStudentProgram(student);
+      if (program) programIds.add(program.id);
+    });
+    return subprograms.filter((sp) => programIds.has(sp.program_id));
+  };
+
+  const getBulkEligibleClasses = () => {
+    const selected = (ieltsStudents || []).filter((s) => selectedStudentIds.includes(s.student_id));
+    const classMap = new Map();
+    selected.forEach((student) => {
+      getClassesForStudentProgram(student).forEach((cls) => {
+        if (!bulkLevelId || cls.subprogram_id === parseInt(bulkLevelId, 10)) {
+          classMap.set(cls.id, cls);
+        }
+      });
+    });
+    return [...classMap.values()];
+  };
+
+  const handleOpenAssignModal = (student) => {
+    setStudentToAssign(student);
+    setAssignClassId(student.class_id?.toString() || "");
+    const cls = classes.find((c) => c.id == student.class_id);
+    setAssignSubprogramId(cls?.subprogram_id?.toString() || "");
+    setIsAssignModalOpen(true);
+  };
+
+  const handleCloseAssignModal = () => {
+    setIsAssignModalOpen(false);
+    setStudentToAssign(null);
+    setAssignClassId("");
+    setAssignSubprogramId("");
+  };
+
+  const handleAssignClassSubmit = async () => {
+    if (!studentToAssign || !assignClassId) {
+      showToast("Please select a class", "error");
+      return;
+    }
+    try {
+      await assignClass({
+        id: studentToAssign.student_id,
+        classId: parseInt(assignClassId, 10),
+      }).unwrap();
+      showToast("Class assigned successfully!", "success");
+      handleCloseAssignModal();
+    } catch (err) {
+      showToast(err?.data?.error || "Failed to assign class", "error");
+    }
   };
 
   // View/Edit state
@@ -480,49 +570,28 @@ export default function IELTSTOEFLStudentsPage() {
     //   render: (val) => val || <span className="text-gray-400">-</span>,
     // },
     {
-      key: "verification_method",
-      label: "Verification",
-      width: "150px",
-      render: (val) => (
-        <span className="text-sm text-black dark:text-white truncate block font-medium" title={val}>
-          {val === "Proficiency Exam" ? "Proficiency..." : (val?.length > 15 ? `${val.substring(0, 15)}...` : val)}
+      key: "chosen_program",
+      label: "Program",
+      width: "140px",
+      render: (_, row) => (
+        <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate block" title={row.chosen_program || row.exam_type}>
+          {row.chosen_program || row.exam_type || "-"}
         </span>
       ),
     },
-    /* {
-      key: "time_status",
-      label: "Life Status",
-      width: "150px",
+    {
+      key: "class_name",
+      label: "Assigned Class",
+      width: "130px",
       render: (_, row) => {
-        const isExpired = row.is_expired;
-        const isExtended = row.is_extended;
-        const status = row.status?.toLowerCase();
-        let label = "Active";
-        let colorClass = "bg-green-100 text-green-700 border-green-200";
-        if (status === 'approved') {
-          label = "Intered Exam";
-          colorClass = "bg-blue-100 text-blue-700 border-blue-200";
-        } else if (isExpired) {
-          label = "Time End";
-          colorClass = "bg-red-100 text-red-700 border-red-200";
-        } else if (isExtended) {
-          label = "Pending Time";
-          colorClass = "bg-amber-100 text-amber-700 border-amber-200";
-        }
-        return (
-          <LiveAdminTimer
-            expiryDate={row.expiry_date}
-            label={label}
-            colorClass={colorClass}
-            isExtended={isExtended}
-            onClick={() => {
-              setSelectedForExt(row);
-              setIsExtending(true);
-            }}
-          />
+        const name = row.class_name || getClassName(row.class_id);
+        return name ? (
+          <span className="text-xs font-semibold text-[#010080] dark:text-blue-300">{name}</span>
+        ) : (
+          <span className="text-xs text-gray-400 italic">Not assigned</span>
         );
-      }
-    }, */
+      },
+    },
     {
       key: "status",
       label: "Status",
@@ -561,7 +630,12 @@ export default function IELTSTOEFLStudentsPage() {
       label: "Actions",
       width: "150px",
       render: (_, row) => (
-        <div className="flex gap-3 items-center justify-center">
+        <div className="flex gap-2 items-center justify-center">
+          <button className="text-orange-600 hover:text-orange-900 transition-colors" title="Assign Class" onClick={() => handleOpenAssignModal(row)}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
           <button className="text-blue-600 hover:text-blue-900 transition-colors" title="View Details" onClick={() => handleViewClick(row)}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
@@ -678,6 +752,78 @@ export default function IELTSTOEFLStudentsPage() {
           selectedClassId={selectedClassId}
           setSelectedClassId={setSelectedClassId}
         />
+
+        {isAssignModalOpen && studentToAssign && (() => {
+          const programClasses = getClassesForStudentProgram(studentToAssign);
+          const programSubprograms = getSubprogramsForStudentProgram(studentToAssign);
+          const classesForLevel = assignSubprogramId
+            ? programClasses.filter((cls) => String(cls.subprogram_id) === String(assignSubprogramId))
+            : programClasses;
+
+          return (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleCloseAssignModal} />
+              <div className={`relative w-full max-w-lg rounded-xl shadow-2xl border-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                  <div>
+                    <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Assign to Class</h3>
+                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {studentToAssign.first_name} {studentToAssign.last_name} · {studentToAssign.chosen_program || studentToAssign.exam_type}
+                    </p>
+                  </div>
+                  <button onClick={handleCloseAssignModal} className={`p-1 rounded-lg ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className={`p-3 rounded-lg text-sm ${isDark ? 'bg-blue-900/20 text-blue-200' : 'bg-blue-50 text-blue-800'}`}>
+                    Current class: <strong>{studentToAssign.class_name || getClassName(studentToAssign.class_id) || "Not assigned"}</strong>
+                  </div>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Only classes under <strong>{studentToAssign.chosen_program || studentToAssign.exam_type}</strong> are listed.
+                  </p>
+                  {programSubprograms.length > 0 && (
+                    <div>
+                      <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Subprogram (optional)</label>
+                      <select
+                        value={assignSubprogramId}
+                        onChange={(e) => { setAssignSubprogramId(e.target.value); setAssignClassId(""); }}
+                        className={`w-full px-3 py-2.5 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                      >
+                        <option value="">All subprograms</option>
+                        {programSubprograms.map((sp) => (
+                          <option key={sp.id} value={sp.id}>{sp.subprogram_name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  <div>
+                    <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Class</label>
+                    <select
+                      value={assignClassId}
+                      onChange={(e) => setAssignClassId(e.target.value)}
+                      className={`w-full px-3 py-2.5 rounded-lg border font-semibold ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-blue-50 border-[#010080] text-[#010080]'}`}
+                    >
+                      <option value="">Select class...</option>
+                      {classesForLevel.map((cls) => (
+                        <option key={cls.id} value={cls.id}>
+                          {cls.class_name} {cls.shift_name ? `(${cls.shift_name})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {classesForLevel.length === 0 && (
+                      <p className={`text-xs mt-2 ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>No classes found for this program.</p>
+                    )}
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button onClick={handleCloseAssignModal} className={`flex-1 py-2.5 rounded-lg border font-semibold ${isDark ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-700'}`}>Cancel</button>
+                    <button onClick={handleAssignClassSubmit} disabled={!assignClassId} className="flex-1 py-2.5 rounded-lg bg-[#010080] text-white font-semibold disabled:opacity-50">Assign Class</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         <Modal isOpen={isExtending} onClose={() => { setIsExtending(false); setSelectedForExt(null); setExtraTime(""); }} title="Manage Life Status">
           {selectedForExt && (
@@ -880,21 +1026,24 @@ export default function IELTSTOEFLStudentsPage() {
 
                   {bulkActions.assignClass && (
                     <div className={`p-4 rounded-xl border-2 space-y-4 ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
+                      <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Only classes for each student&apos;s enrolled IELTS/TOEFL program are shown.
+                      </p>
                       <div>
-                        <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Level</label>
-                        <select value={bulkLevelId} onChange={(e) => setBulkLevelId(e.target.value)} className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#010080] outline-none ${isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}>
+                        <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Level (Subprogram)</label>
+                        <select value={bulkLevelId} onChange={(e) => { setBulkLevelId(e.target.value); setBulkClassId(""); }} className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#010080] outline-none ${isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}>
                           <option value="">All Levels</option>
-                          {subprograms.filter(sp => sp.program_name?.toLowerCase().includes('ielts') || sp.program_name?.toLowerCase().includes('toefl')).map(level => (
+                          {getBulkEligibleSubprograms().map((level) => (
                             <option key={level.id} value={level.id}>{level.subprogram_name}</option>
                           ))}
                         </select>
                       </div>
                       <div>
-                        <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Final Class</label>
+                        <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Class</label>
                         <select value={bulkClassId} onChange={(e) => setBulkClassId(e.target.value)} className={`w-full px-3 py-2.5 text-sm border rounded-lg border-[#010080] focus:ring-2 focus:ring-[#010080] outline-none font-semibold ${isDark ? 'bg-gray-800 text-white' : 'bg-blue-50 text-[#010080]'}`}>
                           <option value="">Select target class...</option>
-                          {classes.filter(c => (!bulkLevelId || c.subprogram_id === parseInt(bulkLevelId)) && (c.program_name?.toLowerCase().includes('ielts') || c.program_name?.toLowerCase().includes('toefl'))).map(cls => (
-                            <option key={cls.id} value={cls.id}>{cls.class_name} ({cls.shift_name})</option>
+                          {getBulkEligibleClasses().map((cls) => (
+                            <option key={cls.id} value={cls.id}>{cls.class_name} ({cls.shift_name || "No shift"})</option>
                           ))}
                         </select>
                       </div>

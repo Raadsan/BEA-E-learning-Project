@@ -77,13 +77,14 @@ export default function StudentForm({
         let calculatedAmount = formData.funding_amount;
 
         if (formData.funding_status === "Paid") {
-            calculatedAmount = programPrice.toString();
+            calculatedAmount = (programPrice * (Number(formData.paid_months) || 1)).toString();
         } else if (formData.funding_status === "Full Scholarship") {
             calculatedAmount = "0";
         } else if (formData.funding_status === "Partial Scholarship") {
             if (formData.scholarship_percentage) {
                 const percentage = Number(formData.scholarship_percentage) || 0;
-                calculatedAmount = (programPrice * (1 - percentage / 100)).toFixed(2);
+                const months = Number(formData.paid_months) || 1;
+                calculatedAmount = (programPrice * months * (1 - percentage / 100)).toFixed(2);
             }
         } else if (formData.funding_status === "Sponsorship") {
             if (formData.sponsorship_package) {
@@ -102,6 +103,7 @@ export default function StudentForm({
         formData.funding_status,
         formData.sponsorship_package,
         formData.scholarship_percentage,
+        formData.paid_months,
         programs,
         paymentPackages,
         setFormData
@@ -623,10 +625,30 @@ export default function StudentForm({
                                     >
                                         <option value="Paid">Paid</option>
                                         <option value="Full Scholarship">Full Scholarship</option>
-                                        <option value="Partial Scholarship">Partial Scholarship</option>
+                                        <option value="Partial Scholarship">Partial Scholarship / Discount</option>
                                         <option value="Sponsorship">Sponsorship</option>
                                     </select>
                                 </div>
+
+                                {['Paid', 'Partial Scholarship', 'Full Scholarship'].includes(formData.funding_status) && (
+                                    <div>
+                                        <label htmlFor="paid_months" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Months Covered
+                                        </label>
+                                        <select
+                                            id="paid_months"
+                                            name="paid_months"
+                                            value={formData.paid_months || "1"}
+                                            onChange={handleInputChange}
+                                            className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-green-500' : 'bg-white border-gray-200 text-gray-900 focus:border-green-600'}`}
+                                        >
+                                            <option value="1">1 Month</option>
+                                            <option value="3">3 Months</option>
+                                            <option value="6">6 Months</option>
+                                            <option value="12">12 Months</option>
+                                        </select>
+                                    </div>
+                                )}
 
                                 {formData.funding_status === 'Sponsorship' && (
                                     <>
@@ -737,7 +759,7 @@ export default function StudentForm({
                                         <div>
                                             <label htmlFor="scholarship_percentage" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
                                                 }`}>
-                                                Scholarship Percentage (%)
+                                                Scholarship / Discount (%)
                                             </label>
                                             <input
                                                 type="number"

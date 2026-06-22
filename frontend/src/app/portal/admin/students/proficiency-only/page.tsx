@@ -12,6 +12,7 @@ import {
 } from "@/lib/api/proficiencyTestStudentsApi";
 import { useToast } from "@/components/Toast";
 import Modal from "@/components/Modal";
+import AuditTrailSection from "@/components/admin/AuditTrailSection";
 
 // Reusing the Live Timer Component logic for consistency
 const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
@@ -682,6 +683,13 @@ export default function ProficiencyCandidatesPage() {
                                     }`}
                             />
                         </div>
+
+                        <AuditTrailSection
+                            record={selectedCandidate}
+                            isDark={isDark}
+                            createdAtKey="registration_date"
+                            updatedAtKey="registration_date"
+                        />
 
                         <div className="flex justify-end pt-2">
                             <button

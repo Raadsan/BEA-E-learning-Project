@@ -33,10 +33,9 @@ export default function SessionChangePage() {
       const currentClass = classes.find(c => c.id == user.class_id);
 
       if (currentClass) {
-        // Set current session name - Combine Shift and Session Type
-        const currentSessionLabel = currentClass.shift_name && currentClass.shift_session
-          ? `${currentClass.shift_name} - ${currentClass.shift_session}`
-          : currentClass.shift_session || currentClass.shift_name || "N/A";
+        const currentSessionLabel = currentClass.shift_name && (currentClass.shift_session || currentClass.shifts?.session_type)
+          ? `${currentClass.shift_name} - ${currentClass.shift_session || currentClass.shifts?.session_type}`
+          : currentClass.shift_session || currentClass.shifts?.session_type || currentClass.shift_name || "N/A";
 
         setFormData(prev => ({
           ...prev,
@@ -72,9 +71,13 @@ export default function SessionChangePage() {
       // Find current class details
       const currentClass = classes.find(c => c.id == user.class_id);
 
-      // Find a class that matches the requested session ID 
       const requestedClass = availableSessions.find(c => c.id.toString() === formData.requestedSession);
-      const requestedSessionType = requestedClass ? `${requestedClass.shift_name} - ${requestedClass.shift_session}` : formData.requestedSession;
+      const requestedShiftSession = requestedClass?.shift_session || requestedClass?.shifts?.session_type;
+      const requestedSessionType = requestedClass
+        ? (requestedClass.shift_name && requestedShiftSession
+            ? `${requestedClass.shift_name} - ${requestedShiftSession}`
+            : requestedShiftSession || requestedClass.shift_name || "")
+        : formData.requestedSession;
 
       // Submit to dedicated Session Request API
       await createSessionRequest({
@@ -235,9 +238,9 @@ export default function SessionChangePage() {
                 ) : availableSessions.length > 0 ? (
                   availableSessions.map(cls => (
                     <option key={cls.id} value={cls.id}>
-                      {cls.shift_name && cls.shift_session
-                        ? `${cls.shift_name} - ${cls.shift_session}`
-                        : cls.shift_session || cls.shift_name || "Unknown Session"}
+                      {cls.shift_name && (cls.shift_session || cls.shifts?.session_type)
+                        ? `${cls.shift_name} - ${cls.shift_session || cls.shifts?.session_type}`
+                        : cls.shift_session || cls.shifts?.session_type || cls.shift_name || "Unknown Session"}
                     </option>
                   ))
                 ) : (

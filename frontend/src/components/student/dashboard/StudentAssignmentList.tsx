@@ -37,7 +37,9 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
     const [submitting, setSubmitting] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showTimeUpModal, setShowTimeUpModal] = useState(false);
     const timerRef = useRef(null);
+    const autoSubmittingRef = useRef(false);
 
     // Oral assignment state
     const [uploadedFile, setUploadedFile] = useState(null);
@@ -54,7 +56,21 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
         return now > new Date(assignment.due_date);
     };
 
+    const getStudentKey = () => user?.id || user?.student_id;
+
+    const isTimedWritingSession = () =>
+        view === "workspace" &&
+        type === "writing_task" &&
+        !!selectedAssignment?.duration &&
+        selectedAssignment.submission_status !== "submitted" &&
+        selectedAssignment.submission_status !== "graded" &&
+        timeLeft > 0;
+
     const handleBackToList = () => {
+        if (isTimedWritingSession()) {
+            showToast("The timer is still running. You cannot leave until you submit or time runs out.", "warning");
+            return;
+        }
         if (onLeaveWorkspace) {
             onLeaveWorkspace();
             setView("list");
@@ -64,10 +80,22 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
         setView("list");
     };
 
+    // Warn if the student tries to close the tab during a timed writing task
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            e.preventDefault();
+            e.returnValue = "";
+        };
+        if (isTimedWritingSession()) {
+            window.addEventListener("beforeunload", handleBeforeUnload);
+        }
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }, [view, type, selectedAssignment, timeLeft, submitting]);
+
     // Initialize/read persistent timer when workspace view is activated
     useEffect(() => {
-        if (view === "workspace" && selectedAssignment?.duration && user?.id && type !== 'exam') {
-            const timerKey = `assignment_timer_${user.id}_${selectedAssignment.id}`;
+        if (view === "workspace" && selectedAssignment?.duration && getStudentKey() && type !== 'exam') {
+            const timerKey = `assignment_timer_${getStudentKey()}_${selectedAssignment.id}`;
             const savedTarget = localStorage.getItem(timerKey);
             let targetTime;
 
@@ -89,8 +117,8 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
 
     // Timer countdown loop
     useEffect(() => {
-        if (view === "workspace" && selectedAssignment?.duration && timeLeft !== null && user?.id && !submitting && type !== 'exam') {
-            const timerKey = `assignment_timer_${user.id}_${selectedAssignment.id}`;
+        if (view === "workspace" && selectedAssignment?.duration && timeLeft !== null && getStudentKey() && !submitting && type !== 'exam') {
+            const timerKey = `assignment_timer_${getStudentKey()}_${selectedAssignment.id}`;
             timerRef.current = setInterval(() => {
                 const savedTarget = localStorage.getItem(timerKey);
                 if (savedTarget) {
@@ -143,7 +171,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
         setSelectedAssignment(assignment);
         if (assignment.duration && assignment.submission_status !== 'submitted' && assignment.submission_status !== 'graded') {
             // Check if timer was already started (key exists in localStorage)
-            const timerKey = `assignment_timer_${user?.id}_${assignment.id}`;
+            const timerKey = `assignment_timer_${getStudentKey()}_${assignment.id}`;
             const savedTarget = typeof window !== 'undefined' ? localStorage.getItem(timerKey) : null;
             if (savedTarget) {
                 // Timer already running — go straight to workspace (don't reset)
@@ -172,7 +200,17 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
         }
 
         if (assignment.duration) {
-            setTimeLeft(assignment.duration * 60);
+            const studentKey = getStudentKey();
+            if (studentKey) {
+                const timerKey = `assignment_timer_${studentKey}_${assignment.id}`;
+                if (!localStorage.getItem(timerKey)) {
+                    localStorage.setItem(timerKey, String(Date.now() + assignment.duration * 60 * 1000));
+                }
+                const remaining = Math.max(0, Math.floor((parseInt(localStorage.getItem(timerKey), 10) - Date.now()) / 1000));
+                setTimeLeft(remaining);
+            } else {
+                setTimeLeft(assignment.duration * 60);
+            }
         }
         // Reset upload state
         setUploadedFile(null);
@@ -223,22 +261,26 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const handleFinalSubmit = async (auto = false, overrideContent = null) => {
-        const isQuiz = !!selectedAssignment?.questions;
-        const contentToSubmit = overrideContent || (isQuiz ? quizAnswers : submissionContent);
+    const handleFinalSubmit = async (options: boolean | { auto?: boolean; skipConfirm?: boolean } = false) => {
+        const auto = typeof options === "object" && options !== null ? !!options.auto : !!options;
+        const skipConfirm = typeof options === "object" && options !== null ? !!options.skipConfirm : !!options;
 
-        if (!auto && !isQuiz && !contentToSubmit && !submissionContent.trim()) {
+        if (autoSubmittingRef.current || submitting) return;
+
+        const isQuiz = !!selectedAssignment?.questions;
+        const contentToSubmit = isQuiz ? quizAnswers : submissionContent;
+
+        if (!auto && !isQuiz && !String(contentToSubmit || "").trim()) {
             showToast("Please write something before submitting.", "error");
             return;
         }
 
-        // Show confirmation modal for manual submissions
-        if (!auto) {
+        if (!skipConfirm && !auto) {
             setShowConfirmModal(true);
             return;
         }
 
-        if (!auto && isQuiz && !overrideContent) {
+        if (!auto && isQuiz) {
             const questions = typeof selectedAssignment.questions === 'string'
                 ? JSON.parse(selectedAssignment.questions)
                 : selectedAssignment.questions;
@@ -246,36 +288,46 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
             if (Object.keys(quizAnswers).length < questions.length) {
                 if (!window.confirm("You haven't answered all questions. Submit anyway?")) return;
             }
-        } else if (!auto && !window.confirm("Are you sure you want to submit your work?")) {
-            return;
         }
 
         try {
+            if (auto) autoSubmittingRef.current = true;
             setSubmitting(true);
 
             const formData = new FormData();
             formData.append('assignment_id', selectedAssignment.id);
             formData.append('type', type);
+            formData.append('is_auto_submit', auto ? 'true' : 'false');
 
             if (type === 'oral_assignment' && uploadedFile) {
                 formData.append('file', uploadedFile);
                 formData.append('content', 'Audio File Upload');
             } else {
-                formData.append('content', typeof contentToSubmit === 'object' ? JSON.stringify(contentToSubmit) : contentToSubmit);
+                const contentPayload = typeof contentToSubmit === "object"
+                    ? JSON.stringify(contentToSubmit)
+                    : String(contentToSubmit ?? "");
+                formData.append("content", contentPayload);
             }
 
             await submitAssignment(formData).unwrap();
 
-            if (user?.id && selectedAssignment?.id) {
-                const timerKey = `assignment_timer_${user.id}_${selectedAssignment.id}`;
+            const studentKey = getStudentKey();
+            if (studentKey && selectedAssignment?.id) {
+                const timerKey = `assignment_timer_${studentKey}_${selectedAssignment.id}`;
                 localStorage.removeItem(timerKey);
             }
 
             setView("list");
             setSubmissionContent("");
             setQuizAnswers({});
-            showToast(auto ? "Time's up! Work auto-submitted." : "Work submitted successfully!", "success");
+            if (auto) {
+                showToast("Time is up! Your work was saved and submitted automatically.", "success");
+                setShowTimeUpModal(true);
+            } else {
+                showToast("Work submitted successfully!", "success");
+            }
         } catch (err) {
+            if (auto) autoSubmittingRef.current = false;
             showToast(err.data?.error || "Failed to submit work", "error");
         } finally {
             setSubmitting(false);
@@ -754,7 +806,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                 <button
                                     onClick={() => {
                                         setShowConfirmModal(false);
-                                        handleFinalSubmit(true);
+                                        handleFinalSubmit({ auto: false, skipConfirm: true });
                                     }}
                                     className="px-4 py-2 rounded-lg bg-[#010080] hover:bg-blue-800 text-white font-semibold text-sm transition-colors"
                                 >
@@ -764,6 +816,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                         </div>
                     </div>
                 )}
+
             </div>
         );
     }
@@ -778,6 +831,23 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
 
     return (
         <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+            {showTimeUpModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                    <div className={`relative w-full max-w-md rounded-lg shadow-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
+                        <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Time Expired</h3>
+                        <p className={`text-sm mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                            Your writing time has ended. Whatever you wrote has been saved and submitted automatically.
+                        </p>
+                        <button
+                            onClick={() => setShowTimeUpModal(false)}
+                            className="w-full px-4 py-2 rounded-lg bg-[#010080] hover:bg-blue-800 text-white font-semibold text-sm"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
             <StudentPageHeader
                 title={title}
                 description={`View your ${title.toLowerCase()}. Tasks open at the start time and complete when the end time is reached.`}

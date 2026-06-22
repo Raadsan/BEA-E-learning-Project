@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma.js';
+import { mapPackagePrograms } from '../utils/studentPaymentUtils.js';
 
 export const createPackage = async (req, res) => {
     try {
@@ -12,7 +13,7 @@ export const getAllPackages = async (req, res) => {
         const packages = await prisma.payment_packages.findMany({
             include: { program_payment_packages: { include: { programs: true } } }
         });
-        res.json(packages);
+        res.json(packages.map(mapPackagePrograms));
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
@@ -23,7 +24,7 @@ export const getPackageById = async (req, res) => {
             include: { program_payment_packages: { include: { programs: true } } }
         });
         if (!pkg) return res.status(404).json({ error: 'Not found' });
-        res.json(pkg);
+        res.json(mapPackagePrograms(pkg));
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
@@ -45,7 +46,9 @@ export const assignToProgram = async (req, res) => {
     try {
         const { programId } = req.body;
         const packageId = parseInt(req.params.id);
-        await prisma.program_payment_packages.create({ data: { package_id: packageId, program_id: parseInt(programId) } });
+        await prisma.program_payment_packages.create({
+            data: { payment_package_id: packageId, program_id: parseInt(programId, 10) }
+        });
         res.json({ message: 'Assigned' });
     } catch (err) { res.status(500).json({ error: err.message }); }
 };

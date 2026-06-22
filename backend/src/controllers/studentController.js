@@ -8,6 +8,18 @@ import {
   getWaafiErrorMessage,
   getWaafiTransactionId
 } from '../utils/waafiPayment.js';
+import {
+  computeFundingAmount,
+  computePaidUntil,
+  mapMonthsToSponsorshipEnum,
+  resolvePaymentPackage,
+} from '../utils/studentPaymentUtils.js';
+import {
+  buildCreateAudit,
+  buildUpdateAudit,
+  enrichWithAudit,
+  backfillMissingCreatedBy,
+} from '../utils/auditTrail.js';
 
 // CREATE STUDENT
 export const createStudent = async (req, res) => {
@@ -18,7 +30,7 @@ export const createStudent = async (req, res) => {
       parent_phone, parent_relation, parent_res_county, parent_res_city,
       class_id, funding_status, sponsorship_package, funding_amount,
       funding_month, scholarship_percentage, gender, date_of_birth, place_of_birth,
-      approval_status
+      approval_status, sponsor_name, paid_months
     } = req.body;
 
     const studentSex = sex || gender;
@@ -59,10 +71,30 @@ export const createStudent = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     let initialPaidUntil = null;
-    if (funding_status && funding_status !== 'Unpaid') {
-      const now = new Date();
-      initialPaidUntil = new Date(now.setDate(now.getDate() + 30));
+    const activeFundingStatus = funding_status && funding_status !== 'Unpaid' ? funding_status : null;
+    if (activeFundingStatus) {
+      initialPaidUntil = await computePaidUntil(prisma, {
+        funding_status: activeFundingStatus,
+        sponsorship_package,
+        paid_months,
+      });
     }
+
+    let sponsorshipEnum = 'None';
+    if (activeFundingStatus === 'Sponsorship' && sponsorship_package) {
+      const pkg = await resolvePaymentPackage(prisma, sponsorship_package);
+      sponsorshipEnum = mapMonthsToSponsorshipEnum(pkg?.duration_months || paid_months || 1);
+    }
+
+    const computedFundingAmount = activeFundingStatus
+      ? await computeFundingAmount(prisma, {
+          funding_status: activeFundingStatus,
+          scholarship_percentage,
+          sponsorship_package,
+          chosen_program,
+          paid_months,
+        })
+      : null;
 
     // Placement / proficiency entry window: 24 hours from registration
     const expiryDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -102,6 +134,7 @@ export const createStudent = async (req, res) => {
     // I'll import it from utils
     const { generateStudentId } = await import('../utils/idGenerator.js');
     const student_id = await generateStudentId('students', chosen_program);
+    const createAudit = await buildCreateAudit(req, 'Self registration');
 
     const student = await prisma.students.create({
       data: {
@@ -123,16 +156,22 @@ export const createStudent = async (req, res) => {
         parent_res_county: parent_res_county || null,
         parent_res_city: parent_res_city || null,
         class_id: (class_id && class_id !== "") ? parseInt(class_id) : null,
-        funding_status: paymentStatus === 'Paid' ? 'Paid' : (funding_status || 'Unpaid'),
-        sponsorship_package: sponsorship_package || "None",
-        funding_amount: (funding_amount && funding_amount !== "") ? parseFloat(funding_amount) : null,
-        funding_month: funding_month || null,
+        funding_status: paymentStatus === 'Paid' ? 'Paid' : (activeFundingStatus || 'Paid'),
+        sponsorship_package: sponsorshipEnum,
+        sponsor_name: sponsor_name || null,
+        funding_amount: (funding_amount && funding_amount !== "")
+          ? parseFloat(funding_amount)
+          : computedFundingAmount,
+        funding_month: funding_month || (activeFundingStatus
+          ? new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
+          : null),
         scholarship_percentage: (scholarship_percentage && scholarship_percentage !== "") ? parseInt(scholarship_percentage) : null,
         paid_until: initialPaidUntil,
         expiry_date: expiryDate,
         date_of_birth: (date_of_birth && date_of_birth !== "") ? new Date(date_of_birth) : null,
         place_of_birth: place_of_birth || null,
-        approval_status: approval_status || 'pending'
+        approval_status: approval_status || 'pending',
+        ...createAudit,
       }
     });
 
@@ -183,7 +222,7 @@ export const getStudentsByClass = async (req, res) => {
       include: { classes: true },
       orderBy: { created_at: 'desc' }
     });
-    res.json({ success: true, students });
+    res.json({ success: true, students: await enrichWithAudit(students) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -192,11 +231,12 @@ export const getStudentsByClass = async (req, res) => {
 // GET ALL STUDENTS
 export const getStudents = async (req, res) => {
   try {
+    await backfillMissingCreatedBy(prisma.students);
     const students = await prisma.students.findMany({
       include: { classes: true },
       orderBy: { created_at: 'desc' }
     });
-    res.json({ success: true, students });
+    res.json({ success: true, students: await enrichWithAudit(students) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -210,7 +250,7 @@ export const getStudent = async (req, res) => {
       include: { classes: true }
     });
     if (!student) return res.status(404).json({ success: false, error: "Not found" });
-    res.json({ success: true, student });
+    res.json({ success: true, student: await enrichWithAudit(student) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -231,6 +271,12 @@ export const updateStudent = async (req, res) => {
     delete data.student_id;
     delete data.type;
     delete data.confirmPassword;
+    delete data.created_by;
+    delete data.created_by_name;
+    delete data.updated_by;
+    delete data.updated_by_name;
+
+    Object.assign(data, await buildUpdateAudit(req));
 
     if (data.password && data.password.trim() !== "") {
       if (!validatePassword(data.password)) {
@@ -254,6 +300,47 @@ export const updateStudent = async (req, res) => {
     }
     if (data.scholarship_percentage !== undefined) {
       data.scholarship_percentage = (data.scholarship_percentage && data.scholarship_percentage !== "") ? parseInt(data.scholarship_percentage) : null;
+    }
+    if (data.funding_month !== undefined) {
+      data.funding_month = (data.funding_month && data.funding_month !== "") ? String(data.funding_month) : null;
+    }
+    if (data.paid_months !== undefined) {
+      delete data.paid_months;
+    }
+
+    const fundingFieldsChanged =
+      data.funding_status !== undefined ||
+      data.sponsorship_package !== undefined ||
+      data.scholarship_percentage !== undefined ||
+      req.body.paid_months !== undefined;
+
+    if (fundingFieldsChanged) {
+      const nextFundingStatus = data.funding_status ?? existing.funding_status;
+      const nextPackageName = req.body.sponsorship_package ?? existing.sponsorship_package;
+      const nextScholarship = data.scholarship_percentage ?? existing.scholarship_percentage;
+      const nextProgram = data.chosen_program ?? existing.chosen_program;
+
+      if (nextFundingStatus === 'Sponsorship' && req.body.sponsorship_package) {
+        const pkg = await resolvePaymentPackage(prisma, req.body.sponsorship_package);
+        data.sponsorship_package = mapMonthsToSponsorshipEnum(pkg?.duration_months || req.body.paid_months || 1);
+      }
+
+      data.paid_until = await computePaidUntil(prisma, {
+        funding_status: nextFundingStatus,
+        sponsorship_package: req.body.sponsorship_package || nextPackageName,
+        paid_months: req.body.paid_months,
+        currentPaidUntil: existing.paid_until,
+      });
+
+      if (data.funding_amount === undefined || data.funding_amount === "" || data.funding_amount === null) {
+        data.funding_amount = await computeFundingAmount(prisma, {
+          funding_status: nextFundingStatus,
+          scholarship_percentage: nextScholarship,
+          sponsorship_package: req.body.sponsorship_package || nextPackageName,
+          chosen_program: nextProgram,
+          paid_months: req.body.paid_months,
+        });
+      }
     }
     if (data.date_of_birth !== undefined) {
       data.date_of_birth = (data.date_of_birth && data.date_of_birth !== "") ? new Date(data.date_of_birth) : null;

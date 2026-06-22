@@ -16,6 +16,8 @@ import { useToast } from "@/components/Toast";
 import ClassForm from "@/components/admin/classes/ClassForm";
 import AssignTeacherModal from "@/components/admin/classes/AssignTeacherModal";
 import ClassConfirmationModal from "@/components/admin/classes/ClassConfirmationModal";
+import ClassViewModal from "@/components/admin/classes/ClassViewModal";
+import { createdByColumn } from "@/utils/auditDisplay";
 
 export default function ClassesPage() {
   const { isDark } = useDarkMode();
@@ -28,6 +30,8 @@ export default function ClassesPage() {
   const [confirmationModal, setConfirmationModal] = useState({
     isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "red"
   });
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [viewingClass, setViewingClass] = useState(null);
 
   const { data: backendClasses, isLoading, isError, error } = useGetClassesQuery();
   const { data: teachers = [] } = useGetTeachersQuery();
@@ -97,6 +101,11 @@ export default function ClassesPage() {
   const handleView = useCallback((classItem) => {
     router.push(`/portal/admin/classes/${classItem.id}/students`);
   }, [router]);
+
+  const handleViewDetails = useCallback((classItem) => {
+    setViewingClass(classItem);
+    setIsViewModalOpen(true);
+  }, []);
 
   const handleCloseAssignModal = useCallback(() => {
     setIsAssignModalOpen(false);
@@ -179,18 +188,20 @@ export default function ClassesPage() {
         ) : "Not assigned"
       )
     },
+    createdByColumn,
     {
       key: "actions", label: "Actions",
       render: (_, row) => (
         <div className="flex gap-2">
-          <button onClick={() => handleView(row)} className="text-green-600 p-1 hover:bg-green-50 rounded" title="View Students"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+          <button onClick={() => handleViewDetails(row)} className="text-blue-600 p-1 hover:bg-blue-50 rounded" title="View Details"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+          <button onClick={() => handleView(row)} className="text-green-600 p-1 hover:bg-green-50 rounded" title="View Students"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg></button>
           <button onClick={() => handleAssign(row)} className="text-purple-600 p-1 hover:bg-purple-50 rounded" title="Assign Teacher"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></button>
           <button onClick={() => handleEdit(row)} className="text-blue-600 p-1 hover:bg-blue-50 rounded" title="Edit"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
           <button onClick={() => handleDelete(row.id)} className="text-red-600 p-1 hover:bg-red-50 rounded" title="Delete" disabled={isDeleting}><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
         </div>
       ),
     },
-  ], [isDeleting, handleView, handleAssign, handleEdit, handleDelete]);
+  ], [isDeleting, handleView, handleViewDetails, handleAssign, handleEdit, handleDelete]);
 
   if (isLoading) return <main className="flex-1 pt-12 text-center text-gray-600">Loading classes...</main>;
   if (isError) return <main className="flex-1 pt-12 text-center text-red-600">Error: {(error as any)?.data?.error || "Unknown error"}</main>;
@@ -257,6 +268,16 @@ export default function ClassesPage() {
       />
       <AssignTeacherModal isOpen={isAssignModalOpen} onClose={handleCloseAssignModal} selectedClass={selectedClassForAssign} teachers={teachers} onAssign={handleAssignTeacher} isUpdating={isUpdating} isDark={isDark} />
       <ClassConfirmationModal isOpen={confirmationModal.isOpen} onClose={() => setConfirmationModal({ ...confirmationModal, isOpen: false })} title={confirmationModal.title} message={confirmationModal.message} onConfirm={confirmationModal.onConfirm} isLoading={confirmationModal.isLoading} confirmButtonColor={confirmationModal.confirmButtonColor} isDark={isDark} />
+      <ClassViewModal
+        isOpen={isViewModalOpen}
+        onClose={() => { setIsViewModalOpen(false); setViewingClass(null); }}
+        classItem={viewingClass}
+        isDark={isDark}
+        onViewStudents={(cls) => {
+          setIsViewModalOpen(false);
+          handleView(cls);
+        }}
+      />
     </>
   );
 }

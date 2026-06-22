@@ -25,7 +25,7 @@ export const authApi = createApi({
   tagTypes: ["Auth"],
   keepUnusedDataFor: 3600,
   endpoints: (builder) => ({
-    // LOGIN
+    // LOGIN — direct login (OTP step disabled)
     login: builder.mutation({
       query: (credentials) => ({
         url: "/login",
@@ -34,14 +34,43 @@ export const authApi = createApi({
       }),
       transformResponse: (response: any) => {
         if (response.success && response.token) {
-          // Store token in localStorage
           if (typeof window !== "undefined") {
             localStorage.setItem("token", response.token);
             localStorage.setItem("user", JSON.stringify(response.user));
+            localStorage.setItem("userId", String(response.user?.id ?? ""));
+            localStorage.setItem("userRole", response.user?.role ?? "");
           }
         }
         return response;
       },
+    }),
+
+    // VERIFY OTP — disabled (uncomment when re-enabling OTP login)
+    verifyOtp: builder.mutation({
+      query: (body: { otpSessionId: string; otp: string }) => ({
+        url: "/verify-otp",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (response: any) => {
+        if (response.success && response.token) {
+          if (typeof window !== "undefined") {
+            localStorage.setItem("token", response.token);
+            localStorage.setItem("user", JSON.stringify(response.user));
+            localStorage.setItem("userId", String(response.user?.id ?? ""));
+            localStorage.setItem("userRole", response.user?.role ?? "");
+          }
+        }
+        return response;
+      },
+    }),
+
+    resendOtp: builder.mutation({
+      query: (body: { otpSessionId: string }) => ({
+        url: "/resend-otp",
+        method: "POST",
+        body,
+      }),
     }),
 
     // GET CURRENT USER
@@ -76,6 +105,8 @@ export const authApi = createApi({
 
 export const {
   useLoginMutation,
+  useVerifyOtpMutation,
+  useResendOtpMutation,
   useGetCurrentUserQuery,
   useLogoutMutation,
 } = authApi;
