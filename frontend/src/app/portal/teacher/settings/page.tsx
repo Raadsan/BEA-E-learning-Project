@@ -7,7 +7,7 @@ import { useUpdateTeacherMutation } from "@/lib/api/teacherApi";
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
 import Image from "next/image";
-import { API_BASE_URL } from "@/constants";
+import { resolveProfileImageUrl } from "@/constants";
 
 export default function TeacherSettingsPage() {
   const { isDark } = useDarkMode();
@@ -47,7 +47,7 @@ export default function TeacherSettingsPage() {
         confirmPassword: "",
       });
       if (user.profile_picture) {
-        setImagePreview(`${API_BASE_URL}${user.profile_picture}`);
+        setImagePreview(resolveProfileImageUrl(user.profile_picture) || "");
       }
     }
   }, [user]);

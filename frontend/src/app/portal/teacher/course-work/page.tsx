@@ -13,6 +13,7 @@ import {
 } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
+import { openSubmissionFile } from "@/utils/submissionFiles";
 import { resolveSubmissionFileUrl } from "@/constants";
 
 import DataTable from "@/components/DataTable";
@@ -57,17 +58,36 @@ export default function CourseWorkPage() {
     const { data: currentUser } = useGetCurrentUserQuery();
     const { data: classes, isLoading: isLoadingClasses } = useGetTeacherClassesQuery();
 
-    // Derived Data for Cascading Dropdowns (subprogram → class)
-    const teacherSubprograms = useMemo(() => {
+    // Derived Data for Cascading Dropdowns (program → subprogram → class)
+    const uniquePrograms = useMemo(() => {
         if (!classes) return [];
+        const programs = new Map();
+        classes.forEach(c => {
+            const pId = c.program_id || c.subprograms?.program_id;
+            const pName = c.program_name || c.subprograms?.programs?.title;
+            if (pId && pName) {
+                programs.set(pId, { id: pId, title: pName });
+            }
+        });
+        return Array.from(programs.values());
+    }, [classes]);
+
+    const filteredSubprograms = useMemo(() => {
+        if (!classes || !createFormData.program_id) return [];
         const subprograms = new Map();
         classes.forEach(c => {
             const spId = c.subprogram_id || c.subprograms?.id;
             const spName = c.subprogram_name || c.subprograms?.subprogram_name;
-            if (spId && spName) subprograms.set(spId, { id: spId, title: spName });
+            const pId = c.program_id || c.subprograms?.program_id;
+            if (pId == createFormData.program_id && spId) {
+                subprograms.set(spId, {
+                    id: spId,
+                    title: spName || `Subprogram #${spId}`,
+                });
+            }
         });
         return Array.from(subprograms.values());
-    }, [classes]);
+    }, [classes, createFormData.program_id]);
 
     const formClasses = useMemo(() => {
         if (!classes || !createFormData.subprogram_id) return [];
@@ -116,15 +136,29 @@ export default function CourseWorkPage() {
 
     const handleCreateDataChange = (e) => {
         const { name, value } = e.target;
-        setCreateFormData(prev => ({ ...prev, [name]: value }));
 
-        if (name === 'subprogram_id') {
-            setCreateFormData(prev => ({ ...prev, subprogram_id: value, class_id: "", program_id: "" }));
-        } else if (name === 'class_id') {
+        if (name === "program_id") {
+            setCreateFormData(prev => ({ ...prev, program_id: value, subprogram_id: "", class_id: "" }));
+            return;
+        }
+        if (name === "subprogram_id") {
+            setCreateFormData(prev => ({ ...prev, subprogram_id: value, class_id: "" }));
+            return;
+        }
+        if (name === "class_id") {
             const classInfo = classes?.find(c => c.id == value);
             const programId = classInfo?.program_id || classInfo?.subprograms?.program_id || "";
-            setCreateFormData(prev => ({ ...prev, class_id: value, program_id: String(programId) }));
+            const subprogramId = classInfo?.subprogram_id || classInfo?.subprograms?.id || "";
+            setCreateFormData(prev => ({
+                ...prev,
+                class_id: value,
+                program_id: programId ? String(programId) : prev.program_id,
+                subprogram_id: subprogramId ? String(subprogramId) : prev.subprogram_id,
+            }));
+            return;
         }
+
+        setCreateFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleOpenCreate = () => {
@@ -183,6 +217,10 @@ export default function CourseWorkPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!createFormData.program_id) {
+            showToast("Please select a program", "error");
+            return;
+        }
         if (!createFormData.subprogram_id) {
             showToast("Please select a subprogram", "error");
             return;
@@ -197,6 +235,8 @@ export default function CourseWorkPage() {
             ...createFormData,
             program_id: classInfo?.program_id || classInfo?.subprograms?.program_id || createFormData.program_id,
         };
+
+        const createdClassId = String(createFormData.class_id);
 
         try {
             if (isEditing && editingAssignment) {
@@ -214,6 +254,10 @@ export default function CourseWorkPage() {
                     submission_format: 'text'
                 }).unwrap();
                 showToast("Course work created successfully!", "success");
+
+                if (selectedClassId && selectedClassId !== createdClassId) {
+                    setSelectedClassId(createdClassId);
+                }
             }
 
             setIsCreateModalOpen(false);
@@ -231,7 +275,7 @@ export default function CourseWorkPage() {
                 total_points: "100"
             });
             setIsEditing(false);
-            refetchAssignments();
+            await refetchAssignments();
         } catch (err) {
             showToast(err.data?.error || `Failed to ${isEditing ? 'update' : 'create'} course work`, "error");
         }
@@ -266,16 +310,34 @@ export default function CourseWorkPage() {
         }
     };
 
+    const handleDownloadSubmissionFile = async (fileUrl) => {
+        try {
+            await openSubmissionFile(fileUrl);
+        } catch {
+            showToast("Could not open this file. Ask the student to submit again.", "error");
+        }
+    };
+
     const renderSubmissionContent = () => {
         if (!gradingSubmission) return null;
         if (gradingSubmission.file_url) {
+            const streamUrl = resolveSubmissionFileUrl(gradingSubmission.file_url);
+            const isPdf = /\.pdf$/i.test(gradingSubmission.file_url);
+
             return (
                 <div className="space-y-4">
-                    <a
-                        href={resolveSubmissionFileUrl(gradingSubmission.file_url) || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-4 px-4 py-3 rounded-lg border bg-white dark:bg-gray-900 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors w-full group"
+                    {streamUrl && isPdf && (
+                        <iframe
+                            src={streamUrl}
+                            title="Submitted PDF"
+                            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white"
+                            style={{ minHeight: "480px", height: "min(70vh, 640px)" }}
+                        />
+                    )}
+                    <button
+                        type="button"
+                        onClick={() => handleDownloadSubmissionFile(gradingSubmission.file_url)}
+                        className="flex items-center gap-4 px-4 py-3 rounded-lg border bg-white dark:bg-gray-900 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors w-full group text-left"
                     >
                         <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -284,7 +346,7 @@ export default function CourseWorkPage() {
                             <p className="font-semibold text-gray-900 dark:text-white">View Submitted File</p>
                             <p className="text-xs text-gray-500">Click to open or download</p>
                         </div>
-                    </a>
+                    </button>
                     {gradingSubmission.content && gradingSubmission.content !== "File submission" && (
                         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                             <p className="text-xs font-bold uppercase opacity-50 mb-2">Additional Note:</p>
@@ -649,18 +711,37 @@ export default function CourseWorkPage() {
                         <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden">
                             <div className="p-6 overflow-y-auto max-h-[70vh] space-y-4">
 
-                                {/* Subprogram & Class Selection */}
+                                {/* Program, Subprogram & Class */}
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5 opacity-80">Program</label>
+                                    <select
+                                        required
+                                        name="program_id"
+                                        value={createFormData.program_id}
+                                        onChange={handleCreateDataChange}
+                                        disabled={isLoadingClasses}
+                                        className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
+                                    >
+                                        <option value="">Select Program</option>
+                                        {uniquePrograms.map(p => (
+                                            <option key={p.id} value={p.id}>{p.title}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium mb-1.5 opacity-80">Subprogram</label>
                                         <select
+                                            required
                                             name="subprogram_id"
                                             value={createFormData.subprogram_id}
                                             onChange={handleCreateDataChange}
-                                            className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
+                                            disabled={!createFormData.program_id}
+                                            className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'} ${!createFormData.program_id ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
                                             <option value="">Select Subprogram</option>
-                                            {teacherSubprograms.map(sp => (
+                                            {filteredSubprograms.map(sp => (
                                                 <option key={sp.id} value={sp.id}>{sp.title}</option>
                                             ))}
                                         </select>
@@ -668,6 +749,7 @@ export default function CourseWorkPage() {
                                     <div>
                                         <label className="block text-sm font-medium mb-1.5 opacity-80">Class</label>
                                         <select
+                                            required
                                             name="class_id"
                                             value={createFormData.class_id}
                                             onChange={handleCreateDataChange}
@@ -676,7 +758,7 @@ export default function CourseWorkPage() {
                                         >
                                             <option value="">Select Class</option>
                                             {formClasses.map(c => (
-                                                <option key={c.id} value={c.id}>{c.class_name}</option>
+                                                <option key={c.id} value={c.id}>{c.class_name || c.name}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -748,9 +830,12 @@ export default function CourseWorkPage() {
                                     </div>
                                 </div>
 
-                                {/* Description */}
+                                {/* Instructions / Requirements */}
                                 <div>
-                                    <label className="block text-sm font-medium mb-1.5 opacity-80">Description</label>
+                                    <label className="block text-sm font-medium mb-1.5 opacity-80">Instructions / Requirements</label>
+                                    <p className={`text-xs mb-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                        Students will read this when submitting their work.
+                                    </p>
                                     <textarea
                                         name="description"
                                         value={createFormData.description}

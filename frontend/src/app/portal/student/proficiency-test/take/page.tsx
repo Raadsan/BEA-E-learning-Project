@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import Loader from "@/components/Loader";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl } from "@/constants";
 import {
     useGetProficiencyTestByIdQuery,
     useSubmitProficiencyTestMutation,
@@ -319,7 +319,7 @@ export default function TakeProficiencyTestPage() {
                                 {currentQ.type === "audio" && (
                                     <div className={`p-4 rounded-2xl flex items-center gap-4 ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
                                         <audio controls className="w-full h-10">
-                                            <source src={currentQ.audioUrl?.startsWith('http') ? currentQ.audioUrl : `${API_BASE_URL}${currentQ.audioUrl}`} />
+                                            <source src={resolveMediaUrl(currentQ.audioUrl) || ""} />
                                         </audio>
                                     </div>
                                 )}

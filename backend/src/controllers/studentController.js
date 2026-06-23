@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma.js';
 import bcrypt from 'bcryptjs';
+import { getStoredFileUrl } from '../utils/fileStorage.js';
 import { validateEmailRobust } from '../utils/emailValidator.js';
 import { validatePassword, passwordPolicyMessage } from '../utils/passwordValidator.js';
 import {
@@ -11,8 +12,16 @@ import {
 import {
   computeFundingAmount,
   computePaidUntil,
+  formatFundingStatusForApi,
+  formatStudentFundingForApi,
+  grantsAccessWithoutPayment,
+  resolveStudentAccessState,
+  isFullScholarshipStatus,
+  isPartialScholarshipStatus,
   mapMonthsToSponsorshipEnum,
+  normalizeFundingStatusForPrisma,
   resolvePaymentPackage,
+  studentHasPaidTransaction,
 } from '../utils/studentPaymentUtils.js';
 import {
   buildCreateAudit,
@@ -70,15 +79,8 @@ export const createStudent = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    let initialPaidUntil = null;
+    const regMonths = parseInt(paid_months, 10) || 1;
     const activeFundingStatus = funding_status && funding_status !== 'Unpaid' ? funding_status : null;
-    if (activeFundingStatus) {
-      initialPaidUntil = await computePaidUntil(prisma, {
-        funding_status: activeFundingStatus,
-        sponsorship_package,
-        paid_months,
-      });
-    }
 
     let sponsorshipEnum = 'None';
     if (activeFundingStatus === 'Sponsorship' && sponsorship_package) {
@@ -129,6 +131,25 @@ export const createStudent = async (req, res) => {
       transactionId = `FREE-${Date.now()}`;
     }
 
+    let initialPaidUntil = null;
+    if (paymentStatus === 'Paid' && transactionId && paymentAmount > 0) {
+      initialPaidUntil = await computePaidUntil(prisma, {
+        funding_status: activeFundingStatus || 'Paid',
+        sponsorship_package,
+        paid_months: regMonths,
+      });
+    } else if (
+      activeFundingStatus &&
+      !isPartialScholarshipStatus(activeFundingStatus) &&
+      grantsAccessWithoutPayment(activeFundingStatus)
+    ) {
+      initialPaidUntil = await computePaidUntil(prisma, {
+        funding_status: activeFundingStatus,
+        sponsorship_package,
+        paid_months: regMonths,
+      });
+    }
+
     // Use a custom ID generator if needed, but for now we'll assume student_id is provided or handled
     // The old model used generateStudentId('students', chosen_program)
     // I'll import it from utils
@@ -156,7 +177,9 @@ export const createStudent = async (req, res) => {
         parent_res_county: parent_res_county || null,
         parent_res_city: parent_res_city || null,
         class_id: (class_id && class_id !== "") ? parseInt(class_id) : null,
-        funding_status: paymentStatus === 'Paid' ? 'Paid' : (activeFundingStatus || 'Paid'),
+        funding_status: normalizeFundingStatusForPrisma(
+          paymentStatus === 'Paid' ? 'Paid' : (activeFundingStatus || 'Paid')
+        ),
         sponsorship_package: sponsorshipEnum,
         sponsor_name: sponsor_name || null,
         funding_amount: (funding_amount && funding_amount !== "")
@@ -222,7 +245,7 @@ export const getStudentsByClass = async (req, res) => {
       include: { classes: true },
       orderBy: { created_at: 'desc' }
     });
-    res.json({ success: true, students: await enrichWithAudit(students) });
+    res.json({ success: true, students: formatStudentFundingForApi(await enrichWithAudit(students)) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -236,7 +259,7 @@ export const getStudents = async (req, res) => {
       include: { classes: true },
       orderBy: { created_at: 'desc' }
     });
-    res.json({ success: true, students: await enrichWithAudit(students) });
+    res.json({ success: true, students: formatStudentFundingForApi(await enrichWithAudit(students)) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -250,7 +273,7 @@ export const getStudent = async (req, res) => {
       include: { classes: true }
     });
     if (!student) return res.status(404).json({ success: false, error: "Not found" });
-    res.json({ success: true, student: await enrichWithAudit(student) });
+    res.json({ success: true, student: formatStudentFundingForApi(await enrichWithAudit(student)) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -264,7 +287,7 @@ export const updateStudent = async (req, res) => {
     if (!existing) return res.status(404).json({ success: false, error: "Not found" });
 
     const data = { ...req.body };
-    if (req.file) data.profile_picture = `/uploads/${req.file.filename}`;
+    if (req.file) data.profile_picture = getStoredFileUrl(req.file);
 
     // Clean up fields that do not exist on the schema or cannot be updated directly
     delete data.id;
@@ -295,6 +318,12 @@ export const updateStudent = async (req, res) => {
     if (data.class_id !== undefined) {
       data.class_id = (data.class_id && data.class_id !== "") ? parseInt(data.class_id) : null;
     }
+    if (data.chosen_subprogram !== undefined) {
+      data.chosen_subprogram =
+        data.chosen_subprogram !== null && data.chosen_subprogram !== ""
+          ? String(data.chosen_subprogram)
+          : null;
+    }
     if (data.funding_amount !== undefined) {
       data.funding_amount = (data.funding_amount && data.funding_amount !== "") ? parseFloat(data.funding_amount) : null;
     }
@@ -315,7 +344,9 @@ export const updateStudent = async (req, res) => {
       req.body.paid_months !== undefined;
 
     if (fundingFieldsChanged) {
-      const nextFundingStatus = data.funding_status ?? existing.funding_status;
+      const nextFundingStatus = formatFundingStatusForApi(
+        data.funding_status ?? existing.funding_status
+      );
       const nextPackageName = req.body.sponsorship_package ?? existing.sponsorship_package;
       const nextScholarship = data.scholarship_percentage ?? existing.scholarship_percentage;
       const nextProgram = data.chosen_program ?? existing.chosen_program;
@@ -325,12 +356,27 @@ export const updateStudent = async (req, res) => {
         data.sponsorship_package = mapMonthsToSponsorshipEnum(pkg?.duration_months || req.body.paid_months || 1);
       }
 
-      data.paid_until = await computePaidUntil(prisma, {
-        funding_status: nextFundingStatus,
-        sponsorship_package: req.body.sponsorship_package || nextPackageName,
-        paid_months: req.body.paid_months,
-        currentPaidUntil: existing.paid_until,
-      });
+      // Partial discount only reduces future prices — it must not grant course access.
+      if (isPartialScholarshipStatus(nextFundingStatus)) {
+        const hasPaidTransaction = await studentHasPaidTransaction(prisma, id);
+        if (!hasPaidTransaction) {
+          data.paid_until = null;
+        }
+      } else if (grantsAccessWithoutPayment(nextFundingStatus)) {
+        data.paid_until = await computePaidUntil(prisma, {
+          funding_status: nextFundingStatus,
+          sponsorship_package: req.body.sponsorship_package || nextPackageName,
+          paid_months: req.body.paid_months,
+          currentPaidUntil: existing.paid_until,
+        });
+      } else if (nextFundingStatus === 'Paid' && req.body.paid_months !== undefined) {
+        data.paid_until = await computePaidUntil(prisma, {
+          funding_status: nextFundingStatus,
+          sponsorship_package: req.body.sponsorship_package || nextPackageName,
+          paid_months: req.body.paid_months,
+          currentPaidUntil: existing.paid_until,
+        });
+      }
 
       if (data.funding_amount === undefined || data.funding_amount === "" || data.funding_amount === null) {
         data.funding_amount = await computeFundingAmount(prisma, {
@@ -344,6 +390,20 @@ export const updateStudent = async (req, res) => {
     }
     if (data.date_of_birth !== undefined) {
       data.date_of_birth = (data.date_of_birth && data.date_of_birth !== "") ? new Date(data.date_of_birth) : null;
+    }
+
+    if (data.funding_status !== undefined) {
+      data.funding_status = normalizeFundingStatusForPrisma(data.funding_status);
+    }
+
+    const accessStatus = formatFundingStatusForApi(
+      data.funding_status ?? existing.funding_status
+    );
+    if (isPartialScholarshipStatus(accessStatus)) {
+      const hasPaid = await studentHasPaidTransaction(prisma, id);
+      if (!hasPaid) {
+        data.paid_until = null;
+      }
     }
 
     // Move to history if class changed
@@ -364,7 +424,10 @@ export const updateStudent = async (req, res) => {
       data
     });
 
-    res.json({ success: true, student: updated });
+    const studentForApi = await resolveStudentAccessState(prisma, updated, {
+      persist: true,
+    });
+    res.json({ success: true, student: studentForApi });
   } catch (err) {
     console.error("❌ Update student error:", err);
     res.status(500).json({ success: false, error: err.message });

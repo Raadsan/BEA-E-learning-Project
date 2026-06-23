@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma.js';
 import bcrypt from 'bcryptjs';
+import { getStoredFileUrl } from '../utils/fileStorage.js';
 import { validateEmailRobust } from '../utils/emailValidator.js';
 import { validatePassword, passwordPolicyMessage } from '../utils/passwordValidator.js';
 
@@ -80,7 +81,7 @@ export const updateTeacher = async (req, res) => {
     if (!existing) return res.status(404).json({ error: "Not found" });
 
     const data = { ...req.body };
-    if (req.file) data.profile_picture = `/uploads/${req.file.filename}`;
+    if (req.file) data.profile_picture = getStoredFileUrl(req.file);
     if (data.password) {
       const salt = await bcrypt.genSalt(10);
       data.password = await bcrypt.hash(data.password, salt);

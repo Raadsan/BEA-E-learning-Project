@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { API_URL } from "@/constants";
+import { authApi } from "./authApi";
 
 const getToken = () => {
     if (typeof window !== "undefined") {
@@ -64,7 +65,15 @@ export const paymentApi = createApi({
                 method: "POST",
                 body,
             }),
-            invalidatesTags: ["Payments", "Auth"],
+            invalidatesTags: ["Payments"],
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    dispatch(authApi.util.invalidateTags(["Auth"]));
+                } catch {
+                    // no-op
+                }
+            },
         }),
     }),
 });

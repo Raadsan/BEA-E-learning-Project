@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl } from "@/constants";
 
 export default function NotificationDetailsModal({
     isOpen,
@@ -38,7 +38,7 @@ export default function NotificationDetailsModal({
                         <div className="flex-shrink-0">
                             {notification.sender_image ? (
                                 <Image
-                                    src={`${API_BASE_URL}${notification.sender_image}`}
+                                    src={resolveMediaUrl(notification.sender_image) || ""}
                                     alt={notification.sender_name || "User"}
                                     width={64}
                                     height={64}

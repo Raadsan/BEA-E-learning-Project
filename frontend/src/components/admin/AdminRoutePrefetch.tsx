@@ -7,6 +7,7 @@ const ADMIN_ROUTES = [
     "/portal/admin",
     "/portal/admin/students",
     "/portal/admin/students/general",
+    "/portal/admin/students/discounts",
     "/portal/admin/teachers",
     "/portal/admin/programs",
     "/portal/admin/classes",

@@ -13,7 +13,7 @@ import {
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import { useSearchParams } from "next/navigation";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl } from "@/constants";
 import {
     CERTIFICATE_FIELD_KEYS,
     CERTIFICATE_FIELD_LABELS,
@@ -160,7 +160,7 @@ export default function CertificatesPage() {
     }
 
     const templateUrl = globalTemplate?.template_url
-        ? `${API_BASE_URL}${globalTemplate.template_url}`
+        ? resolveMediaUrl(globalTemplate.template_url)
         : "";
 
     return (

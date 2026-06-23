@@ -13,7 +13,7 @@ import {
   isEslProficiencyCertificationProgram,
 } from "@/utils/programCatalog";
 
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl, API_BASE_URL } from "@/constants";
 
 // Program Card Component with Video Support
 function ProgramCard({ program, index, isDarkMode, isVisible, playingVideos, setPlayingVideos }) {
@@ -171,23 +171,12 @@ export default function ProgramsPage() {
     // Ensure image URL is properly formatted from backend
     let imageUrl = "/images/book1.jpg";
     if (program.image) {
-      // If image path starts with /, use it directly with backend URL
-      if (program.image.startsWith('/')) {
-        imageUrl = `${API_BASE_URL}${program.image}`;
-      } else {
-        // If image path doesn't start with /, add it
-        imageUrl = `${API_BASE_URL}/${program.image}`;
-      }
+      imageUrl = resolveMediaUrl(program.image) || "/images/book1.jpg";
     }
 
-    // Ensure video URL is properly formatted from backend
     let videoUrl = null;
     if (program.video) {
-      if (program.video.startsWith('/')) {
-        videoUrl = `${API_BASE_URL}${program.video}`;
-      } else {
-        videoUrl = `${API_BASE_URL}/${program.video}`;
-      }
+      videoUrl = resolveMediaUrl(program.video);
     }
 
     return {

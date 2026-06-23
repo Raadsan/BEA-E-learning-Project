@@ -12,9 +12,6 @@ export const API_BASE_URL =
 export const API_URL =
   typeof window !== "undefined" ? "/api" : `${serverBackendOrigin}/api`;
 
-export const UPLOADS_URL =
-  typeof window !== "undefined" ? "/uploads" : `${serverBackendOrigin}/uploads`;
-
 const clientBackendOrigin =
   typeof window !== "undefined"
     ? (process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:7004`)
@@ -30,41 +27,68 @@ export const DIRECT_API_URL =
 
 export const UPLOAD_ENDPOINT = `${DIRECT_API_URL}/uploads`;
 
-const mediaOrigin =
-  typeof window !== "undefined" ? window.location.origin : serverBackendOrigin;
+const S3_PREFIX = (process.env.NEXT_PUBLIC_S3_PREFIX || "bea_uploads").replace(/\/$/, "");
 
-/** Build a browser-openable URL for a student submission file. */
-export const resolveSubmissionFileUrl = (fileUrl?: string | null) => {
+const stripUploadPrefix = (value: string) =>
+  value
+    .replace(/^\//, "")
+    .replace(/^uploads\//, "")
+    .replace(new RegExp(`^${S3_PREFIX}/`), "");
+
+/** Normalize any stored file reference to a stream API ref. */
+const toStreamRef = (storedValue?: string | null): string | null => {
+  if (!storedValue) return null;
+  const value = storedValue.trim();
+  if (!value) return null;
+
+  if (value.startsWith("http")) return value;
+
+  const filename = stripUploadPrefix(value.replace(/^\//, ""));
+  return filename || null;
+};
+
+/** Backend stream URL — works for private S3, local legacy files, video/audio/images. */
+export const resolveStreamUrl = (storedValue?: string | null): string | null => {
+  const ref = toStreamRef(storedValue);
+  if (!ref) return null;
+
+  const encoded = encodeURIComponent(ref);
+  if (typeof window !== "undefined") {
+    return `/api/files/stream/${encoded}`;
+  }
+  return `${serverBackendOrigin}/api/files/stream/${encoded}`;
+};
+
+/** Images, videos, materials, program media. */
+export const resolveMediaUrl = (url: string | null | undefined) => resolveStreamUrl(url);
+
+/** Profile pictures and avatars. */
+export const resolveProfileImageUrl = (url: string | null | undefined) => resolveStreamUrl(url);
+
+/** Student submission files (view / play in browser). */
+export const resolveSubmissionFileUrl = (fileUrl?: string | null) => resolveStreamUrl(fileUrl);
+
+/** Download submission — authenticated API (streams from S3 via backend). */
+export const resolveSubmissionDownloadUrl = (fileUrl?: string | null) => {
   if (!fileUrl) return null;
-  if (fileUrl.startsWith("http")) return fileUrl;
-  if (fileUrl.startsWith("/")) {
-    return typeof window !== "undefined" ? fileUrl : `${serverBackendOrigin}${fileUrl}`;
+
+  const apiBase = typeof window !== "undefined" ? "/api" : `${serverBackendOrigin}/api`;
+
+  if (fileUrl.startsWith("http")) {
+    return `${apiBase}/files/download/${encodeURIComponent(fileUrl)}`;
   }
-  return `${UPLOADS_URL}/${fileUrl}`;
+
+  const ref = toStreamRef(fileUrl);
+  if (!ref) return null;
+  return `${apiBase}/files/download/${encodeURIComponent(ref)}`;
 };
 
-export const resolveMediaUrl = (url: string | null | undefined) => {
-  if (!url) return null;
+/** Alias — any file/image/video/audio URL for web + portal. */
+export const resolveFileUrl = resolveMediaUrl;
 
-  if (
-    url.startsWith("http://178.18.241.5:7004") ||
-    url.startsWith("http://localhost:5000") ||
-    url.startsWith("http://localhost:7004") ||
-    url.startsWith("http://127.0.0.1:7004")
-  ) {
-    return url.replace(
-      /http:\/\/(localhost:(5000|7004)|127\.0\.0\.1:7004|178\.18\.241\.5:7004)/,
-      mediaOrigin
-    );
-  }
+/** @deprecated Use resolveStreamUrl */
+export const UPLOADS_URL =
+  typeof window !== "undefined" ? "/api/files/stream" : `${serverBackendOrigin}/api/files/stream`;
 
-  if (url.startsWith("http")) {
-    return url;
-  }
-
-  if (url.startsWith("/")) {
-    return typeof window !== "undefined" ? url : `${serverBackendOrigin}${url}`;
-  }
-
-  return `${UPLOADS_URL}/${url}`;
-};
+/** @deprecated Use resolveStreamUrl */
+export const toS3PublicUrl = resolveStreamUrl;

@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl } from "@/constants";
 import { useGetStudentAttendanceQuery } from "@/lib/api/attendanceApi";
 import { useGetLearningHoursSummaryQuery } from "@/lib/api/learningHoursApi";
 import { useGetTopStudentsQuery, useGetStudentProgressQuery } from "@/lib/api/studentApi";
 import { useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
 import { useGetProgramQuery } from "@/lib/api/programApi";
 import { isProficiencyOnlyStudent } from "@/utils/programCatalog";
+import { isStudentSubscriptionActive } from "@/utils/studentPayment";
 import { useGetStudentPlacementResultsQuery } from "@/lib/api/placementTestApi";
 import { useGetStudentProficiencyResultsQuery } from "@/lib/api/proficiencyTestApi";
 import { useGetIeltsToeflStudentQuery } from "@/lib/api/ieltsToeflApi";
@@ -413,17 +414,7 @@ export default function StudentDashboard() {
     useEffect(() => {
         if (user && user.approval_status) {
             setApprovalStatus(user.approval_status);
-
-            // Check payment status
-            if (user.approval_status === 'approved' && user.paid_until) {
-                const expiryDate = new Date(user.paid_until);
-                const today = new Date();
-                expiryDate.setHours(0, 0, 0, 0);
-                today.setHours(0, 0, 0, 0);
-                setIsPaid(expiryDate >= today);
-            } else if (user.approval_status !== 'approved') {
-                setIsPaid(true); // Don't show expiration if not even approved yet
-            }
+            setIsPaid(isStudentSubscriptionActive(user));
         }
     }, [user]);
 
@@ -657,7 +648,7 @@ export default function StudentDashboard() {
                                             Download the official program guide and curriculum for {programDetails.title}.
                                         </p>
                                         <a
-                                            href={`${API_BASE_URL}${programDetails.curriculum_file}`}
+                                            href={resolveMediaUrl(programDetails.curriculum_file) || "#"}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className={`inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${isDark

@@ -1,6 +1,7 @@
 "use client";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl } from "@/constants";
 import AuditTrailSection from "@/components/admin/AuditTrailSection";
+import { splitFundingStatus } from "@/utils/studentFundingForm";
 
 const ReadField = ({ label, value, isDark, colorClass = "", span = false }: {
     label: string;
@@ -140,7 +141,7 @@ export default function StudentViewModal({
                                                         Certificate Document
                                                     </label>
                                                     <a
-                                                        href={viewingStudent.certificate_document.startsWith('http') ? viewingStudent.certificate_document : `${API_BASE_URL}${viewingStudent.certificate_document}`}
+                                                        href={resolveMediaUrl(viewingStudent.certificate_document) || "#"}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="text-blue-500 hover:text-blue-600 flex items-center gap-2 mt-1"
@@ -168,11 +169,27 @@ export default function StudentViewModal({
                             Funding Information
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <ReadField label="Funding Status" value={viewingStudent.funding_status} isDark={isDark} />
+                            {(() => {
+                                const { paymentType, discountType } = splitFundingStatus(
+                                    viewingStudent.funding_status,
+                                    viewingStudent.scholarship_percentage
+                                );
+                                const discountLabel =
+                                    discountType === "full"
+                                        ? "Full scholarship (100%)"
+                                        : discountType === "partial"
+                                          ? `${viewingStudent.scholarship_percentage || "—"}%`
+                                          : "No discount";
+                                return (
+                                    <>
+                                        <ReadField label="Payment Type" value={paymentType} isDark={isDark} />
+                                        <ReadField label="Scholarship / Discount" value={discountLabel} isDark={isDark} />
+                                    </>
+                                );
+                            })()}
                             <ReadField label="Sponsorship Package" value={viewingStudent.sponsorship_package} isDark={isDark} />
                             <ReadField label="Funding Amount" value={viewingStudent.funding_amount} isDark={isDark} />
                             <ReadField label="Funding Month" value={viewingStudent.funding_month} isDark={isDark} />
-                            <ReadField label="Scholarship %" value={viewingStudent.scholarship_percentage ? `${viewingStudent.scholarship_percentage}%` : null} isDark={isDark} />
                         </div>
                     </div>
 

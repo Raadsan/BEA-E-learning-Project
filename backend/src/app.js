@@ -1,7 +1,8 @@
+import 'dotenv/config';
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
+import { isS3Enabled } from './utils/s3Service.js';
 
 // Routes
 import authRoutes from './routes/authRoutes.js';
@@ -48,7 +49,11 @@ import userRoutes from './routes/userRoutes.js';
 import waafiRoutes from './routes/waafiRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 
-dotenv.config();
+if (isS3Enabled()) {
+  console.log(`☁️  S3 uploads enabled: ${process.env.AWS_BUCKET_NAME}/${process.env.AWS_S3_UPLOAD_PREFIX || 'bea_uploads'}`);
+} else {
+  console.log('📁 Using local uploads folder (S3 not configured)');
+}
 
 const app = express();
 

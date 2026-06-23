@@ -17,7 +17,7 @@ export default function CheckoutPage() {
     const { isDark } = useDarkMode();
     const router = useRouter();
     const { showToast } = useToast();
-    const { data: user } = useGetCurrentUserQuery();
+    const { data: user, refetch: refetchUser } = useGetCurrentUserQuery();
     const { data: payments = [] } = useGetStudentPaymentsQuery(user?.id, { skip: !user?.id });
 
     const [createEvc] = useCreateEvcPaymentMutation();
@@ -67,15 +67,27 @@ export default function CheckoutPage() {
             const res = await createWaafi({
                 payerPhone: phone || "000000000",
                 amount: amountDue,
+                packageId: selectedPackage.id,
                 programId: selectedPackage.id,
                 studentEmail: user.email,
                 description: `${selectedPackage.package_name} for ${user.full_name}`
             }).unwrap();
 
             if (res.success) {
-                showToast(res.message || "Payment submitted! Access updated.", "success");
+                await refetchUser();
+                const months = res.monthsAdded || selectedPackage.duration_months;
+                const until = res.paidUntil
+                    ? new Date(res.paidUntil).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+                    : null;
+                showToast(
+                    res.message ||
+                        (until
+                            ? `Payment successful! ${months} month(s) added. Access until ${until}.`
+                            : "Payment successful! Your access has been renewed."),
+                    "success"
+                );
                 localStorage.removeItem("selectedUpgradePackage");
-                router.push("/portal/student/payments");
+                router.push("/portal/student");
             }
             if (res.requiresPin) {
                 showToast("Please enter the PIN on your phone to complete payment.", "info");

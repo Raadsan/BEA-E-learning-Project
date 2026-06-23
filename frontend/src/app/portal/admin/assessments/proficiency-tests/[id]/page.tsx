@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useGetProficiencyTestByIdQuery } from "@/lib/api/proficiencyTestApi";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl } from "@/constants";
 
 import Loader from "@/components/Loader";
 import { groupQuestionsByPartForAdminPreview } from "@/utils/testQuestions";
@@ -229,11 +229,7 @@ export default function ProficiencyTestDetailsPage() {
                                                         </div>
                                                         <audio controls className="h-8 flex-1 opacity-90">
                                                             <source
-                                                                src={
-                                                                    q.audioUrl?.startsWith("/")
-                                                                        ? `${API_BASE_URL}${q.audioUrl}`
-                                                                        : q.audioUrl
-                                                                }
+                                                                src={resolveMediaUrl(q.audioUrl) || ""}
                                                                 type="audio/mpeg"
                                                             />
                                                             Your browser does not support the audio element.

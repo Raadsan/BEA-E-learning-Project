@@ -15,7 +15,8 @@ import {
 } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
-import { API_URL } from "@/constants";
+import { resolveSubmissionFileUrl } from "@/constants";
+import { downloadSubmissionFile, openSubmissionFile } from "@/utils/submissionFiles";
 import { useAssignmentNow } from "@/hooks/useAssignmentNow";
 import {
     getAssignmentWindowStatus,
@@ -51,34 +52,12 @@ export default function OralAssignmentPage() {
 
     // Fetch audio for playback in grading view
     useEffect(() => {
-        let objectUrl = null;
-        const fetchAudio = async () => {
-            if (view === 'grading' && gradingSubmission?.file_url) {
-                setIsLoadingAudio(true);
-                try {
-                    const token = localStorage.getItem("token");
-                    const response = await fetch(`${API_URL}/files/download/${gradingSubmission.file_url}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (response.ok) {
-                        const blob = await response.blob();
-                        objectUrl = URL.createObjectURL(blob);
-                        setGradingAudioUrl(objectUrl);
-                    }
-                } catch (error) {
-                    console.error("Error fetching audio preview:", error);
-                } finally {
-                    setIsLoadingAudio(false);
-                }
-            }
-        };
-        fetchAudio();
-        return () => {
-            if (objectUrl) {
-                URL.revokeObjectURL(objectUrl);
-                setGradingAudioUrl(null);
-            }
-        };
+        if (view === "grading" && gradingSubmission?.file_url) {
+            setGradingAudioUrl(resolveSubmissionFileUrl(gradingSubmission.file_url));
+            setIsLoadingAudio(false);
+        } else {
+            setGradingAudioUrl(null);
+        }
     }, [view, gradingSubmission]);
 
     // Scroll Lock when Modal is open
@@ -288,31 +267,21 @@ export default function OralAssignmentPage() {
     const handleDownloadFile = async (fileUrl) => {
         if (!fileUrl) return;
         try {
-            const token = localStorage.getItem("token");
-            const response = await fetch(`${API_URL}/files/download/${fileUrl}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) throw new Error("Failed to download file");
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            const fileNameParts = fileUrl.split('-');
-            const displayFileName = fileNameParts.length > 2 ? fileNameParts.slice(2).join('-') : fileUrl;
-
-            a.download = displayFileName;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+            await downloadSubmissionFile(fileUrl);
             showToast("Download started", "success");
         } catch (error) {
             console.error("Download error:", error);
             showToast("Failed to download file. Please try again.", "error");
+        }
+    };
+
+    const handleOpenFile = async (fileUrl) => {
+        if (!fileUrl) return;
+        try {
+            await openSubmissionFile(fileUrl);
+        } catch (error) {
+            console.error("Open file error:", error);
+            showToast("Could not open this file.", "error");
         }
     };
 
@@ -451,7 +420,7 @@ export default function OralAssignmentPage() {
                 if (!row) return "No File";
                 return row.file_url ? (
                     <button
-                        onClick={() => handleDownloadFile(row.file_url)}
+                        onClick={() => handleOpenFile(row.file_url)}
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline text-sm"
                     >
                         {row.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (

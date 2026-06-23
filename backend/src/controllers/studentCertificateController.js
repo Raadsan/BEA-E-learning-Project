@@ -3,6 +3,7 @@ import { PDFDocument, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import fs from 'fs';
 import path from 'path';
+import { readStoredFileBuffer } from '../utils/fileStorage.js';
 import {
     GLOBAL_CERTIFICATE_TARGET_ID,
     GLOBAL_CERTIFICATE_TARGET_TYPE,
@@ -229,11 +230,11 @@ export const downloadCertificate = async (req, res) => {
         });
         const fieldsConfig = normalizeFieldsConfig(cert.fields_config, cert);
 
-        const templatePath = path.join(process.cwd(), cert.template_url.replace(/^\//, ''));
-        if (!fs.existsSync(templatePath)) return res.status(404).json({ error: 'Template file not found' });
+        const templateBytes = await readStoredFileBuffer(cert.template_url);
+        if (!templateBytes) return res.status(404).json({ error: "Template file not found" });
 
-        const templateBytes = fs.readFileSync(templatePath);
-        const isPdf = cert.template_url.toLowerCase().endsWith('.pdf');
+        const templateRef = cert.template_url.toLowerCase();
+        const isPdf = templateRef.endsWith(".pdf");
 
         let pdfDoc;
         let firstPage;

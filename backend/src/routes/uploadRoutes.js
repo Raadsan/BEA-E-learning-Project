@@ -1,6 +1,6 @@
 import express from "express";
 import { verifyToken } from "../controllers/authController.js";
-import { upload, uploadFile } from "../controllers/uploadController.js";
+import { upload, uploadFile, withStoredUpload } from "../controllers/uploadController.js";
 
 const router = express.Router();
 
@@ -11,15 +11,6 @@ const isTeacherOrAdmin = (req, res, next) => {
     next();
 };
 
-const handleUpload = (req, res, next) => {
-    upload.single("file")(req, res, (err) => {
-        if (err) {
-            return res.status(400).json({ error: err.message || "File upload failed" });
-        }
-        next();
-    });
-};
-
-router.post("/", verifyToken, isTeacherOrAdmin, handleUpload, uploadFile);
+router.post("/", verifyToken, isTeacherOrAdmin, withStoredUpload(upload.single("file")), uploadFile);
 
 export default router;

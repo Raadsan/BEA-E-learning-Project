@@ -9,7 +9,7 @@ import {
     useGetAssignmentsQuery
 } from "@/lib/api/assignmentApi";
 import { useToast } from "@/components/Toast";
-import { API_BASE_URL, API_URL } from "@/constants";
+import { API_URL, resolveMediaUrl } from "@/constants";
 
 import { useDarkMode } from "@/context/ThemeContext";
 
@@ -280,7 +280,7 @@ function OralAssignmentCreateContent() {
                                         <div className="flex-1">
                                             <p className="font-medium text-sm">Preview Uploaded Audio</p>
                                             <audio controls className="w-full mt-2 h-8">
-                                                <source src={`${API_BASE_URL}${formData.audioUrl}`} />
+                                                <source src={resolveMediaUrl(formData.audioUrl) || ""} />
                                             </audio>
                                         </div>
                                     </div>

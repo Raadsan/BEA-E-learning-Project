@@ -15,7 +15,7 @@ import { useGetGlobalCertificateQuery } from "@/lib/api/certificateApi";
 import { useToast } from "@/components/Toast";
 import Modal from "@/components/Modal";
 import Image from "next/image";
-import { API_BASE_URL, API_URL } from "@/constants";
+import { API_URL, resolveMediaUrl } from "@/constants";
 import SubprogramCurriculumMap from "@/components/student/SubprogramCurriculumMap";
 import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { buildLevelMapSubprograms, isLevelClickable, isTestPrepProgramName } from "@/utils/subprogramProgress";
@@ -281,16 +281,7 @@ export default function MyCoursesPage() {
     // Get program image from database
     const getProgramImage = () => {
         if (!studentProgram?.image) return '/images/My courses.jpg';
-
-        // If image path starts with /, use it directly with backend URL
-        if (studentProgram.image.startsWith('/')) {
-            return `${API_BASE_URL}${studentProgram.image}`;
-        }
-        // If image path doesn't start with /, add it
-        if (studentProgram.image.startsWith('http')) {
-            return studentProgram.image;
-        }
-        return `${API_BASE_URL}/${studentProgram.image}`;
+        return resolveMediaUrl(studentProgram.image) || '/images/My courses.jpg';
     };
 
     const programImage = getProgramImage();
@@ -364,7 +355,7 @@ export default function MyCoursesPage() {
 
                         {studentProgram?.curriculum_file && (
                             <a
-                                href={`${API_BASE_URL}${studentProgram.curriculum_file}`}
+                                href={resolveMediaUrl(studentProgram.curriculum_file) || "#"}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-[#010080] text-white text-sm font-bold rounded-2xl transition-all whitespace-nowrap shadow-xl"

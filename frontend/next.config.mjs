@@ -43,6 +43,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '**.amazonaws.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: '**',
       }
     ],

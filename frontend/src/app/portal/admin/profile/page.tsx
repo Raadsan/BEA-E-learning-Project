@@ -6,7 +6,7 @@ import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useUpdateAdminMutation } from "@/lib/api/adminApi";
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
-import { API_BASE_URL } from "@/constants";
+import { resolveProfileImageUrl } from "@/constants";
 
 export default function AdminProfilePage() {
   const { isDark } = useDarkMode();
@@ -124,11 +124,7 @@ export default function AdminProfilePage() {
   }
 
   const profileSrc = imagePreview
-    || (currentAdmin?.profile_picture || currentAdmin?.profile_image
-      ? ((currentAdmin.profile_picture || currentAdmin.profile_image).startsWith('http')
-        ? (currentAdmin.profile_picture || currentAdmin.profile_image)
-        : `${API_BASE_URL}${currentAdmin.profile_picture || currentAdmin.profile_image}`)
-      : null);
+    || resolveProfileImageUrl(currentAdmin?.profile_picture || currentAdmin?.profile_image);
 
   const displayName = currentAdmin?.full_name || `${currentAdmin?.first_name || ""} ${currentAdmin?.last_name || ""}`.trim() || currentAdmin?.username;
 

@@ -260,7 +260,7 @@ export default function GeneralStudentsPage() {
       await updateStudent({
         id: studentToAssign.student_id,
         class_id: parseInt(selectedClassId),
-        chosen_subprogram: parseInt(selectedLevelId)
+        chosen_subprogram: selectedLevelId === "" ? null : String(selectedLevelId),
       }).unwrap();
 
       showToast("Class assigned successfully!", "success");
@@ -401,7 +401,7 @@ export default function GeneralStudentsPage() {
         parent_relation: editFormData.parent_relation,
         parent_res_county: editFormData.parent_res_county,
         parent_res_city: editFormData.parent_res_city,
-        chosen_subprogram: editFormData.chosen_subprogram === "" ? null : parseInt(editFormData.chosen_subprogram),
+        chosen_subprogram: editFormData.chosen_subprogram === "" ? null : String(editFormData.chosen_subprogram),
         class_id: editFormData.class_id === "" ? null : parseInt(editFormData.class_id),
         approval_status: editFormData.approval_status,
         date_of_birth: editFormData.date_of_birth || null,
@@ -420,8 +420,12 @@ export default function GeneralStudentsPage() {
       handleCloseEditModal();
       refetch();
     } catch (error) {
-      console.error("Failed to update student:", error);
-      showToast(error?.data?.error || "Failed to update student.", "error");
+      const message =
+        error?.data?.error ||
+        (typeof error?.error === "string" ? error.error : null) ||
+        "Failed to update student.";
+      console.error("Failed to update student:", message, error);
+      showToast(message, "error");
     }
   };
 
@@ -481,7 +485,7 @@ export default function GeneralStudentsPage() {
             updateStudent({
               id: id,
               class_id: parseInt(bulkClassId),
-              chosen_subprogram: parseInt(bulkLevelId)
+              chosen_subprogram: bulkLevelId === "" ? null : String(bulkLevelId),
             }).unwrap()
           )
         );

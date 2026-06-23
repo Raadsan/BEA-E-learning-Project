@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
-import { API_URL } from "@/constants";
+import { resolveSubmissionFileUrl, resolveSubmissionDownloadUrl, API_URL } from "@/constants";
+import { openSubmissionFile } from "@/utils/submissionFiles";
 import { useToast } from "@/components/Toast";
 import {
     getAssignmentTimeStatus,
@@ -269,8 +270,14 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
 
         const isQuiz = !!selectedAssignment?.questions;
         const contentToSubmit = isQuiz ? quizAnswers : submissionContent;
+        const hasOralFile = type === "oral_assignment" && !!uploadedFile;
 
-        if (!auto && !isQuiz && !String(contentToSubmit || "").trim()) {
+        if (type === "oral_assignment" && !uploadedFile && !auto) {
+            showToast("Please upload an audio or video file before submitting.", "error");
+            return;
+        }
+
+        if (!auto && !isQuiz && !hasOralFile && !String(contentToSubmit || "").trim()) {
             showToast("Please write something before submitting.", "error");
             return;
         }
@@ -374,29 +381,8 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
     const handleDownloadFeedbackFile = async (fileUrl) => {
         if (!fileUrl) return;
         try {
-            const token = localStorage.getItem("token");
-            const response = await fetch(`${API_URL}/files/download/${fileUrl}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) throw new Error("Failed to download file");
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            // Extract original filename if possible (after the unique suffix)
-            const fileNameParts = fileUrl.split('-');
-            const displayFileName = fileNameParts.length > 2 ? fileNameParts.slice(2).join('-') : fileUrl;
-
-            a.download = displayFileName;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            showToast("Download started", "success");
+            await openSubmissionFile(fileUrl);
+            showToast("Opening file...", "success");
         } catch (error) {
             console.error("Download error:", error);
             showToast("Failed to download file. Please try again.", "error");
@@ -626,9 +612,9 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                         </div>
                                         {selectedAssignment.file_url ? (
                                             selectedAssignment.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
-                                                <video controls className="w-full rounded-lg" src={`${API_URL}/files/download/${selectedAssignment.file_url}`} />
+                                                <video controls className="w-full rounded-lg" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} />
                                             ) : (
-                                                <audio controls className="w-full" src={`${API_URL}/files/download/${selectedAssignment.file_url}`} />
+                                                <audio controls className="w-full" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} />
                                             )
                                         ) : (
                                             <p className="text-sm italic opacity-50">No file submitted.</p>

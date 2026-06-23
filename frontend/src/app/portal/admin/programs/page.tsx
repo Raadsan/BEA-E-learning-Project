@@ -8,7 +8,7 @@ import { useGetProgramsQuery, useCreateProgramMutation, useUpdateProgramMutation
 import { studentApi } from "@/lib/api/studentApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl } from "@/constants";
 
 // Extracted Components
 import ProgramForm from "@/components/admin/programs/ProgramForm";
@@ -53,9 +53,9 @@ export default function ProgramsPage() {
 
   const programs = backendPrograms?.map((program) => ({
     ...program,
-    image: program.image ? `${API_BASE_URL}${program.image}` : null,
-    video: program.video ? `${API_BASE_URL}${program.video}` : null,
-    curriculum_file: program.curriculum_file ? `${API_BASE_URL}${program.curriculum_file}` : null,
+    image: program.image ? resolveMediaUrl(program.image) : null,
+    video: program.video ? resolveMediaUrl(program.video) : null,
+    curriculum_file: program.curriculum_file ? resolveMediaUrl(program.curriculum_file) : null,
   })) || [];
 
   // Filter & Sort Logic

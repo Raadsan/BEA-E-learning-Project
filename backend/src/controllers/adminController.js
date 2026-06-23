@@ -1,6 +1,7 @@
 import prisma from '../lib/prisma.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { getStoredFileUrl } from '../utils/fileStorage.js';
 import { validateEmailRobust } from '../utils/emailValidator.js';
 import { validatePassword, passwordPolicyMessage } from '../utils/passwordValidator.js';
 import {
@@ -210,7 +211,7 @@ export const updateAdmin = async (req, res) => {
         delete data.updated_by;
         delete data.updated_by_name;
 
-        if (req.file) data.profile_picture = `/uploads/${req.file.filename}`;
+        if (req.file) data.profile_picture = getStoredFileUrl(req.file);
 
         const nextRole = data.role || existing.role || 'super';
         if (nextRole === 'technical' || existing.role === 'technical') {

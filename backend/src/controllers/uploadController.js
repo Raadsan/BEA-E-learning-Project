@@ -1,51 +1,95 @@
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import multer from "multer";
+import path from "path";
+import { persistRequestUploads, getStoredFileUrl } from "../utils/fileStorage.js";
 
-// Configure storage
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadDir = 'uploads/';
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
+const ALLOWED_EXTENSIONS = new Set([
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".txt",
+    ".mp3",
+    ".wav",
+    ".m4a",
+    ".ogg",
+    ".webm",
+    ".mp4",
+    ".mov",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".webp",
+]);
+
+const isAllowedUpload = (file) => {
+    const mimetype = file.mimetype || "";
+    const ext = path.extname(file.originalname || "").toLowerCase();
+
+    if (
+        mimetype.startsWith("audio/") ||
+        mimetype.startsWith("video/") ||
+        mimetype.startsWith("image/") ||
+        mimetype === "application/pdf" ||
+        mimetype === "application/msword" ||
+        mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        mimetype === "text/plain"
+    ) {
+        return true;
     }
-});
 
-// File filter
+    // Windows often reports Office files as octet-stream or zip
+    if (
+        (mimetype === "application/octet-stream" || mimetype === "application/zip") &&
+        ALLOWED_EXTENSIONS.has(ext)
+    ) {
+        return true;
+    }
+
+    return false;
+};
+
 const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('audio/') ||
-        file.mimetype.startsWith('video/') ||
-        file.mimetype.startsWith('image/') ||
-        file.mimetype === 'application/pdf' ||
-        file.mimetype === 'application/msword' ||
-        file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    if (isAllowedUpload(file)) {
         cb(null, true);
     } else {
-        cb(new Error('Invalid file type. Only Audio, Video, Images, and PDFs are allowed.'), false);
+        cb(new Error("Invalid file type. Only audio, video, images, PDF, Word, and text files are allowed."), false);
     }
 };
 
 export const upload = multer({
-    storage: storage,
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
-    fileFilter: fileFilter
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 },
+    fileFilter,
 });
+
+export const withStoredUpload =
+    (multerMiddleware) =>
+    (req, res, next) => {
+        multerMiddleware(req, res, async (err) => {
+            if (err) {
+                return res.status(400).json({ error: err.message || "File upload failed" });
+            }
+
+            try {
+                await persistRequestUploads(req);
+                next();
+            } catch (storageErr) {
+                console.error("File storage error:", storageErr);
+                return res.status(500).json({ error: storageErr.message || "File upload failed" });
+            }
+        });
+    };
 
 export const uploadFile = (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-        const fileUrl = `/uploads/${req.file.filename}`;
+
+        const fileUrl = getStoredFileUrl(req.file);
         res.json({
             message: "File uploaded successfully",
             url: fileUrl,
             filename: req.file.filename,
-            mimetype: req.file.mimetype
+            mimetype: req.file.mimetype,
         });
     } catch (error) {
         console.error("Upload error:", error);

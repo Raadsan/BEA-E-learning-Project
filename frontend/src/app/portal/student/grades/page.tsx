@@ -8,6 +8,7 @@ import { useToast } from "@/components/Toast";
 import DataTable from "@/components/DataTable";
 import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { API_URL } from "@/constants";
+import { openSubmissionFile } from "@/utils/submissionFiles";
 import { getAssignmentWindowStatus } from "@/utils/assignmentTime";
 
 export default function GradesPage() {
@@ -205,20 +206,8 @@ export default function GradesPage() {
   const handleDownloadFeedbackFile = async (fileUrl) => {
     if (!fileUrl) return;
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/files/download/${fileUrl}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileUrl.split('/').pop();
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
+      await openSubmissionFile(fileUrl);
+    } catch {
       showToast("Failed to download file", "error");
     }
   };

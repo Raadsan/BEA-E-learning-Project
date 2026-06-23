@@ -7,7 +7,7 @@ import Loader from "@/components/Loader";
 import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useToast } from "@/components/Toast";
-import { API_URL } from "@/constants";
+import { API_URL, resolveMediaUrl } from "@/constants";
 
 export default function TakeExamPage() {
     const { isDark } = useDarkMode();
@@ -274,46 +274,16 @@ export default function TakeExamPage() {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    // Authenticated Audio Fetching
+    // Audio via S3 stream proxy
     useEffect(() => {
         const currentStep = flattenedSteps[currentStepIdx];
         if (currentStep?.type?.startsWith("listening") && currentStep.audioUrl) {
-            const fetchAudio = async () => {
-                setIsLoadingAudio(true);
-                try {
-                    const token = localStorage.getItem('token');
-                    const filename = currentStep.audioUrl.split('/').pop();
-                    const response = await fetch(`${API_URL}/files/download/${filename}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (!response.ok) throw new Error('Failed to fetch audio');
-
-                    const blob = await response.blob();
-                    const objectUrl = URL.createObjectURL(blob);
-                    setAudioUrl(objectUrl);
-                } catch (err) {
-                    console.error('Audio fetch error:', err);
-                    showToast("Failed to load audio file", "error");
-                } finally {
-                    setIsLoadingAudio(false);
-                }
-            };
-
-            fetchAudio();
-
-            return () => {
-                if (audioUrl) {
-                    URL.revokeObjectURL(audioUrl);
-                    setAudioUrl(null);
-                }
-            };
-        } else {
-            setAudioUrl(null);
+            setAudioUrl(resolveMediaUrl(currentStep.audioUrl));
+            setIsLoadingAudio(false);
+            return;
         }
-    }, [currentStepIdx, flattenedSteps, showToast]);
+        setAudioUrl(null);
+    }, [currentStepIdx, flattenedSteps]);
 
     const handleFinalSubmit = async (auto = false) => {
         try {

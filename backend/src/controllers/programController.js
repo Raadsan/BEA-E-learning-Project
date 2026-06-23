@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma.js';
+import { getStoredFileUrl } from '../utils/fileStorage.js';
 import fs from "fs";
 import path from "path";
 import {
@@ -22,9 +23,9 @@ export const createProgram = async (req, res) => {
     const videoFile = files.find(f => f.fieldname === 'video');
     const curriculumFile = files.find(f => f.fieldname === 'curriculum');
     
-    const image = imageFile ? `/uploads/${imageFile.filename}` : null;
-    const video = videoFile ? `/uploads/${videoFile.filename}` : null;
-    const curriculum_file = curriculumFile ? `/uploads/${curriculumFile.filename}` : null;
+    const image = imageFile ? getStoredFileUrl(imageFile) : null;
+    const video = videoFile ? getStoredFileUrl(videoFile) : null;
+    const curriculum_file = curriculumFile ? getStoredFileUrl(curriculumFile) : null;
 
     const { title, description, status, price, discount, test_required, show_on_website } = req.body;
     if (!title) return res.status(400).json({ error: "Title is required" });
@@ -89,9 +90,9 @@ export const updateProgram = async (req, res) => {
     const curriculumFile = files.find(f => f.fieldname === 'curriculum');
 
     const data = { ...req.body };
-    if (imageFile) data.image = `/uploads/${imageFile.filename}`;
-    if (videoFile) data.video = `/uploads/${videoFile.filename}`;
-    if (curriculumFile) data.curriculum_file = `/uploads/${curriculumFile.filename}`;
+    if (imageFile) data.image = getStoredFileUrl(imageFile);
+    if (videoFile) data.video = getStoredFileUrl(videoFile);
+    if (curriculumFile) data.curriculum_file = getStoredFileUrl(curriculumFile);
 
     if (data.price) data.price = parseFloat(data.price);
     if (data.discount) data.discount = parseFloat(data.discount);

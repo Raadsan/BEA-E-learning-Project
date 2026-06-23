@@ -6,6 +6,7 @@ import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetStudentPaymentsQuery } from "@/lib/api/paymentApi";
+import { isStudentSubscriptionActive } from "@/utils/studentPayment";
 import Loader from "@/components/Loader";
 
 // Icon Components for consistent look
@@ -45,15 +46,7 @@ export default function StudentPaymentsPage() {
     .filter((p) => p.status === "paid" || p.status === "completed")
     .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
-  // Calculate payment status
-  let isPaid = true;
-  if (user?.approval_status === 'approved' && user?.paid_until) {
-    const expiryDate = new Date(user.paid_until);
-    const today = new Date();
-    expiryDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    isPaid = expiryDate >= today;
-  }
+  const isPaid = isStudentSubscriptionActive(user);
 
   // Stats for the summary boxes (Refined design)
   const stats = [

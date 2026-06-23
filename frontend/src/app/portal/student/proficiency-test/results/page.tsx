@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetStudentProficiencyResultsQuery, useGetProficiencyTestByIdQuery } from "@/lib/api/proficiencyTestApi";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl } from "@/constants";
 
 export default function ProficiencyResultsPage() {
     const router = useRouter();
@@ -104,7 +104,7 @@ export default function ProficiencyResultsPage() {
                                                 <>
                                                     {feedback.essay && (
                                                         <a
-                                                            href={`${API_BASE_URL}${feedback.essay}`}
+                                                            href={resolveMediaUrl(feedback.essay) || "#"}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
@@ -117,7 +117,7 @@ export default function ProficiencyResultsPage() {
                                                     )}
                                                     {feedback.audio && (
                                                         <a
-                                                            href={`${API_BASE_URL}${feedback.audio}`}
+                                                            href={resolveMediaUrl(feedback.audio) || "#"}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
@@ -135,7 +135,7 @@ export default function ProficiencyResultsPage() {
                                         // Fallback for old simple string feedback
                                         return (
                                             <a
-                                                href={`${API_BASE_URL}${result.feedback}`}
+                                                href={resolveMediaUrl(result.feedback) || "#"}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm"
@@ -238,7 +238,7 @@ export default function ProficiencyResultsPage() {
                                                         </div>
                                                     </div>
                                                     <a
-                                                        href={`${API_BASE_URL}${result.feedback}`}
+                                                        href={resolveMediaUrl(result.feedback) || "#"}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm"

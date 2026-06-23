@@ -6,7 +6,7 @@ import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useUpdateStudentMutation } from "@/lib/api/studentApi";
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
-import { API_BASE_URL } from "@/constants";
+import { resolveProfileImageUrl } from "@/constants";
 
 export default function StudentProfilePage() {
   const { isDark } = useDarkMode();
@@ -121,7 +121,7 @@ export default function StudentProfilePage() {
 
   const profileSrc = imagePreview
     || (user?.profile_picture
-      ? (user.profile_picture.startsWith('http') ? user.profile_picture : `${API_BASE_URL}${user.profile_picture}`)
+      ? resolveProfileImageUrl(user.profile_picture)
       : null);
 
   const inputClass = (editing: boolean) => `w-full px-4 py-2.5 rounded-lg border transition-colors ${

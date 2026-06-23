@@ -368,7 +368,7 @@ export default function TestimonialsPage() {
                                             <div className={`w-16 h-16 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden bg-gray-50/50 ${isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'}`}>
                                                 {formData.image_url ? (
                                                     <div className="relative w-full h-full group">
-                                                        <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                                                        <img src={resolveMediaUrl(formData.image_url) || formData.image_url} alt="Preview" className="w-full h-full object-cover" />
                                                         <button
                                                             type="button"
                                                             onClick={() => setFormData(prev => ({ ...prev, image_url: "" }))}

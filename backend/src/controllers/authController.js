@@ -8,6 +8,10 @@ import { validatePassword, passwordPolicyMessage } from '../utils/passwordValida
 // import { createOtpSession, verifyOtpSession, refreshOtpCode } from '../utils/otpStore.js';
 // import { sendLoginOtp } from '../utils/emailService.js';
 import { isSuperAdminRole, parseAdminPermissions } from '../utils/adminPermissions.js';
+import {
+  enforcePartialDiscountAccessRules,
+  resolveStudentAccessState,
+} from '../utils/studentPaymentUtils.js';
 
 function buildAdminAuthUser(admin) {
   const adminRole = admin.role || 'super';
@@ -290,36 +294,43 @@ export const getCurrentUser = async (req, res) => {
         break;
       }
 
-      case 'student':
-        user = await prisma.students.findUnique({ where: { student_id: userId } });
-        if (user) {
-          const programDetails = await prisma.programs.findFirst({ where: { title: user.chosen_program } });
-          const certificatesCount = await prisma.issued_certificates.count({ where: { student_id: user.student_id } });
-          const completedCoursesCount = user.completed_subprograms ? user.completed_subprograms.split(',').filter(s => s.trim()).length : 0;
+      case 'student': {
+        const studentRow = await prisma.students.findUnique({ where: { student_id: userId } });
+        if (studentRow) {
+          const programDetails = await prisma.programs.findFirst({ where: { title: studentRow.chosen_program } });
+          const certificatesCount = await prisma.issued_certificates.count({ where: { student_id: studentRow.student_id } });
+          const completedCoursesCount = studentRow.completed_subprograms
+            ? studentRow.completed_subprograms.split(',').filter((s) => s.trim()).length
+            : 0;
+
+          const accessRow = await resolveStudentAccessState(prisma, studentRow, {
+            persist: true,
+          });
 
           user = {
-            id: user.student_id,
-            full_name: user.full_name,
-            email: user.email,
+            id: accessRow.student_id,
+            full_name: accessRow.full_name,
+            email: accessRow.email,
             role: 'student',
-            phone: user.phone,
-            residency_country: user.residency_country,
-            residency_city: user.residency_city,
-            chosen_program: user.chosen_program,
-            chosen_subprogram: user.chosen_subprogram,
-            completed_subprograms: user.completed_subprograms,
-            sponsor_name: user.sponsor_name,
-            approval_status: user.approval_status,
-            class_id: user.class_id,
-            profile_picture: user.profile_picture,
-            paid_until: user.paid_until,
-            funding_status: user.funding_status,
-            scholarship_percentage: user.scholarship_percentage,
-            expiry_date: user.expiry_date,
-            created_at: user.created_at,
+            phone: accessRow.phone,
+            residency_country: accessRow.residency_country,
+            residency_city: accessRow.residency_city,
+            chosen_program: accessRow.chosen_program,
+            chosen_program_id: programDetails?.id ?? null,
+            chosen_subprogram: accessRow.chosen_subprogram,
+            completed_subprograms: accessRow.completed_subprograms,
+            sponsor_name: accessRow.sponsor_name,
+            approval_status: accessRow.approval_status,
+            class_id: accessRow.class_id,
+            profile_picture: accessRow.profile_picture,
+            paid_until: accessRow.paid_until,
+            funding_status: accessRow.funding_status,
+            scholarship_percentage: accessRow.scholarship_percentage,
+            expiry_date: accessRow.expiry_date,
+            created_at: accessRow.created_at,
             program_test_required: programDetails?.test_required || 'none',
             certificates_count: certificatesCount,
-            completed_courses_count: completedCoursesCount
+            completed_courses_count: completedCoursesCount,
           };
         } else {
           user = await prisma.IELTSTOEFL.findUnique({ where: { student_id: userId } });
@@ -344,6 +355,7 @@ export const getCurrentUser = async (req, res) => {
           }
         }
         break;
+      }
 
       case 'proficiency_student':
         user = await prisma.ProficiencyTestStudents.findUnique({ where: { student_id: userId } });

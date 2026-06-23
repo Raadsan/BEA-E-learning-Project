@@ -8,7 +8,7 @@ import {
     useUpdateProficiencyTestMutation
 } from "@/lib/api/proficiencyTestApi";
 import { useUploadFileMutation } from "@/lib/api/uploadApi";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl } from "@/constants";
 
 import { useToast } from "@/components/Toast";
 import { v4 as uuidv4 } from "uuid";
@@ -598,7 +598,7 @@ export default function CreateProficiencyTestPage() {
                                             {currentAudio.audioUrl && (
                                                 <div className="mt-2 text-xs flex items-center gap-2">
                                                     <audio controls className="h-8 flex-1">
-                                                        <source src={`${API_BASE_URL}${currentAudio.audioUrl}`} />
+                                                        <source src={resolveMediaUrl(currentAudio.audioUrl) || ""} />
                                                     </audio>
                                                 </div>
                                             )}

@@ -5,6 +5,7 @@ import DataTable from "@/components/DataTable";
 import { useGetUsersQuery, useBulkActionUsersMutation } from "@/lib/api/userApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import { resolveProfileImageUrl } from "@/constants";
 
 export default function UsersPage() {
   const { isDark } = useDarkMode();
@@ -417,7 +418,7 @@ export default function UsersPage() {
               <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-100/50 dark:bg-gray-700/20 border border-gray-200 dark:border-gray-700">
                 {viewingUser.profile_picture ? (
                   <img
-                    src={viewingUser.profile_picture}
+                    src={resolveProfileImageUrl(viewingUser.profile_picture) || ""}
                     alt={viewingUser.full_name}
                     className="w-16 h-16 rounded-full object-cover border-2 border-blue-500 shadow-sm"
                   />

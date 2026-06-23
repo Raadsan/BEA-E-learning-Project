@@ -1,118 +1,150 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
-import { mapPackagePrograms, getPackagePriceForStudent } from "@/utils/studentPayment";
+import { useGetPaymentPackagesQuery } from "@/lib/api/paymentPackageApi";
+import { getStudentUpgradePackages, isStudentSubscriptionActive } from "@/utils/studentPayment";
+import StudentPageHeader from "@/components/student/StudentPageHeader";
+import Loader from "@/components/Loader";
 
 export default function UpgradePaymentPage() {
-    const { isDark } = useDarkMode();
-    const router = useRouter();
-    const { showToast } = useToast();
-    const { data: user } = useGetCurrentUserQuery();
-    const { data: packages = [] } = useGetPaymentPackagesQuery();
+  const { isDark } = useDarkMode();
+  const router = useRouter();
+  const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
+  const { data: packages = [], isLoading: packagesLoading } = useGetPaymentPackagesQuery();
 
-    const studentPackages = packages
-        .map((pkg) => mapPackagePrograms(pkg))
-        .map((pkg) => {
-        const progMatch = pkg.programs?.find((p) => p.title === user?.chosen_program);
-        if (!progMatch) return null;
-        const studentPrice = getPackagePriceForStudent(pkg, user?.chosen_program, user);
-        return {
-            ...pkg,
-            studentPrice,
-            originalPrice: Number(progMatch.price || 0) * (pkg.duration_months || 1),
-        };
-    }).filter(Boolean)
-        .sort((a, b) => (a.duration_months || 0) - (b.duration_months || 0));
+  const isPaid = isStudentSubscriptionActive(user);
 
-    const handleUpgradeClick = (pkg) => {
-        localStorage.setItem("selectedUpgradePackage", JSON.stringify(pkg));
-        router.push("/portal/student/payments/upgrade/checkout");
-    };
+  const studentPackages = useMemo(
+    () => getStudentUpgradePackages(packages, user),
+    [packages, user]
+  );
 
+  const handleUpgradeClick = (pkg: { id: number }) => {
+    localStorage.setItem("selectedUpgradePackage", JSON.stringify(pkg));
+    router.push("/portal/student/payments/upgrade/checkout");
+  };
+
+  if (userLoading || packagesLoading) {
     return (
-        <div className={`min-h-screen transition-colors pt-4 pb-20 w-full px-6 sm:px-10 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-            <div className="w-full">
-                <Link
-                    href="/portal/student/payments"
-                    className="inline-flex items-center gap-2 text-sm mb-4 hover:underline text-[#010080]"
-                >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Back to History
-                </Link>
-                <StudentPageHeader
-                    title="Upgrade Packages"
-                    description={`Choose your renewal cycle for ${user?.chosen_program || "your program"}.`}
-                />
-
-                {/* Packages Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {studentPackages.map((pkg) => (
-                        <div
-                            key={pkg.id}
-                            className={`relative flex flex-col p-8 rounded-2xl border transition-all duration-500 min-h-[580px] ${isDark
-                                ? 'bg-gray-800 border-gray-700 hover:border-blue-500/50'
-                                : 'bg-white border-gray-200 hover:border-blue-100 shadow-sm'
-                                } hover:-translate-y-4 hover:shadow-2xl hover:z-10`}
-                        >
-                            <div className="mb-6">
-                                <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                    {pkg.package_name}
-                                </h3>
-
-                                {/* Main Pricing Display: $120/6month (Big Price) */}
-                                <div className="flex items-baseline gap-1 mt-6">
-                                    <span className={`text-5xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>
-                                        ${pkg.studentPrice.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                                    </span>
-                                    <span className={`text-lg font-medium opacity-50`}>
-                                        /{pkg.duration_months}month
-                                    </span>
-                                </div>
-                                {pkg.originalPrice > pkg.studentPrice && (
-                                    <p className="text-sm text-green-600 mt-2 font-semibold">
-                                        Scholarship/discount applied (was ${pkg.originalPrice.toFixed(2)})
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* Features List */}
-                            <div className={`flex-1 mb-8 space-y-4 border-t border-b py-6 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-                                {(pkg.description || "• Standard access\n• Study materials\n• Academic support").split('\n').filter(line => line.trim()).map((line, idx) => (
-                                    <div key={idx} className="flex items-start gap-3">
-                                        <div className="mt-1 flex-shrink-0">
-                                            <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                            </svg>
-                                        </div>
-                                        <span className={`text-sm opacity-80`}>
-                                            {line.replace(/^[•*-]\s*/, '').trim()}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <button
-                                onClick={() => handleUpgradeClick(pkg)}
-                                className={`w-full py-4 rounded-xl font-normal uppercase tracking-wider text-xs transition-all ${isDark ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-[#010080] text-white hover:bg-blue-900 shadow-sm'
-                                    }`}
-                            >
-                                UPGRADE PAYMENT
-                            </button>
-                        </div>
-                    ))}
-
-                    {studentPackages.length === 0 && (
-                        <div className="col-span-full py-20 text-center opacity-40 italic">
-                            No upgrade packages available for {user?.chosen_program} at this time.
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
+      <div className={`min-h-screen pt-4 w-full px-6 sm:px-10 pb-20 ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
+        <Loader fullPage />
+      </div>
     );
+  }
+
+  return (
+    <div
+      className={`min-h-screen transition-colors pt-4 pb-20 w-full px-6 sm:px-10 ${
+        isDark ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+      }`}
+    >
+      <div className="w-full">
+        <Link
+          href="/portal/student/payments"
+          className="inline-flex items-center gap-2 text-sm mb-4 hover:underline text-[#010080]"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to History
+        </Link>
+
+        {!isPaid && (
+          <div className="mb-8 rounded-xl p-6 bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200 text-amber-950">
+            <p className="text-xs font-bold uppercase tracking-wider mb-1">Payment expired</p>
+            <p className="text-sm font-medium">
+              Your access has ended. Choose a package below to renew and unlock your courses again.
+            </p>
+          </div>
+        )}
+
+        <StudentPageHeader
+          title="Upgrade Packages"
+          description={`Choose your renewal cycle for ${user?.chosen_program || "your program"}.`}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {studentPackages.map((pkg) => (
+            <div
+              key={pkg.id}
+              className={`relative flex flex-col p-8 rounded-2xl border transition-all duration-500 min-h-[580px] ${
+                isDark
+                  ? "bg-gray-800 border-gray-700 hover:border-blue-500/50"
+                  : "bg-white border-gray-200 hover:border-blue-100 shadow-sm"
+              } hover:-translate-y-4 hover:shadow-2xl hover:z-10`}
+            >
+              <div className="mb-6">
+                <h3 className={`text-xl font-semibold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
+                  {pkg.package_name}
+                </h3>
+
+                <div className="flex items-baseline gap-1 mt-6">
+                  <span className={`text-5xl font-bold ${isDark ? "text-white" : "text-black"}`}>
+                    ${pkg.studentPrice.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                  </span>
+                  <span className="text-lg font-medium opacity-50">/{pkg.duration_months} month</span>
+                </div>
+                {pkg.originalPrice > pkg.studentPrice && (
+                  <p className="text-sm text-green-600 mt-2 font-semibold">
+                    Scholarship/discount applied (was ${pkg.originalPrice.toFixed(2)})
+                  </p>
+                )}
+              </div>
+
+              <div
+                className={`flex-1 mb-8 space-y-4 border-t border-b py-6 ${
+                  isDark ? "border-gray-700" : "border-gray-100"
+                }`}
+              >
+                {(pkg.description || "• Standard access\n• Study materials\n• Academic support")
+                  .split("\n")
+                  .filter((line) => line.trim())
+                  .map((line, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <div className="mt-1 flex-shrink-0">
+                        <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <span className="text-sm opacity-80">{line.replace(/^[•*-]\s*/, "").trim()}</span>
+                    </div>
+                  ))}
+              </div>
+
+              <button
+                onClick={() => handleUpgradeClick(pkg)}
+                className={`w-full py-4 rounded-xl font-normal uppercase tracking-wider text-xs transition-all ${
+                  isDark
+                    ? "bg-blue-600 text-white hover:bg-blue-500"
+                    : "bg-[#010080] text-white hover:bg-blue-900 shadow-sm"
+                }`}
+              >
+                {isPaid ? "Upgrade Payment" : "Renew Access"}
+              </button>
+            </div>
+          ))}
+
+          {studentPackages.length === 0 && (
+            <div className="col-span-full py-16 text-center space-y-3">
+              <p className={`text-lg font-semibold ${isDark ? "text-gray-200" : "text-gray-700"}`}>
+                No packages found for your program
+              </p>
+              <p className="text-sm opacity-60 max-w-md mx-auto">
+                Program: <strong>{user?.chosen_program || "Not set"}</strong>. Ask admin to assign
+                payment packages to this program.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

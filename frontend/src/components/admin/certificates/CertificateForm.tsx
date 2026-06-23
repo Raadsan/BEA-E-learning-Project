@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/components/Toast";
 import { useUploadFileMutation } from "@/lib/api/uploadApi";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl } from "@/constants";
 import {
     CERTIFICATE_FIELD_KEYS,
     CERTIFICATE_FIELD_LABELS,
@@ -28,7 +28,7 @@ export default function CertificateForm({ isOpen, onClose, certificate, onSave, 
             setTemplateUrl(certificate.template_url || "");
             setFieldsConfig(normalizeFieldsConfig(certificate.fields_config, certificate));
             if (certificate.template_url) {
-                setPreviewUrl(`${API_BASE_URL}${certificate.template_url}`);
+                setPreviewUrl(resolveMediaUrl(certificate.template_url) || "");
             }
         } else {
             setTemplateUrl("");

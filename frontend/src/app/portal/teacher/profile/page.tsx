@@ -7,7 +7,7 @@ import { useUpdateTeacherMutation } from "@/lib/api/teacherApi";
 import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
 import Image from "next/image";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl, resolveProfileImageUrl } from "@/constants";
 
 export default function TeacherProfilePage() {
   const { isDark } = useDarkMode();
@@ -134,7 +134,7 @@ export default function TeacherProfilePage() {
   }
 
   const profileSrc = imagePreview
-    || (user?.profile_picture ? (user.profile_picture.startsWith('http') ? user.profile_picture : `${API_BASE_URL}${user.profile_picture}`) : null);
+    || resolveProfileImageUrl(user?.profile_picture);
 
   const inputClass = (editing: boolean) => `w-full px-4 py-2.5 rounded-lg border transition-colors ${
     editing

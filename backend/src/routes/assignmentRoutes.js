@@ -5,7 +5,7 @@ import {
   updateAssignment, deleteAssignment
 } from "../controllers/assignmentController.js";
 import { verifyToken } from "../controllers/authController.js";
-import { upload } from "../controllers/uploadController.js";
+import { upload, withStoredUpload } from "../controllers/uploadController.js";
 
 const router = express.Router();
 
@@ -30,8 +30,8 @@ router.post("/create", isTeacherOrAdmin, createAssignment);
 router.put("/update/:id", isTeacherOrAdmin, updateAssignment);
 router.delete("/delete/:id", isTeacherOrAdmin, deleteAssignment);
 
-router.post("/submit", upload.single("file"), submitAssignment);
-router.patch("/grade/:id", isTeacherOrAdmin, upload.single("feedbackFile"), gradeSubmission);
-router.put("/grade/:id", isTeacherOrAdmin, upload.single("feedbackFile"), gradeSubmission);
+router.post("/submit", withStoredUpload(upload.single("file")), submitAssignment);
+router.patch("/grade/:id", isTeacherOrAdmin, withStoredUpload(upload.single("feedbackFile")), gradeSubmission);
+router.put("/grade/:id", isTeacherOrAdmin, withStoredUpload(upload.single("feedbackFile")), gradeSubmission);
 
 export default router;

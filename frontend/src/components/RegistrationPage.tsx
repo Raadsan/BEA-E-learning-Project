@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl } from "@/constants";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
@@ -796,7 +796,7 @@ export default function RegistrationPage() {
                               <div className={`h-16 w-16 mb-4 rounded-xl overflow-hidden border ${isSelected ? 'border-blue-100 bg-blue-50' : 'border-gray-100 bg-gray-50'}`}>
                                 {program.image ? (
                                   <img
-                                    src={`${API_BASE_URL}${program.image}`}
+                                    src={resolveMediaUrl(program.image) || "/images/book1.jpg"}
                                     alt={program.title}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                   />

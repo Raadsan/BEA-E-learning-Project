@@ -8,7 +8,8 @@ import Link from "next/link";
 import { useGetAnnouncementsQuery } from "@/lib/api/announcementApi";
 import { useGetNotificationsQuery } from "@/lib/api/notificationApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
-import { API_BASE_URL } from "@/constants";
+import { resolveProfileImageUrl } from "@/constants";
+import { isStudentSubscriptionActive } from "@/utils/studentPayment";
 
 const EMPTY_LIST = [];
 
@@ -87,15 +88,7 @@ export default function StudentHeader({ onMenuClick, onNavigate }) {
   const unreadAnnouncementsCount = announcementList.filter((a) => !readAnnouncements.includes(a.id)).length;
   const unreadCount = unreadNotificationsCount + unreadAnnouncementsCount;
 
-  // Calculate payment status
-  let isPaid = true;
-  if (currentStudent?.approval_status === 'approved' && currentStudent?.paid_until) {
-    const expiryDate = new Date(currentStudent.paid_until);
-    const today = new Date();
-    expiryDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    isPaid = expiryDate >= today;
-  }
+  const isPaid = isStudentSubscriptionActive(currentStudent);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -181,7 +174,7 @@ export default function StudentHeader({ onMenuClick, onNavigate }) {
                 {currentStudent?.profile_picture ? (
                   <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors">
                     <img
-                      src={currentStudent.profile_picture.startsWith('http') ? currentStudent.profile_picture : `${API_BASE_URL}${currentStudent.profile_picture}`}
+                      src={resolveProfileImageUrl(currentStudent.profile_picture) || ""}
                       alt={currentStudent.full_name || "Student"}
                       className="w-full h-full object-cover"
                     />

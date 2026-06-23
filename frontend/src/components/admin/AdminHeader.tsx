@@ -7,7 +7,7 @@ import { useState } from "react";
 import Image from "next/image";
 
 import { useGetNotificationsQuery } from "@/lib/api/notificationApi";
-import { API_BASE_URL } from "@/constants";
+import { resolveProfileImageUrl } from "@/constants";
 
 export default function AdminHeader({ onMenuClick, onNavigate }) {
   const { isDark, toggleDarkMode } = useDarkMode();
@@ -99,7 +99,7 @@ export default function AdminHeader({ onMenuClick, onNavigate }) {
               {(currentAdmin?.profile_image || currentAdmin?.profile_picture) ? (
                 <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-600 group-hover:border-blue-500 transition-colors">
                   <img
-                    src={(currentAdmin.profile_image || currentAdmin.profile_picture).startsWith('http') ? (currentAdmin.profile_image || currentAdmin.profile_picture) : `${API_BASE_URL}${currentAdmin.profile_image || currentAdmin.profile_picture}`}
+                    src={resolveProfileImageUrl(currentAdmin.profile_image || currentAdmin.profile_picture) || ""}
                     alt={currentAdmin.first_name || currentAdmin.username || "Admin"}
                     className="w-full h-full object-cover"
                   />

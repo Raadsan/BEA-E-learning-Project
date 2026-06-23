@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma.js';
+import { getStoredFileUrl } from '../utils/fileStorage.js';
 
 const tableMapping = {
     'writing_task': { main: 'assignments', sub: 'assignment_submissions' },
@@ -64,7 +65,7 @@ const buildStudentAssignmentWhere = (type, class_id, resolvedSubprogramId) => {
 // GET ASSIGNMENTS
 export const getAssignments = async (req, res) => {
     try {
-        let { class_id, program_id, subprogram_id, type } = req.query;
+        let { class_id, program_id, subprogram_id, type, created_by } = req.query;
         const { userId, role } = req.user;
 
         const typesToQuery = type ? [type] : Object.keys(tableMapping);
@@ -113,6 +114,8 @@ export const getAssignments = async (req, res) => {
             } else {
                 if (class_id) where.class_id = parseInt(class_id);
                 if (program_id) where.program_id = parseInt(program_id);
+                if (subprogram_id) where.subprogram_id = parseInt(subprogram_id);
+                if (created_by) where.created_by = parseInt(created_by);
             }
 
             const assignments = await prisma[modelName].findMany({
@@ -208,6 +211,9 @@ export const createAssignment = async (req, res) => {
             } else if (type === 'oral_assignment' || type === 'course_work') {
                 prismaData.duration = data.duration ? parseInt(data.duration) : null;
             }
+            if (type === 'course_work' && data.unit) {
+                prismaData.unit = data.unit;
+            }
         }
 
         const created = await prisma[modelName].create({ data: prismaData });
@@ -225,8 +231,25 @@ export const submitAssignment = async (req, res) => {
         const subModelName = tableMapping[type]?.sub;
         if (!subModelName) return res.status(400).json({ error: "Invalid type" });
 
-        const file_url = req.file ? req.file.filename : null;
+        const file_url = req.file ? getStoredFileUrl(req.file) : null;
         const autoSubmitted = is_auto_submit === true || is_auto_submit === 'true';
+
+        if (!assignment_id || !type) {
+            return res.status(400).json({ error: "Assignment id and type are required" });
+        }
+
+        const parsedContent = typeof content === 'object' ? JSON.stringify(content) : (content ?? '');
+        const submissionPayload = {
+            content: parsedContent,
+            file_url: file_url || undefined,
+            submission_date: new Date(),
+            status: 'submitted',
+        };
+
+        // Only legacy writing_task submissions table has is_auto_submit
+        if (subModelName === 'assignment_submissions') {
+            submissionPayload.is_auto_submit = autoSubmitted;
+        }
 
         const submission = await prisma[subModelName].upsert({
             where: {
@@ -235,27 +258,19 @@ export const submitAssignment = async (req, res) => {
                     student_id
                 }
             },
-            update: {
-                content: typeof content === 'object' ? JSON.stringify(content) : (content ?? ''),
-                file_url: file_url || undefined,
-                submission_date: new Date(),
-                status: 'submitted',
-                is_auto_submit: autoSubmitted,
-            },
+            update: submissionPayload,
             create: {
                 assignment_id: parseInt(assignment_id),
                 student_id,
-                content: typeof content === 'object' ? JSON.stringify(content) : (content ?? ''),
+                ...submissionPayload,
                 file_url,
-                submission_date: new Date(),
-                status: 'submitted',
-                is_auto_submit: autoSubmitted,
             }
         });
 
         res.json({ message: "Submitted successfully", submission });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Submit assignment error:", err);
+        res.status(500).json({ error: err.message || "Failed to submit assignment" });
     }
 };
 
@@ -279,13 +294,13 @@ export const gradeSubmission = async (req, res) => {
         };
 
         if (req.file) {
-            const filePath = `/uploads/${req.file.filename}`;
+            const filePath = getStoredFileUrl(req.file);
             if (subModelName === "assignment_submissions") {
                 updateData.feedback = updateData.feedback
                     ? `${updateData.feedback}\n\nFeedback file: ${filePath}`
                     : `Feedback file: ${filePath}`;
             } else {
-                updateData.feedback_file_url = req.file.filename;
+                updateData.feedback_file_url = filePath;
             }
         }
 
@@ -475,6 +490,9 @@ export const updateAssignment = async (req, res) => {
                 prismaData.duration = data.duration ? parseInt(data.duration) : undefined;
             } else if (type === 'oral_assignment' || type === 'course_work') {
                 prismaData.duration = data.duration ? parseInt(data.duration) : undefined;
+            }
+            if (type === 'course_work' && data.unit !== undefined) {
+                prismaData.unit = data.unit || null;
             }
         }
 

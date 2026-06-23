@@ -6,12 +6,10 @@ import {
     getWaafiTransactionId
 } from '../utils/waafiPayment.js';
 import {
-    applyStudentDiscount,
-    computeFundingAmount,
-    getEffectiveMonthlyPrice,
+    calculateUpgradePrice,
+    computeNewPaidUntil,
     getProgramByTitle,
-    resolvePaidMonths,
-    addMonths,
+    mapMonthsToSponsorshipEnum,
 } from '../utils/studentPaymentUtils.js';
 
 async function extendSubscription(studentEmail, packageId, paidAmount) {
@@ -21,29 +19,17 @@ async function extendSubscription(studentEmail, packageId, paidAmount) {
 
         if (!student || !pkg) return null;
 
-        const durationMonths = parseInt(pkg.duration_months, 10) || 1;
-        const now = new Date();
-        const currentPaidUntil = student.paid_until ? new Date(student.paid_until) : now;
-        const baseDate = currentPaidUntil > now ? currentPaidUntil : now;
-        const newPaidUntil = addMonths(baseDate, durationMonths);
-
         const program = await getProgramByTitle(prisma, student.chosen_program);
-        const monthly = getEffectiveMonthlyPrice(program);
-        const baseTotal = monthly * durationMonths;
-        const expectedAmount = await computeFundingAmount(prisma, {
-            funding_status: student.funding_status,
-            scholarship_percentage: student.scholarship_percentage,
-            sponsorship_package: student.sponsorship_package,
-            chosen_program: student.chosen_program,
-            paid_months: durationMonths,
-        });
+        const { durationMonths, payableAmount: expectedAmount } = calculateUpgradePrice(student, program, pkg);
+        const newPaidUntil = computeNewPaidUntil(student.paid_until, durationMonths);
 
         const updated = await prisma.students.update({
             where: { student_id: student.student_id },
             data: {
                 paid_until: newPaidUntil,
+                sponsorship_package: mapMonthsToSponsorshipEnum(durationMonths),
                 funding_status: student.funding_status === 'Full Scholarship' ? 'Full Scholarship' : 'Paid',
-                funding_amount: paidAmount ?? expectedAmount ?? baseTotal,
+                funding_amount: paidAmount ?? expectedAmount,
                 funding_month: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
             },
         });
@@ -72,7 +58,7 @@ export const createEvcPayment = async (req, res) => {
                     amount: parseFloat(amount),
                     status: 'paid',
                     payer_phone: accountNumber,
-                    program_id: String(programId),
+                    program_id: String(packageId || programId),
                 }
             });
             await extendSubscription(student.email, programId, parseFloat(amount));
@@ -86,33 +72,43 @@ export const createEvcPayment = async (req, res) => {
 
 export const createWaafiPayment = async (req, res) => {
     try {
-        const { payerPhone, amount, programId, studentEmail } = req.body;
-        if (!payerPhone || amount === undefined || amount === null) {
-            return res.status(400).json({ success: false, error: 'Missing fields' });
-        }
+        const { payerPhone, amount, programId, studentEmail, packageId: bodyPackageId } = req.body;
+        const packageId = bodyPackageId ?? programId;
 
         const student = studentEmail
             ? await prisma.students.findUnique({ where: { email: studentEmail } })
             : null;
 
-        const pkg = programId
-            ? await prisma.payment_packages.findUnique({ where: { id: parseInt(programId, 10) } })
+        const pkg = packageId
+            ? await prisma.payment_packages.findUnique({ where: { id: parseInt(packageId, 10) } })
             : null;
 
-        let payableAmount = parseFloat(amount);
+        let payableAmount = 0;
         if (student && pkg) {
             const program = await getProgramByTitle(prisma, student.chosen_program);
-            const monthly = getEffectiveMonthlyPrice(program);
-            const baseTotal = monthly * (pkg.duration_months || 1);
-            payableAmount = applyStudentDiscount(baseTotal, student);
+            payableAmount = calculateUpgradePrice(student, program, pkg).payableAmount;
+        } else if (amount !== undefined && amount !== null) {
+            payableAmount = parseFloat(amount);
         }
 
-        if (payableAmount <= 0 && student) {
-            const updated = await extendSubscription(studentEmail, programId, 0);
+        if (payableAmount > 0 && !payerPhone) {
+            return res.status(400).json({ success: false, error: 'Missing mobile number' });
+        }
+
+        if (!student || !pkg) {
+            return res.status(400).json({ success: false, error: 'Student or package not found' });
+        }
+
+        if (payableAmount <= 0 && student && pkg) {
+            const updated = await extendSubscription(studentEmail, packageId, 0);
+            if (!updated) {
+                return res.status(500).json({ success: false, error: 'Could not extend subscription' });
+            }
             return res.json({
                 success: true,
                 transactionId: `SCHOLARSHIP-${Date.now()}`,
-                paidUntil: updated?.paid_until,
+                paidUntil: updated.paid_until,
+                monthsAdded: pkg.duration_months,
                 message: 'No payment required. Access extended.',
             });
         }
@@ -136,16 +132,20 @@ export const createWaafiPayment = async (req, res) => {
                     amount: payableAmount,
                     status: isSuccess ? 'paid' : 'failed',
                     payer_phone: payerPhone,
-                    program_id: String(programId),
+                    program_id: String(packageId || programId),
                 }
             });
 
             if (isSuccess) {
-                const updated = await extendSubscription(studentEmail, programId, payableAmount);
+                const updated = await extendSubscription(studentEmail, packageId || programId, payableAmount);
+                if (!updated) {
+                    return res.status(500).json({ success: false, error: 'Payment received but access could not be extended. Contact support.' });
+                }
                 return res.json({
                     success: true,
                     transactionId,
-                    paidUntil: updated?.paid_until,
+                    paidUntil: updated.paid_until,
+                    monthsAdded: pkg?.duration_months,
                     amount: payableAmount,
                     raw: json,
                 });

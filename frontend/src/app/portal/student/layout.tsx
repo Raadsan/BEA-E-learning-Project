@@ -8,8 +8,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useRouter, usePathname } from "next/navigation";
 import PortalNavProgress from "@/components/PortalNavProgress";
-import { usePortalNavFeedback } from "@/hooks/usePortalNavFeedback";
 import StudentRoutePrefetch from "@/components/student/StudentRoutePrefetch";
+import { usePortalNavFeedback } from "@/hooks/usePortalNavFeedback";
+import { isStudentSubscriptionActive } from "@/utils/studentPayment";
 
 function StudentLayoutContent({ children }) {
   const { isDark } = useDarkMode();
@@ -31,16 +32,7 @@ function StudentLayoutContent({ children }) {
       const approved = user.approval_status.toLowerCase() === 'approved';
       setIsApproved(approved);
 
-      // Check payment status if approved
-      let paid = true;
-      if (approved && user.paid_until) {
-        const expiryDate = new Date(user.paid_until);
-        const today = new Date();
-        // Set both to midnight for accurate day comparison
-        expiryDate.setHours(0, 0, 0, 0);
-        today.setHours(0, 0, 0, 0);
-        paid = expiryDate >= today;
-      }
+      const paid = isStudentSubscriptionActive(user);
       setIsPaid(paid);
 
       // Check if test window is expired

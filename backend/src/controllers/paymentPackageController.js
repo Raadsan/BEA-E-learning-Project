@@ -11,7 +11,8 @@ export const createPackage = async (req, res) => {
 export const getAllPackages = async (req, res) => {
     try {
         const packages = await prisma.payment_packages.findMany({
-            include: { program_payment_packages: { include: { programs: true } } }
+            include: { program_payment_packages: { include: { programs: true } } },
+            orderBy: { duration_months: "asc" },
         });
         res.json(packages.map(mapPackagePrograms));
     } catch (err) { res.status(500).json({ error: err.message }); }
