@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import {
@@ -13,8 +13,7 @@ import {
 } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
-import { openSubmissionFile } from "@/utils/submissionFiles";
-import { resolveSubmissionFileUrl } from "@/constants";
+import { openSubmissionFile, loadSubmissionPreviewUrl, downloadSubmissionFile } from "@/utils/submissionFiles";
 
 import DataTable from "@/components/DataTable";
 import { useAssignmentNow } from "@/hooks/useAssignmentNow";
@@ -53,6 +52,8 @@ export default function CourseWorkPage() {
         total_points: "100" // Default marks
     });
     const [isEditing, setIsEditing] = useState(false);
+    const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+    const [previewError, setPreviewError] = useState<string | null>(null);
 
     // Queries
     const { data: currentUser } = useGetCurrentUserQuery();
@@ -290,6 +291,40 @@ export default function CourseWorkPage() {
         setView("grading");
     };
 
+    useEffect(() => {
+        if (!gradingSubmission?.file_url || !/\.pdf$/i.test(gradingSubmission.file_url)) {
+            setPreviewBlobUrl(null);
+            setPreviewError(null);
+            return;
+        }
+
+        let cancelled = false;
+        let objectUrl: string | null = null;
+
+        setPreviewBlobUrl(null);
+        setPreviewError(null);
+
+        loadSubmissionPreviewUrl(gradingSubmission.file_url)
+            .then((url) => {
+                if (cancelled) {
+                    window.URL.revokeObjectURL(url);
+                    return;
+                }
+                objectUrl = url;
+                setPreviewBlobUrl(url);
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setPreviewError("Could not load this file. The upload may be missing or storage access is blocked.");
+                }
+            });
+
+        return () => {
+            cancelled = true;
+            if (objectUrl) window.URL.revokeObjectURL(objectUrl);
+        };
+    }, [gradingSubmission?.id, gradingSubmission?.file_url]);
+
     const handleGradeSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -310,43 +345,82 @@ export default function CourseWorkPage() {
         }
     };
 
-    const handleDownloadSubmissionFile = async (fileUrl) => {
+    const handleOpenSubmissionFile = async (fileUrl) => {
+        if (!fileUrl) return;
         try {
             await openSubmissionFile(fileUrl);
         } catch {
-            showToast("Could not open this file. Ask the student to submit again.", "error");
+            showToast("Could not open this file.", "error");
         }
+    };
+
+    const handleDownloadSubmissionFile = async (fileUrl) => {
+        if (!fileUrl) return;
+        try {
+            await downloadSubmissionFile(fileUrl);
+            showToast("Download started", "success");
+        } catch {
+            showToast("Could not download this file. Ask the student to submit again.", "error");
+        }
+    };
+
+    const renderFileActions = (fileUrl, compact = false) => {
+        if (!fileUrl) {
+            return <span className="text-xs text-gray-400 italic">No file</span>;
+        }
+
+        const btnClass = compact
+            ? "p-2 rounded-lg border transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+            : "p-2.5 rounded-lg border transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400";
+
+        return (
+            <div className="flex items-center gap-2">
+                <button
+                    type="button"
+                    onClick={() => handleOpenSubmissionFile(fileUrl)}
+                    className={btnClass}
+                    title="View file"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleDownloadSubmissionFile(fileUrl)}
+                    className={btnClass}
+                    title="Download file"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                </button>
+            </div>
+        );
     };
 
     const renderSubmissionContent = () => {
         if (!gradingSubmission) return null;
         if (gradingSubmission.file_url) {
-            const streamUrl = resolveSubmissionFileUrl(gradingSubmission.file_url);
             const isPdf = /\.pdf$/i.test(gradingSubmission.file_url);
 
             return (
                 <div className="space-y-4">
-                    {streamUrl && isPdf && (
+                    {isPdf && previewError && (
+                        <p className="text-sm text-rose-600 dark:text-rose-400 font-medium">{previewError}</p>
+                    )}
+                    {isPdf && !previewError && !previewBlobUrl && (
+                        <p className="text-sm text-gray-500">Loading submitted file…</p>
+                    )}
+                    {isPdf && previewBlobUrl && (
                         <iframe
-                            src={streamUrl}
+                            src={previewBlobUrl}
                             title="Submitted PDF"
                             className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white"
                             style={{ minHeight: "480px", height: "min(70vh, 640px)" }}
                         />
                     )}
-                    <button
-                        type="button"
-                        onClick={() => handleDownloadSubmissionFile(gradingSubmission.file_url)}
-                        className="flex items-center gap-4 px-4 py-3 rounded-lg border bg-white dark:bg-gray-900 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors w-full group text-left"
-                    >
-                        <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-semibold text-gray-900 dark:text-white">View Submitted File</p>
-                            <p className="text-xs text-gray-500">Click to open or download</p>
-                        </div>
-                    </button>
                     {gradingSubmission.content && gradingSubmission.content !== "File submission" && (
                         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                             <p className="text-xs font-bold uppercase opacity-50 mb-2">Additional Note:</p>
@@ -417,6 +491,11 @@ export default function CourseWorkPage() {
             render: (value) => <span>{value ? new Date(value).toLocaleString() : "N/A"}</span>,
         },
         {
+            key: "file_url",
+            label: "File",
+            render: (_, row) => renderFileActions(row.file_url, true),
+        },
+        {
             key: "id",
             label: "Actions",
             render: (_, row) => (
@@ -484,7 +563,10 @@ export default function CourseWorkPage() {
                             </div>
                         </div>
                         <div className={`p-6 rounded-xl border shadow-sm ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
-                            <h2 className="text-lg font-bold mb-4">Submitted Course Work</h2>
+                            <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                                <h2 className="text-lg font-bold">Submitted Course Work</h2>
+                                {gradingSubmission.file_url && renderFileActions(gradingSubmission.file_url)}
+                            </div>
                             <div className={`p-6 rounded-lg border leading-relaxed overflow-auto whitespace-pre-wrap ${isDark ? "bg-gray-900 border-gray-700 text-gray-300" : "bg-gray-50 border-gray-200 text-gray-700"}`} style={{ minHeight: "300px" }}>
                                 {renderSubmissionContent()}
                             </div>

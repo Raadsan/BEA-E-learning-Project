@@ -1,66 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { Dispatch } from "@reduxjs/toolkit";
 import { API_URL, DIRECT_API_URL } from "@/constants";
-
-type AssignmentListArgs = {
-    program_id?: string;
-    class_id?: string;
-    subprogram_id?: string;
-    type?: string;
-    created_by?: string | number;
-};
-
-function matchesAssignmentListFilters(
-    originalArgs: AssignmentListArgs | undefined,
-    assignment: { type?: string; class_id?: number | string | null; created_by?: number | string | null },
-    bodyType?: string
-) {
-    if (originalArgs?.type && originalArgs.type !== (assignment.type || bodyType)) return false;
-    if (originalArgs?.class_id && String(originalArgs.class_id) !== String(assignment.class_id ?? "")) return false;
-    if (originalArgs?.created_by && String(originalArgs.created_by) !== String(assignment.created_by ?? "")) return false;
-    if (originalArgs?.subprogram_id && String(originalArgs.subprogram_id) !== String((assignment as { subprogram_id?: number }).subprogram_id ?? "")) return false;
-    if (originalArgs?.program_id && String(originalArgs.program_id) !== String((assignment as { program_id?: number }).program_id ?? "")) return false;
-    return true;
-}
-
-function patchAssignmentsListCache(
-    dispatch: Dispatch,
-    body: { type: string },
-    assignment: Record<string, unknown>
-) {
-    const enriched = { ...assignment, type: body.type };
-    dispatch(
-        assignmentApi.util.updateQueriesData(
-            "getAssignments",
-            (draft, { originalArgs }) => {
-                if (!Array.isArray(draft)) return;
-                if (!matchesAssignmentListFilters(originalArgs as AssignmentListArgs | undefined, enriched, body.type)) return;
-
-                const index = draft.findIndex(
-                    (item) => item.id === enriched.id && item.type === enriched.type
-                );
-                if (index >= 0) {
-                    draft[index] = { ...draft[index], ...enriched };
-                } else {
-                    draft.unshift(enriched);
-                }
-            }
-        )
-    );
-}
-
-function removeAssignmentFromListCache(dispatch: Dispatch, id: number | string, type: string) {
-    dispatch(
-        assignmentApi.util.updateQueriesData(
-            "getAssignments",
-            (draft) => {
-                if (!Array.isArray(draft)) return;
-                const index = draft.findIndex((item) => item.id == id && item.type === type);
-                if (index >= 0) draft.splice(index, 1);
-            }
-        )
-    );
-}
 
 export const assignmentApi = createApi({
     reducerPath: "assignmentApi",
@@ -117,16 +56,6 @@ export const assignmentApi = createApi({
                 body,
             }),
             invalidatesTags: ["Assignments"],
-            async onQueryStarted(body, { dispatch, queryFulfilled }) {
-                try {
-                    const { data } = await queryFulfilled;
-                    if (data?.assignment) {
-                        patchAssignmentsListCache(dispatch, body, data.assignment);
-                    }
-                } catch {
-                    // invalidatesTags will refetch on failure paths
-                }
-            },
         }),
         updateAssignment: builder.mutation({
             query: ({ id, ...body }) => ({
@@ -135,16 +64,6 @@ export const assignmentApi = createApi({
                 body,
             }),
             invalidatesTags: ["Assignments"],
-            async onQueryStarted({ id, ...body }, { dispatch, queryFulfilled }) {
-                try {
-                    const { data } = await queryFulfilled;
-                    if (data?.assignment) {
-                        patchAssignmentsListCache(dispatch, body, { ...data.assignment, id });
-                    }
-                } catch {
-                    // invalidatesTags will refetch on failure paths
-                }
-            },
         }),
         deleteAssignment: builder.mutation({
             query: ({ id, type }) => ({
@@ -152,14 +71,6 @@ export const assignmentApi = createApi({
                 method: "DELETE",
             }),
             invalidatesTags: ["Assignments"],
-            async onQueryStarted({ id, type }, { dispatch, queryFulfilled }) {
-                try {
-                    await queryFulfilled;
-                    removeAssignmentFromListCache(dispatch, id, type);
-                } catch {
-                    // invalidatesTags will refetch on failure paths
-                }
-            },
         }),
         submitAssignment: builder.mutation({
             async queryFn(body, _api, _extraOptions, fetchWithBQ) {

@@ -27,14 +27,6 @@ export const DIRECT_API_URL =
 
 export const UPLOAD_ENDPOINT = `${DIRECT_API_URL}/uploads`;
 
-const S3_PREFIX = (process.env.NEXT_PUBLIC_S3_PREFIX || "bea_uploads").replace(/\/$/, "");
-
-const stripUploadPrefix = (value: string) =>
-  value
-    .replace(/^\//, "")
-    .replace(/^uploads\//, "")
-    .replace(new RegExp(`^${S3_PREFIX}/`), "");
-
 /** Normalize any stored file reference to a stream API ref. */
 const toStreamRef = (storedValue?: string | null): string | null => {
   if (!storedValue) return null;
@@ -43,8 +35,8 @@ const toStreamRef = (storedValue?: string | null): string | null => {
 
   if (value.startsWith("http")) return value;
 
-  const filename = stripUploadPrefix(value.replace(/^\//, ""));
-  return filename || null;
+  // Keep full storage path (bea_uploads/... or uploads/...) for backend resolution
+  return value.replace(/^\//, "");
 };
 
 /** Backend stream URL — works for private S3, local legacy files, video/audio/images. */

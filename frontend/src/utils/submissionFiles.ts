@@ -7,7 +7,7 @@ function guessDownloadName(fileUrl: string): string {
 }
 
 /** Fetch file bytes from S3 stream proxy (preferred) or authenticated download API. */
-async function fetchSubmissionBlob(fileUrl: string): Promise<Blob> {
+export async function fetchSubmissionBlob(fileUrl: string): Promise<Blob> {
     const streamUrl = resolveSubmissionFileUrl(fileUrl);
     if (streamUrl) {
         const response = await fetch(streamUrl, { cache: "no-store" });
@@ -58,4 +58,10 @@ export async function downloadSubmissionFile(
     anchor.click();
     document.body.removeChild(anchor);
     window.URL.revokeObjectURL(url);
+}
+
+/** Inline preview URL (PDF/images) with auth fallback when stream fails. */
+export async function loadSubmissionPreviewUrl(fileUrl?: string | null): Promise<string> {
+    const blob = await fetchSubmissionBlob(fileUrl!);
+    return window.URL.createObjectURL(blob);
 }

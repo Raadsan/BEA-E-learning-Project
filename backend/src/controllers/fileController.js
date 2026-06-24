@@ -78,7 +78,7 @@ const streamFromS3 = async (res, ref, { attachment = false } = {}) => {
     return true;
 };
 
-const streamLocalFile = (res, filename) => {
+const streamLocalFile = (res, filename, { attachment = false } = {}) => {
     const filePath = path.join(process.cwd(), "uploads", filename);
     if (!fs.existsSync(filePath)) return false;
 
@@ -88,7 +88,10 @@ const streamLocalFile = (res, filename) => {
 
     const ext = path.extname(filename).toLowerCase();
     res.setHeader("Content-Type", contentTypeMap[ext] || "application/octet-stream");
-    res.setHeader("Content-Disposition", "inline");
+    res.setHeader(
+        "Content-Disposition",
+        attachment ? `attachment; filename="${filename}"` : "inline"
+    );
     res.setHeader("Accept-Ranges", "bytes");
 
     const fileStream = fs.createReadStream(filePath);
@@ -99,22 +102,31 @@ const streamLocalFile = (res, filename) => {
     return true;
 };
 
-/** Stream media inline (video/audio/images) from S3 or local disk. */
+/** Local disk first (reliable), then S3 mirror if local missing. */
+const serveStoredFile = async (res, ref, { attachment = false } = {}) => {
+    const localName = localFilenameFromRef(ref);
+    if (localName && streamLocalFile(res, localName, { attachment })) {
+        return true;
+    }
+
+    if (isS3Enabled()) {
+        try {
+            if (await streamFromS3(res, ref, { attachment })) return true;
+        } catch (err) {
+            console.error("S3 stream error:", err.message);
+        }
+    }
+
+    return false;
+};
+
+/** Stream media inline (video/audio/images) — local disk first, S3 backup. */
 export const streamFile = async (req, res) => {
     try {
         const ref = decodeFileParam(req.params.filename || "");
         if (!ref) return res.status(400).json({ error: "File reference required" });
 
-        if (isS3Enabled()) {
-            try {
-                if (await streamFromS3(res, ref, { attachment: false })) return;
-            } catch (err) {
-                console.error("S3 stream error:", err.message);
-            }
-        }
-
-        const localName = localFilenameFromRef(ref);
-        if (localName && streamLocalFile(res, localName)) return;
+        if (await serveStoredFile(res, ref, { attachment: false })) return;
 
         return res.status(404).json({ error: "File not found" });
     } catch (err) {
@@ -129,45 +141,13 @@ export const downloadFile = async (req, res) => {
         if (!filename) return res.status(400).json({ error: "File reference required" });
 
         if (isRemoteFileUrl(filename)) {
-            if (isS3Enabled()) {
-                try {
-                    if (await streamFromS3(res, filename, { attachment: true })) return;
-                } catch (err) {
-                    console.error("S3 download error:", err.message);
-                }
-            }
+            if (await serveStoredFile(res, filename, { attachment: true })) return;
             return res.redirect(filename);
         }
 
-        if (isS3Enabled()) {
-            try {
-                if (await streamFromS3(res, filename, { attachment: true })) return;
-            } catch (err) {
-                console.error("S3 download error:", err.message);
-            }
-        }
+        if (await serveStoredFile(res, filename, { attachment: true })) return;
 
-        const localName = localFilenameFromRef(filename);
-        const filePath = path.join(process.cwd(), "uploads", localName || filename);
-        if (!fs.existsSync(filePath)) {
-            return res.status(404).json({ error: "File not found" });
-        }
-
-        const normalizedPath = path.normalize(filePath);
-        const uploadsDir = path.normalize(path.join(process.cwd(), "uploads"));
-        if (!normalizedPath.startsWith(uploadsDir)) {
-            return res.status(403).json({ error: "Access denied" });
-        }
-
-        const ext = path.extname(localName || filename).toLowerCase();
-        res.setHeader("Content-Type", contentTypeMap[ext] || "application/octet-stream");
-        res.setHeader("Content-Disposition", `attachment; filename="${path.basename(filename)}"`);
-
-        const fileStream = fs.createReadStream(filePath);
-        fileStream.pipe(res);
-        fileStream.on("error", () => {
-            if (!res.headersSent) res.status(500).json({ error: "Error streaming file" });
-        });
+        return res.status(404).json({ error: "File not found" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

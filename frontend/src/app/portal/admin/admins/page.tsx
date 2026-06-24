@@ -220,7 +220,7 @@ export default function AdminsPage() {
     }
 
     try {
-      const payload = { ...formData };
+      const payload: Record<string, unknown> = { ...formData };
       if (formData.role === "technical") {
         payload.permissions = serializePermissionMap(formData.permissionMap || {});
         delete payload.permissionMap;

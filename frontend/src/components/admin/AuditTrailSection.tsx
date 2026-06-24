@@ -21,8 +21,13 @@ const ReadField = ({ label, value, isDark, span = false }) => (
 export default function AuditTrailSection({
   record,
   isDark,
-  createdAtKey,
-  updatedAtKey,
+  createdAtKey = undefined,
+  updatedAtKey = undefined,
+}: {
+  record: Record<string, unknown> | null | undefined;
+  isDark: boolean;
+  createdAtKey?: string;
+  updatedAtKey?: string;
 }) {
   if (!record) return null;
 

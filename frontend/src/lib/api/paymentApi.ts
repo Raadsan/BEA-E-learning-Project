@@ -49,7 +49,15 @@ export const paymentApi = createApi({
                 method: "POST",
                 body,
             }),
-            invalidatesTags: ["Payments", "Auth"],
+            invalidatesTags: ["Payments"],
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    dispatch(authApi.util.invalidateTags(["Auth"]));
+                } catch {
+                    // no-op
+                }
+            },
         }),
         createBankPayment: builder.mutation({
             query: (body) => ({
@@ -57,7 +65,15 @@ export const paymentApi = createApi({
                 method: "POST",
                 body,
             }),
-            invalidatesTags: ["Payments", "Auth"],
+            invalidatesTags: ["Payments"],
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    dispatch(authApi.util.invalidateTags(["Auth"]));
+                } catch {
+                    // no-op
+                }
+            },
         }),
         createWaafiPayment: builder.mutation({
             query: (body) => ({
