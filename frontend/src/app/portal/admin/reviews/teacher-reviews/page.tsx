@@ -4,10 +4,12 @@ import { useGetAllTeacherReviewsQuery } from "@/lib/api/reviewApi";
 import { useState } from "react";
 import { format, isValid } from "date-fns";
 import { useDarkMode } from "@/context/ThemeContext";
-import DataTable from "@/components/DataTable"; // Assuming this is confirmed path
+import DataTable from "@/components/DataTable";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 export default function TeacherReviewsPage() {
     const { isDark } = useDarkMode();
+    const { canView } = usePagePermissions("reviews", "teacher_reviews");
     const { data: reviews = [], isLoading } = useGetAllTeacherReviewsQuery(undefined);
     const [selectedReview, setSelectedReview] = useState<any>(null);
     const [selectedClassFilter, setSelectedClassFilter] = useState<string>("");
@@ -79,7 +81,7 @@ export default function TeacherReviewsPage() {
         {
             key: "actions",
             label: "Actions",
-            render: (_, row) => (
+            render: (_, row) => canView ? (
                 <button
                     onClick={() => setSelectedReview(row)}
                     className="text-blue-600 hover:text-blue-800 transition-colors p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20"
@@ -90,7 +92,7 @@ export default function TeacherReviewsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                 </button>
-            ),
+            ) : null,
             sortable: false
         }
     ];

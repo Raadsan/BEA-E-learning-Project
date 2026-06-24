@@ -8,6 +8,7 @@ import { useToast } from "@/components/Toast";
 import Loader from "@/components/Loader";
 import { useDarkMode } from "@/context/ThemeContext";
 import Modal from "@/components/Modal";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 const InfoCard = ({ title, description, details, topActions, isDark, onClick, status }) => (
     <div
@@ -57,6 +58,7 @@ export default function PlacementTestsPage() {
     const router = useRouter();
     const { showToast } = useToast();
     const { isDark } = useDarkMode();
+    const { canView, canAdd, canEdit, canDelete } = usePagePermissions("assessments", "placement_tests");
     const { data: tests, isLoading, error } = useGetPlacementTestsQuery();
     const [deleteTest, { isLoading: isDeleting }] = useDeletePlacementTestMutation();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -106,6 +108,7 @@ export default function PlacementTestsPage() {
                                 Manage and view all available placement tests.
                             </p>
                         </div>
+                        {canAdd && (
                         <button
                             onClick={handleCreateClick}
                             className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-semibold shadow-sm`}
@@ -115,6 +118,7 @@ export default function PlacementTestsPage() {
                             </svg>
                             Create Placement Test
                         </button>
+                        )}
                     </div>
 
                     {/* Content Section */}
@@ -146,12 +150,14 @@ export default function PlacementTestsPage() {
                             </div>
                             <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No Placement Tests Yet</h3>
                             <p className="text-gray-500 max-w-sm mx-auto mb-6">Create your first placement test to start assessing student levels.</p>
+                            {canAdd && (
                             <button
                                 onClick={handleCreateClick}
                                 className="text-[#010080] font-medium hover:underline"
                             >
                                 Create Test
                             </button>
+                            )}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 gap-4">
@@ -162,9 +168,10 @@ export default function PlacementTestsPage() {
                                     status={test.status}
                                     title={test.title}
                                     description={test.description}
-                                    onClick={() => handleView(null, test.id)}
+                                    onClick={canView ? () => handleView(null, test.id) : undefined}
                                     topActions={
                                         <div className="flex items-center gap-3">
+                                            {canView && (
                                             <button
                                                 onClick={(e) => handleView(e, test.id)}
                                                 className="text-green-600 hover:text-green-800 transition-colors"
@@ -175,7 +182,9 @@ export default function PlacementTestsPage() {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                 </svg>
                                             </button>
+                                            )}
                                             {test.status === 'draft' ? (
+                                                canEdit && (
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -190,7 +199,9 @@ export default function PlacementTestsPage() {
                                                     </svg>
                                                     Continue
                                                 </button>
+                                                )
                                             ) : (
+                                                canEdit && (
                                                 <button
                                                     onClick={(e) => handleEdit(e, test.id)}
                                                     className="text-blue-600 hover:text-blue-800 transition-colors"
@@ -200,7 +211,9 @@ export default function PlacementTestsPage() {
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                     </svg>
                                                 </button>
+                                                )
                                             )}
+                                            {canDelete && (
                                             <button
                                                 onClick={(e) => handleDelete(e, test)}
                                                 className="text-red-600 hover:text-red-800 transition-colors"
@@ -210,6 +223,7 @@ export default function PlacementTestsPage() {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
                                             </button>
+                                            )}
                                         </div>
                                     }
                                     details={[

@@ -13,6 +13,8 @@ import {
 import { useGetClassesQuery } from "@/lib/api/classApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
+import AdminTableActions from "@/components/admin/AdminTableActions";
 import { Country, City } from "country-state-city";
 
 // Extracted Components
@@ -23,6 +25,7 @@ import TeacherConfirmationModal from "@/components/admin/teachers/TeacherConfirm
 export default function TeachersPage() {
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
+  const { canView, canAdd, canEdit, canDelete, showBulkActions } = usePagePermissions("teachers");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
@@ -224,64 +227,74 @@ export default function TeachersPage() {
   };
 
   // Bulk Action Buttons (Clean borderless style with count, matching add button size)
-  const customActions = selectedTeachers.length > 0 ? (
+  const customActions = selectedTeachers.length > 0 && showBulkActions ? (
     <>
       <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 mr-1.5 self-center">
         {selectedTeachers.length} selected
       </span>
-      <button
-        onClick={() => openBulkModal("activate")}
-        className="px-4 py-2 text-sm font-semibold rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors"
-      >
-        Activate
-      </button>
-      <button
-        onClick={() => openBulkModal("deactivate")}
-        className="px-4 py-2 text-sm font-semibold rounded-lg bg-orange-600 hover:bg-orange-700 text-white transition-colors"
-      >
-        Deactivate
-      </button>
-      <button
-        onClick={() => openBulkModal("delete")}
-        className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
-      >
-        Delete
-      </button>
+      {canEdit && (
+        <>
+          <button
+            onClick={() => openBulkModal("activate")}
+            className="px-4 py-2 text-sm font-semibold rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors"
+          >
+            Activate
+          </button>
+          <button
+            onClick={() => openBulkModal("deactivate")}
+            className="px-4 py-2 text-sm font-semibold rounded-lg bg-orange-600 hover:bg-orange-700 text-white transition-colors"
+          >
+            Deactivate
+          </button>
+        </>
+      )}
+      {canDelete && (
+        <button
+          onClick={() => openBulkModal("delete")}
+          className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
+        >
+          Delete
+        </button>
+      )}
     </>
   ) : null;
 
   const columns = [
-    {
-      key: "select",
-      label: (
-        <input
-          type="checkbox"
-          checked={selectedTeachers.length === sortedTeachers.length && sortedTeachers.length > 0}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setSelectedTeachers(sortedTeachers.map(t => t.id));
-            } else {
-              setSelectedTeachers([]);
-            }
-          }}
-          className="w-4 h-4 rounded text-[#010080] focus:ring-[#010080] border-gray-300 transition-colors cursor-pointer"
-        />
-      ),
-      render: (_, row) => (
-        <input
-          type="checkbox"
-          checked={selectedTeachers.includes(row.id)}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setSelectedTeachers(prev => [...prev, row.id]);
-            } else {
-              setSelectedTeachers(prev => prev.filter(id => id !== row.id));
-            }
-          }}
-          className="w-4 h-4 rounded text-[#010080] focus:ring-[#010080] border-gray-300 transition-colors cursor-pointer"
-        />
-      )
-    },
+    ...(showBulkActions
+      ? [
+          {
+            key: "select",
+            label: (
+              <input
+                type="checkbox"
+                checked={selectedTeachers.length === sortedTeachers.length && sortedTeachers.length > 0}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedTeachers(sortedTeachers.map((t) => t.id));
+                  } else {
+                    setSelectedTeachers([]);
+                  }
+                }}
+                className="w-4 h-4 rounded text-[#010080] focus:ring-[#010080] border-gray-300 transition-colors cursor-pointer"
+              />
+            ),
+            render: (_, row) => (
+              <input
+                type="checkbox"
+                checked={selectedTeachers.includes(row.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedTeachers((prev) => [...prev, row.id]);
+                  } else {
+                    setSelectedTeachers((prev) => prev.filter((id) => id !== row.id));
+                  }
+                }}
+                className="w-4 h-4 rounded text-[#010080] focus:ring-[#010080] border-gray-300 transition-colors cursor-pointer"
+              />
+            ),
+          },
+        ]
+      : []),
     { key: "full_name", label: "Full Name" },
     { key: "email", label: "Email" },
     { key: "phone", label: "Phone" },
@@ -291,38 +304,39 @@ export default function TeachersPage() {
     {
       key: "status",
       label: "Status",
-      render: (val, row) => (
-        <button
-          onClick={() => handleStatusToggle(row)}
-          className={`px-3 py-1 text-xs font-semibold rounded-full ${
-            val === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}
-        >
-          {val?.charAt(0).toUpperCase() + val?.slice(1)}
-        </button>
-      )
+      render: (val, row) =>
+        canEdit ? (
+          <button
+            onClick={() => handleStatusToggle(row)}
+            className={`px-3 py-1 text-xs font-semibold rounded-full ${
+              val === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+            }`}
+          >
+            {val?.charAt(0).toUpperCase() + val?.slice(1)}
+          </button>
+        ) : (
+          <span
+            className={`px-3 py-1 text-xs font-semibold rounded-full inline-block ${
+              val === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+            }`}
+          >
+            {val?.charAt(0).toUpperCase() + val?.slice(1)}
+          </span>
+        ),
     },
     {
       key: "actions",
       label: "Actions",
       render: (_, row) => (
-        <div className="flex gap-2">
-          <button onClick={() => handleView(row)} className="text-green-600 p-1 hover:bg-green-50 rounded" title="View">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-          <button onClick={() => handleEdit(row)} className="text-blue-600 p-1 hover:bg-blue-50 rounded" title="Edit">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-          <button onClick={() => handleDelete(row.id)} className="text-red-600 p-1 hover:bg-red-50 rounded" title="Delete" disabled={isDeleting}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
+        <AdminTableActions
+          canView={canView}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          onView={() => handleView(row)}
+          onEdit={() => handleEdit(row)}
+          onDelete={() => handleDelete(row.id)}
+          deleteDisabled={isDeleting}
+        />
       ),
     },
   ];
@@ -338,8 +352,8 @@ export default function TeachersPage() {
             title="Teachers"
             columns={columns}
             data={sortedTeachers}
-            onAddClick={handleAddTeacher}
-            showAddButton={true}
+            onAddClick={canAdd ? handleAddTeacher : undefined}
+            showAddButton={canAdd}
             customActions={customActions}
             filters={
               <div className="flex flex-wrap gap-3 items-center">

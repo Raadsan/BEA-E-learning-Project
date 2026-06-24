@@ -1,6 +1,10 @@
 "use client";
 
-import { TECHNICAL_ADMIN_PERMISSION_OPTIONS } from "@/constants/adminPermissions";
+import {
+  PERMISSION_ACTIONS,
+  TECHNICAL_ADMIN_PERMISSION_OPTIONS,
+  parsePermissionMap,
+} from "@/constants/adminPermissions";
 
 const ReadField = ({ label, value, isDark, span = false }: {
   label: string;
@@ -37,12 +41,20 @@ function wasUpdated(admin) {
   return new Date(admin.updated_at).getTime() - new Date(admin.created_at).getTime() > 1000;
 }
 
+function formatPermissionSummary(admin) {
+  const map = parsePermissionMap(admin.permissions);
+  const lines = TECHNICAL_ADMIN_PERMISSION_OPTIONS.filter((opt) => map[opt.key]?.view).map((opt) => {
+    const mod = map[opt.key];
+    const actions = PERMISSION_ACTIONS.filter((a) => mod?.[a.key]).map((a) => a.label);
+    return `${opt.label}: ${actions.join(", ") || "View"}`;
+  });
+  return lines.length ? lines.join(" | ") : "None";
+}
+
 export default function AdminViewModal({ isOpen, onClose, admin, isDark }) {
   if (!isOpen || !admin) return null;
 
-  const permissionLabels = (admin.permissions || [])
-    .map((key) => TECHNICAL_ADMIN_PERMISSION_OPTIONS.find((item) => item.key === key)?.label || key)
-    .join(", ");
+  const permissionSummary = admin.role === "technical" ? formatPermissionSummary(admin) : null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -82,7 +94,7 @@ export default function AdminViewModal({ isOpen, onClose, admin, isDark }) {
               isDark={isDark}
             />
             {admin.role === "technical" && (
-              <ReadField label="Permissions" value={permissionLabels || "None"} isDark={isDark} span />
+              <ReadField label="Permissions" value={permissionSummary} isDark={isDark} span />
             )}
           </div>
 
@@ -101,11 +113,11 @@ export default function AdminViewModal({ isOpen, onClose, admin, isDark }) {
           </div>
         </div>
 
-        <div className={`px-6 py-4 border-t flex justify-end ${isDark ? "border-gray-700" : "border-gray-200"}`}>
+        <div className={`sticky bottom-0 border-t px-6 py-4 flex justify-end ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
           <button
             onClick={onClose}
-            className={`px-5 py-2 rounded-lg font-semibold border ${
-              isDark ? "border-gray-600 text-gray-300 hover:bg-gray-700" : "border-gray-300 text-gray-600 hover:bg-gray-50"
+            className={`px-5 py-2 rounded-lg text-sm font-semibold ${
+              isDark ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700"
             }`}
           >
             Close

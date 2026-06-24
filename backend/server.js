@@ -6,7 +6,7 @@ const port = process.env.PORT || 5000;
 const server = http.createServer(app);
 
 server.listen(port, '0.0.0.0', () => {
-  console.log(`🚀 BEA Backend running at http://0.0.0.0:${port}`);
+  console.log(`🚀 BEA Backend running at ${port}`);
 });
 
 // Handle server errors (like port already in use)

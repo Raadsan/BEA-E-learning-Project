@@ -6,9 +6,12 @@ import { useGetUsersQuery, useBulkActionUsersMutation } from "@/lib/api/userApi"
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import { resolveProfileImageUrl } from "@/constants";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
+import AdminTableActions from "@/components/admin/AdminTableActions";
 
 export default function UsersPage() {
   const { isDark } = useDarkMode();
+  const { canView, canEdit, canDelete, showBulkActions } = usePagePermissions("users");
   const { data: usersData, isLoading, error } = useGetUsersQuery(undefined);
   const [bulkActionUsers] = useBulkActionUsersMutation();
   const { showToast } = useToast();
@@ -232,17 +235,14 @@ export default function UsersPage() {
       key: "actions",
       label: "Actions",
       render: (_, row) => (
-        <div className="flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => handleView(row)}
-            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
-            title="View Details"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
+        <div onClick={(e) => e.stopPropagation()}>
+          <AdminTableActions
+            canView={canView}
+            canEdit={false}
+            canDelete={false}
+            onView={() => handleView(row)}
+            viewTitle="View Details"
+          />
         </div>
       ),
     },
@@ -301,29 +301,35 @@ export default function UsersPage() {
   );
 
   // Custom Action Buttons for Bulk Operations (Standard premium styling matching students-requests)
-  const customActions = selectedUsers.length > 0 ? (
+  const customActions = selectedUsers.length > 0 && showBulkActions ? (
     <>
       <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 mr-1.5 self-center">
         {selectedUsers.length} selected
       </span>
-      <button
-        onClick={() => openBulkModal("activate")}
-        className="px-4 py-2 text-sm font-semibold rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors"
-      >
-        Activate
-      </button>
-      <button
-        onClick={() => openBulkModal("deactivate")}
-        className="px-4 py-2 text-sm font-semibold rounded-lg bg-orange-600 hover:bg-orange-700 text-white transition-colors"
-      >
-        Deactivate
-      </button>
-      <button
-        onClick={() => openBulkModal("delete")}
-        className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
-      >
-        Delete
-      </button>
+      {canEdit && (
+        <>
+          <button
+            onClick={() => openBulkModal("activate")}
+            className="px-4 py-2 text-sm font-semibold rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors"
+          >
+            Activate
+          </button>
+          <button
+            onClick={() => openBulkModal("deactivate")}
+            className="px-4 py-2 text-sm font-semibold rounded-lg bg-orange-600 hover:bg-orange-700 text-white transition-colors"
+          >
+            Deactivate
+          </button>
+        </>
+      )}
+      {canDelete && (
+        <button
+          onClick={() => openBulkModal("delete")}
+          className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
+        >
+          Delete
+        </button>
+      )}
     </>
   ) : null;
 
@@ -365,9 +371,9 @@ export default function UsersPage() {
             columns={columns}
             data={processedUsers}
             showAddButton={false}
-            onRowClick={handleView}
+            onRowClick={canView ? handleView : undefined}
             getRowId={(row) => row.id}
-            selectable={true}
+            selectable={showBulkActions}
             selectedItems={selectedUsers}
             onSelectionChange={setSelectedUsers}
             filters={filters}

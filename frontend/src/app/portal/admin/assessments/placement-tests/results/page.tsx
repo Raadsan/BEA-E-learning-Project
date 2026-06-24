@@ -7,6 +7,7 @@ import DataTable from "@/components/DataTable";
 import { useGetAllPlacementResultsQuery } from "@/lib/api/placementTestApi";
 import { useExtendStudentDeadlineMutation } from "@/lib/api/studentApi";
 import { useToast } from "@/components/Toast";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
  
 const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
     const [timeLeft, setTimeLeft] = useState("");
@@ -46,6 +47,7 @@ const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
 export default function PlacementResultsPage() {
     const router = useRouter();
     const { showToast } = useToast();
+    const { canView } = usePagePermissions("assessments", "placement_results");
     
     // States for access time extension
     const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
@@ -167,6 +169,7 @@ export default function PlacementResultsPage() {
             label: "Actions",
             render: (_, row) => (
                 <div className="flex gap-2">
+                    {canView && (
                     <button
                         onClick={() => router.push(`/portal/admin/assessments/placement-tests/results/${row.id}`)}
                         className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
@@ -177,6 +180,8 @@ export default function PlacementResultsPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                     </button>
+                    )}
+                    {canView && (
                     <button
                         className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
                         title="Download Report"
@@ -185,6 +190,7 @@ export default function PlacementResultsPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </button>
+                    )}
                 </div>
             ),
         },

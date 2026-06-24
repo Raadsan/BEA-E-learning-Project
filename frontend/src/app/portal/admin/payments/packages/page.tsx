@@ -18,10 +18,12 @@ import { useGetProgramsQuery } from "@/lib/api/programApi";
 // Components
 import PaymentPackageForm from "@/components/admin/payments/PaymentPackageForm";
 import ProgramAssignmentModal from "@/components/admin/payments/ProgramAssignmentModal";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 export default function PaymentPackagesPage() {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
+    const { canAdd, canEdit, canDelete, canAssign } = usePagePermissions("payments", "payment_packages");
 
     // API Queries/Mutations
     const { data: packages = [], isLoading, isError } = useGetPaymentPackagesQuery();
@@ -157,6 +159,7 @@ export default function PaymentPackagesPage() {
                                 Manage billing cycles and dynamic program pricing
                             </p>
                         </div>
+                        {canAdd && (
                         <button
                             onClick={handleAddClick}
                             className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-[#010080] hover:bg-blue-900 text-white'} px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm`}
@@ -166,6 +169,7 @@ export default function PaymentPackagesPage() {
                             </svg>
                             Add New Package
                         </button>
+                        )}
                     </div>
 
                     {/* Packages Grid */}
@@ -237,6 +241,7 @@ export default function PaymentPackagesPage() {
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-1 pt-6 border-t dark:border-gray-700 border-gray-50">
+                                    {canAssign && (
                                     <button
                                         onClick={() => handleAssignClick(pkg)}
                                         className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20 group`}
@@ -247,6 +252,8 @@ export default function PaymentPackagesPage() {
                                         </svg>
                                         <span className="text-[10px] font-bold mt-1 text-gray-400 group-hover:text-blue-500">Assign</span>
                                     </button>
+                                    )}
+                                    {canEdit && (
                                     <button
                                         onClick={() => handleEditClick(pkg)}
                                         className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group`}
@@ -257,6 +264,8 @@ export default function PaymentPackagesPage() {
                                         </svg>
                                         <span className="text-[10px] font-bold mt-1 text-gray-400 group-hover:text-indigo-500">Edit</span>
                                     </button>
+                                    )}
+                                    {canDelete && (
                                     <button
                                         onClick={() => handleDeleteClick(pkg.id)}
                                         className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all hover:bg-red-50 dark:hover:bg-red-900/20 group`}
@@ -267,6 +276,7 @@ export default function PaymentPackagesPage() {
                                         </svg>
                                         <span className="text-[10px] font-bold mt-1 text-gray-400 group-hover:text-red-500">Delete</span>
                                     </button>
+                                    )}
                                 </div>
                             </div>
                         ))}

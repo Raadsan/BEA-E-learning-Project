@@ -14,7 +14,19 @@ import {
     useDeleteCalendarEntryMutation,
 } from "@/lib/api/academicCalendarApi";
 
-export default function WeeklyScheduleView() {
+type WeeklyScheduleViewProps = {
+    canView?: boolean;
+    canAdd?: boolean;
+    canEdit?: boolean;
+    canDelete?: boolean;
+};
+
+export default function WeeklyScheduleView({
+    canView = true,
+    canAdd = true,
+    canEdit = true,
+    canDelete = true,
+}: WeeklyScheduleViewProps) {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
 
@@ -97,6 +109,7 @@ export default function WeeklyScheduleView() {
         const existingEntry = calendarGrid[week][day];
 
         if (existingEntry) {
+            if (!canEdit && !canView) return;
             // Edit existing entry
             setEditingEntry(existingEntry);
             setFormData({
@@ -106,6 +119,7 @@ export default function WeeklyScheduleView() {
                 activity_description: existingEntry.activity_description || ""
             });
         } else {
+            if (!canAdd) return;
             // Create new entry
             setEditingEntry(null);
             setFormData({
@@ -180,6 +194,8 @@ export default function WeeklyScheduleView() {
         return "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800";
     };
 
+    const canSave = editingEntry ? canEdit : canAdd;
+
     return (
         <div className="space-y-8">
             {/* Calendar Header matching user image */}
@@ -209,6 +225,7 @@ export default function WeeklyScheduleView() {
                             ))}
                         </select>
 
+                        {canAdd && (
                         <Link
                             href="/portal/admin/learning-resources/timetable/create"
                             className={`ml-4 px-4 py-2 ${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} font-semibold rounded-xl transition-all active:scale-95 flex items-center gap-2 text-sm`}
@@ -218,6 +235,7 @@ export default function WeeklyScheduleView() {
                             </svg>
                             Create
                         </Link>
+                        )}
                     </div>
                 </div>
             )}
@@ -284,11 +302,12 @@ export default function WeeklyScheduleView() {
                                         </td>
                                         {days.map(day => {
                                             const entry = calendarGrid[week][day];
+                                            const canClickCell = entry ? (canEdit || canView) : canAdd;
                                             return (
                                                 <td
                                                     key={day}
-                                                    onClick={() => handleCellClick(week, day)}
-                                                    className={`px-3 py-3 text-sm border-r last:border-r-0 ${isDark ? 'border-gray-700' : 'border-gray-200'} cursor-pointer hover:opacity-80 transition-opacity min-h-[80px] align-top`}
+                                                    onClick={canClickCell ? () => handleCellClick(week, day) : undefined}
+                                                    className={`px-3 py-3 text-sm border-r last:border-r-0 ${isDark ? 'border-gray-700' : 'border-gray-200'} ${canClickCell ? 'cursor-pointer hover:opacity-80' : ''} transition-opacity min-h-[80px] align-top`}
                                                 >
                                                     {entry ? (
                                                         <div className={`p-3 rounded-lg border-2 h-full min-h-[60px] ${getActivityColor()}`}>
@@ -296,7 +315,7 @@ export default function WeeklyScheduleView() {
                                                         </div>
                                                     ) : (
                                                         <div className={`p-3 rounded-lg border-2 border-dashed h-full min-h-[60px] flex items-center justify-center ${isDark ? 'border-gray-600 hover:border-gray-500 hover:bg-gray-700/50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'} transition-all`}>
-                                                            <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>+ Add</span>
+                                                            {canAdd && <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>+ Add</span>}
                                                         </div>
                                                     )}
                                                 </td>
@@ -326,7 +345,7 @@ export default function WeeklyScheduleView() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={editingEntry ? "Edit Activity" : "Add Activity"}
+                title={editingEntry ? (canEdit ? "Edit Activity" : "View Activity") : "Add Activity"}
             >
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Week and Day (read-only display) */}
@@ -366,6 +385,7 @@ export default function WeeklyScheduleView() {
                             value={formData.activity_title}
                             onChange={(e) => setFormData({ ...formData, activity_title: e.target.value })}
                             required
+                            readOnly={!canSave}
                             placeholder="E.g., Introduction to Grammar..."
                             className={`w-full px-4 py-2 border rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/10 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                         />
@@ -380,6 +400,7 @@ export default function WeeklyScheduleView() {
                             value={formData.activity_description}
                             onChange={(e) => setFormData({ ...formData, activity_description: e.target.value })}
                             rows={3}
+                            readOnly={!canSave}
                             placeholder="Additional notes or details about this activity..."
                             className={`w-full px-4 py-3 border rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'}`}
                         />
@@ -388,7 +409,7 @@ export default function WeeklyScheduleView() {
                     {/* Action Buttons */}
                     <div className="flex justify-between gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-gray-800">
                         <div>
-                            {editingEntry && (
+                            {editingEntry && canDelete && (
                                 <button
                                     type="button"
                                     onClick={handleDelete}
@@ -405,8 +426,9 @@ export default function WeeklyScheduleView() {
                                 onClick={() => setIsModalOpen(false)}
                                 className={`px-4 py-2.5 rounded-xl transition-colors font-semibold ${isDark ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
                             >
-                                Cancel
+                                {canSave ? "Cancel" : "Close"}
                             </button>
+                            {canSave && (
                             <button
                                 type="submit"
                                 disabled={isCreating || isUpdating}
@@ -414,6 +436,7 @@ export default function WeeklyScheduleView() {
                             >
                                 {isCreating || isUpdating ? "Saving..." : (editingEntry ? "Update" : "Add Activity")}
                             </button>
+                            )}
                         </div>
                     </div>
                 </form>

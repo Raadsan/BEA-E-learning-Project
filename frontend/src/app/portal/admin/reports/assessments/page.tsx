@@ -18,6 +18,7 @@ import {
     PieChart, Pie, Cell
 } from 'recharts';
 import DataTable from "@/components/DataTable";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 // Brand Colors
 const brandColors = ["#010080", "#4b47a4", "#18178a", "#f40606", "#f95150"];
@@ -147,6 +148,7 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
 
 export default function AssessmentReportsPage() {
     const { isDark } = useDarkMode();
+    const { canView } = usePagePermissions("reports", "assessment_reports");
 
     // Filters
     const [selectedProgram, setSelectedProgram] = useState("");
@@ -361,6 +363,7 @@ export default function AssessmentReportsPage() {
                     </div>
 
                     <div className="flex gap-3">
+                        {canView && (
                         <button
                             onClick={() => setShowStudentModal(true)}
                             className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900 border-none' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-bold shadow-md disabled:opacity-70`}
@@ -368,6 +371,7 @@ export default function AssessmentReportsPage() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             View Student Performance
                         </button>
+                        )}
                     </div>
                 </div>
 

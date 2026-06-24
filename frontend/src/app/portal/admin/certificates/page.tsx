@@ -23,6 +23,7 @@ import {
 import CertificateForm from "@/components/admin/certificates/CertificateForm";
 import ProgramConfirmationModal from "@/components/admin/programs/ProgramConfirmationModal";
 import AuditTrailSection from "@/components/admin/AuditTrailSection";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 export default function CertificatesPage() {
     const { isDark } = useDarkMode();
@@ -30,6 +31,8 @@ export default function CertificatesPage() {
 
     const searchParams = useSearchParams();
     const tabParam = searchParams.get("tab") || "configuration";
+    const pageKey = tabParam === "issued" ? "certificate_issued" : "certificate_configuration";
+    const { canView, canAdd, canEdit, canDelete } = usePagePermissions("academic_management", pageKey);
     const [activeTab, setActiveTab] = useState(tabParam);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -207,13 +210,15 @@ export default function CertificatesPage() {
                                         </div>
 
                                         <div className="flex flex-wrap gap-3">
+                                            {(canAdd || canEdit) && (
                                             <button
                                                 onClick={() => setIsModalOpen(true)}
                                                 className="px-5 py-2.5 rounded-xl bg-[#010080] hover:bg-[#010080]/90 text-white text-sm font-bold shadow-md"
                                             >
                                                 {globalTemplate ? "Edit Global Template" : "Create Global Template"}
                                             </button>
-                                            {globalTemplate && (
+                                            )}
+                                            {globalTemplate && canDelete && (
                                                 <button
                                                     onClick={handleDeleteTemplate}
                                                     disabled={isDeleting}
@@ -222,7 +227,7 @@ export default function CertificatesPage() {
                                                     Delete Template
                                                 </button>
                                             )}
-                                            {templateUrl && (
+                                            {templateUrl && canView && (
                                                 <button
                                                     onClick={() => {
                                                         setPreviewUrl(templateUrl);

@@ -6,6 +6,7 @@ import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import { useGetStudentsQuery, useUpdateStudentMutation } from "@/lib/api/studentApi";
 import StudentDiscountModal from "@/components/admin/students/StudentDiscountModal";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 function hasStudentDiscount(student: {
   funding_status?: string;
@@ -29,6 +30,7 @@ function discountLabel(student: {
 export default function StudentDiscountsPage() {
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
+  const { canAdd, canEdit, canDelete } = usePagePermissions("student_management", "student_discounts");
   const { data: allStudents = [], isLoading, refetch } = useGetStudentsQuery();
   const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
 
@@ -181,6 +183,7 @@ export default function StudentDiscountsPage() {
       width: "160px",
       render: (_: unknown, row: any) => (
         <div className="flex items-center gap-2">
+          {canEdit && (
           <button
             type="button"
             onClick={() => openEditModal(row)}
@@ -188,6 +191,8 @@ export default function StudentDiscountsPage() {
           >
             Edit
           </button>
+          )}
+          {canDelete && (
           <button
             type="button"
             onClick={() => handleRemoveDiscount(row)}
@@ -199,6 +204,7 @@ export default function StudentDiscountsPage() {
           >
             Remove
           </button>
+          )}
         </div>
       ),
     },
@@ -239,8 +245,8 @@ export default function StudentDiscountsPage() {
         columns={columns}
         data={discountedStudents}
         isLoading={isLoading}
-        showAddButton={true}
-        onAddClick={openAssignModal}
+        showAddButton={canAdd}
+        onAddClick={canAdd ? openAssignModal : undefined}
         customHeaderLeft={filters}
         emptyMessage="No students with discounts yet. Click + to assign a discount."
         searchKey="full_name"

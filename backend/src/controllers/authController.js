@@ -7,7 +7,7 @@ import { validatePassword, passwordPolicyMessage } from '../utils/passwordValida
 // OTP login disabled — uncomment to re-enable email verification
 // import { createOtpSession, verifyOtpSession, refreshOtpCode } from '../utils/otpStore.js';
 // import { sendLoginOtp } from '../utils/emailService.js';
-import { isSuperAdminRole, parseAdminPermissions } from '../utils/adminPermissions.js';
+import { isSuperAdminRole, parsePermissionMap } from '../utils/adminPermissions.js';
 import {
   enforcePartialDiscountAccessRules,
   resolveStudentAccessState,
@@ -21,7 +21,7 @@ function buildAdminAuthUser(admin) {
     email: admin.email,
     role: 'admin',
     adminRole,
-    permissions: isSuperAdminRole(adminRole) ? null : parseAdminPermissions(admin.permissions),
+    permissions: isSuperAdminRole(adminRole) ? null : parsePermissionMap(admin.permissions),
     status: admin.status,
   };
 }

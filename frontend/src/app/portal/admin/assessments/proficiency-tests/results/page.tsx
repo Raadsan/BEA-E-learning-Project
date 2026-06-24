@@ -8,6 +8,7 @@ import { useGetAllProficiencyResultsQuery } from "@/lib/api/proficiencyTestApi";
 import { useExtendStudentDeadlineMutation } from "@/lib/api/studentApi";
 import { useExtendCandidateDeadlineMutation } from "@/lib/api/proficiencyTestStudentsApi";
 import { useToast } from "@/components/Toast";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
  
 const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
     const [timeLeft, setTimeLeft] = useState("");
@@ -47,6 +48,7 @@ const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
 export default function ProficiencyTestResultsPage() {
     const router = useRouter();
     const { showToast } = useToast();
+    const { canView } = usePagePermissions("assessments", "proficiency_results");
     
     // States for access time extension
     const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
@@ -170,6 +172,7 @@ export default function ProficiencyTestResultsPage() {
             label: "Actions",
             render: (_, row) => (
                 <div className="flex gap-2">
+                    {canView && (
                     <button
                         onClick={() => router.push(`/portal/admin/assessments/proficiency-tests/results/${row.id}`)}
                         className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
@@ -180,6 +183,7 @@ export default function ProficiencyTestResultsPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                     </button>
+                    )}
                 </div>
             ),
         },

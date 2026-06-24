@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 
 import DataTable from "@/components/DataTable";
 import { useGetClassesQuery } from "@/lib/api/classApi";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 export default function OnlineSessionsPage() {
     const router = useRouter();
+    const { canView } = usePagePermissions("class_management", "online_sessions");
     const { data: classes = [], isLoading, isError, error } = useGetClassesQuery();
 
     const handleViewSessions = (classItem) => {
@@ -48,7 +50,7 @@ export default function OnlineSessionsPage() {
         {
             key: "actions",
             label: "Actions",
-            render: (_, row) => (
+            render: (_, row) => canView ? (
                 <button
                     onClick={() => handleViewSessions(row)}
                     className="flex items-center gap-1 text-blue-600 hover:text-blue-900 transition-colors px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded-md text-sm font-medium"
@@ -60,7 +62,7 @@ export default function OnlineSessionsPage() {
                     </svg>
                     View Sessions
                 </button>
-            ),
+            ) : null,
         },
     ];
 

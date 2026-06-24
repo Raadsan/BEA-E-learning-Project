@@ -16,8 +16,9 @@ export default function BAdminSidebar({ isOpen, onClose }) {
   const { isDark } = useDarkMode();
   const [logout] = useLogoutMutation();
   const { activePath, handleNavClick } = usePortalNavFeedback(pathname, onClose);
-  const { can, isSuperAdmin } = useAdminPermissions();
+  const { can, isSuperAdmin, canPage } = useAdminPermissions();
   const allow = (permission) => isSuperAdmin || can(permission);
+  const allowPage = (moduleKey, pageKey) => isSuperAdmin || canPage(moduleKey, pageKey);
 
   const handleLogout = async () => {
     try {
@@ -261,7 +262,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
           <li>
             <Link href="/portal/admin/admins" className={getMenuItemClasses("/portal/admin/admins")} style={getActiveStyle("/portal/admin/admins")}>
               <svg className={getIconClasses("/portal/admin/admins")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               <span className={getTextClasses("/portal/admin/admins")}>Admins</span>
             </Link>
@@ -300,6 +301,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
             </button>
             {openSection === 'studentManagement' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                {allowPage("student_management", "all_students") && (
                 <li>
                   <Link
                     href="/portal/admin/students"
@@ -315,6 +317,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={(pathname === "/portal/admin/students" || pathname === "/portal/admin/students/") ? 'text-white' : 'text-gray-100'}>All Students</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("student_management", "admitted_students") && (
                 <li>
                   <Link href="/portal/admin/students/general" className={getSubMenuItemClasses("/portal/admin/students/general")} style={getSubActiveStyle("/portal/admin/students/general")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/students/general") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -323,6 +327,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/students/general") ? 'text-white' : 'text-gray-100'}>All Admitted Students</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("student_management", "ielts_students") && (
                 <li>
                   <Link href="/portal/admin/students/ielts-toefl" className={getSubMenuItemClasses("/portal/admin/students/ielts-toefl")} style={getSubActiveStyle("/portal/admin/students/ielts-toefl")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/students/ielts-toefl") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,6 +337,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/students/ielts-toefl") ? 'text-white' : 'text-gray-100'}>IELTOEF Program Students</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("student_management", "proficiency_students") && (
                 <li>
                   <Link href="/portal/admin/students/proficiency-only" className={getSubMenuItemClasses("/portal/admin/students/proficiency-only")} style={getSubActiveStyle("/portal/admin/students/proficiency-only")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/students/proficiency-only") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -339,6 +347,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/students/proficiency-only") ? 'text-white' : 'text-gray-100'}>Proficiency Test Students</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("student_management", "student_discounts") && (
                 <li>
                   <Link href="/portal/admin/students/discounts" className={getSubMenuItemClasses("/portal/admin/students/discounts")} style={getSubActiveStyle("/portal/admin/students/discounts")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/students/discounts") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -347,6 +357,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/students/discounts") ? 'text-white' : 'text-gray-100'}>Student Discounts</span>
                   </Link>
                 </li>
+                )}
               </ul>
             )}
           </li>
@@ -371,6 +382,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
             </button>
             {openSection === 'academicManagement' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                {allowPage("academic_management", "programs") && (
                 <li>
                   <Link href="/portal/admin/programs" className={getSubMenuItemClasses("/portal/admin/programs")} style={getSubActiveStyle("/portal/admin/programs")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/programs") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -379,6 +391,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/programs") ? 'text-white' : 'text-gray-100'}>Programs</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("academic_management", "courses") && (
                 <li>
                   <Link href="/portal/admin/subprograms" className={getSubMenuItemClasses("/portal/admin/subprograms")} style={getSubActiveStyle("/portal/admin/subprograms")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/subprograms") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -387,6 +401,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/subprograms") ? 'text-white' : 'text-gray-100'}>Courses</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("academic_management", "course_materials") && (
                 <li>
                   <Link href="/portal/admin/learning-resources/materials" className={getSubMenuItemClasses("/portal/admin/learning-resources/materials")} style={getSubActiveStyle("/portal/admin/learning-resources/materials")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/learning-resources/materials") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -395,6 +411,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/learning-resources/materials") ? 'text-white' : 'text-gray-100'}>Course Materials</span>
                   </Link>
                 </li>
+                )}
+                {(allowPage("academic_management", "certificate_configuration") || allowPage("academic_management", "certificate_issued")) && (
                 <li>
                   <button
                     onClick={() => toggleSubSection('certificatesSub')}
@@ -412,6 +430,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                   </button>
                   {openSubSection === 'certificatesSub' && (
                     <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                      {allowPage("academic_management", "certificate_configuration") && (
                       <li>
                         <Link
                           href="/portal/admin/certificates?tab=configuration"
@@ -422,6 +441,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                           <span className="text-gray-100">Certificate Configuration</span>
                         </Link>
                       </li>
+                      )}
+                      {allowPage("academic_management", "certificate_issued") && (
                       <li>
                         <Link
                           href="/portal/admin/certificates?tab=issued"
@@ -432,9 +453,11 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                           <span className="text-gray-100">Issued Certificates Log</span>
                         </Link>
                       </li>
+                      )}
                     </ul>
                   )}
                 </li>
+                )}
               </ul>
             )}
           </li>
@@ -459,6 +482,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
             </button>
             {openSection === 'learningResources' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                {allowPage("class_management", "classes") && (
                 <li>
                   <Link href="/portal/admin/classes" className={getSubMenuItemClasses("/portal/admin/classes")} style={getSubActiveStyle("/portal/admin/classes")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -467,6 +491,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/classes") ? 'text-white' : 'text-gray-100'}>Classes</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("class_management", "online_sessions") && (
                 <li>
                   <Link href="/portal/admin/learning-resources/sessions" className={getSubMenuItemClasses("/portal/admin/learning-resources/sessions")} style={getSubActiveStyle("/portal/admin/learning-resources/sessions")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/learning-resources/sessions") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -475,6 +501,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/learning-resources/sessions") ? 'text-white' : 'text-gray-100'}>Online Session Links</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("class_management", "timetable") && (
                 <li>
                   <Link href="/portal/admin/learning-resources/timetable" className={getSubMenuItemClasses("/portal/admin/learning-resources/timetable")} style={getSubActiveStyle("/portal/admin/learning-resources/timetable")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/learning-resources/timetable") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -483,6 +511,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/learning-resources/timetable") ? 'text-white' : 'text-gray-100'}>Academic Timetable</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("class_management", "shifts") && (
                 <li>
                   <Link href="/portal/admin/shifts" className={getSubMenuItemClasses("/portal/admin/shifts")} style={getSubActiveStyle("/portal/admin/shifts")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/shifts") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -491,6 +521,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/shifts") ? 'text-white' : 'text-gray-100'}>Shifts</span>
                   </Link>
                 </li>
+                )}
               </ul>
             )}
           </li>
@@ -515,7 +546,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
             </button>
             {openSection === 'assessments' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
-                {/* Placement Tests */}
+                {(allowPage("assessments", "placement_tests") || allowPage("assessments", "placement_results")) && (
                 <li>
                   <button
                     onClick={() => toggleSubSection('placementTests')}
@@ -531,6 +562,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                   </button>
                   {openSubSection === 'placementTests' && (
                     <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                      {allowPage("assessments", "placement_tests") && (
                       <li>
                         <Link href="/portal/admin/assessments/placement-tests" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-300 hover:bg-white/10">
                           <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -539,6 +571,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                           <span className="text-gray-100">Placement Tests</span>
                         </Link>
                       </li>
+                      )}
+                      {allowPage("assessments", "placement_results") && (
                       <li>
                         <Link href="/portal/admin/assessments/placement-tests/results" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-300 hover:bg-white/10">
                           <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -547,11 +581,13 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                           <span className="text-gray-100">Placement Results</span>
                         </Link>
                       </li>
+                      )}
                     </ul>
                   )}
                 </li>
+                )}
 
-                {/* Professional Tests */}
+                {(allowPage("assessments", "proficiency_tests") || allowPage("assessments", "proficiency_results")) && (
                 <li>
                   <button
                     onClick={() => toggleSubSection('professionalTests')}
@@ -567,6 +603,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                   </button>
                   {openSubSection === 'professionalTests' && (
                     <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                      {allowPage("assessments", "proficiency_tests") && (
                       <li>
                         <Link href="/portal/admin/assessments/proficiency-tests" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-300 hover:bg-white/10">
                           <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -575,6 +612,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                           <span className="text-gray-100">Proficiency Tests</span>
                         </Link>
                       </li>
+                      )}
+                      {allowPage("assessments", "proficiency_results") && (
                       <li>
                         <Link href="/portal/admin/assessments/proficiency-tests/results" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-xs text-gray-300 hover:bg-white/10">
                           <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -583,9 +622,11 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                           <span className="text-gray-100">Proficiency Results</span>
                         </Link>
                       </li>
+                      )}
                     </ul>
                   )}
                 </li>
+                )}
 
               </ul>
             )}
@@ -612,6 +653,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
             </button>
             {openSection === 'studentRequests' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                {allowPage("student_requests", "session_requests") && (
                 <li>
                   <Link href="/portal/admin/students-requests/session" className={getSubMenuItemClasses("/portal/admin/students-requests/session")} style={getSubActiveStyle("/portal/admin/students-requests/session")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/students-requests/session") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -620,6 +662,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/students-requests/session") ? 'text-white' : 'text-gray-100'}>Session Change Requests</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("student_requests", "freezing_requests") && (
                 <li>
                   <Link href="/portal/admin/students-requests/freezing" className={getSubMenuItemClasses("/portal/admin/students-requests/freezing")} style={getSubActiveStyle("/portal/admin/students-requests/freezing")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/students-requests/freezing") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -628,6 +672,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/students-requests/freezing") ? 'text-white' : 'text-gray-100'}>Freezing Requests</span>
                   </Link>
                 </li>
+                )}
                 {/* <li>
                   <Link href="/portal/admin/students-requests/level-up" className={getSubMenuItemClasses("/portal/admin/students-requests/level-up")} style={getSubActiveStyle("/portal/admin/students-requests/level-up")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/students-requests/level-up") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -661,7 +706,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
             </button>
             {openSection === 'reviews' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
-                {/* Teacher Subsection */}
+                {(allowPage("reviews", "teacher_questions") || allowPage("reviews", "teacher_reviews")) && (
                 <li className="ml-2">
                   <button
                     onClick={() => toggleSubSection('reviewTeacher')}
@@ -677,21 +722,26 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                   </button>
                   {openSubSection === 'reviewTeacher' && (
                     <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                      {allowPage("reviews", "teacher_questions") && (
                       <li>
                         <Link href="/portal/admin/reviews/teacher-questions" className={getSubMenuItemClasses("/portal/admin/reviews/teacher-questions")} style={getSubActiveStyle("/portal/admin/reviews/teacher-questions")}>
                           <span className={isActive("/portal/admin/reviews/teacher-questions") ? 'text-white' : 'text-gray-100'}>Questions</span>
                         </Link>
                       </li>
+                      )}
+                      {allowPage("reviews", "teacher_reviews") && (
                       <li>
                         <Link href="/portal/admin/reviews/teacher-reviews" className={getSubMenuItemClasses("/portal/admin/reviews/teacher-reviews")} style={getSubActiveStyle("/portal/admin/reviews/teacher-reviews")}>
                           <span className={isActive("/portal/admin/reviews/teacher-reviews") ? 'text-white' : 'text-gray-100'}>Reviews</span>
                         </Link>
                       </li>
+                      )}
                     </ul>
                   )}
                 </li>
+                )}
 
-                {/* Student Subsection */}
+                {(allowPage("reviews", "student_questions") || allowPage("reviews", "student_reviews")) && (
                 <li className="ml-2">
                   <button
                     onClick={() => toggleSubSection('reviewStudent')}
@@ -707,19 +757,24 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                   </button>
                   {openSubSection === 'reviewStudent' && (
                     <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                      {allowPage("reviews", "student_questions") && (
                       <li>
                         <Link href="/portal/admin/reviews/student-questions" className={getSubMenuItemClasses("/portal/admin/reviews/student-questions")} style={getSubActiveStyle("/portal/admin/reviews/student-questions")}>
                           <span className={isActive("/portal/admin/reviews/student-questions") ? 'text-white' : 'text-gray-100'}>Questions</span>
                         </Link>
                       </li>
+                      )}
+                      {allowPage("reviews", "student_reviews") && (
                       <li>
                         <Link href="/portal/admin/reviews/student-reviews" className={getSubMenuItemClasses("/portal/admin/reviews/student-reviews")} style={getSubActiveStyle("/portal/admin/reviews/student-reviews")}>
                           <span className={isActive("/portal/admin/reviews/student-reviews") ? 'text-white' : 'text-gray-100'}>Reviews</span>
                         </Link>
                       </li>
+                      )}
                     </ul>
                   )}
                 </li>
+                )}
               </ul>
             )}
           </li>
@@ -744,6 +799,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
             </button>
             {openSection === 'communication' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                {allowPage("communication", "announcements") && (
                 <li>
                   <Link href="/portal/admin/communication/announcements" className={getSubMenuItemClasses("/portal/admin/communication/announcements")} style={getSubActiveStyle("/portal/admin/communication/announcements")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/announcements") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -752,6 +808,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/communication/announcements") ? 'text-white' : 'text-gray-100'}>Announcements</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("communication", "news_events") && (
                 <li>
                   <Link href="/portal/admin/communication/news" className={getSubMenuItemClasses("/portal/admin/communication/news")} style={getSubActiveStyle("/portal/admin/communication/news")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/news") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -760,6 +818,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/communication/news") ? 'text-white' : 'text-gray-100'}>News & Events</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("communication", "course_timeline") && (
                 <li>
                   <Link href="/portal/admin/communication/course-timeline" className={getSubMenuItemClasses("/portal/admin/communication/course-timeline")} style={getSubActiveStyle("/portal/admin/communication/course-timeline")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/course-timeline") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -768,6 +828,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/communication/course-timeline") ? 'text-white' : 'text-gray-100'}>Course Timeline</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("communication", "testimonials") && (
                 <li>
                   <Link href="/portal/admin/communication/testimonials" className={getSubMenuItemClasses("/portal/admin/communication/testimonials")} style={getSubActiveStyle("/portal/admin/communication/testimonials")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/testimonials") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -776,6 +838,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/communication/testimonials") ? 'text-white' : 'text-gray-100'}>Testimonials</span>
                   </Link>
                 </li>
+                )}
               </ul>
             )}
           </li>
@@ -801,6 +864,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
             </button>
             {openSection === 'inquiries' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                {allowPage("inquiries", "contact_messages") && (
                 <li>
                   <Link href="/portal/admin/communication/contacts" className={getSubMenuItemClasses("/portal/admin/communication/contacts")} style={getSubActiveStyle("/portal/admin/communication/contacts")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/contacts") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -809,6 +873,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/communication/contacts") ? 'text-white' : 'text-gray-100'}>Contact Messages</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("inquiries", "newsletter") && (
                 <li>
                   <Link href="/portal/admin/communication/newsletter" className={getSubMenuItemClasses("/portal/admin/communication/newsletter")} style={getSubActiveStyle("/portal/admin/communication/newsletter")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/newsletter") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -817,6 +883,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/communication/newsletter") ? 'text-white' : 'text-gray-100'}>Newsletter Subscribers</span>
                   </Link>
                 </li>
+                )}
               </ul>
             )}
           </li>
@@ -842,6 +909,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
             </button>
             {openSection === 'payments' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                {allowPage("payments", "payment_packages") && (
                 <li>
                   <Link href="/portal/admin/payments/packages" className={getSubMenuItemClasses("/portal/admin/payments/packages")} style={getSubActiveStyle("/portal/admin/payments/packages")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/payments/packages") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -850,6 +918,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/payments/packages") ? 'text-white' : 'text-gray-100'}>Payment Packages</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("payments", "payment_history") && (
                 <li>
                   <Link href="/portal/admin/payments/history" className={getSubMenuItemClasses("/portal/admin/payments/history")} style={getSubActiveStyle("/portal/admin/payments/history")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/payments/history") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -858,6 +928,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/payments/history") ? 'text-white' : 'text-gray-100'}>Payment History</span>
                   </Link>
                 </li>
+                )}
               </ul>
             )}
           </li>
@@ -882,6 +953,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
             </button>
             {openSection === 'reports' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
+                {allowPage("reports", "student_reports") && (
                 <li>
                   <Link href="/portal/admin/reports/students" className={getSubMenuItemClasses("/portal/admin/reports/students")} style={getSubActiveStyle("/portal/admin/reports/students")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/reports/students") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -890,14 +962,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/reports/students") ? 'text-white' : 'text-gray-100'}>Student Reports</span>
                   </Link>
                 </li>
-                {/* <li>
-                  <Link href="/portal/admin/reports/teachers" className={getSubMenuItemClasses("/portal/admin/reports/teachers")} style={getSubActiveStyle("/portal/admin/reports/teachers")}>
-                    <svg className={`w-4 h-4 ${isActive("/portal/admin/reports/teachers") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <span className={isActive("/portal/admin/reports/teachers") ? 'text-white' : 'text-gray-100'}>Teacher Reports</span>
-                  </Link>
-                </li> */}
+                )}
+                {allowPage("reports", "assessment_reports") && (
                 <li>
                   <Link href="/portal/admin/reports/assessments" className={getSubMenuItemClasses("/portal/admin/reports/assessments")} style={getSubActiveStyle("/portal/admin/reports/assessments")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/reports/assessments") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -906,6 +972,8 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/reports/assessments") ? 'text-white' : 'text-gray-100'}>Assessment Reports</span>
                   </Link>
                 </li>
+                )}
+                {allowPage("reports", "financial_reports") && (
                 <li>
                   <Link href="/portal/admin/reports/financial" className={getSubMenuItemClasses("/portal/admin/reports/financial")} style={getSubActiveStyle("/portal/admin/reports/financial")}>
                     <svg className={`w-4 h-4 ${isActive("/portal/admin/reports/financial") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -914,6 +982,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                     <span className={isActive("/portal/admin/reports/financial") ? 'text-white' : 'text-gray-100'}>Financial Reports</span>
                   </Link>
                 </li>
+                )}
               </ul>
             )}
           </li>

@@ -7,6 +7,8 @@ import { useGetSubprogramsQuery, useCreateSubprogramMutation, useUpdateSubprogra
 import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
+import AdminTableActions from "@/components/admin/AdminTableActions";
 
 // Extracted Components
 import SubprogramForm from "@/components/admin/subprograms/SubprogramForm";
@@ -16,6 +18,7 @@ import SubprogramViewModal from "@/components/admin/subprograms/SubprogramViewMo
 export default function SubprogramsPage() {
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
+  const { canView, canAdd, canEdit, canDelete, showBulkActions } = usePagePermissions("academic_management", "courses");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubprogram, setEditingSubprogram] = useState(null);
   const [viewingSubprogram, setViewingSubprogram] = useState(null);
@@ -244,21 +247,19 @@ export default function SubprogramsPage() {
         </span>
       ),
     },
-    { key: "status", label: "Status", render: (val, row) => <button onClick={() => handleStatusToggle(row)} className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full transition-all active:scale-95 ${val === 'active' ? 'bg-green-100 text-green-700' : val === 'archived' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{val === "active" ? "Active" : val === "archived" ? "Archived" : "Inactive"}</button> },
+    { key: "status", label: "Status", render: (val, row) => canEdit ? <button onClick={() => handleStatusToggle(row)} className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full transition-all active:scale-95 ${val === 'active' ? 'bg-green-100 text-green-700' : val === 'archived' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{val === "active" ? "Active" : val === "archived" ? "Archived" : "Inactive"}</button> : <span className={`px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full ${val === 'active' ? 'bg-green-100 text-green-700' : val === 'archived' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{val === "active" ? "Active" : val === "archived" ? "Archived" : "Inactive"}</span> },
     {
       key: "actions", label: "Actions",
       render: (_, row) => (
-        <div className="flex gap-2">
-          <button onClick={() => handleView(row)} className="text-gray-600 hover:text-gray-900 transition-colors p-1 rounded hover:bg-gray-50" title="View">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-          </button>
-          <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-900 transition-colors p-1 rounded hover:bg-blue-50" title="Edit">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-          </button>
-          <button onClick={() => handleDeleteClick(row)} className="text-red-600 hover:text-red-900 transition-colors p-1 rounded hover:bg-red-50" title="Delete" disabled={isDeleting}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-          </button>
-        </div>
+        <AdminTableActions
+          canView={canView}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          onView={() => handleView(row)}
+          onEdit={() => handleEdit(row)}
+          onDelete={() => handleDeleteClick(row)}
+          deleteDisabled={isDeleting}
+        />
       ),
     },
   ]; 
@@ -274,7 +275,7 @@ export default function SubprogramsPage() {
             title="Subprogram Management"
             columns={columns}
             data={sortedSubprograms}
-            onAddClick={handleAddSubprogram}
+            onAddClick={canAdd ? handleAddSubprogram : undefined}
             showAddButton={false}
             customActions={
               <>
@@ -294,6 +295,7 @@ export default function SubprogramsPage() {
                   </svg>
                   Show All
                 </button>
+                {showBulkActions && (
                 <button
                   onClick={() => setIsBulkActionsModalOpen(true)}
                   disabled={selectedSubprograms.length === 0}
@@ -308,6 +310,8 @@ export default function SubprogramsPage() {
                   </svg>
                   Actions
                 </button>
+                )}
+                {canAdd && (
                 <button
                   onClick={handleAddSubprogram}
                   className="bg-[#010080] hover:bg-[#010080]/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors h-[38px] text-xs font-semibold"
@@ -317,6 +321,7 @@ export default function SubprogramsPage() {
                   </svg>
                   Add
                 </button>
+                )}
               </>
             }
             customHeaderLeft={
@@ -413,7 +418,7 @@ export default function SubprogramsPage() {
                 </div>
               </div>
             }
-            selectable={true}
+            selectable={showBulkActions}
             selectedItems={selectedSubprograms}
             onSelectionChange={setSelectedSubprograms}
             rowsPerPage={rowsPerPage}
@@ -439,6 +444,8 @@ export default function SubprogramsPage() {
             <h3 className="text-lg font-bold mb-4">Bulk Actions ({selectedSubprograms.length} selected)</h3>
             <p className="text-sm mb-6 text-gray-500 dark:text-gray-400">Choose an action to perform on all selected subprograms.</p>
             <div className="space-y-3">
+              {canEdit && (
+              <>
               <button
                 onClick={() => handleBulkStatusChange("active")}
                 className="w-full py-2.5 px-4 rounded-lg bg-green-50 hover:bg-green-100 text-green-700 font-semibold text-sm transition-colors border border-green-200"
@@ -457,6 +464,9 @@ export default function SubprogramsPage() {
               >
                 Set Status to Archived
               </button>
+              </>
+              )}
+              {canDelete && (
               <button
                 onClick={() => {
                   if (window.confirm("Are you sure you want to delete all selected subprograms? This action cannot be undone.")) {
@@ -467,6 +477,7 @@ export default function SubprogramsPage() {
               >
                 Delete Selected Subprograms
               </button>
+              )}
             </div>
             <div className="mt-6 flex justify-end">
               <button

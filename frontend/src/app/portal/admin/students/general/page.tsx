@@ -15,6 +15,8 @@ import StudentViewModal from "@/components/admin/students/StudentViewModal";
 import { useGetPaymentPackagesQuery } from "@/lib/api/paymentPackageApi";
 import StudentFundingFields from "@/components/admin/students/StudentFundingFields";
 import { API_URL } from "@/constants";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
+import AdminTableActions from "@/components/admin/AdminTableActions";
 
 
 function inferPaidMonthsFromStudent(student) {
@@ -62,6 +64,7 @@ const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
 export default function GeneralStudentsPage() {
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
+  const { canView, canEdit, canDelete, canAssign, showBulkActions } = usePagePermissions("student_management", "admitted_students");
   const { data: allStudents, isLoading, isError, error, refetch } = useGetStudentsQuery();
   const { data: subprograms = [] } = useGetSubprogramsQuery();
   const { data: classes = [] } = useGetClassesQuery();
@@ -690,6 +693,7 @@ export default function GeneralStudentsPage() {
         const isActive = val === 'approved';
         return (
           <div className="flex justify-center">
+            {canEdit ? (
             <button
               onClick={() => handleStatusToggle(row)}
               className={`min-w-[80px] px-3 py-1 text-xs font-medium rounded-full border transition-colors ${isActive
@@ -699,6 +703,14 @@ export default function GeneralStudentsPage() {
             >
               {isActive ? 'Active' : 'Inactive'}
             </button>
+            ) : (
+            <span className={`min-w-[80px] px-3 py-1 text-xs font-medium rounded-full border inline-block ${isActive
+                ? 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                : 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800'
+                }`}>
+              {isActive ? 'Active' : 'Inactive'}
+            </span>
+            )}
           </div>
         );
       },
@@ -707,36 +719,16 @@ export default function GeneralStudentsPage() {
       key: "actions",
       label: "Actions",
       render: (_, row) => (
-        <div className="flex gap-2 justify-center">
-          <button
-            onClick={() => handleOpenAssignModal(row)}
-            className="text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300 transition-colors p-1 rounded hover:bg-orange-50 dark:hover:bg-orange-900/20"
-            title="Assign Class"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => handleOpenViewModal(row)}
-            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
-            title="View Details"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => handleOpenEditModal(row)}
-            className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
-            title="Edit Student"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-        </div>
+        <AdminTableActions
+          canView={canView}
+          canEdit={canEdit}
+          canDelete={false}
+          canAssign={canAssign}
+          onView={() => handleOpenViewModal(row)}
+          onEdit={() => handleOpenEditModal(row)}
+          onAssign={() => handleOpenAssignModal(row)}
+          assignTitle="Assign Class"
+        />
       ),
     },
   ];
@@ -800,7 +792,7 @@ export default function GeneralStudentsPage() {
                 </div>
               )
             }
-            customActions={
+            customActions={showBulkActions ? (
               <button
                 onClick={() => setIsBulkActionsModalOpen(true)}
                 disabled={selectedStudentIds.length === 0}
@@ -815,8 +807,8 @@ export default function GeneralStudentsPage() {
                 </svg>
                 <span className="font-semibold">Actions</span>
               </button>
-            }
-            selectable={true}
+            ) : null}
+            selectable={showBulkActions}
             selectedItems={selectedStudentIds}
             onSelectionChange={setSelectedStudentIds}
             filters={

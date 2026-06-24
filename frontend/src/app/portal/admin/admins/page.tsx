@@ -17,7 +17,7 @@ import { useToast } from "@/components/Toast";
 import AdminForm from "@/components/admin/admins/AdminForm";
 import AdminViewModal from "@/components/admin/admins/AdminViewModal";
 import { useAdminPermissions } from "@/hooks/useAdminPermissions";
-import { parsePermissions } from "@/constants/adminPermissions";
+import { parsePermissionMap, hasAnyPermission, serializePermissionMap } from "@/constants/adminPermissions";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -46,7 +46,7 @@ export default function AdminsPage() {
   const [viewingAdmin, setViewingAdmin] = useState(null);
   const [editingAdmin, setEditingAdmin] = useState(null);
   const [formData, setFormData] = useState({
-    full_name: "", username: "", email: "", password: "", confirmPassword: "", role: "super", status: "active", permissions: [] as string[]
+    full_name: "", username: "", email: "", password: "", confirmPassword: "", role: "super", status: "active", permissionMap: {}
   });
 
   useEffect(() => {
@@ -135,7 +135,7 @@ export default function AdminsPage() {
   const handleAddClick = () => {
     setEditingAdmin(null);
     setFormData({
-      full_name: "", username: "", email: "", password: "", confirmPassword: "", role: "super", status: "active", permissions: []
+      full_name: "", username: "", email: "", password: "", confirmPassword: "", role: "super", status: "active", permissionMap: {}
     });
     setIsModalOpen(true);
   };
@@ -150,7 +150,7 @@ export default function AdminsPage() {
       confirmPassword: "",
       role: admin.role || "super",
       status: admin.status || "active",
-      permissions: parsePermissions(admin.permissions),
+      permissionMap: parsePermissionMap(admin.permissions),
     });
     setIsModalOpen(true);
   };
@@ -180,62 +180,56 @@ export default function AdminsPage() {
     setFormData(prev => {
       const next = { ...prev, [name]: value };
       if (name === "role" && value === "super") {
-        next.permissions = [];
+        next.permissionMap = {};
       }
-      if (name === "role" && value === "technical" && !prev.permissions?.length) {
-        next.permissions = ["dashboard"];
+      if (name === "role" && value === "technical" && !hasAnyPermission(prev.permissionMap || {})) {
+        next.permissionMap = { dashboard: { view: true, add: false, edit: false, delete: false } };
       }
       return next;
     });
   };
 
-  const handlePermissionToggle = (permissionKey) => {
-    setFormData((prev) => {
-      const current = prev.permissions || [];
-      const permissions = current.includes(permissionKey)
-        ? current.filter((key) => key !== permissionKey)
-        : [...current, permissionKey];
-      return { ...prev, permissions };
-    });
+  const setPermissionMap = (permissionMap) => {
+    setFormData((prev) => ({ ...prev, permissionMap }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (formData.role === "technical") {
-      if (!formData.permissions?.length) {
+      if (!hasAnyPermission(formData.permissionMap || {})) {
         showToast("Select at least one permission for Technical Admin", "error");
         return;
       }
-    } else {
-      if (!editingAdmin && !formData.password) {
-        showToast("Password is required for Super Admin", "error");
+    }
+
+    if (!editingAdmin && !formData.password) {
+      showToast("Password is required", "error");
+      return;
+    }
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      showToast("Passwords do not match", "error");
+      return;
+    }
+    if (formData.password) {
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+      if (!passwordRegex.test(formData.password)) {
+        showToast("Password must be at least 6 characters and include uppercase, lowercase, number, and symbol", "error");
         return;
-      }
-      if (formData.password && formData.password !== formData.confirmPassword) {
-        showToast("Passwords do not match", "error");
-        return;
-      }
-      if (formData.password) {
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-        if (!passwordRegex.test(formData.password)) {
-          showToast("Password must be at least 6 characters and include uppercase, lowercase, number, and symbol", "error");
-          return;
-        }
       }
     }
 
     try {
       const payload = { ...formData };
       if (formData.role === "technical") {
-        delete payload.password;
-        delete payload.confirmPassword;
+        payload.permissions = serializePermissionMap(formData.permissionMap || {});
+        delete payload.permissionMap;
       } else {
         delete payload.permissions;
-        if (editingAdmin && !payload.password) {
-          delete payload.password;
-          delete payload.confirmPassword;
-        }
+        delete payload.permissionMap;
+      }
+      if (editingAdmin && !payload.password) {
+        delete payload.password;
       }
       delete payload.confirmPassword;
 
@@ -518,7 +512,7 @@ export default function AdminsPage() {
         editingAdmin={editingAdmin}
         formData={formData}
         handleInputChange={handleInputChange}
-        handlePermissionToggle={handlePermissionToggle}
+        setPermissionMap={setPermissionMap}
         handleSubmit={handleSubmit}
         isDark={isDark}
         isCreating={isCreating}

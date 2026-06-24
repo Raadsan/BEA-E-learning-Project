@@ -11,6 +11,7 @@ import { useGetStudentsQuery } from "@/lib/api/studentApi";
 import { useToast } from "@/components/Toast";
 import FreezingActionModal from "@/components/admin/students-requests/freezing/FreezingActionModal";
 import AdminConfirmationModal from "@/components/admin/admins/AdminConfirmationModal";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 interface AuditLog {
     id: number;
@@ -22,6 +23,7 @@ interface AuditLog {
 export default function AdminFreezingRequestsPage() {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
+    const { canView, canEdit, showBulkActions } = usePagePermissions("student_requests", "freezing_requests");
     const { data: requests = [], isLoading, refetch } = useGetFreezingRequestsQuery();
     const { data: allStudents = [] } = useGetStudentsQuery();
     const [updateStatus, { isLoading: isUpdating }] = useUpdateFreezingRequestStatusMutation();
@@ -282,7 +284,7 @@ export default function AdminFreezingRequestsPage() {
             key: "actions", label: "ACTIONS", width: "120px",
             render: (_: any, row: any) => {
                 if (row.status === 'pending') {
-                    return (
+                    return canEdit ? (
                         <div className="flex gap-2">
                             <button onClick={() => openModal(row, 'approve')} className="text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20 p-1.5 rounded-lg border border-green-100 dark:border-green-900/30 transition-all" title="Approve Request">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,9 +311,9 @@ export default function AdminFreezingRequestsPage() {
                                 </svg>
                             </button>
                         </div>
-                    );
+                    ) : null;
                 }
-                return (
+                return canView ? (
                     <button
                         onClick={() => openModal(row, 'view')}
                         className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/20 p-1.5 rounded-lg border border-blue-100 dark:border-blue-900/30 transition-all"
@@ -322,7 +324,7 @@ export default function AdminFreezingRequestsPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                     </button>
-                );
+                ) : null;
             },
         },
     ];
@@ -377,12 +379,14 @@ export default function AdminFreezingRequestsPage() {
             </div>
 
             {/* Bulk Actions Panel (Requirement 1.62) */}
-            {selectedRequestIds.length > 0 && (
+            {showBulkActions && selectedRequestIds.length > 0 && (
                 <div className="mb-4 p-4 rounded-xl border border-blue-200 bg-blue-50/50 dark:border-blue-900/30 dark:bg-blue-950/20 flex items-center justify-between animate-fadeIn shadow-xs">
                     <div className="flex items-center gap-2">
                         <span className="text-blue-500 text-sm font-bold">✓ Selected: {selectedRequestIds.length} requests</span>
                     </div>
                     <div className="flex items-center gap-3">
+                        {canEdit && (
+                        <>
                         <button
                             onClick={() => handleBulkAction("approve")}
                             className="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
@@ -395,12 +399,16 @@ export default function AdminFreezingRequestsPage() {
                         >
                             Bulk Reject
                         </button>
+                        </>
+                        )}
+                        {canEdit && (
                         <button
                             onClick={handleBulkDelete}
                             className="px-4 py-1.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
                         >
                             Bulk Dismiss
                         </button>
+                        )}
                     </div>
                 </div>
             )}
@@ -414,7 +422,7 @@ export default function AdminFreezingRequestsPage() {
                     showAddButton={false}
                     isLoading={isLoading}
                     searchKey="student_name"
-                    selectable={true}
+                    selectable={showBulkActions}
                     selectedItems={selectedRequestIds}
                     onSelectionChange={setSelectedRequestIds}
                     customHeaderLeft={customHeaderLeft}

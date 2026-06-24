@@ -5,10 +5,12 @@ import { useGetSubscribersQuery, useDeleteSubscriberMutation } from "@/lib/api/n
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 export default function NewsletterPage() {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
+    const { canDelete } = usePagePermissions("inquiries", "newsletter");
     const { data, isLoading, isError, error, refetch } = useGetSubscribersQuery();
     const [deleteSubscriber, { isLoading: isDeleting }] = useDeleteSubscriberMutation();
 
@@ -61,7 +63,7 @@ export default function NewsletterPage() {
             label: "ACTIONS",
             width: "180px",
             className: "text-center",
-            render: (_, row) => (
+            render: (_, row) => canDelete ? (
                 <div className="flex justify-center">
                     <button
                         onClick={() => handleOpenDeleteModal(row)}
@@ -70,7 +72,7 @@ export default function NewsletterPage() {
                         Remove Subscriber
                     </button>
                 </div>
-            )
+            ) : null
         }
     ];
 

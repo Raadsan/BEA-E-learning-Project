@@ -11,6 +11,7 @@ import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetShiftsQuery } from "@/lib/api/shiftApi";
 import AdminConfirmationModal from "@/components/admin/admins/AdminConfirmationModal";
 import { resolveStudentSubprogramId } from "@/utils/resolveStudentSubprogram";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 function getClassSession(cls: { shift_session?: string; shifts?: { session_type?: string } }) {
     return cls.shift_session || cls.shifts?.session_type || "";
@@ -101,6 +102,7 @@ function getMatchingClassesForRequest(
 export default function AdminSessionRequestsPage() {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
+    const { canView, canEdit } = usePagePermissions("student_requests", "session_requests");
     
     // API Queries
     const { data: requests = [], isLoading, refetch } = useGetSessionRequestsQuery(undefined);
@@ -838,6 +840,8 @@ export default function AdminSessionRequestsPage() {
 
                                         {/* Action Process Buttons */}
                                         <div className="flex gap-3 pt-2">
+                                            {canEdit && (
+                                            <>
                                             <button
                                                 disabled={isStatusUpdating || isStudentUpdating || !adminNote.trim()}
                                                 onClick={() => handleProcessRequest("rejected")}
@@ -853,6 +857,8 @@ export default function AdminSessionRequestsPage() {
                                                 >
                                                     {isStatusUpdating ? "Processing..." : "Assign & Approve"}
                                                 </button>
+                                            )}
+                                            </>
                                             )}
                                         </div>
 

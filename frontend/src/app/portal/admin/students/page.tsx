@@ -20,6 +20,8 @@ import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL, API_URL } from "@/constants";
 import { Country, City } from "country-state-city";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
+import AdminTableActions from "@/components/admin/AdminTableActions";
 
 const StudentForm = dynamic(() => import("@/components/admin/students/StudentForm"), { ssr: false });
 const StudentViewModal = dynamic(() => import("@/components/admin/students/StudentViewModal"), { ssr: false });
@@ -32,6 +34,7 @@ const ConfirmationModal = dynamic(() => import("@/components/ConfirmationModal")
 export default function StudentsPage() {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
+    const { canView, canAdd, canEdit, canDelete, canAssign, showBulkActions } = usePagePermissions("student_management", "all_students");
 
     // Modal States
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -521,10 +524,12 @@ export default function StudentsPage() {
             render: (val, row) => {
                 const s = val || 'pending';
                 if (s === 'pending') {
-                    return (
+                    return canAssign ? (
                         <button onClick={() => { setStudentToApprove(row); setIsApprovalModalOpen(true); }} className="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200 hover:bg-yellow-200 transition-colors shadow-sm">
                             Pending
                         </button>
+                    ) : (
+                        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">Pending</span>
                     );
                 }
                 const statusColors = {
@@ -543,12 +548,17 @@ export default function StudentsPage() {
         {
             key: "actions", label: "Actions",
             render: (_, row) => (
-                <div className="flex gap-2">
-                    <button onClick={() => handleView(row)} className="text-green-600 hover:text-green-800 transition-colors" title="View Details"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
-                    <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-800 transition-colors" title="Edit Profile"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                    <button onClick={() => { setAssigningStudent(row); setSelectedClassId(row.class_id || ""); setIsAssignClassModalOpen(true); }} className="text-indigo-600 hover:text-indigo-800 transition-colors" title="Assign Class"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></button>
-                    <button onClick={() => handleDeleteClick(row.id)} className="text-red-600 hover:text-red-800 transition-colors" title="Delete Student"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                </div>
+                <AdminTableActions
+                    canView={canView}
+                    canEdit={canEdit}
+                    canDelete={canDelete}
+                    canAssign={canAssign}
+                    onView={() => handleView(row)}
+                    onEdit={() => handleEdit(row)}
+                    onDelete={() => handleDeleteClick(row.id)}
+                    onAssign={() => { setAssigningStudent(row); setSelectedClassId(row.class_id || ""); setIsAssignClassModalOpen(true); }}
+                    assignTitle="Assign Class"
+                />
             ),
         },
     ];
@@ -562,7 +572,7 @@ export default function StudentsPage() {
                     title="Student Management"
                     columns={columns}
                     data={sortedStudents}
-                    onAddClick={handleAddStudent}
+                    onAddClick={canAdd ? handleAddStudent : undefined}
                     customActions={
                         <>
                             {/* Show All Button */}
@@ -582,6 +592,7 @@ export default function StudentsPage() {
                                 </svg>
                                 Show All
                             </button>
+                            {showBulkActions && (
                             <button
                                 onClick={() => setIsBulkActionsModalOpen(true)}
                                 disabled={selectedStudents.length === 0}
@@ -596,6 +607,8 @@ export default function StudentsPage() {
                                 </svg>
                                 Actions
                             </button>
+                            )}
+                            {canAdd && (
                             <button
                                 onClick={handleAddStudent}
                                 className="bg-[#010080] hover:bg-[#010080]/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors h-[38px] text-xs font-semibold"
@@ -605,6 +618,7 @@ export default function StudentsPage() {
                                 </svg>
                                 Add
                             </button>
+                            )}
                         </>
                     }
                     showAddButton={false}
@@ -731,7 +745,7 @@ export default function StudentsPage() {
                             </div>
                         </div>
                     }
-                    selectable={true}
+                    selectable={showBulkActions}
                     selectedItems={selectedStudents}
                     onSelectionChange={setSelectedStudents}
                     rowsPerPage={rowsPerPage}
@@ -817,7 +831,7 @@ export default function StudentsPage() {
                             </div>
 
                             <div className="space-y-4 mb-6">
-                                {/* Change Status Action */}
+                                {canEdit && (
                                 <div className={`p-4 rounded-lg border-2 transition-all ${bulkActions.changeStatus ? (isDark ? 'border-[#010080] bg-[#010080]/10' : 'border-[#010080] bg-[#010080]/5') : (isDark ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')}`}>
                                     <label className="flex items-start gap-3 cursor-pointer">
                                         <input
@@ -843,8 +857,9 @@ export default function StudentsPage() {
                                         </div>
                                     </label>
                                 </div>
+                                )}
 
-                                {/* Delete Action */}
+                                {canDelete && (
                                 <div className={`p-4 rounded-lg border-2 transition-all ${bulkActions.delete ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10' : (isDark ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')}`}>
                                     <label className="flex items-start gap-3 cursor-pointer">
                                         <input
@@ -859,6 +874,7 @@ export default function StudentsPage() {
                                         </div>
                                     </label>
                                 </div>
+                                )}
                             </div>
 
                             <div className="flex gap-3">

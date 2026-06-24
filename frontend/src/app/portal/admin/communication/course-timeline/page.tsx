@@ -5,10 +5,13 @@ import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
 import { API_URL } from "@/constants";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
+import AdminTableActions from "@/components/admin/AdminTableActions";
 
 export default function CourseTimelinePage() {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
+    const { canAdd, canEdit, canDelete } = usePagePermissions("communication", "course_timeline");
     const [timelines, setTimelines] = useState([]);
     const [filteredTimelines, setFilteredTimelines] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -217,36 +220,13 @@ export default function CourseTimelinePage() {
             label: "Actions",
             width: "120px",
             render: (_, row) => (
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => handleEdit(row)}
-                        className="text-blue-600 p-1 hover:bg-blue-50 rounded"
-                        title="Edit"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                        </svg>
-                    </button>
-                    <button
-                        onClick={() => handleDeleteClick(row)}
-                        className="text-red-600 p-1 hover:bg-red-50 rounded"
-                        title="Delete"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                        </svg>
-                    </button>
-                </div>
+                <AdminTableActions
+                    canView={false}
+                    canEdit={canEdit}
+                    canDelete={canDelete}
+                    onEdit={() => handleEdit(row)}
+                    onDelete={() => handleDeleteClick(row)}
+                />
             ),
         },
     ];
@@ -269,8 +249,8 @@ export default function CourseTimelinePage() {
                         title="Course Timeline Management"
                         columns={columns}
                         data={filteredTimelines}
-                        onAddClick={handleCreate}
-                        showAddButton={true}
+                        onAddClick={canAdd ? handleCreate : undefined}
+                        showAddButton={canAdd}
                         emptyMessage="No timeline entries found for the selected year."
                         customHeaderLeft={
                             <div className="flex items-center ml-4">

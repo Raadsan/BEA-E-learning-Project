@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
-import Link from "next/link";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 // Import both views
-import TimeBasedView from "@/components/admin/timetable/TimeBasedView";
 import WeeklyScheduleView from "@/components/admin/timetable/weekly-schedule";
 
 export default function TimetablePage() {
     const { isDark } = useDarkMode();
+    const { canView, canAdd, canEdit, canDelete } = usePagePermissions("class_management", "timetable");
 
     return (
         <main className={`flex-1 overflow-y-auto transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -27,7 +26,7 @@ export default function TimetablePage() {
                 </div>
 
                 {/* Render Monthly View */}
-                <WeeklyScheduleView />
+                <WeeklyScheduleView canView={canView} canAdd={canAdd} canEdit={canEdit} canDelete={canDelete} />
             </div>
         </main>
     );

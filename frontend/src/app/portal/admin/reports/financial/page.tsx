@@ -13,6 +13,7 @@ import {
     PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
 import DataTable from "@/components/DataTable";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 // Brand Colors
 const brandColors = ["#010080", "#4b47a4", "#18178a", "#f40606", "#f95150"];
@@ -219,6 +220,7 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
 
 export default function PaymentReportsPage() {
     const { isDark } = useDarkMode();
+    const { canView } = usePagePermissions("reports", "financial_reports");
 
     // Filters & States
     const [selectedStatus, setSelectedStatus] = useState("");
@@ -378,6 +380,7 @@ export default function PaymentReportsPage() {
                             Financial analytics and detailed transaction auditing
                         </p>
                     </div>
+                    {canView && (
                     <button
                         onClick={handleOpenFullReport}
                         disabled={isFetchingFullReport}
@@ -386,6 +389,7 @@ export default function PaymentReportsPage() {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         {isFetchingFullReport ? 'Generating...' : 'Generate Full Financial Report'}
                     </button>
+                    )}
                 </div>
 
                 {/* Filters */}

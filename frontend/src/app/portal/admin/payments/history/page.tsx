@@ -10,9 +10,11 @@ import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetIeltsToeflStudentsQuery } from "@/lib/api/ieltsToeflApi";
 import { useGetCandidatesQuery as useGetProficiencyStudentsQuery } from "@/lib/api/proficiencyTestStudentsApi";
 import { useDarkMode } from "@/context/ThemeContext";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 export default function PaymentHistoryPage() {
     const { isDark } = useDarkMode();
+    const { canView } = usePagePermissions("payments", "payment_history");
     const { data: payments = [], isLoading, isError } = useGetAllPaymentsQuery();
     const { data: students = [] } = useGetStudentsQuery();
     const { data: ieltsStudents = [] } = useGetIeltsToeflStudentsQuery();
@@ -188,7 +190,7 @@ export default function PaymentHistoryPage() {
         {
             key: "actions",
             label: "Action",
-            render: (_, row) => (
+            render: (_, row) => canView ? (
                 <button
                     className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
                     title="Download Receipt"
@@ -197,7 +199,7 @@ export default function PaymentHistoryPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
                 </button>
-            ),
+            ) : null,
         },
     ];
 

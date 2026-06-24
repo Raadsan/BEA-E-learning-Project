@@ -1,16 +1,15 @@
 import prisma from '../lib/prisma.js';
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 import { getStoredFileUrl } from '../utils/fileStorage.js';
 import { validateEmailRobust } from '../utils/emailValidator.js';
 import { validatePassword, passwordPolicyMessage } from '../utils/passwordValidator.js';
 import {
     isSuperAdminRole,
+    parsePermissionMap,
     parseAdminPermissions,
     serializeAdminPermissions,
     validateTechnicalPermissions,
 } from '../utils/adminPermissions.js';
-import { sendTechnicalAdminCredentials } from '../utils/emailService.js';
 
 function getActorAdminId(req) {
     const rawId = req.user?.userId ?? req.user?.id;
@@ -67,13 +66,9 @@ function buildSafeAdmin(admin) {
     const { password: _, ...safeAdmin } = admin;
     return {
         ...safeAdmin,
-        permissions: parseAdminPermissions(admin.permissions),
+        permissions: parsePermissionMap(admin.permissions),
+        permissionKeys: parseAdminPermissions(admin.permissions),
     };
-}
-
-function generateTechnicalAdminPassword() {
-    const base = crypto.randomBytes(6).toString('base64url');
-    return `Bea@${base}1`;
 }
 
 export const getAdmins = async (req, res) => {
@@ -147,7 +142,12 @@ export const createAdmin = async (req, res) => {
                 return res.status(400).json({ error: permissionCheck.error });
             }
             permissionsJson = serializeAdminPermissions(permissionCheck.permissions);
-            plainPassword = generateTechnicalAdminPassword();
+            if (!plainPassword) {
+                return res.status(400).json({ error: "Password is required for Technical Admin" });
+            }
+            if (!validatePassword(plainPassword)) {
+                return res.status(400).json({ error: passwordPolicyMessage });
+            }
         } else {
             if (!plainPassword) {
                 return res.status(400).json({ error: "Password is required for Super Admin" });
@@ -178,19 +178,6 @@ export const createAdmin = async (req, res) => {
             }
         });
 
-        if (adminRole === 'technical') {
-            try {
-                await sendTechnicalAdminCredentials({
-                    to: emailStr,
-                    name: admin.full_name,
-                    email: emailStr,
-                    password: plainPassword,
-                });
-            } catch (emailErr) {
-                console.error('Failed to email technical admin credentials:', emailErr);
-            }
-        }
-
         res.status(201).json((await enrichAdmins([admin]))[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -215,13 +202,21 @@ export const updateAdmin = async (req, res) => {
 
         const nextRole = data.role || existing.role || 'super';
         if (nextRole === 'technical' || existing.role === 'technical') {
-            delete data.password;
             if (data.permissions !== undefined) {
                 const permissionCheck = validateTechnicalPermissions(data.permissions);
                 if (!permissionCheck.valid) {
                     return res.status(400).json({ error: permissionCheck.error });
                 }
                 data.permissions = serializeAdminPermissions(permissionCheck.permissions);
+            }
+            if (data.password) {
+                if (!validatePassword(data.password)) {
+                    return res.status(400).json({ error: passwordPolicyMessage });
+                }
+                const salt = await bcrypt.genSalt(10);
+                data.password = await bcrypt.hash(data.password, salt);
+            } else {
+                delete data.password;
             }
         } else if (data.password) {
             if (!validatePassword(data.password)) {

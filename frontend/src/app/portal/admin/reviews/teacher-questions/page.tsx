@@ -9,8 +9,11 @@ import {
 } from "@/lib/api/reviewApi";
 import toast from "react-hot-toast";
 import DataTable from "@/components/DataTable";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
+import AdminTableActions from "@/components/admin/AdminTableActions";
 
 export default function TeacherQuestionsPage() {
+    const { canAdd, canEdit, canDelete } = usePagePermissions("reviews", "teacher_questions");
     const { data: questions, isLoading, refetch } = useGetQuestionsQuery("teacher");
     const [createQuestion] = useCreateQuestionMutation();
     const [updateQuestion] = useUpdateQuestionMutation();
@@ -96,7 +99,7 @@ export default function TeacherQuestionsPage() {
         {
             key: "is_active",
             label: "Status",
-            render: (value, row) => (
+            render: (value, row) => canEdit ? (
                 <button
                     onClick={() => handleToggleActive(row)}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${value
@@ -106,6 +109,10 @@ export default function TeacherQuestionsPage() {
                 >
                     {value ? 'Active' : 'Inactive'}
                 </button>
+            ) : (
+                <span className={`px-3 py-1 rounded-full text-xs font-medium inline-block ${value ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {value ? 'Active' : 'Inactive'}
+                </span>
             ),
             sortable: true
         },
@@ -113,26 +120,13 @@ export default function TeacherQuestionsPage() {
             key: "actions",
             label: "Actions",
             render: (_, row) => (
-                <div className="flex items-center justify-end gap-2">
-                    <button
-                        onClick={() => handleOpenModal(row)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                    </button>
-                    <button
-                        onClick={() => handleDelete(row.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </button>
-                </div>
+                <AdminTableActions
+                    canView={false}
+                    canEdit={canEdit}
+                    canDelete={canDelete}
+                    onEdit={() => handleOpenModal(row)}
+                    onDelete={() => handleDelete(row.id)}
+                />
             ),
             sortable: false
         }
@@ -146,8 +140,8 @@ export default function TeacherQuestionsPage() {
                 data={questions || []}
                 isLoading={isLoading}
                 rowsPerPage={10}
-                onAddClick={() => handleOpenModal()}
-                showAddButton={true}
+                onAddClick={canAdd ? () => handleOpenModal() : undefined}
+                showAddButton={canAdd}
             />
 
             {/* Create/Edit Modal */}
