@@ -147,7 +147,7 @@ export default function ShiftsPage() {
         },
         {
             key: "actions", label: "Actions",
-            render: (row) => (
+            render: (_, row) => (
                 <AdminTableActions
                     canView={false}
                     canEdit={canEdit}

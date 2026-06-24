@@ -76,12 +76,17 @@ export default function MyClassesPage() {
         {
             label: "Status",
             key: "status",
-            render: (row) => (
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${row.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+            render: (val, row) => {
+                const status = val ?? row?.status ?? "Active";
+                const isActive = String(status).toLowerCase() === "active";
+                return (
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
                     }`}>
-                    {row.status || 'Active'}
-                </span>
-            )
+                        {status}
+                    </span>
+                );
+            },
         }
     ];
 
@@ -101,7 +106,7 @@ export default function MyClassesPage() {
             ...(eligibleTerm ? [{
                 label: "Qiimeynta",
                 key: "review",
-                render: (row) => (
+                render: (_, row) => (
                     <TeacherReviewForm
                         student={{ id: row.student_id, full_name: row.full_name }}
                         classId={selectedClass.id}
