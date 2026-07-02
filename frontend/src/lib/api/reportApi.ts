@@ -38,13 +38,19 @@ export const reportApi = createApi({
       providesTags: ["Reports"],
       transformResponse: (response: any) => response.success ? response.data : response
     }),
-    getSubprogramDistribution: builder.query<any, void>({
-      query: () => "/subprogram-distribution",
+    getSubprogramDistribution: builder.query({
+      query: (params) => ({
+        url: "/subprogram-distribution",
+        params
+      }),
       providesTags: ["Reports"],
       transformResponse: (response: any) => response.success ? response.data : response
     }),
-    getPerformanceOverview: builder.query<any, void>({
-      query: () => "/performance-overview",
+    getPerformanceOverview: builder.query({
+      query: (params) => ({
+        url: "/performance-overview",
+        params
+      }),
       providesTags: ["Reports"],
       transformResponse: (response: any) => response.success ? response.data : response
     }),
@@ -93,6 +99,14 @@ export const reportApi = createApi({
       providesTags: ["Reports"],
       transformResponse: (response: any) => response.success ? response.data : response
     }),
+    getAssessmentPerformanceList: builder.query({
+      query: (params) => ({
+        url: "/assessment-performance",
+        params
+      }),
+      providesTags: ["Reports"],
+      transformResponse: (response: any) => response.success ? response.data : response
+    }),
     getAssessmentDistribution: builder.query({
       query: (params) => ({
         url: "/assessment-distribution",
@@ -101,8 +115,11 @@ export const reportApi = createApi({
       providesTags: ["Reports"],
       transformResponse: (response: any) => response.success ? response.data : response
     }),
-    getRecentAssessments: builder.query<any, void>({
-      query: () => "/recent-assessments",
+    getRecentAssessments: builder.query({
+      query: (params) => ({
+        url: "/recent-assessments",
+        params
+      }),
       providesTags: ["Reports"],
       transformResponse: (response: any) => response.success ? response.data : response
     }),
@@ -174,6 +191,7 @@ export const {
   useGetAssignmentCompletionAnalyticsQuery,
   useGetConsolidatedStatsQuery,
   useGetAssessmentStatsQuery,
+  useGetAssessmentPerformanceListQuery,
   useGetAssessmentDistributionQuery,
   useGetRecentAssessmentsQuery,
   useGetAssessmentGenderStatsQuery,

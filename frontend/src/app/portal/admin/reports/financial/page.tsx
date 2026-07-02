@@ -5,8 +5,7 @@ import { useDarkMode } from "@/context/ThemeContext";
 import {
     useGetPaymentStatsQuery,
     useGetPaymentDistributionQuery,
-    useGetDetailedPaymentListQuery,
-    useLazyGetDetailedPaymentListQuery
+    useGetDetailedPaymentListQuery
 } from "@/lib/api/reportApi";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -19,7 +18,7 @@ import { usePagePermissions } from "@/hooks/usePagePermissions";
 const brandColors = ["#010080", "#4b47a4", "#18178a", "#f40606", "#f95150"];
 
 // Modal component for full report preview
-const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }) => {
+const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title, reportMeta }) => {
     if (!isOpen) return null;
 
     const totalAmount = data.reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0).toFixed(2);
@@ -64,6 +63,13 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
                             <div>
                                 <h1 className="text-3xl font-bold text-[#010080] tracking-tight uppercase mb-2">Financial Report</h1>
                                 <p className="text-sm text-gray-600">Comprehensive Payment Transaction Summary</p>
+                            {reportMeta?.length ? (
+                                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-gray-600">
+                                    {reportMeta.map((item, index) => (
+                                        <span key={index}>{item}</span>
+                                    ))}
+                                </div>
+                            ) : null}
                             </div>
                         </div>
 
@@ -133,7 +139,13 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {data.map((payment, idx) => (
+                                    {data.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={8} className="border-2 border-gray-300 px-4 py-10 text-center text-sm text-gray-500">
+                                                No payment records found for the selected filters and date range.
+                                            </td>
+                                        </tr>
+                                    ) : data.map((payment, idx) => (
                                         <tr key={payment.id || idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                             <td className="border-2 border-gray-300 px-4 py-2 text-xs text-gray-900">{payment.student_id}</td>
                                             <td className="border-2 border-gray-300 px-4 py-2 text-xs font-semibold text-gray-900">{payment.student_name}</td>
@@ -154,12 +166,13 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
                                             </td>
                                         </tr>
                                     ))}
-                                    {/* Total Row */}
+                                    {data.length > 0 && (
                                     <tr className="bg-[#010080] text-white font-bold">
                                         <td colSpan={3} className="border-2 border-gray-300 px-4 py-3 text-sm uppercase text-right">TOTAL:</td>
                                         <td className="border-2 border-gray-300 px-4 py-3 text-sm text-center">${totalAmount} USD</td>
                                         <td colSpan={4} className="border-2 border-gray-300 px-4 py-3 text-xs text-gray-200">All Transactions</td>
                                     </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -226,25 +239,36 @@ export default function PaymentReportsPage() {
     const [selectedStatus, setSelectedStatus] = useState("");
     const [selectedMethod, setSelectedMethod] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 50;
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-    const [reportPayments, setReportPayments] = useState([]);
-
-    const [triggerFetchAll, { isLoading: isFetchingFullReport }] = useLazyGetDetailedPaymentListQuery();
 
     // Data Queries
-    const { data: stats, isLoading: statsLoading } = useGetPaymentStatsQuery({});
-    const { data: distribution, isLoading: distLoading } = useGetPaymentDistributionQuery({});
+    const paymentQueryParams = useMemo(() => ({
+        status: selectedStatus || undefined,
+        method: selectedMethod || undefined,
+        search: searchTerm || undefined,
+        from_date: fromDate || undefined,
+        to_date: toDate || undefined,
+    }), [selectedStatus, selectedMethod, searchTerm, fromDate, toDate]);
+
+    const { data: stats, isLoading: statsLoading } = useGetPaymentStatsQuery(paymentQueryParams);
+    const { data: distribution, isLoading: distLoading } = useGetPaymentDistributionQuery(paymentQueryParams);
     const { data: detailedData, isLoading: listLoading } = useGetDetailedPaymentListQuery({
-        status: selectedStatus,
-        method: selectedMethod,
-        search: searchTerm,
+        ...paymentQueryParams,
         limit: itemsPerPage,
         offset: (currentPage - 1) * itemsPerPage
     });
+    const { data: fullReportData, isFetching: isFetchingFullReport } = useGetDetailedPaymentListQuery({
+        ...paymentQueryParams,
+        limit: 5000,
+        offset: 0
+    });
 
     const paymentsList = detailedData?.payments || [];
+    const reportPayments = fullReportData?.payments || [];
     const revenueTrend = stats?.trend || [];
     const byMethod = distribution?.byMethod || [];
     const byProgram = distribution?.byProgram || [];
@@ -298,23 +322,17 @@ export default function PaymentReportsPage() {
     const chartLabelColor = isDark ? '#9CA3AF' : '#6B7280';
 
     // Handlers
-    const handleOpenFullReport = async () => {
-        try {
-            const { data: fullData } = await triggerFetchAll({
-                limit: 5000,
-                status: selectedStatus,
-                method: selectedMethod,
-                search: searchTerm
-            });
-
-            if (fullData?.payments?.length > 0) {
-                setReportPayments(fullData.payments);
-                setIsReportModalOpen(true);
-            }
-        } catch (err) {
-            console.error("Failed to fetch full report:", err);
-        }
+    const handleOpenFullReport = () => {
+        setIsReportModalOpen(true);
     };
+
+    const reportMeta = [
+        `Status: ${selectedStatus || "All Statuses"}`,
+        `Method: ${selectedMethod || "All Methods"}`,
+        `Search: ${searchTerm || "None"}`,
+        `From: ${fromDate || "Any"}`,
+        `To: ${toDate || "Any"}`,
+    ];
 
     const handleExportCSV = (dataToExport) => {
         const headers = ['Student ID', 'Student Name', 'Program', 'Amount', 'Method', 'Transaction ID', 'Status', 'Date'];
@@ -371,7 +389,7 @@ export default function PaymentReportsPage() {
         <div className={`flex-1 min-w-0 flex flex-col px-4 sm:px-8 py-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <div className="max-w-[1800px] mx-auto w-full space-y-8">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
                     <div>
                         <h1 className={`text-3xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                             Payment Reports
@@ -384,18 +402,18 @@ export default function PaymentReportsPage() {
                     <button
                         onClick={handleOpenFullReport}
                         disabled={isFetchingFullReport}
-                        className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-bold shadow-md disabled:opacity-70`}
+                        className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} px-4 sm:px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-bold shadow-md disabled:opacity-70 min-w-[220px]`}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        {isFetchingFullReport ? 'Generating...' : 'Generate Full Financial Report'}
+                        {isFetchingFullReport ? 'Generating...' : 'View Financial Report'}
                     </button>
                     )}
                 </div>
 
                 {/* Filters */}
                 <div className={`p-6 rounded-2xl border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
-                        <div className="md:col-span-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4 xl:gap-6 items-end">
+                        <div className="sm:col-span-2 xl:col-span-2">
                             <label className="block text-[10px] font-black uppercase text-gray-500 mb-2">Search Transactions</label>
                             <input
                                 type="text"
@@ -430,6 +448,39 @@ export default function PaymentReportsPage() {
                                 <option value="bank">Bank Transfer</option>
                                 <option value="edahab">eDahab</option>
                             </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black uppercase text-gray-500 mb-2">From Date</label>
+                            <input
+                                type="date"
+                                value={fromDate}
+                                onChange={(e) => setFromDate(e.target.value)}
+                                className={`w-full px-4 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}`}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black uppercase text-gray-500 mb-2">To Date</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="date"
+                                    value={toDate}
+                                    onChange={(e) => setToDate(e.target.value)}
+                                    className={`flex-1 w-full px-4 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}`}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedStatus("");
+                                        setSelectedMethod("");
+                                        setSearchTerm("");
+                                        setFromDate("");
+                                        setToDate("");
+                                    }}
+                                    className={`px-4 py-2 rounded-lg border font-bold text-xs transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                                >
+                                    Reset
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -540,6 +591,7 @@ export default function PaymentReportsPage() {
                     onExport={() => handleExportCSV(reportPayments)}
                     isDark={isDark}
                     title="Financial Registry Audit Report"
+                    reportMeta={reportMeta}
                 />
             </div>
         </div>

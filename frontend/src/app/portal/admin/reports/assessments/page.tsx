@@ -8,7 +8,7 @@ import {
     useGetRecentAssessmentsQuery,
     useGetAssessmentGenderStatsQuery,
     useGetClassAssessmentActivityQuery,
-    useGetDetailedStudentListQuery
+    useGetAssessmentPerformanceListQuery
 } from "@/lib/api/reportApi";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
@@ -19,13 +19,14 @@ import {
 } from 'recharts';
 import DataTable from "@/components/DataTable";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
+import { useToast } from "@/components/Toast";
 
 // Brand Colors
 const brandColors = ["#010080", "#4b47a4", "#18178a", "#f40606", "#f95150"];
 const GENDER_COLORS = { Male: "#010080", Female: "#f40606", Unknown: "#999" };
 
 // Modal component for full report preview (Ported from students/page.js)
-const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }) => {
+const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title, reportMeta }) => {
     if (!isOpen) return null;
 
     return (
@@ -40,6 +41,13 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
                         <p className={`text-[10px] font-medium mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                             Detailed grade report grouped by program
                         </p>
+                        {reportMeta?.length ? (
+                            <div className={`mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                {reportMeta.map((item, index) => (
+                                    <span key={index}>{item}</span>
+                                ))}
+                            </div>
+                        ) : null}
                     </div>
                     <div className="flex items-center gap-3">
                         <button
@@ -81,7 +89,16 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {[...data].sort((a, b) => (a.chosen_program || "").localeCompare(b.chosen_program || "")).map((student, idx) => (
+                                {data.length === 0 ? (
+                                    <tr>
+                                        <td
+                                            colSpan={6}
+                                            className={`px-4 py-10 text-center text-sm font-medium ${isDark ? 'text-gray-300 bg-[#1a2035]' : 'text-gray-500 bg-white'}`}
+                                        >
+                                            No report rows found for the selected program, class, and date range.
+                                        </td>
+                                    </tr>
+                                ) : [...data].sort((a, b) => (a.chosen_program || "").localeCompare(b.chosen_program || "")).map((student, idx) => (
                                     <tr
                                         key={student.student_id || idx}
                                         className={`${idx % 2 === 0 ? 'bg-white dark:bg-[#1a2035]' : 'bg-gray-50/50 dark:bg-[#252b40]'} hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors`}
@@ -148,6 +165,7 @@ const ReportModal = ({ isOpen, onClose, data, onPrint, onExport, isDark, title }
 
 export default function AssessmentReportsPage() {
     const { isDark } = useDarkMode();
+    const { showToast } = useToast();
     const { canView } = usePagePermissions("reports", "assessment_reports");
 
     // Filters
@@ -156,6 +174,8 @@ export default function AssessmentReportsPage() {
     const [selectedProgramId, setSelectedProgramId] = useState("");
     const [selectedSubprogram, setSelectedSubprogram] = useState("");
     const [selectedClass, setSelectedClass] = useState("");
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
 
     // Dynamic Data for Filters
     const { data: programsData } = useGetProgramsQuery();
@@ -171,9 +191,12 @@ export default function AssessmentReportsPage() {
     const queryParams = useMemo(() => {
         const p: Record<string, string> = {};
         if (selectedProgram) p.program = selectedProgram;
+        if (selectedSubprogram) p.subprogram_id = selectedSubprogram;
         if (selectedClass) p.class_id = selectedClass;
+        if (fromDate) p.from_date = fromDate;
+        if (toDate) p.to_date = toDate;
         return p;
-    }, [selectedProgram, selectedClass]);
+    }, [selectedProgram, selectedSubprogram, selectedClass, fromDate, toDate]);
 
     // Fetch Report Data
     const { data: statsData, isLoading: statsLoading } = useGetAssessmentStatsQuery(queryParams);
@@ -185,9 +208,9 @@ export default function AssessmentReportsPage() {
     // Gender Stats
     const { data: genderData } = useGetAssessmentGenderStatsQuery(queryParams);
 
-    // Detailed Student List for Modal
-    const { data: detailedStudentsData, isLoading: isLoadingStudents } = useGetDetailedStudentListQuery({ program: selectedProgram });
-    const studentListData = detailedStudentsData?.data?.students || detailedStudentsData?.students || [];
+    // Submission-based performance list for modal (matches assessment stats date filters)
+    const { data: performanceData } = useGetAssessmentPerformanceListQuery(queryParams);
+    const studentListData = performanceData?.students || [];
 
     const handleExportCSV = (dataToExport) => {
         const headers = ['ID', 'Name', 'Program', 'Class', 'Score', 'Status'];
@@ -223,7 +246,7 @@ export default function AssessmentReportsPage() {
     const { data: classActivityData } = useGetClassAssessmentActivityQuery(queryParams);
     const classActivity = classActivityData || [];
 
-    const { data: recentData, isLoading: recentLoading } = useGetRecentAssessmentsQuery();
+    const { data: recentData, isLoading: recentLoading } = useGetRecentAssessmentsQuery(queryParams);
     const recentAssessments = recentData || [];
 
     // Chart Data Processing
@@ -264,7 +287,17 @@ export default function AssessmentReportsPage() {
         setSelectedProgramId("");
         setSelectedSubprogram("");
         setSelectedClass("");
+        setFromDate("");
+        setToDate("");
     };
+
+    const reportMeta = [
+        `Program: ${selectedProgram || "All Programs"}`,
+        `Subprogram: ${selectedSubprogram || "All Subprograms"}`,
+        `Class: ${selectedClass || "All Classes"}`,
+        `From: ${fromDate || "Any"}`,
+        `To: ${toDate || "Any"}`,
+    ];
 
     // Chart Themes
     const chartGridColor = isDark ? '#374151' : '#f1f1f1';
@@ -352,7 +385,7 @@ export default function AssessmentReportsPage() {
         <div className={`flex-1 min-w-0 flex flex-col px-4 sm:px-8 py-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <div className="max-w-[1800px] mx-auto w-full space-y-8">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8">
                     <div>
                         <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                             Assessment Reports
@@ -362,7 +395,7 @@ export default function AssessmentReportsPage() {
                         </p>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-3">
                         {canView && (
                         <button
                             onClick={() => setShowStudentModal(true)}
@@ -377,7 +410,7 @@ export default function AssessmentReportsPage() {
 
                 {/* Filters */}
                 <div className={`p-6 rounded-2xl border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4 xl:gap-6 items-end">
                         <div>
                             <label className="block text-[10px] font-black uppercase text-gray-500 mb-2">1. Select Program</label>
                             <select
@@ -420,6 +453,24 @@ export default function AssessmentReportsPage() {
                                     Reset
                                 </button>
                             </div>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black uppercase text-gray-500 mb-2">From Date</label>
+                            <input
+                                type="date"
+                                value={fromDate}
+                                onChange={(e) => setFromDate(e.target.value)}
+                                className={`w-full px-4 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}`}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black uppercase text-gray-500 mb-2">To Date</label>
+                            <input
+                                type="date"
+                                value={toDate}
+                                onChange={(e) => setToDate(e.target.value)}
+                                className={`w-full px-4 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}`}
+                            />
                         </div>
                     </div>
                 </div>
@@ -590,6 +641,7 @@ export default function AssessmentReportsPage() {
                 onExport={() => handleExportCSV(studentListData)}
                 isDark={isDark}
                 title="Student Performance Overview"
+                reportMeta={reportMeta}
             />
         </div>
     );

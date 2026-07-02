@@ -1,9 +1,29 @@
 import prisma from '../lib/prisma.js';
 
+const parseDateRange = (fromDate, toDate, endField = false) => {
+    if (!fromDate && !toDate) return null;
+
+    const range = {};
+    if (fromDate) {
+        const from = new Date(fromDate);
+        from.setHours(0, 0, 0, 0);
+        range.gte = from;
+    }
+    if (toDate) {
+        const to = new Date(toDate);
+        to.setHours(23, 59, 59, 999);
+        range.lte = to;
+    }
+
+    if (!range.gte && !range.lte) return null;
+    return range;
+};
+
 // 1. Overall Student Stats
 export const getStudentStats = async (req, res) => {
     try {
-        const { program, class_id } = req.query;
+        const { program, subprogram_id, class_id, from_date, to_date } = req.query;
+        const dateRange = parseDateRange(from_date, to_date);
 
         let studentWhere = {};
         let ieltsWhere = {};
@@ -16,18 +36,45 @@ export const getStudentStats = async (req, res) => {
             studentWhere.class_id = parseInt(class_id);
             ieltsWhere.class_id = parseInt(class_id);
         }
+        if (subprogram_id) {
+            studentWhere.chosen_subprogram = String(subprogram_id);
+        }
+        if (dateRange) {
+            studentWhere.created_at = dateRange;
+            ieltsWhere.registration_date = dateRange;
+        }
 
         const studentCount = await prisma.students.count({ where: studentWhere });
         const ieltsCount = await prisma.iELTSTOEFL.count({ where: ieltsWhere });
-        const profCount = (program && program !== 'Proficiency Test') ? 0 : await prisma.proficiencyTestStudents.count();
+        const profCount = (program && program !== 'Proficiency Test')
+            ? 0
+            : await prisma.proficiencyTestStudents.count({ where: dateRange ? { registration_date: dateRange } : undefined });
 
         const totalStudents = studentCount + ieltsCount + profCount;
         const totalPrograms = await prisma.programs.count();
         const totalClasses = await prisma.classes.count();
+        const pendingStudentWhere = {
+            ...(program ? { chosen_program: program } : {}),
+            ...(subprogram_id ? { chosen_subprogram: String(subprogram_id) } : {}),
+            ...(class_id ? { class_id: parseInt(class_id) } : {}),
+            approval_status: 'pending',
+            ...(dateRange ? { created_at: dateRange } : {})
+        };
+        const assignedStudentWhere = {
+            ...(program ? { chosen_program: program } : {}),
+            ...(subprogram_id ? { chosen_subprogram: String(subprogram_id) } : {}),
+            ...(class_id ? { class_id: parseInt(class_id) } : {}),
+            class_id: class_id ? parseInt(class_id) : { not: null },
+            ...(dateRange ? { created_at: dateRange } : {})
+        };
 
         // Calculate pending and assigned counts using safe standard queries
-        const pendingStudents = await prisma.students.count({ where: { approval_status: 'pending' } });
-        const assignedToClass = await prisma.students.count({ where: { class_id: { not: null } } });
+        const pendingStudents = await prisma.students.count({
+            where: pendingStudentWhere
+        });
+        const assignedToClass = await prisma.students.count({
+            where: assignedStudentWhere
+        });
 
         res.json({
             success: true,
@@ -48,32 +95,92 @@ export const getStudentStats = async (req, res) => {
 // 2. Program Distribution
 export const getProgramDistribution = async (req, res) => {
     try {
-        const rows = await prisma.$queryRaw`
-            SELECT name, SUM(students) as students FROM (
-                SELECT chosen_program as name, COUNT(*) as students FROM students GROUP BY chosen_program 
-                UNION ALL
-                SELECT chosen_program as name, COUNT(*) as students FROM IELTSTOEFL GROUP BY chosen_program 
-                UNION ALL
-                SELECT 'Proficiency Test' as name, COUNT(*) as students FROM ProficiencyTestStudents
-            ) combined
-            GROUP BY name
-            ORDER BY students DESC
-        `;
-        res.json({ success: true, data: rows.map(r => ({ ...r, students: Number(r.students) })) });
+        const { program, subprogram_id, class_id, from_date, to_date } = req.query;
+        const dateRange = parseDateRange(from_date, to_date);
+
+        const studentWhere = {
+            ...(program ? { chosen_program: program } : {}),
+            ...(subprogram_id ? { chosen_subprogram: String(subprogram_id) } : {}),
+            ...(class_id ? { class_id: parseInt(class_id) } : {}),
+            ...(dateRange ? { created_at: dateRange } : {}),
+        };
+
+        const ieltsWhere = {
+            ...(program ? { chosen_program: program } : {}),
+            ...(class_id ? { class_id: parseInt(class_id) } : {}),
+            ...(dateRange ? { registration_date: dateRange } : {}),
+        };
+
+        const [studentGroups, ieltsGroups, proficiencyCount] = await Promise.all([
+            prisma.students.groupBy({
+                by: ['chosen_program'],
+                where: studentWhere,
+                _count: { chosen_program: true }
+            }),
+            prisma.iELTSTOEFL.groupBy({
+                by: ['chosen_program'],
+                where: ieltsWhere,
+                _count: { chosen_program: true }
+            }),
+            (!program || program === 'Proficiency Test')
+                ? prisma.proficiencyTestStudents.count({ where: dateRange ? { registration_date: dateRange } : undefined })
+                : Promise.resolve(0)
+        ]);
+
+        const totals = new Map();
+        studentGroups.forEach((row) => {
+            const key = row.chosen_program || 'Unknown';
+            totals.set(key, (totals.get(key) || 0) + row._count.chosen_program);
+        });
+        ieltsGroups.forEach((row) => {
+            const key = row.chosen_program || 'Unknown';
+            totals.set(key, (totals.get(key) || 0) + row._count.chosen_program);
+        });
+        if (proficiencyCount) {
+            totals.set('Proficiency Test', (totals.get('Proficiency Test') || 0) + proficiencyCount);
+        }
+
+        const data = Array.from(totals.entries())
+            .map(([name, students]) => ({ name, students }))
+            .sort((a, b) => b.students - a.students);
+
+        res.json({ success: true, data });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 
 // 3. Subprogram Distribution
 export const getSubprogramDistribution = async (req, res) => {
     try {
-        const rows = await prisma.$queryRaw`
-            SELECT sp.subprogram_name as name, COUNT(*) as students 
-            FROM students s
-            JOIN subprograms sp ON s.chosen_subprogram = sp.id
-            GROUP BY sp.subprogram_name
-            ORDER BY students DESC
-        `;
-        res.json({ success: true, data: rows.map(r => ({ ...r, students: Number(r.students) })) });
+        const { program, class_id, from_date, to_date } = req.query;
+        const dateRange = parseDateRange(from_date, to_date);
+        const rows = await prisma.students.groupBy({
+            by: ['chosen_subprogram'],
+            where: {
+                ...(program ? { chosen_program: program } : {}),
+                ...(class_id ? { class_id: parseInt(class_id) } : {}),
+                ...(dateRange ? { created_at: dateRange } : {}),
+                chosen_subprogram: { not: null }
+            },
+            _count: { chosen_subprogram: true }
+        });
+
+        const subprogramIds = rows
+            .map((row) => parseInt(row.chosen_subprogram, 10))
+            .filter((id) => !Number.isNaN(id));
+        const subprograms = subprogramIds.length
+            ? await prisma.subprograms.findMany({ where: { id: { in: subprogramIds } } })
+            : [];
+        const nameMap = new Map(subprograms.map((item) => [item.id, item.subprogram_name]));
+
+        const data = rows.map((row) => {
+            const id = parseInt(row.chosen_subprogram, 10);
+            return {
+                name: nameMap.get(id) || row.chosen_subprogram || 'Unknown',
+                students: row._count.chosen_subprogram
+            };
+        }).sort((a, b) => b.students - a.students);
+
+        res.json({ success: true, data });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 
@@ -104,44 +211,71 @@ export const getPerformanceOverview = async (req, res) => {
 // 5. Consolidated Stats (Gender, Status, Enrollment)
 export const getConsolidatedStats = async (req, res) => {
     try {
-        const gender = await prisma.$queryRaw`
-            SELECT sex as name, SUM(val) as value FROM (
-                SELECT sex, COUNT(*) as val FROM students GROUP BY sex
-                UNION ALL
-                SELECT sex, COUNT(*) as val FROM IELTSTOEFL GROUP BY sex
-                UNION ALL
-                SELECT sex, COUNT(*) as val FROM ProficiencyTestStudents GROUP BY sex
-            ) g GROUP BY sex
-        `;
+        const { program, subprogram_id, class_id, from_date, to_date } = req.query;
+        const dateRange = parseDateRange(from_date, to_date);
 
-        const status = await prisma.$queryRaw`
-            SELECT status as name, SUM(val) as value FROM (
-                SELECT approval_status as status, COUNT(*) as val FROM students GROUP BY approval_status
-                UNION ALL
-                SELECT status, COUNT(*) as val FROM IELTSTOEFL GROUP BY status
-                UNION ALL
-                SELECT status, COUNT(*) as val FROM ProficiencyTestStudents GROUP BY status
-            ) s GROUP BY status
-        `;
+        const studentWhere = {
+            ...(program ? { chosen_program: program } : {}),
+            ...(subprogram_id ? { chosen_subprogram: String(subprogram_id) } : {}),
+            ...(class_id ? { class_id: parseInt(class_id) } : {}),
+            ...(dateRange ? { created_at: dateRange } : {}),
+        };
+        const ieltsWhere = {
+            ...(program ? { chosen_program: program } : {}),
+            ...(class_id ? { class_id: parseInt(class_id) } : {}),
+            ...(dateRange ? { registration_date: dateRange } : {}),
+        };
+        const proficiencyWhere = dateRange ? { registration_date: dateRange } : {};
 
-        const enrollmentRaw = await prisma.$queryRaw`
-            SELECT DATE_FORMAT(created_at, '%b') as month, COUNT(*) as students
-            FROM students
-            WHERE YEAR(created_at) = YEAR(CURRENT_DATE())
-            GROUP BY DATE_FORMAT(created_at, '%b'), MONTH(created_at)
-            ORDER BY MONTH(created_at)
-        `;
+        const [studentGender, ieltsGender, profGender, studentStatus, ieltsStatus, profStatus, studentEnroll, ieltsEnroll, profEnroll] = await Promise.all([
+            prisma.students.groupBy({ by: ['sex'], where: studentWhere, _count: { sex: true } }),
+            prisma.iELTSTOEFL.groupBy({ by: ['sex'], where: ieltsWhere, _count: { sex: true } }),
+            (!program || program === 'Proficiency Test') ? prisma.proficiencyTestStudents.groupBy({ by: ['sex'], where: proficiencyWhere, _count: { sex: true } }) : Promise.resolve([]),
+            prisma.students.groupBy({ by: ['approval_status'], where: studentWhere, _count: { approval_status: true } }),
+            prisma.iELTSTOEFL.groupBy({ by: ['status'], where: ieltsWhere, _count: { status: true } }),
+            (!program || program === 'Proficiency Test') ? prisma.proficiencyTestStudents.groupBy({ by: ['status'], where: proficiencyWhere, _count: { status: true } }) : Promise.resolve([]),
+            prisma.students.findMany({ where: studentWhere, select: { created_at: true } }),
+            prisma.iELTSTOEFL.findMany({ where: ieltsWhere, select: { registration_date: true } }),
+            (!program || program === 'Proficiency Test') ? prisma.proficiencyTestStudents.findMany({ where: proficiencyWhere, select: { registration_date: true } }) : Promise.resolve([]),
+        ]);
 
-        const enrollment = enrollmentRaw.map(r => ({
-            month: r.month,
-            students: Number(r.students)
-        }));
+        const accumulate = (target, key, value) => {
+            target.set(key, (target.get(key) || 0) + value);
+        };
+
+        const genderMap = new Map();
+        studentGender.forEach((row) => accumulate(genderMap, row.sex || 'Unknown', row._count.sex));
+        ieltsGender.forEach((row) => accumulate(genderMap, row.sex || 'Unknown', row._count.sex));
+        profGender.forEach((row) => accumulate(genderMap, row.sex || 'Unknown', row._count.sex));
+
+        const statusMap = new Map();
+        studentStatus.forEach((row) => accumulate(statusMap, row.approval_status || 'Unknown', row._count.approval_status));
+        ieltsStatus.forEach((row) => accumulate(statusMap, row.status || 'Unknown', row._count.status));
+        profStatus.forEach((row) => accumulate(statusMap, row.status || 'Unknown', row._count.status));
+
+        const enrollmentMap = new Map();
+        [...studentEnroll, ...ieltsEnroll, ...profEnroll].forEach((row) => {
+            const date = row.registration_date || row.created_at;
+            if (!date) return;
+            const month = new Date(date).toLocaleDateString('en-US', { month: 'short' });
+            const monthIndex = new Date(date).getMonth();
+            const key = `${monthIndex}:${month}`;
+            accumulate(enrollmentMap, key, 1);
+        });
+
+        const enrollment = Array.from(enrollmentMap.entries())
+            .map(([key, students]) => {
+                const [, month] = key.split(':');
+                return { sort: Number(key.split(':')[0]), month, students };
+            })
+            .sort((a, b) => a.sort - b.sort)
+            .map(({ month, students }) => ({ month, students }));
 
         res.json({
             success: true,
             data: {
-                gender: gender.map(g => ({ name: g.name || 'Unknown', value: Number(g.value) })),
-                status: status.map(s => ({ name: s.name || 'Unknown', value: Number(s.value) })),
+                gender: Array.from(genderMap.entries()).map(([name, value]) => ({ name, value: Number(value) })),
+                status: Array.from(statusMap.entries()).map(([name, value]) => ({ name, value: Number(value) })),
                 enrollment
             }
         });
@@ -151,9 +285,29 @@ export const getConsolidatedStats = async (req, res) => {
 // 6. Assignment Completion Analytics
 export const getAssignmentCompletionAnalytics = async (req, res) => {
     try {
+        const { program, subprogram_id, class_id, from_date, to_date } = req.query;
+        const dateRange = parseDateRange(from_date, to_date);
         const rows = await prisma.assignment_submissions.groupBy({
             by: ['status'],
-            _count: { status: true }
+            _count: { status: true },
+            where: {
+                ...(dateRange ? { created_at: dateRange } : {}),
+                ...(program || subprogram_id
+                    ? {
+                        students: {
+                            ...(program ? { chosen_program: program } : {}),
+                            ...(subprogram_id ? { chosen_subprogram: String(subprogram_id) } : {}),
+                        }
+                    }
+                    : {}),
+                ...(class_id
+                    ? {
+                        assignments: {
+                            class_id: parseInt(class_id)
+                        }
+                    }
+                    : {})
+            }
         });
         
         let formatted = rows.map(r => ({
@@ -171,12 +325,14 @@ export const getAssignmentCompletionAnalytics = async (req, res) => {
 // 7. Detailed Students List
 export const getDetailedStudentList = async (req, res) => {
     try {
-        const { program, subprogram_id, class_id, search, limit = 100, offset = 0 } = req.query;
+        const { program, subprogram_id, class_id, search, limit = 100, offset = 0, from_date, to_date } = req.query;
         let where = {};
+        const dateRange = parseDateRange(from_date, to_date);
         
         if (program) where.chosen_program = program;
         if (subprogram_id) where.chosen_subprogram = parseInt(subprogram_id);
         if (class_id) where.class_id = parseInt(class_id);
+        if (dateRange) where.created_at = dateRange;
         
         if (search) {
             where.OR = [
@@ -208,13 +364,48 @@ export const getDetailedStudentList = async (req, res) => {
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 
+const buildAssessmentSubmissionWhere = ({ program, subprogram_id, class_id, from_date, to_date }) => {
+    const dateRange = parseDateRange(from_date, to_date);
+    return {
+        ...(dateRange ? { created_at: dateRange } : {}),
+        ...(program || subprogram_id
+            ? {
+                students: {
+                    ...(program ? { chosen_program: program } : {}),
+                    ...(subprogram_id ? { chosen_subprogram: String(subprogram_id) } : {}),
+                }
+            }
+            : {}),
+        ...(class_id
+            ? {
+                assignments: {
+                    class_id: parseInt(class_id)
+                }
+            }
+            : {})
+    };
+};
+
 // 8. Assessment Stats
 export const getAssessmentStats = async (req, res) => {
     try {
-        const totalAssessments = await prisma.assignments.count();
-        const totalSubmissions = await prisma.assignment_submissions.count();
-        const pendingGrading = await prisma.assignment_submissions.count({ where: { status: 'pending' } });
-        const avg = await prisma.assignment_submissions.aggregate({ _avg: { score: true } });
+        const { program, subprogram_id, class_id, from_date, to_date } = req.query;
+        const dateRange = parseDateRange(from_date, to_date);
+        const assignmentWhere = {
+            ...(class_id ? { class_id: parseInt(class_id) } : {}),
+            ...(dateRange ? { created_at: dateRange } : {})
+        };
+        const submissionWhere = buildAssessmentSubmissionWhere({ program, subprogram_id, class_id, from_date, to_date });
+
+        const totalAssessments = await prisma.assignments.count({ where: assignmentWhere });
+        const totalSubmissions = await prisma.assignment_submissions.count({ where: submissionWhere });
+        const pendingGrading = await prisma.assignment_submissions.count({
+            where: { ...submissionWhere, status: 'pending' }
+        });
+        const avg = await prisma.assignment_submissions.aggregate({
+            _avg: { score: true },
+            where: submissionWhere
+        });
 
         res.json({
             success: true,
@@ -228,28 +419,108 @@ export const getAssessmentStats = async (req, res) => {
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 
+// 8b. Assessment Performance List (submission-based, matches assessment stats filters)
+export const getAssessmentPerformanceList = async (req, res) => {
+    try {
+        const { program, subprogram_id, class_id, from_date, to_date, limit = 500 } = req.query;
+        const submissionWhere = buildAssessmentSubmissionWhere({ program, subprogram_id, class_id, from_date, to_date });
+
+        const submissions = await prisma.assignment_submissions.findMany({
+            where: submissionWhere,
+            include: {
+                students: {
+                    include: { classes: true }
+                },
+                assignments: {
+                    include: { classes: true }
+                }
+            },
+            orderBy: { created_at: 'desc' }
+        });
+
+        const studentMap = new Map();
+        submissions.forEach((submission) => {
+            const studentId = submission.student_id;
+            if (!studentId) return;
+
+            if (!studentMap.has(studentId)) {
+                const student = submission.students;
+                studentMap.set(studentId, {
+                    student_id: studentId,
+                    student_name: student?.full_name || 'Unknown',
+                    full_name: student?.full_name || 'Unknown',
+                    chosen_program: student?.chosen_program || 'N/A',
+                    class_name: student?.classes?.class_name || submission.assignments?.classes?.class_name || null,
+                    subprogram_title: student?.chosen_subprogram || null,
+                    scores: [],
+                    statuses: []
+                });
+            }
+
+            const entry = studentMap.get(studentId);
+            if (submission.score != null) entry.scores.push(Number(submission.score));
+            entry.statuses.push(submission.status || 'pending');
+        });
+
+        const students = Array.from(studentMap.values()).map((entry) => {
+            const average = entry.scores.length
+                ? entry.scores.reduce((sum, score) => sum + score, 0) / entry.scores.length
+                : null;
+            const hasPending = entry.statuses.some((status) => status === 'pending');
+
+            return {
+                student_id: entry.student_id,
+                student_name: entry.student_name,
+                full_name: entry.full_name,
+                chosen_program: entry.chosen_program,
+                class_name: entry.class_name,
+                subprogram_title: entry.subprogram_title,
+                overall_average: average != null ? average.toFixed(1) : 'N/A',
+                status: hasPending ? 'pending' : (entry.statuses[0] || 'graded')
+            };
+        });
+
+        res.json({
+            success: true,
+            data: {
+                students: students.slice(0, parseInt(limit))
+            }
+        });
+    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
 // 9. Assessment Distribution
 export const getAssessmentDistribution = async (req, res) => {
     try {
-        const raw = await prisma.$queryRaw`
-            SELECT 
-                CASE 
-                    WHEN score >= 81 THEN '81-100'
-                    WHEN score >= 61 THEN '61-80'
-                    WHEN score >= 41 THEN '41-60'
-                    WHEN score >= 21 THEN '21-40'
-                    ELSE '0-20'
-                END as range_name,
-                'Assignment' as type,
-                COUNT(*) as count
-            FROM assignment_submissions
-            WHERE score IS NOT NULL
-            GROUP BY range_name
-        `;
+        const { program, subprogram_id, class_id, from_date, to_date } = req.query;
+        const submissions = await prisma.assignment_submissions.findMany({
+            where: {
+                score: { not: null },
+                ...buildAssessmentSubmissionWhere({ program, subprogram_id, class_id, from_date, to_date })
+            },
+            select: { score: true }
+        });
+
+        const buckets = {
+            '0-20': 0,
+            '21-40': 0,
+            '41-60': 0,
+            '61-80': 0,
+            '81-100': 0
+        };
+
+        submissions.forEach((row) => {
+            const score = Number(row.score || 0);
+            if (score >= 81) buckets['81-100'] += 1;
+            else if (score >= 61) buckets['61-80'] += 1;
+            else if (score >= 41) buckets['41-60'] += 1;
+            else if (score >= 21) buckets['21-40'] += 1;
+            else buckets['0-20'] += 1;
+        });
         
         // Append placement/proficiency test dummy data for chart fullness
         const data = [
-            ...raw.map(r => ({ range_name: r.range_name, type: r.type, count: Number(r.count) })),
+            ...Object.entries(buckets).map(([range_name, count]) => ({ range_name, type: 'Assignment', count })),
             { range_name: '81-100', type: 'Placement Test', count: 12 },
             { range_name: '61-80', type: 'Placement Test', count: 25 },
             { range_name: '41-60', type: 'Placement Test', count: 10 },
@@ -264,9 +535,15 @@ export const getAssessmentDistribution = async (req, res) => {
 // 10. Recent Assessments
 export const getRecentAssessments = async (req, res) => {
     try {
+        const { class_id, from_date, to_date } = req.query;
+        const dateRange = parseDateRange(from_date, to_date);
         const assignments = await prisma.assignments.findMany({
             take: 5,
             orderBy: { created_at: 'desc' },
+            where: {
+                ...(class_id ? { class_id: parseInt(class_id) } : {}),
+                ...(dateRange ? { created_at: dateRange } : {})
+            },
             include: { classes: true, assignment_submissions: true }
         });
         
@@ -290,11 +567,33 @@ export const getRecentAssessments = async (req, res) => {
 // 11. Assessment Gender Stats
 export const getAssessmentGenderStats = async (req, res) => {
     try {
+        const { class_id, from_date, to_date } = req.query;
+        const dateRange = parseDateRange(from_date, to_date);
+        const studentWhere = {
+            ...(class_id ? { class_id: parseInt(class_id) } : {}),
+            ...(dateRange ? { created_at: dateRange } : {})
+        };
+        const ieltsWhere = {
+            ...(class_id ? { class_id: parseInt(class_id) } : {}),
+            ...(dateRange ? { registration_date: dateRange } : {})
+        };
+
+        const [studentGender, ieltsGender] = await Promise.all([
+            prisma.students.groupBy({ by: ['sex'], where: studentWhere, _count: { sex: true } }),
+            prisma.iELTSTOEFL.groupBy({ by: ['sex'], where: ieltsWhere, _count: { sex: true } })
+        ]);
+
+        const summarize = (rows) => ({
+            male: rows.find((row) => String(row.sex).toLowerCase() === 'male')?._count.sex || 0,
+            female: rows.find((row) => String(row.sex).toLowerCase() === 'female')?._count.sex || 0,
+            unknown: rows.filter((row) => !row.sex || !['male', 'female'].includes(String(row.sex).toLowerCase())).reduce((sum, row) => sum + row._count.sex, 0)
+        });
+
         res.json({
             success: true,
             data: {
-                placement: { male: 45, female: 55, unknown: 0 },
-                proficiency: { male: 30, female: 40, unknown: 0 }
+                placement: summarize(studentGender),
+                proficiency: summarize(ieltsGender)
             }
         });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
@@ -303,8 +602,16 @@ export const getAssessmentGenderStats = async (req, res) => {
 // 12. Class Assessment Activity
 export const getClassAssessmentActivity = async (req, res) => {
     try {
+        const { class_id, from_date, to_date } = req.query;
+        const dateRange = parseDateRange(from_date, to_date);
         const classes = await prisma.classes.findMany({
-            include: { assignments: { include: { _count: { select: { assignment_submissions: true } } } } }
+            where: class_id ? { id: parseInt(class_id) } : undefined,
+            include: {
+                assignments: {
+                    where: dateRange ? { created_at: dateRange } : undefined,
+                    include: { _count: { select: { assignment_submissions: true } } }
+                }
+            }
         });
         
         const data = classes.map(c => {
@@ -316,21 +623,50 @@ export const getClassAssessmentActivity = async (req, res) => {
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 
+const buildPaymentWhere = ({ status, method, search, from_date, to_date }) => {
+    const dateRange = parseDateRange(from_date, to_date);
+    return {
+        ...(status ? { status } : {}),
+        ...(method ? { method } : {}),
+        ...(dateRange ? { created_at: dateRange } : {}),
+        ...(search ? {
+            OR: [
+                { student_id: { contains: search } },
+                { method: { contains: search } },
+                { provider_transaction_id: { contains: search } }
+            ]
+        } : {})
+    };
+};
+
 // 13. Payment Stats
 export const getPaymentStats = async (req, res) => {
     try {
-        const total = await prisma.payments.aggregate({ _sum: { amount: true }, where: { status: 'paid' } });
-        const count = await prisma.payments.count();
-        const pending = await prisma.payments.count({ where: { status: { in: ['pending', 'partial'] } } });
-        const successful = await prisma.payments.count({ where: { status: 'paid' } });
+        const { status, method, search, from_date, to_date } = req.query;
+        const baseWhere = buildPaymentWhere({ status, method, search, from_date, to_date });
+
+        const total = await prisma.payments.aggregate({ _sum: { amount: true }, where: { ...baseWhere, status: 'paid' } });
+        const count = await prisma.payments.count({ where: baseWhere });
+        const pending = await prisma.payments.count({ where: { ...baseWhere, status: { in: ['pending', 'partial'] } } });
+        const successful = await prisma.payments.count({ where: { ...baseWhere, status: 'paid' } });
         
-        const trendRaw = await prisma.$queryRaw`
-            SELECT DATE_FORMAT(created_at, '%b') as month, SUM(amount) as revenue
-            FROM payments
-            WHERE YEAR(created_at) = YEAR(CURRENT_DATE()) AND status = 'paid'
-            GROUP BY DATE_FORMAT(created_at, '%b'), MONTH(created_at)
-            ORDER BY MONTH(created_at)
-        `;
+        const paidPayments = await prisma.payments.findMany({
+            where: { ...baseWhere, status: 'paid' },
+            select: { amount: true, created_at: true },
+            orderBy: { created_at: 'asc' }
+        });
+
+        const trendMap = new Map();
+        paidPayments.forEach((payment) => {
+            const date = new Date(payment.created_at);
+            const month = date.toLocaleDateString('en-US', { month: 'short' });
+            const key = `${date.getMonth()}:${month}`;
+            trendMap.set(key, (trendMap.get(key) || 0) + Number(payment.amount || 0));
+        });
+        const trend = Array.from(trendMap.entries())
+            .map(([key, revenue]) => ({ sort: Number(key.split(':')[0]), month: key.split(':')[1], revenue }))
+            .sort((a, b) => a.sort - b.sort)
+            .map(({ month, revenue }) => ({ month, revenue }));
         
         res.json({
             success: true,
@@ -339,7 +675,7 @@ export const getPaymentStats = async (req, res) => {
                 totalTransactions: count,
                 pendingTransactions: pending,
                 successfulTransactions: successful,
-                trend: trendRaw.map(r => ({ month: r.month, revenue: Number(r.revenue) }))
+                trend
             }
         });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
@@ -348,16 +684,21 @@ export const getPaymentStats = async (req, res) => {
 // 14. Payment Distribution
 export const getPaymentDistribution = async (req, res) => {
     try {
+        const { status, method, search, from_date, to_date } = req.query;
+        const paidWhere = {
+            status: 'paid',
+            ...buildPaymentWhere({ method, search, from_date, to_date })
+        };
         const byMethodRaw = await prisma.payments.groupBy({
             by: ['method'],
             _sum: { amount: true },
-            where: { status: 'paid' }
+            where: paidWhere
         });
         
         const byProgramRaw = await prisma.payments.groupBy({
             by: ['program_id'],
             _sum: { amount: true },
-            where: { status: 'paid' }
+            where: paidWhere
         });
 
         res.json({
@@ -373,19 +714,8 @@ export const getPaymentDistribution = async (req, res) => {
 // 15. Detailed Payment List
 export const getDetailedPaymentList = async (req, res) => {
     try {
-        const { search, status, method, limit = 100, offset = 0 } = req.query;
-        let where = {};
-        
-        if (status) where.status = status;
-        if (method) where.method = method;
-        
-        if (search) {
-            where.OR = [
-                { student_id: { contains: search } },
-                { method: { contains: search } },
-                { provider_transaction_id: { contains: search } }
-            ];
-        }
+        const { search, status, method, from_date, to_date, limit = 100, offset = 0 } = req.query;
+        const where = buildPaymentWhere({ status, method, search, from_date, to_date });
 
         const payments = await prisma.payments.findMany({
             where,

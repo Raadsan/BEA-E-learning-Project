@@ -34,18 +34,21 @@ export const teacherApi = createApi({
       providesTags: ["Teachers"],
     }),
     getAttendance: builder.query({
-      query: ({ classId, date }) => `${API_URL}/attendance/${classId}/${date}`,
+      query: ({ classId, date }) => `../attendance/${classId}/${date}`,
     }),
     saveAttendance: builder.mutation({
       query: (body) => ({
-        url: `${API_URL}/attendance`,
+        url: "../attendance",
         method: "POST",
         body,
       }),
       invalidatesTags: ["Attendance"],
     }),
-    getAttendanceReport: builder.query<any, void>({
-      query: () => `${API_URL}/attendance/report`,
+    getAttendanceReport: builder.query({
+      query: (params?: { from_date?: string; to_date?: string; class_name?: string; status?: string }) => ({
+        url: "../attendance/report",
+        params,
+      }),
     }),
     getTeachers: builder.query<any, void>({
       query: () => "/",

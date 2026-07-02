@@ -2,32 +2,57 @@
 
 import { useGetAttendanceReportQuery, useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import DataTable from "@/components/DataTable";
+import { exportRowsToExcel, openPdfPrintWindow } from "@/utils/reportExport";
 
 export default function AttendanceReportPage() {
     const { isDark } = useDarkMode();
-    const { data: reportData = [], isLoading, error } = useGetAttendanceReportQuery();
-    const { data: classesData = [] } = useGetTeacherClassesQuery();
-
     const [selectedClass, setSelectedClass] = useState("");
-    const [selectedDate, setSelectedDate] = useState("");
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
     const [selectedStatus, setSelectedStatus] = useState("");
+    const { data: classesData = [] } = useGetTeacherClassesQuery();
+    const reportParams = useMemo(() => ({
+        class_name: selectedClass || undefined,
+        from_date: fromDate || undefined,
+        to_date: toDate || undefined,
+        status: selectedStatus || undefined,
+    }), [selectedClass, fromDate, toDate, selectedStatus]);
+    const { data: reportData = [], isLoading, error } = useGetAttendanceReportQuery(reportParams);
 
-    // Filter Logic
-    const filteredData = reportData.filter((record) => {
-        const matchesClass = selectedClass ? record.class_name === selectedClass : true;
+    const filteredData = reportData;
 
-        // Date comparison (record.date is ISO string, selectedDate is YYYY-MM-DD from input)
-        const recordDate = new Date(record.date).toISOString().split('T')[0];
-        const matchesDate = selectedDate ? recordDate === selectedDate : true;
+    const exportColumns = [
+        { key: "date", label: "Date", getValue: (row) => new Date(row.date).toLocaleDateString() },
+        { key: "student_name", label: "Student" },
+        { key: "class_name", label: "Class" },
+        { key: "hour1", label: "Hour 1", getValue: (row) => row.hour1 ? "Present" : "Absent" },
+        { key: "hour2", label: "Hour 2", getValue: (row) => row.hour2 ? "Present" : "Absent" },
+    ];
 
-        const matchesStatus = selectedStatus
-            ? (selectedStatus === 'Present' ? (record.hour1 || record.hour2) : (!record.hour1 && !record.hour2))
-            : true;
+    const handleExportExcel = () => {
+        exportRowsToExcel(
+            filteredData,
+            exportColumns,
+            `BEA_Teacher_Report_${new Date().toISOString().split("T")[0]}`
+        );
+    };
 
-        return matchesClass && matchesDate && matchesStatus;
-    });
+    const handleExportPdf = () => {
+        openPdfPrintWindow(
+            "BEA Teacher Attendance Report",
+            filteredData,
+            exportColumns,
+            [
+                `Generated: ${new Date().toLocaleString()}`,
+                `Class: ${selectedClass || "All Classes"}`,
+                `Status: ${selectedStatus || "All Statuses"}`,
+                `Period: ${fromDate || "Any"} to ${toDate || "Any"}`,
+                `Rows: ${filteredData.length}`,
+            ]
+        );
+    };
 
     const columns = [
         {
@@ -105,12 +130,20 @@ export default function AttendanceReportPage() {
                             </div>
                         </div>
 
-                        {/* Date Filter */}
+                        {/* From Date */}
                         <div className="relative min-w-[150px]">
                             <input
                                 type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
+                                value={fromDate}
+                                onChange={(e) => setFromDate(e.target.value)}
+                                className={`w-full px-4 py-1.5 rounded-lg text-gray-700 font-bold text-[13px] border focus:ring-2 outline-none transition-all shadow-sm ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-900' : 'bg-white border-gray-200 focus:ring-blue-100'}`}
+                            />
+                        </div>
+                        <div className="relative min-w-[150px]">
+                            <input
+                                type="date"
+                                value={toDate}
+                                onChange={(e) => setToDate(e.target.value)}
                                 className={`w-full px-4 py-1.5 rounded-lg text-gray-700 font-bold text-[13px] border focus:ring-2 outline-none transition-all shadow-sm ${isDark ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-900' : 'bg-white border-gray-200 focus:ring-blue-100'}`}
                             />
                         </div>
@@ -132,6 +165,22 @@ export default function AttendanceReportPage() {
                                 </svg>
                             </div>
                         </div>
+                        <button
+                            type="button"
+                            onClick={handleExportExcel}
+                            disabled={!filteredData.length}
+                            className={`px-4 py-1.5 rounded-lg border font-bold text-[13px] transition-all disabled:opacity-50 ${isDark ? 'bg-emerald-900/50 border-emerald-800 text-emerald-200 hover:bg-emerald-900/70' : 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100'}`}
+                        >
+                            Export Excel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleExportPdf}
+                            disabled={!filteredData.length}
+                            className={`px-4 py-1.5 rounded-lg border font-bold text-[13px] transition-all disabled:opacity-50 ${isDark ? 'bg-rose-900/50 border-rose-800 text-rose-200 hover:bg-rose-900/70' : 'bg-rose-50 border-rose-200 text-rose-800 hover:bg-rose-100'}`}
+                        >
+                            Export PDF
+                        </button>
                     </div>
                 }
             />

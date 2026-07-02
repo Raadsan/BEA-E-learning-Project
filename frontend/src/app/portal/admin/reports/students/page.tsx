@@ -28,6 +28,7 @@ import {
 } from 'recharts';
 import DataTable from "@/components/DataTable";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
+import { useToast } from "@/components/Toast";
 
 // Brand Colors
 const brandColors = ["#010080", "#4b47a4", "#18178a", "#f40606", "#f95150"];
@@ -36,6 +37,7 @@ const brandColors = ["#010080", "#4b47a4", "#18178a", "#f40606", "#f95150"];
 
 export default function StudentReportsPage() {
     const { isDark } = useDarkMode();
+    const { showToast } = useToast();
     const { canView } = usePagePermissions("reports", "student_reports");
 
     // Use the professional logo from assets
@@ -46,6 +48,8 @@ export default function StudentReportsPage() {
     const [selectedSubprogram, setSelectedSubprogram] = useState("");
     const [selectedClass, setSelectedClass] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 100;
     const [sortConfig, setSortConfig] = useState({ key: 'registration_date', direction: 'desc' });
@@ -73,9 +77,12 @@ export default function StudentReportsPage() {
     const queryParams = useMemo(() => {
         const p: Record<string, string> = {};
         if (selectedProgram) p.program = selectedProgram;
+        if (selectedSubprogram) p.subprogram_id = selectedSubprogram;
         if (selectedClass) p.class_id = selectedClass;
+        if (fromDate) p.from_date = fromDate;
+        if (toDate) p.to_date = toDate;
         return p;
-    }, [selectedProgram, selectedClass]);
+    }, [selectedProgram, selectedSubprogram, selectedClass, fromDate, toDate]);
 
     const { data: statsData, isLoading: statsLoading } = useGetStudentStatsQuery(queryParams);
     const stats = statsData?.data || statsData || {};
@@ -83,12 +90,18 @@ export default function StudentReportsPage() {
     const { data: programDistResp } = useGetProgramDistributionQuery(queryParams);
     const programDist = programDistResp?.data || programDistResp || [];
 
+    const { data: subprogramDistResp } = useGetSubprogramDistributionQuery(queryParams);
+    const subprogramDist = subprogramDistResp?.data || subprogramDistResp || [];
+
     const { data: consolidatedResp } = useGetConsolidatedStatsQuery(queryParams);
     const consolidated = consolidatedResp?.data || consolidatedResp || {};
 
     const { data: completionResp } = useGetAssignmentCompletionAnalyticsQuery({
         program: selectedProgram,
-        class_id: selectedClass
+        subprogram_id: selectedSubprogram || undefined,
+        class_id: selectedClass,
+        from_date: fromDate || undefined,
+        to_date: toDate || undefined,
     });
     const completionDataRaw = completionResp?.data || completionResp || [];
     const completionData = completionDataRaw.map(item => ({
@@ -101,6 +114,8 @@ export default function StudentReportsPage() {
         subprogram_id: selectedSubprogram,
         class_id: selectedClass,
         search: searchTerm,
+        from_date: fromDate || undefined,
+        to_date: toDate || undefined,
         limit: itemsPerPage,
         offset: (currentPage - 1) * itemsPerPage,
         sort_by: sortConfig.key,
@@ -262,6 +277,15 @@ export default function StudentReportsPage() {
     const enrollmentTrend = consolidated.enrollment || [];
     const genderData = (consolidated.gender || []).filter(g => g.name !== 'Unknown' && g.name !== 'unknown');
     const statusData = (consolidated.status || []).filter(s => s.name !== 'Paid' && s.name !== 'paid');
+    const distributionData = selectedProgram ? subprogramDist : programDist;
+    const distributionTitle = selectedProgram ? "Course / Subprogram Enrollment" : "Program Enrollment";
+    const chartRenderKey = [
+        selectedProgram || "all-programs",
+        selectedSubprogram || "all-subprograms",
+        selectedClass || "all-classes",
+        fromDate || "no-from-date",
+        toDate || "no-to-date",
+    ].join("|");
 
     // Chart Themes
     const chartGridColor = isDark ? '#374151' : '#f1f1f1';
@@ -283,6 +307,8 @@ export default function StudentReportsPage() {
         setSelectedSubprogram("");
         setSelectedClass("");
         setSearchTerm("");
+        setFromDate("");
+        setToDate("");
     };
 
     const handleOpenFullReport = async (isProgramReport = false) => {
@@ -302,18 +328,19 @@ export default function StudentReportsPage() {
                 program: isProgramReport ? selectedProgram : "",
                 subprogram_id: isProgramReport ? selectedSubprogram : "",
                 class_id: isProgramReport ? selectedClass : "",
+                from_date: fromDate || undefined,
+                to_date: toDate || undefined,
                 sort_by: 'full_name',
                 order: 'asc'
             });
 
             const rawList = fullData?.data?.students || fullData?.students || [];
-            if (rawList.length > 0) {
-                setReportStudents(rawList);
-                setReportModalTitle(isProgramReport ? (selectedProgram ? `Student Report: ${selectedProgram}` : "Full Student Report") : "Full Student Report");
-                setIsReportModalOpen(true);
-            }
+            setReportStudents(rawList);
+            setReportModalTitle(isProgramReport ? (selectedProgram ? `Student Report: ${selectedProgram}` : "Full Student Report") : "Full Student Report");
+            setIsReportModalOpen(true);
         } catch (err) {
             console.error("Failed to fetch full report:", err);
+            showToast("Failed to generate report.", "error");
         }
     };
 
@@ -401,23 +428,29 @@ export default function StudentReportsPage() {
         }
     };
 
-    const handleExportCSV = (dataToExport) => {
-        const headers = ['ID', 'Name', 'Sex', 'Age', 'Email', 'Phone', 'Country', 'City', 'Program', 'Subprogram', 'Class', 'Attendance', 'Score', 'Status'];
-        const rows = dataToExport.map(s => [
-            s.student_id, s.full_name, s.sex || '-', s.age || '-', s.email, s.phone || '-',
-            s.residency_country || '-', s.residency_city || '-', s.chosen_program,
-            s.subprogram_name || s.chosen_subprogram || '-', s.class_name || 'Not Assigned',
-            `${s.attendance_rate}%`, `${s.overall_average}%`, s.status
-        ]);
+    const exportColumns = [
+        { key: "student_id", label: "Student ID" },
+        { key: "full_name", label: "Student Name" },
+        { key: "sex", label: "Sex", getValue: (row) => row.sex || "-" },
+        { key: "age", label: "Age", getValue: (row) => row.age || "-" },
+        { key: "email", label: "Email" },
+        { key: "phone", label: "Phone", getValue: (row) => row.phone || "-" },
+        { key: "chosen_program", label: "Program" },
+        { key: "subprogram_name", label: "Subprogram", getValue: (row) => row.subprogram_name || row.chosen_subprogram || "-" },
+        { key: "class_name", label: "Class", getValue: (row) => row.class_name || "Unassigned" },
+        { key: "attendance_rate", label: "Attendance", getValue: (row) => `${row.attendance_rate}%` },
+        { key: "overall_average", label: "Average Score", getValue: (row) => `${row.overall_average}%` },
+        { key: "status", label: "Status" },
+    ];
 
-        const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `BEA_Full_Report_${new Date().toISOString().split('T')[0]}.csv`;
-        a.click();
-    };
+    const getReportMetaLines = () => [
+        `Generated: ${new Date().toLocaleString()}`,
+        `Program: ${selectedProgram || "All Programs"}`,
+        `Subprogram: ${selectedSubprogram || "All Subprograms"}`,
+        `Class: ${selectedClass || "All Classes"}`,
+        `Period: ${fromDate || "Any"} to ${toDate || "Any"}`,
+        `Rows: ${students.length}`,
+    ];
 
     const columns = [
         {
@@ -498,7 +531,7 @@ export default function StudentReportsPage() {
         <div className={`flex-1 min-w-0 flex flex-col px-4 sm:px-8 py-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <div className="max-w-[1800px] mx-auto w-full space-y-8">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
                     <div>
                         <h1 className={`text-3xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                             Student Reports
@@ -507,11 +540,11 @@ export default function StudentReportsPage() {
                             Unified Student Registry & Performance Dashboard
                         </p>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-3">
                         <button
                             onClick={() => handleOpenFullReport(true)}
                             disabled={isFetchingFullReport || (!selectedProgram && !activeStudentId)}
-                            className={`${isDark ? 'bg-blue-900/50 hover:bg-blue-900/70 text-blue-200 border border-blue-800' : 'bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200'} px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-bold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+                            className={`${isDark ? 'bg-blue-900/50 hover:bg-blue-900/70 text-blue-200 border border-blue-800' : 'bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200'} px-4 sm:px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-bold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed min-w-[170px]`}
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             {isFetchingFullReport && (selectedProgram || activeStudentId) ? 'Generating...' : (activeStudentId ? 'Generate Student Report' : 'Generate Program Report')}
@@ -519,7 +552,7 @@ export default function StudentReportsPage() {
                         <button
                             onClick={() => handleOpenFullReport(false)}
                             disabled={isFetchingFullReport}
-                            className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900 border-none' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-bold shadow-md disabled:opacity-70`}
+                            className={`${isDark ? 'bg-white hover:bg-gray-100 text-gray-900 border-none' : 'bg-[#010080] hover:bg-[#010080]/90 text-white'} px-4 sm:px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-bold shadow-md disabled:opacity-70 min-w-[170px]`}
                         >
                             {isFetchingFullReport && !selectedProgram ? 'Generating...' : 'Generate Full Report'}
                         </button>
@@ -528,7 +561,7 @@ export default function StudentReportsPage() {
 
                 {/* Hierarchical Filters */}
                 <div className={`p-6 rounded-2xl border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4 xl:gap-6 items-end">
                         <div>
                             <label className="block text-[10px] font-black uppercase text-gray-500 mb-2">Search Registry</label>
                             <input
@@ -561,6 +594,24 @@ export default function StudentReportsPage() {
                                 <option value="">{isFetchingSubs ? 'Loading...' : 'Select All Subprograms'}</option>
                                 {subprograms.map(s => <option key={s.id} value={s.id}>{s.subprogram_name}</option>)}
                             </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black uppercase text-gray-500 mb-2">From Date</label>
+                            <input
+                                type="date"
+                                value={fromDate}
+                                onChange={(e) => setFromDate(e.target.value)}
+                                className={`w-full px-4 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}`}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black uppercase text-gray-500 mb-2">To Date</label>
+                            <input
+                                type="date"
+                                value={toDate}
+                                onChange={(e) => setToDate(e.target.value)}
+                                className={`w-full px-4 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}`}
+                            />
                         </div>
                         <div>
                             <label className="block text-[10px] font-black uppercase text-gray-500 mb-2">3. Select Class</label>
@@ -717,7 +768,7 @@ export default function StudentReportsPage() {
                             <h3 className="text-sm font-bold mb-8 uppercase tracking-widest text-[#010080]">Enrollment Trend</h3>
                             <div className="h-[300px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={enrollmentTrend}>
+                                    <AreaChart key={`enrollment-${chartRenderKey}`} data={enrollmentTrend}>
                                         <defs>
                                             <linearGradient id="colorEnroll" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#010080" stopOpacity={0.1} />
@@ -739,7 +790,7 @@ export default function StudentReportsPage() {
                             <h3 className="text-sm font-bold mb-8 uppercase tracking-widest text-[#18178a]">Sex Distribution</h3>
                             <div className="h-[300px] flex items-center justify-center">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
+                                    <PieChart key={`gender-${chartRenderKey}`}>
                                         <Pie data={genderData} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={8} dataKey="value">
                                             {genderData.map((e, idx) => (
                                                 <Cell key={idx} fill={e.name === 'Male' ? '#010080' : '#f95150'} />
@@ -752,18 +803,18 @@ export default function StudentReportsPage() {
                             </div>
                         </div>
 
-                        {/* Program Enrollment */}
+                        {/* Program/Subprogram Enrollment */}
                         <div className={`p-8 rounded-2xl border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
-                            <h3 className="text-sm font-bold mb-8 uppercase tracking-widest text-[#4b47a4]">Program Enrollment</h3>
+                            <h3 className="text-sm font-bold mb-8 uppercase tracking-widest text-[#4b47a4]">{distributionTitle}</h3>
                             <div className="h-[300px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={programDist}>
+                                    <BarChart key={`distribution-${chartRenderKey}`} data={distributionData}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? '#374151' : '#f3f4f6'} />
                                         <XAxis dataKey="name" tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} />
                                         <YAxis tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} />
                                         <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
                                         <Bar dataKey="students" fill="#010080" radius={[4, 4, 0, 0]}>
-                                            {programDist.map((entry, index) => (
+                                            {distributionData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={brandColors[index % brandColors.length]} />
                                             ))}
                                         </Bar>
@@ -777,7 +828,7 @@ export default function StudentReportsPage() {
                             <h3 className="text-sm font-bold mb-8 uppercase tracking-widest text-[#4b47a4]">Student Completion Rate</h3>
                             <div className="h-[300px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
+                                    <PieChart key={`completion-${chartRenderKey}`}>
                                         <Pie data={completionData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value">
                                             {completionData.map((e, idx) => <Cell key={idx} fill={brandColors[idx % brandColors.length]} />)}
                                         </Pie>
@@ -793,7 +844,7 @@ export default function StudentReportsPage() {
                             <h3 className="text-sm font-bold mb-8 uppercase tracking-widest text-[#010080]">Approval Status</h3>
                             <div className="h-[300px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={statusData} layout="vertical">
+                                    <BarChart key={`status-${chartRenderKey}`} data={statusData} layout="vertical">
                                         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={isDark ? '#374151' : '#f3f4f6'} />
                                         <XAxis type="number" hide />
                                         <YAxis dataKey="name" type="category" tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} width={80} />
@@ -847,6 +898,7 @@ export default function StudentReportsPage() {
                     students={reportStudents}
                     title={reportModalTitle}
                     isDark={isDark}
+                    reportMeta={getReportMetaLines()}
                 />
             </div>
         </div>

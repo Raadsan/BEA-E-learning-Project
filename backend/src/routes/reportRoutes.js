@@ -12,6 +12,7 @@ router.get('/assignment-completion', reportController.getAssignmentCompletionAna
 router.get('/detailed-students', reportController.getDetailedStudentList);
 
 router.get('/assessment-stats', reportController.getAssessmentStats);
+router.get('/assessment-performance', reportController.getAssessmentPerformanceList);
 router.get('/assessment-distribution', reportController.getAssessmentDistribution);
 router.get('/recent-assessments', reportController.getRecentAssessments);
 router.get('/assessment-gender', reportController.getAssessmentGenderStats);

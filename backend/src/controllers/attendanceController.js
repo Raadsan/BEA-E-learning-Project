@@ -79,9 +79,32 @@ export const getAttendance = async (req, res) => {
 export const getAttendanceReport = async (req, res) => {
     try {
         const teacherId = parseInt(req.user.userId);
+        const { from_date, to_date, class_name, status } = req.query;
+        const dateWhere = {};
+
+        if (from_date) {
+            const from = new Date(from_date);
+            from.setHours(0, 0, 0, 0);
+            dateWhere.gte = from;
+        }
+        if (to_date) {
+            const to = new Date(to_date);
+            to.setHours(23, 59, 59, 999);
+            dateWhere.lte = to;
+        }
+
         const report = await prisma.attendance.findMany({
             where: {
-                classes: { teacher_id: teacherId }
+                classes: {
+                    teacher_id: teacherId,
+                    ...(class_name ? { class_name } : {})
+                },
+                ...(Object.keys(dateWhere).length ? { date: dateWhere } : {}),
+                ...(status === 'Present'
+                    ? { OR: [{ hour1: 1 }, { hour2: 1 }] }
+                    : status === 'Absent'
+                        ? { hour1: 0, hour2: 0 }
+                        : {})
             },
             include: {
                 students: { select: { full_name: true } },

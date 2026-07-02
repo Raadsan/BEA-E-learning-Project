@@ -4,7 +4,7 @@ import DataTable from './DataTable';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
-const FullReportTableModal = ({ isOpen, onClose, students, title, isDark }) => {
+const FullReportTableModal = ({ isOpen, onClose, students, title, isDark, reportMeta }) => {
     const [isGenerating, setIsGenerating] = React.useState(false);
     if (!isOpen) return null;
 
@@ -177,6 +177,13 @@ const FullReportTableModal = ({ isOpen, onClose, students, title, isDark }) => {
                         <div>
                             <h2 className={`font-black text-sm uppercase tracking-tight ${isDark ? 'text-[#ffffff]' : 'text-[#111827]'}`}>{title || "Full Student Registry Report"}</h2>
                             <p className="text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest leading-none">Complete Academic Record List</p>
+                            {reportMeta?.length ? (
+                                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-semibold text-[#6b7280]">
+                                    {reportMeta.map((item, index) => (
+                                        <span key={index}>{item}</span>
+                                    ))}
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -232,6 +239,13 @@ const FullReportTableModal = ({ isOpen, onClose, students, title, isDark }) => {
                         <div>
                             <h1 style={{ margin: 0, color: '#010080', fontSize: '24px', fontWeight: '900', textTransform: 'uppercase' }}>{title || "Full Student Registry Report"}</h1>
                             <p style={{ margin: '4px 0 0', color: '#9ca3af', fontWeight: '700', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '2px' }}>Official Academic Record List</p>
+                            {reportMeta?.length ? (
+                                <div style={{ marginTop: '8px', display: 'flex', gap: '16px', flexWrap: 'wrap', color: '#4b5563', fontSize: '11px', fontWeight: '600' }}>
+                                    {reportMeta.map((item, index) => (
+                                        <span key={index}>{item}</span>
+                                    ))}
+                                </div>
+                            ) : null}
                         </div>
                         <img src="/images/headerlogo.png" style={{ height: '50px' }} alt="BEA" />
                     </div>
