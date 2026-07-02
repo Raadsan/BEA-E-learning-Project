@@ -8,6 +8,7 @@ import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from "@/lib/api/a
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useToast } from "@/components/Toast";
 import { API_URL, resolveMediaUrl } from "@/constants";
+import { getAssignmentTimerTargetMs } from "@/utils/assignmentSchedule";
 
 export default function TakeExamPage() {
     const { isDark } = useDarkMode();
@@ -179,7 +180,8 @@ export default function TakeExamPage() {
 
     // Initialize/read persistent timer when exam is opened
     useEffect(() => {
-        if (!assignment?.duration || !timerKey || timeRemaining !== null) return;
+        const hasTimer = assignment?.duration || assignment?.end_date || assignment?.due_date;
+        if (!hasTimer || !timerKey || timeRemaining !== null) return;
 
         const savedTarget = localStorage.getItem(timerKey);
         let targetTime;
@@ -187,7 +189,8 @@ export default function TakeExamPage() {
         if (savedTarget) {
             targetTime = parseInt(savedTarget, 10);
         } else {
-            targetTime = Date.now() + assignment.duration * 60 * 1000;
+            targetTime = getAssignmentTimerTargetMs(assignment, Date.now());
+            if (!targetTime) return;
             localStorage.setItem(timerKey, targetTime.toString());
         }
 

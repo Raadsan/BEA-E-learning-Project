@@ -1,6 +1,15 @@
 import prisma from '../lib/prisma.js';
 import { getStoredFileUrl } from '../utils/fileStorage.js';
 
+const parseSubmissionMeta = (value) => {
+    if (!value || typeof value !== "string") return null;
+    try {
+        return JSON.parse(value);
+    } catch {
+        return null;
+    }
+};
+
 const tableMapping = {
     'writing_task': { main: 'assignments', sub: 'assignment_submissions' },
     'exam': { main: 'exams', sub: 'exam_submissions' },
@@ -148,6 +157,12 @@ export const getAssignments = async (req, res) => {
                     a.submission = submission;
                     // Flatten submission fields for easy frontend access
                     if (submission) {
+                        const submissionMeta = parseSubmissionMeta(submission.content);
+                        const reopenWindow = submissionMeta?.reopenWindow;
+                        if (submission.status === 'pending' && reopenWindow) {
+                            if (reopenWindow.start_date) a.start_date = reopenWindow.start_date;
+                            if (reopenWindow.end_date) a.due_date = reopenWindow.end_date;
+                        }
                         a.submission_status = submission.status;
                         a.score = submission.score;
                         a.feedback = submission.feedback;
@@ -210,6 +225,9 @@ export const createAssignment = async (req, res) => {
                 prismaData.duration = data.duration ? parseInt(data.duration) : null;
             } else if (type === 'oral_assignment' || type === 'course_work') {
                 prismaData.duration = data.duration ? parseInt(data.duration) : null;
+                if (type === 'oral_assignment' && data.submission_type) {
+                    prismaData.submission_type = data.submission_type;
+                }
             }
             if (type === 'course_work' && data.unit) {
                 prismaData.unit = data.unit;
@@ -387,6 +405,40 @@ export const getPerformanceClusters = async (req, res) => {
     }
 };
 
+export const reopenSubmission = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { type, start_date, end_date } = req.body;
+        const subModelName = tableMapping[type]?.sub;
+        if (!subModelName) return res.status(400).json({ error: "Invalid type" });
+
+        const reopenWindow = {
+            start_date: start_date || null,
+            end_date: end_date || null,
+        };
+
+        const updated = await prisma[subModelName].update({
+            where: { id: parseInt(id, 10) },
+            data: {
+                status: "pending",
+                score: null,
+                feedback: null,
+                feedback_file_url: null,
+                file_url: null,
+                content: JSON.stringify({
+                    reopened_for_resubmission: true,
+                    reopenWindow,
+                }),
+                submission_date: null,
+            }
+        });
+
+        res.json({ message: "Submission reopened successfully", submission: updated });
+    } catch (err) {
+        res.status(500).json({ error: err.message || "Failed to reopen submission" });
+    }
+};
+
 // GET ASSIGNMENT SUBMISSIONS BY ASSIGNMENT ID
 export const getAssignmentSubmissions = async (req, res) => {
     try {
@@ -490,6 +542,9 @@ export const updateAssignment = async (req, res) => {
                 prismaData.duration = data.duration ? parseInt(data.duration) : undefined;
             } else if (type === 'oral_assignment' || type === 'course_work') {
                 prismaData.duration = data.duration ? parseInt(data.duration) : undefined;
+                if (type === 'oral_assignment' && data.submission_type) {
+                    prismaData.submission_type = data.submission_type;
+                }
             }
             if (type === 'course_work' && data.unit !== undefined) {
                 prismaData.unit = data.unit || null;

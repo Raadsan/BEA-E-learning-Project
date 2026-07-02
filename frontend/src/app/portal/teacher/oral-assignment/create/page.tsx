@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/assignmentApi";
 import { useToast } from "@/components/Toast";
 import { API_URL, resolveMediaUrl } from "@/constants";
+import { syncAssignmentSchedule, splitDurationMinutes } from "@/utils/assignmentSchedule";
 
 import { useDarkMode } from "@/context/ThemeContext";
 
@@ -42,12 +43,15 @@ function OralAssignmentCreateContent() {
         start_date: "",
         total_points: 100,
         status: "active",
-        duration: 30, // Default 30 mins
+        duration: 30,
+        duration_hours: 0,
+        duration_minutes: 30,
         audioUrl: "",
-        submission_type: "audio" // Default to audio
+        submission_type: "audio"
     });
 
     const [audioFile, setAudioFile] = useState(null);
+    const [promptMediaType, setPromptMediaType] = useState<"audio" | "video" | null>(null);
     const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
@@ -70,6 +74,10 @@ function OralAssignmentCreateContent() {
                     console.error("Failed to parse existing audio url", e);
                 }
 
+                const durationParts = splitDurationMinutes(assignment.duration || 30);
+                const loadedUrl = loadedAudioUrl;
+                const isVideoPrompt = /\.(mp4|webm|mov|avi)$/i.test(loadedUrl || "");
+
                 setFormData({
                     title: assignment.title,
                     description: assignment.description || "",
@@ -80,23 +88,34 @@ function OralAssignmentCreateContent() {
                     total_points: assignment.total_points,
                     status: assignment.status || "active",
                     duration: assignment.duration || 30,
-                    audioUrl: loadedAudioUrl,
+                    duration_hours: durationParts.hours,
+                    duration_minutes: durationParts.minutes,
+                    audioUrl: loadedUrl,
                     submission_type: assignment.submission_type || "audio"
                 });
+                setPromptMediaType(loadedUrl ? (isVideoPrompt ? "video" : "audio") : null);
             }
         }
     }, [id, allOralAssignments]);
+
+    const handleScheduleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => syncAssignmentSchedule(prev, name, value, "due_date") as typeof prev);
+    };
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (!file.type.startsWith('audio/')) {
-            showToast("Please upload an audio file (MP3, WAV, etc.)", "error");
+        const isAudio = file.type.startsWith("audio/");
+        const isVideo = file.type.startsWith("video/");
+        if (!isAudio && !isVideo) {
+            showToast("Please upload an audio or video file (MP3, WAV, MP4, etc.)", "error");
             return;
         }
 
         setAudioFile(file);
+        setPromptMediaType(isVideo ? "video" : "audio");
 
         // Auto-upload immediately to get URL
         const uploadData = new FormData();
@@ -117,7 +136,7 @@ function OralAssignmentCreateContent() {
 
             const data = await res.json();
             setFormData(prev => ({ ...prev, audioUrl: data.url }));
-            showToast("Audio uploaded successfully!", "success");
+            showToast(`${isVideo ? "Video" : "Audio"} uploaded successfully!`, "success");
         } catch (err) {
             console.error(err);
             showToast("Failed to upload audio file", "error");
@@ -135,7 +154,7 @@ function OralAssignmentCreateContent() {
         }
 
         if (!formData.audioUrl) {
-            showToast("Please upload an audio prompt for the oral assignment", "error");
+            showToast("Please upload an audio or video prompt for the oral assignment", "error");
             return;
         }
 
@@ -149,16 +168,17 @@ function OralAssignmentCreateContent() {
             }
         ];
 
+        const { duration_hours, duration_minutes, ...formRest } = formData;
         const payload = {
-            title: formData.title,
-            description: formData.description,
-            class_id: formData.class_id,
-            program_id: formData.program_id,
-            due_date: formData.due_date,
-            start_date: formData.start_date || null,
-            total_points: formData.total_points,
-            status: formData.status,
-            duration: formData.duration,
+            title: formRest.title,
+            description: formRest.description,
+            class_id: formRest.class_id,
+            program_id: formRest.program_id,
+            due_date: formRest.due_date,
+            start_date: formRest.start_date || null,
+            total_points: formRest.total_points,
+            status: formRest.status,
+            duration: formRest.duration,
             type: 'oral_assignment',
             questions: JSON.stringify(questionsData),
             submission_type: formData.submission_type
@@ -193,7 +213,7 @@ function OralAssignmentCreateContent() {
                     </button>
                     <div>
                         <h1 className="text-3xl font-bold">{id ? 'Edit' : 'Create'} Oral Assignment</h1>
-                        <p className="text-gray-500 dark:text-gray-400">Upload an audio prompt for students to respond to.</p>
+                        <p className="text-gray-500 dark:text-gray-400">Upload an audio or video prompt for students to respond to.</p>
                     </div>
                 </div>
 
@@ -231,13 +251,13 @@ function OralAssignmentCreateContent() {
                             {/* Audio Upload Section */}
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">
-                                    Audio Prompt (Max 50MB)
+                                    Media Prompt — Audio or Video (Max 50MB)
                                 </label>
 
                                 <div className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${isDark ? 'border-gray-700 hover:border-blue-500 bg-gray-900/50' : 'border-gray-300 hover:border-blue-500 bg-gray-50'}`}>
                                     <input
                                         type="file"
-                                        accept="audio/*"
+                                        accept="audio/*,video/*"
                                         onChange={handleFileChange}
                                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                         disabled={isUploading}
@@ -257,12 +277,12 @@ function OralAssignmentCreateContent() {
                                             {formData.audioUrl ? (
                                                 <div className="text-green-600 font-medium flex items-center justify-center gap-2">
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                                    Audio Uploaded Successfully!
+                                                    {promptMediaType === "video" ? "Video" : "Audio"} Uploaded Successfully!
                                                 </div>
                                             ) : (
                                                 <div className="text-gray-500">
                                                     <span className="text-blue-600 font-medium">Click to upload</span> or drag and drop
-                                                    <p className="text-xs mt-1">MP3, WAV, M4A supported</p>
+                                                    <p className="text-xs mt-1">MP3, WAV, M4A, MP4, WEBM supported</p>
                                                 </div>
                                             )}
                                         </div>
@@ -278,10 +298,16 @@ function OralAssignmentCreateContent() {
                                             </svg>
                                         </div>
                                         <div className="flex-1">
-                                            <p className="font-medium text-sm">Preview Uploaded Audio</p>
-                                            <audio controls className="w-full mt-2 h-8">
-                                                <source src={resolveMediaUrl(formData.audioUrl) || ""} />
-                                            </audio>
+                                            <p className="font-medium text-sm">Preview Uploaded {promptMediaType === "video" ? "Video" : "Audio"}</p>
+                                            {promptMediaType === "video" ? (
+                                                <video controls className="w-full mt-2 rounded-lg">
+                                                    <source src={resolveMediaUrl(formData.audioUrl) || ""} />
+                                                </video>
+                                            ) : (
+                                                <audio controls className="w-full mt-2 h-8">
+                                                    <source src={resolveMediaUrl(formData.audioUrl) || ""} />
+                                                </audio>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -299,7 +325,9 @@ function OralAssignmentCreateContent() {
                                 >
                                     <option value="audio">Audio Only</option>
                                     <option value="video">Video Only</option>
-                                    <option value="both">Both (Audio or Video)</option>
+                                    <option value="image">Image Only</option>
+                                    <option value="both">Audio or Video</option>
+                                    <option value="all">Audio, Video & Image</option>
                                 </select>
                                 <p className="mt-2 text-xs text-gray-500">
                                     Select what type of file students can upload for this assignment
@@ -332,14 +360,28 @@ function OralAssignmentCreateContent() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">Duration (Minutes)</label>
-                                <input
-                                    type="number"
-                                    value={formData.duration}
-                                    onChange={e => setFormData({ ...formData, duration: Number(e.target.value) || 0 })}
-                                    className={`w-full p-4 rounded-xl border-2 outline-none font-medium transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
-                                    placeholder="e.g. 30"
-                                />
+                                <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2">Duration (Hours & Minutes)</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <input
+                                        type="number"
+                                        name="duration_hours"
+                                        min="0"
+                                        placeholder="Hours"
+                                        value={formData.duration_hours ?? ""}
+                                        onChange={handleScheduleChange}
+                                        className={`w-full p-4 rounded-xl border-2 outline-none font-medium transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+                                    />
+                                    <input
+                                        type="number"
+                                        name="duration_minutes"
+                                        min="0"
+                                        max="59"
+                                        placeholder="Minutes"
+                                        value={formData.duration_minutes ?? ""}
+                                        onChange={handleScheduleChange}
+                                        className={`w-full p-4 rounded-xl border-2 outline-none font-medium transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+                                    />
+                                </div>
                             </div>
 
                             <div>
@@ -357,8 +399,9 @@ function OralAssignmentCreateContent() {
                                     <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2 text-gray-700 dark:text-gray-300">Start Date</label>
                                     <input
                                         type="datetime-local"
+                                        name="start_date"
                                         value={formData.start_date}
-                                        onChange={e => setFormData({ ...formData, start_date: e.target.value })}
+                                        onChange={handleScheduleChange}
                                         className={`w-full p-4 rounded-xl border-2 outline-none font-medium transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
                                     />
                                 </div>
@@ -366,8 +409,9 @@ function OralAssignmentCreateContent() {
                                     <label className="block text-sm font-medium uppercase tracking-wide opacity-70 mb-2 text-gray-700 dark:text-gray-300">Due Date</label>
                                     <input
                                         type="datetime-local"
+                                        name="due_date"
                                         value={formData.due_date}
-                                        onChange={e => setFormData({ ...formData, due_date: e.target.value })}
+                                        onChange={handleScheduleChange}
                                         className={`w-full p-4 rounded-xl border-2 outline-none font-medium transition-all focus:border-blue-500 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
                                         required
                                     />

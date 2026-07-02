@@ -147,6 +147,14 @@ export const assignmentApi = createApi({
             }),
             invalidatesTags: ["Assignments"],
         }),
+        reopenSubmission: builder.mutation({
+            query: ({ id, type, start_date, end_date }) => ({
+                url: `/reopen-submission/${id}`,
+                method: "PATCH",
+                body: { type, start_date, end_date },
+            }),
+            invalidatesTags: ["Assignments"],
+        }),
     }),
 });
 
@@ -161,4 +169,5 @@ export const {
     useGetAssignmentSubmissionsQuery,
     useGetAllSubmissionsQuery,
     useGradeSubmissionMutation,
+    useReopenSubmissionMutation,
 } = assignmentApi;

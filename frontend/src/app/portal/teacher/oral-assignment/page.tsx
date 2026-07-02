@@ -11,12 +11,14 @@ import {
     useUpdateAssignmentMutation,
     useDeleteAssignmentMutation,
     useGetAssignmentSubmissionsQuery,
-    useGradeSubmissionMutation
+    useGradeSubmissionMutation,
+    useReopenSubmissionMutation
 } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
 import { resolveSubmissionFileUrl } from "@/constants";
 import { downloadSubmissionFile, openSubmissionFile } from "@/utils/submissionFiles";
+import { formatDatetimeLocalValue } from "@/utils/assignmentSchedule";
 import { useAssignmentNow } from "@/hooks/useAssignmentNow";
 import {
     getAssignmentWindowStatus,
@@ -46,9 +48,36 @@ export default function OralAssignmentPage() {
     const [feedbackFile, setFeedbackFile] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+    const [showReopenModal, setShowReopenModal] = useState(false);
+    const [reopenTarget, setReopenTarget] = useState(null);
+    const [reopenFormData, setReopenFormData] = useState({ start_date: "", end_date: "" });
 
     const [gradingAudioUrl, setGradingAudioUrl] = useState(null);
     const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+
+    const getSubmissionMediaMeta = (submission) => {
+        if (!submission) return { kind: null, name: null };
+
+        if (submission.file_url) {
+            if (/\.(mp4|webm|mov|avi)$/i.test(submission.file_url)) {
+                return { kind: "video", name: submission.file_url.split("/").pop() };
+            }
+            if (/\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(submission.file_url)) {
+                return { kind: "image", name: submission.file_url.split("/").pop() };
+            }
+            return { kind: "audio", name: submission.file_url.split("/").pop() };
+        }
+
+        try {
+            const parsed = typeof submission.content === "string" ? JSON.parse(submission.content) : submission.content;
+            return {
+                kind: parsed?.submissionKind || null,
+                name: parsed?.originalName || null,
+            };
+        } catch {
+            return { kind: null, name: null };
+        }
+    };
 
     // Fetch audio for playback in grading view
     useEffect(() => {
@@ -138,6 +167,7 @@ export default function OralAssignmentPage() {
     const [updateAssignment] = useUpdateAssignmentMutation();
     const [deleteAssignment] = useDeleteAssignmentMutation();
     const [gradeSubmission] = useGradeSubmissionMutation();
+    const [reopenSubmission] = useReopenSubmissionMutation();
 
     const handleAddClick = () => {
         setEditingAssignment(null);
@@ -261,6 +291,43 @@ export default function OralAssignmentPage() {
             setFeedbackFile(null);
         } catch (err) {
             showToast("Failed to grade submission", "error");
+        }
+    };
+
+    const handleReopenSubmission = (submission) => {
+        setReopenTarget(submission);
+        setReopenFormData({
+            start_date: selectedAssignment?.start_date ? formatDatetimeLocalValue(new Date(selectedAssignment.start_date)) : "",
+            end_date: (selectedAssignment?.due_date || selectedAssignment?.end_date)
+                ? formatDatetimeLocalValue(new Date(selectedAssignment?.due_date || selectedAssignment?.end_date))
+                : "",
+        });
+        setShowReopenModal(true);
+    };
+
+    const confirmReopenSubmission = async () => {
+        if (!reopenTarget) return;
+        if (reopenFormData.start_date && reopenFormData.end_date && new Date(reopenFormData.end_date) <= new Date(reopenFormData.start_date)) {
+            showToast("End date and time must be after start date and time.", "error");
+            return;
+        }
+        try {
+            await reopenSubmission({
+                id: reopenTarget.id,
+                type,
+                start_date: reopenFormData.start_date || null,
+                end_date: reopenFormData.end_date || null,
+            }).unwrap();
+            if (gradingSubmission?.id === reopenTarget.id) {
+                setGradingSubmission(null);
+                setView("submissions");
+            }
+            setShowReopenModal(false);
+            setReopenTarget(null);
+            setReopenFormData({ start_date: "", end_date: "" });
+            showToast("Submission reopened. Student can submit again.", "success");
+        } catch (err) {
+            showToast(err?.data?.error || "Failed to reopen submission", "error");
         }
     };
 
@@ -461,16 +528,27 @@ export default function OralAssignmentPage() {
         {
             label: "Actions",
             render: (_, row) => (
-                <button
-                    onClick={() => handleGradeClick(row)}
-                    className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                    title="View & Grade"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                </button>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => handleGradeClick(row)}
+                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        title="View & Grade"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                    <button
+                        onClick={() => handleReopenSubmission(row)}
+                        className="text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 transition-colors p-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                        title="Reopen for resubmission"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.228 15M15 15h-4v-4" />
+                        </svg>
+                    </button>
+                </div>
             )
         }
     ];
@@ -580,8 +658,19 @@ export default function OralAssignmentPage() {
                                 </div>
                             ) : (
                                 <div className="text-center py-12 opacity-50">
-                                    <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-                                    <p className="italic">No file submitted.</p>
+                                    {(() => {
+                                        const mediaMeta = getSubmissionMediaMeta(gradingSubmission);
+                                        return (
+                                            <>
+                                                <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                                                <p className="italic">
+                                                    {mediaMeta.kind
+                                                        ? `Student submitted a ${mediaMeta.kind} file${mediaMeta.name ? ` (${mediaMeta.name})` : ""}, but the media link was not saved.`
+                                                        : "No file submitted."}
+                                                </p>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             )}
                         </div>
@@ -853,7 +942,9 @@ export default function OralAssignmentPage() {
                                         >
                                             <option value="audio">Audio Only</option>
                                             <option value="video">Video Only</option>
+                                            <option value="image">Image Only</option>
                                             <option value="both">Both (Audio or Video)</option>
+                                            <option value="all">Audio, Video & Image</option>
                                         </select>
                                     </div>
 
@@ -984,6 +1075,59 @@ export default function OralAssignmentPage() {
                             <div className="flex gap-3">
                                 <button onClick={() => setShowDeleteModal(false)} className={`flex-1 py-2.5 rounded-lg font-semibold ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>Cancel</button>
                                 <button onClick={confirmDelete} className="flex-1 py-2.5 rounded-lg font-bold bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/30">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {showReopenModal && (
+                    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setShowReopenModal(false); setReopenTarget(null); }} />
+                        <div className={`relative w-full max-w-md rounded-xl shadow-2xl p-6 ${isDark ? 'bg-gray-800 border-[0.5px] border-gray-700' : 'bg-white'}`}>
+                            <div className="text-center mb-6">
+                                <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.228 15M15 15h-4v-4" /></svg>
+                                </div>
+                                <h3 className={`text-lg font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Reopen Submission?</h3>
+                                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    Reopen submission for <span className="font-semibold">{reopenTarget?.student_name || "this student"}</span>? This will clear the current submitted file/content so the student can submit again.
+                                </p>
+                                <div className={`mt-4 rounded-lg border p-3 text-left ${isDark ? 'bg-gray-900/50 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <div>
+                                            <label className="block text-xs font-semibold mb-1">Start Date & Time</label>
+                                            <input
+                                                type="datetime-local"
+                                                value={reopenFormData.start_date}
+                                                onChange={(e) => setReopenFormData((prev) => ({ ...prev, start_date: e.target.value }))}
+                                                className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold mb-1">End Date & Time</label>
+                                            <input
+                                                type="datetime-local"
+                                                value={reopenFormData.end_date}
+                                                onChange={(e) => setReopenFormData((prev) => ({ ...prev, end_date: e.target.value }))}
+                                                className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => { setShowReopenModal(false); setReopenTarget(null); setReopenFormData({ start_date: "", end_date: "" }); }}
+                                    className={`flex-1 py-2.5 rounded-lg font-semibold ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmReopenSubmission}
+                                    className="flex-1 py-2.5 rounded-lg font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-500/30"
+                                >
+                                    Reopen
+                                </button>
                             </div>
                         </div>
                     </div>

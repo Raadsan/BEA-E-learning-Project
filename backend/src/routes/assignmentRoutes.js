@@ -2,7 +2,7 @@ import express from "express";
 import {
   getAssignments, createAssignment, submitAssignment, gradeSubmission,
   getAssignmentStats, getPerformanceClusters, getAssignmentSubmissions, getAllSubmissions,
-  updateAssignment, deleteAssignment
+  updateAssignment, deleteAssignment, reopenSubmission
 } from "../controllers/assignmentController.js";
 import { verifyToken } from "../controllers/authController.js";
 import { upload, withStoredUpload } from "../controllers/uploadController.js";
@@ -33,5 +33,6 @@ router.delete("/delete/:id", isTeacherOrAdmin, deleteAssignment);
 router.post("/submit", withStoredUpload(upload.single("file")), submitAssignment);
 router.patch("/grade/:id", isTeacherOrAdmin, withStoredUpload(upload.single("feedbackFile")), gradeSubmission);
 router.put("/grade/:id", isTeacherOrAdmin, withStoredUpload(upload.single("feedbackFile")), gradeSubmission);
+router.patch("/reopen-submission/:id", isTeacherOrAdmin, reopenSubmission);
 
 export default router;

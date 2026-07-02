@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
@@ -16,10 +17,18 @@ import {
     formatAssignmentDateTime,
     formatAssignmentCountdown,
 } from "@/utils/assignmentTime";
+import {
+    getAssignmentTimerTargetMs,
+    getOralSubmissionAccept,
+    isAllowedOralSubmissionFile,
+    getOralSubmissionLabel,
+    splitDurationMinutes,
+} from "@/utils/assignmentSchedule";
 import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 
 export default function StudentAssignmentList({ type, title, externalAssignment = null, onLeaveWorkspace = undefined }) {
+    const router = useRouter();
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
     const { data: user } = useGetCurrentUserQuery();
@@ -59,10 +68,30 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
 
     const getStudentKey = () => user?.id || user?.student_id;
 
+    const assignmentHasTimer = (assignment) =>
+        !!(assignment?.duration || assignment?.due_date || assignment?.end_date);
+
+    const ensureTimerTarget = (assignment) => {
+        const studentKey = getStudentKey();
+        if (!studentKey || !assignment) return null;
+
+        const timerKey = `assignment_timer_${studentKey}_${assignment.id}`;
+        const savedTarget = localStorage.getItem(timerKey);
+        if (savedTarget) {
+            return { timerKey, targetMs: parseInt(savedTarget, 10) };
+        }
+
+        const targetMs = getAssignmentTimerTargetMs(assignment, Date.now());
+        if (!targetMs) return null;
+
+        localStorage.setItem(timerKey, String(targetMs));
+        return { timerKey, targetMs };
+    };
+
     const isTimedWritingSession = () =>
         view === "workspace" &&
         type === "writing_task" &&
-        !!selectedAssignment?.duration &&
+        assignmentHasTimer(selectedAssignment) &&
         selectedAssignment.submission_status !== "submitted" &&
         selectedAssignment.submission_status !== "graded" &&
         timeLeft > 0;
@@ -95,19 +124,11 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
 
     // Initialize/read persistent timer when workspace view is activated
     useEffect(() => {
-        if (view === "workspace" && selectedAssignment?.duration && getStudentKey() && type !== 'exam') {
-            const timerKey = `assignment_timer_${getStudentKey()}_${selectedAssignment.id}`;
-            const savedTarget = localStorage.getItem(timerKey);
-            let targetTime;
+        if (view === "workspace" && assignmentHasTimer(selectedAssignment) && getStudentKey() && type !== 'exam') {
+            const timerInfo = ensureTimerTarget(selectedAssignment);
+            if (!timerInfo) return;
 
-            if (savedTarget) {
-                targetTime = parseInt(savedTarget, 10);
-            } else {
-                targetTime = Date.now() + selectedAssignment.duration * 60 * 1000;
-                localStorage.setItem(timerKey, targetTime.toString());
-            }
-
-            const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
+            const remaining = Math.max(0, Math.floor((timerInfo.targetMs - Date.now()) / 1000));
             setTimeLeft(remaining);
 
             if (remaining <= 0) {
@@ -118,7 +139,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
 
     // Timer countdown loop
     useEffect(() => {
-        if (view === "workspace" && selectedAssignment?.duration && timeLeft !== null && getStudentKey() && !submitting && type !== 'exam') {
+        if (view === "workspace" && assignmentHasTimer(selectedAssignment) && timeLeft !== null && getStudentKey() && !submitting && type !== 'exam') {
             const timerKey = `assignment_timer_${getStudentKey()}_${selectedAssignment.id}`;
             timerRef.current = setInterval(() => {
                 const savedTarget = localStorage.getItem(timerKey);
@@ -170,7 +191,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
         }
 
         setSelectedAssignment(assignment);
-        if (assignment.duration && assignment.submission_status !== 'submitted' && assignment.submission_status !== 'graded') {
+        if (assignmentHasTimer(assignment) && assignment.submission_status !== 'submitted' && assignment.submission_status !== 'graded') {
             // Check if timer was already started (key exists in localStorage)
             const timerKey = `assignment_timer_${getStudentKey()}_${assignment.id}`;
             const savedTarget = typeof window !== 'undefined' ? localStorage.getItem(timerKey) : null;
@@ -200,17 +221,13 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
             setSubmissionContent(assignment.student_content || "");
         }
 
-        if (assignment.duration) {
-            const studentKey = getStudentKey();
-            if (studentKey) {
-                const timerKey = `assignment_timer_${studentKey}_${assignment.id}`;
-                if (!localStorage.getItem(timerKey)) {
-                    localStorage.setItem(timerKey, String(Date.now() + assignment.duration * 60 * 1000));
-                }
-                const remaining = Math.max(0, Math.floor((parseInt(localStorage.getItem(timerKey), 10) - Date.now()) / 1000));
+        if (assignmentHasTimer(assignment)) {
+            const timerInfo = ensureTimerTarget(assignment);
+            if (timerInfo) {
+                const remaining = Math.max(0, Math.floor((timerInfo.targetMs - Date.now()) / 1000));
                 setTimeLeft(remaining);
             } else {
-                setTimeLeft(assignment.duration * 60);
+                setTimeLeft(assignment.duration ? assignment.duration * 60 : 0);
             }
         }
         // Reset upload state
@@ -231,21 +248,9 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
 
             // Get submission type from assignment
             const submissionType = selectedAssignment?.submission_type || 'audio';
-            const fileType = file.type;
-            const isAudio = fileType.startsWith('audio/');
-            const isVideo = fileType.startsWith('video/');
 
-            // Validate based on submission type
-            if (submissionType === 'audio' && !isAudio) {
-                showToast("Please select an audio file.", "error");
-                return;
-            }
-            if (submissionType === 'video' && !isVideo) {
-                showToast("Please select a video file.", "error");
-                return;
-            }
-            if (submissionType === 'both' && !isAudio && !isVideo) {
-                showToast("Please select an audio or video file.", "error");
+            if (!isAllowedOralSubmissionFile(file, submissionType)) {
+                showToast(`Please select a valid ${getOralSubmissionLabel(submissionType)}.`, "error");
                 return;
             }
 
@@ -273,7 +278,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
         const hasOralFile = type === "oral_assignment" && !!uploadedFile;
 
         if (type === "oral_assignment" && !uploadedFile && !auto) {
-            showToast("Please upload an audio or video file before submitting.", "error");
+            showToast(`Please upload a ${getOralSubmissionLabel(selectedAssignment?.submission_type)} before submitting.`, "error");
             return;
         }
 
@@ -308,7 +313,18 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
 
             if (type === 'oral_assignment' && uploadedFile) {
                 formData.append('file', uploadedFile);
-                formData.append('content', 'Audio File Upload');
+                formData.append(
+                    'content',
+                    JSON.stringify({
+                        submissionKind: uploadedFile.type.startsWith("video/")
+                            ? "video"
+                            : uploadedFile.type.startsWith("image/")
+                                ? "image"
+                                : "audio",
+                        originalName: uploadedFile.name,
+                        mimeType: uploadedFile.type,
+                    })
+                );
             } else {
                 const contentPayload = typeof contentToSubmit === "object"
                     ? JSON.stringify(contentToSubmit)
@@ -324,6 +340,10 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                 localStorage.removeItem(timerKey);
             }
 
+            if (type === "oral_assignment" && onLeaveWorkspace) {
+                onLeaveWorkspace();
+            }
+            setSelectedAssignment(null);
             setView("list");
             setSubmissionContent("");
             setQuizAnswers({});
@@ -331,7 +351,15 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                 showToast("Time is up! Your work was saved and submitted automatically.", "success");
                 setShowTimeUpModal(true);
             } else {
-                showToast("Work submitted successfully!", "success");
+                showToast(
+                    type === "oral_assignment"
+                        ? "Oral assignment submitted successfully!"
+                        : "Work submitted successfully!",
+                    "success"
+                );
+                if (type === "oral_assignment") {
+                    router.push("/portal/student/oral-assignment");
+                }
             }
         } catch (err) {
             if (auto) autoSubmittingRef.current = false;
@@ -425,7 +453,17 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                     <div className="grid grid-cols-2 gap-4 mb-8">
                         <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
                             <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Duration</span>
-                            <span className="text-xl font-bold">{selectedAssignment.duration} <span className="text-xs opacity-50">MIN</span></span>
+                            <span className="text-xl font-bold">
+                                {(() => {
+                                    const parts = splitDurationMinutes(selectedAssignment.duration);
+                                    if (parts.hours > 0 && parts.minutes > 0) return `${parts.hours}h ${parts.minutes}m`;
+                                    if (parts.hours > 0) return `${parts.hours}h`;
+                                    return `${parts.minutes || selectedAssignment.duration || 0}`;
+                                })()}
+                                {!splitDurationMinutes(selectedAssignment.duration).hours && (
+                                    <span className="text-xs opacity-50"> MIN</span>
+                                )}
+                            </span>
                         </div>
                         <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
                             <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">{selectedAssignment.questions ? 'Questions' : 'Points'}</span>
@@ -501,7 +539,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                         </div>
                     </div>
 
-                    {selectedAssignment.duration && !isClosed && (
+                    {assignmentHasTimer(selectedAssignment) && !isClosed && timeLeft > 0 && (
                         <div className={`flex items-center gap-3 px-5 py-2.5 rounded-xl border transition-all ${timeLeft < 300 ? 'bg-rose-50 border-rose-200 text-rose-600 animate-pulse' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -611,7 +649,9 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                             Submission Completed
                                         </div>
                                         {selectedAssignment.file_url ? (
-                                            selectedAssignment.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
+                                            selectedAssignment.file_url.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i) ? (
+                                                <img className="w-full max-h-96 object-contain rounded-lg" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} alt="Submission" />
+                                            ) : selectedAssignment.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
                                                 <video controls className="w-full rounded-lg" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} />
                                             ) : (
                                                 <audio controls className="w-full" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} />
@@ -627,20 +667,19 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                     <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
                                                     <p className="mb-2 text-sm text-gray-500 font-normal">
-                                                        Click to upload your {selectedAssignment?.submission_type === 'audio' ? 'audio recording' : selectedAssignment?.submission_type === 'video' ? 'video recording' : 'audio or video recording'}
+                                                        Click to upload your {getOralSubmissionLabel(selectedAssignment?.submission_type)}
                                                     </p>
                                                     <p className="text-xs text-gray-400 font-normal">
-                                                        {selectedAssignment?.submission_type === 'audio' ? 'MP3, WAV, or WEBM (MAX. 20MB)' :
-                                                            selectedAssignment?.submission_type === 'video' ? 'MP4, WEBM, or MOV (MAX. 20MB)' :
-                                                                'Audio or Video Files (MAX. 20MB)'}
+                                                        {selectedAssignment?.submission_type === 'audio' ? 'MP3, WAV, or WEBM (MAX. 50MB)' :
+                                                            selectedAssignment?.submission_type === 'video' ? 'MP4, WEBM, or MOV (MAX. 50MB)' :
+                                                                selectedAssignment?.submission_type === 'image' ? 'JPG, PNG, or WEBP (MAX. 50MB)' :
+                                                                    'Audio, video, or image files (MAX. 50MB)'}
                                                     </p>
                                                 </div>
                                                 <input
                                                     type="file"
                                                     className="hidden"
-                                                    accept={selectedAssignment?.submission_type === 'audio' ? 'audio/*' :
-                                                        selectedAssignment?.submission_type === 'video' ? 'video/*' :
-                                                            'audio/*,video/*'}
+                                                    accept={getOralSubmissionAccept(selectedAssignment?.submission_type)}
                                                     onChange={handleFileChange}
                                                     ref={fileInputRef}
                                                 />
@@ -652,13 +691,17 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                                         <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center">
                                                             {uploadedFile.type.startsWith('video/') ? (
                                                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                                            ) : uploadedFile.type.startsWith('image/') ? (
+                                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                                             ) : (
                                                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
                                                             )}
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <span className="text-sm font-normal truncate max-w-xs">{uploadedFile.name}</span>
-                                                            <span className="text-[10px] text-gray-400 uppercase font-normal">{(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB • {uploadedFile.type.startsWith('video/') ? 'Video' : 'Audio'} File</span>
+                                                            <span className="text-[10px] text-gray-400 uppercase font-normal">
+                                                                {(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB • {uploadedFile.type.startsWith('video/') ? 'Video' : uploadedFile.type.startsWith('image/') ? 'Image' : 'Audio'} File
+                                                            </span>
                                                         </div>
                                                     </div>
                                                     <button onClick={removeUploadedFile} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 transition-colors">
@@ -667,6 +710,8 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                                 </div>
                                                 {uploadedFile.type.startsWith('video/') ? (
                                                     <video controls className="w-full rounded-lg" src={filePreviewUrl} />
+                                                ) : uploadedFile.type.startsWith('image/') ? (
+                                                    <img className="w-full max-h-96 object-contain rounded-lg" src={filePreviewUrl} alt="Preview" />
                                                 ) : (
                                                     <audio controls className="w-full" src={filePreviewUrl} />
                                                 )}

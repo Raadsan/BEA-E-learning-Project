@@ -7,6 +7,7 @@ import CountrySelect from '@/components/CountrySelect';
 import { useCitiesForCountry, useCountryIsoCode } from "@/utils/countryData";
 import { API_BASE_URL, API_URL } from "@/constants";
 import StudentFundingFields from "@/components/admin/students/StudentFundingFields";
+import { calculateAgeFromDob } from "@/utils/assignmentSchedule";
 
 export default function StudentForm({
     isOpen,
@@ -109,6 +110,14 @@ export default function StudentForm({
         paymentPackages,
         setFormData
     ]);
+
+    useEffect(() => {
+        if (!formData.date_of_birth) return;
+        const age = calculateAgeFromDob(formData.date_of_birth);
+        if (age !== "" && String(formData.age) !== String(age)) {
+            setFormData((prev) => ({ ...prev, age: String(age) }));
+        }
+    }, [formData.date_of_birth, formData.age, setFormData]);
 
     if (!isOpen) return null;
 
@@ -223,24 +232,8 @@ export default function StudentForm({
                                     />
                                 </div>
 
-                                {/* Row 2: Age | Gender */}
-                                <div>
-                                    <label htmlFor="age" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
-                                        }`}>
-                                        Age
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="age"
-                                        name="age"
-                                        value={formData.age}
-                                        onChange={handleInputChange}
-                                        min="1"
-                                        placeholder="Enter age"
-                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
-                                            }`}
-                                    />
-                                </div>
+                                {/* Row 2: DOB | Gender */}
+
                                 <div>
                                     <label htmlFor="sex" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
                                         }`}>
@@ -260,7 +253,6 @@ export default function StudentForm({
                                     </select>
                                 </div>
 
-                                {/* Row 2.5: DOB | POB */}
                                 <div>
                                     <label htmlFor="date_of_birth" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                         Date of Birth
@@ -272,6 +264,29 @@ export default function StudentForm({
                                         value={formData.date_of_birth}
                                         onChange={handleInputChange}
                                         className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'}`}
+                                    />
+                                </div>
+                                
+                                
+
+                                {/* Row 2.5: Age | POB */}
+                                
+                                <div>
+                                    <label htmlFor="age" className={`block text-sm font-semibold mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                                        }`}>
+                                        Age
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="age"
+                                        name="age"
+                                        value={formData.age}
+                                        onChange={handleInputChange}
+                                        min="1"
+                                        readOnly
+                                        placeholder="Auto from date of birth"
+                                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
+                                            }`}
                                     />
                                 </div>
                                 <div>

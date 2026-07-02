@@ -11,6 +11,11 @@ import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
 import { useUploadFileMutation } from "@/lib/api/uploadApi";
 
 import { useToast } from "@/components/Toast";
+import {
+    formatDatetimeLocalValue,
+    syncAssignmentSchedule,
+    splitDurationMinutes
+} from "@/utils/assignmentSchedule";
 import { useDarkMode } from "@/context/ThemeContext";
 import { v4 as uuidv4 } from "uuid";
 
@@ -51,6 +56,8 @@ export default function CreateExamPage() {
         total_points: 100,
         status: "active",
         duration: 60,
+        duration_hours: 1,
+        duration_minutes: 0,
     });
 
     // Derived Data for Cascading Dropdowns
@@ -139,15 +146,17 @@ export default function CreateExamPage() {
             setBasicInfo({
                 title: editingAssignment.title,
                 description: editingAssignment.description,
-                start_date: editingAssignment.start_date ? new Date(editingAssignment.start_date).toISOString().slice(0, 16) : "",
-                end_date: editingAssignment.end_date ? new Date(editingAssignment.end_date).toISOString().slice(0, 16)
-                    : editingAssignment.due_date ? new Date(editingAssignment.due_date).toISOString().slice(0, 16) : "",
+                start_date: editingAssignment.start_date ? formatDatetimeLocalValue(new Date(editingAssignment.start_date)) : "",
+                end_date: editingAssignment.end_date ? formatDatetimeLocalValue(new Date(editingAssignment.end_date))
+                    : editingAssignment.due_date ? formatDatetimeLocalValue(new Date(editingAssignment.due_date)) : "",
                 class_id: editingAssignment.class_id,
                 program_id: editingAssignment.program_id,
                 subprogram_id: editingAssignment.subprogram_id || "",
                 total_points: editingAssignment.total_points,
                 status: editingAssignment.status || "active",
                 duration: editingAssignment.duration || 60,
+                duration_hours: splitDurationMinutes(editingAssignment.duration || 60).hours,
+                duration_minutes: splitDurationMinutes(editingAssignment.duration || 60).minutes,
             });
             if (editingAssignment.questions) {
                 try {
@@ -166,6 +175,12 @@ export default function CreateExamPage() {
 
     const handleInfoChange = (e) => {
         const { name, value } = e.target;
+
+        if (["start_date", "end_date", "duration", "duration_hours", "duration_minutes"].includes(name)) {
+            setBasicInfo((prev) => syncAssignmentSchedule(prev, name, value, "end_date") as typeof prev);
+            return;
+        }
+
         setBasicInfo(prev => ({ ...prev, [name]: value }));
 
         if (name === 'program_id') {
@@ -346,7 +361,10 @@ export default function CreateExamPage() {
         }
 
         const payload = {
-            ...basicInfo,
+            ...(() => {
+                const { duration_hours, duration_minutes, ...rest } = basicInfo;
+                return rest;
+            })(),
             type: 'exam',
             status: 'draft',
             questions: JSON.stringify(papers),
@@ -375,7 +393,10 @@ export default function CreateExamPage() {
         }
 
         const payload = {
-            ...basicInfo,
+            ...(() => {
+                const { duration_hours, duration_minutes, ...rest } = basicInfo;
+                return rest;
+            })(),
             type: 'exam',
             status: 'active', // Ensure it's active when publishing
             questions: JSON.stringify(papers),
@@ -517,6 +538,30 @@ export default function CreateExamPage() {
                                                 value={basicInfo.end_date}
                                                 onChange={handleInfoChange}
                                                 className="w-full p-2.5 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-[#010080]/20 outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">
+                                            Duration (Hours & Minutes)
+                                            <span className="font-normal normal-case text-gray-400"> — auto-filled from start/end</span>
+                                        </label>
+                                        <div className="grid grid-cols-2 gap-4 max-w-md">
+                                            <input
+                                                type="number"
+                                                name="duration_hours"
+                                                placeholder="Hours"
+                                                value={basicInfo.duration_hours ?? ""}
+                                                readOnly
+                                                className="w-full p-2.5 border rounded-lg bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300 cursor-not-allowed"
+                                            />
+                                            <input
+                                                type="number"
+                                                name="duration_minutes"
+                                                placeholder="Minutes"
+                                                value={basicInfo.duration_minutes ?? ""}
+                                                readOnly
+                                                className="w-full p-2.5 border rounded-lg bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300 cursor-not-allowed"
                                             />
                                         </div>
                                     </div>

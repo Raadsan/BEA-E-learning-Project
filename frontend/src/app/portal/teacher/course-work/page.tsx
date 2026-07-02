@@ -9,11 +9,13 @@ import {
     useGradeSubmissionMutation,
     useCreateAssignmentMutation,
     useUpdateAssignmentMutation,
-    useDeleteAssignmentMutation
+    useDeleteAssignmentMutation,
+    useReopenSubmissionMutation
 } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
 import { openSubmissionFile, loadSubmissionPreviewUrl, downloadSubmissionFile } from "@/utils/submissionFiles";
+import { formatDatetimeLocalValue } from "@/utils/assignmentSchedule";
 
 import DataTable from "@/components/DataTable";
 import { useAssignmentNow } from "@/hooks/useAssignmentNow";
@@ -37,6 +39,9 @@ export default function CourseWorkPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+    const [showReopenModal, setShowReopenModal] = useState(false);
+    const [reopenTarget, setReopenTarget] = useState(null);
+    const [reopenFormData, setReopenFormData] = useState({ start_date: "", end_date: "" });
     const [view, setView] = useState("list");
     const [editingAssignment, setEditingAssignment] = useState(null);
     const [createFormData, setCreateFormData] = useState({
@@ -116,6 +121,7 @@ export default function CourseWorkPage() {
     const [createAssignment, { isLoading: isCreating }] = useCreateAssignmentMutation();
     const [updateAssignment, { isLoading: isUpdating }] = useUpdateAssignmentMutation();
     const [deleteAssignment] = useDeleteAssignmentMutation();
+    const [reopenSubmission] = useReopenSubmissionMutation();
 
     const handleDeleteClick = (id) => {
         setDeleteId(id);
@@ -289,6 +295,105 @@ export default function CourseWorkPage() {
             feedback: submission.feedback || ""
         });
         setView("grading");
+    };
+
+    const handleReopenSubmission = (submission) => {
+        setReopenTarget(submission);
+        setReopenFormData({
+            start_date: selectedAssignment?.start_date ? formatDatetimeLocalValue(new Date(selectedAssignment.start_date)) : "",
+            end_date: selectedAssignment?.due_date ? formatDatetimeLocalValue(new Date(selectedAssignment.due_date)) : "",
+        });
+        setShowReopenModal(true);
+    };
+
+    const confirmReopenSubmission = async () => {
+        if (!reopenTarget) return;
+        if (reopenFormData.start_date && reopenFormData.end_date && new Date(reopenFormData.end_date) <= new Date(reopenFormData.start_date)) {
+            showToast("End date and time must be after start date and time.", "error");
+            return;
+        }
+
+        try {
+            await reopenSubmission({
+                id: reopenTarget.id,
+                type: "course_work",
+                start_date: reopenFormData.start_date || null,
+                end_date: reopenFormData.end_date || null,
+            }).unwrap();
+            if (gradingSubmission?.id === reopenTarget.id) {
+                setGradingSubmission(null);
+                setView("submissions");
+            }
+            setShowReopenModal(false);
+            setReopenTarget(null);
+            setReopenFormData({ start_date: "", end_date: "" });
+            showToast("Submission reopened. Student can submit again.", "success");
+        } catch (err) {
+            showToast(err?.data?.error || "Failed to reopen submission", "error");
+        }
+    };
+
+    const renderReopenModal = () => {
+        if (!showReopenModal) return null;
+
+        return (
+            <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowReopenModal(false); setReopenTarget(null); setReopenFormData({ start_date: "", end_date: "" }); }} />
+                <div className={`relative w-full max-w-md rounded-2xl shadow-2xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                    <div className="flex flex-col items-center text-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center">
+                            <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.228 15M15 15h-4v-4" />
+                            </svg>
+                        </div>
+                        <div className="w-full">
+                            <h3 className={`text-lg font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Reopen Submission?</h3>
+                            <p className="text-sm text-gray-500 mb-4">
+                                Reopen submission for <span className="font-semibold">{reopenTarget?.student_name || "this student"}</span>? This will clear the current submitted file/content so the student can submit again.
+                            </p>
+                            <div className={`rounded-lg border p-3 text-left ${isDark ? 'bg-gray-900/50 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
+                                <div className="grid grid-cols-1 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-semibold mb-1">Start Date & Time</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={reopenFormData.start_date}
+                                            onChange={(e) => setReopenFormData((prev) => ({ ...prev, start_date: e.target.value }))}
+                                            className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold mb-1">End Date & Time</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={reopenFormData.end_date}
+                                            onChange={(e) => setReopenFormData((prev) => ({ ...prev, end_date: e.target.value }))}
+                                            className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 w-full mt-2">
+                            <button
+                                type="button"
+                                onClick={() => { setShowReopenModal(false); setReopenTarget(null); setReopenFormData({ start_date: "", end_date: "" }); }}
+                                className={`flex-1 py-2.5 rounded-xl border font-semibold transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmReopenSubmission}
+                                className="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold transition-all active:scale-95"
+                            >
+                                Reopen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     useEffect(() => {
@@ -499,116 +604,135 @@ export default function CourseWorkPage() {
             key: "id",
             label: "Actions",
             render: (_, row) => (
-                <button
-                    onClick={() => handleGradeClick(row)}
-                    className="px-4 py-2 bg-[#010080] text-white font-bold rounded-lg text-xs hover:bg-blue-800 transition-all active:scale-95 shadow-sm"
-                >
-                    Grade Now
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => handleGradeClick(row)}
+                        className="px-4 py-2 bg-[#010080] text-white font-bold rounded-lg text-xs hover:bg-blue-800 transition-all active:scale-95 shadow-sm"
+                    >
+                        Grade Now
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleReopenSubmission(row)}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-amber-200 text-amber-600 hover:text-amber-800 hover:bg-amber-50 dark:border-amber-900/30 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-amber-900/20 transition-colors"
+                        title="Reopen for resubmission"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.228 15M15 15h-4v-4" />
+                        </svg>
+                    </button>
+                </div>
             ),
         },
     ];
 
     if (view === "submissions") {
         return (
-            <div className="space-y-6 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => setView("list")}
-                        className={`p-2 rounded-lg border transition-all ${isDark ? "bg-gray-800 border-gray-700 hover:bg-gray-700 text-white" : "bg-white border-gray-200 hover:bg-gray-50 text-gray-700"}`}
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Submissions: {selectedAssignment?.title}</h1>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider mt-1">{selectedAssignment?.class_name}</p>
+            <>
+                <div className="space-y-6 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setView("list")}
+                            className={`p-2 rounded-lg border transition-all ${isDark ? "bg-gray-800 border-gray-700 hover:bg-gray-700 text-white" : "bg-white border-gray-200 hover:bg-gray-50 text-gray-700"}`}
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        </button>
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Submissions: {selectedAssignment?.title}</h1>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider mt-1">{selectedAssignment?.class_name}</p>
+                        </div>
                     </div>
-                </div>
 
-                <DataTable
-                    columns={getSubmissionColumns()}
-                    data={submissions || []}
-                    isLoading={isLoadingSubmissions}
-                    title="Student Submissions"
-                    searchKey="student_name"
-                />
-            </div>
+                    <DataTable
+                        columns={getSubmissionColumns()}
+                        data={submissions || []}
+                        isLoading={isLoadingSubmissions}
+                        title="Student Submissions"
+                        searchKey="student_name"
+                    />
+                </div>
+                {renderReopenModal()}
+            </>
         );
     }
 
     if (view === "grading" && gradingSubmission) {
         return (
-            <div className="space-y-8 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => setView("submissions")}
-                        className={`p-2 rounded-lg border transition-all ${isDark ? "bg-gray-800 border-gray-700 hover:bg-gray-700 text-white" : "bg-white border-gray-200 hover:bg-gray-50 text-gray-700"}`}
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Grade Student Submission</h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{gradingSubmission.student_name} — {selectedAssignment?.title}</p>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <div className="lg:col-span-8 space-y-6">
-                        <div className={`p-4 rounded-xl border text-sm ${isDark ? "bg-gray-800/60 border-gray-700" : "bg-blue-50/50 border-blue-100"}`}>
-                            <div className="flex flex-wrap gap-4">
-                                <div>
-                                    <span className="text-xs font-bold uppercase text-gray-500">Submitted At</span>
-                                    <p className="font-semibold">{gradingSubmission.submission_date ? new Date(gradingSubmission.submission_date).toLocaleString() : "N/A"}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className={`p-6 rounded-xl border shadow-sm ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
-                            <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-                                <h2 className="text-lg font-bold">Submitted Course Work</h2>
-                                {gradingSubmission.file_url && renderFileActions(gradingSubmission.file_url)}
-                            </div>
-                            <div className={`p-6 rounded-lg border leading-relaxed overflow-auto whitespace-pre-wrap ${isDark ? "bg-gray-900 border-gray-700 text-gray-300" : "bg-gray-50 border-gray-200 text-gray-700"}`} style={{ minHeight: "300px" }}>
-                                {renderSubmissionContent()}
-                            </div>
+            <>
+                <div className="space-y-8 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setView("submissions")}
+                            className={`p-2 rounded-lg border transition-all ${isDark ? "bg-gray-800 border-gray-700 hover:bg-gray-700 text-white" : "bg-white border-gray-200 hover:bg-gray-50 text-gray-700"}`}
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        </button>
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Grade Student Submission</h1>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{gradingSubmission.student_name} — {selectedAssignment?.title}</p>
                         </div>
                     </div>
 
-                    <div className="lg:col-span-4 space-y-6">
-                        <div className={`p-6 rounded-xl border shadow-sm ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
-                            <h2 className="text-lg font-bold mb-4">Grading & Feedback</h2>
-                            <form onSubmit={handleGradeSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Score</label>
-                                    <input
-                                        type="number"
-                                        required
-                                        value={gradeData.score}
-                                        onChange={(e) => setGradeData({ ...gradeData, score: e.target.value })}
-                                        className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-900"}`}
-                                        placeholder={`Marks out of ${selectedAssignment?.total_points || 100}`}
-                                    />
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div className="lg:col-span-8 space-y-6">
+                            <div className={`p-4 rounded-xl border text-sm ${isDark ? "bg-gray-800/60 border-gray-700" : "bg-blue-50/50 border-blue-100"}`}>
+                                <div className="flex flex-wrap gap-4">
+                                    <div>
+                                        <span className="text-xs font-bold uppercase text-gray-500">Submitted At</span>
+                                        <p className="font-semibold">{gradingSubmission.submission_date ? new Date(gradingSubmission.submission_date).toLocaleString() : "N/A"}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Feedback (Optional)</label>
-                                    <textarea
-                                        rows={4}
-                                        value={gradeData.feedback}
-                                        onChange={(e) => setGradeData({ ...gradeData, feedback: e.target.value })}
-                                        className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-900"}`}
-                                        placeholder="Enter constructive feedback..."
-                                    />
+                            </div>
+                            <div className={`p-6 rounded-xl border shadow-sm ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
+                                <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                                    <h2 className="text-lg font-bold">Submitted Course Work</h2>
+                                    {gradingSubmission.file_url && renderFileActions(gradingSubmission.file_url)}
                                 </div>
-                                <button
-                                    type="submit"
-                                    className="w-full py-3 bg-[#010080] hover:bg-blue-800 text-white font-bold rounded-xl transition-all active:scale-95 shadow-md shadow-blue-900/10"
-                                >
-                                    Grade Submission
-                                </button>
-                            </form>
+                                <div className={`p-6 rounded-lg border leading-relaxed overflow-auto whitespace-pre-wrap ${isDark ? "bg-gray-900 border-gray-700 text-gray-300" : "bg-gray-50 border-gray-200 text-gray-700"}`} style={{ minHeight: "300px" }}>
+                                    {renderSubmissionContent()}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="lg:col-span-4 space-y-6">
+                            <div className={`p-6 rounded-xl border shadow-sm ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
+                                <h2 className="text-lg font-bold mb-4">Grading & Feedback</h2>
+                                <form onSubmit={handleGradeSubmit} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Score</label>
+                                        <input
+                                            type="number"
+                                            required
+                                            value={gradeData.score}
+                                            onChange={(e) => setGradeData({ ...gradeData, score: e.target.value })}
+                                            className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-900"}`}
+                                            placeholder={`Marks out of ${selectedAssignment?.total_points || 100}`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Feedback (Optional)</label>
+                                        <textarea
+                                            rows={4}
+                                            value={gradeData.feedback}
+                                            onChange={(e) => setGradeData({ ...gradeData, feedback: e.target.value })}
+                                            className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-900"}`}
+                                            placeholder="Enter constructive feedback..."
+                                        />
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        className="w-full py-3 bg-[#010080] hover:bg-blue-800 text-white font-bold rounded-xl transition-all active:scale-95 shadow-md shadow-blue-900/10"
+                                    >
+                                        Grade Submission
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+                {renderReopenModal()}
+            </>
         );
     }
 
@@ -1000,6 +1124,8 @@ export default function CourseWorkPage() {
                     </div>
                 </div>
             )}
+
+            {renderReopenModal()}
         </div>
     );
 }

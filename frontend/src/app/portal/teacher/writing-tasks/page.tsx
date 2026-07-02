@@ -25,6 +25,11 @@ import {
     canOpenAssignmentWindow,
     formatAssignmentCountdown,
 } from "@/utils/assignmentTime";
+import {
+    formatDatetimeLocalValue,
+    syncAssignmentSchedule,
+    splitDurationMinutes
+} from "@/utils/assignmentSchedule";
 
 export default function WritingTasksPage() {
     const router = useRouter();
@@ -50,6 +55,8 @@ export default function WritingTasksPage() {
         start_date: "",
         due_date: "",
         duration: "",
+        duration_hours: "",
+        duration_minutes: "",
         status: "active",
         total_points: "100" // Default marks
     });
@@ -120,6 +127,12 @@ export default function WritingTasksPage() {
 
     const handleCreateDataChange = (e) => {
         const { name, value } = e.target;
+
+        if (["start_date", "due_date", "duration", "duration_hours", "duration_minutes"].includes(name)) {
+            setCreateFormData((prev) => syncAssignmentSchedule(prev, name, value, "due_date") as typeof prev);
+            return;
+        }
+
         setCreateFormData(prev => ({ ...prev, [name]: value }));
 
         // Reset dependent fields
@@ -144,6 +157,8 @@ export default function WritingTasksPage() {
             start_date: "",
             due_date: "",
             duration: "",
+            duration_hours: "",
+            duration_minutes: "",
             status: "active",
             total_points: "100"
         });
@@ -164,9 +179,11 @@ export default function WritingTasksPage() {
             class_id: assignment.class_id,
             word_count: assignment.word_count || "",
             requirements: assignment.requirements || "",
-            start_date: assignment.start_date ? new Date(assignment.start_date).toISOString().slice(0, 16) : "",
-            due_date: assignment.due_date ? new Date(assignment.due_date).toISOString().slice(0, 16) : "",
+            start_date: assignment.start_date ? formatDatetimeLocalValue(new Date(assignment.start_date)) : "",
+            due_date: assignment.due_date ? formatDatetimeLocalValue(new Date(assignment.due_date)) : "",
             duration: assignment.duration || "",
+            duration_hours: String(splitDurationMinutes(assignment.duration).hours),
+            duration_minutes: String(splitDurationMinutes(assignment.duration).minutes),
             status: assignment.status || "active",
             total_points: assignment.total_points || "100"
         });
@@ -193,8 +210,9 @@ export default function WritingTasksPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const { duration_hours, duration_minutes, ...formRest } = createFormData;
             const payload = {
-                ...createFormData,
+                ...formRest,
                 type: 'writing_task',
                 word_count: createFormData.word_count ? parseInt(createFormData.word_count) : null,
                 duration: createFormData.duration ? parseInt(createFormData.duration) : null
@@ -764,20 +782,6 @@ export default function WritingTasksPage() {
                                     </div>
                                 </div>
 
-                                {/* Duration */}
-                                <div>
-                                    <label className="block text-sm font-medium mb-1.5 opacity-80">Duration (Minutes) <span className="text-gray-400 font-normal">— Leave blank for no time limit</span></label>
-                                    <input
-                                        type="number"
-                                        name="duration"
-                                        min="1"
-                                        placeholder="e.g. 60"
-                                        value={createFormData.duration}
-                                        onChange={handleCreateDataChange}
-                                        className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
-                                    />
-                                </div>
-
                                 {/* Parallel Date Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
@@ -798,6 +802,32 @@ export default function WritingTasksPage() {
                                             value={createFormData.due_date}
                                             onChange={handleCreateDataChange}
                                             className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Duration */}
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5 opacity-80">
+                                        Duration (Hours & Minutes)
+                                        <span className="text-gray-400 font-normal"> — auto-filled from start/end</span>
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <input
+                                            type="number"
+                                            name="duration_hours"
+                                            placeholder="Hours"
+                                            value={createFormData.duration_hours ?? ""}
+                                            readOnly
+                                            className={`w-full px-3 py-2 rounded-lg border cursor-not-allowed transition-all ${isDark ? 'bg-gray-800 border-gray-600 text-gray-300' : 'bg-gray-100 border-gray-300 text-gray-600'}`}
+                                        />
+                                        <input
+                                            type="number"
+                                            name="duration_minutes"
+                                            placeholder="Minutes"
+                                            value={createFormData.duration_minutes ?? ""}
+                                            readOnly
+                                            className={`w-full px-3 py-2 rounded-lg border cursor-not-allowed transition-all ${isDark ? 'bg-gray-800 border-gray-600 text-gray-300' : 'bg-gray-100 border-gray-300 text-gray-600'}`}
                                         />
                                     </div>
                                 </div>
