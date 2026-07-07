@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import DataTable from "@/components/DataTable";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
 import AdminTableActions from "@/components/admin/AdminTableActions";
+import ReviewPeriodControl from "@/components/admin/reviews/ReviewPeriodControl";
 
 export default function StudentQuestionsPage() {
     const { canAdd, canEdit, canDelete } = usePagePermissions("reviews", "student_questions");
@@ -134,6 +135,8 @@ export default function StudentQuestionsPage() {
 
     return (
         <div className="p-6">
+            <ReviewPeriodControl reviewType="student" canEdit={canEdit} />
+
             <DataTable
                 title="Student Review Questions"
                 columns={columns}

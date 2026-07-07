@@ -59,6 +59,8 @@ export const PERMISSION_MODULE_PAGES: Partial<
     { key: "news_events", label: "News & Events", path: "/portal/admin/communication/news" },
     { key: "course_timeline", label: "Course Timeline", path: "/portal/admin/communication/course-timeline" },
     { key: "testimonials", label: "Testimonials", path: "/portal/admin/communication/testimonials" },
+    { key: "tutorials", label: "Tutorials", path: "/portal/admin/communication/tutorials" },
+    { key: "policies", label: "Policies", path: "/portal/admin/communication/policies" },
   ],
   inquiries: [
     { key: "contact_messages", label: "Contact Messages", path: "/portal/admin/communication/contacts" },
@@ -411,6 +413,8 @@ export const ADMIN_ROUTE_RULES: {
   { prefix: "/portal/admin/communication/news", permission: "communication", pageKey: "news_events" },
   { prefix: "/portal/admin/communication/course-timeline", permission: "communication", pageKey: "course_timeline" },
   { prefix: "/portal/admin/communication/testimonials", permission: "communication", pageKey: "testimonials" },
+  { prefix: "/portal/admin/communication/tutorials", permission: "communication", pageKey: "tutorials" },
+  { prefix: "/portal/admin/communication/policies", permission: "communication", pageKey: "policies" },
   { prefix: "/portal/admin/communication/contacts", permission: "inquiries", pageKey: "contact_messages" },
   { prefix: "/portal/admin/communication/newsletter", permission: "inquiries", pageKey: "newsletter" },
   { prefix: "/portal/admin/payments/packages", permission: "payments", pageKey: "payment_packages" },

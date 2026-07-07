@@ -10,11 +10,14 @@ import {
     useGradeSubmissionMutation,
     useCreateAssignmentMutation,
     useUpdateAssignmentMutation,
-    useDeleteAssignmentMutation
+    useDeleteAssignmentMutation,
+    useReopenSubmissionMutation
 } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
-import { openSubmissionFile } from "@/utils/submissionFiles";
+import { DIRECT_API_URL } from "@/constants";
+import { openSubmissionFile, downloadSubmissionFile } from "@/utils/submissionFiles";
+import { parseWritingTaskRequirements } from "@/utils/writingTaskMeta";
 
 import DataTable from "@/components/DataTable";
 import { useAssignmentNow } from "@/hooks/useAssignmentNow";
@@ -64,6 +67,12 @@ export default function WritingTasksPage() {
     const [editingAssignment, setEditingAssignment] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+    const [showReopenModal, setShowReopenModal] = useState(false);
+    const [reopenTarget, setReopenTarget] = useState(null);
+    const [reopenFormData, setReopenFormData] = useState({ start_date: "", end_date: "" });
+    const [attachmentUrl, setAttachmentUrl] = useState("");
+    const [attachmentName, setAttachmentName] = useState("");
+    const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
     const [view, setView] = useState("list"); // 'list', 'submissions', 'grading'
 
     // Queries
@@ -124,6 +133,7 @@ export default function WritingTasksPage() {
     const [createAssignment, { isLoading: isCreating }] = useCreateAssignmentMutation();
     const [updateAssignment, { isLoading: isUpdating }] = useUpdateAssignmentMutation();
     const [deleteAssignment] = useDeleteAssignmentMutation();
+    const [reopenSubmission] = useReopenSubmissionMutation();
 
     const handleCreateDataChange = (e) => {
         const { name, value } = e.target;
@@ -162,6 +172,8 @@ export default function WritingTasksPage() {
             status: "active",
             total_points: "100"
         });
+        setAttachmentUrl("");
+        setAttachmentName("");
         setIsCreateModalOpen(true);
     };
 
@@ -170,6 +182,10 @@ export default function WritingTasksPage() {
         setEditingAssignment(assignment);
 
         const classInfo = classes?.find(c => c.id == assignment.class_id);
+        const requirementsMeta = parseWritingTaskRequirements(
+            assignment.requirements,
+            assignment.submission_format || assignment.attachment_url
+        );
 
         setCreateFormData({
             title: assignment.title,
@@ -178,7 +194,7 @@ export default function WritingTasksPage() {
             subprogram_id: classInfo?.subprogram_id || "",
             class_id: assignment.class_id,
             word_count: assignment.word_count || "",
-            requirements: assignment.requirements || "",
+            requirements: requirementsMeta.text || "",
             start_date: assignment.start_date ? formatDatetimeLocalValue(new Date(assignment.start_date)) : "",
             due_date: assignment.due_date ? formatDatetimeLocalValue(new Date(assignment.due_date)) : "",
             duration: assignment.duration || "",
@@ -187,6 +203,8 @@ export default function WritingTasksPage() {
             status: assignment.status || "active",
             total_points: assignment.total_points || "100"
         });
+        setAttachmentUrl(requirementsMeta.attachment_url || "");
+        setAttachmentName(requirementsMeta.attachment_name || "");
         setIsCreateModalOpen(true);
     };
 
@@ -215,7 +233,10 @@ export default function WritingTasksPage() {
                 ...formRest,
                 type: 'writing_task',
                 word_count: createFormData.word_count ? parseInt(createFormData.word_count) : null,
-                duration: createFormData.duration ? parseInt(createFormData.duration) : null
+                duration: createFormData.duration ? parseInt(createFormData.duration) : null,
+                requirements: createFormData.requirements,
+                attachment_url: attachmentUrl || null,
+                attachment_name: attachmentName || null,
             };
 
             if (isEditing && editingAssignment) {
@@ -273,12 +294,222 @@ export default function WritingTasksPage() {
         }
     };
 
-    const handleDownloadSubmissionFile = async (fileUrl) => {
+    const handleOpenSubmissionFile = async (fileUrl) => {
+        if (!fileUrl) return;
         try {
             await openSubmissionFile(fileUrl);
         } catch {
-            showToast("Could not open this file. Ask the student to submit again.", "error");
+            showToast("Could not open this file.", "error");
         }
+    };
+
+    const handleDownloadSubmissionFile = async (fileUrl, downloadName) => {
+        if (!fileUrl) return;
+        try {
+            await downloadSubmissionFile(fileUrl, downloadName);
+            showToast("Download started", "success");
+        } catch {
+            showToast("Could not download this file. Ask the student to submit again.", "error");
+        }
+    };
+
+    const handleAttachmentUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const allowed = /\.(pdf|doc|docx)$/i.test(file.name);
+        if (!allowed) {
+            showToast("Please upload a PDF or Word document.", "error");
+            return;
+        }
+
+        const uploadData = new FormData();
+        uploadData.append("file", file);
+
+        try {
+            setIsUploadingAttachment(true);
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${DIRECT_API_URL}/uploads`, {
+                method: "POST",
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                body: uploadData,
+            });
+            if (!res.ok) throw new Error("Upload failed");
+            const data = await res.json();
+            setAttachmentUrl(data.url);
+            setAttachmentName(file.name);
+            showToast("Attachment uploaded successfully!", "success");
+        } catch {
+            showToast("Failed to upload attachment.", "error");
+        } finally {
+            setIsUploadingAttachment(false);
+        }
+    };
+
+    const handleReopenSubmission = (submission) => {
+        setReopenTarget(submission);
+        setReopenFormData({
+            start_date: selectedAssignment?.start_date ? formatDatetimeLocalValue(new Date(selectedAssignment.start_date)) : "",
+            end_date: selectedAssignment?.due_date ? formatDatetimeLocalValue(new Date(selectedAssignment.due_date)) : "",
+        });
+        setShowReopenModal(true);
+    };
+
+    const confirmReopenSubmission = async () => {
+        if (!reopenTarget) return;
+        if (reopenFormData.start_date && reopenFormData.end_date && new Date(reopenFormData.end_date) <= new Date(reopenFormData.start_date)) {
+            showToast("End date and time must be after start date and time.", "error");
+            return;
+        }
+
+        try {
+            await reopenSubmission({
+                id: reopenTarget.id,
+                type: "writing_task",
+                start_date: reopenFormData.start_date || null,
+                end_date: reopenFormData.end_date || null,
+            }).unwrap();
+            if (gradingSubmission?.id === reopenTarget.id) {
+                setGradingSubmission(null);
+                setView("submissions");
+            }
+            setShowReopenModal(false);
+            setReopenTarget(null);
+            setReopenFormData({ start_date: "", end_date: "" });
+            showToast("Submission reopened. Student can submit again.", "success");
+        } catch (err) {
+            showToast(err?.data?.error || "Failed to reopen submission", "error");
+        }
+    };
+
+    const getSubmissionTextContent = (submission) => {
+        if (!submission?.content) return "";
+        try {
+            const parsed = JSON.parse(submission.content);
+            if (parsed?.reopened_for_resubmission) return "";
+        } catch {
+            // plain text submission
+        }
+        return String(submission.content);
+    };
+
+    const handleDownloadTextContent = () => {
+        const studentName = gradingSubmission?.student_name || "Student";
+        const taskTitle = selectedAssignment?.title || "Writing Task";
+        const content = getSubmissionTextContent(gradingSubmission) || "No content submitted.";
+        const date = gradingSubmission?.submission_date
+            ? new Date(gradingSubmission.submission_date).toLocaleString()
+            : new Date().toLocaleString();
+
+        const htmlReport = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'><title>${taskTitle}</title></head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; padding: 20px;">
+                <h1 style="color: #010080; font-size: 24px;">Writing Task Submission</h1>
+                <p><strong>Student Name:</strong> ${studentName}</p>
+                <p><strong>Task:</strong> ${taskTitle}</p>
+                <p><strong>Submitted:</strong> ${date}</p>
+                <hr/>
+                <div style="white-space: pre-wrap;">${content.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+            </body>
+            </html>
+        `;
+        const blob = new Blob([htmlReport], { type: "application/msword" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${studentName.replace(/\s+/g, "_")}_${taskTitle.replace(/\s+/g, "_")}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast("Download started", "success");
+    };
+
+    const renderFileActions = (fileUrl, downloadName) => {
+        if (!fileUrl) {
+            return <span className="text-xs text-gray-400 italic">No file</span>;
+        }
+
+        return (
+            <div className="flex items-center gap-2">
+                <button
+                    type="button"
+                    onClick={() => handleOpenSubmissionFile(fileUrl)}
+                    className="px-3 py-2 rounded-lg border text-xs font-bold transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                >
+                    View
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleDownloadSubmissionFile(fileUrl, downloadName)}
+                    className="px-3 py-2 rounded-lg border text-xs font-bold transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400"
+                >
+                    Download
+                </button>
+            </div>
+        );
+    };
+
+    const renderReopenModal = () => {
+        if (!showReopenModal) return null;
+
+        return (
+            <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowReopenModal(false); setReopenTarget(null); setReopenFormData({ start_date: "", end_date: "" }); }} />
+                <div className={`relative w-full max-w-md rounded-2xl shadow-2xl p-6 border ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
+                    <div className="flex flex-col items-center text-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center">
+                            <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.228 15M15 15h-4v-4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className={`text-lg font-bold mb-1 ${isDark ? "text-white" : "text-gray-900"}`}>Reopen Submission?</h3>
+                            <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                                Reopen submission for <span className="font-semibold">{reopenTarget?.student_name || "this student"}</span>? This will clear the current work so the student can submit again.
+                            </p>
+                        </div>
+                        <div className="w-full space-y-3 text-left">
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Resubmit From</label>
+                                <input
+                                    type="datetime-local"
+                                    value={reopenFormData.start_date}
+                                    onChange={(e) => setReopenFormData((prev) => ({ ...prev, start_date: e.target.value }))}
+                                    className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Resubmit Until</label>
+                                <input
+                                    type="datetime-local"
+                                    value={reopenFormData.end_date}
+                                    onChange={(e) => setReopenFormData((prev) => ({ ...prev, end_date: e.target.value }))}
+                                    className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-3 w-full">
+                            <button
+                                type="button"
+                                onClick={() => { setShowReopenModal(false); setReopenTarget(null); setReopenFormData({ start_date: "", end_date: "" }); }}
+                                className={`flex-1 py-2.5 rounded-lg border font-bold text-sm ${isDark ? "border-gray-600 text-gray-300" : "border-gray-300 text-gray-600"}`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmReopenSubmission}
+                                className="flex-1 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm"
+                            >
+                                Reopen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     const getSubmissionColumns = () => [
@@ -340,19 +571,32 @@ export default function WritingTasksPage() {
             key: "id",
             label: "Actions",
             render: (_, row) => (
-                <button
-                    onClick={() => handleGradeClick(row)}
-                    className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg text-xs hover:bg-blue-700 transition-all active:scale-95 shadow-sm"
-                >
-                    Grade Now
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => handleGradeClick(row)}
+                        className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg text-xs hover:bg-blue-700 transition-all active:scale-95 shadow-sm"
+                    >
+                        Grade Now
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleReopenSubmission(row)}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-amber-200 text-amber-600 hover:text-amber-800 hover:bg-amber-50 dark:border-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/20 transition-colors"
+                        title="Reopen for resubmission"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.228 15M15 15h-4v-4" />
+                        </svg>
+                    </button>
+                </div>
             ),
         },
     ];
 
     if (view === 'submissions') {
         return (
-            <div className="space-y-6 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <>
+                <div className="space-y-6 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => setView("list")}
@@ -373,12 +617,15 @@ export default function WritingTasksPage() {
                     title="Student Submissions"
                     searchKey="student_name"
                 />
-            </div>
+                </div>
+                {renderReopenModal()}
+            </>
         );
     }
 
     if (view === 'grading') {
         return (
+            <>
             <div className="space-y-8 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center gap-4">
                     <button
@@ -409,26 +656,31 @@ export default function WritingTasksPage() {
                             </div>
                         </div>
                         <div className={`p-6 rounded-xl border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-                            <h2 className="text-lg font-bold mb-4">Submitted Essay / Writing Content</h2>
-                            {gradingSubmission.file_url ? (
-                                <div className="space-y-4">
+                            <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                                <h2 className="text-lg font-bold">Submitted Essay / Writing Content</h2>
+                                {gradingSubmission?.file_url ? (
+                                    renderFileActions(gradingSubmission.file_url, `${gradingSubmission.student_name || "student"}_writing`)
+                                ) : (
                                     <button
                                         type="button"
-                                        onClick={() => handleDownloadSubmissionFile(gradingSubmission.file_url)}
-                                        className="flex items-center gap-4 px-4 py-3 rounded-lg border bg-white dark:bg-gray-900 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors w-full group text-left"
+                                        onClick={handleDownloadTextContent}
+                                        disabled={!getSubmissionTextContent(gradingSubmission)}
+                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-bold transition-all disabled:opacity-50 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
                                     >
-                                        <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-gray-900 dark:text-white">View Submitted File</p>
-                                            <p className="text-xs text-gray-500">Click to open or download</p>
-                                        </div>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        Download Writing
                                     </button>
-                                </div>
+                                )}
+                            </div>
+                            {gradingSubmission.file_url ? (
+                                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    The student submitted a file. Use View or Download above to open their work.
+                                </p>
                             ) : (
                                 <div className={`p-6 rounded-lg border leading-relaxed overflow-auto whitespace-pre-wrap ${isDark ? 'bg-gray-900 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-700'}`} style={{ minHeight: '300px' }}>
-                                    {gradingSubmission.content || "No text content submitted."}
+                                    {getSubmissionTextContent(gradingSubmission) || "No text content submitted."}
                                 </div>
                             )}
                         </div>
@@ -474,11 +726,20 @@ export default function WritingTasksPage() {
                                 >
                                     Grade Submission
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleReopenSubmission(gradingSubmission)}
+                                    className="w-full py-3 border border-amber-300 text-amber-700 dark:text-amber-400 dark:border-amber-800 font-bold rounded-xl transition-all hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                                >
+                                    Reopen for Resubmission
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
+            {renderReopenModal()}
+            </>
         );
     }
 
@@ -780,6 +1041,30 @@ export default function WritingTasksPage() {
                                             className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
                                         />
                                     </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5 opacity-80">Teacher Attachment (PDF / Word)</label>
+                                    <input
+                                        type="file"
+                                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                        onChange={handleAttachmentUpload}
+                                        disabled={isUploadingAttachment}
+                                        className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                    />
+                                    {attachmentUrl ? (
+                                        <div className="mt-2 flex items-center justify-between gap-3 p-3 rounded-lg border text-sm">
+                                            <span className="truncate font-medium">{attachmentName || "Attached file"}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setAttachmentUrl(""); setAttachmentName(""); }}
+                                                className="text-rose-600 text-xs font-bold"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ) : null}
+                                    <p className="text-xs text-gray-400 mt-1">Students will see and can download this file on the writing task page.</p>
                                 </div>
 
                                 {/* Parallel Date Grid */}

@@ -9,6 +9,7 @@ import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useToast } from "@/components/Toast";
 import { API_URL, resolveMediaUrl } from "@/constants";
 import { getAssignmentTimerTargetMs } from "@/utils/assignmentSchedule";
+import AudioRecorderPanel from "@/components/student/AudioRecorderPanel";
 
 export default function TakeExamPage() {
     const { isDark } = useDarkMode();
@@ -168,7 +169,6 @@ export default function TakeExamPage() {
     const [isLoadingAudio, setIsLoadingAudio] = useState(false);
     const [uploadedOralFile, setUploadedOralFile] = useState(null);
     const [oralFilePreviewUrl, setOralFilePreviewUrl] = useState(null);
-    const fileInputRef = useRef(null);
 
     // Persistent Timer Key
     const timerKey = useMemo(() => {
@@ -257,25 +257,22 @@ export default function TakeExamPage() {
         handleAnswerChange(key, limitToWordCount(value, maxWords));
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 20 * 1024 * 1024) {
-                showToast("File size exceeds 20MB limit.", "error");
-                return;
-            }
-            setUploadedOralFile(file);
-            const url = URL.createObjectURL(file);
-            setOralFilePreviewUrl(url);
+    const handleOralFileReady = (file) => {
+        if (oralFilePreviewUrl) URL.revokeObjectURL(oralFilePreviewUrl);
+        if (!file) {
+            setUploadedOralFile(null);
+            setOralFilePreviewUrl(null);
+            return;
         }
+        if (file.size > 20 * 1024 * 1024) {
+            showToast("Recording exceeds 20MB limit.", "error");
+            return;
+        }
+        setUploadedOralFile(file);
+        setOralFilePreviewUrl(URL.createObjectURL(file));
     };
 
-    const removeUploadedFile = () => {
-        if (oralFilePreviewUrl) URL.revokeObjectURL(oralFilePreviewUrl);
-        setUploadedOralFile(null);
-        setOralFilePreviewUrl(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    };
+    const hasOralStep = flattenedSteps.some((s) => s.type === "oral");
 
     // Audio via S3 stream proxy
     useEffect(() => {
@@ -343,7 +340,14 @@ export default function TakeExamPage() {
     };
 
     const handleNext = () => {
-        if (isLast) { setShowSubmitModal(true); return; }
+        if (isLast) {
+            if (hasOralStep && !uploadedOralFile) {
+                showToast("Please record your oral answer before submitting.", "warning");
+                return;
+            }
+            setShowSubmitModal(true);
+            return;
+        }
 
         const nextStep = flattenedSteps[currentStepIdx + 1];
         if (nextStep.part !== currentStep.part) {
@@ -497,48 +501,19 @@ export default function TakeExamPage() {
                                     <p className="text-sm font-medium text-gray-600 italic dark:text-gray-400">{currentStep.instructions}</p>
                                 </div>
 
-                                {/* File Upload Section */}
+                                {/* Voice recording */}
                                 <div className={`p-8 rounded-2xl shadow-sm border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-blue-50'}`}>
                                     <span className={`text-xs font-semibold uppercase tracking-wider mb-6 block ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                                        Your Submission
+                                        Your Oral Answer
                                     </span>
 
-                                    <div className="space-y-6">
-                                        {!uploadedOralFile ? (
-                                            <label className={`flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-xl cursor-pointer transition-all ${isDark ? 'bg-gray-800/20 border-gray-700 hover:border-gray-600' : 'bg-gray-50 border-gray-200 hover:border-gray-300'}`}>
-                                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                    <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                                                    <p className="mb-2 text-sm text-gray-500 font-normal">Click to upload your audio record</p>
-                                                    <p className="text-xs text-gray-400 font-normal">MP3, WAV, or WEBM (MAX. 20MB)</p>
-                                                </div>
-                                                <input
-                                                    type="file"
-                                                    className="hidden"
-                                                    accept="audio/*"
-                                                    onChange={handleFileChange}
-                                                    ref={fileInputRef}
-                                                />
-                                            </label>
-                                        ) : (
-                                            <div className={`p-6 rounded-xl border ${isDark ? 'bg-gray-800/40 border-gray-700' : 'bg-white border-gray-100 shadow-sm'}`}>
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center">
-                                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-medium font-normal truncate max-w-xs">{uploadedOralFile.name}</span>
-                                                            <span className="text-[10px] text-gray-400 uppercase font-normal">{(uploadedOralFile.size / (1024 * 1024)).toFixed(2)} MB • Audio File</span>
-                                                        </div>
-                                                    </div>
-                                                    <button onClick={removeUploadedFile} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 transition-colors">
-                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                                    </button>
-                                                </div>
-                                                <audio controls className="w-full" src={oralFilePreviewUrl} />
-                                            </div>
-                                        )}
-                                    </div>
+                                    <AudioRecorderPanel
+                                        isDark={isDark}
+                                        maxSizeMb={20}
+                                        onFileReady={handleOralFileReady}
+                                        activeFile={uploadedOralFile}
+                                        activePreviewUrl={oralFilePreviewUrl}
+                                    />
                                 </div>
                             </div>
                         )}

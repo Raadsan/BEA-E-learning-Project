@@ -1,6 +1,54 @@
 import prisma from '../lib/prisma.js';
 import { getStoredFileUrl } from '../utils/fileStorage.js';
 
+const parseWritingTaskRequirements = (raw, submissionFormat) => {
+    let text = "";
+    let attachment_url = submissionFormat || null;
+    let attachment_name = null;
+
+    if (raw) {
+        try {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === "object" && ("text" in parsed || "attachment_url" in parsed)) {
+                text = String(parsed.text || "");
+                attachment_url = parsed.attachment_url || attachment_url;
+                attachment_name = parsed.attachment_name || null;
+            } else {
+                text = String(raw);
+            }
+        } catch {
+            text = String(raw);
+        }
+    }
+
+    if (attachment_url && !attachment_name) {
+        attachment_name = attachment_url.split("/").pop() || "Attachment";
+    }
+
+    return { requirements_text: text, attachment_url, attachment_name };
+};
+
+const enrichWritingTaskAssignment = (assignment) => {
+    const meta = parseWritingTaskRequirements(assignment.requirements, assignment.submission_format);
+    return {
+        ...assignment,
+        requirements_text: meta.requirements_text,
+        attachment_url: meta.attachment_url,
+        attachment_name: meta.attachment_name,
+    };
+};
+
+const parseEmbeddedFeedbackFile = (feedback) => {
+    if (!feedback || typeof feedback !== "string") {
+        return { feedback_text: feedback || "", file_url: null };
+    }
+    const match = feedback.match(/(?:^|\n\n?)Feedback file:\s*(\S+)/i);
+    if (!match) return { feedback_text: feedback.trim(), file_url: null };
+    const file_url = match[1].trim();
+    const feedback_text = feedback.replace(/\n?\n?Feedback file:\s*\S+/i, "").trim();
+    return { feedback_text, file_url };
+};
+
 const parseSubmissionMeta = (value) => {
     if (!value || typeof value !== "string") return null;
     try {
@@ -135,12 +183,13 @@ export const getAssignments = async (req, res) => {
             // Map class, program, and subprogram names
             const mappedAssignments = assignments.map(a => {
                 const spId = a.subprogram_id || classSubprogramMap[a.class_id];
-                return {
+                const base = {
                     ...a,
                     class_name: classMap[a.class_id] || "General",
                     program_name: programMap[a.program_id] || "N/A",
                     subprogram_name: subprogramMap[spId] || "N/A"
                 };
+                return t === 'writing_task' ? enrichWritingTaskAssignment(base) : base;
             });
 
             // If student, also fetch their submissions for these assignments
@@ -165,11 +214,12 @@ export const getAssignments = async (req, res) => {
                         }
                         a.submission_status = submission.status;
                         a.score = submission.score;
-                        a.feedback = submission.feedback;
+                        const parsedFeedback = parseEmbeddedFeedbackFile(submission.feedback);
+                        a.feedback = parsedFeedback.feedback_text || submission.feedback;
                         a.file_url = submission.file_url;
                         a.student_content = submission.content;
-                        a.feedback_file_url = submission.feedback_file_url;
-                        a.feedback_file = submission.feedback_file_url;
+                        a.feedback_file_url = submission.feedback_file_url || parsedFeedback.file_url;
+                        a.feedback_file = a.feedback_file_url;
                         a.submission_date = submission.submission_date;
                         a.is_auto_submit = submission.is_auto_submit;
                         a.graded_at = submission.status === 'graded'
@@ -212,10 +262,22 @@ export const createAssignment = async (req, res) => {
         };
 
         if (type === 'writing_task') {
+            let requirementsPayload = data.requirements;
+            if (data.attachment_url) {
+                requirementsPayload = JSON.stringify({
+                    text: data.requirements || "",
+                    attachment_url: data.attachment_url,
+                    attachment_name: data.attachment_name || null,
+                });
+            }
+            const meta = parseWritingTaskRequirements(requirementsPayload, data.attachment_url || null);
+            prismaData.requirements = requirementsPayload;
             prismaData.word_count = data.word_count ? parseInt(data.word_count) : null;
-            prismaData.requirements = data.requirements;
             prismaData.start_date = data.start_date ? new Date(data.start_date) : null;
             prismaData.duration = data.duration ? parseInt(data.duration) : null;
+            if (meta.attachment_url) {
+                prismaData.submission_format = String(meta.attachment_url).slice(0, 100);
+            }
         } else if (['exam', 'oral_assignment', 'course_work'].includes(type)) {
             prismaData.subprogram_id = data.subprogram_id ? parseInt(data.subprogram_id) : null;
             prismaData.questions = data.questions ? (typeof data.questions === 'string' ? data.questions : JSON.stringify(data.questions)) : null;
@@ -254,6 +316,28 @@ export const submitAssignment = async (req, res) => {
 
         if (!assignment_id || !type) {
             return res.status(400).json({ error: "Assignment id and type are required" });
+        }
+
+        const existing = await prisma[subModelName].findUnique({
+            where: {
+                assignment_id_student_id: {
+                    assignment_id: parseInt(assignment_id, 10),
+                    student_id,
+                },
+            },
+        });
+
+        if (existing) {
+            if (existing.status === "graded") {
+                return res.status(403).json({ error: "This assignment has already been graded and cannot be changed." });
+            }
+            if (existing.status === "submitted") {
+                const meta = parseSubmissionMeta(existing.content);
+                const isReopened = meta?.reopened_for_resubmission === true;
+                if (!isReopened) {
+                    return res.json({ message: "Already submitted", submission: existing });
+                }
+            }
         }
 
         const parsedContent = typeof content === 'object' ? JSON.stringify(content) : (content ?? '');
@@ -417,20 +501,27 @@ export const reopenSubmission = async (req, res) => {
             end_date: end_date || null,
         };
 
+        const reopenData = {
+            status: "pending",
+            score: null,
+            feedback: null,
+            file_url: null,
+            content: JSON.stringify({
+                reopened_for_resubmission: true,
+                reopenWindow,
+            }),
+            submission_date: null,
+        };
+
+        if (subModelName === "assignment_submissions") {
+            reopenData.is_auto_submit = false;
+        } else if (subModelName === "course_work_submissions" || subModelName === "exam_submissions" || subModelName === "oral_assignment_submissions") {
+            reopenData.feedback_file_url = null;
+        }
+
         const updated = await prisma[subModelName].update({
             where: { id: parseInt(id, 10) },
-            data: {
-                status: "pending",
-                score: null,
-                feedback: null,
-                feedback_file_url: null,
-                file_url: null,
-                content: JSON.stringify({
-                    reopened_for_resubmission: true,
-                    reopenWindow,
-                }),
-                submission_date: null,
-            }
+            data: reopenData,
         });
 
         res.json({ message: "Submission reopened successfully", submission: updated });
@@ -457,16 +548,19 @@ export const getAssignmentSubmissions = async (req, res) => {
         const studentIds = [...new Set(submissions.map(s => s.student_id).filter(Boolean))];
         const students = await prisma.students.findMany({
             where: { student_id: { in: studentIds } },
-            select: { student_id: true, full_name: true }
+            select: { student_id: true, full_name: true, email: true }
         });
 
         const studentMap = {};
-        students.forEach(s => { studentMap[s.student_id] = s.full_name; });
+        students.forEach(s => {
+            studentMap[s.student_id] = s.full_name || s.email || s.student_id;
+        });
 
         const mappedSubmissions = submissions.map(s => ({
             ...s,
-            student_name: studentMap[s.student_id] || "Unknown Student",
-            student: { full_name: studentMap[s.student_id] || "Unknown Student" }
+            score: s.score !== null && s.score !== undefined ? Number(s.score) : null,
+            student_name: studentMap[s.student_id] || s.student_id || "Unknown Student",
+            student: { full_name: studentMap[s.student_id] || s.student_id || "Unknown Student" }
         }));
 
         res.json(mappedSubmissions);
@@ -491,16 +585,19 @@ export const getAllSubmissions = async (req, res) => {
         const studentIds = [...new Set(submissions.map(s => s.student_id).filter(Boolean))];
         const students = await prisma.students.findMany({
             where: { student_id: { in: studentIds } },
-            select: { student_id: true, full_name: true }
+            select: { student_id: true, full_name: true, email: true }
         });
 
         const studentMap = {};
-        students.forEach(s => { studentMap[s.student_id] = s.full_name; });
+        students.forEach(s => {
+            studentMap[s.student_id] = s.full_name || s.email || s.student_id;
+        });
 
         const mappedSubmissions = submissions.map(s => ({
             ...s,
-            student_name: studentMap[s.student_id] || "Unknown Student",
-            student: { full_name: studentMap[s.student_id] || "Unknown Student" }
+            score: s.score !== null && s.score !== undefined ? Number(s.score) : null,
+            student_name: studentMap[s.student_id] || s.student_id || "Unknown Student",
+            student: { full_name: studentMap[s.student_id] || s.student_id || "Unknown Student" }
         }));
 
         res.json(mappedSubmissions);
@@ -529,10 +626,26 @@ export const updateAssignment = async (req, res) => {
         };
 
         if (type === 'writing_task') {
+            let requirementsPayload = data.requirements;
+            if (data.attachment_url !== undefined) {
+                requirementsPayload = JSON.stringify({
+                    text: typeof data.requirements === "string" && !data.requirements.startsWith("{")
+                        ? data.requirements
+                        : parseWritingTaskRequirements(data.requirements, null).requirements_text,
+                    attachment_url: data.attachment_url || null,
+                    attachment_name: data.attachment_name || null,
+                });
+            }
+            const meta = parseWritingTaskRequirements(requirementsPayload, data.attachment_url || null);
+            prismaData.requirements = requirementsPayload;
             prismaData.word_count = data.word_count ? parseInt(data.word_count) : undefined;
-            prismaData.requirements = data.requirements;
             prismaData.start_date = data.start_date ? new Date(data.start_date) : null;
             prismaData.duration = data.duration ? parseInt(data.duration) : null;
+            if (meta.attachment_url) {
+                prismaData.submission_format = String(meta.attachment_url).slice(0, 100);
+            } else if (data.attachment_url === null || data.attachment_url === "") {
+                prismaData.submission_format = null;
+            }
         } else if (['exam', 'oral_assignment', 'course_work'].includes(type)) {
             prismaData.subprogram_id = data.subprogram_id ? parseInt(data.subprogram_id) : undefined;
             prismaData.questions = data.questions ? (typeof data.questions === 'string' ? data.questions : JSON.stringify(data.questions)) : undefined;

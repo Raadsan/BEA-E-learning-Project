@@ -9,11 +9,13 @@ import {
     useGetAssignmentSubmissionsQuery,
     useGradeSubmissionMutation,
     useUpdateAssignmentMutation,
-    useDeleteAssignmentMutation
+    useDeleteAssignmentMutation,
+    useReopenSubmissionMutation
 } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
-import { API_BASE_URL } from "@/constants";
+import { resolveMediaUrl, resolveSubmissionFileUrl } from "@/constants";
+import { normalizeExamPapers, getExamPaperPrefix, isOralPaper } from "@/utils/examPapers";
 
 import DataTable from "@/components/DataTable";
 import { useAssignmentNow } from "@/hooks/useAssignmentNow";
@@ -24,6 +26,7 @@ import {
     canOpenAssignmentWindow,
     formatAssignmentCountdown,
 } from "@/utils/assignmentTime";
+import { formatDatetimeLocalValue } from "@/utils/assignmentSchedule";
 
 export default function ExamsPage() {
     const router = useRouter();
@@ -41,6 +44,9 @@ export default function ExamsPage() {
     const [isLoadingAudio, setIsLoadingAudio] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+    const [showReopenModal, setShowReopenModal] = useState(false);
+    const [reopenTarget, setReopenTarget] = useState(null);
+    const [reopenFormData, setReopenFormData] = useState({ start_date: "", end_date: "" });
     const [view, setView] = useState("list"); // 'list', 'submissions', 'grading'
 
     // Queries
@@ -64,56 +70,25 @@ export default function ExamsPage() {
     const [gradeSubmission] = useGradeSubmissionMutation();
     const [updateAssignment] = useUpdateAssignmentMutation();
     const [deleteAssignment] = useDeleteAssignmentMutation();
+    const [reopenSubmission] = useReopenSubmissionMutation();
 
-    // Handle tokenized audio playback for Speaking paper
+    // Load student oral recording for grading
     useEffect(() => {
-        const fetchAudio = async () => {
-            if (!gradingSubmission?.file_url) return;
-            setIsLoadingAudio(true);
-            try {
-                const token = localStorage.getItem("token");
-                const response = await fetch(`${API_BASE_URL}/files/download/${gradingSubmission.file_url}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    setGradingAudioUrl(url);
-                }
-            } catch (err) {
-                console.error("Audio retrieval error:", err);
-            } finally {
-                setIsLoadingAudio(false);
-            }
-        };
-        fetchAudio();
-        return () => {
-            if (gradingAudioUrl) {
-                window.URL.revokeObjectURL(gradingAudioUrl);
-                setGradingAudioUrl("");
-            }
-        };
-    }, [gradingSubmission]);
+        if (!gradingSubmission?.file_url) {
+            setGradingAudioUrl("");
+            setIsLoadingAudio(false);
+            return;
+        }
+        setGradingAudioUrl(resolveSubmissionFileUrl(gradingSubmission.file_url) || "");
+        setIsLoadingAudio(false);
+    }, [gradingSubmission?.file_url]);
 
     // Automatically sum MCQ + True/False grades and allow manual essay inputs
     useEffect(() => {
         if (!selectedAssignment || !gradingSubmission) return;
 
         let autoScore = 0;
-        let questions = [];
-        try {
-            questions = typeof selectedAssignment.questions === 'string'
-                ? JSON.parse(selectedAssignment.questions)
-                : (selectedAssignment.questions || []);
-
-            if (questions && !Array.isArray(questions) && typeof questions === 'object') {
-                questions = Object.values(questions);
-            }
-        } catch (e) {
-            questions = [];
-        }
+        let questions = normalizeExamPapers(selectedAssignment?.questions);
 
         let studentAnswers = {};
         try {
@@ -130,7 +105,7 @@ export default function ExamsPage() {
         const processQuestion = (q, idx, prefix = "") => {
             const isPaper = typeof q === 'object' && !q.type && (q.editing || q.essay || q.questions || q.passage);
             if (isPaper) {
-                const paperPrefix = prefix || (idx === 0 ? "p1" : idx === 1 ? "p2" : idx === 2 ? "p3" : idx === 3 ? "p4" : `paper${idx + 1}`);
+                const paperPrefix = prefix || getExamPaperPrefix(idx);
                 if (q.editing) {
                     q.editing.forEach((item, eIdx) => processQuestion(item, eIdx, `${paperPrefix}_editing_${item.id || eIdx}`));
                 }
@@ -280,6 +255,83 @@ export default function ExamsPage() {
         }
     };
 
+    const handleReopenSubmission = (submission) => {
+        setReopenTarget(submission);
+        setReopenFormData({
+            start_date: selectedAssignment?.start_date ? formatDatetimeLocalValue(new Date(selectedAssignment.start_date)) : "",
+            end_date: selectedAssignment?.due_date || selectedAssignment?.end_date
+                ? formatDatetimeLocalValue(new Date(selectedAssignment.due_date || selectedAssignment.end_date))
+                : "",
+        });
+        setShowReopenModal(true);
+    };
+
+    const confirmReopenSubmission = async () => {
+        if (!reopenTarget) return;
+        if (reopenFormData.start_date && reopenFormData.end_date && new Date(reopenFormData.end_date) <= new Date(reopenFormData.start_date)) {
+            showToast("End date and time must be after start date and time.", "error");
+            return;
+        }
+
+        try {
+            await reopenSubmission({
+                id: reopenTarget.id,
+                type: "exam",
+                start_date: reopenFormData.start_date || null,
+                end_date: reopenFormData.end_date || null,
+            }).unwrap();
+            if (gradingSubmission?.id === reopenTarget.id) {
+                setGradingSubmission(null);
+                setView("submissions");
+            }
+            setShowReopenModal(false);
+            setReopenTarget(null);
+            setReopenFormData({ start_date: "", end_date: "" });
+            showToast("Submission reopened. Student can submit again.", "success");
+        } catch (err) {
+            showToast(err?.data?.error || "Failed to reopen submission", "error");
+        }
+    };
+
+    const renderReopenModal = () => {
+        if (!showReopenModal) return null;
+
+        return (
+            <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowReopenModal(false); setReopenTarget(null); setReopenFormData({ start_date: "", end_date: "" }); }} />
+                <div className={`relative w-full max-w-md rounded-2xl shadow-2xl p-6 border ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
+                    <div className="flex flex-col items-center text-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center">
+                            <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.228 15M15 15h-4v-4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className={`text-lg font-bold mb-1 ${isDark ? "text-white" : "text-gray-900"}`}>Reopen Submission?</h3>
+                            <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                                Reopen submission for <span className="font-semibold">{reopenTarget?.student_name || "this student"}</span>? This will clear the current answers so the student can submit again.
+                            </p>
+                        </div>
+                        <div className="w-full space-y-3 text-left">
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Resubmit From</label>
+                                <input type="datetime-local" value={reopenFormData.start_date} onChange={(e) => setReopenFormData((prev) => ({ ...prev, start_date: e.target.value }))} className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Resubmit Until</label>
+                                <input type="datetime-local" value={reopenFormData.end_date} onChange={(e) => setReopenFormData((prev) => ({ ...prev, end_date: e.target.value }))} className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} />
+                            </div>
+                        </div>
+                        <div className="flex gap-3 w-full">
+                            <button type="button" onClick={() => { setShowReopenModal(false); setReopenTarget(null); setReopenFormData({ start_date: "", end_date: "" }); }} className={`flex-1 py-2.5 rounded-lg border font-bold text-sm ${isDark ? "border-gray-600 text-gray-300" : "border-gray-300 text-gray-600"}`}>Cancel</button>
+                            <button type="button" onClick={confirmReopenSubmission} className="flex-1 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm">Reopen</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     const handleDownloadDoc = (title, studentAns) => {
         const date = new Date().toLocaleDateString();
         const studentName = gradingSubmission?.student_name || "Student";
@@ -312,53 +364,75 @@ export default function ExamsPage() {
 
     const getSubmissionColumns = () => [
         {
-            header: "Student Name",
-            accessor: "student_name",
-            render: (value) => <span className="font-semibold text-gray-900 dark:text-white">{value}</span>
+            key: "student_name",
+            label: "Student Name",
+            render: (value) => (
+                <span className="font-semibold text-gray-900 dark:text-white">{value || "Unknown Student"}</span>
+            ),
         },
         {
-            header: "Status",
-            accessor: "status",
+            key: "status",
+            label: "Status",
             render: (value) => (
                 <span className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded-full border ${
                     value === 'graded'
                         ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800'
+                        : value === 'submitted'
+                            ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-800'
                         : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-400 dark:border-yellow-800'
                 }`}>
-                    {value || 'pending'}
+                    {value === 'submitted' ? 'submitted' : (value || 'pending')}
                 </span>
             )
         },
         {
-            header: "Score",
-            accessor: "score",
-            render: (value, row) => (
-                <span className="font-semibold text-sm">
-                    {value !== null ? `${value} / ${selectedAssignment?.total_points}` : <span className="text-gray-400 font-normal italic">Ungraded</span>}
-                </span>
-            )
+            key: "score",
+            label: "Score",
+            render: (value) => {
+                const totalPoints = selectedAssignment?.total_points || 100;
+                return (
+                    <span className="font-semibold text-sm">
+                        {value !== null && value !== undefined && value !== ""
+                            ? `${value} / ${totalPoints}`
+                            : <span className="text-gray-400 font-normal italic">Ungraded</span>}
+                    </span>
+                );
+            }
         },
         {
-            header: "Submission Date",
-            accessor: "submission_date",
+            key: "submission_date",
+            label: "Submitted At",
             render: (value) => <span>{value ? new Date(value).toLocaleString() : 'N/A'}</span>
         },
         {
-            header: "Actions",
-            accessor: "id",
-            render: (value, row) => (
-                <button
-                    onClick={() => handleGradeClick(row)}
-                    className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg text-xs hover:bg-blue-700 transition-all active:scale-95 shadow-sm"
-                >
-                    Grade Now
-                </button>
+            key: "id",
+            label: "Actions",
+            render: (_value, row) => (
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => handleGradeClick(row)}
+                        className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg text-xs hover:bg-blue-700 transition-all active:scale-95 shadow-sm"
+                    >
+                        {row.status === 'graded' ? 'View / Regrade' : 'Grade Now'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleReopenSubmission(row)}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-amber-200 text-amber-600 hover:text-amber-800 hover:bg-amber-50 dark:border-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/20 transition-colors"
+                        title="Reopen for resubmission"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.228 15M15 15h-4v-4" />
+                        </svg>
+                    </button>
+                </div>
             )
         }
     ];
 
     if (view === 'submissions') {
         return (
+            <>
             <div className="space-y-6 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center gap-4">
                     <button
@@ -380,22 +454,13 @@ export default function ExamsPage() {
                     title="Student Submissions"
                 />
             </div>
+            {renderReopenModal()}
+            </>
         );
     }
 
     if (view === 'grading') {
-        let questions = [];
-        try {
-            questions = typeof selectedAssignment?.questions === 'string'
-                ? JSON.parse(selectedAssignment.questions)
-                : (selectedAssignment?.questions || []);
-
-            if (questions && !Array.isArray(questions) && typeof questions === 'object') {
-                questions = Object.values(questions);
-            }
-        } catch (e) {
-            questions = [];
-        }
+        const questions = normalizeExamPapers(selectedAssignment?.questions);
 
         let studentAnswers = {};
         try {
@@ -409,6 +474,7 @@ export default function ExamsPage() {
         const normalize = (val) => String(val || "").trim().toLowerCase();
 
         return (
+            <>
             <div className="space-y-8 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -435,13 +501,14 @@ export default function ExamsPage() {
                     {/* Left: Exam Sections */}
                     <div className="lg:col-span-8 space-y-6">
                         {questions.map((paper, idx) => {
-                            const paperPrefix = idx === 0 ? "p1" : idx === 1 ? "p2" : idx === 2 ? "p3" : idx === 3 ? "p4" : `paper${idx + 1}`;
+                            const paperPrefix = getExamPaperPrefix(idx);
+                            const oralPaper = isOralPaper(paper, idx);
                             return (
                                 <div key={idx} className={`p-6 rounded-2xl border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
                                     <h2 className="text-xl font-bold border-b pb-3 mb-6 text-blue-600 dark:text-blue-400">{paper.title || `Paper ${idx + 1}`}</h2>
 
-                                    {/* Reading Passage */}
-                                    {paper.passage && (
+                                    {/* Reading Passage (not oral paper — oral has its own block) */}
+                                    {paper.passage && !oralPaper && (
                                         <div className={`p-5 rounded-xl border mb-6 bg-gray-50/50 dark:bg-gray-900/50 italic text-sm leading-relaxed border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400`}>
                                             <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Reading Passage:</p>
                                             {paper.passage}
@@ -452,12 +519,12 @@ export default function ExamsPage() {
                                     {paper.audioUrl && (
                                         <div className="mb-6 p-4 rounded-xl bg-gray-50/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700">
                                             <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Listening Track:</p>
-                                            <audio controls src={paper.audioUrl} className="w-full" />
+                                            <audio controls src={resolveMediaUrl(paper.audioUrl) || paper.audioUrl} className="w-full" />
                                         </div>
                                     )}
 
-                                    {/* Oral Instructions & Voice Recording Playback */}
-                                    {paper.instructions && (
+                                    {/* Oral / Speaking paper */}
+                                    {oralPaper && (
                                         <div className="mb-6 space-y-4">
                                             <div className="p-4 bg-yellow-50/50 dark:bg-yellow-950/20 border border-yellow-100 dark:border-yellow-900/50 rounded-xl">
                                                 <div className="flex items-center justify-between mb-4 pb-4 border-b border-yellow-100 dark:border-yellow-900/30">
@@ -466,30 +533,40 @@ export default function ExamsPage() {
                                                         <input
                                                             type="number"
                                                             min="0"
-                                                            max={20}
+                                                            max={paper.points || 20}
                                                             placeholder="0"
                                                             className={`w-16 p-2 text-sm border rounded-lg text-center font-bold outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                                                             value={manualMarks[`${paperPrefix}_oral`] || ""}
                                                             onChange={(e) => setManualMarks(prev => ({ ...prev, [`${paperPrefix}_oral`]: e.target.value }))}
                                                         />
-                                                        <span className="text-[10px] font-bold text-yellow-800 dark:text-yellow-400">/ 20 PTS</span>
+                                                        <span className="text-[10px] font-bold text-yellow-800 dark:text-yellow-400">/ {paper.points || 20} PTS</span>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm">{paper.instructions}</p>
+                                                {paper.passage && (
+                                                    <div className={`mb-4 p-4 rounded-lg text-sm leading-relaxed ${isDark ? 'bg-gray-900/40' : 'bg-white'}`}>
+                                                        <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Passage to read:</p>
+                                                        {paper.passage}
+                                                    </div>
+                                                )}
+                                                {paper.instructions && (
+                                                    <p className="text-sm">{paper.instructions}</p>
+                                                )}
                                             </div>
 
                                             {gradingSubmission?.file_url && (
                                                 <div className="p-5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl">
-                                                    <p className="text-xs font-bold uppercase tracking-wider mb-3">Student Voice Submission:</p>
+                                                    <p className="text-xs font-bold uppercase tracking-wider mb-3 text-gray-600 dark:text-gray-400">
+                                                        Student Voice Recording
+                                                    </p>
                                                     {isLoadingAudio ? (
                                                         <div className="flex items-center gap-2 text-gray-500">
-                                                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                                                            <span className="text-xs">Loading speaking file...</span>
+                                                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                                            <span className="text-xs">Loading recording...</span>
                                                         </div>
                                                     ) : gradingAudioUrl ? (
                                                         <audio controls src={gradingAudioUrl} className="w-full" />
                                                     ) : (
-                                                        <span className="text-xs text-gray-400 italic">No audio loaded</span>
+                                                        <p className="text-xs text-gray-400 italic">Could not load the student recording.</p>
                                                     )}
                                                 </div>
                                             )}
@@ -642,10 +719,9 @@ export default function ExamsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold opacity-75 mb-1.5">Feedback / Comments</label>
+                                    <label className="block text-sm font-semibold opacity-75 mb-1.5">Feedback / Comments <span className="font-normal opacity-60">(optional)</span></label>
                                     <textarea
                                         rows={4}
-                                        required
                                         value={gradeData.feedback}
                                         onChange={(e) => setGradeData({ ...gradeData, feedback: e.target.value })}
                                         className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
@@ -658,11 +734,20 @@ export default function ExamsPage() {
                                 >
                                     Submit Final Grade
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleReopenSubmission(gradingSubmission)}
+                                    className="w-full py-3 border border-amber-300 text-amber-700 dark:text-amber-400 dark:border-amber-800 font-bold rounded-xl transition-all hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                                >
+                                    Reopen for Resubmission
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
+            {renderReopenModal()}
+            </>
         );
     }
 

@@ -1,7 +1,9 @@
 import prisma from '../lib/prisma.js';
+import { assertReviewWindowOpen } from './reviewWindowController.js';
 
 export const submitStudentReview = async (req, res) => {
     try {
+        await assertReviewWindowOpen('student');
         const { student_id, class_id, term_serial, rating, comment, answers } = req.body;
         const teacher_id = req.user.userId;
         if (req.user.role !== 'teacher' && req.user.role !== 'admin') {
@@ -11,7 +13,10 @@ export const submitStudentReview = async (req, res) => {
             data: { teacher_id: String(teacher_id), student_id, class_id: parseInt(class_id), term_serial, rating: parseInt(rating), comment, answers }
         });
         res.status(201).json(review);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        if (err.statusCode) return res.status(err.statusCode).json({ error: err.message });
+        res.status(500).json({ error: err.message });
+    }
 };
 export const getTeacherSubmittedReviews = async (req, res) => {
     try {

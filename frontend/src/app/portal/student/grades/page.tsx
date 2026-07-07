@@ -8,7 +8,7 @@ import { useToast } from "@/components/Toast";
 import DataTable from "@/components/DataTable";
 import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { API_URL } from "@/constants";
-import { openSubmissionFile } from "@/utils/submissionFiles";
+import { openOrDownloadFeedbackFile, parseEmbeddedFeedbackFile, resolveFeedbackFileUrl, isPdfFileUrl } from "@/utils/feedbackFiles";
 import { getAssignmentWindowStatus } from "@/utils/assignmentTime";
 
 export default function GradesPage() {
@@ -203,12 +203,13 @@ export default function GradesPage() {
     return "open";
   };
 
-  const handleDownloadFeedbackFile = async (fileUrl) => {
+  const handleDownloadFeedbackFile = async (fileUrl, fileName) => {
     if (!fileUrl) return;
     try {
-      await openSubmissionFile(fileUrl);
+      const action = await openOrDownloadFeedbackFile(fileUrl, fileName);
+      showToast(action === "open" ? "Opening file in browser..." : "Downloading file...", "success");
     } catch {
-      showToast("Failed to download file", "error");
+      showToast("Could not open the feedback file", "error");
     }
   };
 
@@ -419,28 +420,36 @@ export default function GradesPage() {
                     </div>
                   </div>
 
-                  {/* Feedback Section */}
-                  {selectedGrade.feedback && (
-                    <div>
-                      <h3 className={`text-sm uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Instructor Feedback</h3>
-                      <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-                        <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>{selectedGrade.feedback}</p>
-                      </div>
-                    </div>
-                  )}
+                  {(() => {
+                    const embedded = parseEmbeddedFeedbackFile(selectedGrade.feedback);
+                    const fileUrl = resolveFeedbackFileUrl(selectedGrade.feedback, selectedGrade.feedback_file);
+                    const feedbackText = embedded.text || (fileUrl ? "" : (selectedGrade.feedback || ""));
 
-                  {/* Feedback File */}
-                  {selectedGrade.feedback_file && (
-                    <div>
-                      <h3 className={`text-sm uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Attached Feedback File</h3>
-                      <button
-                        onClick={() => handleDownloadFeedbackFile(selectedGrade.feedback_file)}
-                        className={`px-4 py-2 rounded-lg transition-all ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
-                      >
-                        Download Feedback File
-                      </button>
-                    </div>
-                  )}
+                    return (
+                      <>
+                        {feedbackText && (
+                          <div>
+                            <h3 className={`text-sm uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Instructor Feedback</h3>
+                            <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+                              <p className={`whitespace-pre-wrap ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{feedbackText}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {fileUrl && (
+                          <div>
+                            <h3 className={`text-sm uppercase tracking-wide mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Attached Feedback File</h3>
+                            <button
+                              onClick={() => handleDownloadFeedbackFile(fileUrl, embedded.fileName)}
+                              className={`px-4 py-2 rounded-lg transition-all ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
+                            >
+                              {isPdfFileUrl(fileUrl) ? "Open in Browser" : "Download"} Feedback File
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
 
                   {/* Graded Date */}
                   <div>

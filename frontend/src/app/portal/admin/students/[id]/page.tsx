@@ -7,6 +7,7 @@ import { useDarkMode } from "@/context/ThemeContext";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import DataTable from "@/components/DataTable";
 import { API_URL } from "@/constants";
+import { downloadPaymentReceipt } from "@/utils/paymentReceipt";
 
 export default function StudentDetailPage() {
   const { isDark } = useDarkMode();
@@ -167,6 +168,26 @@ export default function StudentDetailPage() {
         }`}>
           {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'Pending'}
         </span>
+      )
+    },
+    {
+      label: "Receipt", key: "receipt", render: (_, row) => (
+        <button
+          type="button"
+          onClick={() => downloadPaymentReceipt({
+            ...row,
+            student_name: student?.full_name,
+            student_id: student?.student_id,
+            email: student?.email,
+            program_name: student?.chosen_program,
+            payment_method: row.method,
+            transaction_id: row.provider_transaction_id,
+            payment_date: row.created_at,
+          })}
+          className="text-[#010080] text-xs font-bold hover:underline"
+        >
+          Download
+        </button>
       )
     }
   ];

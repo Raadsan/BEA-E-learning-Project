@@ -134,6 +134,16 @@ export type learning_materials = $Result.DefaultSelection<Prisma.$learning_mater
  */
 export type level_up_requests = $Result.DefaultSelection<Prisma.$level_up_requestsPayload>
 /**
+ * Model tutorials
+ * 
+ */
+export type tutorials = $Result.DefaultSelection<Prisma.$tutorialsPayload>
+/**
+ * Model policies
+ * 
+ */
+export type policies = $Result.DefaultSelection<Prisma.$policiesPayload>
+/**
  * Model news_events
  * 
  */
@@ -218,6 +228,11 @@ export type shifts = $Result.DefaultSelection<Prisma.$shiftsPayload>
  * 
  */
 export type student_class_history = $Result.DefaultSelection<Prisma.$student_class_historyPayload>
+/**
+ * Model review_windows
+ * 
+ */
+export type review_windows = $Result.DefaultSelection<Prisma.$review_windowsPayload>
 /**
  * Model student_review_questions
  * 
@@ -1161,6 +1176,26 @@ export class PrismaClient<
   get level_up_requests(): Prisma.level_up_requestsDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.tutorials`: Exposes CRUD operations for the **tutorials** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Tutorials
+    * const tutorials = await prisma.tutorials.findMany()
+    * ```
+    */
+  get tutorials(): Prisma.tutorialsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.policies`: Exposes CRUD operations for the **policies** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Policies
+    * const policies = await prisma.policies.findMany()
+    * ```
+    */
+  get policies(): Prisma.policiesDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.news_events`: Exposes CRUD operations for the **news_events** model.
     * Example usage:
     * ```ts
@@ -1329,6 +1364,16 @@ export class PrismaClient<
     * ```
     */
   get student_class_history(): Prisma.student_class_historyDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.review_windows`: Exposes CRUD operations for the **review_windows** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Review_windows
+    * const review_windows = await prisma.review_windows.findMany()
+    * ```
+    */
+  get review_windows(): Prisma.review_windowsDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.student_review_questions`: Exposes CRUD operations for the **student_review_questions** model.
@@ -1907,6 +1952,8 @@ export namespace Prisma {
     issued_certificates: 'issued_certificates',
     learning_materials: 'learning_materials',
     level_up_requests: 'level_up_requests',
+    tutorials: 'tutorials',
+    policies: 'policies',
     news_events: 'news_events',
     newsletters: 'newsletters',
     notifications: 'notifications',
@@ -1924,6 +1971,7 @@ export namespace Prisma {
     shift_sessions: 'shift_sessions',
     shifts: 'shifts',
     student_class_history: 'student_class_history',
+    review_windows: 'review_windows',
     student_review_questions: 'student_review_questions',
     student_reviews: 'student_reviews',
     students: 'students',
@@ -1951,7 +1999,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "iELTSTOEFL" | "proficiencyTestStudents" | "migrations" | "academic_calendar" | "admins" | "announcements" | "assignment_submissions" | "assignments" | "attendance" | "certificates" | "class_schedules" | "classes" | "contacts" | "course_timeline" | "course_work" | "course_work_submissions" | "courses" | "exam_submissions" | "exams" | "freezing_requests" | "ielts_registrations" | "issued_certificates" | "learning_materials" | "level_up_requests" | "news_events" | "newsletters" | "notifications" | "oral_assignment_submissions" | "oral_assignments" | "payment_packages" | "payments" | "placement_test_results" | "placement_tests" | "proficiency_test_results" | "proficiency_tests" | "program_payment_packages" | "programs" | "session_change_requests" | "shift_sessions" | "shifts" | "student_class_history" | "student_review_questions" | "student_reviews" | "students" | "subprograms" | "teacher_review_questions" | "teacher_reviews" | "teachers" | "testimonials" | "timetable_events" | "timetables" | "writing_task_submissions" | "writing_tasks"
+      modelProps: "iELTSTOEFL" | "proficiencyTestStudents" | "migrations" | "academic_calendar" | "admins" | "announcements" | "assignment_submissions" | "assignments" | "attendance" | "certificates" | "class_schedules" | "classes" | "contacts" | "course_timeline" | "course_work" | "course_work_submissions" | "courses" | "exam_submissions" | "exams" | "freezing_requests" | "ielts_registrations" | "issued_certificates" | "learning_materials" | "level_up_requests" | "tutorials" | "policies" | "news_events" | "newsletters" | "notifications" | "oral_assignment_submissions" | "oral_assignments" | "payment_packages" | "payments" | "placement_test_results" | "placement_tests" | "proficiency_test_results" | "proficiency_tests" | "program_payment_packages" | "programs" | "session_change_requests" | "shift_sessions" | "shifts" | "student_class_history" | "review_windows" | "student_review_questions" | "student_reviews" | "students" | "subprograms" | "teacher_review_questions" | "teacher_reviews" | "teachers" | "testimonials" | "timetable_events" | "timetables" | "writing_task_submissions" | "writing_tasks"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3539,6 +3587,138 @@ export namespace Prisma {
           }
         }
       }
+      tutorials: {
+        payload: Prisma.$tutorialsPayload<ExtArgs>
+        fields: Prisma.tutorialsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.tutorialsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$tutorialsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.tutorialsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$tutorialsPayload>
+          }
+          findFirst: {
+            args: Prisma.tutorialsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$tutorialsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.tutorialsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$tutorialsPayload>
+          }
+          findMany: {
+            args: Prisma.tutorialsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$tutorialsPayload>[]
+          }
+          create: {
+            args: Prisma.tutorialsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$tutorialsPayload>
+          }
+          createMany: {
+            args: Prisma.tutorialsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.tutorialsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$tutorialsPayload>
+          }
+          update: {
+            args: Prisma.tutorialsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$tutorialsPayload>
+          }
+          deleteMany: {
+            args: Prisma.tutorialsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.tutorialsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.tutorialsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$tutorialsPayload>
+          }
+          aggregate: {
+            args: Prisma.TutorialsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTutorials>
+          }
+          groupBy: {
+            args: Prisma.tutorialsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TutorialsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.tutorialsCountArgs<ExtArgs>
+            result: $Utils.Optional<TutorialsCountAggregateOutputType> | number
+          }
+        }
+      }
+      policies: {
+        payload: Prisma.$policiesPayload<ExtArgs>
+        fields: Prisma.policiesFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.policiesFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$policiesPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.policiesFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$policiesPayload>
+          }
+          findFirst: {
+            args: Prisma.policiesFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$policiesPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.policiesFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$policiesPayload>
+          }
+          findMany: {
+            args: Prisma.policiesFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$policiesPayload>[]
+          }
+          create: {
+            args: Prisma.policiesCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$policiesPayload>
+          }
+          createMany: {
+            args: Prisma.policiesCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.policiesDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$policiesPayload>
+          }
+          update: {
+            args: Prisma.policiesUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$policiesPayload>
+          }
+          deleteMany: {
+            args: Prisma.policiesDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.policiesUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.policiesUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$policiesPayload>
+          }
+          aggregate: {
+            args: Prisma.PoliciesAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePolicies>
+          }
+          groupBy: {
+            args: Prisma.policiesGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PoliciesGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.policiesCountArgs<ExtArgs>
+            result: $Utils.Optional<PoliciesCountAggregateOutputType> | number
+          }
+        }
+      }
       news_events: {
         payload: Prisma.$news_eventsPayload<ExtArgs>
         fields: Prisma.news_eventsFieldRefs
@@ -4661,6 +4841,72 @@ export namespace Prisma {
           }
         }
       }
+      review_windows: {
+        payload: Prisma.$review_windowsPayload<ExtArgs>
+        fields: Prisma.review_windowsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.review_windowsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_windowsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.review_windowsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_windowsPayload>
+          }
+          findFirst: {
+            args: Prisma.review_windowsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_windowsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.review_windowsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_windowsPayload>
+          }
+          findMany: {
+            args: Prisma.review_windowsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_windowsPayload>[]
+          }
+          create: {
+            args: Prisma.review_windowsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_windowsPayload>
+          }
+          createMany: {
+            args: Prisma.review_windowsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.review_windowsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_windowsPayload>
+          }
+          update: {
+            args: Prisma.review_windowsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_windowsPayload>
+          }
+          deleteMany: {
+            args: Prisma.review_windowsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.review_windowsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.review_windowsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_windowsPayload>
+          }
+          aggregate: {
+            args: Prisma.Review_windowsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReview_windows>
+          }
+          groupBy: {
+            args: Prisma.review_windowsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Review_windowsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.review_windowsCountArgs<ExtArgs>
+            result: $Utils.Optional<Review_windowsCountAggregateOutputType> | number
+          }
+        }
+      }
       student_review_questions: {
         payload: Prisma.$student_review_questionsPayload<ExtArgs>
         fields: Prisma.student_review_questionsFieldRefs
@@ -5585,6 +5831,8 @@ export namespace Prisma {
     issued_certificates?: issued_certificatesOmit
     learning_materials?: learning_materialsOmit
     level_up_requests?: level_up_requestsOmit
+    tutorials?: tutorialsOmit
+    policies?: policiesOmit
     news_events?: news_eventsOmit
     newsletters?: newslettersOmit
     notifications?: notificationsOmit
@@ -5602,6 +5850,7 @@ export namespace Prisma {
     shift_sessions?: shift_sessionsOmit
     shifts?: shiftsOmit
     student_class_history?: student_class_historyOmit
+    review_windows?: review_windowsOmit
     student_review_questions?: student_review_questionsOmit
     student_reviews?: student_reviewsOmit
     students?: studentsOmit
@@ -32261,6 +32510,1959 @@ export namespace Prisma {
 
 
   /**
+   * Model tutorials
+   */
+
+  export type AggregateTutorials = {
+    _count: TutorialsCountAggregateOutputType | null
+    _avg: TutorialsAvgAggregateOutputType | null
+    _sum: TutorialsSumAggregateOutputType | null
+    _min: TutorialsMinAggregateOutputType | null
+    _max: TutorialsMaxAggregateOutputType | null
+  }
+
+  export type TutorialsAvgAggregateOutputType = {
+    id: number | null
+    created_by: number | null
+  }
+
+  export type TutorialsSumAggregateOutputType = {
+    id: number | null
+    created_by: number | null
+  }
+
+  export type TutorialsMinAggregateOutputType = {
+    id: number | null
+    title: string | null
+    description: string | null
+    media_type: string | null
+    media_url: string | null
+    status: string | null
+    created_by: number | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type TutorialsMaxAggregateOutputType = {
+    id: number | null
+    title: string | null
+    description: string | null
+    media_type: string | null
+    media_url: string | null
+    status: string | null
+    created_by: number | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type TutorialsCountAggregateOutputType = {
+    id: number
+    title: number
+    description: number
+    media_type: number
+    media_url: number
+    status: number
+    created_by: number
+    created_at: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type TutorialsAvgAggregateInputType = {
+    id?: true
+    created_by?: true
+  }
+
+  export type TutorialsSumAggregateInputType = {
+    id?: true
+    created_by?: true
+  }
+
+  export type TutorialsMinAggregateInputType = {
+    id?: true
+    title?: true
+    description?: true
+    media_type?: true
+    media_url?: true
+    status?: true
+    created_by?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type TutorialsMaxAggregateInputType = {
+    id?: true
+    title?: true
+    description?: true
+    media_type?: true
+    media_url?: true
+    status?: true
+    created_by?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type TutorialsCountAggregateInputType = {
+    id?: true
+    title?: true
+    description?: true
+    media_type?: true
+    media_url?: true
+    status?: true
+    created_by?: true
+    created_at?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type TutorialsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which tutorials to aggregate.
+     */
+    where?: tutorialsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of tutorials to fetch.
+     */
+    orderBy?: tutorialsOrderByWithRelationInput | tutorialsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: tutorialsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` tutorials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` tutorials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned tutorials
+    **/
+    _count?: true | TutorialsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: TutorialsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TutorialsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TutorialsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TutorialsMaxAggregateInputType
+  }
+
+  export type GetTutorialsAggregateType<T extends TutorialsAggregateArgs> = {
+        [P in keyof T & keyof AggregateTutorials]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTutorials[P]>
+      : GetScalarType<T[P], AggregateTutorials[P]>
+  }
+
+
+
+
+  export type tutorialsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: tutorialsWhereInput
+    orderBy?: tutorialsOrderByWithAggregationInput | tutorialsOrderByWithAggregationInput[]
+    by: TutorialsScalarFieldEnum[] | TutorialsScalarFieldEnum
+    having?: tutorialsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TutorialsCountAggregateInputType | true
+    _avg?: TutorialsAvgAggregateInputType
+    _sum?: TutorialsSumAggregateInputType
+    _min?: TutorialsMinAggregateInputType
+    _max?: TutorialsMaxAggregateInputType
+  }
+
+  export type TutorialsGroupByOutputType = {
+    id: number
+    title: string
+    description: string | null
+    media_type: string
+    media_url: string
+    status: string | null
+    created_by: number | null
+    created_at: Date | null
+    updated_at: Date | null
+    _count: TutorialsCountAggregateOutputType | null
+    _avg: TutorialsAvgAggregateOutputType | null
+    _sum: TutorialsSumAggregateOutputType | null
+    _min: TutorialsMinAggregateOutputType | null
+    _max: TutorialsMaxAggregateOutputType | null
+  }
+
+  type GetTutorialsGroupByPayload<T extends tutorialsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TutorialsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TutorialsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TutorialsGroupByOutputType[P]>
+            : GetScalarType<T[P], TutorialsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type tutorialsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    description?: boolean
+    media_type?: boolean
+    media_url?: boolean
+    status?: boolean
+    created_by?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["tutorials"]>
+
+
+
+  export type tutorialsSelectScalar = {
+    id?: boolean
+    title?: boolean
+    description?: boolean
+    media_type?: boolean
+    media_url?: boolean
+    status?: boolean
+    created_by?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }
+
+  export type tutorialsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "media_type" | "media_url" | "status" | "created_by" | "created_at" | "updated_at", ExtArgs["result"]["tutorials"]>
+
+  export type $tutorialsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "tutorials"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      title: string
+      description: string | null
+      media_type: string
+      media_url: string
+      status: string | null
+      created_by: number | null
+      created_at: Date | null
+      updated_at: Date | null
+    }, ExtArgs["result"]["tutorials"]>
+    composites: {}
+  }
+
+  type tutorialsGetPayload<S extends boolean | null | undefined | tutorialsDefaultArgs> = $Result.GetResult<Prisma.$tutorialsPayload, S>
+
+  type tutorialsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<tutorialsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: TutorialsCountAggregateInputType | true
+    }
+
+  export interface tutorialsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['tutorials'], meta: { name: 'tutorials' } }
+    /**
+     * Find zero or one Tutorials that matches the filter.
+     * @param {tutorialsFindUniqueArgs} args - Arguments to find a Tutorials
+     * @example
+     * // Get one Tutorials
+     * const tutorials = await prisma.tutorials.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends tutorialsFindUniqueArgs>(args: SelectSubset<T, tutorialsFindUniqueArgs<ExtArgs>>): Prisma__tutorialsClient<$Result.GetResult<Prisma.$tutorialsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Tutorials that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {tutorialsFindUniqueOrThrowArgs} args - Arguments to find a Tutorials
+     * @example
+     * // Get one Tutorials
+     * const tutorials = await prisma.tutorials.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends tutorialsFindUniqueOrThrowArgs>(args: SelectSubset<T, tutorialsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__tutorialsClient<$Result.GetResult<Prisma.$tutorialsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Tutorials that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {tutorialsFindFirstArgs} args - Arguments to find a Tutorials
+     * @example
+     * // Get one Tutorials
+     * const tutorials = await prisma.tutorials.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends tutorialsFindFirstArgs>(args?: SelectSubset<T, tutorialsFindFirstArgs<ExtArgs>>): Prisma__tutorialsClient<$Result.GetResult<Prisma.$tutorialsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Tutorials that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {tutorialsFindFirstOrThrowArgs} args - Arguments to find a Tutorials
+     * @example
+     * // Get one Tutorials
+     * const tutorials = await prisma.tutorials.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends tutorialsFindFirstOrThrowArgs>(args?: SelectSubset<T, tutorialsFindFirstOrThrowArgs<ExtArgs>>): Prisma__tutorialsClient<$Result.GetResult<Prisma.$tutorialsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Tutorials that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {tutorialsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Tutorials
+     * const tutorials = await prisma.tutorials.findMany()
+     * 
+     * // Get first 10 Tutorials
+     * const tutorials = await prisma.tutorials.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const tutorialsWithIdOnly = await prisma.tutorials.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends tutorialsFindManyArgs>(args?: SelectSubset<T, tutorialsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$tutorialsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Tutorials.
+     * @param {tutorialsCreateArgs} args - Arguments to create a Tutorials.
+     * @example
+     * // Create one Tutorials
+     * const Tutorials = await prisma.tutorials.create({
+     *   data: {
+     *     // ... data to create a Tutorials
+     *   }
+     * })
+     * 
+     */
+    create<T extends tutorialsCreateArgs>(args: SelectSubset<T, tutorialsCreateArgs<ExtArgs>>): Prisma__tutorialsClient<$Result.GetResult<Prisma.$tutorialsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Tutorials.
+     * @param {tutorialsCreateManyArgs} args - Arguments to create many Tutorials.
+     * @example
+     * // Create many Tutorials
+     * const tutorials = await prisma.tutorials.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends tutorialsCreateManyArgs>(args?: SelectSubset<T, tutorialsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Tutorials.
+     * @param {tutorialsDeleteArgs} args - Arguments to delete one Tutorials.
+     * @example
+     * // Delete one Tutorials
+     * const Tutorials = await prisma.tutorials.delete({
+     *   where: {
+     *     // ... filter to delete one Tutorials
+     *   }
+     * })
+     * 
+     */
+    delete<T extends tutorialsDeleteArgs>(args: SelectSubset<T, tutorialsDeleteArgs<ExtArgs>>): Prisma__tutorialsClient<$Result.GetResult<Prisma.$tutorialsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Tutorials.
+     * @param {tutorialsUpdateArgs} args - Arguments to update one Tutorials.
+     * @example
+     * // Update one Tutorials
+     * const tutorials = await prisma.tutorials.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends tutorialsUpdateArgs>(args: SelectSubset<T, tutorialsUpdateArgs<ExtArgs>>): Prisma__tutorialsClient<$Result.GetResult<Prisma.$tutorialsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Tutorials.
+     * @param {tutorialsDeleteManyArgs} args - Arguments to filter Tutorials to delete.
+     * @example
+     * // Delete a few Tutorials
+     * const { count } = await prisma.tutorials.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends tutorialsDeleteManyArgs>(args?: SelectSubset<T, tutorialsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Tutorials.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {tutorialsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Tutorials
+     * const tutorials = await prisma.tutorials.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends tutorialsUpdateManyArgs>(args: SelectSubset<T, tutorialsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Tutorials.
+     * @param {tutorialsUpsertArgs} args - Arguments to update or create a Tutorials.
+     * @example
+     * // Update or create a Tutorials
+     * const tutorials = await prisma.tutorials.upsert({
+     *   create: {
+     *     // ... data to create a Tutorials
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Tutorials we want to update
+     *   }
+     * })
+     */
+    upsert<T extends tutorialsUpsertArgs>(args: SelectSubset<T, tutorialsUpsertArgs<ExtArgs>>): Prisma__tutorialsClient<$Result.GetResult<Prisma.$tutorialsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Tutorials.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {tutorialsCountArgs} args - Arguments to filter Tutorials to count.
+     * @example
+     * // Count the number of Tutorials
+     * const count = await prisma.tutorials.count({
+     *   where: {
+     *     // ... the filter for the Tutorials we want to count
+     *   }
+     * })
+    **/
+    count<T extends tutorialsCountArgs>(
+      args?: Subset<T, tutorialsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TutorialsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Tutorials.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TutorialsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TutorialsAggregateArgs>(args: Subset<T, TutorialsAggregateArgs>): Prisma.PrismaPromise<GetTutorialsAggregateType<T>>
+
+    /**
+     * Group by Tutorials.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {tutorialsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends tutorialsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: tutorialsGroupByArgs['orderBy'] }
+        : { orderBy?: tutorialsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, tutorialsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTutorialsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the tutorials model
+   */
+  readonly fields: tutorialsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for tutorials.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__tutorialsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the tutorials model
+   */
+  interface tutorialsFieldRefs {
+    readonly id: FieldRef<"tutorials", 'Int'>
+    readonly title: FieldRef<"tutorials", 'String'>
+    readonly description: FieldRef<"tutorials", 'String'>
+    readonly media_type: FieldRef<"tutorials", 'String'>
+    readonly media_url: FieldRef<"tutorials", 'String'>
+    readonly status: FieldRef<"tutorials", 'String'>
+    readonly created_by: FieldRef<"tutorials", 'Int'>
+    readonly created_at: FieldRef<"tutorials", 'DateTime'>
+    readonly updated_at: FieldRef<"tutorials", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * tutorials findUnique
+   */
+  export type tutorialsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the tutorials
+     */
+    select?: tutorialsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the tutorials
+     */
+    omit?: tutorialsOmit<ExtArgs> | null
+    /**
+     * Filter, which tutorials to fetch.
+     */
+    where: tutorialsWhereUniqueInput
+  }
+
+  /**
+   * tutorials findUniqueOrThrow
+   */
+  export type tutorialsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the tutorials
+     */
+    select?: tutorialsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the tutorials
+     */
+    omit?: tutorialsOmit<ExtArgs> | null
+    /**
+     * Filter, which tutorials to fetch.
+     */
+    where: tutorialsWhereUniqueInput
+  }
+
+  /**
+   * tutorials findFirst
+   */
+  export type tutorialsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the tutorials
+     */
+    select?: tutorialsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the tutorials
+     */
+    omit?: tutorialsOmit<ExtArgs> | null
+    /**
+     * Filter, which tutorials to fetch.
+     */
+    where?: tutorialsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of tutorials to fetch.
+     */
+    orderBy?: tutorialsOrderByWithRelationInput | tutorialsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for tutorials.
+     */
+    cursor?: tutorialsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` tutorials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` tutorials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of tutorials.
+     */
+    distinct?: TutorialsScalarFieldEnum | TutorialsScalarFieldEnum[]
+  }
+
+  /**
+   * tutorials findFirstOrThrow
+   */
+  export type tutorialsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the tutorials
+     */
+    select?: tutorialsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the tutorials
+     */
+    omit?: tutorialsOmit<ExtArgs> | null
+    /**
+     * Filter, which tutorials to fetch.
+     */
+    where?: tutorialsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of tutorials to fetch.
+     */
+    orderBy?: tutorialsOrderByWithRelationInput | tutorialsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for tutorials.
+     */
+    cursor?: tutorialsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` tutorials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` tutorials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of tutorials.
+     */
+    distinct?: TutorialsScalarFieldEnum | TutorialsScalarFieldEnum[]
+  }
+
+  /**
+   * tutorials findMany
+   */
+  export type tutorialsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the tutorials
+     */
+    select?: tutorialsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the tutorials
+     */
+    omit?: tutorialsOmit<ExtArgs> | null
+    /**
+     * Filter, which tutorials to fetch.
+     */
+    where?: tutorialsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of tutorials to fetch.
+     */
+    orderBy?: tutorialsOrderByWithRelationInput | tutorialsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing tutorials.
+     */
+    cursor?: tutorialsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` tutorials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` tutorials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of tutorials.
+     */
+    distinct?: TutorialsScalarFieldEnum | TutorialsScalarFieldEnum[]
+  }
+
+  /**
+   * tutorials create
+   */
+  export type tutorialsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the tutorials
+     */
+    select?: tutorialsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the tutorials
+     */
+    omit?: tutorialsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a tutorials.
+     */
+    data: XOR<tutorialsCreateInput, tutorialsUncheckedCreateInput>
+  }
+
+  /**
+   * tutorials createMany
+   */
+  export type tutorialsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many tutorials.
+     */
+    data: tutorialsCreateManyInput | tutorialsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * tutorials update
+   */
+  export type tutorialsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the tutorials
+     */
+    select?: tutorialsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the tutorials
+     */
+    omit?: tutorialsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a tutorials.
+     */
+    data: XOR<tutorialsUpdateInput, tutorialsUncheckedUpdateInput>
+    /**
+     * Choose, which tutorials to update.
+     */
+    where: tutorialsWhereUniqueInput
+  }
+
+  /**
+   * tutorials updateMany
+   */
+  export type tutorialsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update tutorials.
+     */
+    data: XOR<tutorialsUpdateManyMutationInput, tutorialsUncheckedUpdateManyInput>
+    /**
+     * Filter which tutorials to update
+     */
+    where?: tutorialsWhereInput
+    /**
+     * Limit how many tutorials to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * tutorials upsert
+   */
+  export type tutorialsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the tutorials
+     */
+    select?: tutorialsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the tutorials
+     */
+    omit?: tutorialsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the tutorials to update in case it exists.
+     */
+    where: tutorialsWhereUniqueInput
+    /**
+     * In case the tutorials found by the `where` argument doesn't exist, create a new tutorials with this data.
+     */
+    create: XOR<tutorialsCreateInput, tutorialsUncheckedCreateInput>
+    /**
+     * In case the tutorials was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<tutorialsUpdateInput, tutorialsUncheckedUpdateInput>
+  }
+
+  /**
+   * tutorials delete
+   */
+  export type tutorialsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the tutorials
+     */
+    select?: tutorialsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the tutorials
+     */
+    omit?: tutorialsOmit<ExtArgs> | null
+    /**
+     * Filter which tutorials to delete.
+     */
+    where: tutorialsWhereUniqueInput
+  }
+
+  /**
+   * tutorials deleteMany
+   */
+  export type tutorialsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which tutorials to delete
+     */
+    where?: tutorialsWhereInput
+    /**
+     * Limit how many tutorials to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * tutorials without action
+   */
+  export type tutorialsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the tutorials
+     */
+    select?: tutorialsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the tutorials
+     */
+    omit?: tutorialsOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model policies
+   */
+
+  export type AggregatePolicies = {
+    _count: PoliciesCountAggregateOutputType | null
+    _avg: PoliciesAvgAggregateOutputType | null
+    _sum: PoliciesSumAggregateOutputType | null
+    _min: PoliciesMinAggregateOutputType | null
+    _max: PoliciesMaxAggregateOutputType | null
+  }
+
+  export type PoliciesAvgAggregateOutputType = {
+    id: number | null
+    sort_order: number | null
+    created_by: number | null
+  }
+
+  export type PoliciesSumAggregateOutputType = {
+    id: number | null
+    sort_order: number | null
+    created_by: number | null
+  }
+
+  export type PoliciesMinAggregateOutputType = {
+    id: number | null
+    slug: string | null
+    title: string | null
+    description: string | null
+    content: string | null
+    status: string | null
+    sort_order: number | null
+    created_by: number | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type PoliciesMaxAggregateOutputType = {
+    id: number | null
+    slug: string | null
+    title: string | null
+    description: string | null
+    content: string | null
+    status: string | null
+    sort_order: number | null
+    created_by: number | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type PoliciesCountAggregateOutputType = {
+    id: number
+    slug: number
+    title: number
+    description: number
+    content: number
+    status: number
+    sort_order: number
+    created_by: number
+    created_at: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type PoliciesAvgAggregateInputType = {
+    id?: true
+    sort_order?: true
+    created_by?: true
+  }
+
+  export type PoliciesSumAggregateInputType = {
+    id?: true
+    sort_order?: true
+    created_by?: true
+  }
+
+  export type PoliciesMinAggregateInputType = {
+    id?: true
+    slug?: true
+    title?: true
+    description?: true
+    content?: true
+    status?: true
+    sort_order?: true
+    created_by?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type PoliciesMaxAggregateInputType = {
+    id?: true
+    slug?: true
+    title?: true
+    description?: true
+    content?: true
+    status?: true
+    sort_order?: true
+    created_by?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type PoliciesCountAggregateInputType = {
+    id?: true
+    slug?: true
+    title?: true
+    description?: true
+    content?: true
+    status?: true
+    sort_order?: true
+    created_by?: true
+    created_at?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type PoliciesAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which policies to aggregate.
+     */
+    where?: policiesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of policies to fetch.
+     */
+    orderBy?: policiesOrderByWithRelationInput | policiesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: policiesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` policies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` policies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned policies
+    **/
+    _count?: true | PoliciesCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PoliciesAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PoliciesSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PoliciesMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PoliciesMaxAggregateInputType
+  }
+
+  export type GetPoliciesAggregateType<T extends PoliciesAggregateArgs> = {
+        [P in keyof T & keyof AggregatePolicies]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePolicies[P]>
+      : GetScalarType<T[P], AggregatePolicies[P]>
+  }
+
+
+
+
+  export type policiesGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: policiesWhereInput
+    orderBy?: policiesOrderByWithAggregationInput | policiesOrderByWithAggregationInput[]
+    by: PoliciesScalarFieldEnum[] | PoliciesScalarFieldEnum
+    having?: policiesScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PoliciesCountAggregateInputType | true
+    _avg?: PoliciesAvgAggregateInputType
+    _sum?: PoliciesSumAggregateInputType
+    _min?: PoliciesMinAggregateInputType
+    _max?: PoliciesMaxAggregateInputType
+  }
+
+  export type PoliciesGroupByOutputType = {
+    id: number
+    slug: string
+    title: string
+    description: string | null
+    content: string | null
+    status: string | null
+    sort_order: number | null
+    created_by: number | null
+    created_at: Date | null
+    updated_at: Date | null
+    _count: PoliciesCountAggregateOutputType | null
+    _avg: PoliciesAvgAggregateOutputType | null
+    _sum: PoliciesSumAggregateOutputType | null
+    _min: PoliciesMinAggregateOutputType | null
+    _max: PoliciesMaxAggregateOutputType | null
+  }
+
+  type GetPoliciesGroupByPayload<T extends policiesGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PoliciesGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PoliciesGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PoliciesGroupByOutputType[P]>
+            : GetScalarType<T[P], PoliciesGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type policiesSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    slug?: boolean
+    title?: boolean
+    description?: boolean
+    content?: boolean
+    status?: boolean
+    sort_order?: boolean
+    created_by?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["policies"]>
+
+
+
+  export type policiesSelectScalar = {
+    id?: boolean
+    slug?: boolean
+    title?: boolean
+    description?: boolean
+    content?: boolean
+    status?: boolean
+    sort_order?: boolean
+    created_by?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }
+
+  export type policiesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "slug" | "title" | "description" | "content" | "status" | "sort_order" | "created_by" | "created_at" | "updated_at", ExtArgs["result"]["policies"]>
+
+  export type $policiesPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "policies"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      slug: string
+      title: string
+      description: string | null
+      content: string | null
+      status: string | null
+      sort_order: number | null
+      created_by: number | null
+      created_at: Date | null
+      updated_at: Date | null
+    }, ExtArgs["result"]["policies"]>
+    composites: {}
+  }
+
+  type policiesGetPayload<S extends boolean | null | undefined | policiesDefaultArgs> = $Result.GetResult<Prisma.$policiesPayload, S>
+
+  type policiesCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<policiesFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PoliciesCountAggregateInputType | true
+    }
+
+  export interface policiesDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['policies'], meta: { name: 'policies' } }
+    /**
+     * Find zero or one Policies that matches the filter.
+     * @param {policiesFindUniqueArgs} args - Arguments to find a Policies
+     * @example
+     * // Get one Policies
+     * const policies = await prisma.policies.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends policiesFindUniqueArgs>(args: SelectSubset<T, policiesFindUniqueArgs<ExtArgs>>): Prisma__policiesClient<$Result.GetResult<Prisma.$policiesPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Policies that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {policiesFindUniqueOrThrowArgs} args - Arguments to find a Policies
+     * @example
+     * // Get one Policies
+     * const policies = await prisma.policies.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends policiesFindUniqueOrThrowArgs>(args: SelectSubset<T, policiesFindUniqueOrThrowArgs<ExtArgs>>): Prisma__policiesClient<$Result.GetResult<Prisma.$policiesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Policies that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {policiesFindFirstArgs} args - Arguments to find a Policies
+     * @example
+     * // Get one Policies
+     * const policies = await prisma.policies.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends policiesFindFirstArgs>(args?: SelectSubset<T, policiesFindFirstArgs<ExtArgs>>): Prisma__policiesClient<$Result.GetResult<Prisma.$policiesPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Policies that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {policiesFindFirstOrThrowArgs} args - Arguments to find a Policies
+     * @example
+     * // Get one Policies
+     * const policies = await prisma.policies.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends policiesFindFirstOrThrowArgs>(args?: SelectSubset<T, policiesFindFirstOrThrowArgs<ExtArgs>>): Prisma__policiesClient<$Result.GetResult<Prisma.$policiesPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Policies that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {policiesFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Policies
+     * const policies = await prisma.policies.findMany()
+     * 
+     * // Get first 10 Policies
+     * const policies = await prisma.policies.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const policiesWithIdOnly = await prisma.policies.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends policiesFindManyArgs>(args?: SelectSubset<T, policiesFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$policiesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Policies.
+     * @param {policiesCreateArgs} args - Arguments to create a Policies.
+     * @example
+     * // Create one Policies
+     * const Policies = await prisma.policies.create({
+     *   data: {
+     *     // ... data to create a Policies
+     *   }
+     * })
+     * 
+     */
+    create<T extends policiesCreateArgs>(args: SelectSubset<T, policiesCreateArgs<ExtArgs>>): Prisma__policiesClient<$Result.GetResult<Prisma.$policiesPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Policies.
+     * @param {policiesCreateManyArgs} args - Arguments to create many Policies.
+     * @example
+     * // Create many Policies
+     * const policies = await prisma.policies.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends policiesCreateManyArgs>(args?: SelectSubset<T, policiesCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Policies.
+     * @param {policiesDeleteArgs} args - Arguments to delete one Policies.
+     * @example
+     * // Delete one Policies
+     * const Policies = await prisma.policies.delete({
+     *   where: {
+     *     // ... filter to delete one Policies
+     *   }
+     * })
+     * 
+     */
+    delete<T extends policiesDeleteArgs>(args: SelectSubset<T, policiesDeleteArgs<ExtArgs>>): Prisma__policiesClient<$Result.GetResult<Prisma.$policiesPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Policies.
+     * @param {policiesUpdateArgs} args - Arguments to update one Policies.
+     * @example
+     * // Update one Policies
+     * const policies = await prisma.policies.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends policiesUpdateArgs>(args: SelectSubset<T, policiesUpdateArgs<ExtArgs>>): Prisma__policiesClient<$Result.GetResult<Prisma.$policiesPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Policies.
+     * @param {policiesDeleteManyArgs} args - Arguments to filter Policies to delete.
+     * @example
+     * // Delete a few Policies
+     * const { count } = await prisma.policies.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends policiesDeleteManyArgs>(args?: SelectSubset<T, policiesDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Policies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {policiesUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Policies
+     * const policies = await prisma.policies.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends policiesUpdateManyArgs>(args: SelectSubset<T, policiesUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Policies.
+     * @param {policiesUpsertArgs} args - Arguments to update or create a Policies.
+     * @example
+     * // Update or create a Policies
+     * const policies = await prisma.policies.upsert({
+     *   create: {
+     *     // ... data to create a Policies
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Policies we want to update
+     *   }
+     * })
+     */
+    upsert<T extends policiesUpsertArgs>(args: SelectSubset<T, policiesUpsertArgs<ExtArgs>>): Prisma__policiesClient<$Result.GetResult<Prisma.$policiesPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Policies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {policiesCountArgs} args - Arguments to filter Policies to count.
+     * @example
+     * // Count the number of Policies
+     * const count = await prisma.policies.count({
+     *   where: {
+     *     // ... the filter for the Policies we want to count
+     *   }
+     * })
+    **/
+    count<T extends policiesCountArgs>(
+      args?: Subset<T, policiesCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PoliciesCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Policies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PoliciesAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PoliciesAggregateArgs>(args: Subset<T, PoliciesAggregateArgs>): Prisma.PrismaPromise<GetPoliciesAggregateType<T>>
+
+    /**
+     * Group by Policies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {policiesGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends policiesGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: policiesGroupByArgs['orderBy'] }
+        : { orderBy?: policiesGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, policiesGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPoliciesGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the policies model
+   */
+  readonly fields: policiesFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for policies.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__policiesClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the policies model
+   */
+  interface policiesFieldRefs {
+    readonly id: FieldRef<"policies", 'Int'>
+    readonly slug: FieldRef<"policies", 'String'>
+    readonly title: FieldRef<"policies", 'String'>
+    readonly description: FieldRef<"policies", 'String'>
+    readonly content: FieldRef<"policies", 'String'>
+    readonly status: FieldRef<"policies", 'String'>
+    readonly sort_order: FieldRef<"policies", 'Int'>
+    readonly created_by: FieldRef<"policies", 'Int'>
+    readonly created_at: FieldRef<"policies", 'DateTime'>
+    readonly updated_at: FieldRef<"policies", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * policies findUnique
+   */
+  export type policiesFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the policies
+     */
+    select?: policiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the policies
+     */
+    omit?: policiesOmit<ExtArgs> | null
+    /**
+     * Filter, which policies to fetch.
+     */
+    where: policiesWhereUniqueInput
+  }
+
+  /**
+   * policies findUniqueOrThrow
+   */
+  export type policiesFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the policies
+     */
+    select?: policiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the policies
+     */
+    omit?: policiesOmit<ExtArgs> | null
+    /**
+     * Filter, which policies to fetch.
+     */
+    where: policiesWhereUniqueInput
+  }
+
+  /**
+   * policies findFirst
+   */
+  export type policiesFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the policies
+     */
+    select?: policiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the policies
+     */
+    omit?: policiesOmit<ExtArgs> | null
+    /**
+     * Filter, which policies to fetch.
+     */
+    where?: policiesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of policies to fetch.
+     */
+    orderBy?: policiesOrderByWithRelationInput | policiesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for policies.
+     */
+    cursor?: policiesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` policies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` policies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of policies.
+     */
+    distinct?: PoliciesScalarFieldEnum | PoliciesScalarFieldEnum[]
+  }
+
+  /**
+   * policies findFirstOrThrow
+   */
+  export type policiesFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the policies
+     */
+    select?: policiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the policies
+     */
+    omit?: policiesOmit<ExtArgs> | null
+    /**
+     * Filter, which policies to fetch.
+     */
+    where?: policiesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of policies to fetch.
+     */
+    orderBy?: policiesOrderByWithRelationInput | policiesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for policies.
+     */
+    cursor?: policiesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` policies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` policies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of policies.
+     */
+    distinct?: PoliciesScalarFieldEnum | PoliciesScalarFieldEnum[]
+  }
+
+  /**
+   * policies findMany
+   */
+  export type policiesFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the policies
+     */
+    select?: policiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the policies
+     */
+    omit?: policiesOmit<ExtArgs> | null
+    /**
+     * Filter, which policies to fetch.
+     */
+    where?: policiesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of policies to fetch.
+     */
+    orderBy?: policiesOrderByWithRelationInput | policiesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing policies.
+     */
+    cursor?: policiesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` policies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` policies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of policies.
+     */
+    distinct?: PoliciesScalarFieldEnum | PoliciesScalarFieldEnum[]
+  }
+
+  /**
+   * policies create
+   */
+  export type policiesCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the policies
+     */
+    select?: policiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the policies
+     */
+    omit?: policiesOmit<ExtArgs> | null
+    /**
+     * The data needed to create a policies.
+     */
+    data: XOR<policiesCreateInput, policiesUncheckedCreateInput>
+  }
+
+  /**
+   * policies createMany
+   */
+  export type policiesCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many policies.
+     */
+    data: policiesCreateManyInput | policiesCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * policies update
+   */
+  export type policiesUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the policies
+     */
+    select?: policiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the policies
+     */
+    omit?: policiesOmit<ExtArgs> | null
+    /**
+     * The data needed to update a policies.
+     */
+    data: XOR<policiesUpdateInput, policiesUncheckedUpdateInput>
+    /**
+     * Choose, which policies to update.
+     */
+    where: policiesWhereUniqueInput
+  }
+
+  /**
+   * policies updateMany
+   */
+  export type policiesUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update policies.
+     */
+    data: XOR<policiesUpdateManyMutationInput, policiesUncheckedUpdateManyInput>
+    /**
+     * Filter which policies to update
+     */
+    where?: policiesWhereInput
+    /**
+     * Limit how many policies to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * policies upsert
+   */
+  export type policiesUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the policies
+     */
+    select?: policiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the policies
+     */
+    omit?: policiesOmit<ExtArgs> | null
+    /**
+     * The filter to search for the policies to update in case it exists.
+     */
+    where: policiesWhereUniqueInput
+    /**
+     * In case the policies found by the `where` argument doesn't exist, create a new policies with this data.
+     */
+    create: XOR<policiesCreateInput, policiesUncheckedCreateInput>
+    /**
+     * In case the policies was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<policiesUpdateInput, policiesUncheckedUpdateInput>
+  }
+
+  /**
+   * policies delete
+   */
+  export type policiesDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the policies
+     */
+    select?: policiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the policies
+     */
+    omit?: policiesOmit<ExtArgs> | null
+    /**
+     * Filter which policies to delete.
+     */
+    where: policiesWhereUniqueInput
+  }
+
+  /**
+   * policies deleteMany
+   */
+  export type policiesDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which policies to delete
+     */
+    where?: policiesWhereInput
+    /**
+     * Limit how many policies to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * policies without action
+   */
+  export type policiesDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the policies
+     */
+    select?: policiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the policies
+     */
+    omit?: policiesOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model news_events
    */
 
@@ -43452,18 +45654,22 @@ export namespace Prisma {
     id: number | null
     program_id: number | null
     payment_package_id: number | null
+    discount_value: Decimal | null
   }
 
   export type Program_payment_packagesSumAggregateOutputType = {
     id: number | null
     program_id: number | null
     payment_package_id: number | null
+    discount_value: Decimal | null
   }
 
   export type Program_payment_packagesMinAggregateOutputType = {
     id: number | null
     program_id: number | null
     payment_package_id: number | null
+    discount_type: string | null
+    discount_value: Decimal | null
     created_at: Date | null
   }
 
@@ -43471,6 +45677,8 @@ export namespace Prisma {
     id: number | null
     program_id: number | null
     payment_package_id: number | null
+    discount_type: string | null
+    discount_value: Decimal | null
     created_at: Date | null
   }
 
@@ -43478,6 +45686,8 @@ export namespace Prisma {
     id: number
     program_id: number
     payment_package_id: number
+    discount_type: number
+    discount_value: number
     created_at: number
     _all: number
   }
@@ -43487,18 +45697,22 @@ export namespace Prisma {
     id?: true
     program_id?: true
     payment_package_id?: true
+    discount_value?: true
   }
 
   export type Program_payment_packagesSumAggregateInputType = {
     id?: true
     program_id?: true
     payment_package_id?: true
+    discount_value?: true
   }
 
   export type Program_payment_packagesMinAggregateInputType = {
     id?: true
     program_id?: true
     payment_package_id?: true
+    discount_type?: true
+    discount_value?: true
     created_at?: true
   }
 
@@ -43506,6 +45720,8 @@ export namespace Prisma {
     id?: true
     program_id?: true
     payment_package_id?: true
+    discount_type?: true
+    discount_value?: true
     created_at?: true
   }
 
@@ -43513,6 +45729,8 @@ export namespace Prisma {
     id?: true
     program_id?: true
     payment_package_id?: true
+    discount_type?: true
+    discount_value?: true
     created_at?: true
     _all?: true
   }
@@ -43607,6 +45825,8 @@ export namespace Prisma {
     id: number
     program_id: number
     payment_package_id: number
+    discount_type: string | null
+    discount_value: Decimal | null
     created_at: Date | null
     _count: Program_payment_packagesCountAggregateOutputType | null
     _avg: Program_payment_packagesAvgAggregateOutputType | null
@@ -43633,6 +45853,8 @@ export namespace Prisma {
     id?: boolean
     program_id?: boolean
     payment_package_id?: boolean
+    discount_type?: boolean
+    discount_value?: boolean
     created_at?: boolean
     programs?: boolean | programsDefaultArgs<ExtArgs>
     payment_packages?: boolean | payment_packagesDefaultArgs<ExtArgs>
@@ -43644,10 +45866,12 @@ export namespace Prisma {
     id?: boolean
     program_id?: boolean
     payment_package_id?: boolean
+    discount_type?: boolean
+    discount_value?: boolean
     created_at?: boolean
   }
 
-  export type program_payment_packagesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "program_id" | "payment_package_id" | "created_at", ExtArgs["result"]["program_payment_packages"]>
+  export type program_payment_packagesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "program_id" | "payment_package_id" | "discount_type" | "discount_value" | "created_at", ExtArgs["result"]["program_payment_packages"]>
   export type program_payment_packagesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     programs?: boolean | programsDefaultArgs<ExtArgs>
     payment_packages?: boolean | payment_packagesDefaultArgs<ExtArgs>
@@ -43663,6 +45887,8 @@ export namespace Prisma {
       id: number
       program_id: number
       payment_package_id: number
+      discount_type: string | null
+      discount_value: Prisma.Decimal | null
       created_at: Date | null
     }, ExtArgs["result"]["program_payment_packages"]>
     composites: {}
@@ -44038,6 +46264,8 @@ export namespace Prisma {
     readonly id: FieldRef<"program_payment_packages", 'Int'>
     readonly program_id: FieldRef<"program_payment_packages", 'Int'>
     readonly payment_package_id: FieldRef<"program_payment_packages", 'Int'>
+    readonly discount_type: FieldRef<"program_payment_packages", 'String'>
+    readonly discount_value: FieldRef<"program_payment_packages", 'Decimal'>
     readonly created_at: FieldRef<"program_payment_packages", 'DateTime'>
   }
     
@@ -49722,6 +51950,953 @@ export namespace Prisma {
      * Omit specific fields from the student_class_history
      */
     omit?: student_class_historyOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model review_windows
+   */
+
+  export type AggregateReview_windows = {
+    _count: Review_windowsCountAggregateOutputType | null
+    _avg: Review_windowsAvgAggregateOutputType | null
+    _sum: Review_windowsSumAggregateOutputType | null
+    _min: Review_windowsMinAggregateOutputType | null
+    _max: Review_windowsMaxAggregateOutputType | null
+  }
+
+  export type Review_windowsAvgAggregateOutputType = {
+    id: number | null
+    updated_by: number | null
+  }
+
+  export type Review_windowsSumAggregateOutputType = {
+    id: number | null
+    updated_by: number | null
+  }
+
+  export type Review_windowsMinAggregateOutputType = {
+    id: number | null
+    review_type: string | null
+    status: string | null
+    start_date: Date | null
+    end_date: Date | null
+    updated_by: number | null
+    updated_at: Date | null
+  }
+
+  export type Review_windowsMaxAggregateOutputType = {
+    id: number | null
+    review_type: string | null
+    status: string | null
+    start_date: Date | null
+    end_date: Date | null
+    updated_by: number | null
+    updated_at: Date | null
+  }
+
+  export type Review_windowsCountAggregateOutputType = {
+    id: number
+    review_type: number
+    status: number
+    start_date: number
+    end_date: number
+    updated_by: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type Review_windowsAvgAggregateInputType = {
+    id?: true
+    updated_by?: true
+  }
+
+  export type Review_windowsSumAggregateInputType = {
+    id?: true
+    updated_by?: true
+  }
+
+  export type Review_windowsMinAggregateInputType = {
+    id?: true
+    review_type?: true
+    status?: true
+    start_date?: true
+    end_date?: true
+    updated_by?: true
+    updated_at?: true
+  }
+
+  export type Review_windowsMaxAggregateInputType = {
+    id?: true
+    review_type?: true
+    status?: true
+    start_date?: true
+    end_date?: true
+    updated_by?: true
+    updated_at?: true
+  }
+
+  export type Review_windowsCountAggregateInputType = {
+    id?: true
+    review_type?: true
+    status?: true
+    start_date?: true
+    end_date?: true
+    updated_by?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type Review_windowsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which review_windows to aggregate.
+     */
+    where?: review_windowsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of review_windows to fetch.
+     */
+    orderBy?: review_windowsOrderByWithRelationInput | review_windowsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: review_windowsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` review_windows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` review_windows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned review_windows
+    **/
+    _count?: true | Review_windowsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Review_windowsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Review_windowsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Review_windowsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Review_windowsMaxAggregateInputType
+  }
+
+  export type GetReview_windowsAggregateType<T extends Review_windowsAggregateArgs> = {
+        [P in keyof T & keyof AggregateReview_windows]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReview_windows[P]>
+      : GetScalarType<T[P], AggregateReview_windows[P]>
+  }
+
+
+
+
+  export type review_windowsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: review_windowsWhereInput
+    orderBy?: review_windowsOrderByWithAggregationInput | review_windowsOrderByWithAggregationInput[]
+    by: Review_windowsScalarFieldEnum[] | Review_windowsScalarFieldEnum
+    having?: review_windowsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Review_windowsCountAggregateInputType | true
+    _avg?: Review_windowsAvgAggregateInputType
+    _sum?: Review_windowsSumAggregateInputType
+    _min?: Review_windowsMinAggregateInputType
+    _max?: Review_windowsMaxAggregateInputType
+  }
+
+  export type Review_windowsGroupByOutputType = {
+    id: number
+    review_type: string
+    status: string
+    start_date: Date | null
+    end_date: Date | null
+    updated_by: number | null
+    updated_at: Date | null
+    _count: Review_windowsCountAggregateOutputType | null
+    _avg: Review_windowsAvgAggregateOutputType | null
+    _sum: Review_windowsSumAggregateOutputType | null
+    _min: Review_windowsMinAggregateOutputType | null
+    _max: Review_windowsMaxAggregateOutputType | null
+  }
+
+  type GetReview_windowsGroupByPayload<T extends review_windowsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Review_windowsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Review_windowsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Review_windowsGroupByOutputType[P]>
+            : GetScalarType<T[P], Review_windowsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type review_windowsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    review_type?: boolean
+    status?: boolean
+    start_date?: boolean
+    end_date?: boolean
+    updated_by?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["review_windows"]>
+
+
+
+  export type review_windowsSelectScalar = {
+    id?: boolean
+    review_type?: boolean
+    status?: boolean
+    start_date?: boolean
+    end_date?: boolean
+    updated_by?: boolean
+    updated_at?: boolean
+  }
+
+  export type review_windowsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "review_type" | "status" | "start_date" | "end_date" | "updated_by" | "updated_at", ExtArgs["result"]["review_windows"]>
+
+  export type $review_windowsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "review_windows"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      review_type: string
+      status: string
+      start_date: Date | null
+      end_date: Date | null
+      updated_by: number | null
+      updated_at: Date | null
+    }, ExtArgs["result"]["review_windows"]>
+    composites: {}
+  }
+
+  type review_windowsGetPayload<S extends boolean | null | undefined | review_windowsDefaultArgs> = $Result.GetResult<Prisma.$review_windowsPayload, S>
+
+  type review_windowsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<review_windowsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Review_windowsCountAggregateInputType | true
+    }
+
+  export interface review_windowsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['review_windows'], meta: { name: 'review_windows' } }
+    /**
+     * Find zero or one Review_windows that matches the filter.
+     * @param {review_windowsFindUniqueArgs} args - Arguments to find a Review_windows
+     * @example
+     * // Get one Review_windows
+     * const review_windows = await prisma.review_windows.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends review_windowsFindUniqueArgs>(args: SelectSubset<T, review_windowsFindUniqueArgs<ExtArgs>>): Prisma__review_windowsClient<$Result.GetResult<Prisma.$review_windowsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Review_windows that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {review_windowsFindUniqueOrThrowArgs} args - Arguments to find a Review_windows
+     * @example
+     * // Get one Review_windows
+     * const review_windows = await prisma.review_windows.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends review_windowsFindUniqueOrThrowArgs>(args: SelectSubset<T, review_windowsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__review_windowsClient<$Result.GetResult<Prisma.$review_windowsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Review_windows that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_windowsFindFirstArgs} args - Arguments to find a Review_windows
+     * @example
+     * // Get one Review_windows
+     * const review_windows = await prisma.review_windows.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends review_windowsFindFirstArgs>(args?: SelectSubset<T, review_windowsFindFirstArgs<ExtArgs>>): Prisma__review_windowsClient<$Result.GetResult<Prisma.$review_windowsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Review_windows that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_windowsFindFirstOrThrowArgs} args - Arguments to find a Review_windows
+     * @example
+     * // Get one Review_windows
+     * const review_windows = await prisma.review_windows.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends review_windowsFindFirstOrThrowArgs>(args?: SelectSubset<T, review_windowsFindFirstOrThrowArgs<ExtArgs>>): Prisma__review_windowsClient<$Result.GetResult<Prisma.$review_windowsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Review_windows that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_windowsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Review_windows
+     * const review_windows = await prisma.review_windows.findMany()
+     * 
+     * // Get first 10 Review_windows
+     * const review_windows = await prisma.review_windows.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const review_windowsWithIdOnly = await prisma.review_windows.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends review_windowsFindManyArgs>(args?: SelectSubset<T, review_windowsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$review_windowsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Review_windows.
+     * @param {review_windowsCreateArgs} args - Arguments to create a Review_windows.
+     * @example
+     * // Create one Review_windows
+     * const Review_windows = await prisma.review_windows.create({
+     *   data: {
+     *     // ... data to create a Review_windows
+     *   }
+     * })
+     * 
+     */
+    create<T extends review_windowsCreateArgs>(args: SelectSubset<T, review_windowsCreateArgs<ExtArgs>>): Prisma__review_windowsClient<$Result.GetResult<Prisma.$review_windowsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Review_windows.
+     * @param {review_windowsCreateManyArgs} args - Arguments to create many Review_windows.
+     * @example
+     * // Create many Review_windows
+     * const review_windows = await prisma.review_windows.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends review_windowsCreateManyArgs>(args?: SelectSubset<T, review_windowsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Review_windows.
+     * @param {review_windowsDeleteArgs} args - Arguments to delete one Review_windows.
+     * @example
+     * // Delete one Review_windows
+     * const Review_windows = await prisma.review_windows.delete({
+     *   where: {
+     *     // ... filter to delete one Review_windows
+     *   }
+     * })
+     * 
+     */
+    delete<T extends review_windowsDeleteArgs>(args: SelectSubset<T, review_windowsDeleteArgs<ExtArgs>>): Prisma__review_windowsClient<$Result.GetResult<Prisma.$review_windowsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Review_windows.
+     * @param {review_windowsUpdateArgs} args - Arguments to update one Review_windows.
+     * @example
+     * // Update one Review_windows
+     * const review_windows = await prisma.review_windows.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends review_windowsUpdateArgs>(args: SelectSubset<T, review_windowsUpdateArgs<ExtArgs>>): Prisma__review_windowsClient<$Result.GetResult<Prisma.$review_windowsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Review_windows.
+     * @param {review_windowsDeleteManyArgs} args - Arguments to filter Review_windows to delete.
+     * @example
+     * // Delete a few Review_windows
+     * const { count } = await prisma.review_windows.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends review_windowsDeleteManyArgs>(args?: SelectSubset<T, review_windowsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Review_windows.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_windowsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Review_windows
+     * const review_windows = await prisma.review_windows.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends review_windowsUpdateManyArgs>(args: SelectSubset<T, review_windowsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Review_windows.
+     * @param {review_windowsUpsertArgs} args - Arguments to update or create a Review_windows.
+     * @example
+     * // Update or create a Review_windows
+     * const review_windows = await prisma.review_windows.upsert({
+     *   create: {
+     *     // ... data to create a Review_windows
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Review_windows we want to update
+     *   }
+     * })
+     */
+    upsert<T extends review_windowsUpsertArgs>(args: SelectSubset<T, review_windowsUpsertArgs<ExtArgs>>): Prisma__review_windowsClient<$Result.GetResult<Prisma.$review_windowsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Review_windows.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_windowsCountArgs} args - Arguments to filter Review_windows to count.
+     * @example
+     * // Count the number of Review_windows
+     * const count = await prisma.review_windows.count({
+     *   where: {
+     *     // ... the filter for the Review_windows we want to count
+     *   }
+     * })
+    **/
+    count<T extends review_windowsCountArgs>(
+      args?: Subset<T, review_windowsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Review_windowsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Review_windows.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Review_windowsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Review_windowsAggregateArgs>(args: Subset<T, Review_windowsAggregateArgs>): Prisma.PrismaPromise<GetReview_windowsAggregateType<T>>
+
+    /**
+     * Group by Review_windows.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_windowsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends review_windowsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: review_windowsGroupByArgs['orderBy'] }
+        : { orderBy?: review_windowsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, review_windowsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReview_windowsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the review_windows model
+   */
+  readonly fields: review_windowsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for review_windows.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__review_windowsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the review_windows model
+   */
+  interface review_windowsFieldRefs {
+    readonly id: FieldRef<"review_windows", 'Int'>
+    readonly review_type: FieldRef<"review_windows", 'String'>
+    readonly status: FieldRef<"review_windows", 'String'>
+    readonly start_date: FieldRef<"review_windows", 'DateTime'>
+    readonly end_date: FieldRef<"review_windows", 'DateTime'>
+    readonly updated_by: FieldRef<"review_windows", 'Int'>
+    readonly updated_at: FieldRef<"review_windows", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * review_windows findUnique
+   */
+  export type review_windowsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_windows
+     */
+    select?: review_windowsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_windows
+     */
+    omit?: review_windowsOmit<ExtArgs> | null
+    /**
+     * Filter, which review_windows to fetch.
+     */
+    where: review_windowsWhereUniqueInput
+  }
+
+  /**
+   * review_windows findUniqueOrThrow
+   */
+  export type review_windowsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_windows
+     */
+    select?: review_windowsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_windows
+     */
+    omit?: review_windowsOmit<ExtArgs> | null
+    /**
+     * Filter, which review_windows to fetch.
+     */
+    where: review_windowsWhereUniqueInput
+  }
+
+  /**
+   * review_windows findFirst
+   */
+  export type review_windowsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_windows
+     */
+    select?: review_windowsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_windows
+     */
+    omit?: review_windowsOmit<ExtArgs> | null
+    /**
+     * Filter, which review_windows to fetch.
+     */
+    where?: review_windowsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of review_windows to fetch.
+     */
+    orderBy?: review_windowsOrderByWithRelationInput | review_windowsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for review_windows.
+     */
+    cursor?: review_windowsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` review_windows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` review_windows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of review_windows.
+     */
+    distinct?: Review_windowsScalarFieldEnum | Review_windowsScalarFieldEnum[]
+  }
+
+  /**
+   * review_windows findFirstOrThrow
+   */
+  export type review_windowsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_windows
+     */
+    select?: review_windowsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_windows
+     */
+    omit?: review_windowsOmit<ExtArgs> | null
+    /**
+     * Filter, which review_windows to fetch.
+     */
+    where?: review_windowsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of review_windows to fetch.
+     */
+    orderBy?: review_windowsOrderByWithRelationInput | review_windowsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for review_windows.
+     */
+    cursor?: review_windowsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` review_windows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` review_windows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of review_windows.
+     */
+    distinct?: Review_windowsScalarFieldEnum | Review_windowsScalarFieldEnum[]
+  }
+
+  /**
+   * review_windows findMany
+   */
+  export type review_windowsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_windows
+     */
+    select?: review_windowsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_windows
+     */
+    omit?: review_windowsOmit<ExtArgs> | null
+    /**
+     * Filter, which review_windows to fetch.
+     */
+    where?: review_windowsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of review_windows to fetch.
+     */
+    orderBy?: review_windowsOrderByWithRelationInput | review_windowsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing review_windows.
+     */
+    cursor?: review_windowsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` review_windows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` review_windows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of review_windows.
+     */
+    distinct?: Review_windowsScalarFieldEnum | Review_windowsScalarFieldEnum[]
+  }
+
+  /**
+   * review_windows create
+   */
+  export type review_windowsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_windows
+     */
+    select?: review_windowsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_windows
+     */
+    omit?: review_windowsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a review_windows.
+     */
+    data: XOR<review_windowsCreateInput, review_windowsUncheckedCreateInput>
+  }
+
+  /**
+   * review_windows createMany
+   */
+  export type review_windowsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many review_windows.
+     */
+    data: review_windowsCreateManyInput | review_windowsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * review_windows update
+   */
+  export type review_windowsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_windows
+     */
+    select?: review_windowsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_windows
+     */
+    omit?: review_windowsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a review_windows.
+     */
+    data: XOR<review_windowsUpdateInput, review_windowsUncheckedUpdateInput>
+    /**
+     * Choose, which review_windows to update.
+     */
+    where: review_windowsWhereUniqueInput
+  }
+
+  /**
+   * review_windows updateMany
+   */
+  export type review_windowsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update review_windows.
+     */
+    data: XOR<review_windowsUpdateManyMutationInput, review_windowsUncheckedUpdateManyInput>
+    /**
+     * Filter which review_windows to update
+     */
+    where?: review_windowsWhereInput
+    /**
+     * Limit how many review_windows to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * review_windows upsert
+   */
+  export type review_windowsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_windows
+     */
+    select?: review_windowsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_windows
+     */
+    omit?: review_windowsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the review_windows to update in case it exists.
+     */
+    where: review_windowsWhereUniqueInput
+    /**
+     * In case the review_windows found by the `where` argument doesn't exist, create a new review_windows with this data.
+     */
+    create: XOR<review_windowsCreateInput, review_windowsUncheckedCreateInput>
+    /**
+     * In case the review_windows was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<review_windowsUpdateInput, review_windowsUncheckedUpdateInput>
+  }
+
+  /**
+   * review_windows delete
+   */
+  export type review_windowsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_windows
+     */
+    select?: review_windowsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_windows
+     */
+    omit?: review_windowsOmit<ExtArgs> | null
+    /**
+     * Filter which review_windows to delete.
+     */
+    where: review_windowsWhereUniqueInput
+  }
+
+  /**
+   * review_windows deleteMany
+   */
+  export type review_windowsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which review_windows to delete
+     */
+    where?: review_windowsWhereInput
+    /**
+     * Limit how many review_windows to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * review_windows without action
+   */
+  export type review_windowsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_windows
+     */
+    select?: review_windowsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_windows
+     */
+    omit?: review_windowsOmit<ExtArgs> | null
   }
 
 
@@ -63317,6 +66492,37 @@ export namespace Prisma {
   export type Level_up_requestsScalarFieldEnum = (typeof Level_up_requestsScalarFieldEnum)[keyof typeof Level_up_requestsScalarFieldEnum]
 
 
+  export const TutorialsScalarFieldEnum: {
+    id: 'id',
+    title: 'title',
+    description: 'description',
+    media_type: 'media_type',
+    media_url: 'media_url',
+    status: 'status',
+    created_by: 'created_by',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+  };
+
+  export type TutorialsScalarFieldEnum = (typeof TutorialsScalarFieldEnum)[keyof typeof TutorialsScalarFieldEnum]
+
+
+  export const PoliciesScalarFieldEnum: {
+    id: 'id',
+    slug: 'slug',
+    title: 'title',
+    description: 'description',
+    content: 'content',
+    status: 'status',
+    sort_order: 'sort_order',
+    created_by: 'created_by',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+  };
+
+  export type PoliciesScalarFieldEnum = (typeof PoliciesScalarFieldEnum)[keyof typeof PoliciesScalarFieldEnum]
+
+
   export const News_eventsScalarFieldEnum: {
     id: 'id',
     title: 'title',
@@ -63502,6 +66708,8 @@ export namespace Prisma {
     id: 'id',
     program_id: 'program_id',
     payment_package_id: 'payment_package_id',
+    discount_type: 'discount_type',
+    discount_value: 'discount_value',
     created_at: 'created_at'
   };
 
@@ -63584,6 +66792,19 @@ export namespace Prisma {
   };
 
   export type Student_class_historyScalarFieldEnum = (typeof Student_class_historyScalarFieldEnum)[keyof typeof Student_class_historyScalarFieldEnum]
+
+
+  export const Review_windowsScalarFieldEnum: {
+    id: 'id',
+    review_type: 'review_type',
+    status: 'status',
+    start_date: 'start_date',
+    end_date: 'end_date',
+    updated_by: 'updated_by',
+    updated_at: 'updated_at'
+  };
+
+  export type Review_windowsScalarFieldEnum = (typeof Review_windowsScalarFieldEnum)[keyof typeof Review_windowsScalarFieldEnum]
 
 
   export const Student_review_questionsScalarFieldEnum: {
@@ -64149,6 +67370,28 @@ export namespace Prisma {
   export type level_up_requestsOrderByRelevanceFieldEnum = (typeof level_up_requestsOrderByRelevanceFieldEnum)[keyof typeof level_up_requestsOrderByRelevanceFieldEnum]
 
 
+  export const tutorialsOrderByRelevanceFieldEnum: {
+    title: 'title',
+    description: 'description',
+    media_type: 'media_type',
+    media_url: 'media_url',
+    status: 'status'
+  };
+
+  export type tutorialsOrderByRelevanceFieldEnum = (typeof tutorialsOrderByRelevanceFieldEnum)[keyof typeof tutorialsOrderByRelevanceFieldEnum]
+
+
+  export const policiesOrderByRelevanceFieldEnum: {
+    slug: 'slug',
+    title: 'title',
+    description: 'description',
+    content: 'content',
+    status: 'status'
+  };
+
+  export type policiesOrderByRelevanceFieldEnum = (typeof policiesOrderByRelevanceFieldEnum)[keyof typeof policiesOrderByRelevanceFieldEnum]
+
+
   export const news_eventsOrderByRelevanceFieldEnum: {
     title: 'title',
     description: 'description',
@@ -64255,6 +67498,13 @@ export namespace Prisma {
   export type proficiency_testsOrderByRelevanceFieldEnum = (typeof proficiency_testsOrderByRelevanceFieldEnum)[keyof typeof proficiency_testsOrderByRelevanceFieldEnum]
 
 
+  export const program_payment_packagesOrderByRelevanceFieldEnum: {
+    discount_type: 'discount_type'
+  };
+
+  export type program_payment_packagesOrderByRelevanceFieldEnum = (typeof program_payment_packagesOrderByRelevanceFieldEnum)[keyof typeof program_payment_packagesOrderByRelevanceFieldEnum]
+
+
   export const programsOrderByRelevanceFieldEnum: {
     image: 'image',
     title: 'title',
@@ -64299,6 +67549,14 @@ export namespace Prisma {
   };
 
   export type student_class_historyOrderByRelevanceFieldEnum = (typeof student_class_historyOrderByRelevanceFieldEnum)[keyof typeof student_class_historyOrderByRelevanceFieldEnum]
+
+
+  export const review_windowsOrderByRelevanceFieldEnum: {
+    review_type: 'review_type',
+    status: 'status'
+  };
+
+  export type review_windowsOrderByRelevanceFieldEnum = (typeof review_windowsOrderByRelevanceFieldEnum)[keyof typeof review_windowsOrderByRelevanceFieldEnum]
 
 
   export const student_review_questionsOrderByRelevanceFieldEnum: {
@@ -67244,6 +70502,161 @@ export namespace Prisma {
     created_at?: DateTimeNullableWithAggregatesFilter<"level_up_requests"> | Date | string | null
   }
 
+  export type tutorialsWhereInput = {
+    AND?: tutorialsWhereInput | tutorialsWhereInput[]
+    OR?: tutorialsWhereInput[]
+    NOT?: tutorialsWhereInput | tutorialsWhereInput[]
+    id?: IntFilter<"tutorials"> | number
+    title?: StringFilter<"tutorials"> | string
+    description?: StringNullableFilter<"tutorials"> | string | null
+    media_type?: StringFilter<"tutorials"> | string
+    media_url?: StringFilter<"tutorials"> | string
+    status?: StringNullableFilter<"tutorials"> | string | null
+    created_by?: IntNullableFilter<"tutorials"> | number | null
+    created_at?: DateTimeNullableFilter<"tutorials"> | Date | string | null
+    updated_at?: DateTimeNullableFilter<"tutorials"> | Date | string | null
+  }
+
+  export type tutorialsOrderByWithRelationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    media_type?: SortOrder
+    media_url?: SortOrder
+    status?: SortOrderInput | SortOrder
+    created_by?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
+    _relevance?: tutorialsOrderByRelevanceInput
+  }
+
+  export type tutorialsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: tutorialsWhereInput | tutorialsWhereInput[]
+    OR?: tutorialsWhereInput[]
+    NOT?: tutorialsWhereInput | tutorialsWhereInput[]
+    title?: StringFilter<"tutorials"> | string
+    description?: StringNullableFilter<"tutorials"> | string | null
+    media_type?: StringFilter<"tutorials"> | string
+    media_url?: StringFilter<"tutorials"> | string
+    status?: StringNullableFilter<"tutorials"> | string | null
+    created_by?: IntNullableFilter<"tutorials"> | number | null
+    created_at?: DateTimeNullableFilter<"tutorials"> | Date | string | null
+    updated_at?: DateTimeNullableFilter<"tutorials"> | Date | string | null
+  }, "id">
+
+  export type tutorialsOrderByWithAggregationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    media_type?: SortOrder
+    media_url?: SortOrder
+    status?: SortOrderInput | SortOrder
+    created_by?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
+    _count?: tutorialsCountOrderByAggregateInput
+    _avg?: tutorialsAvgOrderByAggregateInput
+    _max?: tutorialsMaxOrderByAggregateInput
+    _min?: tutorialsMinOrderByAggregateInput
+    _sum?: tutorialsSumOrderByAggregateInput
+  }
+
+  export type tutorialsScalarWhereWithAggregatesInput = {
+    AND?: tutorialsScalarWhereWithAggregatesInput | tutorialsScalarWhereWithAggregatesInput[]
+    OR?: tutorialsScalarWhereWithAggregatesInput[]
+    NOT?: tutorialsScalarWhereWithAggregatesInput | tutorialsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"tutorials"> | number
+    title?: StringWithAggregatesFilter<"tutorials"> | string
+    description?: StringNullableWithAggregatesFilter<"tutorials"> | string | null
+    media_type?: StringWithAggregatesFilter<"tutorials"> | string
+    media_url?: StringWithAggregatesFilter<"tutorials"> | string
+    status?: StringNullableWithAggregatesFilter<"tutorials"> | string | null
+    created_by?: IntNullableWithAggregatesFilter<"tutorials"> | number | null
+    created_at?: DateTimeNullableWithAggregatesFilter<"tutorials"> | Date | string | null
+    updated_at?: DateTimeNullableWithAggregatesFilter<"tutorials"> | Date | string | null
+  }
+
+  export type policiesWhereInput = {
+    AND?: policiesWhereInput | policiesWhereInput[]
+    OR?: policiesWhereInput[]
+    NOT?: policiesWhereInput | policiesWhereInput[]
+    id?: IntFilter<"policies"> | number
+    slug?: StringFilter<"policies"> | string
+    title?: StringFilter<"policies"> | string
+    description?: StringNullableFilter<"policies"> | string | null
+    content?: StringNullableFilter<"policies"> | string | null
+    status?: StringNullableFilter<"policies"> | string | null
+    sort_order?: IntNullableFilter<"policies"> | number | null
+    created_by?: IntNullableFilter<"policies"> | number | null
+    created_at?: DateTimeNullableFilter<"policies"> | Date | string | null
+    updated_at?: DateTimeNullableFilter<"policies"> | Date | string | null
+  }
+
+  export type policiesOrderByWithRelationInput = {
+    id?: SortOrder
+    slug?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    content?: SortOrderInput | SortOrder
+    status?: SortOrderInput | SortOrder
+    sort_order?: SortOrderInput | SortOrder
+    created_by?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
+    _relevance?: policiesOrderByRelevanceInput
+  }
+
+  export type policiesWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    slug?: string
+    AND?: policiesWhereInput | policiesWhereInput[]
+    OR?: policiesWhereInput[]
+    NOT?: policiesWhereInput | policiesWhereInput[]
+    title?: StringFilter<"policies"> | string
+    description?: StringNullableFilter<"policies"> | string | null
+    content?: StringNullableFilter<"policies"> | string | null
+    status?: StringNullableFilter<"policies"> | string | null
+    sort_order?: IntNullableFilter<"policies"> | number | null
+    created_by?: IntNullableFilter<"policies"> | number | null
+    created_at?: DateTimeNullableFilter<"policies"> | Date | string | null
+    updated_at?: DateTimeNullableFilter<"policies"> | Date | string | null
+  }, "id" | "slug">
+
+  export type policiesOrderByWithAggregationInput = {
+    id?: SortOrder
+    slug?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    content?: SortOrderInput | SortOrder
+    status?: SortOrderInput | SortOrder
+    sort_order?: SortOrderInput | SortOrder
+    created_by?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
+    _count?: policiesCountOrderByAggregateInput
+    _avg?: policiesAvgOrderByAggregateInput
+    _max?: policiesMaxOrderByAggregateInput
+    _min?: policiesMinOrderByAggregateInput
+    _sum?: policiesSumOrderByAggregateInput
+  }
+
+  export type policiesScalarWhereWithAggregatesInput = {
+    AND?: policiesScalarWhereWithAggregatesInput | policiesScalarWhereWithAggregatesInput[]
+    OR?: policiesScalarWhereWithAggregatesInput[]
+    NOT?: policiesScalarWhereWithAggregatesInput | policiesScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"policies"> | number
+    slug?: StringWithAggregatesFilter<"policies"> | string
+    title?: StringWithAggregatesFilter<"policies"> | string
+    description?: StringNullableWithAggregatesFilter<"policies"> | string | null
+    content?: StringNullableWithAggregatesFilter<"policies"> | string | null
+    status?: StringNullableWithAggregatesFilter<"policies"> | string | null
+    sort_order?: IntNullableWithAggregatesFilter<"policies"> | number | null
+    created_by?: IntNullableWithAggregatesFilter<"policies"> | number | null
+    created_at?: DateTimeNullableWithAggregatesFilter<"policies"> | Date | string | null
+    updated_at?: DateTimeNullableWithAggregatesFilter<"policies"> | Date | string | null
+  }
+
   export type news_eventsWhereInput = {
     AND?: news_eventsWhereInput | news_eventsWhereInput[]
     OR?: news_eventsWhereInput[]
@@ -68172,6 +71585,8 @@ export namespace Prisma {
     id?: IntFilter<"program_payment_packages"> | number
     program_id?: IntFilter<"program_payment_packages"> | number
     payment_package_id?: IntFilter<"program_payment_packages"> | number
+    discount_type?: StringNullableFilter<"program_payment_packages"> | string | null
+    discount_value?: DecimalNullableFilter<"program_payment_packages"> | Decimal | DecimalJsLike | number | string | null
     created_at?: DateTimeNullableFilter<"program_payment_packages"> | Date | string | null
     programs?: XOR<ProgramsScalarRelationFilter, programsWhereInput>
     payment_packages?: XOR<Payment_packagesScalarRelationFilter, payment_packagesWhereInput>
@@ -68181,9 +71596,12 @@ export namespace Prisma {
     id?: SortOrder
     program_id?: SortOrder
     payment_package_id?: SortOrder
+    discount_type?: SortOrderInput | SortOrder
+    discount_value?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     programs?: programsOrderByWithRelationInput
     payment_packages?: payment_packagesOrderByWithRelationInput
+    _relevance?: program_payment_packagesOrderByRelevanceInput
   }
 
   export type program_payment_packagesWhereUniqueInput = Prisma.AtLeast<{
@@ -68193,6 +71611,8 @@ export namespace Prisma {
     NOT?: program_payment_packagesWhereInput | program_payment_packagesWhereInput[]
     program_id?: IntFilter<"program_payment_packages"> | number
     payment_package_id?: IntFilter<"program_payment_packages"> | number
+    discount_type?: StringNullableFilter<"program_payment_packages"> | string | null
+    discount_value?: DecimalNullableFilter<"program_payment_packages"> | Decimal | DecimalJsLike | number | string | null
     created_at?: DateTimeNullableFilter<"program_payment_packages"> | Date | string | null
     programs?: XOR<ProgramsScalarRelationFilter, programsWhereInput>
     payment_packages?: XOR<Payment_packagesScalarRelationFilter, payment_packagesWhereInput>
@@ -68202,6 +71622,8 @@ export namespace Prisma {
     id?: SortOrder
     program_id?: SortOrder
     payment_package_id?: SortOrder
+    discount_type?: SortOrderInput | SortOrder
+    discount_value?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: program_payment_packagesCountOrderByAggregateInput
     _avg?: program_payment_packagesAvgOrderByAggregateInput
@@ -68217,6 +71639,8 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"program_payment_packages"> | number
     program_id?: IntWithAggregatesFilter<"program_payment_packages"> | number
     payment_package_id?: IntWithAggregatesFilter<"program_payment_packages"> | number
+    discount_type?: StringNullableWithAggregatesFilter<"program_payment_packages"> | string | null
+    discount_value?: DecimalNullableWithAggregatesFilter<"program_payment_packages"> | Decimal | DecimalJsLike | number | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"program_payment_packages"> | Date | string | null
   }
 
@@ -68639,6 +72063,71 @@ export namespace Prisma {
     subprogram_id?: IntNullableWithAggregatesFilter<"student_class_history"> | number | null
     is_active?: IntNullableWithAggregatesFilter<"student_class_history"> | number | null
     created_at?: DateTimeNullableWithAggregatesFilter<"student_class_history"> | Date | string | null
+  }
+
+  export type review_windowsWhereInput = {
+    AND?: review_windowsWhereInput | review_windowsWhereInput[]
+    OR?: review_windowsWhereInput[]
+    NOT?: review_windowsWhereInput | review_windowsWhereInput[]
+    id?: IntFilter<"review_windows"> | number
+    review_type?: StringFilter<"review_windows"> | string
+    status?: StringFilter<"review_windows"> | string
+    start_date?: DateTimeNullableFilter<"review_windows"> | Date | string | null
+    end_date?: DateTimeNullableFilter<"review_windows"> | Date | string | null
+    updated_by?: IntNullableFilter<"review_windows"> | number | null
+    updated_at?: DateTimeNullableFilter<"review_windows"> | Date | string | null
+  }
+
+  export type review_windowsOrderByWithRelationInput = {
+    id?: SortOrder
+    review_type?: SortOrder
+    status?: SortOrder
+    start_date?: SortOrderInput | SortOrder
+    end_date?: SortOrderInput | SortOrder
+    updated_by?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
+    _relevance?: review_windowsOrderByRelevanceInput
+  }
+
+  export type review_windowsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    review_type?: string
+    AND?: review_windowsWhereInput | review_windowsWhereInput[]
+    OR?: review_windowsWhereInput[]
+    NOT?: review_windowsWhereInput | review_windowsWhereInput[]
+    status?: StringFilter<"review_windows"> | string
+    start_date?: DateTimeNullableFilter<"review_windows"> | Date | string | null
+    end_date?: DateTimeNullableFilter<"review_windows"> | Date | string | null
+    updated_by?: IntNullableFilter<"review_windows"> | number | null
+    updated_at?: DateTimeNullableFilter<"review_windows"> | Date | string | null
+  }, "id" | "review_type">
+
+  export type review_windowsOrderByWithAggregationInput = {
+    id?: SortOrder
+    review_type?: SortOrder
+    status?: SortOrder
+    start_date?: SortOrderInput | SortOrder
+    end_date?: SortOrderInput | SortOrder
+    updated_by?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
+    _count?: review_windowsCountOrderByAggregateInput
+    _avg?: review_windowsAvgOrderByAggregateInput
+    _max?: review_windowsMaxOrderByAggregateInput
+    _min?: review_windowsMinOrderByAggregateInput
+    _sum?: review_windowsSumOrderByAggregateInput
+  }
+
+  export type review_windowsScalarWhereWithAggregatesInput = {
+    AND?: review_windowsScalarWhereWithAggregatesInput | review_windowsScalarWhereWithAggregatesInput[]
+    OR?: review_windowsScalarWhereWithAggregatesInput[]
+    NOT?: review_windowsScalarWhereWithAggregatesInput | review_windowsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"review_windows"> | number
+    review_type?: StringWithAggregatesFilter<"review_windows"> | string
+    status?: StringWithAggregatesFilter<"review_windows"> | string
+    start_date?: DateTimeNullableWithAggregatesFilter<"review_windows"> | Date | string | null
+    end_date?: DateTimeNullableWithAggregatesFilter<"review_windows"> | Date | string | null
+    updated_by?: IntNullableWithAggregatesFilter<"review_windows"> | number | null
+    updated_at?: DateTimeNullableWithAggregatesFilter<"review_windows"> | Date | string | null
   }
 
   export type student_review_questionsWhereInput = {
@@ -72634,6 +76123,175 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type tutorialsCreateInput = {
+    title: string
+    description?: string | null
+    media_type?: string
+    media_url: string
+    status?: string | null
+    created_by?: number | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type tutorialsUncheckedCreateInput = {
+    id?: number
+    title: string
+    description?: string | null
+    media_type?: string
+    media_url: string
+    status?: string | null
+    created_by?: number | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type tutorialsUpdateInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    media_type?: StringFieldUpdateOperationsInput | string
+    media_url?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type tutorialsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    media_type?: StringFieldUpdateOperationsInput | string
+    media_url?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type tutorialsCreateManyInput = {
+    id?: number
+    title: string
+    description?: string | null
+    media_type?: string
+    media_url: string
+    status?: string | null
+    created_by?: number | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type tutorialsUpdateManyMutationInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    media_type?: StringFieldUpdateOperationsInput | string
+    media_url?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type tutorialsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    media_type?: StringFieldUpdateOperationsInput | string
+    media_url?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type policiesCreateInput = {
+    slug: string
+    title: string
+    description?: string | null
+    content?: string | null
+    status?: string | null
+    sort_order?: number | null
+    created_by?: number | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type policiesUncheckedCreateInput = {
+    id?: number
+    slug: string
+    title: string
+    description?: string | null
+    content?: string | null
+    status?: string | null
+    sort_order?: number | null
+    created_by?: number | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type policiesUpdateInput = {
+    slug?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    sort_order?: NullableIntFieldUpdateOperationsInput | number | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type policiesUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    slug?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    sort_order?: NullableIntFieldUpdateOperationsInput | number | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type policiesCreateManyInput = {
+    id?: number
+    slug: string
+    title: string
+    description?: string | null
+    content?: string | null
+    status?: string | null
+    sort_order?: number | null
+    created_by?: number | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type policiesUpdateManyMutationInput = {
+    slug?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    sort_order?: NullableIntFieldUpdateOperationsInput | number | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type policiesUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    slug?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    sort_order?: NullableIntFieldUpdateOperationsInput | number | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type news_eventsCreateInput = {
     title: string
     description?: string | null
@@ -73648,6 +77306,8 @@ export namespace Prisma {
   }
 
   export type program_payment_packagesCreateInput = {
+    discount_type?: string | null
+    discount_value?: Decimal | DecimalJsLike | number | string | null
     created_at?: Date | string | null
     programs: programsCreateNestedOneWithoutProgram_payment_packagesInput
     payment_packages: payment_packagesCreateNestedOneWithoutProgram_payment_packagesInput
@@ -73657,10 +77317,14 @@ export namespace Prisma {
     id?: number
     program_id: number
     payment_package_id: number
+    discount_type?: string | null
+    discount_value?: Decimal | DecimalJsLike | number | string | null
     created_at?: Date | string | null
   }
 
   export type program_payment_packagesUpdateInput = {
+    discount_type?: NullableStringFieldUpdateOperationsInput | string | null
+    discount_value?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     programs?: programsUpdateOneRequiredWithoutProgram_payment_packagesNestedInput
     payment_packages?: payment_packagesUpdateOneRequiredWithoutProgram_payment_packagesNestedInput
@@ -73670,6 +77334,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
     payment_package_id?: IntFieldUpdateOperationsInput | number
+    discount_type?: NullableStringFieldUpdateOperationsInput | string | null
+    discount_value?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -73677,10 +77343,14 @@ export namespace Prisma {
     id?: number
     program_id: number
     payment_package_id: number
+    discount_type?: string | null
+    discount_value?: Decimal | DecimalJsLike | number | string | null
     created_at?: Date | string | null
   }
 
   export type program_payment_packagesUpdateManyMutationInput = {
+    discount_type?: NullableStringFieldUpdateOperationsInput | string | null
+    discount_value?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -73688,6 +77358,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
     payment_package_id?: IntFieldUpdateOperationsInput | number
+    discount_type?: NullableStringFieldUpdateOperationsInput | string | null
+    discount_value?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -74140,6 +77812,73 @@ export namespace Prisma {
     subprogram_id?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type review_windowsCreateInput = {
+    review_type: string
+    status?: string
+    start_date?: Date | string | null
+    end_date?: Date | string | null
+    updated_by?: number | null
+    updated_at?: Date | string | null
+  }
+
+  export type review_windowsUncheckedCreateInput = {
+    id?: number
+    review_type: string
+    status?: string
+    start_date?: Date | string | null
+    end_date?: Date | string | null
+    updated_by?: number | null
+    updated_at?: Date | string | null
+  }
+
+  export type review_windowsUpdateInput = {
+    review_type?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_by?: NullableIntFieldUpdateOperationsInput | number | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type review_windowsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    review_type?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_by?: NullableIntFieldUpdateOperationsInput | number | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type review_windowsCreateManyInput = {
+    id?: number
+    review_type: string
+    status?: string
+    start_date?: Date | string | null
+    end_date?: Date | string | null
+    updated_by?: number | null
+    updated_at?: Date | string | null
+  }
+
+  export type review_windowsUpdateManyMutationInput = {
+    review_type?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_by?: NullableIntFieldUpdateOperationsInput | number | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type review_windowsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    review_type?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_by?: NullableIntFieldUpdateOperationsInput | number | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type student_review_questionsCreateInput = {
@@ -77987,6 +81726,115 @@ export namespace Prisma {
     _max?: NestedEnumlevel_up_requests_statusNullableFilter<$PrismaModel>
   }
 
+  export type tutorialsOrderByRelevanceInput = {
+    fields: tutorialsOrderByRelevanceFieldEnum | tutorialsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type tutorialsCountOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    media_type?: SortOrder
+    media_url?: SortOrder
+    status?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type tutorialsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    created_by?: SortOrder
+  }
+
+  export type tutorialsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    media_type?: SortOrder
+    media_url?: SortOrder
+    status?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type tutorialsMinOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    media_type?: SortOrder
+    media_url?: SortOrder
+    status?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type tutorialsSumOrderByAggregateInput = {
+    id?: SortOrder
+    created_by?: SortOrder
+  }
+
+  export type policiesOrderByRelevanceInput = {
+    fields: policiesOrderByRelevanceFieldEnum | policiesOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type policiesCountOrderByAggregateInput = {
+    id?: SortOrder
+    slug?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    content?: SortOrder
+    status?: SortOrder
+    sort_order?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type policiesAvgOrderByAggregateInput = {
+    id?: SortOrder
+    sort_order?: SortOrder
+    created_by?: SortOrder
+  }
+
+  export type policiesMaxOrderByAggregateInput = {
+    id?: SortOrder
+    slug?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    content?: SortOrder
+    status?: SortOrder
+    sort_order?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type policiesMinOrderByAggregateInput = {
+    id?: SortOrder
+    slug?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    content?: SortOrder
+    status?: SortOrder
+    sort_order?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type policiesSumOrderByAggregateInput = {
+    id?: SortOrder
+    sort_order?: SortOrder
+    created_by?: SortOrder
+  }
+
   export type Enumnews_events_typeNullableFilter<$PrismaModel = never> = {
     equals?: $Enums.news_events_type | Enumnews_events_typeFieldRefInput<$PrismaModel> | null
     in?: $Enums.news_events_type[] | null
@@ -78917,10 +82765,18 @@ export namespace Prisma {
     isNot?: payment_packagesWhereInput
   }
 
+  export type program_payment_packagesOrderByRelevanceInput = {
+    fields: program_payment_packagesOrderByRelevanceFieldEnum | program_payment_packagesOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
   export type program_payment_packagesCountOrderByAggregateInput = {
     id?: SortOrder
     program_id?: SortOrder
     payment_package_id?: SortOrder
+    discount_type?: SortOrder
+    discount_value?: SortOrder
     created_at?: SortOrder
   }
 
@@ -78928,12 +82784,15 @@ export namespace Prisma {
     id?: SortOrder
     program_id?: SortOrder
     payment_package_id?: SortOrder
+    discount_value?: SortOrder
   }
 
   export type program_payment_packagesMaxOrderByAggregateInput = {
     id?: SortOrder
     program_id?: SortOrder
     payment_package_id?: SortOrder
+    discount_type?: SortOrder
+    discount_value?: SortOrder
     created_at?: SortOrder
   }
 
@@ -78941,6 +82800,8 @@ export namespace Prisma {
     id?: SortOrder
     program_id?: SortOrder
     payment_package_id?: SortOrder
+    discount_type?: SortOrder
+    discount_value?: SortOrder
     created_at?: SortOrder
   }
 
@@ -78948,6 +82809,7 @@ export namespace Prisma {
     id?: SortOrder
     program_id?: SortOrder
     payment_package_id?: SortOrder
+    discount_value?: SortOrder
   }
 
   export type Enumprograms_statusNullableFilter<$PrismaModel = never> = {
@@ -79356,6 +83218,52 @@ export namespace Prisma {
     class_id?: SortOrder
     subprogram_id?: SortOrder
     is_active?: SortOrder
+  }
+
+  export type review_windowsOrderByRelevanceInput = {
+    fields: review_windowsOrderByRelevanceFieldEnum | review_windowsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type review_windowsCountOrderByAggregateInput = {
+    id?: SortOrder
+    review_type?: SortOrder
+    status?: SortOrder
+    start_date?: SortOrder
+    end_date?: SortOrder
+    updated_by?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type review_windowsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    updated_by?: SortOrder
+  }
+
+  export type review_windowsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    review_type?: SortOrder
+    status?: SortOrder
+    start_date?: SortOrder
+    end_date?: SortOrder
+    updated_by?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type review_windowsMinOrderByAggregateInput = {
+    id?: SortOrder
+    review_type?: SortOrder
+    status?: SortOrder
+    start_date?: SortOrder
+    end_date?: SortOrder
+    updated_by?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type review_windowsSumOrderByAggregateInput = {
+    id?: SortOrder
+    updated_by?: SortOrder
   }
 
   export type student_review_questionsOrderByRelevanceInput = {
@@ -86989,6 +90897,8 @@ export namespace Prisma {
   }
 
   export type program_payment_packagesCreateWithoutPayment_packagesInput = {
+    discount_type?: string | null
+    discount_value?: Decimal | DecimalJsLike | number | string | null
     created_at?: Date | string | null
     programs: programsCreateNestedOneWithoutProgram_payment_packagesInput
   }
@@ -86996,6 +90906,8 @@ export namespace Prisma {
   export type program_payment_packagesUncheckedCreateWithoutPayment_packagesInput = {
     id?: number
     program_id: number
+    discount_type?: string | null
+    discount_value?: Decimal | DecimalJsLike | number | string | null
     created_at?: Date | string | null
   }
 
@@ -87032,6 +90944,8 @@ export namespace Prisma {
     id?: IntFilter<"program_payment_packages"> | number
     program_id?: IntFilter<"program_payment_packages"> | number
     payment_package_id?: IntFilter<"program_payment_packages"> | number
+    discount_type?: StringNullableFilter<"program_payment_packages"> | string | null
+    discount_value?: DecimalNullableFilter<"program_payment_packages"> | Decimal | DecimalJsLike | number | string | null
     created_at?: DateTimeNullableFilter<"program_payment_packages"> | Date | string | null
   }
 
@@ -87418,6 +91332,8 @@ export namespace Prisma {
   }
 
   export type program_payment_packagesCreateWithoutProgramsInput = {
+    discount_type?: string | null
+    discount_value?: Decimal | DecimalJsLike | number | string | null
     created_at?: Date | string | null
     payment_packages: payment_packagesCreateNestedOneWithoutProgram_payment_packagesInput
   }
@@ -87425,6 +91341,8 @@ export namespace Prisma {
   export type program_payment_packagesUncheckedCreateWithoutProgramsInput = {
     id?: number
     payment_package_id: number
+    discount_type?: string | null
+    discount_value?: Decimal | DecimalJsLike | number | string | null
     created_at?: Date | string | null
   }
 
@@ -90686,10 +94604,14 @@ export namespace Prisma {
   export type program_payment_packagesCreateManyPayment_packagesInput = {
     id?: number
     program_id: number
+    discount_type?: string | null
+    discount_value?: Decimal | DecimalJsLike | number | string | null
     created_at?: Date | string | null
   }
 
   export type program_payment_packagesUpdateWithoutPayment_packagesInput = {
+    discount_type?: NullableStringFieldUpdateOperationsInput | string | null
+    discount_value?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     programs?: programsUpdateOneRequiredWithoutProgram_payment_packagesNestedInput
   }
@@ -90697,12 +94619,16 @@ export namespace Prisma {
   export type program_payment_packagesUncheckedUpdateWithoutPayment_packagesInput = {
     id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
+    discount_type?: NullableStringFieldUpdateOperationsInput | string | null
+    discount_value?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type program_payment_packagesUncheckedUpdateManyWithoutPayment_packagesInput = {
     id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
+    discount_type?: NullableStringFieldUpdateOperationsInput | string | null
+    discount_value?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -90798,6 +94724,8 @@ export namespace Prisma {
   export type program_payment_packagesCreateManyProgramsInput = {
     id?: number
     payment_package_id: number
+    discount_type?: string | null
+    discount_value?: Decimal | DecimalJsLike | number | string | null
     created_at?: Date | string | null
   }
 
@@ -90923,6 +94851,8 @@ export namespace Prisma {
   }
 
   export type program_payment_packagesUpdateWithoutProgramsInput = {
+    discount_type?: NullableStringFieldUpdateOperationsInput | string | null
+    discount_value?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     payment_packages?: payment_packagesUpdateOneRequiredWithoutProgram_payment_packagesNestedInput
   }
@@ -90930,12 +94860,16 @@ export namespace Prisma {
   export type program_payment_packagesUncheckedUpdateWithoutProgramsInput = {
     id?: IntFieldUpdateOperationsInput | number
     payment_package_id?: IntFieldUpdateOperationsInput | number
+    discount_type?: NullableStringFieldUpdateOperationsInput | string | null
+    discount_value?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type program_payment_packagesUncheckedUpdateManyWithoutProgramsInput = {
     id?: IntFieldUpdateOperationsInput | number
     payment_package_id?: IntFieldUpdateOperationsInput | number
+    discount_type?: NullableStringFieldUpdateOperationsInput | string | null
+    discount_value?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 

@@ -5,9 +5,10 @@ import { useDarkMode } from "@/context/ThemeContext";
 import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetTimelinesQuery } from "@/lib/api/courseTimelineApi";
-import { useGetTeachersToReviewQuery, useSubmitTeacherReviewMutation, useGetQuestionsQuery, useGetStudentReviewsQuery } from "@/lib/api/reviewApi";
+import { useGetTeachersToReviewQuery, useSubmitTeacherReviewMutation, useGetQuestionsQuery, useGetStudentReviewsQuery, useGetReviewWindowQuery } from "@/lib/api/reviewApi";
 import { useToast } from "@/components/Toast";
 import { isProficiencyOnlyStudent } from "@/utils/programCatalog";
+import { getReviewClosedMessage } from "@/utils/reviewWindow";
 
 // Sub-component for individual teacher accordion
 const TeacherReviewAccordion = ({ teacher, isOpen, onToggle, questions, classId, termSerial, refetchReviews, isReviewed, onReviewSuccess }) => {
@@ -219,8 +220,10 @@ export default function StudentReviewPage() {
   const { data: user } = useGetCurrentUserQuery();
   const { data: timelines = [] } = useGetTimelinesQuery();
   const { data: questions = [] } = useGetQuestionsQuery("teacher");
+  const { data: reviewWindow, isLoading: windowLoading } = useGetReviewWindowQuery("teacher");
 
   const isProficiencyOnly = isProficiencyOnlyStudent(user);
+  const isReviewOpen = reviewWindow?.is_open === true;
 
   const { data: teachersToReview = [], isLoading: teachersLoading, refetch } = useGetTeachersToReviewQuery(undefined, {
     skip: !user || isProficiencyOnly
@@ -274,6 +277,13 @@ export default function StudentReviewPage() {
           description="Select a teacher below to expand the evaluation form. Your feedback helps us improve."
         />
 
+        {!windowLoading && !isReviewOpen && (
+          <div className={`mb-6 rounded-2xl border p-5 ${isDark ? 'bg-amber-900/20 border-amber-800 text-amber-200' : 'bg-amber-50 border-amber-200 text-amber-900'}`}>
+            <p className="font-semibold">Review period is closed</p>
+            <p className="text-sm mt-1 opacity-90">{getReviewClosedMessage(reviewWindow)}</p>
+          </div>
+        )}
+
         {/* Teachers List (Accordions) */}
         <div className="space-y-4">
           {teachersLoading ? (
@@ -293,8 +303,8 @@ export default function StudentReviewPage() {
                 <TeacherReviewAccordion
                   key={teacher.id || teacher.teacher_id}
                   teacher={teacher}
-                  isOpen={openTeacherId === (teacher.id || teacher.teacher_id) && !reviewed}
-                  onToggle={() => !reviewed && handleToggle(teacher.id || teacher.teacher_id)}
+                  isOpen={isReviewOpen && openTeacherId === (teacher.id || teacher.teacher_id) && !reviewed}
+                  onToggle={() => isReviewOpen && !reviewed && handleToggle(teacher.id || teacher.teacher_id)}
                   questions={questions}
                   classId={user?.class_id}
                   termSerial={currentTermSerial}

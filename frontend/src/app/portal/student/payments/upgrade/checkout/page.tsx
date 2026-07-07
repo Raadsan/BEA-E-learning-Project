@@ -123,9 +123,14 @@ export default function CheckoutPage() {
                             <p className={`text-3xl font-bold mt-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                 ${amountDue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </p>
-                            {selectedPackage.originalPrice > amountDue && (
+                            {selectedPackage.hasPackageDiscount && (
+                                <p className="text-sm text-amber-600 mt-2 font-medium">
+                                    Package discount applied (regular price ${selectedPackage.basePrice.toFixed(2)})
+                                </p>
+                            )}
+                            {selectedPackage.hasScholarshipDiscount && (
                                 <p className="text-sm text-green-600 mt-2 font-medium">
-                                    Your scholarship/discount was applied (regular price ${selectedPackage.originalPrice.toFixed(2)})
+                                    Your scholarship/discount was applied (package price ${selectedPackage.packagePrice.toFixed(2)})
                                 </p>
                             )}
                             {isFree && (

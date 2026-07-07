@@ -1,4 +1,10 @@
-type ProgramLike = { title?: string; price?: number | string; discount?: number | string };
+type ProgramLike = {
+  title?: string;
+  price?: number | string;
+  discount?: number | string;
+  discount_type?: string | null;
+  discount_value?: number | string | null;
+};
 type StudentLike = {
   funding_status?: string;
   scholarship_percentage?: number | string | null;
@@ -9,6 +15,19 @@ export function getEffectiveMonthlyPrice(program?: ProgramLike | null) {
   const price = Number(program?.price || 0);
   const discount = Number(program?.discount || 0);
   return Math.max(0, price - discount);
+}
+
+export function getPackageProgramMonthlyPrice(program?: ProgramLike | null) {
+  const price = Number(program?.price || 0);
+  const type = program?.discount_type;
+  const value = Number(program?.discount_value || 0);
+  if (type === "percentage" && value > 0) {
+    return Math.max(0, price * (1 - value / 100));
+  }
+  if (type === "fixed" && value > 0) {
+    return Math.max(0, price - value);
+  }
+  return getEffectiveMonthlyPrice(program);
 }
 
 export function applyStudentDiscount(baseAmount: number, student?: StudentLike | null) {
@@ -55,7 +74,15 @@ export function mapPackagePrograms(pkg: any) {
   return {
     ...pkg,
     programs: (pkg.program_payment_packages || [])
-      .map((link: any) => link.programs)
+      .map((link: any) => {
+        if (!link.programs) return null;
+        return {
+          ...link.programs,
+          assignment_id: link.id,
+          discount_type: link.discount_type || null,
+          discount_value: link.discount_value != null ? Number(link.discount_value) : null,
+        };
+      })
       .filter(Boolean),
   };
 }
@@ -89,7 +116,7 @@ export function getPackagePriceForStudent(
 ) {
   const mapped = mapPackagePrograms(pkg);
   const progMatch = findProgramInPackage(mapped, programTitle, programId);
-  const monthly = getEffectiveMonthlyPrice(progMatch);
+  const monthly = getPackageProgramMonthlyPrice(progMatch);
   const months = Number(pkg.duration_months || 1);
   const base = monthly * months;
   return applyStudentDiscount(base, student);
@@ -108,12 +135,21 @@ export function getStudentUpgradePackages(
     .map((pkg) => {
       const progMatch = findProgramInPackage(pkg, chosen, programId);
       if (!progMatch) return null;
+      const months = Number(pkg.duration_months || 1);
+      const baseMonthly = getEffectiveMonthlyPrice(progMatch);
+      const packageMonthly = getPackageProgramMonthlyPrice(progMatch);
+      const basePrice = baseMonthly * months;
+      const packagePrice = packageMonthly * months;
       const studentPrice = getPackagePriceForStudent(pkg, chosen, student, programId);
       return {
         ...pkg,
         studentPrice,
-        originalPrice: Number(progMatch.price || 0) * (pkg.duration_months || 1),
+        basePrice,
+        packagePrice,
+        originalPrice: packagePrice,
         matchedProgram: progMatch,
+        hasPackageDiscount: packagePrice < basePrice,
+        hasScholarshipDiscount: studentPrice < packagePrice,
       };
     })
     .filter(Boolean)

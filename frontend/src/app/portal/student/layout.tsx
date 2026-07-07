@@ -85,6 +85,8 @@ function StudentLayoutContent({ children }) {
           "/portal/student/my-certification",
           "/portal/student/student-support",
           "/portal/student/policies",
+          "/portal/student/tutorials",
+          "/portal/student/news",
         ];
 
         // If NOT approved, can only visit baseAllowedPaths

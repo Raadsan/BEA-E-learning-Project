@@ -33,14 +33,24 @@ export const paymentApi = createApi({
                 return response;
             },
         }),
-        getAllPayments: builder.query<any, void>({
-            query: () => `/`,
+        getAllPayments: builder.query<any, Record<string, string> | void>({
+            query: (params) => {
+                const searchParams = new URLSearchParams();
+                if (params) {
+                    Object.entries(params).forEach(([key, value]) => {
+                        if (value) searchParams.set(key, value);
+                    });
+                }
+                const qs = searchParams.toString();
+                return qs ? `/?${qs}` : `/`;
+            },
             providesTags: ["Payments"],
             transformResponse: (response: any) => {
-                if (response.success) {
+                if (response?.success && response.payments) {
                     return response.payments;
                 }
-                return response;
+                if (Array.isArray(response)) return response;
+                return [];
             },
         }),
         createEvcPayment: builder.mutation({

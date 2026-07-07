@@ -5,7 +5,7 @@ import ReviewModal from "../ReviewModal";
 import { useSubmitStudentReviewMutation, useGetQuestionsQuery, useGetStudentReviewsByTeacherQuery } from "@/lib/api/reviewApi";
 import { useToast } from "@/components/Toast";
 
-const TeacherReviewForm = ({ student, classId, termSerial, onComplete }: { student: any; classId: any; termSerial: any; onComplete?: any }) => {
+const TeacherReviewForm = ({ student, classId, termSerial, onComplete, reviewOpen = true }: { student: any; classId: any; termSerial: any; onComplete?: any; reviewOpen?: boolean }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [locallyReviewed, setLocallyReviewed] = useState(false);
     const { showToast } = useToast();
@@ -13,7 +13,13 @@ const TeacherReviewForm = ({ student, classId, termSerial, onComplete }: { stude
     const { data: questions = [], isLoading: questionsLoading } = useGetQuestionsQuery("student");
     const { data: existingReviews = [] } = useGetStudentReviewsByTeacherQuery();
 
-    const handleOpen = () => setIsModalOpen(true);
+    const handleOpen = () => {
+        if (!reviewOpen) {
+            showToast("The review period is closed.", "error");
+            return;
+        }
+        setIsModalOpen(true);
+    };
     const handleClose = () => setIsModalOpen(false);
 
     const handleSubmit = async ({ rating, comment, answers }) => {
@@ -66,7 +72,7 @@ const TeacherReviewForm = ({ student, classId, termSerial, onComplete }: { stude
         <>
             <button
                 onClick={handleOpen}
-                disabled={questionsLoading}
+                disabled={questionsLoading || !reviewOpen}
                 className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm flex items-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {questionsLoading ? (

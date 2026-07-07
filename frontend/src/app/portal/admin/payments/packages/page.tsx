@@ -11,9 +11,11 @@ import {
     useUpdatePaymentPackageMutation,
     useDeletePaymentPackageMutation,
     useAssignPackageToProgramMutation,
+    useUpdatePackageProgramAssignmentMutation,
     useRemovePackageFromProgramMutation
 } from "@/lib/api/paymentPackageApi";
 import { useGetProgramsQuery } from "@/lib/api/programApi";
+import { getPackageProgramMonthlyPrice } from "@/utils/studentPayment";
 
 // Components
 import PaymentPackageForm from "@/components/admin/payments/PaymentPackageForm";
@@ -33,6 +35,7 @@ export default function PaymentPackagesPage() {
     const [updatePackage, { isLoading: isUpdating }] = useUpdatePaymentPackageMutation();
     const [deletePackage] = useDeletePaymentPackageMutation();
     const [assignPackage, { isLoading: isAssigning }] = useAssignPackageToProgramMutation();
+    const [updateAssignment] = useUpdatePackageProgramAssignmentMutation();
     const [removePackage] = useRemovePackageFromProgramMutation();
 
     // States
@@ -86,9 +89,18 @@ export default function PaymentPackagesPage() {
         try {
             // Ensure amount is handled correctly for both create and update
             const submissionData = {
-                ...formData,
-                amount: formData.amount === "" ? null : formData.amount
+                package_name: formData.package_name.trim(),
+                description: formData.description || null,
+                currency: formData.currency || "USD",
+                duration_months: parseInt(formData.duration_months, 10),
+                status: formData.status || "active",
+                amount: formData.amount === "" ? null : formData.amount,
             };
+
+            if (!submissionData.duration_months || submissionData.duration_months < 1) {
+                showToast("Duration must be at least 1 month.", "error");
+                return;
+            }
 
             if (editingPackage) {
                 await updatePackage({ id: editingPackage.id, ...submissionData }).unwrap();
@@ -98,8 +110,8 @@ export default function PaymentPackagesPage() {
                 showToast("Package created successfully!", "success");
             }
             setIsFormOpen(false);
-        } catch (error) {
-            showToast("Failed to save package: " + (error.data?.message || error.message), "error");
+        } catch (error: any) {
+            showToast("Failed to save package: " + (error.data?.error || error.data?.message || error.message), "error");
         }
     };
 
@@ -119,15 +131,23 @@ export default function PaymentPackagesPage() {
         setIsAssignModalOpen(true);
     };
 
-    const handleAssignProgram = async (packageId, programId) => {
+    const handleAssignProgram = async (packageId, programId, discount = {}) => {
         try {
-            await assignPackage({ packageId, programId }).unwrap();
+            await assignPackage({ packageId, programId, ...discount }).unwrap();
             showToast("Program assigned successfully!", "success");
-            // Refresh local selected package state to show new assignment
             const updatedPkg = packages.find(p => p.id === packageId);
             if (updatedPkg) setSelectedPackage(updatedPkg);
-        } catch (error) {
-            showToast("Failed to assign program: " + (error.data?.message || error.message), "error");
+        } catch (error: any) {
+            showToast("Failed to assign program: " + (error.data?.error || error.data?.message || error.message), "error");
+        }
+    };
+
+    const handleUpdateProgramDiscount = async (packageId, programId, discount = {}) => {
+        try {
+            await updateAssignment({ packageId, programId, ...discount }).unwrap();
+            showToast("Discount updated successfully!", "success");
+        } catch (error: any) {
+            showToast("Failed to update discount: " + (error.data?.error || error.data?.message || error.message), "error");
         }
     };
 
@@ -224,16 +244,24 @@ export default function PaymentPackagesPage() {
                                     </h4>
                                     <div className="space-y-2">
                                         {pkg.programs && pkg.programs.length > 0 ? (
-                                            pkg.programs.map((prog) => (
+                                            pkg.programs.map((prog) => {
+                                                const monthly = getPackageProgramMonthlyPrice(prog);
+                                                const total = monthly * (pkg.duration_months || 1);
+                                                return (
                                                 <div key={prog.id} className="flex justify-between items-center py-1">
                                                     <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                                                         {prog.title}
+                                                        {prog.discount_type && prog.discount_value != null && (
+                                                            <span className="ml-1 text-green-600">
+                                                                ({prog.discount_type === "percentage" ? `${prog.discount_value}%` : `$${prog.discount_value}`} off)
+                                                            </span>
+                                                        )}
                                                     </span>
                                                     <div className={`text-xs font-bold ${isDark ? 'text-blue-400' : 'text-[#010080]'}`}>
-                                                        ${(parseFloat(prog.price || 0) * (pkg.duration_months || 1)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                        ${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                                     </div>
                                                 </div>
-                                            ))
+                                            )})
                                         ) : (
                                             <p className="text-[10px] text-gray-400 font-medium italic">No programs assigned</p>
                                         )}
@@ -303,6 +331,7 @@ export default function PaymentPackagesPage() {
                 selectedPackage={selectedPackage}
                 programs={programs}
                 handleAssign={handleAssignProgram}
+                handleUpdate={handleUpdateProgramDiscount}
                 handleRemove={handleRemoveProgram}
                 isDark={isDark}
                 isAssigning={isAssigning}

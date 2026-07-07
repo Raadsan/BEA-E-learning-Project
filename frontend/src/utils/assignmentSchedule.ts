@@ -106,7 +106,7 @@ export function syncAssignmentSchedule(
   return next;
 }
 
-/** Student countdown target (ms). Prefers absolute end date, else duration from session start. */
+/** Student countdown target (ms). Uses duration from session start, capped by due/end date. */
 export function getAssignmentTimerTargetMs(
   assignment: {
     due_date?: string | null;
@@ -116,13 +116,20 @@ export function getAssignmentTimerTargetMs(
   sessionStartedAtMs?: number
 ) {
   const endRaw = assignment.due_date || assignment.end_date;
+  let endMs: number | null = null;
   if (endRaw) {
-    const endMs = new Date(endRaw).getTime();
-    if (!Number.isNaN(endMs)) return endMs;
+    const parsed = new Date(endRaw).getTime();
+    if (!Number.isNaN(parsed)) endMs = parsed;
   }
+
+  let durationMs: number | null = null;
   if (assignment.duration && sessionStartedAtMs) {
-    return sessionStartedAtMs + assignment.duration * 60 * 1000;
+    durationMs = sessionStartedAtMs + assignment.duration * 60 * 1000;
   }
+
+  if (durationMs && endMs) return Math.min(durationMs, endMs);
+  if (durationMs) return durationMs;
+  if (endMs) return endMs;
   return null;
 }
 

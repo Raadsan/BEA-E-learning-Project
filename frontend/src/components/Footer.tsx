@@ -127,7 +127,8 @@ export default function Footer() {
               <li><Link href="/website/copyright-policy" className="hover:text-gray-300 transition-colors">Copyright Policy</Link></li>
               <li><Link href="/website/student-code-of-conduct" className="hover:text-gray-300 transition-colors">BEA Student Code of Conduct</Link></li>
               <li><Link href="/website/payment-refund-policy" className="hover:text-gray-300 transition-colors">Payment and Refund Policy</Link></li>
-              <li><Link href="/student-engagement-policy" className="hover:text-gray-300 transition-colors">Student Engagement Policy</Link></li>
+              <li><Link href="/website/student-engagement-policy" className="hover:text-gray-300 transition-colors">Student Engagement Policy</Link></li>
+              <li><Link href="/website/terms-and-conditions" className="hover:text-gray-300 transition-colors">Terms & Conditions</Link></li>
             </ul>
           </div>
 

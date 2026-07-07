@@ -8,7 +8,7 @@ import {
 import {
     calculateUpgradePrice,
     computeNewPaidUntil,
-    getProgramByTitle,
+    resolveProgramForPackage,
     mapMonthsToSponsorshipEnum,
 } from '../utils/studentPaymentUtils.js';
 
@@ -19,7 +19,7 @@ async function extendSubscription(studentEmail, packageId, paidAmount) {
 
         if (!student || !pkg) return null;
 
-        const program = await getProgramByTitle(prisma, student.chosen_program);
+        const program = await resolveProgramForPackage(prisma, student, pkg);
         const { durationMonths, payableAmount: expectedAmount } = calculateUpgradePrice(student, program, pkg);
         const newPaidUntil = computeNewPaidUntil(student.paid_until, durationMonths);
 
@@ -85,7 +85,7 @@ export const createWaafiPayment = async (req, res) => {
 
         let payableAmount = 0;
         if (student && pkg) {
-            const program = await getProgramByTitle(prisma, student.chosen_program);
+            const program = await resolveProgramForPackage(prisma, student, pkg);
             payableAmount = calculateUpgradePrice(student, program, pkg).payableAmount;
         } else if (amount !== undefined && amount !== null) {
             payableAmount = parseFloat(amount);
@@ -161,7 +161,9 @@ export const createWaafiPayment = async (req, res) => {
 
 export const getPayments = async (req, res) => {
     try {
+        const { search, method, status, from, to, student_id } = req.query;
         const payments = await prisma.payments.findMany({
+            where: student_id ? { student_id: String(student_id) } : undefined,
             orderBy: { created_at: 'desc' }
         });
 
@@ -172,13 +174,66 @@ export const getPayments = async (req, res) => {
                     where: { student_id: payment.student_id }
                 });
             }
-            return {
+
+            let package_name = null;
+            if (payment.program_id && !Number.isNaN(parseInt(payment.program_id, 10))) {
+                const pkg = await prisma.payment_packages.findUnique({
+                    where: { id: parseInt(payment.program_id, 10) },
+                });
+                package_name = pkg?.package_name || null;
+            }
+
+            const row = {
                 ...payment,
-                students: student
+                amount: payment.amount != null ? Number(payment.amount) : 0,
+                student_name: student?.full_name || null,
+                program_name: student?.chosen_program || package_name || payment.program_id,
+                package_name,
+                payment_method: payment.method,
+                payment_date: payment.created_at,
+                transaction_id: payment.provider_transaction_id,
             };
+
+            return row;
         }));
 
-        res.json(populatedPayments);
+        let filtered = populatedPayments;
+        if (method) {
+            filtered = filtered.filter((p) => String(p.method || '').toLowerCase().includes(String(method).toLowerCase()));
+        }
+        if (status) {
+            filtered = filtered.filter((p) => String(p.status || '').toLowerCase() === String(status).toLowerCase());
+        }
+        if (from) {
+            const fromDate = new Date(from);
+            filtered = filtered.filter((p) => p.created_at && new Date(p.created_at) >= fromDate);
+        }
+        if (to) {
+            const toDate = new Date(to);
+            toDate.setHours(23, 59, 59, 999);
+            filtered = filtered.filter((p) => p.created_at && new Date(p.created_at) <= toDate);
+        }
+        if (search) {
+            const q = String(search).toLowerCase();
+            filtered = filtered.filter((p) => {
+                const blob = [
+                    p.student_name,
+                    p.student_id,
+                    p.method,
+                    p.payment_method,
+                    p.status,
+                    p.program_name,
+                    p.package_name,
+                    p.provider_transaction_id,
+                    p.transaction_id,
+                    p.payer_phone,
+                    p.created_at ? new Date(p.created_at).toLocaleDateString() : '',
+                ].join(' ').toLowerCase();
+                return blob.includes(q);
+            });
+        }
+
+        res.json(filtered);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -192,7 +247,25 @@ export const getStudentPayments = async (req, res) => {
             orderBy: { created_at: 'desc' }
         });
 
-        res.json({ success: true, payments });
+        const enriched = await Promise.all(payments.map(async (payment) => {
+            let package_name = null;
+            if (payment.program_id && !Number.isNaN(parseInt(payment.program_id, 10))) {
+                const pkg = await prisma.payment_packages.findUnique({
+                    where: { id: parseInt(payment.program_id, 10) },
+                });
+                package_name = pkg?.package_name || null;
+            }
+            return {
+                ...payment,
+                amount: payment.amount != null ? Number(payment.amount) : 0,
+                package_name,
+                program_name: package_name || payment.program_id,
+                payment_method: payment.method,
+                transaction_id: payment.provider_transaction_id,
+            };
+        }));
+
+        res.json({ success: true, payments: enriched });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }

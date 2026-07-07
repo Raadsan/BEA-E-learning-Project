@@ -1,5 +1,5 @@
 import Header from "@/components/Header";
-import CopyrightPolicy from "@/components/CopyrightPolicy";
+import PolicyPageBody from "@/components/policies/PolicyPageBody";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
@@ -13,7 +13,7 @@ export default function CopyrightPolicyPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow">
-        <CopyrightPolicy /> 
+        <PolicyPageBody slug="copyright-policy" systemOnly />
       </main>
       <Footer />
       <WhatsAppButton />

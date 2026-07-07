@@ -4,6 +4,20 @@ export function getEffectiveMonthlyPrice(program) {
   return Math.max(0, price - discount);
 }
 
+/** Monthly price for a program inside a payment package assignment. */
+export function getPackageProgramMonthlyPrice(program) {
+  const price = Number(program?.price || 0);
+  const type = program?.discount_type;
+  const value = Number(program?.discount_value || 0);
+  if (type === 'percentage' && value > 0) {
+    return Math.max(0, price * (1 - value / 100));
+  }
+  if (type === 'fixed' && value > 0) {
+    return Math.max(0, price - value);
+  }
+  return getEffectiveMonthlyPrice(program);
+}
+
 const FUNDING_STATUS_TO_PRISMA = {
   Paid: "Paid",
   "Full Scholarship": "Full_Scholarship",
@@ -181,7 +195,7 @@ export function computeNewPaidUntil(currentPaidUntil, durationMonths = 1) {
 
 export function calculateUpgradePrice(student, program, pkg) {
   const durationMonths = parseInt(pkg?.duration_months, 10) || 1;
-  const monthly = getEffectiveMonthlyPrice(program);
+  const monthly = getPackageProgramMonthlyPrice(program);
   const baseTotal = monthly * durationMonths;
   const payableAmount = Number(applyStudentDiscount(baseTotal, student).toFixed(2));
   return {
@@ -203,6 +217,38 @@ export function mapMonthsToSponsorshipEnum(months) {
 export async function getProgramByTitle(prisma, title) {
   if (!title) return null;
   return prisma.programs.findFirst({ where: { title } });
+}
+
+/** Program row merged with package-assignment discount for pricing. */
+export async function resolveProgramForPackage(prisma, student, pkg) {
+  if (!pkg?.id) {
+    return getProgramByTitle(prisma, student?.chosen_program);
+  }
+
+  const links = await prisma.program_payment_packages.findMany({
+    where: { payment_package_id: pkg.id },
+    include: { programs: true },
+  });
+
+  const programId = student?.chosen_program_id ? Number(student.chosen_program_id) : null;
+  const programTitle = student?.chosen_program;
+
+  const link = links.find((entry) => {
+    if (!entry.programs) return false;
+    if (programId && entry.programs.id === programId) return true;
+    if (programTitle && entry.programs.title === programTitle) return true;
+    return false;
+  });
+
+  if (!link?.programs) {
+    return getProgramByTitle(prisma, programTitle);
+  }
+
+  return {
+    ...link.programs,
+    discount_type: link.discount_type || null,
+    discount_value: link.discount_value != null ? Number(link.discount_value) : null,
+  };
 }
 
 export async function resolvePaymentPackage(prisma, packageName) {
@@ -261,7 +307,15 @@ export function mapPackagePrograms(pkg) {
   return {
     ...pkg,
     programs: (pkg.program_payment_packages || [])
-      .map((link) => link.programs)
+      .map((link) => {
+        if (!link.programs) return null;
+        return {
+          ...link.programs,
+          assignment_id: link.id,
+          discount_type: link.discount_type || null,
+          discount_value: link.discount_value != null ? Number(link.discount_value) : null,
+        };
+      })
       .filter(Boolean),
   };
 }

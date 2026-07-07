@@ -6,7 +6,14 @@ import { useDarkMode } from "@/context/ThemeContext";
 import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from "@/lib/api/assignmentApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { resolveSubmissionFileUrl, resolveSubmissionDownloadUrl, API_URL } from "@/constants";
-import { openSubmissionFile } from "@/utils/submissionFiles";
+import { openSubmissionFile, downloadSubmissionFile } from "@/utils/submissionFiles";
+import {
+    parseEmbeddedFeedbackFile,
+    resolveFeedbackFileUrl,
+    isPdfFileUrl,
+    openOrDownloadFeedbackFile,
+} from "@/utils/feedbackFiles";
+import { parseWritingTaskRequirements } from "@/utils/writingTaskMeta";
 import { useToast } from "@/components/Toast";
 import {
     getAssignmentTimeStatus,
@@ -25,6 +32,7 @@ import {
     splitDurationMinutes,
 } from "@/utils/assignmentSchedule";
 import StudentPageHeader from "@/components/student/StudentPageHeader";
+import AudioRecorderPanel from "@/components/student/AudioRecorderPanel";
 
 
 export default function StudentAssignmentList({ type, title, externalAssignment = null, onLeaveWorkspace = undefined }) {
@@ -71,9 +79,18 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
     const assignmentHasTimer = (assignment) =>
         !!(assignment?.duration || assignment?.due_date || assignment?.end_date);
 
+    const isSubmissionLocked = (assignment) =>
+        assignment?.submission_status === "submitted" || assignment?.submission_status === "graded";
+
+    const clearAssignmentTimer = (assignmentId) => {
+        const studentKey = getStudentKey();
+        if (!studentKey || !assignmentId) return;
+        localStorage.removeItem(`assignment_timer_${studentKey}_${assignmentId}`);
+    };
+
     const ensureTimerTarget = (assignment) => {
         const studentKey = getStudentKey();
-        if (!studentKey || !assignment) return null;
+        if (!studentKey || !assignment || isSubmissionLocked(assignment)) return null;
 
         const timerKey = `assignment_timer_${studentKey}_${assignment.id}`;
         const savedTarget = localStorage.getItem(timerKey);
@@ -124,47 +141,63 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
 
     // Initialize/read persistent timer when workspace view is activated
     useEffect(() => {
-        if (view === "workspace" && assignmentHasTimer(selectedAssignment) && getStudentKey() && type !== 'exam') {
-            const timerInfo = ensureTimerTarget(selectedAssignment);
-            if (!timerInfo) return;
+        if (
+            view !== "workspace" ||
+            type === "exam" ||
+            !assignmentHasTimer(selectedAssignment) ||
+            !getStudentKey() ||
+            isSubmissionLocked(selectedAssignment)
+        ) {
+            return;
+        }
 
-            const remaining = Math.max(0, Math.floor((timerInfo.targetMs - Date.now()) / 1000));
-            setTimeLeft(remaining);
+        const timerInfo = ensureTimerTarget(selectedAssignment);
+        if (!timerInfo) return;
 
-            if (remaining <= 0) {
-                handleFinalSubmit(true);
-            }
+        const remaining = Math.max(0, Math.floor((timerInfo.targetMs - Date.now()) / 1000));
+        setTimeLeft(remaining);
+
+        if (remaining <= 0) {
+            handleFinalSubmit(true);
         }
     }, [view, selectedAssignment, user, type]);
 
     // Timer countdown loop
     useEffect(() => {
-        if (view === "workspace" && assignmentHasTimer(selectedAssignment) && timeLeft !== null && getStudentKey() && !submitting && type !== 'exam') {
-            const timerKey = `assignment_timer_${getStudentKey()}_${selectedAssignment.id}`;
-            timerRef.current = setInterval(() => {
-                const savedTarget = localStorage.getItem(timerKey);
-                if (savedTarget) {
-                    const targetTime = parseInt(savedTarget, 10);
-                    const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
-                    setTimeLeft(remaining);
-                    if (remaining <= 0) {
+        if (
+            view !== "workspace" ||
+            type === "exam" ||
+            !assignmentHasTimer(selectedAssignment) ||
+            timeLeft === null ||
+            !getStudentKey() ||
+            submitting ||
+            isSubmissionLocked(selectedAssignment)
+        ) {
+            clearInterval(timerRef.current);
+            return;
+        }
+        const timerKey = `assignment_timer_${getStudentKey()}_${selectedAssignment.id}`;
+        timerRef.current = setInterval(() => {
+            const savedTarget = localStorage.getItem(timerKey);
+            if (savedTarget) {
+                const targetTime = parseInt(savedTarget, 10);
+                const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
+                setTimeLeft(remaining);
+                if (remaining <= 0) {
+                    clearInterval(timerRef.current);
+                    handleFinalSubmit(true);
+                }
+            } else {
+                setTimeLeft((prev) => {
+                    if (prev <= 1) {
                         clearInterval(timerRef.current);
                         handleFinalSubmit(true);
+                        return 0;
                     }
-                } else {
-                    setTimeLeft(prev => {
-                        if (prev <= 1) {
-                            clearInterval(timerRef.current);
-                            handleFinalSubmit(true);
-                            return 0;
-                        }
-                        return prev - 1;
-                    });
-                }
-            }, 1000);
-        } else {
-            clearInterval(timerRef.current);
-        }
+                    return prev - 1;
+                });
+            }
+        }, 1000);
 
         return () => clearInterval(timerRef.current);
     }, [view, selectedAssignment, timeLeft, user, submitting, type]);
@@ -190,8 +223,15 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
             return;
         }
 
+        if (isSubmissionLocked(assignment)) {
+            clearAssignmentTimer(assignment.id);
+            setSelectedAssignment(assignment);
+            startWorkspace(assignment);
+            return;
+        }
+
         setSelectedAssignment(assignment);
-        if (assignmentHasTimer(assignment) && assignment.submission_status !== 'submitted' && assignment.submission_status !== 'graded') {
+        if (assignmentHasTimer(assignment)) {
             // Check if timer was already started (key exists in localStorage)
             const timerKey = `assignment_timer_${getStudentKey()}_${assignment.id}`;
             const savedTarget = typeof window !== 'undefined' ? localStorage.getItem(timerKey) : null;
@@ -221,7 +261,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
             setSubmissionContent(assignment.student_content || "");
         }
 
-        if (assignmentHasTimer(assignment)) {
+        if (assignmentHasTimer(assignment) && !isSubmissionLocked(assignment)) {
             const timerInfo = ensureTimerTarget(assignment);
             if (timerInfo) {
                 const remaining = Math.max(0, Math.floor((timerInfo.targetMs - Date.now()) / 1000));
@@ -229,6 +269,8 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
             } else {
                 setTimeLeft(assignment.duration ? assignment.duration * 60 : 0);
             }
+        } else {
+            setTimeLeft(null);
         }
         // Reset upload state
         setUploadedFile(null);
@@ -238,32 +280,36 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
         setView("workspace");
     };
 
+    const oralAllowsAudioRecording = (submissionType) =>
+        !submissionType || submissionType === "audio" || submissionType === "both" || submissionType === "all";
+
+    const handleOralSubmissionFile = (file) => {
+        if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
+        if (!file) {
+            setUploadedFile(null);
+            setFilePreviewUrl(null);
+            return;
+        }
+        if (file.size > 50 * 1024 * 1024) {
+            showToast("File is too large. Max size is 50MB.", "error");
+            return;
+        }
+        const submissionType = selectedAssignment?.submission_type || "audio";
+        if (!isAllowedOralSubmissionFile(file, submissionType)) {
+            showToast(`Please select a valid ${getOralSubmissionLabel(submissionType)}.`, "error");
+            return;
+        }
+        setUploadedFile(file);
+        setFilePreviewUrl(URL.createObjectURL(file));
+    };
+
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-           if (file.size > 50 * 1024 * 1024) { // 50MB limit
-    showToast("File is too large. Max size is 50MB.", "error");
-    return;
-}
-
-            // Get submission type from assignment
-            const submissionType = selectedAssignment?.submission_type || 'audio';
-
-            if (!isAllowedOralSubmissionFile(file, submissionType)) {
-                showToast(`Please select a valid ${getOralSubmissionLabel(submissionType)}.`, "error");
-                return;
-            }
-
-            setUploadedFile(file);
-            const url = URL.createObjectURL(file);
-            setFilePreviewUrl(url);
-        }
+        if (file) handleOralSubmissionFile(file);
     };
 
     const removeUploadedFile = () => {
-        setUploadedFile(null);
-        if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
-        setFilePreviewUrl(null);
+        handleOralSubmissionFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -273,12 +319,20 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
 
         if (autoSubmittingRef.current || submitting) return;
 
+        if (isSubmissionLocked(selectedAssignment)) return;
+
         const isQuiz = !!selectedAssignment?.questions;
         const contentToSubmit = isQuiz ? quizAnswers : submissionContent;
         const hasOralFile = type === "oral_assignment" && !!uploadedFile;
 
         if (type === "oral_assignment" && !uploadedFile && !auto) {
-            showToast(`Please upload a ${getOralSubmissionLabel(selectedAssignment?.submission_type)} before submitting.`, "error");
+            const needsRecording = oralAllowsAudioRecording(selectedAssignment?.submission_type);
+            showToast(
+                needsRecording
+                    ? "Please record your answer before submitting."
+                    : `Please upload a ${getOralSubmissionLabel(selectedAssignment?.submission_type)} before submitting.`,
+                "error"
+            );
             return;
         }
 
@@ -406,15 +460,42 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
         URL.revokeObjectURL(url);
     };
 
-    const handleDownloadFeedbackFile = async (fileUrl) => {
+    const handleDownloadFeedbackFile = async (fileUrl, fileName) => {
         if (!fileUrl) return;
         try {
-            await openSubmissionFile(fileUrl);
-            showToast("Opening file...", "success");
+            const action = await openOrDownloadFeedbackFile(fileUrl, fileName);
+            showToast(action === "open" ? "Opening file in browser..." : "Downloading file...", "success");
         } catch (error) {
-            console.error("Download error:", error);
-            showToast("Failed to download file. Please try again.", "error");
+            console.error("Feedback file error:", error);
+            showToast("Could not open the feedback file. Please try again.", "error");
         }
+    };
+
+    const renderFeedbackFileActions = (fileUrl, fileName) => {
+        if (!fileUrl) return null;
+        const label = isPdfFileUrl(fileUrl) ? "Open in Browser" : "Download";
+        return (
+            <div className="pt-2">
+                <button
+                    type="button"
+                    onClick={() => handleDownloadFeedbackFile(fileUrl, fileName)}
+                    className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border text-sm font-semibold transition-all
+                        ${isDark
+                            ? 'bg-blue-600/10 border-blue-500/20 text-blue-400 hover:bg-blue-600/20'
+                            : 'bg-white border-blue-100 text-blue-600 hover:bg-blue-50 shadow-sm'
+                        }`}
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {isPdfFileUrl(fileUrl) ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        )}
+                    </svg>
+                    {label} Feedback File
+                </button>
+            </div>
+        );
     };
 
     const handleAnswerChange = (qIndex, option) => {
@@ -516,6 +597,40 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
 
         const isWindowClosed = type === "writing_task" && isWritingWindowClosed(selectedAssignment);
         const isClosed = selectedAssignment.submission_status === "submitted" || selectedAssignment.submission_status === "graded" || isWindowClosed;
+        const writingTaskMeta = type === "writing_task"
+            ? parseWritingTaskRequirements(
+                selectedAssignment?.requirements,
+                selectedAssignment?.submission_format
+            )
+            : null;
+        const teacherAttachmentUrl = selectedAssignment?.attachment_url || writingTaskMeta?.attachment_url || null;
+        const teacherAttachmentName = selectedAssignment?.attachment_name || writingTaskMeta?.attachment_name || "Teacher file";
+        const guidelinesText = type === "writing_task"
+            ? (selectedAssignment?.requirements_text || writingTaskMeta?.text || selectedAssignment?.description || "Follow the standard submission procedures.")
+            : type === "oral_assignment"
+                ? (selectedAssignment?.requirements || "Read the passage below and record your voice.")
+                : (selectedAssignment?.requirements || selectedAssignment?.description || "Follow the standard submission procedures.");
+
+        const handleOpenTeacherAttachment = async () => {
+            if (!teacherAttachmentUrl) return;
+            try {
+                if (isPdfFileUrl(teacherAttachmentUrl)) {
+                    await openSubmissionFile(teacherAttachmentUrl);
+                } else {
+                    await downloadSubmissionFile(teacherAttachmentUrl, teacherAttachmentName);
+                }
+            } catch {
+                showToast("Could not open the teacher file. Please try again.", "error");
+            }
+        };
+
+        const embeddedFeedback = parseEmbeddedFeedbackFile(selectedAssignment?.feedback);
+        const feedbackFileUrl = resolveFeedbackFileUrl(
+            selectedAssignment?.feedback,
+            selectedAssignment?.feedback_file_url
+        );
+        const feedbackText = embeddedFeedback.text || (feedbackFileUrl ? "" : (selectedAssignment?.feedback || ""));
+        const feedbackFileName = embeddedFeedback.fileName || feedbackFileUrl?.split("/").pop() || "feedback";
 
         return (
             <div className={`transition-colors w-full p-6 md:p-8 pb-12 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
@@ -558,9 +673,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                     Guidelines
                                 </h3>
                                 <p className={`text-base leading-relaxed whitespace-pre-wrap font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                                    {type === 'oral_assignment'
-                                        ? (selectedAssignment?.requirements || "Read the passage below and record your voice.")
-                                        : (selectedAssignment?.requirements || selectedAssignment?.description || "Follow the standard submission procedures.")}
+                                    {guidelinesText}
                                 </p>
                             </div>
                             <div className="flex flex-wrap gap-3">
@@ -575,6 +688,46 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                             </div>
                         </div>
 
+                        {type === 'writing_task' && teacherAttachmentUrl && (
+                            <div className={`mt-6 p-5 rounded-xl border ${isDark ? 'bg-blue-950/30 border-blue-800' : 'bg-blue-50/80 border-blue-200'}`}>
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-sm font-bold uppercase tracking-wider text-[#010080] dark:text-blue-300">
+                                            Teacher Attached File
+                                        </h3>
+                                        <p className={`mt-1 text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            {teacherAttachmentName}
+                                        </p>
+                                        <p className={`mt-1 text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                                            Open the file in your browser to read the teacher&apos;s instructions or materials.
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-wrap gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={handleOpenTeacherAttachment}
+                                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#010080] hover:bg-blue-800 text-white text-sm font-bold transition-all"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                {isPdfFileUrl(teacherAttachmentUrl) ? (
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                ) : (
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                )}
+                                            </svg>
+                                            {isPdfFileUrl(teacherAttachmentUrl) ? "Open in Browser" : "Download"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {selectedAssignment.submission_status === 'submitted' && (
+                            <div className={`mt-6 p-4 rounded-xl border text-sm font-medium ${isDark ? 'bg-indigo-900/20 border-indigo-800 text-indigo-200' : 'bg-indigo-50 border-indigo-200 text-indigo-800'}`}>
+                                Your work has been submitted and is waiting for the teacher to grade it.
+                            </div>
+                        )}
+
                         {selectedAssignment.submission_status === 'graded' && (
                             <div className={`mt-6 p-6 rounded-2xl border ${isDark ? 'bg-gray-800/40 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
                                 <div className="flex justify-between items-center mb-5 pb-4 border-b border-gray-100 dark:border-gray-700/50">
@@ -588,32 +741,16 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                 </div>
 
                                 <div className="space-y-4">
-                                    {selectedAssignment.feedback && (
+                                    {feedbackText && (
                                         <div className="flex flex-col gap-1.5">
                                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Instructor Feedback</span>
-                                            <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                                                {selectedAssignment.feedback}
+                                            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                {feedbackText}
                                             </p>
                                         </div>
                                     )}
 
-                                    {selectedAssignment.feedback_file_url && (
-                                        <div className="pt-2">
-                                            <button
-                                                onClick={() => handleDownloadFeedbackFile(selectedAssignment.feedback_file_url)}
-                                                className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border text-sm font-medium transition-all
-                                                    ${isDark
-                                                        ? 'bg-blue-600/10 border-blue-500/20 text-blue-400 hover:bg-blue-600/20'
-                                                        : 'bg-white border-blue-100 text-blue-600 hover:bg-blue-50 shadow-sm'
-                                                    }`}
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                                Download Feedback Document
-                                            </button>
-                                        </div>
-                                    )}
+                                    {renderFeedbackFileActions(feedbackFileUrl, feedbackFileName)}
                                 </div>
                             </div>
                         )}
@@ -662,7 +799,17 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                     </div>
                                 ) : (
                                     <div className="space-y-6">
-                                        {!uploadedFile ? (
+                                        {oralAllowsAudioRecording(selectedAssignment?.submission_type) && (
+                                            <AudioRecorderPanel
+                                                isDark={isDark}
+                                                maxSizeMb={50}
+                                                onFileReady={handleOralSubmissionFile}
+                                                activeFile={uploadedFile}
+                                                activePreviewUrl={filePreviewUrl}
+                                            />
+                                        )}
+
+                                        {!oralAllowsAudioRecording(selectedAssignment?.submission_type) && !uploadedFile && (
                                             <label className={`flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-xl cursor-pointer transition-all ${isDark ? 'bg-gray-800/20 border-gray-700 hover:border-gray-600' : 'bg-gray-50 border-gray-200 hover:border-gray-300'}`}>
                                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                     <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
@@ -670,10 +817,9 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                                         Click to upload your {getOralSubmissionLabel(selectedAssignment?.submission_type)}
                                                     </p>
                                                     <p className="text-xs text-gray-400 font-normal">
-                                                        {selectedAssignment?.submission_type === 'audio' ? 'MP3, WAV, or WEBM (MAX. 50MB)' :
-                                                            selectedAssignment?.submission_type === 'video' ? 'MP4, WEBM, or MOV (MAX. 50MB)' :
-                                                                selectedAssignment?.submission_type === 'image' ? 'JPG, PNG, or WEBP (MAX. 50MB)' :
-                                                                    'Audio, video, or image files (MAX. 50MB)'}
+                                                        {selectedAssignment?.submission_type === 'video' ? 'MP4, WEBM, or MOV (MAX. 50MB)' :
+                                                            selectedAssignment?.submission_type === 'image' ? 'JPG, PNG, or WEBP (MAX. 50MB)' :
+                                                                'Audio, video, or image files (MAX. 50MB)'}
                                                     </p>
                                                 </div>
                                                 <input
@@ -684,7 +830,9 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                                     ref={fileInputRef}
                                                 />
                                             </label>
-                                        ) : (
+                                        )}
+
+                                        {uploadedFile && !oralAllowsAudioRecording(selectedAssignment?.submission_type) && (
                                             <div className={`p-6 rounded-xl border ${isDark ? 'bg-gray-800/40 border-gray-700' : 'bg-white border-gray-100 shadow-sm'}`}>
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div className="flex items-center gap-3">
@@ -869,6 +1017,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                         <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Time Expired</h3>
                         <p className={`text-sm mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                             Your writing time has ended. Whatever you wrote has been saved and submitted automatically.
+                            Click <strong>View Submission</strong> on the task card to see your work, the teacher&apos;s file, and your grade when ready.
                         </p>
                         <button
                             onClick={() => setShowTimeUpModal(false)}

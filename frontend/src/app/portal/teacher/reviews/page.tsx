@@ -6,9 +6,13 @@ import { useGetStudentsByClassQuery } from "@/lib/api/studentApi";
 import TeacherReviewForm from "@/components/ReviewFlows/TeacherReviewForm";
 import DataTable from "@/components/DataTable";
 import { getCurrentTerm } from "@/lib/timelineData";
+import { useGetReviewWindowQuery } from "@/lib/api/reviewApi";
+import { getReviewClosedMessage } from "@/utils/reviewWindow";
 
 export default function TeacherReviewsPage() {
     const { data: classes = [], isLoading: classesLoading } = useGetClassesQuery();
+    const { data: reviewWindow, isLoading: windowLoading } = useGetReviewWindowQuery("student");
+    const isReviewOpen = reviewWindow?.is_open === true;
 
     // Current active term
     const currentTerm = getCurrentTerm();
@@ -68,6 +72,7 @@ export default function TeacherReviewsPage() {
                     classId={selectedClassId}
                     termSerial={termSerial}
                     onComplete={refetchStudents}
+                    reviewOpen={isReviewOpen}
                 />
             ),
             sortable: false
@@ -77,6 +82,13 @@ export default function TeacherReviewsPage() {
     return (
         <div className="p-6 space-y-6">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Student Reviews</h1>
+
+            {!windowLoading && !isReviewOpen && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-4 text-amber-900 dark:text-amber-200">
+                    <p className="font-semibold">Review period is closed</p>
+                    <p className="text-sm mt-1">{getReviewClosedMessage(reviewWindow)}</p>
+                </div>
+            )}
 
             {/* Filters Container */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 grid grid-cols-1 md:grid-cols-3 gap-6">

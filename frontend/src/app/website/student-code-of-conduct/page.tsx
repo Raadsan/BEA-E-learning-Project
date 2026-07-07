@@ -1,5 +1,5 @@
 import Header from "@/components/Header";
-import StudentCodeOfConduct from "@/components/StudentCodeOfConduct";
+import PolicyPageBody from "@/components/policies/PolicyPageBody";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
@@ -13,7 +13,7 @@ export default function StudentCodeOfConductPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow">
-        <StudentCodeOfConduct />
+        <PolicyPageBody slug="student-code-of-conduct" systemOnly />
       </main>
       <Footer />
       <WhatsAppButton />

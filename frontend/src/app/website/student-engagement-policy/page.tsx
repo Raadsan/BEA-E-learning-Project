@@ -1,5 +1,5 @@
 import Header from "@/components/Header";
-import StudentEngagementPolicy from "@/components/StudentEngagementPolicy";
+import PolicyPageBody from "@/components/policies/PolicyPageBody";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
@@ -13,7 +13,7 @@ export default function StudentEngagementPolicyPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow">
-        <StudentEngagementPolicy />
+        <PolicyPageBody slug="student-engagement-policy" systemOnly />
       </main>
       <Footer />
       <WhatsAppButton />

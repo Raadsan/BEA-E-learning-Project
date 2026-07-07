@@ -1,5 +1,5 @@
 import Header from "@/components/Header";
-import PaymentRefundPolicy from "@/components/PaymentRefundPolicy";
+import PolicyPageBody from "@/components/policies/PolicyPageBody";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
@@ -13,7 +13,7 @@ export default function PaymentRefundPolicyPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow">
-        <PaymentRefundPolicy />
+        <PolicyPageBody slug="payment-refund-policy" systemOnly />
       </main>
       <Footer />
       <WhatsAppButton />

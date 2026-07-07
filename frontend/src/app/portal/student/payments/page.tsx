@@ -8,6 +8,7 @@ import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetStudentPaymentsQuery } from "@/lib/api/paymentApi";
 import { isStudentSubscriptionActive } from "@/utils/studentPayment";
 import Loader from "@/components/Loader";
+import { downloadPaymentReceipt } from "@/utils/paymentReceipt";
 
 // Icon Components for consistent look
 const IconDollar = () => (
@@ -38,8 +39,9 @@ export default function StudentPaymentsPage() {
   const { isDark } = useDarkMode();
   const router = useRouter();
   const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
-  const { data: payments = [], isLoading: paymentsLoading } = useGetStudentPaymentsQuery(user?.id, {
-    skip: !user?.id,
+  const studentId = user?.student_id || user?.id;
+  const { data: payments = [], isLoading: paymentsLoading } = useGetStudentPaymentsQuery(studentId, {
+    skip: !studentId,
   });
 
   const totalPaid = payments
@@ -128,10 +130,21 @@ export default function StudentPaymentsPage() {
     {
       key: "action",
       label: "Receipt",
-      render: () => (
+      render: (_, row) => (
         <button
+          type="button"
+          onClick={() => downloadPaymentReceipt({
+            ...row,
+            student_name: user?.full_name,
+            student_id: studentId,
+            email: user?.email,
+            program_name: row.package_name || row.program_name || user?.chosen_program,
+            payment_method: row.method,
+            transaction_id: row.provider_transaction_id,
+            payment_date: row.created_at,
+          })}
           className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-all"
-          title="Download Invoice"
+          title="Download Receipt"
         >
           <IconDownload />
         </button>

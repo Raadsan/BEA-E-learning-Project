@@ -47,10 +47,18 @@ export const paymentPackageApi = createApi({
             invalidatesTags: ["PaymentPackage"],
         }),
         assignPackageToProgram: builder.mutation({
-            query: ({ packageId, programId }) => ({
+            query: ({ packageId, programId, discount_type, discount_value }) => ({
                 url: `/${packageId}/assign`,
                 method: "POST",
-                body: { programId },
+                body: { programId, discount_type, discount_value },
+            }),
+            invalidatesTags: ["PaymentPackage"],
+        }),
+        updatePackageProgramAssignment: builder.mutation({
+            query: ({ packageId, programId, discount_type, discount_value }) => ({
+                url: `/${packageId}/programs/${programId}`,
+                method: "PUT",
+                body: { discount_type, discount_value },
             }),
             invalidatesTags: ["PaymentPackage"],
         }),
@@ -71,5 +79,6 @@ export const {
     useUpdatePaymentPackageMutation,
     useDeletePaymentPackageMutation,
     useAssignPackageToProgramMutation,
+    useUpdatePackageProgramAssignmentMutation,
     useRemovePackageFromProgramMutation,
 } = paymentPackageApi;

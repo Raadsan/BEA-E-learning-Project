@@ -13,7 +13,7 @@ export const reviewApi = createApi({
             return headers;
         },
     }),
-    tagTypes: ['StudentReviews', 'TeacherReviews', 'Reviews'],
+    tagTypes: ['StudentReviews', 'TeacherReviews', 'Reviews', 'ReviewWindows'],
     endpoints: (builder) => ({
         // --- STUDENT REVIEWS (Teachers reviewing Students) ---
         submitStudentReview: builder.mutation({
@@ -91,6 +91,20 @@ export const reviewApi = createApi({
             }),
             invalidatesTags: ["Reviews"],
         }),
+
+        // --- REVIEW PERIODS (Admin windows) ---
+        getReviewWindow: builder.query({
+            query: (type: 'teacher' | 'student') => `/reviews/windows/${type}`,
+            providesTags: (_result, _error, type) => [{ type: 'ReviewWindows', id: type }],
+        }),
+        updateReviewWindow: builder.mutation({
+            query: ({ type, ...body }) => ({
+                url: `/reviews/windows/${type}`,
+                method: 'PUT',
+                body,
+            }),
+            invalidatesTags: (_result, _error, { type }) => [{ type: 'ReviewWindows', id: type }],
+        }),
     }),
 });
 
@@ -108,4 +122,6 @@ export const {
     useGetTeachersToReviewQuery,
     useGetAllTeacherReviewsQuery,
     useGetAllStudentReviewsQuery,
+    useGetReviewWindowQuery,
+    useUpdateReviewWindowMutation,
 } = reviewApi;

@@ -519,6 +519,31 @@ exports.Prisma.Level_up_requestsScalarFieldEnum = {
   created_at: 'created_at'
 };
 
+exports.Prisma.TutorialsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  media_type: 'media_type',
+  media_url: 'media_url',
+  status: 'status',
+  created_by: 'created_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.PoliciesScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  title: 'title',
+  description: 'description',
+  content: 'content',
+  status: 'status',
+  sort_order: 'sort_order',
+  created_by: 'created_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.News_eventsScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -671,6 +696,8 @@ exports.Prisma.Program_payment_packagesScalarFieldEnum = {
   id: 'id',
   program_id: 'program_id',
   payment_package_id: 'payment_package_id',
+  discount_type: 'discount_type',
+  discount_value: 'discount_value',
   created_at: 'created_at'
 };
 
@@ -735,6 +762,16 @@ exports.Prisma.Student_class_historyScalarFieldEnum = {
   subprogram_id: 'subprogram_id',
   is_active: 'is_active',
   created_at: 'created_at'
+};
+
+exports.Prisma.Review_windowsScalarFieldEnum = {
+  id: 'id',
+  review_type: 'review_type',
+  status: 'status',
+  start_date: 'start_date',
+  end_date: 'end_date',
+  updated_by: 'updated_by',
+  updated_at: 'updated_at'
 };
 
 exports.Prisma.Student_review_questionsScalarFieldEnum = {
@@ -1174,6 +1211,22 @@ exports.Prisma.level_up_requestsOrderByRelevanceFieldEnum = {
   description: 'description'
 };
 
+exports.Prisma.tutorialsOrderByRelevanceFieldEnum = {
+  title: 'title',
+  description: 'description',
+  media_type: 'media_type',
+  media_url: 'media_url',
+  status: 'status'
+};
+
+exports.Prisma.policiesOrderByRelevanceFieldEnum = {
+  slug: 'slug',
+  title: 'title',
+  description: 'description',
+  content: 'content',
+  status: 'status'
+};
+
 exports.Prisma.news_eventsOrderByRelevanceFieldEnum = {
   title: 'title',
   description: 'description',
@@ -1247,6 +1300,10 @@ exports.Prisma.proficiency_testsOrderByRelevanceFieldEnum = {
   description: 'description'
 };
 
+exports.Prisma.program_payment_packagesOrderByRelevanceFieldEnum = {
+  discount_type: 'discount_type'
+};
+
 exports.Prisma.programsOrderByRelevanceFieldEnum = {
   image: 'image',
   title: 'title',
@@ -1276,6 +1333,11 @@ exports.Prisma.shiftsOrderByRelevanceFieldEnum = {
 
 exports.Prisma.student_class_historyOrderByRelevanceFieldEnum = {
   student_id: 'student_id'
+};
+
+exports.Prisma.review_windowsOrderByRelevanceFieldEnum = {
+  review_type: 'review_type',
+  status: 'status'
 };
 
 exports.Prisma.student_review_questionsOrderByRelevanceFieldEnum = {
@@ -1655,6 +1717,8 @@ exports.Prisma.ModelName = {
   issued_certificates: 'issued_certificates',
   learning_materials: 'learning_materials',
   level_up_requests: 'level_up_requests',
+  tutorials: 'tutorials',
+  policies: 'policies',
   news_events: 'news_events',
   newsletters: 'newsletters',
   notifications: 'notifications',
@@ -1672,6 +1736,7 @@ exports.Prisma.ModelName = {
   shift_sessions: 'shift_sessions',
   shifts: 'shifts',
   student_class_history: 'student_class_history',
+  review_windows: 'review_windows',
   student_review_questions: 'student_review_questions',
   student_reviews: 'student_reviews',
   students: 'students',

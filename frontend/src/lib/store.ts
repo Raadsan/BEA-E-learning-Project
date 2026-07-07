@@ -20,6 +20,8 @@ import { paymentPackageApi } from "./api/paymentPackageApi";
 import { uploadApi } from "./api/uploadApi";
 import { freezingApi } from "./api/freezingApi";
 import { newsApi } from "./api/newsApi";
+import { tutorialApi } from "./api/tutorialApi";
+import { policyApi } from "./api/policyApi";
 import { contactApi } from "./api/contactApi";
 import { newsletterApi } from "./api/newsletterApi";
 import { attendanceApi } from "./api/attendanceApi";
@@ -61,6 +63,8 @@ export const store = configureStore({
         [uploadApi.reducerPath]: uploadApi.reducer,
         [freezingApi.reducerPath]: freezingApi.reducer,
         [newsApi.reducerPath]: newsApi.reducer,
+        [tutorialApi.reducerPath]: tutorialApi.reducer,
+        [policyApi.reducerPath]: policyApi.reducer,
         [contactApi.reducerPath]: contactApi.reducer,
         [newsletterApi.reducerPath]: newsletterApi.reducer,
         [attendanceApi.reducerPath]: attendanceApi.reducer,
@@ -102,6 +106,8 @@ export const store = configureStore({
             uploadApi.middleware,
             freezingApi.middleware,
             newsApi.middleware,
+            tutorialApi.middleware,
+            policyApi.middleware,
             contactApi.middleware,
             newsletterApi.middleware,
             attendanceApi.middleware,

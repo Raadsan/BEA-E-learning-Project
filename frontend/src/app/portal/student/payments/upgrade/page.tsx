@@ -88,9 +88,14 @@ export default function UpgradePaymentPage() {
                   </span>
                   <span className="text-lg font-medium opacity-50">/{pkg.duration_months} month</span>
                 </div>
-                {pkg.originalPrice > pkg.studentPrice && (
+                {pkg.hasPackageDiscount && (
+                  <p className="text-sm text-amber-600 mt-2 font-semibold">
+                    Package discount applied (regular ${pkg.basePrice.toFixed(2)})
+                  </p>
+                )}
+                {pkg.hasScholarshipDiscount && (
                   <p className="text-sm text-green-600 mt-2 font-semibold">
-                    Scholarship/discount applied (was ${pkg.originalPrice.toFixed(2)})
+                    Scholarship/discount applied (was ${pkg.packagePrice.toFixed(2)})
                   </p>
                 )}
               </div>
