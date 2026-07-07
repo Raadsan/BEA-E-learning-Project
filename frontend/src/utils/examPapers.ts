@@ -1,10 +1,30 @@
+export type ExamEditingItem = {
+    id?: string | number;
+    text?: string;
+    options?: string[];
+    correctOption?: number;
+    correction?: string;
+    points?: number;
+};
+
+export type ExamQuestionItem = {
+    id?: string | number;
+    type?: string;
+    questionText?: string;
+    question?: string;
+    options?: string[];
+    correctOption?: number;
+    correctAnswer?: string;
+    points?: number;
+};
+
 export type ExamPaper = {
     title?: string;
     passage?: string;
     instructions?: string;
     audioUrl?: string;
-    editing?: unknown[];
-    questions?: unknown[];
+    editing?: ExamEditingItem[];
+    questions?: ExamQuestionItem[];
     essay?: { prompt?: string; title?: string; wordCount?: number; points?: number };
     points?: number;
     timeLimit?: number;
