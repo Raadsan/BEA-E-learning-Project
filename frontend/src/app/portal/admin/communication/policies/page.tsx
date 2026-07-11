@@ -10,8 +10,24 @@ import { useToast } from "@/components/Toast";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
 import { policyWebsitePath, isSystemPolicy, slugifyPolicyTitle } from "@/constants/policies";
 import PolicyForm, { defaultPolicyForm } from "@/components/admin/policies/PolicyForm";
-import { useGetPoliciesQuery, useDeletePolicyMutation, useCreatePolicyMutation, useUpdatePolicyMutation } from "@/lib/api/policyApi";
+import { useGetPoliciesQuery, useGetPolicyByIdQuery, useDeletePolicyMutation, useCreatePolicyMutation, useUpdatePolicyMutation } from "@/lib/api/policyApi";
 import { createDefaultStructuredPolicyContent, parseStructuredPolicyContent, stringifyStructuredPolicyContent } from "@/utils/policyContent";
+
+const buildPolicyFormData = (policy: {
+    title?: string | null;
+    slug?: string | null;
+    description?: string | null;
+    status?: string | null;
+    sort_order?: number | null;
+    content?: string | null;
+}) => ({
+    title: policy.title || "",
+    slug: policy.slug || "",
+    description: policy.description || "",
+    status: policy.status || "active",
+    sort_order: policy.sort_order ?? 0,
+    structuredContent: parseStructuredPolicyContent(policy.content) || createDefaultStructuredPolicyContent(),
+});
 
 export default function AdminPoliciesPage() {
     const router = useRouter();
@@ -31,7 +47,10 @@ export default function AdminPoliciesPage() {
     const [editFormData, setEditFormData] = useState(defaultPolicyForm);
     const [slugTouched, setSlugTouched] = useState(false);
     const [editSlugTouched, setEditSlugTouched] = useState(false);
-    const [editingPolicy, setEditingPolicy] = useState<any>(null);
+    const [editingPolicy, setEditingPolicy] = useState<{ id: number; slug: string } | null>(null);
+    const { data: editingPolicyFull, isLoading: isLoadingEditPolicy } = useGetPolicyByIdQuery(editingPolicy?.id as number, {
+        skip: !editingPolicy?.id || !isEditOpen,
+    });
 
     const filtered = policies.filter((p) => {
         const q = search.toLowerCase();
@@ -55,19 +74,16 @@ export default function AdminPoliciesPage() {
         setIsCreateOpen(true);
     };
 
-    const openEdit = (policy: any) => {
-        setEditingPolicy(policy);
-        setEditFormData({
-            title: policy.title || "",
-            slug: policy.slug || "",
-            description: policy.description || "",
-            status: policy.status || "active",
-            sort_order: policy.sort_order ?? 0,
-            structuredContent: parseStructuredPolicyContent(policy.content) || createDefaultStructuredPolicyContent(),
-        });
+    const openEdit = (policy: { id: number; slug: string }) => {
+        setEditingPolicy({ id: policy.id, slug: policy.slug });
         setEditSlugTouched(true);
         setIsEditOpen(true);
     };
+
+    useEffect(() => {
+        if (!editingPolicyFull || !isEditOpen) return;
+        setEditFormData(buildPolicyFormData(editingPolicyFull));
+    }, [editingPolicyFull, isEditOpen]);
 
     useEffect(() => {
         if (searchParams.get("openCreate") === "1") {
@@ -217,9 +233,13 @@ export default function AdminPoliciesPage() {
                                         }`}>
                                             {policy.status}
                                         </span>
-                                        {isSystemPolicy(policy.slug) && (
+                                        {isSystemPolicy(policy.slug) ? (
                                             <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#010080]/10 text-[#010080]">
                                                 System
+                                            </span>
+                                        ) : (
+                                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">
+                                                Custom
                                             </span>
                                         )}
                                     </div>
@@ -281,11 +301,15 @@ export default function AdminPoliciesPage() {
                     setSlugTouched={setSlugTouched}
                     onSubmit={handleCreate}
                     isSaving={isCreating}
-                    hideSlugField
                     onCancel={() => setIsCreateOpen(false)}
                 />
             </Modal>
             <Modal isOpen={isEditOpen} onClose={() => { setIsEditOpen(false); setEditingPolicy(null); }} title="Edit Policy" size="lg">
+                {isLoadingEditPolicy ? (
+                    <div className="flex justify-center py-16">
+                        <LoadingSpinner />
+                    </div>
+                ) : (
                 <PolicyForm
                     mode="edit"
                     formData={editFormData}
@@ -297,6 +321,7 @@ export default function AdminPoliciesPage() {
                     isSaving={isUpdating}
                     onCancel={() => { setIsEditOpen(false); setEditingPolicy(null); }}
                 />
+                )}
             </Modal>
         </main>
     );

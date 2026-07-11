@@ -83,6 +83,10 @@ export const createPolicy = async (req, res) => {
             return res.status(400).json({ error: 'This slug is reserved for a BEA system policy' });
         }
 
+        if (!req.body.content?.trim()) {
+            return res.status(400).json({ error: 'Policy content is required' });
+        }
+
         const existing = await prisma.policies.findUnique({ where: { slug: finalSlug } });
         if (existing) {
             return res.status(400).json({ error: 'A policy with this slug already exists' });
@@ -132,6 +136,10 @@ export const updatePolicy = async (req, res) => {
             if (taken) {
                 return res.status(400).json({ error: 'A policy with this slug already exists' });
             }
+        }
+
+        if (!isSystem && req.body.content !== undefined && !req.body.content?.trim()) {
+            return res.status(400).json({ error: 'Policy content is required' });
         }
 
         const updated = await prisma.policies.update({

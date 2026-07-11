@@ -49,10 +49,8 @@ export const PERMISSION_MODULE_PAGES: Partial<
     { key: "freezing_requests", label: "Freezing Requests", path: "/portal/admin/students-requests/freezing" },
   ],
   reviews: [
-    { key: "teacher_questions", label: "Teacher Questions", path: "/portal/admin/reviews/teacher-questions" },
-    { key: "teacher_reviews", label: "Teacher Reviews", path: "/portal/admin/reviews/teacher-reviews" },
-    { key: "student_questions", label: "Student Questions", path: "/portal/admin/reviews/student-questions" },
-    { key: "student_reviews", label: "Student Reviews", path: "/portal/admin/reviews/student-reviews" },
+    { key: "teacher_questions", label: "Teacher", path: "/portal/admin/reviews/teacher-questions" },
+    { key: "student_reviews", label: "Student", path: "/portal/admin/reviews/student-reviews" },
   ],
   communication: [
     { key: "announcements", label: "Announcements", path: "/portal/admin/communication/announcements" },
@@ -406,8 +404,7 @@ export const ADMIN_ROUTE_RULES: {
   { prefix: "/portal/admin/students-requests/session", permission: "student_requests", pageKey: "session_requests" },
   { prefix: "/portal/admin/students-requests/freezing", permission: "student_requests", pageKey: "freezing_requests" },
   { prefix: "/portal/admin/reviews/teacher-questions", permission: "reviews", pageKey: "teacher_questions" },
-  { prefix: "/portal/admin/reviews/teacher-reviews", permission: "reviews", pageKey: "teacher_reviews" },
-  { prefix: "/portal/admin/reviews/student-questions", permission: "reviews", pageKey: "student_questions" },
+  { prefix: "/portal/admin/reviews/teacher-reviews", permission: "reviews", pageKey: "teacher_questions" },
   { prefix: "/portal/admin/reviews/student-reviews", permission: "reviews", pageKey: "student_reviews" },
   { prefix: "/portal/admin/communication/announcements", permission: "communication", pageKey: "announcements" },
   { prefix: "/portal/admin/communication/news", permission: "communication", pageKey: "news_events" },
@@ -500,3 +497,5 @@ export function getFirstAllowedAdminPath(permissions: AdminPermissionKey[]) {
   const next = order.find((key) => permissions.includes(key));
   return next ? paths[next] : "/portal/admin";
 }
+
+

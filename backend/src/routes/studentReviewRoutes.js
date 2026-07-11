@@ -2,6 +2,8 @@ import express from "express";
 import {
   submitStudentReview, getStudentReviews, getAllStudentReviews,
   getTeacherSubmittedReviews,
+  getActiveStudentReviewAssignment, getStudentReviewAssignments,
+  createStudentReviewAssignment, updateStudentReviewAssignment, deleteStudentReviewAssignment,
   getQuestions, getAllQuestions, createQuestion, updateQuestion, deleteQuestion
 } from "../controllers/studentReviewController.js";
 import { verifyToken, isAdmin } from "../controllers/authController.js";
@@ -9,6 +11,13 @@ import { verifyToken, isAdmin } from "../controllers/authController.js";
 const router = express.Router();
 
 router.use(verifyToken);
+
+// Review assignment boxes
+router.get("/assignments/active", getActiveStudentReviewAssignment);
+router.get("/admin/assignments", isAdmin, getStudentReviewAssignments);
+router.post("/admin/assignments", isAdmin, createStudentReviewAssignment);
+router.put("/admin/assignments/:id", isAdmin, updateStudentReviewAssignment);
+router.delete("/admin/assignments/:id", isAdmin, deleteStudentReviewAssignment);
 
 // Submit a review (teacher reviews a student)
 router.post("/", submitStudentReview);

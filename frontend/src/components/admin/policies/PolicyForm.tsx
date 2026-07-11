@@ -63,6 +63,10 @@ export default function PolicyForm({
             ...prev,
             title,
             slug: !slugTouched && mode === "create" ? slugifyPolicyTitle(title) : prev.slug,
+            structuredContent:
+                mode === "create" && !prev.structuredContent.policyName.trim()
+                    ? { ...prev.structuredContent, policyName: title }
+                    : prev.structuredContent,
         }));
     };
 
@@ -194,7 +198,7 @@ export default function PolicyForm({
                     <p className={`text-xs mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                         {isSystem
                             ? "Edit the live website and portal content for this system policy."
-                            : "Add the main policy heading and as many sub sections as you need. Custom policies stay in the admin portal only."}
+                            : "Add the main policy heading and as many sub sections as you need. All details are saved to the database."}
                     </p>
                 </div>
 

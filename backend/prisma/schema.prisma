@@ -800,6 +800,30 @@ model review_windows {
   updated_at  DateTime? @default(now()) @updatedAt @db.Timestamp(0)
 }
 
+model review_assignments {
+  id            Int       @id @default(autoincrement())
+  review_type   String    @db.VarChar(20)
+  title         String    @db.VarChar(255)
+  description   String?   @db.Text
+  start_date    DateTime  @db.DateTime(0)
+  end_date      DateTime  @db.DateTime(0)
+  program_id   Int?
+  class_id      Int?
+  course_id     Int?
+  subprogram_id Int?
+  status        String    @default("active") @db.VarChar(20)
+  questions     Json?
+  questionnaire_url String? @db.VarChar(500)
+  created_by    Int?
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  updated_at    DateTime? @default(now()) @updatedAt @db.Timestamp(0)
+
+  @@index([review_type, status], map: "idx_review_assignments_type_status")
+  @@index([program_id], map: "idx_review_assignments_program")
+  @@index([class_id], map: "idx_review_assignments_class")
+  @@index([course_id], map: "idx_review_assignments_course")
+  @@index([subprogram_id], map: "idx_review_assignments_subprogram")
+}
 model student_review_questions {
   id            Int       @id @default(autoincrement())
   question_text String    @db.Text
@@ -816,10 +840,12 @@ model student_reviews {
   rating      Int?
   comment     String?   @db.Text
   answers     Json?
+  assignment_id Int?
   created_at  DateTime? @default(now()) @db.Timestamp(0)
   classes     classes   @relation(fields: [class_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "student_reviews_ibfk_1")
 
   @@index([class_id], map: "class_id")
+  @@index([assignment_id], map: "idx_student_reviews_assignment")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -917,10 +943,12 @@ model teacher_reviews {
   rating      Int?
   comment     String?   @db.Text
   answers     Json?
+  assignment_id Int?
   created_at  DateTime? @default(now()) @db.Timestamp(0)
   classes     classes   @relation(fields: [class_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teacher_reviews_ibfk_1")
 
   @@index([class_id], map: "class_id")
+  @@index([assignment_id], map: "idx_teacher_reviews_assignment")
 }
 
 model teachers {

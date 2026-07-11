@@ -774,6 +774,25 @@ exports.Prisma.Review_windowsScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.Review_assignmentsScalarFieldEnum = {
+  id: 'id',
+  review_type: 'review_type',
+  title: 'title',
+  description: 'description',
+  start_date: 'start_date',
+  end_date: 'end_date',
+  program_id: 'program_id',
+  class_id: 'class_id',
+  course_id: 'course_id',
+  subprogram_id: 'subprogram_id',
+  status: 'status',
+  questions: 'questions',
+  questionnaire_url: 'questionnaire_url',
+  created_by: 'created_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.Student_review_questionsScalarFieldEnum = {
   id: 'id',
   question_text: 'question_text',
@@ -790,6 +809,7 @@ exports.Prisma.Student_reviewsScalarFieldEnum = {
   rating: 'rating',
   comment: 'comment',
   answers: 'answers',
+  assignment_id: 'assignment_id',
   created_at: 'created_at'
 };
 
@@ -868,6 +888,7 @@ exports.Prisma.Teacher_reviewsScalarFieldEnum = {
   rating: 'rating',
   comment: 'comment',
   answers: 'answers',
+  assignment_id: 'assignment_id',
   created_at: 'created_at'
 };
 
@@ -1340,6 +1361,14 @@ exports.Prisma.review_windowsOrderByRelevanceFieldEnum = {
   status: 'status'
 };
 
+exports.Prisma.review_assignmentsOrderByRelevanceFieldEnum = {
+  review_type: 'review_type',
+  title: 'title',
+  description: 'description',
+  status: 'status',
+  questionnaire_url: 'questionnaire_url'
+};
+
 exports.Prisma.student_review_questionsOrderByRelevanceFieldEnum = {
   question_text: 'question_text'
 };
@@ -1737,6 +1766,7 @@ exports.Prisma.ModelName = {
   shifts: 'shifts',
   student_class_history: 'student_class_history',
   review_windows: 'review_windows',
+  review_assignments: 'review_assignments',
   student_review_questions: 'student_review_questions',
   student_reviews: 'student_reviews',
   students: 'students',

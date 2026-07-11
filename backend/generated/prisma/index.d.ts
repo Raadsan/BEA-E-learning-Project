@@ -234,6 +234,11 @@ export type student_class_history = $Result.DefaultSelection<Prisma.$student_cla
  */
 export type review_windows = $Result.DefaultSelection<Prisma.$review_windowsPayload>
 /**
+ * Model review_assignments
+ * 
+ */
+export type review_assignments = $Result.DefaultSelection<Prisma.$review_assignmentsPayload>
+/**
  * Model student_review_questions
  * 
  */
@@ -1376,6 +1381,16 @@ export class PrismaClient<
   get review_windows(): Prisma.review_windowsDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.review_assignments`: Exposes CRUD operations for the **review_assignments** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Review_assignments
+    * const review_assignments = await prisma.review_assignments.findMany()
+    * ```
+    */
+  get review_assignments(): Prisma.review_assignmentsDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.student_review_questions`: Exposes CRUD operations for the **student_review_questions** model.
     * Example usage:
     * ```ts
@@ -1972,6 +1987,7 @@ export namespace Prisma {
     shifts: 'shifts',
     student_class_history: 'student_class_history',
     review_windows: 'review_windows',
+    review_assignments: 'review_assignments',
     student_review_questions: 'student_review_questions',
     student_reviews: 'student_reviews',
     students: 'students',
@@ -1999,7 +2015,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "iELTSTOEFL" | "proficiencyTestStudents" | "migrations" | "academic_calendar" | "admins" | "announcements" | "assignment_submissions" | "assignments" | "attendance" | "certificates" | "class_schedules" | "classes" | "contacts" | "course_timeline" | "course_work" | "course_work_submissions" | "courses" | "exam_submissions" | "exams" | "freezing_requests" | "ielts_registrations" | "issued_certificates" | "learning_materials" | "level_up_requests" | "tutorials" | "policies" | "news_events" | "newsletters" | "notifications" | "oral_assignment_submissions" | "oral_assignments" | "payment_packages" | "payments" | "placement_test_results" | "placement_tests" | "proficiency_test_results" | "proficiency_tests" | "program_payment_packages" | "programs" | "session_change_requests" | "shift_sessions" | "shifts" | "student_class_history" | "review_windows" | "student_review_questions" | "student_reviews" | "students" | "subprograms" | "teacher_review_questions" | "teacher_reviews" | "teachers" | "testimonials" | "timetable_events" | "timetables" | "writing_task_submissions" | "writing_tasks"
+      modelProps: "iELTSTOEFL" | "proficiencyTestStudents" | "migrations" | "academic_calendar" | "admins" | "announcements" | "assignment_submissions" | "assignments" | "attendance" | "certificates" | "class_schedules" | "classes" | "contacts" | "course_timeline" | "course_work" | "course_work_submissions" | "courses" | "exam_submissions" | "exams" | "freezing_requests" | "ielts_registrations" | "issued_certificates" | "learning_materials" | "level_up_requests" | "tutorials" | "policies" | "news_events" | "newsletters" | "notifications" | "oral_assignment_submissions" | "oral_assignments" | "payment_packages" | "payments" | "placement_test_results" | "placement_tests" | "proficiency_test_results" | "proficiency_tests" | "program_payment_packages" | "programs" | "session_change_requests" | "shift_sessions" | "shifts" | "student_class_history" | "review_windows" | "review_assignments" | "student_review_questions" | "student_reviews" | "students" | "subprograms" | "teacher_review_questions" | "teacher_reviews" | "teachers" | "testimonials" | "timetable_events" | "timetables" | "writing_task_submissions" | "writing_tasks"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4907,6 +4923,72 @@ export namespace Prisma {
           }
         }
       }
+      review_assignments: {
+        payload: Prisma.$review_assignmentsPayload<ExtArgs>
+        fields: Prisma.review_assignmentsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.review_assignmentsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_assignmentsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.review_assignmentsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_assignmentsPayload>
+          }
+          findFirst: {
+            args: Prisma.review_assignmentsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_assignmentsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.review_assignmentsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_assignmentsPayload>
+          }
+          findMany: {
+            args: Prisma.review_assignmentsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_assignmentsPayload>[]
+          }
+          create: {
+            args: Prisma.review_assignmentsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_assignmentsPayload>
+          }
+          createMany: {
+            args: Prisma.review_assignmentsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.review_assignmentsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_assignmentsPayload>
+          }
+          update: {
+            args: Prisma.review_assignmentsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_assignmentsPayload>
+          }
+          deleteMany: {
+            args: Prisma.review_assignmentsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.review_assignmentsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.review_assignmentsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$review_assignmentsPayload>
+          }
+          aggregate: {
+            args: Prisma.Review_assignmentsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReview_assignments>
+          }
+          groupBy: {
+            args: Prisma.review_assignmentsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Review_assignmentsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.review_assignmentsCountArgs<ExtArgs>
+            result: $Utils.Optional<Review_assignmentsCountAggregateOutputType> | number
+          }
+        }
+      }
       student_review_questions: {
         payload: Prisma.$student_review_questionsPayload<ExtArgs>
         fields: Prisma.student_review_questionsFieldRefs
@@ -5851,6 +5933,7 @@ export namespace Prisma {
     shifts?: shiftsOmit
     student_class_history?: student_class_historyOmit
     review_windows?: review_windowsOmit
+    review_assignments?: review_assignmentsOmit
     student_review_questions?: student_review_questionsOmit
     student_reviews?: student_reviewsOmit
     students?: studentsOmit
@@ -52901,6 +52984,1064 @@ export namespace Prisma {
 
 
   /**
+   * Model review_assignments
+   */
+
+  export type AggregateReview_assignments = {
+    _count: Review_assignmentsCountAggregateOutputType | null
+    _avg: Review_assignmentsAvgAggregateOutputType | null
+    _sum: Review_assignmentsSumAggregateOutputType | null
+    _min: Review_assignmentsMinAggregateOutputType | null
+    _max: Review_assignmentsMaxAggregateOutputType | null
+  }
+
+  export type Review_assignmentsAvgAggregateOutputType = {
+    id: number | null
+    program_id: number | null
+    class_id: number | null
+    course_id: number | null
+    subprogram_id: number | null
+    created_by: number | null
+  }
+
+  export type Review_assignmentsSumAggregateOutputType = {
+    id: number | null
+    program_id: number | null
+    class_id: number | null
+    course_id: number | null
+    subprogram_id: number | null
+    created_by: number | null
+  }
+
+  export type Review_assignmentsMinAggregateOutputType = {
+    id: number | null
+    review_type: string | null
+    title: string | null
+    description: string | null
+    start_date: Date | null
+    end_date: Date | null
+    program_id: number | null
+    class_id: number | null
+    course_id: number | null
+    subprogram_id: number | null
+    status: string | null
+    questionnaire_url: string | null
+    created_by: number | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type Review_assignmentsMaxAggregateOutputType = {
+    id: number | null
+    review_type: string | null
+    title: string | null
+    description: string | null
+    start_date: Date | null
+    end_date: Date | null
+    program_id: number | null
+    class_id: number | null
+    course_id: number | null
+    subprogram_id: number | null
+    status: string | null
+    questionnaire_url: string | null
+    created_by: number | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type Review_assignmentsCountAggregateOutputType = {
+    id: number
+    review_type: number
+    title: number
+    description: number
+    start_date: number
+    end_date: number
+    program_id: number
+    class_id: number
+    course_id: number
+    subprogram_id: number
+    status: number
+    questions: number
+    questionnaire_url: number
+    created_by: number
+    created_at: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type Review_assignmentsAvgAggregateInputType = {
+    id?: true
+    program_id?: true
+    class_id?: true
+    course_id?: true
+    subprogram_id?: true
+    created_by?: true
+  }
+
+  export type Review_assignmentsSumAggregateInputType = {
+    id?: true
+    program_id?: true
+    class_id?: true
+    course_id?: true
+    subprogram_id?: true
+    created_by?: true
+  }
+
+  export type Review_assignmentsMinAggregateInputType = {
+    id?: true
+    review_type?: true
+    title?: true
+    description?: true
+    start_date?: true
+    end_date?: true
+    program_id?: true
+    class_id?: true
+    course_id?: true
+    subprogram_id?: true
+    status?: true
+    questionnaire_url?: true
+    created_by?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type Review_assignmentsMaxAggregateInputType = {
+    id?: true
+    review_type?: true
+    title?: true
+    description?: true
+    start_date?: true
+    end_date?: true
+    program_id?: true
+    class_id?: true
+    course_id?: true
+    subprogram_id?: true
+    status?: true
+    questionnaire_url?: true
+    created_by?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type Review_assignmentsCountAggregateInputType = {
+    id?: true
+    review_type?: true
+    title?: true
+    description?: true
+    start_date?: true
+    end_date?: true
+    program_id?: true
+    class_id?: true
+    course_id?: true
+    subprogram_id?: true
+    status?: true
+    questions?: true
+    questionnaire_url?: true
+    created_by?: true
+    created_at?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type Review_assignmentsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which review_assignments to aggregate.
+     */
+    where?: review_assignmentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of review_assignments to fetch.
+     */
+    orderBy?: review_assignmentsOrderByWithRelationInput | review_assignmentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: review_assignmentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` review_assignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` review_assignments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned review_assignments
+    **/
+    _count?: true | Review_assignmentsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Review_assignmentsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Review_assignmentsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Review_assignmentsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Review_assignmentsMaxAggregateInputType
+  }
+
+  export type GetReview_assignmentsAggregateType<T extends Review_assignmentsAggregateArgs> = {
+        [P in keyof T & keyof AggregateReview_assignments]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReview_assignments[P]>
+      : GetScalarType<T[P], AggregateReview_assignments[P]>
+  }
+
+
+
+
+  export type review_assignmentsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: review_assignmentsWhereInput
+    orderBy?: review_assignmentsOrderByWithAggregationInput | review_assignmentsOrderByWithAggregationInput[]
+    by: Review_assignmentsScalarFieldEnum[] | Review_assignmentsScalarFieldEnum
+    having?: review_assignmentsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Review_assignmentsCountAggregateInputType | true
+    _avg?: Review_assignmentsAvgAggregateInputType
+    _sum?: Review_assignmentsSumAggregateInputType
+    _min?: Review_assignmentsMinAggregateInputType
+    _max?: Review_assignmentsMaxAggregateInputType
+  }
+
+  export type Review_assignmentsGroupByOutputType = {
+    id: number
+    review_type: string
+    title: string
+    description: string | null
+    start_date: Date
+    end_date: Date
+    program_id: number | null
+    class_id: number | null
+    course_id: number | null
+    subprogram_id: number | null
+    status: string
+    questions: JsonValue | null
+    questionnaire_url: string | null
+    created_by: number | null
+    created_at: Date | null
+    updated_at: Date | null
+    _count: Review_assignmentsCountAggregateOutputType | null
+    _avg: Review_assignmentsAvgAggregateOutputType | null
+    _sum: Review_assignmentsSumAggregateOutputType | null
+    _min: Review_assignmentsMinAggregateOutputType | null
+    _max: Review_assignmentsMaxAggregateOutputType | null
+  }
+
+  type GetReview_assignmentsGroupByPayload<T extends review_assignmentsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Review_assignmentsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Review_assignmentsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Review_assignmentsGroupByOutputType[P]>
+            : GetScalarType<T[P], Review_assignmentsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type review_assignmentsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    review_type?: boolean
+    title?: boolean
+    description?: boolean
+    start_date?: boolean
+    end_date?: boolean
+    program_id?: boolean
+    class_id?: boolean
+    course_id?: boolean
+    subprogram_id?: boolean
+    status?: boolean
+    questions?: boolean
+    questionnaire_url?: boolean
+    created_by?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["review_assignments"]>
+
+
+
+  export type review_assignmentsSelectScalar = {
+    id?: boolean
+    review_type?: boolean
+    title?: boolean
+    description?: boolean
+    start_date?: boolean
+    end_date?: boolean
+    program_id?: boolean
+    class_id?: boolean
+    course_id?: boolean
+    subprogram_id?: boolean
+    status?: boolean
+    questions?: boolean
+    questionnaire_url?: boolean
+    created_by?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }
+
+  export type review_assignmentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "review_type" | "title" | "description" | "start_date" | "end_date" | "program_id" | "class_id" | "course_id" | "subprogram_id" | "status" | "questions" | "questionnaire_url" | "created_by" | "created_at" | "updated_at", ExtArgs["result"]["review_assignments"]>
+
+  export type $review_assignmentsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "review_assignments"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      review_type: string
+      title: string
+      description: string | null
+      start_date: Date
+      end_date: Date
+      program_id: number | null
+      class_id: number | null
+      course_id: number | null
+      subprogram_id: number | null
+      status: string
+      questions: Prisma.JsonValue | null
+      questionnaire_url: string | null
+      created_by: number | null
+      created_at: Date | null
+      updated_at: Date | null
+    }, ExtArgs["result"]["review_assignments"]>
+    composites: {}
+  }
+
+  type review_assignmentsGetPayload<S extends boolean | null | undefined | review_assignmentsDefaultArgs> = $Result.GetResult<Prisma.$review_assignmentsPayload, S>
+
+  type review_assignmentsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<review_assignmentsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Review_assignmentsCountAggregateInputType | true
+    }
+
+  export interface review_assignmentsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['review_assignments'], meta: { name: 'review_assignments' } }
+    /**
+     * Find zero or one Review_assignments that matches the filter.
+     * @param {review_assignmentsFindUniqueArgs} args - Arguments to find a Review_assignments
+     * @example
+     * // Get one Review_assignments
+     * const review_assignments = await prisma.review_assignments.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends review_assignmentsFindUniqueArgs>(args: SelectSubset<T, review_assignmentsFindUniqueArgs<ExtArgs>>): Prisma__review_assignmentsClient<$Result.GetResult<Prisma.$review_assignmentsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Review_assignments that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {review_assignmentsFindUniqueOrThrowArgs} args - Arguments to find a Review_assignments
+     * @example
+     * // Get one Review_assignments
+     * const review_assignments = await prisma.review_assignments.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends review_assignmentsFindUniqueOrThrowArgs>(args: SelectSubset<T, review_assignmentsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__review_assignmentsClient<$Result.GetResult<Prisma.$review_assignmentsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Review_assignments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_assignmentsFindFirstArgs} args - Arguments to find a Review_assignments
+     * @example
+     * // Get one Review_assignments
+     * const review_assignments = await prisma.review_assignments.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends review_assignmentsFindFirstArgs>(args?: SelectSubset<T, review_assignmentsFindFirstArgs<ExtArgs>>): Prisma__review_assignmentsClient<$Result.GetResult<Prisma.$review_assignmentsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Review_assignments that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_assignmentsFindFirstOrThrowArgs} args - Arguments to find a Review_assignments
+     * @example
+     * // Get one Review_assignments
+     * const review_assignments = await prisma.review_assignments.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends review_assignmentsFindFirstOrThrowArgs>(args?: SelectSubset<T, review_assignmentsFindFirstOrThrowArgs<ExtArgs>>): Prisma__review_assignmentsClient<$Result.GetResult<Prisma.$review_assignmentsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Review_assignments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_assignmentsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Review_assignments
+     * const review_assignments = await prisma.review_assignments.findMany()
+     * 
+     * // Get first 10 Review_assignments
+     * const review_assignments = await prisma.review_assignments.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const review_assignmentsWithIdOnly = await prisma.review_assignments.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends review_assignmentsFindManyArgs>(args?: SelectSubset<T, review_assignmentsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$review_assignmentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Review_assignments.
+     * @param {review_assignmentsCreateArgs} args - Arguments to create a Review_assignments.
+     * @example
+     * // Create one Review_assignments
+     * const Review_assignments = await prisma.review_assignments.create({
+     *   data: {
+     *     // ... data to create a Review_assignments
+     *   }
+     * })
+     * 
+     */
+    create<T extends review_assignmentsCreateArgs>(args: SelectSubset<T, review_assignmentsCreateArgs<ExtArgs>>): Prisma__review_assignmentsClient<$Result.GetResult<Prisma.$review_assignmentsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Review_assignments.
+     * @param {review_assignmentsCreateManyArgs} args - Arguments to create many Review_assignments.
+     * @example
+     * // Create many Review_assignments
+     * const review_assignments = await prisma.review_assignments.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends review_assignmentsCreateManyArgs>(args?: SelectSubset<T, review_assignmentsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Review_assignments.
+     * @param {review_assignmentsDeleteArgs} args - Arguments to delete one Review_assignments.
+     * @example
+     * // Delete one Review_assignments
+     * const Review_assignments = await prisma.review_assignments.delete({
+     *   where: {
+     *     // ... filter to delete one Review_assignments
+     *   }
+     * })
+     * 
+     */
+    delete<T extends review_assignmentsDeleteArgs>(args: SelectSubset<T, review_assignmentsDeleteArgs<ExtArgs>>): Prisma__review_assignmentsClient<$Result.GetResult<Prisma.$review_assignmentsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Review_assignments.
+     * @param {review_assignmentsUpdateArgs} args - Arguments to update one Review_assignments.
+     * @example
+     * // Update one Review_assignments
+     * const review_assignments = await prisma.review_assignments.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends review_assignmentsUpdateArgs>(args: SelectSubset<T, review_assignmentsUpdateArgs<ExtArgs>>): Prisma__review_assignmentsClient<$Result.GetResult<Prisma.$review_assignmentsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Review_assignments.
+     * @param {review_assignmentsDeleteManyArgs} args - Arguments to filter Review_assignments to delete.
+     * @example
+     * // Delete a few Review_assignments
+     * const { count } = await prisma.review_assignments.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends review_assignmentsDeleteManyArgs>(args?: SelectSubset<T, review_assignmentsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Review_assignments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_assignmentsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Review_assignments
+     * const review_assignments = await prisma.review_assignments.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends review_assignmentsUpdateManyArgs>(args: SelectSubset<T, review_assignmentsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Review_assignments.
+     * @param {review_assignmentsUpsertArgs} args - Arguments to update or create a Review_assignments.
+     * @example
+     * // Update or create a Review_assignments
+     * const review_assignments = await prisma.review_assignments.upsert({
+     *   create: {
+     *     // ... data to create a Review_assignments
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Review_assignments we want to update
+     *   }
+     * })
+     */
+    upsert<T extends review_assignmentsUpsertArgs>(args: SelectSubset<T, review_assignmentsUpsertArgs<ExtArgs>>): Prisma__review_assignmentsClient<$Result.GetResult<Prisma.$review_assignmentsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Review_assignments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_assignmentsCountArgs} args - Arguments to filter Review_assignments to count.
+     * @example
+     * // Count the number of Review_assignments
+     * const count = await prisma.review_assignments.count({
+     *   where: {
+     *     // ... the filter for the Review_assignments we want to count
+     *   }
+     * })
+    **/
+    count<T extends review_assignmentsCountArgs>(
+      args?: Subset<T, review_assignmentsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Review_assignmentsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Review_assignments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Review_assignmentsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Review_assignmentsAggregateArgs>(args: Subset<T, Review_assignmentsAggregateArgs>): Prisma.PrismaPromise<GetReview_assignmentsAggregateType<T>>
+
+    /**
+     * Group by Review_assignments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {review_assignmentsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends review_assignmentsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: review_assignmentsGroupByArgs['orderBy'] }
+        : { orderBy?: review_assignmentsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, review_assignmentsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReview_assignmentsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the review_assignments model
+   */
+  readonly fields: review_assignmentsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for review_assignments.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__review_assignmentsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the review_assignments model
+   */
+  interface review_assignmentsFieldRefs {
+    readonly id: FieldRef<"review_assignments", 'Int'>
+    readonly review_type: FieldRef<"review_assignments", 'String'>
+    readonly title: FieldRef<"review_assignments", 'String'>
+    readonly description: FieldRef<"review_assignments", 'String'>
+    readonly start_date: FieldRef<"review_assignments", 'DateTime'>
+    readonly end_date: FieldRef<"review_assignments", 'DateTime'>
+    readonly program_id: FieldRef<"review_assignments", 'Int'>
+    readonly class_id: FieldRef<"review_assignments", 'Int'>
+    readonly course_id: FieldRef<"review_assignments", 'Int'>
+    readonly subprogram_id: FieldRef<"review_assignments", 'Int'>
+    readonly status: FieldRef<"review_assignments", 'String'>
+    readonly questions: FieldRef<"review_assignments", 'Json'>
+    readonly questionnaire_url: FieldRef<"review_assignments", 'String'>
+    readonly created_by: FieldRef<"review_assignments", 'Int'>
+    readonly created_at: FieldRef<"review_assignments", 'DateTime'>
+    readonly updated_at: FieldRef<"review_assignments", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * review_assignments findUnique
+   */
+  export type review_assignmentsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_assignments
+     */
+    select?: review_assignmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_assignments
+     */
+    omit?: review_assignmentsOmit<ExtArgs> | null
+    /**
+     * Filter, which review_assignments to fetch.
+     */
+    where: review_assignmentsWhereUniqueInput
+  }
+
+  /**
+   * review_assignments findUniqueOrThrow
+   */
+  export type review_assignmentsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_assignments
+     */
+    select?: review_assignmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_assignments
+     */
+    omit?: review_assignmentsOmit<ExtArgs> | null
+    /**
+     * Filter, which review_assignments to fetch.
+     */
+    where: review_assignmentsWhereUniqueInput
+  }
+
+  /**
+   * review_assignments findFirst
+   */
+  export type review_assignmentsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_assignments
+     */
+    select?: review_assignmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_assignments
+     */
+    omit?: review_assignmentsOmit<ExtArgs> | null
+    /**
+     * Filter, which review_assignments to fetch.
+     */
+    where?: review_assignmentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of review_assignments to fetch.
+     */
+    orderBy?: review_assignmentsOrderByWithRelationInput | review_assignmentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for review_assignments.
+     */
+    cursor?: review_assignmentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` review_assignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` review_assignments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of review_assignments.
+     */
+    distinct?: Review_assignmentsScalarFieldEnum | Review_assignmentsScalarFieldEnum[]
+  }
+
+  /**
+   * review_assignments findFirstOrThrow
+   */
+  export type review_assignmentsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_assignments
+     */
+    select?: review_assignmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_assignments
+     */
+    omit?: review_assignmentsOmit<ExtArgs> | null
+    /**
+     * Filter, which review_assignments to fetch.
+     */
+    where?: review_assignmentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of review_assignments to fetch.
+     */
+    orderBy?: review_assignmentsOrderByWithRelationInput | review_assignmentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for review_assignments.
+     */
+    cursor?: review_assignmentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` review_assignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` review_assignments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of review_assignments.
+     */
+    distinct?: Review_assignmentsScalarFieldEnum | Review_assignmentsScalarFieldEnum[]
+  }
+
+  /**
+   * review_assignments findMany
+   */
+  export type review_assignmentsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_assignments
+     */
+    select?: review_assignmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_assignments
+     */
+    omit?: review_assignmentsOmit<ExtArgs> | null
+    /**
+     * Filter, which review_assignments to fetch.
+     */
+    where?: review_assignmentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of review_assignments to fetch.
+     */
+    orderBy?: review_assignmentsOrderByWithRelationInput | review_assignmentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing review_assignments.
+     */
+    cursor?: review_assignmentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` review_assignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` review_assignments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of review_assignments.
+     */
+    distinct?: Review_assignmentsScalarFieldEnum | Review_assignmentsScalarFieldEnum[]
+  }
+
+  /**
+   * review_assignments create
+   */
+  export type review_assignmentsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_assignments
+     */
+    select?: review_assignmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_assignments
+     */
+    omit?: review_assignmentsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a review_assignments.
+     */
+    data: XOR<review_assignmentsCreateInput, review_assignmentsUncheckedCreateInput>
+  }
+
+  /**
+   * review_assignments createMany
+   */
+  export type review_assignmentsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many review_assignments.
+     */
+    data: review_assignmentsCreateManyInput | review_assignmentsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * review_assignments update
+   */
+  export type review_assignmentsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_assignments
+     */
+    select?: review_assignmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_assignments
+     */
+    omit?: review_assignmentsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a review_assignments.
+     */
+    data: XOR<review_assignmentsUpdateInput, review_assignmentsUncheckedUpdateInput>
+    /**
+     * Choose, which review_assignments to update.
+     */
+    where: review_assignmentsWhereUniqueInput
+  }
+
+  /**
+   * review_assignments updateMany
+   */
+  export type review_assignmentsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update review_assignments.
+     */
+    data: XOR<review_assignmentsUpdateManyMutationInput, review_assignmentsUncheckedUpdateManyInput>
+    /**
+     * Filter which review_assignments to update
+     */
+    where?: review_assignmentsWhereInput
+    /**
+     * Limit how many review_assignments to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * review_assignments upsert
+   */
+  export type review_assignmentsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_assignments
+     */
+    select?: review_assignmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_assignments
+     */
+    omit?: review_assignmentsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the review_assignments to update in case it exists.
+     */
+    where: review_assignmentsWhereUniqueInput
+    /**
+     * In case the review_assignments found by the `where` argument doesn't exist, create a new review_assignments with this data.
+     */
+    create: XOR<review_assignmentsCreateInput, review_assignmentsUncheckedCreateInput>
+    /**
+     * In case the review_assignments was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<review_assignmentsUpdateInput, review_assignmentsUncheckedUpdateInput>
+  }
+
+  /**
+   * review_assignments delete
+   */
+  export type review_assignmentsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_assignments
+     */
+    select?: review_assignmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_assignments
+     */
+    omit?: review_assignmentsOmit<ExtArgs> | null
+    /**
+     * Filter which review_assignments to delete.
+     */
+    where: review_assignmentsWhereUniqueInput
+  }
+
+  /**
+   * review_assignments deleteMany
+   */
+  export type review_assignmentsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which review_assignments to delete
+     */
+    where?: review_assignmentsWhereInput
+    /**
+     * Limit how many review_assignments to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * review_assignments without action
+   */
+  export type review_assignmentsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the review_assignments
+     */
+    select?: review_assignmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the review_assignments
+     */
+    omit?: review_assignmentsOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model student_review_questions
    */
 
@@ -53826,12 +54967,14 @@ export namespace Prisma {
     id: number | null
     class_id: number | null
     rating: number | null
+    assignment_id: number | null
   }
 
   export type Student_reviewsSumAggregateOutputType = {
     id: number | null
     class_id: number | null
     rating: number | null
+    assignment_id: number | null
   }
 
   export type Student_reviewsMinAggregateOutputType = {
@@ -53842,6 +54985,7 @@ export namespace Prisma {
     term_serial: string | null
     rating: number | null
     comment: string | null
+    assignment_id: number | null
     created_at: Date | null
   }
 
@@ -53853,6 +54997,7 @@ export namespace Prisma {
     term_serial: string | null
     rating: number | null
     comment: string | null
+    assignment_id: number | null
     created_at: Date | null
   }
 
@@ -53865,6 +55010,7 @@ export namespace Prisma {
     rating: number
     comment: number
     answers: number
+    assignment_id: number
     created_at: number
     _all: number
   }
@@ -53874,12 +55020,14 @@ export namespace Prisma {
     id?: true
     class_id?: true
     rating?: true
+    assignment_id?: true
   }
 
   export type Student_reviewsSumAggregateInputType = {
     id?: true
     class_id?: true
     rating?: true
+    assignment_id?: true
   }
 
   export type Student_reviewsMinAggregateInputType = {
@@ -53890,6 +55038,7 @@ export namespace Prisma {
     term_serial?: true
     rating?: true
     comment?: true
+    assignment_id?: true
     created_at?: true
   }
 
@@ -53901,6 +55050,7 @@ export namespace Prisma {
     term_serial?: true
     rating?: true
     comment?: true
+    assignment_id?: true
     created_at?: true
   }
 
@@ -53913,6 +55063,7 @@ export namespace Prisma {
     rating?: true
     comment?: true
     answers?: true
+    assignment_id?: true
     created_at?: true
     _all?: true
   }
@@ -54012,6 +55163,7 @@ export namespace Prisma {
     rating: number | null
     comment: string | null
     answers: JsonValue | null
+    assignment_id: number | null
     created_at: Date | null
     _count: Student_reviewsCountAggregateOutputType | null
     _avg: Student_reviewsAvgAggregateOutputType | null
@@ -54043,6 +55195,7 @@ export namespace Prisma {
     rating?: boolean
     comment?: boolean
     answers?: boolean
+    assignment_id?: boolean
     created_at?: boolean
     classes?: boolean | classesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["student_reviews"]>
@@ -54058,10 +55211,11 @@ export namespace Prisma {
     rating?: boolean
     comment?: boolean
     answers?: boolean
+    assignment_id?: boolean
     created_at?: boolean
   }
 
-  export type student_reviewsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "teacher_id" | "student_id" | "class_id" | "term_serial" | "rating" | "comment" | "answers" | "created_at", ExtArgs["result"]["student_reviews"]>
+  export type student_reviewsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "teacher_id" | "student_id" | "class_id" | "term_serial" | "rating" | "comment" | "answers" | "assignment_id" | "created_at", ExtArgs["result"]["student_reviews"]>
   export type student_reviewsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     classes?: boolean | classesDefaultArgs<ExtArgs>
   }
@@ -54080,6 +55234,7 @@ export namespace Prisma {
       rating: number | null
       comment: string | null
       answers: Prisma.JsonValue | null
+      assignment_id: number | null
       created_at: Date | null
     }, ExtArgs["result"]["student_reviews"]>
     composites: {}
@@ -54459,6 +55614,7 @@ export namespace Prisma {
     readonly rating: FieldRef<"student_reviews", 'Int'>
     readonly comment: FieldRef<"student_reviews", 'String'>
     readonly answers: FieldRef<"student_reviews", 'Json'>
+    readonly assignment_id: FieldRef<"student_reviews", 'Int'>
     readonly created_at: FieldRef<"student_reviews", 'DateTime'>
   }
     
@@ -58496,12 +59652,14 @@ export namespace Prisma {
     id: number | null
     class_id: number | null
     rating: number | null
+    assignment_id: number | null
   }
 
   export type Teacher_reviewsSumAggregateOutputType = {
     id: number | null
     class_id: number | null
     rating: number | null
+    assignment_id: number | null
   }
 
   export type Teacher_reviewsMinAggregateOutputType = {
@@ -58512,6 +59670,7 @@ export namespace Prisma {
     term_serial: string | null
     rating: number | null
     comment: string | null
+    assignment_id: number | null
     created_at: Date | null
   }
 
@@ -58523,6 +59682,7 @@ export namespace Prisma {
     term_serial: string | null
     rating: number | null
     comment: string | null
+    assignment_id: number | null
     created_at: Date | null
   }
 
@@ -58535,6 +59695,7 @@ export namespace Prisma {
     rating: number
     comment: number
     answers: number
+    assignment_id: number
     created_at: number
     _all: number
   }
@@ -58544,12 +59705,14 @@ export namespace Prisma {
     id?: true
     class_id?: true
     rating?: true
+    assignment_id?: true
   }
 
   export type Teacher_reviewsSumAggregateInputType = {
     id?: true
     class_id?: true
     rating?: true
+    assignment_id?: true
   }
 
   export type Teacher_reviewsMinAggregateInputType = {
@@ -58560,6 +59723,7 @@ export namespace Prisma {
     term_serial?: true
     rating?: true
     comment?: true
+    assignment_id?: true
     created_at?: true
   }
 
@@ -58571,6 +59735,7 @@ export namespace Prisma {
     term_serial?: true
     rating?: true
     comment?: true
+    assignment_id?: true
     created_at?: true
   }
 
@@ -58583,6 +59748,7 @@ export namespace Prisma {
     rating?: true
     comment?: true
     answers?: true
+    assignment_id?: true
     created_at?: true
     _all?: true
   }
@@ -58682,6 +59848,7 @@ export namespace Prisma {
     rating: number | null
     comment: string | null
     answers: JsonValue | null
+    assignment_id: number | null
     created_at: Date | null
     _count: Teacher_reviewsCountAggregateOutputType | null
     _avg: Teacher_reviewsAvgAggregateOutputType | null
@@ -58713,6 +59880,7 @@ export namespace Prisma {
     rating?: boolean
     comment?: boolean
     answers?: boolean
+    assignment_id?: boolean
     created_at?: boolean
     classes?: boolean | classesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["teacher_reviews"]>
@@ -58728,10 +59896,11 @@ export namespace Prisma {
     rating?: boolean
     comment?: boolean
     answers?: boolean
+    assignment_id?: boolean
     created_at?: boolean
   }
 
-  export type teacher_reviewsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "student_id" | "teacher_id" | "class_id" | "term_serial" | "rating" | "comment" | "answers" | "created_at", ExtArgs["result"]["teacher_reviews"]>
+  export type teacher_reviewsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "student_id" | "teacher_id" | "class_id" | "term_serial" | "rating" | "comment" | "answers" | "assignment_id" | "created_at", ExtArgs["result"]["teacher_reviews"]>
   export type teacher_reviewsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     classes?: boolean | classesDefaultArgs<ExtArgs>
   }
@@ -58750,6 +59919,7 @@ export namespace Prisma {
       rating: number | null
       comment: string | null
       answers: Prisma.JsonValue | null
+      assignment_id: number | null
       created_at: Date | null
     }, ExtArgs["result"]["teacher_reviews"]>
     composites: {}
@@ -59129,6 +60299,7 @@ export namespace Prisma {
     readonly rating: FieldRef<"teacher_reviews", 'Int'>
     readonly comment: FieldRef<"teacher_reviews", 'String'>
     readonly answers: FieldRef<"teacher_reviews", 'Json'>
+    readonly assignment_id: FieldRef<"teacher_reviews", 'Int'>
     readonly created_at: FieldRef<"teacher_reviews", 'DateTime'>
   }
     
@@ -66807,6 +67978,28 @@ export namespace Prisma {
   export type Review_windowsScalarFieldEnum = (typeof Review_windowsScalarFieldEnum)[keyof typeof Review_windowsScalarFieldEnum]
 
 
+  export const Review_assignmentsScalarFieldEnum: {
+    id: 'id',
+    review_type: 'review_type',
+    title: 'title',
+    description: 'description',
+    start_date: 'start_date',
+    end_date: 'end_date',
+    program_id: 'program_id',
+    class_id: 'class_id',
+    course_id: 'course_id',
+    subprogram_id: 'subprogram_id',
+    status: 'status',
+    questions: 'questions',
+    questionnaire_url: 'questionnaire_url',
+    created_by: 'created_by',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+  };
+
+  export type Review_assignmentsScalarFieldEnum = (typeof Review_assignmentsScalarFieldEnum)[keyof typeof Review_assignmentsScalarFieldEnum]
+
+
   export const Student_review_questionsScalarFieldEnum: {
     id: 'id',
     question_text: 'question_text',
@@ -66826,6 +68019,7 @@ export namespace Prisma {
     rating: 'rating',
     comment: 'comment',
     answers: 'answers',
+    assignment_id: 'assignment_id',
     created_at: 'created_at'
   };
 
@@ -66916,6 +68110,7 @@ export namespace Prisma {
     rating: 'rating',
     comment: 'comment',
     answers: 'answers',
+    assignment_id: 'assignment_id',
     created_at: 'created_at'
   };
 
@@ -67557,6 +68752,17 @@ export namespace Prisma {
   };
 
   export type review_windowsOrderByRelevanceFieldEnum = (typeof review_windowsOrderByRelevanceFieldEnum)[keyof typeof review_windowsOrderByRelevanceFieldEnum]
+
+
+  export const review_assignmentsOrderByRelevanceFieldEnum: {
+    review_type: 'review_type',
+    title: 'title',
+    description: 'description',
+    status: 'status',
+    questionnaire_url: 'questionnaire_url'
+  };
+
+  export type review_assignmentsOrderByRelevanceFieldEnum = (typeof review_assignmentsOrderByRelevanceFieldEnum)[keyof typeof review_assignmentsOrderByRelevanceFieldEnum]
 
 
   export const student_review_questionsOrderByRelevanceFieldEnum: {
@@ -72130,6 +73336,116 @@ export namespace Prisma {
     updated_at?: DateTimeNullableWithAggregatesFilter<"review_windows"> | Date | string | null
   }
 
+  export type review_assignmentsWhereInput = {
+    AND?: review_assignmentsWhereInput | review_assignmentsWhereInput[]
+    OR?: review_assignmentsWhereInput[]
+    NOT?: review_assignmentsWhereInput | review_assignmentsWhereInput[]
+    id?: IntFilter<"review_assignments"> | number
+    review_type?: StringFilter<"review_assignments"> | string
+    title?: StringFilter<"review_assignments"> | string
+    description?: StringNullableFilter<"review_assignments"> | string | null
+    start_date?: DateTimeFilter<"review_assignments"> | Date | string
+    end_date?: DateTimeFilter<"review_assignments"> | Date | string
+    program_id?: IntNullableFilter<"review_assignments"> | number | null
+    class_id?: IntNullableFilter<"review_assignments"> | number | null
+    course_id?: IntNullableFilter<"review_assignments"> | number | null
+    subprogram_id?: IntNullableFilter<"review_assignments"> | number | null
+    status?: StringFilter<"review_assignments"> | string
+    questions?: JsonNullableFilter<"review_assignments">
+    questionnaire_url?: StringNullableFilter<"review_assignments"> | string | null
+    created_by?: IntNullableFilter<"review_assignments"> | number | null
+    created_at?: DateTimeNullableFilter<"review_assignments"> | Date | string | null
+    updated_at?: DateTimeNullableFilter<"review_assignments"> | Date | string | null
+  }
+
+  export type review_assignmentsOrderByWithRelationInput = {
+    id?: SortOrder
+    review_type?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    start_date?: SortOrder
+    end_date?: SortOrder
+    program_id?: SortOrderInput | SortOrder
+    class_id?: SortOrderInput | SortOrder
+    course_id?: SortOrderInput | SortOrder
+    subprogram_id?: SortOrderInput | SortOrder
+    status?: SortOrder
+    questions?: SortOrderInput | SortOrder
+    questionnaire_url?: SortOrderInput | SortOrder
+    created_by?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
+    _relevance?: review_assignmentsOrderByRelevanceInput
+  }
+
+  export type review_assignmentsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: review_assignmentsWhereInput | review_assignmentsWhereInput[]
+    OR?: review_assignmentsWhereInput[]
+    NOT?: review_assignmentsWhereInput | review_assignmentsWhereInput[]
+    review_type?: StringFilter<"review_assignments"> | string
+    title?: StringFilter<"review_assignments"> | string
+    description?: StringNullableFilter<"review_assignments"> | string | null
+    start_date?: DateTimeFilter<"review_assignments"> | Date | string
+    end_date?: DateTimeFilter<"review_assignments"> | Date | string
+    program_id?: IntNullableFilter<"review_assignments"> | number | null
+    class_id?: IntNullableFilter<"review_assignments"> | number | null
+    course_id?: IntNullableFilter<"review_assignments"> | number | null
+    subprogram_id?: IntNullableFilter<"review_assignments"> | number | null
+    status?: StringFilter<"review_assignments"> | string
+    questions?: JsonNullableFilter<"review_assignments">
+    questionnaire_url?: StringNullableFilter<"review_assignments"> | string | null
+    created_by?: IntNullableFilter<"review_assignments"> | number | null
+    created_at?: DateTimeNullableFilter<"review_assignments"> | Date | string | null
+    updated_at?: DateTimeNullableFilter<"review_assignments"> | Date | string | null
+  }, "id">
+
+  export type review_assignmentsOrderByWithAggregationInput = {
+    id?: SortOrder
+    review_type?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    start_date?: SortOrder
+    end_date?: SortOrder
+    program_id?: SortOrderInput | SortOrder
+    class_id?: SortOrderInput | SortOrder
+    course_id?: SortOrderInput | SortOrder
+    subprogram_id?: SortOrderInput | SortOrder
+    status?: SortOrder
+    questions?: SortOrderInput | SortOrder
+    questionnaire_url?: SortOrderInput | SortOrder
+    created_by?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
+    _count?: review_assignmentsCountOrderByAggregateInput
+    _avg?: review_assignmentsAvgOrderByAggregateInput
+    _max?: review_assignmentsMaxOrderByAggregateInput
+    _min?: review_assignmentsMinOrderByAggregateInput
+    _sum?: review_assignmentsSumOrderByAggregateInput
+  }
+
+  export type review_assignmentsScalarWhereWithAggregatesInput = {
+    AND?: review_assignmentsScalarWhereWithAggregatesInput | review_assignmentsScalarWhereWithAggregatesInput[]
+    OR?: review_assignmentsScalarWhereWithAggregatesInput[]
+    NOT?: review_assignmentsScalarWhereWithAggregatesInput | review_assignmentsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"review_assignments"> | number
+    review_type?: StringWithAggregatesFilter<"review_assignments"> | string
+    title?: StringWithAggregatesFilter<"review_assignments"> | string
+    description?: StringNullableWithAggregatesFilter<"review_assignments"> | string | null
+    start_date?: DateTimeWithAggregatesFilter<"review_assignments"> | Date | string
+    end_date?: DateTimeWithAggregatesFilter<"review_assignments"> | Date | string
+    program_id?: IntNullableWithAggregatesFilter<"review_assignments"> | number | null
+    class_id?: IntNullableWithAggregatesFilter<"review_assignments"> | number | null
+    course_id?: IntNullableWithAggregatesFilter<"review_assignments"> | number | null
+    subprogram_id?: IntNullableWithAggregatesFilter<"review_assignments"> | number | null
+    status?: StringWithAggregatesFilter<"review_assignments"> | string
+    questions?: JsonNullableWithAggregatesFilter<"review_assignments">
+    questionnaire_url?: StringNullableWithAggregatesFilter<"review_assignments"> | string | null
+    created_by?: IntNullableWithAggregatesFilter<"review_assignments"> | number | null
+    created_at?: DateTimeNullableWithAggregatesFilter<"review_assignments"> | Date | string | null
+    updated_at?: DateTimeNullableWithAggregatesFilter<"review_assignments"> | Date | string | null
+  }
+
   export type student_review_questionsWhereInput = {
     AND?: student_review_questionsWhereInput | student_review_questionsWhereInput[]
     OR?: student_review_questionsWhereInput[]
@@ -72192,6 +73508,7 @@ export namespace Prisma {
     rating?: IntNullableFilter<"student_reviews"> | number | null
     comment?: StringNullableFilter<"student_reviews"> | string | null
     answers?: JsonNullableFilter<"student_reviews">
+    assignment_id?: IntNullableFilter<"student_reviews"> | number | null
     created_at?: DateTimeNullableFilter<"student_reviews"> | Date | string | null
     classes?: XOR<ClassesScalarRelationFilter, classesWhereInput>
   }
@@ -72205,6 +73522,7 @@ export namespace Prisma {
     rating?: SortOrderInput | SortOrder
     comment?: SortOrderInput | SortOrder
     answers?: SortOrderInput | SortOrder
+    assignment_id?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     classes?: classesOrderByWithRelationInput
     _relevance?: student_reviewsOrderByRelevanceInput
@@ -72222,6 +73540,7 @@ export namespace Prisma {
     rating?: IntNullableFilter<"student_reviews"> | number | null
     comment?: StringNullableFilter<"student_reviews"> | string | null
     answers?: JsonNullableFilter<"student_reviews">
+    assignment_id?: IntNullableFilter<"student_reviews"> | number | null
     created_at?: DateTimeNullableFilter<"student_reviews"> | Date | string | null
     classes?: XOR<ClassesScalarRelationFilter, classesWhereInput>
   }, "id">
@@ -72235,6 +73554,7 @@ export namespace Prisma {
     rating?: SortOrderInput | SortOrder
     comment?: SortOrderInput | SortOrder
     answers?: SortOrderInput | SortOrder
+    assignment_id?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: student_reviewsCountOrderByAggregateInput
     _avg?: student_reviewsAvgOrderByAggregateInput
@@ -72255,6 +73575,7 @@ export namespace Prisma {
     rating?: IntNullableWithAggregatesFilter<"student_reviews"> | number | null
     comment?: StringNullableWithAggregatesFilter<"student_reviews"> | string | null
     answers?: JsonNullableWithAggregatesFilter<"student_reviews">
+    assignment_id?: IntNullableWithAggregatesFilter<"student_reviews"> | number | null
     created_at?: DateTimeNullableWithAggregatesFilter<"student_reviews"> | Date | string | null
   }
 
@@ -72681,6 +74002,7 @@ export namespace Prisma {
     rating?: IntNullableFilter<"teacher_reviews"> | number | null
     comment?: StringNullableFilter<"teacher_reviews"> | string | null
     answers?: JsonNullableFilter<"teacher_reviews">
+    assignment_id?: IntNullableFilter<"teacher_reviews"> | number | null
     created_at?: DateTimeNullableFilter<"teacher_reviews"> | Date | string | null
     classes?: XOR<ClassesScalarRelationFilter, classesWhereInput>
   }
@@ -72694,6 +74016,7 @@ export namespace Prisma {
     rating?: SortOrderInput | SortOrder
     comment?: SortOrderInput | SortOrder
     answers?: SortOrderInput | SortOrder
+    assignment_id?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     classes?: classesOrderByWithRelationInput
     _relevance?: teacher_reviewsOrderByRelevanceInput
@@ -72711,6 +74034,7 @@ export namespace Prisma {
     rating?: IntNullableFilter<"teacher_reviews"> | number | null
     comment?: StringNullableFilter<"teacher_reviews"> | string | null
     answers?: JsonNullableFilter<"teacher_reviews">
+    assignment_id?: IntNullableFilter<"teacher_reviews"> | number | null
     created_at?: DateTimeNullableFilter<"teacher_reviews"> | Date | string | null
     classes?: XOR<ClassesScalarRelationFilter, classesWhereInput>
   }, "id">
@@ -72724,6 +74048,7 @@ export namespace Prisma {
     rating?: SortOrderInput | SortOrder
     comment?: SortOrderInput | SortOrder
     answers?: SortOrderInput | SortOrder
+    assignment_id?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: teacher_reviewsCountOrderByAggregateInput
     _avg?: teacher_reviewsAvgOrderByAggregateInput
@@ -72744,6 +74069,7 @@ export namespace Prisma {
     rating?: IntNullableWithAggregatesFilter<"teacher_reviews"> | number | null
     comment?: StringNullableWithAggregatesFilter<"teacher_reviews"> | string | null
     answers?: JsonNullableWithAggregatesFilter<"teacher_reviews">
+    assignment_id?: IntNullableWithAggregatesFilter<"teacher_reviews"> | number | null
     created_at?: DateTimeNullableWithAggregatesFilter<"teacher_reviews"> | Date | string | null
   }
 
@@ -77881,6 +79207,136 @@ export namespace Prisma {
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type review_assignmentsCreateInput = {
+    review_type: string
+    title: string
+    description?: string | null
+    start_date: Date | string
+    end_date: Date | string
+    program_id?: number | null
+    class_id?: number | null
+    course_id?: number | null
+    subprogram_id?: number | null
+    status?: string
+    questions?: NullableJsonNullValueInput | InputJsonValue
+    questionnaire_url?: string | null
+    created_by?: number | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type review_assignmentsUncheckedCreateInput = {
+    id?: number
+    review_type: string
+    title: string
+    description?: string | null
+    start_date: Date | string
+    end_date: Date | string
+    program_id?: number | null
+    class_id?: number | null
+    course_id?: number | null
+    subprogram_id?: number | null
+    status?: string
+    questions?: NullableJsonNullValueInput | InputJsonValue
+    questionnaire_url?: string | null
+    created_by?: number | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type review_assignmentsUpdateInput = {
+    review_type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    start_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    program_id?: NullableIntFieldUpdateOperationsInput | number | null
+    class_id?: NullableIntFieldUpdateOperationsInput | number | null
+    course_id?: NullableIntFieldUpdateOperationsInput | number | null
+    subprogram_id?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    questions?: NullableJsonNullValueInput | InputJsonValue
+    questionnaire_url?: NullableStringFieldUpdateOperationsInput | string | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type review_assignmentsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    review_type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    start_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    program_id?: NullableIntFieldUpdateOperationsInput | number | null
+    class_id?: NullableIntFieldUpdateOperationsInput | number | null
+    course_id?: NullableIntFieldUpdateOperationsInput | number | null
+    subprogram_id?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    questions?: NullableJsonNullValueInput | InputJsonValue
+    questionnaire_url?: NullableStringFieldUpdateOperationsInput | string | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type review_assignmentsCreateManyInput = {
+    id?: number
+    review_type: string
+    title: string
+    description?: string | null
+    start_date: Date | string
+    end_date: Date | string
+    program_id?: number | null
+    class_id?: number | null
+    course_id?: number | null
+    subprogram_id?: number | null
+    status?: string
+    questions?: NullableJsonNullValueInput | InputJsonValue
+    questionnaire_url?: string | null
+    created_by?: number | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type review_assignmentsUpdateManyMutationInput = {
+    review_type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    start_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    program_id?: NullableIntFieldUpdateOperationsInput | number | null
+    class_id?: NullableIntFieldUpdateOperationsInput | number | null
+    course_id?: NullableIntFieldUpdateOperationsInput | number | null
+    subprogram_id?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    questions?: NullableJsonNullValueInput | InputJsonValue
+    questionnaire_url?: NullableStringFieldUpdateOperationsInput | string | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type review_assignmentsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    review_type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    start_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    program_id?: NullableIntFieldUpdateOperationsInput | number | null
+    class_id?: NullableIntFieldUpdateOperationsInput | number | null
+    course_id?: NullableIntFieldUpdateOperationsInput | number | null
+    subprogram_id?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    questions?: NullableJsonNullValueInput | InputJsonValue
+    questionnaire_url?: NullableStringFieldUpdateOperationsInput | string | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type student_review_questionsCreateInput = {
     question_text: string
     is_active?: boolean | null
@@ -77934,6 +79390,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
     classes: classesCreateNestedOneWithoutStudent_reviewsInput
   }
@@ -77947,6 +79404,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
   }
 
@@ -77957,6 +79415,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     classes?: classesUpdateOneRequiredWithoutStudent_reviewsNestedInput
   }
@@ -77970,6 +79429,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -77982,6 +79442,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
   }
 
@@ -77992,6 +79453,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -78004,6 +79466,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -78508,6 +79971,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
     classes: classesCreateNestedOneWithoutTeacher_reviewsInput
   }
@@ -78521,6 +79985,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
   }
 
@@ -78531,6 +79996,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     classes?: classesUpdateOneRequiredWithoutTeacher_reviewsNestedInput
   }
@@ -78544,6 +80010,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -78556,6 +80023,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
   }
 
@@ -78566,6 +80034,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -78578,6 +80047,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -83266,6 +84736,85 @@ export namespace Prisma {
     updated_by?: SortOrder
   }
 
+  export type review_assignmentsOrderByRelevanceInput = {
+    fields: review_assignmentsOrderByRelevanceFieldEnum | review_assignmentsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type review_assignmentsCountOrderByAggregateInput = {
+    id?: SortOrder
+    review_type?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    start_date?: SortOrder
+    end_date?: SortOrder
+    program_id?: SortOrder
+    class_id?: SortOrder
+    course_id?: SortOrder
+    subprogram_id?: SortOrder
+    status?: SortOrder
+    questions?: SortOrder
+    questionnaire_url?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type review_assignmentsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    program_id?: SortOrder
+    class_id?: SortOrder
+    course_id?: SortOrder
+    subprogram_id?: SortOrder
+    created_by?: SortOrder
+  }
+
+  export type review_assignmentsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    review_type?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    start_date?: SortOrder
+    end_date?: SortOrder
+    program_id?: SortOrder
+    class_id?: SortOrder
+    course_id?: SortOrder
+    subprogram_id?: SortOrder
+    status?: SortOrder
+    questionnaire_url?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type review_assignmentsMinOrderByAggregateInput = {
+    id?: SortOrder
+    review_type?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    start_date?: SortOrder
+    end_date?: SortOrder
+    program_id?: SortOrder
+    class_id?: SortOrder
+    course_id?: SortOrder
+    subprogram_id?: SortOrder
+    status?: SortOrder
+    questionnaire_url?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type review_assignmentsSumOrderByAggregateInput = {
+    id?: SortOrder
+    program_id?: SortOrder
+    class_id?: SortOrder
+    course_id?: SortOrder
+    subprogram_id?: SortOrder
+    created_by?: SortOrder
+  }
+
   export type student_review_questionsOrderByRelevanceInput = {
     fields: student_review_questionsOrderByRelevanceFieldEnum | student_review_questionsOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -83316,6 +84865,7 @@ export namespace Prisma {
     rating?: SortOrder
     comment?: SortOrder
     answers?: SortOrder
+    assignment_id?: SortOrder
     created_at?: SortOrder
   }
 
@@ -83323,6 +84873,7 @@ export namespace Prisma {
     id?: SortOrder
     class_id?: SortOrder
     rating?: SortOrder
+    assignment_id?: SortOrder
   }
 
   export type student_reviewsMaxOrderByAggregateInput = {
@@ -83333,6 +84884,7 @@ export namespace Prisma {
     term_serial?: SortOrder
     rating?: SortOrder
     comment?: SortOrder
+    assignment_id?: SortOrder
     created_at?: SortOrder
   }
 
@@ -83344,6 +84896,7 @@ export namespace Prisma {
     term_serial?: SortOrder
     rating?: SortOrder
     comment?: SortOrder
+    assignment_id?: SortOrder
     created_at?: SortOrder
   }
 
@@ -83351,6 +84904,7 @@ export namespace Prisma {
     id?: SortOrder
     class_id?: SortOrder
     rating?: SortOrder
+    assignment_id?: SortOrder
   }
 
   export type Enumstudents_sexNullableFilter<$PrismaModel = never> = {
@@ -83739,6 +85293,7 @@ export namespace Prisma {
     rating?: SortOrder
     comment?: SortOrder
     answers?: SortOrder
+    assignment_id?: SortOrder
     created_at?: SortOrder
   }
 
@@ -83746,6 +85301,7 @@ export namespace Prisma {
     id?: SortOrder
     class_id?: SortOrder
     rating?: SortOrder
+    assignment_id?: SortOrder
   }
 
   export type teacher_reviewsMaxOrderByAggregateInput = {
@@ -83756,6 +85312,7 @@ export namespace Prisma {
     term_serial?: SortOrder
     rating?: SortOrder
     comment?: SortOrder
+    assignment_id?: SortOrder
     created_at?: SortOrder
   }
 
@@ -83767,6 +85324,7 @@ export namespace Prisma {
     term_serial?: SortOrder
     rating?: SortOrder
     comment?: SortOrder
+    assignment_id?: SortOrder
     created_at?: SortOrder
   }
 
@@ -83774,6 +85332,7 @@ export namespace Prisma {
     id?: SortOrder
     class_id?: SortOrder
     rating?: SortOrder
+    assignment_id?: SortOrder
   }
 
   export type Enumteachers_statusNullableFilter<$PrismaModel = never> = {
@@ -89004,6 +90563,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
   }
 
@@ -89015,6 +90575,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
   }
 
@@ -89139,6 +90700,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
   }
 
@@ -89150,6 +90712,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
   }
 
@@ -89516,6 +91079,7 @@ export namespace Prisma {
     rating?: IntNullableFilter<"student_reviews"> | number | null
     comment?: StringNullableFilter<"student_reviews"> | string | null
     answers?: JsonNullableFilter<"student_reviews">
+    assignment_id?: IntNullableFilter<"student_reviews"> | number | null
     created_at?: DateTimeNullableFilter<"student_reviews"> | Date | string | null
   }
 
@@ -89611,6 +91175,7 @@ export namespace Prisma {
     rating?: IntNullableFilter<"teacher_reviews"> | number | null
     comment?: StringNullableFilter<"teacher_reviews"> | string | null
     answers?: JsonNullableFilter<"teacher_reviews">
+    assignment_id?: IntNullableFilter<"teacher_reviews"> | number | null
     created_at?: DateTimeNullableFilter<"teacher_reviews"> | Date | string | null
   }
 
@@ -93905,6 +95470,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
   }
 
@@ -93960,6 +95526,7 @@ export namespace Prisma {
     rating?: number | null
     comment?: string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: number | null
     created_at?: Date | string | null
   }
 
@@ -94162,6 +95729,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -94173,6 +95741,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -94184,6 +95753,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -94332,6 +95902,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -94343,6 +95914,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -94354,6 +95926,7 @@ export namespace Prisma {
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     answers?: NullableJsonNullValueInput | InputJsonValue
+    assignment_id?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 

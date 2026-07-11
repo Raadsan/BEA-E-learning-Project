@@ -706,80 +706,24 @@ export default function BAdminSidebar({ isOpen, onClose }) {
             </button>
             {openSection === 'reviews' && (
               <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
-                {(allowPage("reviews", "teacher_questions") || allowPage("reviews", "teacher_reviews")) && (
+                {allowPage("reviews", "teacher_questions") && (
                 <li className="ml-2">
-                  <button
-                    onClick={() => toggleSubSection('reviewTeacher')}
-                    className={`w-full flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm text-gray-300 hover:bg-white/10 ${openSubSection === 'reviewTeacher' ? 'bg-white/10' : ''}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-400">•</span>
-                      <span className="text-gray-100">Teacher</span>
-                    </div>
-                    <svg className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${openSubSection === 'reviewTeacher' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {openSubSection === 'reviewTeacher' && (
-                    <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
-                      {allowPage("reviews", "teacher_questions") && (
-                      <li>
-                        <Link href="/portal/admin/reviews/teacher-questions" className={getSubMenuItemClasses("/portal/admin/reviews/teacher-questions")} style={getSubActiveStyle("/portal/admin/reviews/teacher-questions")}>
-                          <span className={isActive("/portal/admin/reviews/teacher-questions") ? 'text-white' : 'text-gray-100'}>Questions</span>
-                        </Link>
-                      </li>
-                      )}
-                      {allowPage("reviews", "teacher_reviews") && (
-                      <li>
-                        <Link href="/portal/admin/reviews/teacher-reviews" className={getSubMenuItemClasses("/portal/admin/reviews/teacher-reviews")} style={getSubActiveStyle("/portal/admin/reviews/teacher-reviews")}>
-                          <span className={isActive("/portal/admin/reviews/teacher-reviews") ? 'text-white' : 'text-gray-100'}>Reviews</span>
-                        </Link>
-                      </li>
-                      )}
-                    </ul>
-                  )}
+                  <Link href="/portal/admin/reviews/teacher-questions" className={getSubMenuItemClasses("/portal/admin/reviews/teacher-questions")} style={getSubActiveStyle("/portal/admin/reviews/teacher-questions")}>
+                    <span className={isActive("/portal/admin/reviews/teacher-questions") ? 'text-white' : 'text-gray-100'}>Teacher</span>
+                  </Link>
                 </li>
                 )}
-
-                {(allowPage("reviews", "student_questions") || allowPage("reviews", "student_reviews")) && (
+                {allowPage("reviews", "student_reviews") && (
                 <li className="ml-2">
-                  <button
-                    onClick={() => toggleSubSection('reviewStudent')}
-                    className={`w-full flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm text-gray-300 hover:bg-white/10 ${openSubSection === 'reviewStudent' ? 'bg-white/10' : ''}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-400">•</span>
-                      <span className="text-gray-100">Student</span>
-                    </div>
-                    <svg className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${openSubSection === 'reviewStudent' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {openSubSection === 'reviewStudent' && (
-                    <ul className="mt-1 ml-4 space-y-1 border-l-2 border-white/20 pl-2">
-                      {allowPage("reviews", "student_questions") && (
-                      <li>
-                        <Link href="/portal/admin/reviews/student-questions" className={getSubMenuItemClasses("/portal/admin/reviews/student-questions")} style={getSubActiveStyle("/portal/admin/reviews/student-questions")}>
-                          <span className={isActive("/portal/admin/reviews/student-questions") ? 'text-white' : 'text-gray-100'}>Questions</span>
-                        </Link>
-                      </li>
-                      )}
-                      {allowPage("reviews", "student_reviews") && (
-                      <li>
-                        <Link href="/portal/admin/reviews/student-reviews" className={getSubMenuItemClasses("/portal/admin/reviews/student-reviews")} style={getSubActiveStyle("/portal/admin/reviews/student-reviews")}>
-                          <span className={isActive("/portal/admin/reviews/student-reviews") ? 'text-white' : 'text-gray-100'}>Reviews</span>
-                        </Link>
-                      </li>
-                      )}
-                    </ul>
-                  )}
+                  <Link href="/portal/admin/reviews/student-reviews" className={getSubMenuItemClasses("/portal/admin/reviews/student-reviews")} style={getSubActiveStyle("/portal/admin/reviews/student-reviews")}>
+                    <span className={isActive("/portal/admin/reviews/student-reviews") ? 'text-white' : 'text-gray-100'}>Student</span>
+                  </Link>
                 </li>
                 )}
               </ul>
             )}
           </li>
           )}
-
           {/* Communication */}
           {allow("communication") && (
           <li>
@@ -1028,3 +972,4 @@ export default function BAdminSidebar({ isOpen, onClose }) {
     </div >
   );
 }
+

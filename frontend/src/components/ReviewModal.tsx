@@ -40,7 +40,7 @@ const ReviewModal = ({ isOpen, onClose, onSubmit, title, subtitle, revieweeName,
         const overallRating = Math.round(totalRating / questions.length);
 
         const formattedAnswers = Object.entries(answers).map(([qId, rating]) => ({
-            question_id: parseInt(qId),
+            question_id: qId,
             rating
         }));
 
