@@ -7,18 +7,25 @@ export type AudioRecorderStatus = "idle" | "recording" | "recorded" | "error";
 function pickSupportedMimeType(): string {
     if (typeof window === "undefined" || typeof MediaRecorder === "undefined") return "";
     const candidates = [
+        // Safari / iOS supports mp4 / aac
+        "audio/mp4",
+        "audio/aac",
+        // Chrome / Firefox prefer webm+opus
         "audio/webm;codecs=opus",
         "audio/webm",
-        "audio/mp4",
+        // Firefox fallback
         "audio/ogg;codecs=opus",
         "audio/ogg",
+        // Last resort
+        "audio/wav",
     ];
     return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || "";
 }
 
 function extensionForMime(mime: string): string {
-    if (mime.includes("mp4")) return "m4a";
+    if (mime.includes("mp4") || mime.includes("aac")) return "m4a";
     if (mime.includes("ogg")) return "ogg";
+    if (mime.includes("wav")) return "wav";
     return "webm";
 }
 
@@ -28,6 +35,8 @@ export function useAudioRecorder() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [recordedFile, setRecordedFile] = useState<File | null>(null);
     const [durationSec, setDurationSec] = useState(0);
+    // null = not yet determined (SSR); true/false = determined client-side
+    const [isSupported, setIsSupported] = useState<boolean | null>(null);
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
@@ -45,6 +54,15 @@ export function useAudioRecorder() {
             clearInterval(timerRef.current);
             timerRef.current = null;
         }
+    }, []);
+
+    // Determine support client-side only (after mount) to avoid SSR false-negative
+    useEffect(() => {
+        setIsSupported(
+            typeof window !== "undefined" &&
+            !!navigator.mediaDevices?.getUserMedia &&
+            typeof MediaRecorder !== "undefined"
+        );
     }, []);
 
     const reset = useCallback(() => {
@@ -99,7 +117,7 @@ export function useAudioRecorder() {
             };
 
             mediaRecorderRef.current = recorder;
-            recorder.start(200);
+            recorder.start(); // No timeslice — fires ondataavailable once on stop (universally compatible incl. Safari/iOS)
             startTimeRef.current = Date.now();
             timerRef.current = setInterval(() => {
                 setDurationSec(Math.floor((Date.now() - startTimeRef.current) / 1000));
@@ -134,6 +152,7 @@ export function useAudioRecorder() {
         start,
         stop,
         reset,
-        isSupported: typeof window !== "undefined" && !!navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== "undefined",
+        // null while mounting (SSR), true/false after client hydration
+        isSupported,
     };
 }

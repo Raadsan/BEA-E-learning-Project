@@ -63,11 +63,27 @@ export default function AudioRecorderPanel({
 
     return (
         <div className="space-y-4">
-            {!isSupported ? (
-                <p className={`text-sm ${isDark ? "text-amber-300" : "text-amber-700"}`}>
-                    In-browser recording is not supported in this browser. Please use Chrome and allow microphone access.
-                </p>
-            ) : (
+            {/* null = still checking after SSR hydration – show a neutral placeholder */}
+            {isSupported === null && (
+                <div className={`p-4 rounded-xl border animate-pulse ${isDark ? "bg-gray-900/40 border-gray-700" : "bg-blue-50/50 border-blue-100"}`}>
+                    <p className={`text-xs font-medium ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                        Checking microphone support…
+                    </p>
+                </div>
+            )}
+
+            {isSupported === false && (
+                <div className={`p-4 rounded-xl border ${isDark ? "bg-amber-900/20 border-amber-700/40" : "bg-amber-50 border-amber-200"}`}>
+                    <p className={`text-sm font-semibold ${isDark ? "text-amber-300" : "text-amber-800"}`}>
+                        🎙️ Microphone recording is not available in this browser.
+                    </p>
+                    <p className={`text-xs mt-1 ${isDark ? "text-amber-400" : "text-amber-700"}`}>
+                        Please open this page in <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong> and allow microphone access when prompted.
+                    </p>
+                </div>
+            )}
+
+            {isSupported === true && (
                 <div className={`p-6 rounded-xl border ${isDark ? "bg-gray-900/40 border-gray-700" : "bg-blue-50/50 border-blue-100"}`}>
                     <p className={`text-xs font-bold uppercase tracking-wider mb-4 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                         Record your voice in the browser

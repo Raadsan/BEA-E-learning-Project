@@ -40,13 +40,24 @@ const enrichWritingTaskAssignment = (assignment) => {
 
 const parseEmbeddedFeedbackFile = (feedback) => {
     if (!feedback || typeof feedback !== "string") {
-        return { feedback_text: feedback || "", file_url: null };
+        return { feedback_text: feedback || "", file_url: null, essay_marks: null };
     }
-    const match = feedback.match(/(?:^|\n\n?)Feedback file:\s*(\S+)/i);
-    if (!match) return { feedback_text: feedback.trim(), file_url: null };
-    const file_url = match[1].trim();
-    const feedback_text = feedback.replace(/\n?\n?Feedback file:\s*\S+/i, "").trim();
-    return { feedback_text, file_url };
+    // Extract embedded file reference
+    const fileMatch = feedback.match(/(?:^|\n\n?)Feedback file:\s*(\S+)/i);
+    const file_url = fileMatch ? fileMatch[1].trim() : null;
+    let text = fileMatch ? feedback.replace(/\n?\n?Feedback file:\s*\S+/i, "").trim() : feedback;
+
+    // Extract embedded essay marks JSON tag (stored as __essay_marks__:{...} on its own line)
+    const marksIdx = text.indexOf("__essay_marks__:");
+    let essay_marks = null;
+    if (marksIdx !== -1) {
+        const jsonStr = text.slice(marksIdx + "__essay_marks__:".length).split("\n")[0].trim();
+        try { essay_marks = JSON.parse(jsonStr); } catch { /* ignore */ }
+        text = text.slice(0, marksIdx).trimEnd() + text.slice(marksIdx).replace(/^__essay_marks__:[^\n]*/m, "").trimStart();
+        text = text.trim();
+    }
+
+    return { feedback_text: text, file_url, essay_marks };
 };
 
 const parseSubmissionMeta = (value) => {
@@ -216,6 +227,7 @@ export const getAssignments = async (req, res) => {
                         a.score = submission.score;
                         const parsedFeedback = parseEmbeddedFeedbackFile(submission.feedback);
                         a.feedback = parsedFeedback.feedback_text || submission.feedback;
+                        a.essay_marks = parsedFeedback.essay_marks;
                         a.file_url = submission.file_url;
                         a.student_content = submission.content;
                         a.feedback_file_url = submission.feedback_file_url || parsedFeedback.file_url;
@@ -380,7 +392,7 @@ export const submitAssignment = async (req, res) => {
 export const gradeSubmission = async (req, res) => {
     try {
         const { id } = req.params;
-        const { score, feedback, type } = req.body;
+        const { score, feedback, type, essay_marks, oral_marks } = req.body;
         const subModelName = tableMapping[type]?.sub;
         if (!subModelName) return res.status(400).json({ error: "Invalid type" });
 
@@ -389,9 +401,21 @@ export const gradeSubmission = async (req, res) => {
             return res.status(400).json({ error: "Valid score is required" });
         }
 
+        let feedbackText = feedback?.trim() || null;
+
+        // Embed essay_marks into feedback text for exam submissions (no extra column needed)
+        if (essay_marks && (subModelName === "exam_submissions" || subModelName === "oral_assignment_submissions")) {
+            let marksObj;
+            try { marksObj = typeof essay_marks === 'string' ? JSON.parse(essay_marks) : essay_marks; } catch { marksObj = null; }
+            if (marksObj && Object.keys(marksObj).length > 0) {
+                const marksTag = `__essay_marks__:${JSON.stringify(marksObj)}`;
+                feedbackText = feedbackText ? `${feedbackText}\n${marksTag}` : marksTag;
+            }
+        }
+
         const updateData = {
             score: parsedScore,
-            feedback: feedback?.trim() || null,
+            feedback: feedbackText,
             status: "graded",
         };
 
@@ -411,7 +435,16 @@ export const gradeSubmission = async (req, res) => {
             data: updateData,
         });
 
-        res.json({ message: "Graded successfully", submission: updated });
+        // Parse back so response reflects clean data
+        const parsed = parseEmbeddedFeedbackFile(updated.feedback);
+        res.json({
+            message: "Graded successfully",
+            submission: {
+                ...updated,
+                feedback: parsed.feedback_text,
+                essay_marks: parsed.essay_marks,
+            }
+        });
     } catch (err) {
         if (err?.code === "P2025") {
             return res.status(404).json({ error: "Submission not found" });
@@ -556,12 +589,17 @@ export const getAssignmentSubmissions = async (req, res) => {
             studentMap[s.student_id] = s.full_name || s.email || s.student_id;
         });
 
-        const mappedSubmissions = submissions.map(s => ({
-            ...s,
-            score: s.score !== null && s.score !== undefined ? Number(s.score) : null,
-            student_name: studentMap[s.student_id] || s.student_id || "Unknown Student",
-            student: { full_name: studentMap[s.student_id] || s.student_id || "Unknown Student" }
-        }));
+        const mappedSubmissions = submissions.map(s => {
+            const parsed = parseEmbeddedFeedbackFile(s.feedback);
+            return {
+                ...s,
+                feedback: parsed.feedback_text,
+                essay_marks: parsed.essay_marks,
+                score: s.score !== null && s.score !== undefined ? Number(s.score) : null,
+                student_name: studentMap[s.student_id] || s.student_id || "Unknown Student",
+                student: { full_name: studentMap[s.student_id] || s.student_id || "Unknown Student" }
+            };
+        });
 
         res.json(mappedSubmissions);
     } catch (err) {
@@ -593,12 +631,17 @@ export const getAllSubmissions = async (req, res) => {
             studentMap[s.student_id] = s.full_name || s.email || s.student_id;
         });
 
-        const mappedSubmissions = submissions.map(s => ({
-            ...s,
-            score: s.score !== null && s.score !== undefined ? Number(s.score) : null,
-            student_name: studentMap[s.student_id] || s.student_id || "Unknown Student",
-            student: { full_name: studentMap[s.student_id] || s.student_id || "Unknown Student" }
-        }));
+        const mappedSubmissions = submissions.map(s => {
+            const parsed = parseEmbeddedFeedbackFile(s.feedback);
+            return {
+                ...s,
+                feedback: parsed.feedback_text,
+                essay_marks: parsed.essay_marks,
+                score: s.score !== null && s.score !== undefined ? Number(s.score) : null,
+                student_name: studentMap[s.student_id] || s.student_id || "Unknown Student",
+                student: { full_name: studentMap[s.student_id] || s.student_id || "Unknown Student" }
+            };
+        });
 
         res.json(mappedSubmissions);
     } catch (err) {

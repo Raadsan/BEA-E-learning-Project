@@ -50,7 +50,7 @@ export default function CreateExamPage() {
         description: "",
         start_date: "",
         end_date: "",
-        class_id: "", // Not used
+        class_id: "",
         program_id: "",
         subprogram_id: "", // Level
         total_points: 100,
@@ -87,6 +87,14 @@ export default function CreateExamPage() {
         });
         return Array.from(subprogramsMap.values());
     }, [classes, basicInfo.program_id]);
+
+    const filteredClasses = useMemo(() => {
+        if (!classes || !basicInfo.subprogram_id) return [];
+        return classes.filter(c => {
+            const spId = c.subprogram_id || c.subprograms?.id;
+            return spId == basicInfo.subprogram_id;
+        });
+    }, [classes, basicInfo.subprogram_id]);
 
     // Validations & Steps
     const [currentStep, setCurrentStep] = useState(1);
@@ -135,7 +143,7 @@ export default function CreateExamPage() {
     const [tempEditing, setTempEditing] = useState(emptyEditingQuestion());
     const [editingItemId, setEditingItemId] = useState(null); // Track which item is being edited
     const [tempReadingQ, setTempReadingQ] = useState({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, correctAnswer: '', points: 2 });
-    const [tempListeningQ, setTempListeningQ] = useState({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, points: 2 });
+    const [tempListeningQ, setTempListeningQ] = useState({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, correctAnswer: '', points: 2 });
 
     // Fetch existing if editing
     const { data: assignments } = useGetAssignmentsQuery({ type: 'exam' }, { skip: !editId });
@@ -181,10 +189,12 @@ export default function CreateExamPage() {
             return;
         }
 
-        setBasicInfo(prev => ({ ...prev, [name]: value }));
-
         if (name === 'program_id') {
-            setBasicInfo(prev => ({ ...prev, program_id: value, subprogram_id: "" }));
+            setBasicInfo(prev => ({ ...prev, program_id: value, subprogram_id: "", class_id: "" }));
+        } else if (name === 'subprogram_id') {
+            setBasicInfo(prev => ({ ...prev, subprogram_id: value, class_id: "" }));
+        } else {
+            setBasicInfo(prev => ({ ...prev, [name]: value }));
         }
     };
 
@@ -316,7 +326,7 @@ export default function CreateExamPage() {
                 questions: [...prev.paper3.questions, { ...tempListeningQ, id: uuidv4() }]
             }
         }));
-        setTempListeningQ({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, points: 2 });
+        setTempListeningQ({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, correctAnswer: '', points: 2 });
     };
 
     const removeListeningItem = (id) => {
@@ -345,11 +355,8 @@ export default function CreateExamPage() {
         total += papers.paper2.questions.reduce((acc, q) => acc + (Number(q.points) || 0), 0);
         // P3
         total += papers.paper3.questions.reduce((acc, q) => acc + (Number(q.points) || 0), 0);
-        // P4
-        // Only count oral points if passage is set
-        if (papers.paper4.passage) {
-            total += Number(papers.paper4.points) || 0;
-        }
+        // P4 - Always include oral/speaking points
+        total += Number(papers.paper4.points) || 0;
 
         return total;
     };
@@ -495,14 +502,14 @@ export default function CreateExamPage() {
                                             placeholder="e.g. Midterm Spring 2026"
                                         />
                                     </div>
-                                    <div>
+                                    <div className="col-span-2">
                                         <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Program & Level</label>
                                         <div className="flex gap-2">
                                             <select
                                                 name="program_id"
                                                 value={basicInfo.program_id}
                                                 onChange={handleInfoChange}
-                                                className="w-1/2 p-2.5 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm"
+                                                className="flex-1 p-2.5 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm"
                                             >
                                                 <option value="">Select Program...</option>
                                                 {uniquePrograms?.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
@@ -511,12 +518,27 @@ export default function CreateExamPage() {
                                                 name="subprogram_id"
                                                 value={basicInfo.subprogram_id}
                                                 onChange={handleInfoChange}
-                                                className="w-1/2 p-2.5 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm"
+                                                className="flex-1 p-2.5 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm"
                                                 disabled={!basicInfo.program_id}
                                             >
                                                 <option value="">Select Level...</option>
                                                 {filteredSubprograms?.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
                                             </select>
+                                            {basicInfo.subprogram_id && (
+                                                <select
+                                                    name="class_id"
+                                                    value={basicInfo.class_id}
+                                                    onChange={handleInfoChange}
+                                                    className="flex-1 p-2.5 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm"
+                                                >
+                                                    <option value="">Select Class (optional)...</option>
+                                                    {filteredClasses.map(c => (
+                                                        <option key={c.id} value={c.id}>
+                                                            {c.class_name || c.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex gap-4">
@@ -931,55 +953,92 @@ export default function CreateExamPage() {
                                         <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
                                             <h3 className="font-bold text-gray-800 mb-4">Listening Questions</h3>
                                             <div className="space-y-3 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
-                                                <div className="flex justify-between">
+                                                {/* Question text + type selector */}
+                                                <div className="flex justify-between items-start gap-2">
                                                     <input
-                                                        className="w-full font-semibold border-b pb-2 outline-none"
+                                                        className="flex-1 font-semibold border-b pb-2 outline-none"
                                                         placeholder="Question?"
                                                         value={tempListeningQ.questionText}
                                                         onChange={(e) => setTempListeningQ({ ...tempListeningQ, questionText: e.target.value })}
                                                     />
                                                     <select
-                                                        className="text-xs border rounded ml-2"
+                                                        className="text-xs border rounded px-2 py-1 bg-gray-50 shrink-0"
                                                         value={tempListeningQ.type}
-                                                        onChange={(e) => setTempListeningQ({ ...tempListeningQ, type: e.target.value })}
+                                                        onChange={(e) => setTempListeningQ({ ...tempListeningQ, type: e.target.value, correctOption: 0, correctAnswer: '' })}
                                                     >
                                                         <option value="mcq">MCQ</option>
-                                                        <option value="true_false">True/False</option>
+                                                        <option value="true_false">True / False</option>
                                                         <option value="short_answer">Fill-in</option>
                                                     </select>
                                                 </div>
-                                                {/* Options Logic */}
+
+                                                {/* MCQ / True-False options */}
                                                 {(tempListeningQ.type === 'mcq' || tempListeningQ.type === 'true_false') && (
-                                                    <div className="grid grid-cols-2 gap-3 mt-2">
-                                                        {(tempListeningQ.type === 'true_false' ? ['True', 'False'] : tempListeningQ.options).map((opt, idx) => (
-                                                            <div key={idx} className="flex gap-2 items-center">
-                                                                <input
-                                                                    type="radio"
-                                                                    name="correctListening"
-                                                                    checked={tempListeningQ.correctOption === idx}
-                                                                    onChange={() => setTempListeningQ({ ...tempListeningQ, correctOption: idx })}
-                                                                />
-                                                                <input
-                                                                    className="flex-1 text-sm p-1 border rounded disabled:bg-gray-50"
-                                                                    placeholder={`Option ${idx + 1}`}
-                                                                    value={tempListeningQ.type === 'true_false' ? (idx === 0 ? "True" : "False") : opt}
-                                                                    onChange={(e) => {
-                                                                        if (tempListeningQ.type === 'true_false') return;
-                                                                        const n = [...tempListeningQ.options];
-                                                                        n[idx] = e.target.value;
-                                                                        setTempListeningQ({ ...tempListeningQ, options: n });
-                                                                    }}
-                                                                    disabled={tempListeningQ.type === 'true_false'}
-                                                                />
-                                                            </div>
-                                                        ))}
+                                                    <div className="space-y-2 mt-2">
+                                                        <p className="text-[10px] font-bold uppercase text-gray-400">Select the correct answer ↓</p>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            {(tempListeningQ.type === 'true_false' ? ['True', 'False'] : tempListeningQ.options).map((opt, idx) => (
+                                                                <label key={idx} className={`flex gap-2 items-center px-3 py-2 rounded-lg border cursor-pointer transition-all ${tempListeningQ.correctOption === idx ? 'bg-green-50 border-green-400 ring-1 ring-green-300' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                                                    <input
+                                                                        type="radio"
+                                                                        name="correctListening"
+                                                                        checked={tempListeningQ.correctOption === idx}
+                                                                        onChange={() => setTempListeningQ({ ...tempListeningQ, correctOption: idx })}
+                                                                        className="accent-green-600"
+                                                                    />
+                                                                    {tempListeningQ.type === 'true_false' ? (
+                                                                        <span className={`font-bold text-sm ${tempListeningQ.correctOption === idx ? 'text-green-700' : 'text-gray-600'}`}>{opt}</span>
+                                                                    ) : (
+                                                                        <input
+                                                                            className="flex-1 text-sm outline-none bg-transparent"
+                                                                            placeholder={`Option ${idx + 1}`}
+                                                                            value={opt}
+                                                                            onChange={(e) => {
+                                                                                const n = [...tempListeningQ.options];
+                                                                                n[idx] = e.target.value;
+                                                                                setTempListeningQ({ ...tempListeningQ, options: n });
+                                                                            }}
+                                                                        />
+                                                                    )}
+                                                                    {tempListeningQ.correctOption === idx && <span className="text-[10px] font-bold text-green-600 shrink-0">✓ Correct</span>}
+                                                                </label>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 )}
-                                                <button onClick={addListeningItem} className="w-full py-2 bg-[#010080] text-white rounded-lg font-bold mt-2 text-sm hover:opacity-90">
-                                                    + Add To List
-                                                </button>
+
+                                                {/* Short answer correct answer */}
+                                                {tempListeningQ.type === 'short_answer' && (
+                                                    <div className="mt-2">
+                                                        <label className="text-[10px] font-bold uppercase text-gray-400 block mb-1">Correct Answer</label>
+                                                        <input
+                                                            className="w-full text-sm p-2 border rounded-lg bg-green-50 border-green-200"
+                                                            placeholder="Type the correct answer..."
+                                                            value={tempListeningQ.correctAnswer || ''}
+                                                            onChange={(e) => setTempListeningQ({ ...tempListeningQ, correctAnswer: e.target.value })}
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                {/* Points + Add button */}
+                                                <div className="flex items-center gap-2 justify-between mt-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-bold text-gray-500">Points:</span>
+                                                        <input
+                                                            type="number"
+                                                            className="w-16 p-1 border rounded text-center text-sm font-bold"
+                                                            value={tempListeningQ.points}
+                                                            onChange={(e) => setTempListeningQ({ ...tempListeningQ, points: parseInt(e.target.value) || 1 })}
+                                                        />
+                                                    </div>
+                                                    <button onClick={addListeningItem} className="py-2 px-6 bg-[#010080] text-white rounded-lg font-bold text-sm hover:opacity-90">
+                                                        + Add Question
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
+
+                                        {/* Added questions list */}
                                         {papers.paper3.questions.length > 0 && (
                                             <div className="space-y-2">
                                                 <p className="text-xs font-bold uppercase text-gray-400">Added Questions ({papers.paper3.questions.length})</p>
@@ -989,13 +1048,16 @@ export default function CreateExamPage() {
                                                             <span className="font-bold text-[#010080] mr-1">{i + 1}:</span>
                                                             {q.questionText}
                                                         </p>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeListeningItem(q.id)}
-                                                            className="text-gray-400 hover:text-red-500 shrink-0"
-                                                        >
-                                                            <TrashIcon className="w-4 h-4" />
-                                                        </button>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <span className="text-xs font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{q.points ?? 2} pts</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeListeningItem(q.id)}
+                                                                className="text-gray-400 hover:text-red-500"
+                                                            >
+                                                                <TrashIcon className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>

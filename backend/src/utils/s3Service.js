@@ -50,12 +50,21 @@ export const resolveS3Key = (storedValue) => {
         }
     }
 
-    if (storedValue.startsWith("/uploads/")) {
-        const filename = storedValue.replace(/^\/uploads\//, "");
+    // Strip leading slash for normalisation
+    const normalized = storedValue.replace(/^\//, "");
+
+    // Local path stored as /uploads/filename or uploads/filename
+    if (normalized.startsWith("uploads/")) {
+        const filename = normalized.replace(/^uploads\//, "");
         return buildS3Key(filename);
     }
 
-    const normalized = storedValue.replace(/^\//, "");
+    // Already a valid S3 key with the correct prefix
+    if (normalized.startsWith(`${prefix}/`)) {
+        return normalized;
+    }
+
+    // Other slash-containing paths: return as-is (e.g. already resolved)
     if (normalized.includes("/")) return normalized;
 
     return buildS3Key(normalized);

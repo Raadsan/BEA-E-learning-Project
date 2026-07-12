@@ -433,102 +433,101 @@ export default function StudentSidebar({ isApproved, isPaid = true, isTestExpire
               return null;
             })()}
 
-            {/* Additional items for Proficiency Only students (visible even if not approved) */}
-            {isProficiencyOnly && (
+            {/* Academic Content Block - Only if approved, paid and NOT proficiency only */}
+            {isApproved && isPaid && !isProficiencyOnly && (
               <>
-                {/* Student Support */}
+                {/* My Courses */}
                 <li>
-                  <Link href="/portal/student/student-support" className={getMenuItemClasses("/portal/student/student-support")} style={getActiveStyle("/portal/student/student-support")}>
-                    <svg className={getIconClasses("/portal/student/student-support")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                  <Link
+                    href="/portal/student/my-courses"
+                    className={getMenuItemClasses("/portal/student/my-courses")}
+                    style={getActiveStyle("/portal/student/my-courses")}
+                  >
+                    <svg className={getIconClasses("/portal/student/my-courses")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
-                    <span className={getTextClasses("/portal/student/student-support")}>Student Support</span>
+                    <span className={getTextClasses("/portal/student/my-courses")}>My Courses</span>
+                    <svg className="w-4 h-4 ml-auto text-gray-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </Link>
                 </li>
 
-                {/* My Certification */}
+                {/* Freezing Request */}
                 <li>
-                  <Link href="/portal/student/my-certification" className={getMenuItemClasses("/portal/student/my-certification")} style={getActiveStyle("/portal/student/my-certification")}>
-                    <svg className={getIconClasses("/portal/student/my-certification")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  <Link href="/portal/student/freezing-request" className={getMenuItemClasses("/portal/student/freezing-request")} style={getActiveStyle("/portal/student/freezing-request")}>
+                    <svg className={getIconClasses("/portal/student/freezing-request")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    <span className={getTextClasses("/portal/student/my-certification")}>My Certification</span>
+                    <span className={getTextClasses("/portal/student/freezing-request")}>Freezing Request</span>
+                  </Link>
+                </li>
+
+                {/* Session Change */}
+                <li>
+                  <Link href="/portal/student/session-change" className={getMenuItemClasses("/portal/student/session-change")} style={getActiveStyle("/portal/student/session-change")}>
+                    <svg className={getIconClasses("/portal/student/session-change")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/session-change")}>Session Change</span>
+                  </Link>
+                </li>
+
+                {/* News & Events */}
+                <li>
+                  <Link href="/portal/student/news" className={getMenuItemClasses("/portal/student/news")} style={getActiveStyle("/portal/student/news")}>
+                    <svg className={getIconClasses("/portal/student/news")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                    </svg>
+                    <span className={getTextClasses("/portal/student/news")}>News & Events</span>
                   </Link>
                 </li>
               </>
             )}
 
-            {isApproved && (
-              <>
-                {/* Academic Content Block - Only if paid and NOT proficiency only */}
-                {isPaid && !isProficiencyOnly && (
-                  <>
+            {/* Tutorials (visible to all students) */}
+            <li>
+              <Link href="/portal/student/tutorials" className={getMenuItemClasses("/portal/student/tutorials")} style={getActiveStyle("/portal/student/tutorials")}>
+                <svg className={getIconClasses("/portal/student/tutorials")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className={getTextClasses("/portal/student/tutorials")}>Tutorials</span>
+              </Link>
+            </li>
 
-                    {/* My Courses */}
-                    <li>
-                      <Link
-                        href="/portal/student/my-courses"
-                        className={getMenuItemClasses("/portal/student/my-courses")}
-                        style={getActiveStyle("/portal/student/my-courses")}
-                      >
-                        <svg className={getIconClasses("/portal/student/my-courses")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                        <span className={getTextClasses("/portal/student/my-courses")}>My Courses</span>
-                        <svg className="w-4 h-4 ml-auto text-gray-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
-                    </li>
+            {/* Policies (visible to all students) */}
+            <li>
+              <Link href="/portal/student/policies" className={getMenuItemClasses("/portal/student/policies")} style={getActiveStyle("/portal/student/policies")}>
+                <svg className={getIconClasses("/portal/student/policies")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className={getTextClasses("/portal/student/policies")}>Policies</span>
+              </Link>
+            </li>
 
-                    {/* Freezing Request */}
-                    <li>
-                      <Link href="/portal/student/freezing-request" className={getMenuItemClasses("/portal/student/freezing-request")} style={getActiveStyle("/portal/student/freezing-request")}>
-                        <svg className={getIconClasses("/portal/student/freezing-request")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        <span className={getTextClasses("/portal/student/freezing-request")}>Freezing Request</span>
-                      </Link>
-                    </li>
+            {/* Student Support (Visible if approved or proficiency only) */}
+            {(isProficiencyOnly || isApproved) && (
+              <li>
+                <Link href="/portal/student/student-support" className={getMenuItemClasses("/portal/student/student-support")} style={getActiveStyle("/portal/student/student-support")}>
+                  <svg className={getIconClasses("/portal/student/student-support")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  <span className={getTextClasses("/portal/student/student-support")}>Student Support</span>
+                </Link>
+              </li>
+            )}
 
-                    {/* Session Change */}
-                    <li>
-                      <Link href="/portal/student/session-change" className={getMenuItemClasses("/portal/student/session-change")} style={getActiveStyle("/portal/student/session-change")}>
-                        <svg className={getIconClasses("/portal/student/session-change")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span className={getTextClasses("/portal/student/session-change")}>Session Change</span>
-                      </Link>
-                    </li>
-
-                    {/* News & Events */}
-                    <li>
-                      <Link href="/portal/student/news" className={getMenuItemClasses("/portal/student/news")} style={getActiveStyle("/portal/student/news")}>
-                        <svg className={getIconClasses("/portal/student/news")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                        </svg>
-                        <span className={getTextClasses("/portal/student/news")}>News & Events</span>
-                      </Link>
-                    </li>
-                  </>
-                )}
-
-
-                <div className={!isPaid ? "mt-4" : ""}>
-                  {/* Student Support (Only if NOT proficiency only - already handled above) */}
-                  {!isProficiencyOnly && (
-                    <li>
-                      <Link href="/portal/student/student-support" className={getMenuItemClasses("/portal/student/student-support")} style={getActiveStyle("/portal/student/student-support")}>
-                        <svg className={getIconClasses("/portal/student/student-support")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                        <span className={getTextClasses("/portal/student/student-support")}>Student Support</span>
-                      </Link>
-                    </li>
-                  )}
-
-                </div>
-              </>
+            {/* My Certification (Visible to proficiency only students) */}
+            {isProficiencyOnly && (
+              <li>
+                <Link href="/portal/student/my-certification" className={getMenuItemClasses("/portal/student/my-certification")} style={getActiveStyle("/portal/student/my-certification")}>
+                  <svg className={getIconClasses("/portal/student/my-certification")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                  <span className={getTextClasses("/portal/student/my-certification")}>My Certification</span>
+                </Link>
+              </li>
             )}
           </ul>
         )}

@@ -166,14 +166,14 @@ export default function StudentPaymentsPage() {
         <StudentPageHeader
           title="Payment History"
           description="View and manage your academic financial transactions and receipts."
-          actions={!isPaid ? (
+          actions={
             <button
               onClick={() => router.push("/portal/student/payments/upgrade")}
               className="px-8 py-4 bg-[#010080] text-white hover:bg-blue-900 rounded-xl font-normal shadow-xl uppercase tracking-wider text-sm border-b-4 border-blue-900 active:border-b-0 active:translate-y-1 transition-all"
             >
-              Upgrade Plan Now
+              Payment Packages
             </button>
-          ) : undefined}
+          }
         />
 
         {/* Stats Cards */}

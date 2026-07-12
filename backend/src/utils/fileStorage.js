@@ -8,8 +8,10 @@ import {
 
 export function getStoredFileUrl(file) {
     if (!file) return null;
-    // DB stores local path so files always resolve from server disk first.
-    // S3 keeps a mirror copy under bea_uploads/ for backup.
+    // If S3 is enabled and the upload produced a public S3 URL, store that.
+    // This ensures files survive in cloud/ephemeral environments.
+    if (isS3Enabled() && file.storageUrl) return file.storageUrl;
+    // Fallback: local path (development / non-S3 deployments)
     if (file.filename) return `/uploads/${file.filename}`;
     if (file.storageKey) {
         const base = file.storageKey.split("/").pop();
