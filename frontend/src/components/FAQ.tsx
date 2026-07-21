@@ -120,16 +120,12 @@ export default function FAQ() {
                   <span className="font-bold text-sm sm:text-base pr-4" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
                     {faq.question}
                   </span>
-                  <svg
-                    className={`w-5 h-5 flex-shrink-0 transition-transform duration-300 ${
-                      openIndex === index ? "rotate-180" : ""
-                    } ${isDarkMode ? 'text-white' : 'text-gray-600'}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  <span
+                    aria-hidden="true"
+                    className={`w-5 flex-shrink-0 text-center text-2xl font-medium leading-none ${isDarkMode ? 'text-white' : 'text-gray-600'}`}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                    {openIndex === index ? '−' : '+'}
+                  </span>
                 </button>
                 
                 <div 

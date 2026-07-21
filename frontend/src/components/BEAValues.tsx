@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -38,8 +37,6 @@ export default function BEAValues() {
       slug: "rational-values",
       link: "/website/rational-values",
       description: "Our Rational Values represent the guiding principles that uphold our mission and shape our learners into thoughtful, confident, and ethical individuals.",
-      image: "/images/A Path to Global Opportunities.jpg",
-      alt: "Rational Values"
     },
     {
       id: 2,
@@ -47,8 +44,6 @@ export default function BEAValues() {
       slug: "pedagogical-values",
       link: "/website/pedagogical-values",
       description: "Our Pedagogical Values define the principles that shape how we teach, inspire, and support our learners. These values reflect our belief that education should be student-centered, purposeful, and transformative. We focus on creating a learning environment that promotes curiosity, critical thinking, creativity, and meaningful engagement.",
-      image: "/images/Innovative Learning Environment.jpg",
-      alt: "Pedagogical Values"
     },
     {
       id: 3,
@@ -56,8 +51,6 @@ export default function BEAValues() {
       slug: "civic-values",
       link: "/website/civic-values",
       description: "Our Civic Values emphasize the importance of responsibility, participation, and respect within the community. We believe that education extends beyond the classroom—it prepares individuals to become active, ethical, and compassionate members of society.",
-      image: "/images/A Path to Global Opportunities.jpg",
-      alt: "Civic Values"
     },
   ];
 
@@ -104,13 +97,13 @@ export default function BEAValues() {
         </div>
       </section>
 
-      {/* Video Section */}
+      {/* Values Cards Section */}
       <section ref={sectionRefs.videos} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#04003a]' : 'bg-gray-100'}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             <div className={`mb-10 sm:mb-12 text-center ${visibleSections.videos ? 'animate-fade-in-up' : 'opacity-0'}`}>
               <h2 className={`text-xl sm:text-2xl lg:text-3xl font-serif font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Watch these 3 Videos to learn more about our BEA Values
+                Learn More About Our BEA Values
               </h2>
               <p className={`text-base sm:text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Choose from our expertly designed courses tailored to your level and goals.
@@ -122,28 +115,9 @@ export default function BEAValues() {
                 <div
                   key={video.id}
                   id={video.slug}
-                  className={`rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-mt-20 ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.videos ? 'animate-fade-in-up' : 'opacity-0'}`}
+                  className={`h-full rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 scroll-mt-20 ${isDarkMode ? 'bg-[#050040]' : 'bg-white'} ${visibleSections.videos ? 'animate-fade-in-up' : 'opacity-0'}`}
                   style={{ animationDelay: `${0.2 + index * 0.15}s` }}
                 >
-                  {/* Video Thumbnail */}
-                  <div className="relative w-full h-48 overflow-hidden rounded-t-xl group">
-                    <Image
-                      src={video.image}
-                      alt={video.alt}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                    />
-                    {/* Play Button Overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
-                      <div className="w-14 h-14 border-2 border-white rounded-full flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  
                   {/* Content */}
                   <div className="p-6">
                     <h3 className={`text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>

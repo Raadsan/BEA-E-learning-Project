@@ -180,8 +180,8 @@ export default function CountdownTimer() {
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className={`text-center mb-6 sm:mb-8 md:mb-12 ${isVisible ? 'animate-fade-in-down' : 'opacity-0'}`}>
-          <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2 sm:mb-3">
-            {mode === "active" ? "Current Stream Ends in" : "Next Time Stream Start in"}
+          <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold  mb-2 sm:mb-3">
+            {mode === "active" ? "Current Term Ends In" : "Next Term Starts In"}
           </h2>
           {nextTerm ? (
             <p className="text-white text-sm sm:text-base md:text-lg px-4 sm:px-0">
