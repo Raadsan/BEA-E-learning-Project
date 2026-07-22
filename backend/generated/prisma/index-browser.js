@@ -354,6 +354,21 @@ exports.Prisma.ContactsScalarFieldEnum = {
   created_at: 'created_at'
 };
 
+exports.Prisma.Contact_page_settingsScalarFieldEnum = {
+  id: 'id',
+  hero_title: 'hero_title',
+  hero_subtitle: 'hero_subtitle',
+  hero_description: 'hero_description',
+  address: 'address',
+  phone: 'phone',
+  email: 'email',
+  social_links: 'social_links',
+  schedule_title: 'schedule_title',
+  schedule_description: 'schedule_description',
+  schedule: 'schedule',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.Course_timelineScalarFieldEnum = {
   id: 'id',
   term_serial: 'term_serial',
@@ -554,6 +569,40 @@ exports.Prisma.News_eventsScalarFieldEnum = {
   type: 'type',
   status: 'status',
   created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Blog_postsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  excerpt: 'excerpt',
+  content: 'content',
+  category: 'category',
+  author: 'author',
+  image_url: 'image_url',
+  read_time: 'read_time',
+  featured: 'featured',
+  status: 'status',
+  published_at: 'published_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Blog_page_settingsScalarFieldEnum = {
+  id: 'id',
+  hero_title: 'hero_title',
+  hero_subtitle: 'hero_subtitle',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Homepage_settingsScalarFieldEnum = {
+  id: 'id',
+  hero_title: 'hero_title',
+  hero_highlight: 'hero_highlight',
+  hero_description: 'hero_description',
+  hero_images: 'hero_images',
+  cta_text: 'cta_text',
+  cta_link: 'cta_link',
   updated_at: 'updated_at'
 };
 
@@ -1148,6 +1197,17 @@ exports.Prisma.contactsOrderByRelevanceFieldEnum = {
   message: 'message'
 };
 
+exports.Prisma.contact_page_settingsOrderByRelevanceFieldEnum = {
+  hero_title: 'hero_title',
+  hero_subtitle: 'hero_subtitle',
+  hero_description: 'hero_description',
+  address: 'address',
+  phone: 'phone',
+  email: 'email',
+  schedule_title: 'schedule_title',
+  schedule_description: 'schedule_description'
+};
+
 exports.Prisma.course_timelineOrderByRelevanceFieldEnum = {
   term_serial: 'term_serial',
   holidays: 'holidays'
@@ -1253,6 +1313,30 @@ exports.Prisma.news_eventsOrderByRelevanceFieldEnum = {
   description: 'description',
   image_url: 'image_url',
   location: 'location'
+};
+
+exports.Prisma.blog_postsOrderByRelevanceFieldEnum = {
+  title: 'title',
+  excerpt: 'excerpt',
+  content: 'content',
+  category: 'category',
+  author: 'author',
+  image_url: 'image_url',
+  read_time: 'read_time',
+  status: 'status'
+};
+
+exports.Prisma.blog_page_settingsOrderByRelevanceFieldEnum = {
+  hero_title: 'hero_title',
+  hero_subtitle: 'hero_subtitle'
+};
+
+exports.Prisma.homepage_settingsOrderByRelevanceFieldEnum = {
+  hero_title: 'hero_title',
+  hero_highlight: 'hero_highlight',
+  hero_description: 'hero_description',
+  cta_text: 'cta_text',
+  cta_link: 'cta_link'
 };
 
 exports.Prisma.newslettersOrderByRelevanceFieldEnum = {
@@ -1735,6 +1819,7 @@ exports.Prisma.ModelName = {
   class_schedules: 'class_schedules',
   classes: 'classes',
   contacts: 'contacts',
+  contact_page_settings: 'contact_page_settings',
   course_timeline: 'course_timeline',
   course_work: 'course_work',
   course_work_submissions: 'course_work_submissions',
@@ -1749,6 +1834,9 @@ exports.Prisma.ModelName = {
   tutorials: 'tutorials',
   policies: 'policies',
   news_events: 'news_events',
+  blog_posts: 'blog_posts',
+  blog_page_settings: 'blog_page_settings',
+  homepage_settings: 'homepage_settings',
   newsletters: 'newsletters',
   notifications: 'notifications',
   oral_assignment_submissions: 'oral_assignment_submissions',

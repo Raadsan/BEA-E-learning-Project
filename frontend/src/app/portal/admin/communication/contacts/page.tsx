@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useGetContactsQuery, useDeleteContactMutation } from "@/lib/api/contactApi";
+import { useEffect, useState } from "react";
+import { useGetContactsQuery, useDeleteContactMutation, useGetContactPageQuery, useUpdateContactPageMutation } from "@/lib/api/contactApi";
 import DataTable from "@/components/DataTable";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
@@ -14,6 +14,26 @@ export default function ContactsPage() {
     const { canView, canDelete } = usePagePermissions("inquiries", "contact_messages");
     const { data: contacts = [], isLoading, isError, error, refetch } = useGetContactsQuery();
     const [deleteContact, { isLoading: isDeleting }] = useDeleteContactMutation();
+    const { data: contactPage } = useGetContactPageQuery();
+    const [updateContactPage, { isLoading: isSavingPage }] = useUpdateContactPageMutation();
+    const [pageForm, setPageForm] = useState<any>(null);
+
+    useEffect(() => { if (contactPage) setPageForm(contactPage); }, [contactPage]);
+
+    const updatePageField = (key, value) => setPageForm((prev) => ({ ...prev, [key]: value }));
+    const updateSchedule = (index, key, value) => setPageForm((prev) => ({
+        ...prev,
+        schedule: prev.schedule.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: value } : row),
+    }));
+    const savePageContent = async (event) => {
+        event.preventDefault();
+        try {
+            await updateContactPage(pageForm).unwrap();
+            showToast("Contact page content updated successfully", "success");
+        } catch (error) {
+            showToast(error?.data?.error || "Failed to update contact page", "error");
+        }
+    };
 
     // Modal states
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -112,6 +132,36 @@ export default function ContactsPage() {
     return (
         <main className="flex-1 min-w-0 flex flex-col items-center bg-gray-50 transition-colors">
             <div className="w-full max-w-full px-4 sm:px-8 py-6 min-w-0 flex flex-col">
+                {pageForm && (
+                    <form onSubmit={savePageContent} className={`mb-6 border p-6 shadow-sm ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200'}`}>
+                        <div className="mb-6 flex items-center justify-between gap-4">
+                            <div><h2 className="font-serif text-2xl font-bold text-[#010080] dark:text-white">Contact Page Content & Schedule</h2><p className="mt-1 text-sm text-gray-500">Everything saved here appears dynamically on the public Contact Us page.</p></div>
+                            <button type="submit" disabled={isSavingPage} className="bg-[#010080] px-5 py-2.5 font-semibold text-white disabled:opacity-50">{isSavingPage ? "Saving..." : "Save Changes"}</button>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            {[['hero_title','Hero Title'],['hero_subtitle','Hero Subtitle'],['address','Address'],['phone','Phone'],['email','Email'],['schedule_title','Schedule Title']].map(([key,label]) => (
+                                <label key={key} className="text-sm font-semibold">{label}<input value={pageForm[key] || ''} onChange={(e) => updatePageField(key, e.target.value)} className="mt-1 w-full border border-gray-300 bg-white px-3 py-2.5 text-gray-900 outline-none focus:border-[#010080]" required /></label>
+                            ))}
+                            <label className="text-sm font-semibold md:col-span-2">Hero Description<textarea value={pageForm.hero_description || ''} onChange={(e) => updatePageField('hero_description', e.target.value)} rows={3} className="mt-1 w-full border border-gray-300 bg-white px-3 py-2.5 text-gray-900 outline-none focus:border-[#010080]" required /></label>
+                            <label className="text-sm font-semibold md:col-span-2">Schedule Description<textarea value={pageForm.schedule_description || ''} onChange={(e) => updatePageField('schedule_description', e.target.value)} rows={2} className="mt-1 w-full border border-gray-300 bg-white px-3 py-2.5 text-gray-900 outline-none focus:border-[#010080]" required /></label>
+                        </div>
+                        <h3 className="mb-3 mt-6 font-serif text-xl font-bold text-[#010080] dark:text-white">Operational Days & Hours</h3>
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            {(pageForm.schedule || []).map((row, index) => (
+                                <div key={index} className="grid grid-cols-2 gap-2 border border-gray-200 p-3">
+                                    <input value={row.day} onChange={(e) => updateSchedule(index, 'day', e.target.value)} className="border px-3 py-2 text-gray-900" required />
+                                    <input value={row.hours} onChange={(e) => updateSchedule(index, 'hours', e.target.value)} className="border px-3 py-2 text-gray-900" placeholder="Closed or 9:00 AM - 6:00 PM" required />
+                                </div>
+                            ))}
+                        </div>
+                        <h3 className="mb-3 mt-6 font-serif text-xl font-bold text-[#010080] dark:text-white">Social Links</h3>
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+                            {['facebook','instagram','twitter','youtube','linkedin','telegram','tiktok'].map((network) => (
+                                <label key={network} className="text-sm font-semibold capitalize">{network}<input type="url" value={pageForm.social_links?.[network] || ''} onChange={(e) => updatePageField('social_links', { ...(pageForm.social_links || {}), [network]: e.target.value })} className="mt-1 w-full border px-3 py-2 text-gray-900" placeholder={`https://${network}.com/...`} /></label>
+                            ))}
+                        </div>
+                    </form>
+                )}
                 <DataTable
                     title="Contact Messages"
                     columns={columns}

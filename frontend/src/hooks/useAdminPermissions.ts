@@ -16,6 +16,7 @@ import {
 } from "@/constants/adminPermissions";
 
 type AdminUser = {
+  id?: number | string;
   role?: string;
   adminRole?: string;
   permissions?: AdminPermissionMap | string | string[] | null;

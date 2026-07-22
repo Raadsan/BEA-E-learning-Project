@@ -51,6 +51,8 @@ import proficiencyTestStudentsRoutes from './routes/proficiencyTestStudentsRoute
 import userRoutes from './routes/userRoutes.js';
 import waafiRoutes from './routes/waafiRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
+import blogRoutes from './routes/blogRoutes.js';
+import homepageRoutes from './routes/homepageRoutes.js';
 
 if (isS3Enabled()) {
   console.log(`☁️  S3 uploads enabled: ${process.env.AWS_BUCKET_NAME}/${process.env.AWS_S3_UPLOAD_PREFIX || 'bea_uploads'}`);
@@ -109,6 +111,8 @@ app.use('/api/learning-hours', learningHoursRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/waafi', waafiRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/blogs', blogRoutes);
+app.use('/api/homepage', homepageRoutes);
 
 // Dual mount for routing differences between frontend versions
 app.use('/api/ielts', ieltsToeflRoutes);

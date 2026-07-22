@@ -79,6 +79,11 @@ export type classes = $Result.DefaultSelection<Prisma.$classesPayload>
  */
 export type contacts = $Result.DefaultSelection<Prisma.$contactsPayload>
 /**
+ * Model contact_page_settings
+ * 
+ */
+export type contact_page_settings = $Result.DefaultSelection<Prisma.$contact_page_settingsPayload>
+/**
  * Model course_timeline
  * 
  */
@@ -148,6 +153,21 @@ export type policies = $Result.DefaultSelection<Prisma.$policiesPayload>
  * 
  */
 export type news_events = $Result.DefaultSelection<Prisma.$news_eventsPayload>
+/**
+ * Model blog_posts
+ * 
+ */
+export type blog_posts = $Result.DefaultSelection<Prisma.$blog_postsPayload>
+/**
+ * Model blog_page_settings
+ * 
+ */
+export type blog_page_settings = $Result.DefaultSelection<Prisma.$blog_page_settingsPayload>
+/**
+ * Model homepage_settings
+ * 
+ */
+export type homepage_settings = $Result.DefaultSelection<Prisma.$homepage_settingsPayload>
 /**
  * Model newsletters
  * 
@@ -1071,6 +1091,16 @@ export class PrismaClient<
   get contacts(): Prisma.contactsDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.contact_page_settings`: Exposes CRUD operations for the **contact_page_settings** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Contact_page_settings
+    * const contact_page_settings = await prisma.contact_page_settings.findMany()
+    * ```
+    */
+  get contact_page_settings(): Prisma.contact_page_settingsDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.course_timeline`: Exposes CRUD operations for the **course_timeline** model.
     * Example usage:
     * ```ts
@@ -1209,6 +1239,36 @@ export class PrismaClient<
     * ```
     */
   get news_events(): Prisma.news_eventsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.blog_posts`: Exposes CRUD operations for the **blog_posts** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Blog_posts
+    * const blog_posts = await prisma.blog_posts.findMany()
+    * ```
+    */
+  get blog_posts(): Prisma.blog_postsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.blog_page_settings`: Exposes CRUD operations for the **blog_page_settings** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Blog_page_settings
+    * const blog_page_settings = await prisma.blog_page_settings.findMany()
+    * ```
+    */
+  get blog_page_settings(): Prisma.blog_page_settingsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.homepage_settings`: Exposes CRUD operations for the **homepage_settings** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Homepage_settings
+    * const homepage_settings = await prisma.homepage_settings.findMany()
+    * ```
+    */
+  get homepage_settings(): Prisma.homepage_settingsDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.newsletters`: Exposes CRUD operations for the **newsletters** model.
@@ -1956,6 +2016,7 @@ export namespace Prisma {
     class_schedules: 'class_schedules',
     classes: 'classes',
     contacts: 'contacts',
+    contact_page_settings: 'contact_page_settings',
     course_timeline: 'course_timeline',
     course_work: 'course_work',
     course_work_submissions: 'course_work_submissions',
@@ -1970,6 +2031,9 @@ export namespace Prisma {
     tutorials: 'tutorials',
     policies: 'policies',
     news_events: 'news_events',
+    blog_posts: 'blog_posts',
+    blog_page_settings: 'blog_page_settings',
+    homepage_settings: 'homepage_settings',
     newsletters: 'newsletters',
     notifications: 'notifications',
     oral_assignment_submissions: 'oral_assignment_submissions',
@@ -2015,7 +2079,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "iELTSTOEFL" | "proficiencyTestStudents" | "migrations" | "academic_calendar" | "admins" | "announcements" | "assignment_submissions" | "assignments" | "attendance" | "certificates" | "class_schedules" | "classes" | "contacts" | "course_timeline" | "course_work" | "course_work_submissions" | "courses" | "exam_submissions" | "exams" | "freezing_requests" | "ielts_registrations" | "issued_certificates" | "learning_materials" | "level_up_requests" | "tutorials" | "policies" | "news_events" | "newsletters" | "notifications" | "oral_assignment_submissions" | "oral_assignments" | "payment_packages" | "payments" | "placement_test_results" | "placement_tests" | "proficiency_test_results" | "proficiency_tests" | "program_payment_packages" | "programs" | "session_change_requests" | "shift_sessions" | "shifts" | "student_class_history" | "review_windows" | "review_assignments" | "student_review_questions" | "student_reviews" | "students" | "subprograms" | "teacher_review_questions" | "teacher_reviews" | "teachers" | "testimonials" | "timetable_events" | "timetables" | "writing_task_submissions" | "writing_tasks"
+      modelProps: "iELTSTOEFL" | "proficiencyTestStudents" | "migrations" | "academic_calendar" | "admins" | "announcements" | "assignment_submissions" | "assignments" | "attendance" | "certificates" | "class_schedules" | "classes" | "contacts" | "contact_page_settings" | "course_timeline" | "course_work" | "course_work_submissions" | "courses" | "exam_submissions" | "exams" | "freezing_requests" | "ielts_registrations" | "issued_certificates" | "learning_materials" | "level_up_requests" | "tutorials" | "policies" | "news_events" | "blog_posts" | "blog_page_settings" | "homepage_settings" | "newsletters" | "notifications" | "oral_assignment_submissions" | "oral_assignments" | "payment_packages" | "payments" | "placement_test_results" | "placement_tests" | "proficiency_test_results" | "proficiency_tests" | "program_payment_packages" | "programs" | "session_change_requests" | "shift_sessions" | "shifts" | "student_class_history" | "review_windows" | "review_assignments" | "student_review_questions" | "student_reviews" | "students" | "subprograms" | "teacher_review_questions" | "teacher_reviews" | "teachers" | "testimonials" | "timetable_events" | "timetables" | "writing_task_submissions" | "writing_tasks"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2874,6 +2938,72 @@ export namespace Prisma {
           count: {
             args: Prisma.contactsCountArgs<ExtArgs>
             result: $Utils.Optional<ContactsCountAggregateOutputType> | number
+          }
+        }
+      }
+      contact_page_settings: {
+        payload: Prisma.$contact_page_settingsPayload<ExtArgs>
+        fields: Prisma.contact_page_settingsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.contact_page_settingsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$contact_page_settingsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.contact_page_settingsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$contact_page_settingsPayload>
+          }
+          findFirst: {
+            args: Prisma.contact_page_settingsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$contact_page_settingsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.contact_page_settingsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$contact_page_settingsPayload>
+          }
+          findMany: {
+            args: Prisma.contact_page_settingsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$contact_page_settingsPayload>[]
+          }
+          create: {
+            args: Prisma.contact_page_settingsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$contact_page_settingsPayload>
+          }
+          createMany: {
+            args: Prisma.contact_page_settingsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.contact_page_settingsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$contact_page_settingsPayload>
+          }
+          update: {
+            args: Prisma.contact_page_settingsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$contact_page_settingsPayload>
+          }
+          deleteMany: {
+            args: Prisma.contact_page_settingsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.contact_page_settingsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.contact_page_settingsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$contact_page_settingsPayload>
+          }
+          aggregate: {
+            args: Prisma.Contact_page_settingsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateContact_page_settings>
+          }
+          groupBy: {
+            args: Prisma.contact_page_settingsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Contact_page_settingsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.contact_page_settingsCountArgs<ExtArgs>
+            result: $Utils.Optional<Contact_page_settingsCountAggregateOutputType> | number
           }
         }
       }
@@ -3798,6 +3928,204 @@ export namespace Prisma {
           count: {
             args: Prisma.news_eventsCountArgs<ExtArgs>
             result: $Utils.Optional<News_eventsCountAggregateOutputType> | number
+          }
+        }
+      }
+      blog_posts: {
+        payload: Prisma.$blog_postsPayload<ExtArgs>
+        fields: Prisma.blog_postsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.blog_postsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_postsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.blog_postsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_postsPayload>
+          }
+          findFirst: {
+            args: Prisma.blog_postsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_postsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.blog_postsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_postsPayload>
+          }
+          findMany: {
+            args: Prisma.blog_postsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_postsPayload>[]
+          }
+          create: {
+            args: Prisma.blog_postsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_postsPayload>
+          }
+          createMany: {
+            args: Prisma.blog_postsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.blog_postsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_postsPayload>
+          }
+          update: {
+            args: Prisma.blog_postsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_postsPayload>
+          }
+          deleteMany: {
+            args: Prisma.blog_postsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.blog_postsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.blog_postsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_postsPayload>
+          }
+          aggregate: {
+            args: Prisma.Blog_postsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBlog_posts>
+          }
+          groupBy: {
+            args: Prisma.blog_postsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Blog_postsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.blog_postsCountArgs<ExtArgs>
+            result: $Utils.Optional<Blog_postsCountAggregateOutputType> | number
+          }
+        }
+      }
+      blog_page_settings: {
+        payload: Prisma.$blog_page_settingsPayload<ExtArgs>
+        fields: Prisma.blog_page_settingsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.blog_page_settingsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_page_settingsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.blog_page_settingsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_page_settingsPayload>
+          }
+          findFirst: {
+            args: Prisma.blog_page_settingsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_page_settingsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.blog_page_settingsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_page_settingsPayload>
+          }
+          findMany: {
+            args: Prisma.blog_page_settingsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_page_settingsPayload>[]
+          }
+          create: {
+            args: Prisma.blog_page_settingsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_page_settingsPayload>
+          }
+          createMany: {
+            args: Prisma.blog_page_settingsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.blog_page_settingsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_page_settingsPayload>
+          }
+          update: {
+            args: Prisma.blog_page_settingsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_page_settingsPayload>
+          }
+          deleteMany: {
+            args: Prisma.blog_page_settingsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.blog_page_settingsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.blog_page_settingsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$blog_page_settingsPayload>
+          }
+          aggregate: {
+            args: Prisma.Blog_page_settingsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBlog_page_settings>
+          }
+          groupBy: {
+            args: Prisma.blog_page_settingsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Blog_page_settingsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.blog_page_settingsCountArgs<ExtArgs>
+            result: $Utils.Optional<Blog_page_settingsCountAggregateOutputType> | number
+          }
+        }
+      }
+      homepage_settings: {
+        payload: Prisma.$homepage_settingsPayload<ExtArgs>
+        fields: Prisma.homepage_settingsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.homepage_settingsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$homepage_settingsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.homepage_settingsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$homepage_settingsPayload>
+          }
+          findFirst: {
+            args: Prisma.homepage_settingsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$homepage_settingsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.homepage_settingsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$homepage_settingsPayload>
+          }
+          findMany: {
+            args: Prisma.homepage_settingsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$homepage_settingsPayload>[]
+          }
+          create: {
+            args: Prisma.homepage_settingsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$homepage_settingsPayload>
+          }
+          createMany: {
+            args: Prisma.homepage_settingsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.homepage_settingsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$homepage_settingsPayload>
+          }
+          update: {
+            args: Prisma.homepage_settingsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$homepage_settingsPayload>
+          }
+          deleteMany: {
+            args: Prisma.homepage_settingsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.homepage_settingsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.homepage_settingsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$homepage_settingsPayload>
+          }
+          aggregate: {
+            args: Prisma.Homepage_settingsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateHomepage_settings>
+          }
+          groupBy: {
+            args: Prisma.homepage_settingsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Homepage_settingsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.homepage_settingsCountArgs<ExtArgs>
+            result: $Utils.Optional<Homepage_settingsCountAggregateOutputType> | number
           }
         }
       }
@@ -5902,6 +6230,7 @@ export namespace Prisma {
     class_schedules?: class_schedulesOmit
     classes?: classesOmit
     contacts?: contactsOmit
+    contact_page_settings?: contact_page_settingsOmit
     course_timeline?: course_timelineOmit
     course_work?: course_workOmit
     course_work_submissions?: course_work_submissionsOmit
@@ -5916,6 +6245,9 @@ export namespace Prisma {
     tutorials?: tutorialsOmit
     policies?: policiesOmit
     news_events?: news_eventsOmit
+    blog_posts?: blog_postsOmit
+    blog_page_settings?: blog_page_settingsOmit
+    homepage_settings?: homepage_settingsOmit
     newsletters?: newslettersOmit
     notifications?: notificationsOmit
     oral_assignment_submissions?: oral_assignment_submissionsOmit
@@ -20988,6 +21320,996 @@ export namespace Prisma {
 
 
   /**
+   * Model contact_page_settings
+   */
+
+  export type AggregateContact_page_settings = {
+    _count: Contact_page_settingsCountAggregateOutputType | null
+    _avg: Contact_page_settingsAvgAggregateOutputType | null
+    _sum: Contact_page_settingsSumAggregateOutputType | null
+    _min: Contact_page_settingsMinAggregateOutputType | null
+    _max: Contact_page_settingsMaxAggregateOutputType | null
+  }
+
+  export type Contact_page_settingsAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type Contact_page_settingsSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type Contact_page_settingsMinAggregateOutputType = {
+    id: number | null
+    hero_title: string | null
+    hero_subtitle: string | null
+    hero_description: string | null
+    address: string | null
+    phone: string | null
+    email: string | null
+    schedule_title: string | null
+    schedule_description: string | null
+    updated_at: Date | null
+  }
+
+  export type Contact_page_settingsMaxAggregateOutputType = {
+    id: number | null
+    hero_title: string | null
+    hero_subtitle: string | null
+    hero_description: string | null
+    address: string | null
+    phone: string | null
+    email: string | null
+    schedule_title: string | null
+    schedule_description: string | null
+    updated_at: Date | null
+  }
+
+  export type Contact_page_settingsCountAggregateOutputType = {
+    id: number
+    hero_title: number
+    hero_subtitle: number
+    hero_description: number
+    address: number
+    phone: number
+    email: number
+    social_links: number
+    schedule_title: number
+    schedule_description: number
+    schedule: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type Contact_page_settingsAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type Contact_page_settingsSumAggregateInputType = {
+    id?: true
+  }
+
+  export type Contact_page_settingsMinAggregateInputType = {
+    id?: true
+    hero_title?: true
+    hero_subtitle?: true
+    hero_description?: true
+    address?: true
+    phone?: true
+    email?: true
+    schedule_title?: true
+    schedule_description?: true
+    updated_at?: true
+  }
+
+  export type Contact_page_settingsMaxAggregateInputType = {
+    id?: true
+    hero_title?: true
+    hero_subtitle?: true
+    hero_description?: true
+    address?: true
+    phone?: true
+    email?: true
+    schedule_title?: true
+    schedule_description?: true
+    updated_at?: true
+  }
+
+  export type Contact_page_settingsCountAggregateInputType = {
+    id?: true
+    hero_title?: true
+    hero_subtitle?: true
+    hero_description?: true
+    address?: true
+    phone?: true
+    email?: true
+    social_links?: true
+    schedule_title?: true
+    schedule_description?: true
+    schedule?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type Contact_page_settingsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which contact_page_settings to aggregate.
+     */
+    where?: contact_page_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of contact_page_settings to fetch.
+     */
+    orderBy?: contact_page_settingsOrderByWithRelationInput | contact_page_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: contact_page_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` contact_page_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` contact_page_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned contact_page_settings
+    **/
+    _count?: true | Contact_page_settingsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Contact_page_settingsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Contact_page_settingsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Contact_page_settingsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Contact_page_settingsMaxAggregateInputType
+  }
+
+  export type GetContact_page_settingsAggregateType<T extends Contact_page_settingsAggregateArgs> = {
+        [P in keyof T & keyof AggregateContact_page_settings]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateContact_page_settings[P]>
+      : GetScalarType<T[P], AggregateContact_page_settings[P]>
+  }
+
+
+
+
+  export type contact_page_settingsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: contact_page_settingsWhereInput
+    orderBy?: contact_page_settingsOrderByWithAggregationInput | contact_page_settingsOrderByWithAggregationInput[]
+    by: Contact_page_settingsScalarFieldEnum[] | Contact_page_settingsScalarFieldEnum
+    having?: contact_page_settingsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Contact_page_settingsCountAggregateInputType | true
+    _avg?: Contact_page_settingsAvgAggregateInputType
+    _sum?: Contact_page_settingsSumAggregateInputType
+    _min?: Contact_page_settingsMinAggregateInputType
+    _max?: Contact_page_settingsMaxAggregateInputType
+  }
+
+  export type Contact_page_settingsGroupByOutputType = {
+    id: number
+    hero_title: string
+    hero_subtitle: string
+    hero_description: string
+    address: string
+    phone: string
+    email: string
+    social_links: JsonValue
+    schedule_title: string
+    schedule_description: string
+    schedule: JsonValue
+    updated_at: Date
+    _count: Contact_page_settingsCountAggregateOutputType | null
+    _avg: Contact_page_settingsAvgAggregateOutputType | null
+    _sum: Contact_page_settingsSumAggregateOutputType | null
+    _min: Contact_page_settingsMinAggregateOutputType | null
+    _max: Contact_page_settingsMaxAggregateOutputType | null
+  }
+
+  type GetContact_page_settingsGroupByPayload<T extends contact_page_settingsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Contact_page_settingsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Contact_page_settingsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Contact_page_settingsGroupByOutputType[P]>
+            : GetScalarType<T[P], Contact_page_settingsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type contact_page_settingsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    hero_title?: boolean
+    hero_subtitle?: boolean
+    hero_description?: boolean
+    address?: boolean
+    phone?: boolean
+    email?: boolean
+    social_links?: boolean
+    schedule_title?: boolean
+    schedule_description?: boolean
+    schedule?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["contact_page_settings"]>
+
+
+
+  export type contact_page_settingsSelectScalar = {
+    id?: boolean
+    hero_title?: boolean
+    hero_subtitle?: boolean
+    hero_description?: boolean
+    address?: boolean
+    phone?: boolean
+    email?: boolean
+    social_links?: boolean
+    schedule_title?: boolean
+    schedule_description?: boolean
+    schedule?: boolean
+    updated_at?: boolean
+  }
+
+  export type contact_page_settingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "hero_title" | "hero_subtitle" | "hero_description" | "address" | "phone" | "email" | "social_links" | "schedule_title" | "schedule_description" | "schedule" | "updated_at", ExtArgs["result"]["contact_page_settings"]>
+
+  export type $contact_page_settingsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "contact_page_settings"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      hero_title: string
+      hero_subtitle: string
+      hero_description: string
+      address: string
+      phone: string
+      email: string
+      social_links: Prisma.JsonValue
+      schedule_title: string
+      schedule_description: string
+      schedule: Prisma.JsonValue
+      updated_at: Date
+    }, ExtArgs["result"]["contact_page_settings"]>
+    composites: {}
+  }
+
+  type contact_page_settingsGetPayload<S extends boolean | null | undefined | contact_page_settingsDefaultArgs> = $Result.GetResult<Prisma.$contact_page_settingsPayload, S>
+
+  type contact_page_settingsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<contact_page_settingsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Contact_page_settingsCountAggregateInputType | true
+    }
+
+  export interface contact_page_settingsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['contact_page_settings'], meta: { name: 'contact_page_settings' } }
+    /**
+     * Find zero or one Contact_page_settings that matches the filter.
+     * @param {contact_page_settingsFindUniqueArgs} args - Arguments to find a Contact_page_settings
+     * @example
+     * // Get one Contact_page_settings
+     * const contact_page_settings = await prisma.contact_page_settings.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends contact_page_settingsFindUniqueArgs>(args: SelectSubset<T, contact_page_settingsFindUniqueArgs<ExtArgs>>): Prisma__contact_page_settingsClient<$Result.GetResult<Prisma.$contact_page_settingsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Contact_page_settings that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {contact_page_settingsFindUniqueOrThrowArgs} args - Arguments to find a Contact_page_settings
+     * @example
+     * // Get one Contact_page_settings
+     * const contact_page_settings = await prisma.contact_page_settings.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends contact_page_settingsFindUniqueOrThrowArgs>(args: SelectSubset<T, contact_page_settingsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__contact_page_settingsClient<$Result.GetResult<Prisma.$contact_page_settingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Contact_page_settings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {contact_page_settingsFindFirstArgs} args - Arguments to find a Contact_page_settings
+     * @example
+     * // Get one Contact_page_settings
+     * const contact_page_settings = await prisma.contact_page_settings.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends contact_page_settingsFindFirstArgs>(args?: SelectSubset<T, contact_page_settingsFindFirstArgs<ExtArgs>>): Prisma__contact_page_settingsClient<$Result.GetResult<Prisma.$contact_page_settingsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Contact_page_settings that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {contact_page_settingsFindFirstOrThrowArgs} args - Arguments to find a Contact_page_settings
+     * @example
+     * // Get one Contact_page_settings
+     * const contact_page_settings = await prisma.contact_page_settings.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends contact_page_settingsFindFirstOrThrowArgs>(args?: SelectSubset<T, contact_page_settingsFindFirstOrThrowArgs<ExtArgs>>): Prisma__contact_page_settingsClient<$Result.GetResult<Prisma.$contact_page_settingsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Contact_page_settings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {contact_page_settingsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Contact_page_settings
+     * const contact_page_settings = await prisma.contact_page_settings.findMany()
+     * 
+     * // Get first 10 Contact_page_settings
+     * const contact_page_settings = await prisma.contact_page_settings.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const contact_page_settingsWithIdOnly = await prisma.contact_page_settings.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends contact_page_settingsFindManyArgs>(args?: SelectSubset<T, contact_page_settingsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$contact_page_settingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Contact_page_settings.
+     * @param {contact_page_settingsCreateArgs} args - Arguments to create a Contact_page_settings.
+     * @example
+     * // Create one Contact_page_settings
+     * const Contact_page_settings = await prisma.contact_page_settings.create({
+     *   data: {
+     *     // ... data to create a Contact_page_settings
+     *   }
+     * })
+     * 
+     */
+    create<T extends contact_page_settingsCreateArgs>(args: SelectSubset<T, contact_page_settingsCreateArgs<ExtArgs>>): Prisma__contact_page_settingsClient<$Result.GetResult<Prisma.$contact_page_settingsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Contact_page_settings.
+     * @param {contact_page_settingsCreateManyArgs} args - Arguments to create many Contact_page_settings.
+     * @example
+     * // Create many Contact_page_settings
+     * const contact_page_settings = await prisma.contact_page_settings.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends contact_page_settingsCreateManyArgs>(args?: SelectSubset<T, contact_page_settingsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Contact_page_settings.
+     * @param {contact_page_settingsDeleteArgs} args - Arguments to delete one Contact_page_settings.
+     * @example
+     * // Delete one Contact_page_settings
+     * const Contact_page_settings = await prisma.contact_page_settings.delete({
+     *   where: {
+     *     // ... filter to delete one Contact_page_settings
+     *   }
+     * })
+     * 
+     */
+    delete<T extends contact_page_settingsDeleteArgs>(args: SelectSubset<T, contact_page_settingsDeleteArgs<ExtArgs>>): Prisma__contact_page_settingsClient<$Result.GetResult<Prisma.$contact_page_settingsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Contact_page_settings.
+     * @param {contact_page_settingsUpdateArgs} args - Arguments to update one Contact_page_settings.
+     * @example
+     * // Update one Contact_page_settings
+     * const contact_page_settings = await prisma.contact_page_settings.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends contact_page_settingsUpdateArgs>(args: SelectSubset<T, contact_page_settingsUpdateArgs<ExtArgs>>): Prisma__contact_page_settingsClient<$Result.GetResult<Prisma.$contact_page_settingsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Contact_page_settings.
+     * @param {contact_page_settingsDeleteManyArgs} args - Arguments to filter Contact_page_settings to delete.
+     * @example
+     * // Delete a few Contact_page_settings
+     * const { count } = await prisma.contact_page_settings.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends contact_page_settingsDeleteManyArgs>(args?: SelectSubset<T, contact_page_settingsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Contact_page_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {contact_page_settingsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Contact_page_settings
+     * const contact_page_settings = await prisma.contact_page_settings.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends contact_page_settingsUpdateManyArgs>(args: SelectSubset<T, contact_page_settingsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Contact_page_settings.
+     * @param {contact_page_settingsUpsertArgs} args - Arguments to update or create a Contact_page_settings.
+     * @example
+     * // Update or create a Contact_page_settings
+     * const contact_page_settings = await prisma.contact_page_settings.upsert({
+     *   create: {
+     *     // ... data to create a Contact_page_settings
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Contact_page_settings we want to update
+     *   }
+     * })
+     */
+    upsert<T extends contact_page_settingsUpsertArgs>(args: SelectSubset<T, contact_page_settingsUpsertArgs<ExtArgs>>): Prisma__contact_page_settingsClient<$Result.GetResult<Prisma.$contact_page_settingsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Contact_page_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {contact_page_settingsCountArgs} args - Arguments to filter Contact_page_settings to count.
+     * @example
+     * // Count the number of Contact_page_settings
+     * const count = await prisma.contact_page_settings.count({
+     *   where: {
+     *     // ... the filter for the Contact_page_settings we want to count
+     *   }
+     * })
+    **/
+    count<T extends contact_page_settingsCountArgs>(
+      args?: Subset<T, contact_page_settingsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Contact_page_settingsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Contact_page_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Contact_page_settingsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Contact_page_settingsAggregateArgs>(args: Subset<T, Contact_page_settingsAggregateArgs>): Prisma.PrismaPromise<GetContact_page_settingsAggregateType<T>>
+
+    /**
+     * Group by Contact_page_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {contact_page_settingsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends contact_page_settingsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: contact_page_settingsGroupByArgs['orderBy'] }
+        : { orderBy?: contact_page_settingsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, contact_page_settingsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetContact_page_settingsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the contact_page_settings model
+   */
+  readonly fields: contact_page_settingsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for contact_page_settings.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__contact_page_settingsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the contact_page_settings model
+   */
+  interface contact_page_settingsFieldRefs {
+    readonly id: FieldRef<"contact_page_settings", 'Int'>
+    readonly hero_title: FieldRef<"contact_page_settings", 'String'>
+    readonly hero_subtitle: FieldRef<"contact_page_settings", 'String'>
+    readonly hero_description: FieldRef<"contact_page_settings", 'String'>
+    readonly address: FieldRef<"contact_page_settings", 'String'>
+    readonly phone: FieldRef<"contact_page_settings", 'String'>
+    readonly email: FieldRef<"contact_page_settings", 'String'>
+    readonly social_links: FieldRef<"contact_page_settings", 'Json'>
+    readonly schedule_title: FieldRef<"contact_page_settings", 'String'>
+    readonly schedule_description: FieldRef<"contact_page_settings", 'String'>
+    readonly schedule: FieldRef<"contact_page_settings", 'Json'>
+    readonly updated_at: FieldRef<"contact_page_settings", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * contact_page_settings findUnique
+   */
+  export type contact_page_settingsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the contact_page_settings
+     */
+    select?: contact_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the contact_page_settings
+     */
+    omit?: contact_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which contact_page_settings to fetch.
+     */
+    where: contact_page_settingsWhereUniqueInput
+  }
+
+  /**
+   * contact_page_settings findUniqueOrThrow
+   */
+  export type contact_page_settingsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the contact_page_settings
+     */
+    select?: contact_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the contact_page_settings
+     */
+    omit?: contact_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which contact_page_settings to fetch.
+     */
+    where: contact_page_settingsWhereUniqueInput
+  }
+
+  /**
+   * contact_page_settings findFirst
+   */
+  export type contact_page_settingsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the contact_page_settings
+     */
+    select?: contact_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the contact_page_settings
+     */
+    omit?: contact_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which contact_page_settings to fetch.
+     */
+    where?: contact_page_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of contact_page_settings to fetch.
+     */
+    orderBy?: contact_page_settingsOrderByWithRelationInput | contact_page_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for contact_page_settings.
+     */
+    cursor?: contact_page_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` contact_page_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` contact_page_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of contact_page_settings.
+     */
+    distinct?: Contact_page_settingsScalarFieldEnum | Contact_page_settingsScalarFieldEnum[]
+  }
+
+  /**
+   * contact_page_settings findFirstOrThrow
+   */
+  export type contact_page_settingsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the contact_page_settings
+     */
+    select?: contact_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the contact_page_settings
+     */
+    omit?: contact_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which contact_page_settings to fetch.
+     */
+    where?: contact_page_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of contact_page_settings to fetch.
+     */
+    orderBy?: contact_page_settingsOrderByWithRelationInput | contact_page_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for contact_page_settings.
+     */
+    cursor?: contact_page_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` contact_page_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` contact_page_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of contact_page_settings.
+     */
+    distinct?: Contact_page_settingsScalarFieldEnum | Contact_page_settingsScalarFieldEnum[]
+  }
+
+  /**
+   * contact_page_settings findMany
+   */
+  export type contact_page_settingsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the contact_page_settings
+     */
+    select?: contact_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the contact_page_settings
+     */
+    omit?: contact_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which contact_page_settings to fetch.
+     */
+    where?: contact_page_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of contact_page_settings to fetch.
+     */
+    orderBy?: contact_page_settingsOrderByWithRelationInput | contact_page_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing contact_page_settings.
+     */
+    cursor?: contact_page_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` contact_page_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` contact_page_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of contact_page_settings.
+     */
+    distinct?: Contact_page_settingsScalarFieldEnum | Contact_page_settingsScalarFieldEnum[]
+  }
+
+  /**
+   * contact_page_settings create
+   */
+  export type contact_page_settingsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the contact_page_settings
+     */
+    select?: contact_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the contact_page_settings
+     */
+    omit?: contact_page_settingsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a contact_page_settings.
+     */
+    data: XOR<contact_page_settingsCreateInput, contact_page_settingsUncheckedCreateInput>
+  }
+
+  /**
+   * contact_page_settings createMany
+   */
+  export type contact_page_settingsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many contact_page_settings.
+     */
+    data: contact_page_settingsCreateManyInput | contact_page_settingsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * contact_page_settings update
+   */
+  export type contact_page_settingsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the contact_page_settings
+     */
+    select?: contact_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the contact_page_settings
+     */
+    omit?: contact_page_settingsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a contact_page_settings.
+     */
+    data: XOR<contact_page_settingsUpdateInput, contact_page_settingsUncheckedUpdateInput>
+    /**
+     * Choose, which contact_page_settings to update.
+     */
+    where: contact_page_settingsWhereUniqueInput
+  }
+
+  /**
+   * contact_page_settings updateMany
+   */
+  export type contact_page_settingsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update contact_page_settings.
+     */
+    data: XOR<contact_page_settingsUpdateManyMutationInput, contact_page_settingsUncheckedUpdateManyInput>
+    /**
+     * Filter which contact_page_settings to update
+     */
+    where?: contact_page_settingsWhereInput
+    /**
+     * Limit how many contact_page_settings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * contact_page_settings upsert
+   */
+  export type contact_page_settingsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the contact_page_settings
+     */
+    select?: contact_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the contact_page_settings
+     */
+    omit?: contact_page_settingsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the contact_page_settings to update in case it exists.
+     */
+    where: contact_page_settingsWhereUniqueInput
+    /**
+     * In case the contact_page_settings found by the `where` argument doesn't exist, create a new contact_page_settings with this data.
+     */
+    create: XOR<contact_page_settingsCreateInput, contact_page_settingsUncheckedCreateInput>
+    /**
+     * In case the contact_page_settings was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<contact_page_settingsUpdateInput, contact_page_settingsUncheckedUpdateInput>
+  }
+
+  /**
+   * contact_page_settings delete
+   */
+  export type contact_page_settingsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the contact_page_settings
+     */
+    select?: contact_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the contact_page_settings
+     */
+    omit?: contact_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter which contact_page_settings to delete.
+     */
+    where: contact_page_settingsWhereUniqueInput
+  }
+
+  /**
+   * contact_page_settings deleteMany
+   */
+  export type contact_page_settingsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which contact_page_settings to delete
+     */
+    where?: contact_page_settingsWhereInput
+    /**
+     * Limit how many contact_page_settings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * contact_page_settings without action
+   */
+  export type contact_page_settingsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the contact_page_settings
+     */
+    select?: contact_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the contact_page_settings
+     */
+    omit?: contact_page_settingsOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model course_timeline
    */
 
@@ -35518,6 +36840,2875 @@ export namespace Prisma {
      * Omit specific fields from the news_events
      */
     omit?: news_eventsOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model blog_posts
+   */
+
+  export type AggregateBlog_posts = {
+    _count: Blog_postsCountAggregateOutputType | null
+    _avg: Blog_postsAvgAggregateOutputType | null
+    _sum: Blog_postsSumAggregateOutputType | null
+    _min: Blog_postsMinAggregateOutputType | null
+    _max: Blog_postsMaxAggregateOutputType | null
+  }
+
+  export type Blog_postsAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type Blog_postsSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type Blog_postsMinAggregateOutputType = {
+    id: number | null
+    title: string | null
+    excerpt: string | null
+    content: string | null
+    category: string | null
+    author: string | null
+    image_url: string | null
+    read_time: string | null
+    featured: boolean | null
+    status: string | null
+    published_at: Date | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type Blog_postsMaxAggregateOutputType = {
+    id: number | null
+    title: string | null
+    excerpt: string | null
+    content: string | null
+    category: string | null
+    author: string | null
+    image_url: string | null
+    read_time: string | null
+    featured: boolean | null
+    status: string | null
+    published_at: Date | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type Blog_postsCountAggregateOutputType = {
+    id: number
+    title: number
+    excerpt: number
+    content: number
+    category: number
+    author: number
+    image_url: number
+    read_time: number
+    featured: number
+    status: number
+    published_at: number
+    created_at: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type Blog_postsAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type Blog_postsSumAggregateInputType = {
+    id?: true
+  }
+
+  export type Blog_postsMinAggregateInputType = {
+    id?: true
+    title?: true
+    excerpt?: true
+    content?: true
+    category?: true
+    author?: true
+    image_url?: true
+    read_time?: true
+    featured?: true
+    status?: true
+    published_at?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type Blog_postsMaxAggregateInputType = {
+    id?: true
+    title?: true
+    excerpt?: true
+    content?: true
+    category?: true
+    author?: true
+    image_url?: true
+    read_time?: true
+    featured?: true
+    status?: true
+    published_at?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type Blog_postsCountAggregateInputType = {
+    id?: true
+    title?: true
+    excerpt?: true
+    content?: true
+    category?: true
+    author?: true
+    image_url?: true
+    read_time?: true
+    featured?: true
+    status?: true
+    published_at?: true
+    created_at?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type Blog_postsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which blog_posts to aggregate.
+     */
+    where?: blog_postsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of blog_posts to fetch.
+     */
+    orderBy?: blog_postsOrderByWithRelationInput | blog_postsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: blog_postsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` blog_posts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` blog_posts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned blog_posts
+    **/
+    _count?: true | Blog_postsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Blog_postsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Blog_postsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Blog_postsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Blog_postsMaxAggregateInputType
+  }
+
+  export type GetBlog_postsAggregateType<T extends Blog_postsAggregateArgs> = {
+        [P in keyof T & keyof AggregateBlog_posts]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBlog_posts[P]>
+      : GetScalarType<T[P], AggregateBlog_posts[P]>
+  }
+
+
+
+
+  export type blog_postsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: blog_postsWhereInput
+    orderBy?: blog_postsOrderByWithAggregationInput | blog_postsOrderByWithAggregationInput[]
+    by: Blog_postsScalarFieldEnum[] | Blog_postsScalarFieldEnum
+    having?: blog_postsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Blog_postsCountAggregateInputType | true
+    _avg?: Blog_postsAvgAggregateInputType
+    _sum?: Blog_postsSumAggregateInputType
+    _min?: Blog_postsMinAggregateInputType
+    _max?: Blog_postsMaxAggregateInputType
+  }
+
+  export type Blog_postsGroupByOutputType = {
+    id: number
+    title: string
+    excerpt: string
+    content: string
+    category: string
+    author: string
+    image_url: string | null
+    read_time: string | null
+    featured: boolean
+    status: string
+    published_at: Date
+    created_at: Date
+    updated_at: Date
+    _count: Blog_postsCountAggregateOutputType | null
+    _avg: Blog_postsAvgAggregateOutputType | null
+    _sum: Blog_postsSumAggregateOutputType | null
+    _min: Blog_postsMinAggregateOutputType | null
+    _max: Blog_postsMaxAggregateOutputType | null
+  }
+
+  type GetBlog_postsGroupByPayload<T extends blog_postsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Blog_postsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Blog_postsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Blog_postsGroupByOutputType[P]>
+            : GetScalarType<T[P], Blog_postsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type blog_postsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    excerpt?: boolean
+    content?: boolean
+    category?: boolean
+    author?: boolean
+    image_url?: boolean
+    read_time?: boolean
+    featured?: boolean
+    status?: boolean
+    published_at?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["blog_posts"]>
+
+
+
+  export type blog_postsSelectScalar = {
+    id?: boolean
+    title?: boolean
+    excerpt?: boolean
+    content?: boolean
+    category?: boolean
+    author?: boolean
+    image_url?: boolean
+    read_time?: boolean
+    featured?: boolean
+    status?: boolean
+    published_at?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }
+
+  export type blog_postsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "excerpt" | "content" | "category" | "author" | "image_url" | "read_time" | "featured" | "status" | "published_at" | "created_at" | "updated_at", ExtArgs["result"]["blog_posts"]>
+
+  export type $blog_postsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "blog_posts"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      title: string
+      excerpt: string
+      content: string
+      category: string
+      author: string
+      image_url: string | null
+      read_time: string | null
+      featured: boolean
+      status: string
+      published_at: Date
+      created_at: Date
+      updated_at: Date
+    }, ExtArgs["result"]["blog_posts"]>
+    composites: {}
+  }
+
+  type blog_postsGetPayload<S extends boolean | null | undefined | blog_postsDefaultArgs> = $Result.GetResult<Prisma.$blog_postsPayload, S>
+
+  type blog_postsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<blog_postsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Blog_postsCountAggregateInputType | true
+    }
+
+  export interface blog_postsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['blog_posts'], meta: { name: 'blog_posts' } }
+    /**
+     * Find zero or one Blog_posts that matches the filter.
+     * @param {blog_postsFindUniqueArgs} args - Arguments to find a Blog_posts
+     * @example
+     * // Get one Blog_posts
+     * const blog_posts = await prisma.blog_posts.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends blog_postsFindUniqueArgs>(args: SelectSubset<T, blog_postsFindUniqueArgs<ExtArgs>>): Prisma__blog_postsClient<$Result.GetResult<Prisma.$blog_postsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Blog_posts that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {blog_postsFindUniqueOrThrowArgs} args - Arguments to find a Blog_posts
+     * @example
+     * // Get one Blog_posts
+     * const blog_posts = await prisma.blog_posts.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends blog_postsFindUniqueOrThrowArgs>(args: SelectSubset<T, blog_postsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__blog_postsClient<$Result.GetResult<Prisma.$blog_postsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Blog_posts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_postsFindFirstArgs} args - Arguments to find a Blog_posts
+     * @example
+     * // Get one Blog_posts
+     * const blog_posts = await prisma.blog_posts.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends blog_postsFindFirstArgs>(args?: SelectSubset<T, blog_postsFindFirstArgs<ExtArgs>>): Prisma__blog_postsClient<$Result.GetResult<Prisma.$blog_postsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Blog_posts that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_postsFindFirstOrThrowArgs} args - Arguments to find a Blog_posts
+     * @example
+     * // Get one Blog_posts
+     * const blog_posts = await prisma.blog_posts.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends blog_postsFindFirstOrThrowArgs>(args?: SelectSubset<T, blog_postsFindFirstOrThrowArgs<ExtArgs>>): Prisma__blog_postsClient<$Result.GetResult<Prisma.$blog_postsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Blog_posts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_postsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Blog_posts
+     * const blog_posts = await prisma.blog_posts.findMany()
+     * 
+     * // Get first 10 Blog_posts
+     * const blog_posts = await prisma.blog_posts.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const blog_postsWithIdOnly = await prisma.blog_posts.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends blog_postsFindManyArgs>(args?: SelectSubset<T, blog_postsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$blog_postsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Blog_posts.
+     * @param {blog_postsCreateArgs} args - Arguments to create a Blog_posts.
+     * @example
+     * // Create one Blog_posts
+     * const Blog_posts = await prisma.blog_posts.create({
+     *   data: {
+     *     // ... data to create a Blog_posts
+     *   }
+     * })
+     * 
+     */
+    create<T extends blog_postsCreateArgs>(args: SelectSubset<T, blog_postsCreateArgs<ExtArgs>>): Prisma__blog_postsClient<$Result.GetResult<Prisma.$blog_postsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Blog_posts.
+     * @param {blog_postsCreateManyArgs} args - Arguments to create many Blog_posts.
+     * @example
+     * // Create many Blog_posts
+     * const blog_posts = await prisma.blog_posts.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends blog_postsCreateManyArgs>(args?: SelectSubset<T, blog_postsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Blog_posts.
+     * @param {blog_postsDeleteArgs} args - Arguments to delete one Blog_posts.
+     * @example
+     * // Delete one Blog_posts
+     * const Blog_posts = await prisma.blog_posts.delete({
+     *   where: {
+     *     // ... filter to delete one Blog_posts
+     *   }
+     * })
+     * 
+     */
+    delete<T extends blog_postsDeleteArgs>(args: SelectSubset<T, blog_postsDeleteArgs<ExtArgs>>): Prisma__blog_postsClient<$Result.GetResult<Prisma.$blog_postsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Blog_posts.
+     * @param {blog_postsUpdateArgs} args - Arguments to update one Blog_posts.
+     * @example
+     * // Update one Blog_posts
+     * const blog_posts = await prisma.blog_posts.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends blog_postsUpdateArgs>(args: SelectSubset<T, blog_postsUpdateArgs<ExtArgs>>): Prisma__blog_postsClient<$Result.GetResult<Prisma.$blog_postsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Blog_posts.
+     * @param {blog_postsDeleteManyArgs} args - Arguments to filter Blog_posts to delete.
+     * @example
+     * // Delete a few Blog_posts
+     * const { count } = await prisma.blog_posts.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends blog_postsDeleteManyArgs>(args?: SelectSubset<T, blog_postsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Blog_posts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_postsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Blog_posts
+     * const blog_posts = await prisma.blog_posts.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends blog_postsUpdateManyArgs>(args: SelectSubset<T, blog_postsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Blog_posts.
+     * @param {blog_postsUpsertArgs} args - Arguments to update or create a Blog_posts.
+     * @example
+     * // Update or create a Blog_posts
+     * const blog_posts = await prisma.blog_posts.upsert({
+     *   create: {
+     *     // ... data to create a Blog_posts
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Blog_posts we want to update
+     *   }
+     * })
+     */
+    upsert<T extends blog_postsUpsertArgs>(args: SelectSubset<T, blog_postsUpsertArgs<ExtArgs>>): Prisma__blog_postsClient<$Result.GetResult<Prisma.$blog_postsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Blog_posts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_postsCountArgs} args - Arguments to filter Blog_posts to count.
+     * @example
+     * // Count the number of Blog_posts
+     * const count = await prisma.blog_posts.count({
+     *   where: {
+     *     // ... the filter for the Blog_posts we want to count
+     *   }
+     * })
+    **/
+    count<T extends blog_postsCountArgs>(
+      args?: Subset<T, blog_postsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Blog_postsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Blog_posts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Blog_postsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Blog_postsAggregateArgs>(args: Subset<T, Blog_postsAggregateArgs>): Prisma.PrismaPromise<GetBlog_postsAggregateType<T>>
+
+    /**
+     * Group by Blog_posts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_postsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends blog_postsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: blog_postsGroupByArgs['orderBy'] }
+        : { orderBy?: blog_postsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, blog_postsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBlog_postsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the blog_posts model
+   */
+  readonly fields: blog_postsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for blog_posts.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__blog_postsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the blog_posts model
+   */
+  interface blog_postsFieldRefs {
+    readonly id: FieldRef<"blog_posts", 'Int'>
+    readonly title: FieldRef<"blog_posts", 'String'>
+    readonly excerpt: FieldRef<"blog_posts", 'String'>
+    readonly content: FieldRef<"blog_posts", 'String'>
+    readonly category: FieldRef<"blog_posts", 'String'>
+    readonly author: FieldRef<"blog_posts", 'String'>
+    readonly image_url: FieldRef<"blog_posts", 'String'>
+    readonly read_time: FieldRef<"blog_posts", 'String'>
+    readonly featured: FieldRef<"blog_posts", 'Boolean'>
+    readonly status: FieldRef<"blog_posts", 'String'>
+    readonly published_at: FieldRef<"blog_posts", 'DateTime'>
+    readonly created_at: FieldRef<"blog_posts", 'DateTime'>
+    readonly updated_at: FieldRef<"blog_posts", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * blog_posts findUnique
+   */
+  export type blog_postsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_posts
+     */
+    select?: blog_postsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_posts
+     */
+    omit?: blog_postsOmit<ExtArgs> | null
+    /**
+     * Filter, which blog_posts to fetch.
+     */
+    where: blog_postsWhereUniqueInput
+  }
+
+  /**
+   * blog_posts findUniqueOrThrow
+   */
+  export type blog_postsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_posts
+     */
+    select?: blog_postsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_posts
+     */
+    omit?: blog_postsOmit<ExtArgs> | null
+    /**
+     * Filter, which blog_posts to fetch.
+     */
+    where: blog_postsWhereUniqueInput
+  }
+
+  /**
+   * blog_posts findFirst
+   */
+  export type blog_postsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_posts
+     */
+    select?: blog_postsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_posts
+     */
+    omit?: blog_postsOmit<ExtArgs> | null
+    /**
+     * Filter, which blog_posts to fetch.
+     */
+    where?: blog_postsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of blog_posts to fetch.
+     */
+    orderBy?: blog_postsOrderByWithRelationInput | blog_postsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for blog_posts.
+     */
+    cursor?: blog_postsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` blog_posts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` blog_posts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of blog_posts.
+     */
+    distinct?: Blog_postsScalarFieldEnum | Blog_postsScalarFieldEnum[]
+  }
+
+  /**
+   * blog_posts findFirstOrThrow
+   */
+  export type blog_postsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_posts
+     */
+    select?: blog_postsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_posts
+     */
+    omit?: blog_postsOmit<ExtArgs> | null
+    /**
+     * Filter, which blog_posts to fetch.
+     */
+    where?: blog_postsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of blog_posts to fetch.
+     */
+    orderBy?: blog_postsOrderByWithRelationInput | blog_postsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for blog_posts.
+     */
+    cursor?: blog_postsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` blog_posts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` blog_posts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of blog_posts.
+     */
+    distinct?: Blog_postsScalarFieldEnum | Blog_postsScalarFieldEnum[]
+  }
+
+  /**
+   * blog_posts findMany
+   */
+  export type blog_postsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_posts
+     */
+    select?: blog_postsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_posts
+     */
+    omit?: blog_postsOmit<ExtArgs> | null
+    /**
+     * Filter, which blog_posts to fetch.
+     */
+    where?: blog_postsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of blog_posts to fetch.
+     */
+    orderBy?: blog_postsOrderByWithRelationInput | blog_postsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing blog_posts.
+     */
+    cursor?: blog_postsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` blog_posts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` blog_posts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of blog_posts.
+     */
+    distinct?: Blog_postsScalarFieldEnum | Blog_postsScalarFieldEnum[]
+  }
+
+  /**
+   * blog_posts create
+   */
+  export type blog_postsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_posts
+     */
+    select?: blog_postsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_posts
+     */
+    omit?: blog_postsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a blog_posts.
+     */
+    data: XOR<blog_postsCreateInput, blog_postsUncheckedCreateInput>
+  }
+
+  /**
+   * blog_posts createMany
+   */
+  export type blog_postsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many blog_posts.
+     */
+    data: blog_postsCreateManyInput | blog_postsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * blog_posts update
+   */
+  export type blog_postsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_posts
+     */
+    select?: blog_postsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_posts
+     */
+    omit?: blog_postsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a blog_posts.
+     */
+    data: XOR<blog_postsUpdateInput, blog_postsUncheckedUpdateInput>
+    /**
+     * Choose, which blog_posts to update.
+     */
+    where: blog_postsWhereUniqueInput
+  }
+
+  /**
+   * blog_posts updateMany
+   */
+  export type blog_postsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update blog_posts.
+     */
+    data: XOR<blog_postsUpdateManyMutationInput, blog_postsUncheckedUpdateManyInput>
+    /**
+     * Filter which blog_posts to update
+     */
+    where?: blog_postsWhereInput
+    /**
+     * Limit how many blog_posts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * blog_posts upsert
+   */
+  export type blog_postsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_posts
+     */
+    select?: blog_postsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_posts
+     */
+    omit?: blog_postsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the blog_posts to update in case it exists.
+     */
+    where: blog_postsWhereUniqueInput
+    /**
+     * In case the blog_posts found by the `where` argument doesn't exist, create a new blog_posts with this data.
+     */
+    create: XOR<blog_postsCreateInput, blog_postsUncheckedCreateInput>
+    /**
+     * In case the blog_posts was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<blog_postsUpdateInput, blog_postsUncheckedUpdateInput>
+  }
+
+  /**
+   * blog_posts delete
+   */
+  export type blog_postsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_posts
+     */
+    select?: blog_postsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_posts
+     */
+    omit?: blog_postsOmit<ExtArgs> | null
+    /**
+     * Filter which blog_posts to delete.
+     */
+    where: blog_postsWhereUniqueInput
+  }
+
+  /**
+   * blog_posts deleteMany
+   */
+  export type blog_postsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which blog_posts to delete
+     */
+    where?: blog_postsWhereInput
+    /**
+     * Limit how many blog_posts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * blog_posts without action
+   */
+  export type blog_postsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_posts
+     */
+    select?: blog_postsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_posts
+     */
+    omit?: blog_postsOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model blog_page_settings
+   */
+
+  export type AggregateBlog_page_settings = {
+    _count: Blog_page_settingsCountAggregateOutputType | null
+    _avg: Blog_page_settingsAvgAggregateOutputType | null
+    _sum: Blog_page_settingsSumAggregateOutputType | null
+    _min: Blog_page_settingsMinAggregateOutputType | null
+    _max: Blog_page_settingsMaxAggregateOutputType | null
+  }
+
+  export type Blog_page_settingsAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type Blog_page_settingsSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type Blog_page_settingsMinAggregateOutputType = {
+    id: number | null
+    hero_title: string | null
+    hero_subtitle: string | null
+    updated_at: Date | null
+  }
+
+  export type Blog_page_settingsMaxAggregateOutputType = {
+    id: number | null
+    hero_title: string | null
+    hero_subtitle: string | null
+    updated_at: Date | null
+  }
+
+  export type Blog_page_settingsCountAggregateOutputType = {
+    id: number
+    hero_title: number
+    hero_subtitle: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type Blog_page_settingsAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type Blog_page_settingsSumAggregateInputType = {
+    id?: true
+  }
+
+  export type Blog_page_settingsMinAggregateInputType = {
+    id?: true
+    hero_title?: true
+    hero_subtitle?: true
+    updated_at?: true
+  }
+
+  export type Blog_page_settingsMaxAggregateInputType = {
+    id?: true
+    hero_title?: true
+    hero_subtitle?: true
+    updated_at?: true
+  }
+
+  export type Blog_page_settingsCountAggregateInputType = {
+    id?: true
+    hero_title?: true
+    hero_subtitle?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type Blog_page_settingsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which blog_page_settings to aggregate.
+     */
+    where?: blog_page_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of blog_page_settings to fetch.
+     */
+    orderBy?: blog_page_settingsOrderByWithRelationInput | blog_page_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: blog_page_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` blog_page_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` blog_page_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned blog_page_settings
+    **/
+    _count?: true | Blog_page_settingsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Blog_page_settingsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Blog_page_settingsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Blog_page_settingsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Blog_page_settingsMaxAggregateInputType
+  }
+
+  export type GetBlog_page_settingsAggregateType<T extends Blog_page_settingsAggregateArgs> = {
+        [P in keyof T & keyof AggregateBlog_page_settings]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBlog_page_settings[P]>
+      : GetScalarType<T[P], AggregateBlog_page_settings[P]>
+  }
+
+
+
+
+  export type blog_page_settingsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: blog_page_settingsWhereInput
+    orderBy?: blog_page_settingsOrderByWithAggregationInput | blog_page_settingsOrderByWithAggregationInput[]
+    by: Blog_page_settingsScalarFieldEnum[] | Blog_page_settingsScalarFieldEnum
+    having?: blog_page_settingsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Blog_page_settingsCountAggregateInputType | true
+    _avg?: Blog_page_settingsAvgAggregateInputType
+    _sum?: Blog_page_settingsSumAggregateInputType
+    _min?: Blog_page_settingsMinAggregateInputType
+    _max?: Blog_page_settingsMaxAggregateInputType
+  }
+
+  export type Blog_page_settingsGroupByOutputType = {
+    id: number
+    hero_title: string
+    hero_subtitle: string
+    updated_at: Date
+    _count: Blog_page_settingsCountAggregateOutputType | null
+    _avg: Blog_page_settingsAvgAggregateOutputType | null
+    _sum: Blog_page_settingsSumAggregateOutputType | null
+    _min: Blog_page_settingsMinAggregateOutputType | null
+    _max: Blog_page_settingsMaxAggregateOutputType | null
+  }
+
+  type GetBlog_page_settingsGroupByPayload<T extends blog_page_settingsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Blog_page_settingsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Blog_page_settingsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Blog_page_settingsGroupByOutputType[P]>
+            : GetScalarType<T[P], Blog_page_settingsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type blog_page_settingsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    hero_title?: boolean
+    hero_subtitle?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["blog_page_settings"]>
+
+
+
+  export type blog_page_settingsSelectScalar = {
+    id?: boolean
+    hero_title?: boolean
+    hero_subtitle?: boolean
+    updated_at?: boolean
+  }
+
+  export type blog_page_settingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "hero_title" | "hero_subtitle" | "updated_at", ExtArgs["result"]["blog_page_settings"]>
+
+  export type $blog_page_settingsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "blog_page_settings"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      hero_title: string
+      hero_subtitle: string
+      updated_at: Date
+    }, ExtArgs["result"]["blog_page_settings"]>
+    composites: {}
+  }
+
+  type blog_page_settingsGetPayload<S extends boolean | null | undefined | blog_page_settingsDefaultArgs> = $Result.GetResult<Prisma.$blog_page_settingsPayload, S>
+
+  type blog_page_settingsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<blog_page_settingsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Blog_page_settingsCountAggregateInputType | true
+    }
+
+  export interface blog_page_settingsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['blog_page_settings'], meta: { name: 'blog_page_settings' } }
+    /**
+     * Find zero or one Blog_page_settings that matches the filter.
+     * @param {blog_page_settingsFindUniqueArgs} args - Arguments to find a Blog_page_settings
+     * @example
+     * // Get one Blog_page_settings
+     * const blog_page_settings = await prisma.blog_page_settings.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends blog_page_settingsFindUniqueArgs>(args: SelectSubset<T, blog_page_settingsFindUniqueArgs<ExtArgs>>): Prisma__blog_page_settingsClient<$Result.GetResult<Prisma.$blog_page_settingsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Blog_page_settings that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {blog_page_settingsFindUniqueOrThrowArgs} args - Arguments to find a Blog_page_settings
+     * @example
+     * // Get one Blog_page_settings
+     * const blog_page_settings = await prisma.blog_page_settings.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends blog_page_settingsFindUniqueOrThrowArgs>(args: SelectSubset<T, blog_page_settingsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__blog_page_settingsClient<$Result.GetResult<Prisma.$blog_page_settingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Blog_page_settings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_page_settingsFindFirstArgs} args - Arguments to find a Blog_page_settings
+     * @example
+     * // Get one Blog_page_settings
+     * const blog_page_settings = await prisma.blog_page_settings.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends blog_page_settingsFindFirstArgs>(args?: SelectSubset<T, blog_page_settingsFindFirstArgs<ExtArgs>>): Prisma__blog_page_settingsClient<$Result.GetResult<Prisma.$blog_page_settingsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Blog_page_settings that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_page_settingsFindFirstOrThrowArgs} args - Arguments to find a Blog_page_settings
+     * @example
+     * // Get one Blog_page_settings
+     * const blog_page_settings = await prisma.blog_page_settings.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends blog_page_settingsFindFirstOrThrowArgs>(args?: SelectSubset<T, blog_page_settingsFindFirstOrThrowArgs<ExtArgs>>): Prisma__blog_page_settingsClient<$Result.GetResult<Prisma.$blog_page_settingsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Blog_page_settings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_page_settingsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Blog_page_settings
+     * const blog_page_settings = await prisma.blog_page_settings.findMany()
+     * 
+     * // Get first 10 Blog_page_settings
+     * const blog_page_settings = await prisma.blog_page_settings.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const blog_page_settingsWithIdOnly = await prisma.blog_page_settings.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends blog_page_settingsFindManyArgs>(args?: SelectSubset<T, blog_page_settingsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$blog_page_settingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Blog_page_settings.
+     * @param {blog_page_settingsCreateArgs} args - Arguments to create a Blog_page_settings.
+     * @example
+     * // Create one Blog_page_settings
+     * const Blog_page_settings = await prisma.blog_page_settings.create({
+     *   data: {
+     *     // ... data to create a Blog_page_settings
+     *   }
+     * })
+     * 
+     */
+    create<T extends blog_page_settingsCreateArgs>(args: SelectSubset<T, blog_page_settingsCreateArgs<ExtArgs>>): Prisma__blog_page_settingsClient<$Result.GetResult<Prisma.$blog_page_settingsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Blog_page_settings.
+     * @param {blog_page_settingsCreateManyArgs} args - Arguments to create many Blog_page_settings.
+     * @example
+     * // Create many Blog_page_settings
+     * const blog_page_settings = await prisma.blog_page_settings.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends blog_page_settingsCreateManyArgs>(args?: SelectSubset<T, blog_page_settingsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Blog_page_settings.
+     * @param {blog_page_settingsDeleteArgs} args - Arguments to delete one Blog_page_settings.
+     * @example
+     * // Delete one Blog_page_settings
+     * const Blog_page_settings = await prisma.blog_page_settings.delete({
+     *   where: {
+     *     // ... filter to delete one Blog_page_settings
+     *   }
+     * })
+     * 
+     */
+    delete<T extends blog_page_settingsDeleteArgs>(args: SelectSubset<T, blog_page_settingsDeleteArgs<ExtArgs>>): Prisma__blog_page_settingsClient<$Result.GetResult<Prisma.$blog_page_settingsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Blog_page_settings.
+     * @param {blog_page_settingsUpdateArgs} args - Arguments to update one Blog_page_settings.
+     * @example
+     * // Update one Blog_page_settings
+     * const blog_page_settings = await prisma.blog_page_settings.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends blog_page_settingsUpdateArgs>(args: SelectSubset<T, blog_page_settingsUpdateArgs<ExtArgs>>): Prisma__blog_page_settingsClient<$Result.GetResult<Prisma.$blog_page_settingsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Blog_page_settings.
+     * @param {blog_page_settingsDeleteManyArgs} args - Arguments to filter Blog_page_settings to delete.
+     * @example
+     * // Delete a few Blog_page_settings
+     * const { count } = await prisma.blog_page_settings.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends blog_page_settingsDeleteManyArgs>(args?: SelectSubset<T, blog_page_settingsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Blog_page_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_page_settingsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Blog_page_settings
+     * const blog_page_settings = await prisma.blog_page_settings.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends blog_page_settingsUpdateManyArgs>(args: SelectSubset<T, blog_page_settingsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Blog_page_settings.
+     * @param {blog_page_settingsUpsertArgs} args - Arguments to update or create a Blog_page_settings.
+     * @example
+     * // Update or create a Blog_page_settings
+     * const blog_page_settings = await prisma.blog_page_settings.upsert({
+     *   create: {
+     *     // ... data to create a Blog_page_settings
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Blog_page_settings we want to update
+     *   }
+     * })
+     */
+    upsert<T extends blog_page_settingsUpsertArgs>(args: SelectSubset<T, blog_page_settingsUpsertArgs<ExtArgs>>): Prisma__blog_page_settingsClient<$Result.GetResult<Prisma.$blog_page_settingsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Blog_page_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_page_settingsCountArgs} args - Arguments to filter Blog_page_settings to count.
+     * @example
+     * // Count the number of Blog_page_settings
+     * const count = await prisma.blog_page_settings.count({
+     *   where: {
+     *     // ... the filter for the Blog_page_settings we want to count
+     *   }
+     * })
+    **/
+    count<T extends blog_page_settingsCountArgs>(
+      args?: Subset<T, blog_page_settingsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Blog_page_settingsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Blog_page_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Blog_page_settingsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Blog_page_settingsAggregateArgs>(args: Subset<T, Blog_page_settingsAggregateArgs>): Prisma.PrismaPromise<GetBlog_page_settingsAggregateType<T>>
+
+    /**
+     * Group by Blog_page_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {blog_page_settingsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends blog_page_settingsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: blog_page_settingsGroupByArgs['orderBy'] }
+        : { orderBy?: blog_page_settingsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, blog_page_settingsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBlog_page_settingsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the blog_page_settings model
+   */
+  readonly fields: blog_page_settingsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for blog_page_settings.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__blog_page_settingsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the blog_page_settings model
+   */
+  interface blog_page_settingsFieldRefs {
+    readonly id: FieldRef<"blog_page_settings", 'Int'>
+    readonly hero_title: FieldRef<"blog_page_settings", 'String'>
+    readonly hero_subtitle: FieldRef<"blog_page_settings", 'String'>
+    readonly updated_at: FieldRef<"blog_page_settings", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * blog_page_settings findUnique
+   */
+  export type blog_page_settingsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_page_settings
+     */
+    select?: blog_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_page_settings
+     */
+    omit?: blog_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which blog_page_settings to fetch.
+     */
+    where: blog_page_settingsWhereUniqueInput
+  }
+
+  /**
+   * blog_page_settings findUniqueOrThrow
+   */
+  export type blog_page_settingsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_page_settings
+     */
+    select?: blog_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_page_settings
+     */
+    omit?: blog_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which blog_page_settings to fetch.
+     */
+    where: blog_page_settingsWhereUniqueInput
+  }
+
+  /**
+   * blog_page_settings findFirst
+   */
+  export type blog_page_settingsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_page_settings
+     */
+    select?: blog_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_page_settings
+     */
+    omit?: blog_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which blog_page_settings to fetch.
+     */
+    where?: blog_page_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of blog_page_settings to fetch.
+     */
+    orderBy?: blog_page_settingsOrderByWithRelationInput | blog_page_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for blog_page_settings.
+     */
+    cursor?: blog_page_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` blog_page_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` blog_page_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of blog_page_settings.
+     */
+    distinct?: Blog_page_settingsScalarFieldEnum | Blog_page_settingsScalarFieldEnum[]
+  }
+
+  /**
+   * blog_page_settings findFirstOrThrow
+   */
+  export type blog_page_settingsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_page_settings
+     */
+    select?: blog_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_page_settings
+     */
+    omit?: blog_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which blog_page_settings to fetch.
+     */
+    where?: blog_page_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of blog_page_settings to fetch.
+     */
+    orderBy?: blog_page_settingsOrderByWithRelationInput | blog_page_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for blog_page_settings.
+     */
+    cursor?: blog_page_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` blog_page_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` blog_page_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of blog_page_settings.
+     */
+    distinct?: Blog_page_settingsScalarFieldEnum | Blog_page_settingsScalarFieldEnum[]
+  }
+
+  /**
+   * blog_page_settings findMany
+   */
+  export type blog_page_settingsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_page_settings
+     */
+    select?: blog_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_page_settings
+     */
+    omit?: blog_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which blog_page_settings to fetch.
+     */
+    where?: blog_page_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of blog_page_settings to fetch.
+     */
+    orderBy?: blog_page_settingsOrderByWithRelationInput | blog_page_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing blog_page_settings.
+     */
+    cursor?: blog_page_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` blog_page_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` blog_page_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of blog_page_settings.
+     */
+    distinct?: Blog_page_settingsScalarFieldEnum | Blog_page_settingsScalarFieldEnum[]
+  }
+
+  /**
+   * blog_page_settings create
+   */
+  export type blog_page_settingsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_page_settings
+     */
+    select?: blog_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_page_settings
+     */
+    omit?: blog_page_settingsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a blog_page_settings.
+     */
+    data: XOR<blog_page_settingsCreateInput, blog_page_settingsUncheckedCreateInput>
+  }
+
+  /**
+   * blog_page_settings createMany
+   */
+  export type blog_page_settingsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many blog_page_settings.
+     */
+    data: blog_page_settingsCreateManyInput | blog_page_settingsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * blog_page_settings update
+   */
+  export type blog_page_settingsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_page_settings
+     */
+    select?: blog_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_page_settings
+     */
+    omit?: blog_page_settingsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a blog_page_settings.
+     */
+    data: XOR<blog_page_settingsUpdateInput, blog_page_settingsUncheckedUpdateInput>
+    /**
+     * Choose, which blog_page_settings to update.
+     */
+    where: blog_page_settingsWhereUniqueInput
+  }
+
+  /**
+   * blog_page_settings updateMany
+   */
+  export type blog_page_settingsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update blog_page_settings.
+     */
+    data: XOR<blog_page_settingsUpdateManyMutationInput, blog_page_settingsUncheckedUpdateManyInput>
+    /**
+     * Filter which blog_page_settings to update
+     */
+    where?: blog_page_settingsWhereInput
+    /**
+     * Limit how many blog_page_settings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * blog_page_settings upsert
+   */
+  export type blog_page_settingsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_page_settings
+     */
+    select?: blog_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_page_settings
+     */
+    omit?: blog_page_settingsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the blog_page_settings to update in case it exists.
+     */
+    where: blog_page_settingsWhereUniqueInput
+    /**
+     * In case the blog_page_settings found by the `where` argument doesn't exist, create a new blog_page_settings with this data.
+     */
+    create: XOR<blog_page_settingsCreateInput, blog_page_settingsUncheckedCreateInput>
+    /**
+     * In case the blog_page_settings was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<blog_page_settingsUpdateInput, blog_page_settingsUncheckedUpdateInput>
+  }
+
+  /**
+   * blog_page_settings delete
+   */
+  export type blog_page_settingsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_page_settings
+     */
+    select?: blog_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_page_settings
+     */
+    omit?: blog_page_settingsOmit<ExtArgs> | null
+    /**
+     * Filter which blog_page_settings to delete.
+     */
+    where: blog_page_settingsWhereUniqueInput
+  }
+
+  /**
+   * blog_page_settings deleteMany
+   */
+  export type blog_page_settingsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which blog_page_settings to delete
+     */
+    where?: blog_page_settingsWhereInput
+    /**
+     * Limit how many blog_page_settings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * blog_page_settings without action
+   */
+  export type blog_page_settingsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the blog_page_settings
+     */
+    select?: blog_page_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the blog_page_settings
+     */
+    omit?: blog_page_settingsOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model homepage_settings
+   */
+
+  export type AggregateHomepage_settings = {
+    _count: Homepage_settingsCountAggregateOutputType | null
+    _avg: Homepage_settingsAvgAggregateOutputType | null
+    _sum: Homepage_settingsSumAggregateOutputType | null
+    _min: Homepage_settingsMinAggregateOutputType | null
+    _max: Homepage_settingsMaxAggregateOutputType | null
+  }
+
+  export type Homepage_settingsAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type Homepage_settingsSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type Homepage_settingsMinAggregateOutputType = {
+    id: number | null
+    hero_title: string | null
+    hero_highlight: string | null
+    hero_description: string | null
+    cta_text: string | null
+    cta_link: string | null
+    updated_at: Date | null
+  }
+
+  export type Homepage_settingsMaxAggregateOutputType = {
+    id: number | null
+    hero_title: string | null
+    hero_highlight: string | null
+    hero_description: string | null
+    cta_text: string | null
+    cta_link: string | null
+    updated_at: Date | null
+  }
+
+  export type Homepage_settingsCountAggregateOutputType = {
+    id: number
+    hero_title: number
+    hero_highlight: number
+    hero_description: number
+    hero_images: number
+    cta_text: number
+    cta_link: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type Homepage_settingsAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type Homepage_settingsSumAggregateInputType = {
+    id?: true
+  }
+
+  export type Homepage_settingsMinAggregateInputType = {
+    id?: true
+    hero_title?: true
+    hero_highlight?: true
+    hero_description?: true
+    cta_text?: true
+    cta_link?: true
+    updated_at?: true
+  }
+
+  export type Homepage_settingsMaxAggregateInputType = {
+    id?: true
+    hero_title?: true
+    hero_highlight?: true
+    hero_description?: true
+    cta_text?: true
+    cta_link?: true
+    updated_at?: true
+  }
+
+  export type Homepage_settingsCountAggregateInputType = {
+    id?: true
+    hero_title?: true
+    hero_highlight?: true
+    hero_description?: true
+    hero_images?: true
+    cta_text?: true
+    cta_link?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type Homepage_settingsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which homepage_settings to aggregate.
+     */
+    where?: homepage_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of homepage_settings to fetch.
+     */
+    orderBy?: homepage_settingsOrderByWithRelationInput | homepage_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: homepage_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` homepage_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` homepage_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned homepage_settings
+    **/
+    _count?: true | Homepage_settingsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Homepage_settingsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Homepage_settingsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Homepage_settingsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Homepage_settingsMaxAggregateInputType
+  }
+
+  export type GetHomepage_settingsAggregateType<T extends Homepage_settingsAggregateArgs> = {
+        [P in keyof T & keyof AggregateHomepage_settings]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateHomepage_settings[P]>
+      : GetScalarType<T[P], AggregateHomepage_settings[P]>
+  }
+
+
+
+
+  export type homepage_settingsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: homepage_settingsWhereInput
+    orderBy?: homepage_settingsOrderByWithAggregationInput | homepage_settingsOrderByWithAggregationInput[]
+    by: Homepage_settingsScalarFieldEnum[] | Homepage_settingsScalarFieldEnum
+    having?: homepage_settingsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Homepage_settingsCountAggregateInputType | true
+    _avg?: Homepage_settingsAvgAggregateInputType
+    _sum?: Homepage_settingsSumAggregateInputType
+    _min?: Homepage_settingsMinAggregateInputType
+    _max?: Homepage_settingsMaxAggregateInputType
+  }
+
+  export type Homepage_settingsGroupByOutputType = {
+    id: number
+    hero_title: string
+    hero_highlight: string
+    hero_description: string
+    hero_images: JsonValue
+    cta_text: string
+    cta_link: string
+    updated_at: Date
+    _count: Homepage_settingsCountAggregateOutputType | null
+    _avg: Homepage_settingsAvgAggregateOutputType | null
+    _sum: Homepage_settingsSumAggregateOutputType | null
+    _min: Homepage_settingsMinAggregateOutputType | null
+    _max: Homepage_settingsMaxAggregateOutputType | null
+  }
+
+  type GetHomepage_settingsGroupByPayload<T extends homepage_settingsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Homepage_settingsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Homepage_settingsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Homepage_settingsGroupByOutputType[P]>
+            : GetScalarType<T[P], Homepage_settingsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type homepage_settingsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    hero_title?: boolean
+    hero_highlight?: boolean
+    hero_description?: boolean
+    hero_images?: boolean
+    cta_text?: boolean
+    cta_link?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["homepage_settings"]>
+
+
+
+  export type homepage_settingsSelectScalar = {
+    id?: boolean
+    hero_title?: boolean
+    hero_highlight?: boolean
+    hero_description?: boolean
+    hero_images?: boolean
+    cta_text?: boolean
+    cta_link?: boolean
+    updated_at?: boolean
+  }
+
+  export type homepage_settingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "hero_title" | "hero_highlight" | "hero_description" | "hero_images" | "cta_text" | "cta_link" | "updated_at", ExtArgs["result"]["homepage_settings"]>
+
+  export type $homepage_settingsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "homepage_settings"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      hero_title: string
+      hero_highlight: string
+      hero_description: string
+      hero_images: Prisma.JsonValue
+      cta_text: string
+      cta_link: string
+      updated_at: Date
+    }, ExtArgs["result"]["homepage_settings"]>
+    composites: {}
+  }
+
+  type homepage_settingsGetPayload<S extends boolean | null | undefined | homepage_settingsDefaultArgs> = $Result.GetResult<Prisma.$homepage_settingsPayload, S>
+
+  type homepage_settingsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<homepage_settingsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Homepage_settingsCountAggregateInputType | true
+    }
+
+  export interface homepage_settingsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['homepage_settings'], meta: { name: 'homepage_settings' } }
+    /**
+     * Find zero or one Homepage_settings that matches the filter.
+     * @param {homepage_settingsFindUniqueArgs} args - Arguments to find a Homepage_settings
+     * @example
+     * // Get one Homepage_settings
+     * const homepage_settings = await prisma.homepage_settings.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends homepage_settingsFindUniqueArgs>(args: SelectSubset<T, homepage_settingsFindUniqueArgs<ExtArgs>>): Prisma__homepage_settingsClient<$Result.GetResult<Prisma.$homepage_settingsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Homepage_settings that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {homepage_settingsFindUniqueOrThrowArgs} args - Arguments to find a Homepage_settings
+     * @example
+     * // Get one Homepage_settings
+     * const homepage_settings = await prisma.homepage_settings.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends homepage_settingsFindUniqueOrThrowArgs>(args: SelectSubset<T, homepage_settingsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__homepage_settingsClient<$Result.GetResult<Prisma.$homepage_settingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Homepage_settings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {homepage_settingsFindFirstArgs} args - Arguments to find a Homepage_settings
+     * @example
+     * // Get one Homepage_settings
+     * const homepage_settings = await prisma.homepage_settings.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends homepage_settingsFindFirstArgs>(args?: SelectSubset<T, homepage_settingsFindFirstArgs<ExtArgs>>): Prisma__homepage_settingsClient<$Result.GetResult<Prisma.$homepage_settingsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Homepage_settings that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {homepage_settingsFindFirstOrThrowArgs} args - Arguments to find a Homepage_settings
+     * @example
+     * // Get one Homepage_settings
+     * const homepage_settings = await prisma.homepage_settings.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends homepage_settingsFindFirstOrThrowArgs>(args?: SelectSubset<T, homepage_settingsFindFirstOrThrowArgs<ExtArgs>>): Prisma__homepage_settingsClient<$Result.GetResult<Prisma.$homepage_settingsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Homepage_settings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {homepage_settingsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Homepage_settings
+     * const homepage_settings = await prisma.homepage_settings.findMany()
+     * 
+     * // Get first 10 Homepage_settings
+     * const homepage_settings = await prisma.homepage_settings.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const homepage_settingsWithIdOnly = await prisma.homepage_settings.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends homepage_settingsFindManyArgs>(args?: SelectSubset<T, homepage_settingsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$homepage_settingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Homepage_settings.
+     * @param {homepage_settingsCreateArgs} args - Arguments to create a Homepage_settings.
+     * @example
+     * // Create one Homepage_settings
+     * const Homepage_settings = await prisma.homepage_settings.create({
+     *   data: {
+     *     // ... data to create a Homepage_settings
+     *   }
+     * })
+     * 
+     */
+    create<T extends homepage_settingsCreateArgs>(args: SelectSubset<T, homepage_settingsCreateArgs<ExtArgs>>): Prisma__homepage_settingsClient<$Result.GetResult<Prisma.$homepage_settingsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Homepage_settings.
+     * @param {homepage_settingsCreateManyArgs} args - Arguments to create many Homepage_settings.
+     * @example
+     * // Create many Homepage_settings
+     * const homepage_settings = await prisma.homepage_settings.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends homepage_settingsCreateManyArgs>(args?: SelectSubset<T, homepage_settingsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Homepage_settings.
+     * @param {homepage_settingsDeleteArgs} args - Arguments to delete one Homepage_settings.
+     * @example
+     * // Delete one Homepage_settings
+     * const Homepage_settings = await prisma.homepage_settings.delete({
+     *   where: {
+     *     // ... filter to delete one Homepage_settings
+     *   }
+     * })
+     * 
+     */
+    delete<T extends homepage_settingsDeleteArgs>(args: SelectSubset<T, homepage_settingsDeleteArgs<ExtArgs>>): Prisma__homepage_settingsClient<$Result.GetResult<Prisma.$homepage_settingsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Homepage_settings.
+     * @param {homepage_settingsUpdateArgs} args - Arguments to update one Homepage_settings.
+     * @example
+     * // Update one Homepage_settings
+     * const homepage_settings = await prisma.homepage_settings.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends homepage_settingsUpdateArgs>(args: SelectSubset<T, homepage_settingsUpdateArgs<ExtArgs>>): Prisma__homepage_settingsClient<$Result.GetResult<Prisma.$homepage_settingsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Homepage_settings.
+     * @param {homepage_settingsDeleteManyArgs} args - Arguments to filter Homepage_settings to delete.
+     * @example
+     * // Delete a few Homepage_settings
+     * const { count } = await prisma.homepage_settings.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends homepage_settingsDeleteManyArgs>(args?: SelectSubset<T, homepage_settingsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Homepage_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {homepage_settingsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Homepage_settings
+     * const homepage_settings = await prisma.homepage_settings.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends homepage_settingsUpdateManyArgs>(args: SelectSubset<T, homepage_settingsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Homepage_settings.
+     * @param {homepage_settingsUpsertArgs} args - Arguments to update or create a Homepage_settings.
+     * @example
+     * // Update or create a Homepage_settings
+     * const homepage_settings = await prisma.homepage_settings.upsert({
+     *   create: {
+     *     // ... data to create a Homepage_settings
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Homepage_settings we want to update
+     *   }
+     * })
+     */
+    upsert<T extends homepage_settingsUpsertArgs>(args: SelectSubset<T, homepage_settingsUpsertArgs<ExtArgs>>): Prisma__homepage_settingsClient<$Result.GetResult<Prisma.$homepage_settingsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Homepage_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {homepage_settingsCountArgs} args - Arguments to filter Homepage_settings to count.
+     * @example
+     * // Count the number of Homepage_settings
+     * const count = await prisma.homepage_settings.count({
+     *   where: {
+     *     // ... the filter for the Homepage_settings we want to count
+     *   }
+     * })
+    **/
+    count<T extends homepage_settingsCountArgs>(
+      args?: Subset<T, homepage_settingsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Homepage_settingsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Homepage_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Homepage_settingsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Homepage_settingsAggregateArgs>(args: Subset<T, Homepage_settingsAggregateArgs>): Prisma.PrismaPromise<GetHomepage_settingsAggregateType<T>>
+
+    /**
+     * Group by Homepage_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {homepage_settingsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends homepage_settingsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: homepage_settingsGroupByArgs['orderBy'] }
+        : { orderBy?: homepage_settingsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, homepage_settingsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetHomepage_settingsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the homepage_settings model
+   */
+  readonly fields: homepage_settingsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for homepage_settings.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__homepage_settingsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the homepage_settings model
+   */
+  interface homepage_settingsFieldRefs {
+    readonly id: FieldRef<"homepage_settings", 'Int'>
+    readonly hero_title: FieldRef<"homepage_settings", 'String'>
+    readonly hero_highlight: FieldRef<"homepage_settings", 'String'>
+    readonly hero_description: FieldRef<"homepage_settings", 'String'>
+    readonly hero_images: FieldRef<"homepage_settings", 'Json'>
+    readonly cta_text: FieldRef<"homepage_settings", 'String'>
+    readonly cta_link: FieldRef<"homepage_settings", 'String'>
+    readonly updated_at: FieldRef<"homepage_settings", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * homepage_settings findUnique
+   */
+  export type homepage_settingsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the homepage_settings
+     */
+    select?: homepage_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the homepage_settings
+     */
+    omit?: homepage_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which homepage_settings to fetch.
+     */
+    where: homepage_settingsWhereUniqueInput
+  }
+
+  /**
+   * homepage_settings findUniqueOrThrow
+   */
+  export type homepage_settingsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the homepage_settings
+     */
+    select?: homepage_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the homepage_settings
+     */
+    omit?: homepage_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which homepage_settings to fetch.
+     */
+    where: homepage_settingsWhereUniqueInput
+  }
+
+  /**
+   * homepage_settings findFirst
+   */
+  export type homepage_settingsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the homepage_settings
+     */
+    select?: homepage_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the homepage_settings
+     */
+    omit?: homepage_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which homepage_settings to fetch.
+     */
+    where?: homepage_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of homepage_settings to fetch.
+     */
+    orderBy?: homepage_settingsOrderByWithRelationInput | homepage_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for homepage_settings.
+     */
+    cursor?: homepage_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` homepage_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` homepage_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of homepage_settings.
+     */
+    distinct?: Homepage_settingsScalarFieldEnum | Homepage_settingsScalarFieldEnum[]
+  }
+
+  /**
+   * homepage_settings findFirstOrThrow
+   */
+  export type homepage_settingsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the homepage_settings
+     */
+    select?: homepage_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the homepage_settings
+     */
+    omit?: homepage_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which homepage_settings to fetch.
+     */
+    where?: homepage_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of homepage_settings to fetch.
+     */
+    orderBy?: homepage_settingsOrderByWithRelationInput | homepage_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for homepage_settings.
+     */
+    cursor?: homepage_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` homepage_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` homepage_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of homepage_settings.
+     */
+    distinct?: Homepage_settingsScalarFieldEnum | Homepage_settingsScalarFieldEnum[]
+  }
+
+  /**
+   * homepage_settings findMany
+   */
+  export type homepage_settingsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the homepage_settings
+     */
+    select?: homepage_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the homepage_settings
+     */
+    omit?: homepage_settingsOmit<ExtArgs> | null
+    /**
+     * Filter, which homepage_settings to fetch.
+     */
+    where?: homepage_settingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of homepage_settings to fetch.
+     */
+    orderBy?: homepage_settingsOrderByWithRelationInput | homepage_settingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing homepage_settings.
+     */
+    cursor?: homepage_settingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` homepage_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` homepage_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of homepage_settings.
+     */
+    distinct?: Homepage_settingsScalarFieldEnum | Homepage_settingsScalarFieldEnum[]
+  }
+
+  /**
+   * homepage_settings create
+   */
+  export type homepage_settingsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the homepage_settings
+     */
+    select?: homepage_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the homepage_settings
+     */
+    omit?: homepage_settingsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a homepage_settings.
+     */
+    data: XOR<homepage_settingsCreateInput, homepage_settingsUncheckedCreateInput>
+  }
+
+  /**
+   * homepage_settings createMany
+   */
+  export type homepage_settingsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many homepage_settings.
+     */
+    data: homepage_settingsCreateManyInput | homepage_settingsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * homepage_settings update
+   */
+  export type homepage_settingsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the homepage_settings
+     */
+    select?: homepage_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the homepage_settings
+     */
+    omit?: homepage_settingsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a homepage_settings.
+     */
+    data: XOR<homepage_settingsUpdateInput, homepage_settingsUncheckedUpdateInput>
+    /**
+     * Choose, which homepage_settings to update.
+     */
+    where: homepage_settingsWhereUniqueInput
+  }
+
+  /**
+   * homepage_settings updateMany
+   */
+  export type homepage_settingsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update homepage_settings.
+     */
+    data: XOR<homepage_settingsUpdateManyMutationInput, homepage_settingsUncheckedUpdateManyInput>
+    /**
+     * Filter which homepage_settings to update
+     */
+    where?: homepage_settingsWhereInput
+    /**
+     * Limit how many homepage_settings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * homepage_settings upsert
+   */
+  export type homepage_settingsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the homepage_settings
+     */
+    select?: homepage_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the homepage_settings
+     */
+    omit?: homepage_settingsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the homepage_settings to update in case it exists.
+     */
+    where: homepage_settingsWhereUniqueInput
+    /**
+     * In case the homepage_settings found by the `where` argument doesn't exist, create a new homepage_settings with this data.
+     */
+    create: XOR<homepage_settingsCreateInput, homepage_settingsUncheckedCreateInput>
+    /**
+     * In case the homepage_settings was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<homepage_settingsUpdateInput, homepage_settingsUncheckedUpdateInput>
+  }
+
+  /**
+   * homepage_settings delete
+   */
+  export type homepage_settingsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the homepage_settings
+     */
+    select?: homepage_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the homepage_settings
+     */
+    omit?: homepage_settingsOmit<ExtArgs> | null
+    /**
+     * Filter which homepage_settings to delete.
+     */
+    where: homepage_settingsWhereUniqueInput
+  }
+
+  /**
+   * homepage_settings deleteMany
+   */
+  export type homepage_settingsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which homepage_settings to delete
+     */
+    where?: homepage_settingsWhereInput
+    /**
+     * Limit how many homepage_settings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * homepage_settings without action
+   */
+  export type homepage_settingsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the homepage_settings
+     */
+    select?: homepage_settingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the homepage_settings
+     */
+    omit?: homepage_settingsOmit<ExtArgs> | null
   }
 
 
@@ -67465,6 +71656,24 @@ export namespace Prisma {
   export type ContactsScalarFieldEnum = (typeof ContactsScalarFieldEnum)[keyof typeof ContactsScalarFieldEnum]
 
 
+  export const Contact_page_settingsScalarFieldEnum: {
+    id: 'id',
+    hero_title: 'hero_title',
+    hero_subtitle: 'hero_subtitle',
+    hero_description: 'hero_description',
+    address: 'address',
+    phone: 'phone',
+    email: 'email',
+    social_links: 'social_links',
+    schedule_title: 'schedule_title',
+    schedule_description: 'schedule_description',
+    schedule: 'schedule',
+    updated_at: 'updated_at'
+  };
+
+  export type Contact_page_settingsScalarFieldEnum = (typeof Contact_page_settingsScalarFieldEnum)[keyof typeof Contact_page_settingsScalarFieldEnum]
+
+
   export const Course_timelineScalarFieldEnum: {
     id: 'id',
     term_serial: 'term_serial',
@@ -67708,6 +71917,49 @@ export namespace Prisma {
   };
 
   export type News_eventsScalarFieldEnum = (typeof News_eventsScalarFieldEnum)[keyof typeof News_eventsScalarFieldEnum]
+
+
+  export const Blog_postsScalarFieldEnum: {
+    id: 'id',
+    title: 'title',
+    excerpt: 'excerpt',
+    content: 'content',
+    category: 'category',
+    author: 'author',
+    image_url: 'image_url',
+    read_time: 'read_time',
+    featured: 'featured',
+    status: 'status',
+    published_at: 'published_at',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+  };
+
+  export type Blog_postsScalarFieldEnum = (typeof Blog_postsScalarFieldEnum)[keyof typeof Blog_postsScalarFieldEnum]
+
+
+  export const Blog_page_settingsScalarFieldEnum: {
+    id: 'id',
+    hero_title: 'hero_title',
+    hero_subtitle: 'hero_subtitle',
+    updated_at: 'updated_at'
+  };
+
+  export type Blog_page_settingsScalarFieldEnum = (typeof Blog_page_settingsScalarFieldEnum)[keyof typeof Blog_page_settingsScalarFieldEnum]
+
+
+  export const Homepage_settingsScalarFieldEnum: {
+    id: 'id',
+    hero_title: 'hero_title',
+    hero_highlight: 'hero_highlight',
+    hero_description: 'hero_description',
+    hero_images: 'hero_images',
+    cta_text: 'cta_text',
+    cta_link: 'cta_link',
+    updated_at: 'updated_at'
+  };
+
+  export type Homepage_settingsScalarFieldEnum = (typeof Homepage_settingsScalarFieldEnum)[keyof typeof Homepage_settingsScalarFieldEnum]
 
 
   export const NewslettersScalarFieldEnum: {
@@ -68448,6 +72700,20 @@ export namespace Prisma {
   export type contactsOrderByRelevanceFieldEnum = (typeof contactsOrderByRelevanceFieldEnum)[keyof typeof contactsOrderByRelevanceFieldEnum]
 
 
+  export const contact_page_settingsOrderByRelevanceFieldEnum: {
+    hero_title: 'hero_title',
+    hero_subtitle: 'hero_subtitle',
+    hero_description: 'hero_description',
+    address: 'address',
+    phone: 'phone',
+    email: 'email',
+    schedule_title: 'schedule_title',
+    schedule_description: 'schedule_description'
+  };
+
+  export type contact_page_settingsOrderByRelevanceFieldEnum = (typeof contact_page_settingsOrderByRelevanceFieldEnum)[keyof typeof contact_page_settingsOrderByRelevanceFieldEnum]
+
+
   export const course_timelineOrderByRelevanceFieldEnum: {
     term_serial: 'term_serial',
     holidays: 'holidays'
@@ -68595,6 +72861,39 @@ export namespace Prisma {
   };
 
   export type news_eventsOrderByRelevanceFieldEnum = (typeof news_eventsOrderByRelevanceFieldEnum)[keyof typeof news_eventsOrderByRelevanceFieldEnum]
+
+
+  export const blog_postsOrderByRelevanceFieldEnum: {
+    title: 'title',
+    excerpt: 'excerpt',
+    content: 'content',
+    category: 'category',
+    author: 'author',
+    image_url: 'image_url',
+    read_time: 'read_time',
+    status: 'status'
+  };
+
+  export type blog_postsOrderByRelevanceFieldEnum = (typeof blog_postsOrderByRelevanceFieldEnum)[keyof typeof blog_postsOrderByRelevanceFieldEnum]
+
+
+  export const blog_page_settingsOrderByRelevanceFieldEnum: {
+    hero_title: 'hero_title',
+    hero_subtitle: 'hero_subtitle'
+  };
+
+  export type blog_page_settingsOrderByRelevanceFieldEnum = (typeof blog_page_settingsOrderByRelevanceFieldEnum)[keyof typeof blog_page_settingsOrderByRelevanceFieldEnum]
+
+
+  export const homepage_settingsOrderByRelevanceFieldEnum: {
+    hero_title: 'hero_title',
+    hero_highlight: 'hero_highlight',
+    hero_description: 'hero_description',
+    cta_text: 'cta_text',
+    cta_link: 'cta_link'
+  };
+
+  export type homepage_settingsOrderByRelevanceFieldEnum = (typeof homepage_settingsOrderByRelevanceFieldEnum)[keyof typeof homepage_settingsOrderByRelevanceFieldEnum]
 
 
   export const newslettersOrderByRelevanceFieldEnum: {
@@ -70683,6 +74982,96 @@ export namespace Prisma {
     created_at?: DateTimeWithAggregatesFilter<"contacts"> | Date | string
   }
 
+  export type contact_page_settingsWhereInput = {
+    AND?: contact_page_settingsWhereInput | contact_page_settingsWhereInput[]
+    OR?: contact_page_settingsWhereInput[]
+    NOT?: contact_page_settingsWhereInput | contact_page_settingsWhereInput[]
+    id?: IntFilter<"contact_page_settings"> | number
+    hero_title?: StringFilter<"contact_page_settings"> | string
+    hero_subtitle?: StringFilter<"contact_page_settings"> | string
+    hero_description?: StringFilter<"contact_page_settings"> | string
+    address?: StringFilter<"contact_page_settings"> | string
+    phone?: StringFilter<"contact_page_settings"> | string
+    email?: StringFilter<"contact_page_settings"> | string
+    social_links?: JsonFilter<"contact_page_settings">
+    schedule_title?: StringFilter<"contact_page_settings"> | string
+    schedule_description?: StringFilter<"contact_page_settings"> | string
+    schedule?: JsonFilter<"contact_page_settings">
+    updated_at?: DateTimeFilter<"contact_page_settings"> | Date | string
+  }
+
+  export type contact_page_settingsOrderByWithRelationInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_subtitle?: SortOrder
+    hero_description?: SortOrder
+    address?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    social_links?: SortOrder
+    schedule_title?: SortOrder
+    schedule_description?: SortOrder
+    schedule?: SortOrder
+    updated_at?: SortOrder
+    _relevance?: contact_page_settingsOrderByRelevanceInput
+  }
+
+  export type contact_page_settingsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: contact_page_settingsWhereInput | contact_page_settingsWhereInput[]
+    OR?: contact_page_settingsWhereInput[]
+    NOT?: contact_page_settingsWhereInput | contact_page_settingsWhereInput[]
+    hero_title?: StringFilter<"contact_page_settings"> | string
+    hero_subtitle?: StringFilter<"contact_page_settings"> | string
+    hero_description?: StringFilter<"contact_page_settings"> | string
+    address?: StringFilter<"contact_page_settings"> | string
+    phone?: StringFilter<"contact_page_settings"> | string
+    email?: StringFilter<"contact_page_settings"> | string
+    social_links?: JsonFilter<"contact_page_settings">
+    schedule_title?: StringFilter<"contact_page_settings"> | string
+    schedule_description?: StringFilter<"contact_page_settings"> | string
+    schedule?: JsonFilter<"contact_page_settings">
+    updated_at?: DateTimeFilter<"contact_page_settings"> | Date | string
+  }, "id">
+
+  export type contact_page_settingsOrderByWithAggregationInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_subtitle?: SortOrder
+    hero_description?: SortOrder
+    address?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    social_links?: SortOrder
+    schedule_title?: SortOrder
+    schedule_description?: SortOrder
+    schedule?: SortOrder
+    updated_at?: SortOrder
+    _count?: contact_page_settingsCountOrderByAggregateInput
+    _avg?: contact_page_settingsAvgOrderByAggregateInput
+    _max?: contact_page_settingsMaxOrderByAggregateInput
+    _min?: contact_page_settingsMinOrderByAggregateInput
+    _sum?: contact_page_settingsSumOrderByAggregateInput
+  }
+
+  export type contact_page_settingsScalarWhereWithAggregatesInput = {
+    AND?: contact_page_settingsScalarWhereWithAggregatesInput | contact_page_settingsScalarWhereWithAggregatesInput[]
+    OR?: contact_page_settingsScalarWhereWithAggregatesInput[]
+    NOT?: contact_page_settingsScalarWhereWithAggregatesInput | contact_page_settingsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"contact_page_settings"> | number
+    hero_title?: StringWithAggregatesFilter<"contact_page_settings"> | string
+    hero_subtitle?: StringWithAggregatesFilter<"contact_page_settings"> | string
+    hero_description?: StringWithAggregatesFilter<"contact_page_settings"> | string
+    address?: StringWithAggregatesFilter<"contact_page_settings"> | string
+    phone?: StringWithAggregatesFilter<"contact_page_settings"> | string
+    email?: StringWithAggregatesFilter<"contact_page_settings"> | string
+    social_links?: JsonWithAggregatesFilter<"contact_page_settings">
+    schedule_title?: StringWithAggregatesFilter<"contact_page_settings"> | string
+    schedule_description?: StringWithAggregatesFilter<"contact_page_settings"> | string
+    schedule?: JsonWithAggregatesFilter<"contact_page_settings">
+    updated_at?: DateTimeWithAggregatesFilter<"contact_page_settings"> | Date | string
+  }
+
   export type course_timelineWhereInput = {
     AND?: course_timelineWhereInput | course_timelineWhereInput[]
     OR?: course_timelineWhereInput[]
@@ -71941,6 +76330,221 @@ export namespace Prisma {
     status?: Enumnews_events_statusNullableWithAggregatesFilter<"news_events"> | $Enums.news_events_status | null
     created_at?: DateTimeNullableWithAggregatesFilter<"news_events"> | Date | string | null
     updated_at?: DateTimeNullableWithAggregatesFilter<"news_events"> | Date | string | null
+  }
+
+  export type blog_postsWhereInput = {
+    AND?: blog_postsWhereInput | blog_postsWhereInput[]
+    OR?: blog_postsWhereInput[]
+    NOT?: blog_postsWhereInput | blog_postsWhereInput[]
+    id?: IntFilter<"blog_posts"> | number
+    title?: StringFilter<"blog_posts"> | string
+    excerpt?: StringFilter<"blog_posts"> | string
+    content?: StringFilter<"blog_posts"> | string
+    category?: StringFilter<"blog_posts"> | string
+    author?: StringFilter<"blog_posts"> | string
+    image_url?: StringNullableFilter<"blog_posts"> | string | null
+    read_time?: StringNullableFilter<"blog_posts"> | string | null
+    featured?: BoolFilter<"blog_posts"> | boolean
+    status?: StringFilter<"blog_posts"> | string
+    published_at?: DateTimeFilter<"blog_posts"> | Date | string
+    created_at?: DateTimeFilter<"blog_posts"> | Date | string
+    updated_at?: DateTimeFilter<"blog_posts"> | Date | string
+  }
+
+  export type blog_postsOrderByWithRelationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    excerpt?: SortOrder
+    content?: SortOrder
+    category?: SortOrder
+    author?: SortOrder
+    image_url?: SortOrderInput | SortOrder
+    read_time?: SortOrderInput | SortOrder
+    featured?: SortOrder
+    status?: SortOrder
+    published_at?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    _relevance?: blog_postsOrderByRelevanceInput
+  }
+
+  export type blog_postsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: blog_postsWhereInput | blog_postsWhereInput[]
+    OR?: blog_postsWhereInput[]
+    NOT?: blog_postsWhereInput | blog_postsWhereInput[]
+    title?: StringFilter<"blog_posts"> | string
+    excerpt?: StringFilter<"blog_posts"> | string
+    content?: StringFilter<"blog_posts"> | string
+    category?: StringFilter<"blog_posts"> | string
+    author?: StringFilter<"blog_posts"> | string
+    image_url?: StringNullableFilter<"blog_posts"> | string | null
+    read_time?: StringNullableFilter<"blog_posts"> | string | null
+    featured?: BoolFilter<"blog_posts"> | boolean
+    status?: StringFilter<"blog_posts"> | string
+    published_at?: DateTimeFilter<"blog_posts"> | Date | string
+    created_at?: DateTimeFilter<"blog_posts"> | Date | string
+    updated_at?: DateTimeFilter<"blog_posts"> | Date | string
+  }, "id">
+
+  export type blog_postsOrderByWithAggregationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    excerpt?: SortOrder
+    content?: SortOrder
+    category?: SortOrder
+    author?: SortOrder
+    image_url?: SortOrderInput | SortOrder
+    read_time?: SortOrderInput | SortOrder
+    featured?: SortOrder
+    status?: SortOrder
+    published_at?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    _count?: blog_postsCountOrderByAggregateInput
+    _avg?: blog_postsAvgOrderByAggregateInput
+    _max?: blog_postsMaxOrderByAggregateInput
+    _min?: blog_postsMinOrderByAggregateInput
+    _sum?: blog_postsSumOrderByAggregateInput
+  }
+
+  export type blog_postsScalarWhereWithAggregatesInput = {
+    AND?: blog_postsScalarWhereWithAggregatesInput | blog_postsScalarWhereWithAggregatesInput[]
+    OR?: blog_postsScalarWhereWithAggregatesInput[]
+    NOT?: blog_postsScalarWhereWithAggregatesInput | blog_postsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"blog_posts"> | number
+    title?: StringWithAggregatesFilter<"blog_posts"> | string
+    excerpt?: StringWithAggregatesFilter<"blog_posts"> | string
+    content?: StringWithAggregatesFilter<"blog_posts"> | string
+    category?: StringWithAggregatesFilter<"blog_posts"> | string
+    author?: StringWithAggregatesFilter<"blog_posts"> | string
+    image_url?: StringNullableWithAggregatesFilter<"blog_posts"> | string | null
+    read_time?: StringNullableWithAggregatesFilter<"blog_posts"> | string | null
+    featured?: BoolWithAggregatesFilter<"blog_posts"> | boolean
+    status?: StringWithAggregatesFilter<"blog_posts"> | string
+    published_at?: DateTimeWithAggregatesFilter<"blog_posts"> | Date | string
+    created_at?: DateTimeWithAggregatesFilter<"blog_posts"> | Date | string
+    updated_at?: DateTimeWithAggregatesFilter<"blog_posts"> | Date | string
+  }
+
+  export type blog_page_settingsWhereInput = {
+    AND?: blog_page_settingsWhereInput | blog_page_settingsWhereInput[]
+    OR?: blog_page_settingsWhereInput[]
+    NOT?: blog_page_settingsWhereInput | blog_page_settingsWhereInput[]
+    id?: IntFilter<"blog_page_settings"> | number
+    hero_title?: StringFilter<"blog_page_settings"> | string
+    hero_subtitle?: StringFilter<"blog_page_settings"> | string
+    updated_at?: DateTimeFilter<"blog_page_settings"> | Date | string
+  }
+
+  export type blog_page_settingsOrderByWithRelationInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_subtitle?: SortOrder
+    updated_at?: SortOrder
+    _relevance?: blog_page_settingsOrderByRelevanceInput
+  }
+
+  export type blog_page_settingsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: blog_page_settingsWhereInput | blog_page_settingsWhereInput[]
+    OR?: blog_page_settingsWhereInput[]
+    NOT?: blog_page_settingsWhereInput | blog_page_settingsWhereInput[]
+    hero_title?: StringFilter<"blog_page_settings"> | string
+    hero_subtitle?: StringFilter<"blog_page_settings"> | string
+    updated_at?: DateTimeFilter<"blog_page_settings"> | Date | string
+  }, "id">
+
+  export type blog_page_settingsOrderByWithAggregationInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_subtitle?: SortOrder
+    updated_at?: SortOrder
+    _count?: blog_page_settingsCountOrderByAggregateInput
+    _avg?: blog_page_settingsAvgOrderByAggregateInput
+    _max?: blog_page_settingsMaxOrderByAggregateInput
+    _min?: blog_page_settingsMinOrderByAggregateInput
+    _sum?: blog_page_settingsSumOrderByAggregateInput
+  }
+
+  export type blog_page_settingsScalarWhereWithAggregatesInput = {
+    AND?: blog_page_settingsScalarWhereWithAggregatesInput | blog_page_settingsScalarWhereWithAggregatesInput[]
+    OR?: blog_page_settingsScalarWhereWithAggregatesInput[]
+    NOT?: blog_page_settingsScalarWhereWithAggregatesInput | blog_page_settingsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"blog_page_settings"> | number
+    hero_title?: StringWithAggregatesFilter<"blog_page_settings"> | string
+    hero_subtitle?: StringWithAggregatesFilter<"blog_page_settings"> | string
+    updated_at?: DateTimeWithAggregatesFilter<"blog_page_settings"> | Date | string
+  }
+
+  export type homepage_settingsWhereInput = {
+    AND?: homepage_settingsWhereInput | homepage_settingsWhereInput[]
+    OR?: homepage_settingsWhereInput[]
+    NOT?: homepage_settingsWhereInput | homepage_settingsWhereInput[]
+    id?: IntFilter<"homepage_settings"> | number
+    hero_title?: StringFilter<"homepage_settings"> | string
+    hero_highlight?: StringFilter<"homepage_settings"> | string
+    hero_description?: StringFilter<"homepage_settings"> | string
+    hero_images?: JsonFilter<"homepage_settings">
+    cta_text?: StringFilter<"homepage_settings"> | string
+    cta_link?: StringFilter<"homepage_settings"> | string
+    updated_at?: DateTimeFilter<"homepage_settings"> | Date | string
+  }
+
+  export type homepage_settingsOrderByWithRelationInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_highlight?: SortOrder
+    hero_description?: SortOrder
+    hero_images?: SortOrder
+    cta_text?: SortOrder
+    cta_link?: SortOrder
+    updated_at?: SortOrder
+    _relevance?: homepage_settingsOrderByRelevanceInput
+  }
+
+  export type homepage_settingsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: homepage_settingsWhereInput | homepage_settingsWhereInput[]
+    OR?: homepage_settingsWhereInput[]
+    NOT?: homepage_settingsWhereInput | homepage_settingsWhereInput[]
+    hero_title?: StringFilter<"homepage_settings"> | string
+    hero_highlight?: StringFilter<"homepage_settings"> | string
+    hero_description?: StringFilter<"homepage_settings"> | string
+    hero_images?: JsonFilter<"homepage_settings">
+    cta_text?: StringFilter<"homepage_settings"> | string
+    cta_link?: StringFilter<"homepage_settings"> | string
+    updated_at?: DateTimeFilter<"homepage_settings"> | Date | string
+  }, "id">
+
+  export type homepage_settingsOrderByWithAggregationInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_highlight?: SortOrder
+    hero_description?: SortOrder
+    hero_images?: SortOrder
+    cta_text?: SortOrder
+    cta_link?: SortOrder
+    updated_at?: SortOrder
+    _count?: homepage_settingsCountOrderByAggregateInput
+    _avg?: homepage_settingsAvgOrderByAggregateInput
+    _max?: homepage_settingsMaxOrderByAggregateInput
+    _min?: homepage_settingsMinOrderByAggregateInput
+    _sum?: homepage_settingsSumOrderByAggregateInput
+  }
+
+  export type homepage_settingsScalarWhereWithAggregatesInput = {
+    AND?: homepage_settingsScalarWhereWithAggregatesInput | homepage_settingsScalarWhereWithAggregatesInput[]
+    OR?: homepage_settingsScalarWhereWithAggregatesInput[]
+    NOT?: homepage_settingsScalarWhereWithAggregatesInput | homepage_settingsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"homepage_settings"> | number
+    hero_title?: StringWithAggregatesFilter<"homepage_settings"> | string
+    hero_highlight?: StringWithAggregatesFilter<"homepage_settings"> | string
+    hero_description?: StringWithAggregatesFilter<"homepage_settings"> | string
+    hero_images?: JsonWithAggregatesFilter<"homepage_settings">
+    cta_text?: StringWithAggregatesFilter<"homepage_settings"> | string
+    cta_link?: StringWithAggregatesFilter<"homepage_settings"> | string
+    updated_at?: DateTimeWithAggregatesFilter<"homepage_settings"> | Date | string
   }
 
   export type newslettersWhereInput = {
@@ -76323,6 +80927,111 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type contact_page_settingsCreateInput = {
+    id?: number
+    hero_title: string
+    hero_subtitle: string
+    hero_description: string
+    address: string
+    phone: string
+    email: string
+    social_links: JsonNullValueInput | InputJsonValue
+    schedule_title: string
+    schedule_description: string
+    schedule: JsonNullValueInput | InputJsonValue
+    updated_at?: Date | string
+  }
+
+  export type contact_page_settingsUncheckedCreateInput = {
+    id?: number
+    hero_title: string
+    hero_subtitle: string
+    hero_description: string
+    address: string
+    phone: string
+    email: string
+    social_links: JsonNullValueInput | InputJsonValue
+    schedule_title: string
+    schedule_description: string
+    schedule: JsonNullValueInput | InputJsonValue
+    updated_at?: Date | string
+  }
+
+  export type contact_page_settingsUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_subtitle?: StringFieldUpdateOperationsInput | string
+    hero_description?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    social_links?: JsonNullValueInput | InputJsonValue
+    schedule_title?: StringFieldUpdateOperationsInput | string
+    schedule_description?: StringFieldUpdateOperationsInput | string
+    schedule?: JsonNullValueInput | InputJsonValue
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type contact_page_settingsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_subtitle?: StringFieldUpdateOperationsInput | string
+    hero_description?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    social_links?: JsonNullValueInput | InputJsonValue
+    schedule_title?: StringFieldUpdateOperationsInput | string
+    schedule_description?: StringFieldUpdateOperationsInput | string
+    schedule?: JsonNullValueInput | InputJsonValue
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type contact_page_settingsCreateManyInput = {
+    id?: number
+    hero_title: string
+    hero_subtitle: string
+    hero_description: string
+    address: string
+    phone: string
+    email: string
+    social_links: JsonNullValueInput | InputJsonValue
+    schedule_title: string
+    schedule_description: string
+    schedule: JsonNullValueInput | InputJsonValue
+    updated_at?: Date | string
+  }
+
+  export type contact_page_settingsUpdateManyMutationInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_subtitle?: StringFieldUpdateOperationsInput | string
+    hero_description?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    social_links?: JsonNullValueInput | InputJsonValue
+    schedule_title?: StringFieldUpdateOperationsInput | string
+    schedule_description?: StringFieldUpdateOperationsInput | string
+    schedule?: JsonNullValueInput | InputJsonValue
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type contact_page_settingsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_subtitle?: StringFieldUpdateOperationsInput | string
+    hero_description?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    social_links?: JsonNullValueInput | InputJsonValue
+    schedule_title?: StringFieldUpdateOperationsInput | string
+    schedule_description?: StringFieldUpdateOperationsInput | string
+    schedule?: JsonNullValueInput | InputJsonValue
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type course_timelineCreateInput = {
     term_serial: string
     start_date: Date | string
@@ -77704,6 +82413,241 @@ export namespace Prisma {
     status?: NullableEnumnews_events_statusFieldUpdateOperationsInput | $Enums.news_events_status | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type blog_postsCreateInput = {
+    title: string
+    excerpt: string
+    content: string
+    category: string
+    author?: string
+    image_url?: string | null
+    read_time?: string | null
+    featured?: boolean
+    status?: string
+    published_at?: Date | string
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type blog_postsUncheckedCreateInput = {
+    id?: number
+    title: string
+    excerpt: string
+    content: string
+    category: string
+    author?: string
+    image_url?: string | null
+    read_time?: string | null
+    featured?: boolean
+    status?: string
+    published_at?: Date | string
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type blog_postsUpdateInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    excerpt?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    author?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    read_time?: NullableStringFieldUpdateOperationsInput | string | null
+    featured?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    published_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type blog_postsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    excerpt?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    author?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    read_time?: NullableStringFieldUpdateOperationsInput | string | null
+    featured?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    published_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type blog_postsCreateManyInput = {
+    id?: number
+    title: string
+    excerpt: string
+    content: string
+    category: string
+    author?: string
+    image_url?: string | null
+    read_time?: string | null
+    featured?: boolean
+    status?: string
+    published_at?: Date | string
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type blog_postsUpdateManyMutationInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    excerpt?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    author?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    read_time?: NullableStringFieldUpdateOperationsInput | string | null
+    featured?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    published_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type blog_postsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    excerpt?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    author?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    read_time?: NullableStringFieldUpdateOperationsInput | string | null
+    featured?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    published_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type blog_page_settingsCreateInput = {
+    id?: number
+    hero_title?: string
+    hero_subtitle: string
+    updated_at?: Date | string
+  }
+
+  export type blog_page_settingsUncheckedCreateInput = {
+    id?: number
+    hero_title?: string
+    hero_subtitle: string
+    updated_at?: Date | string
+  }
+
+  export type blog_page_settingsUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_subtitle?: StringFieldUpdateOperationsInput | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type blog_page_settingsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_subtitle?: StringFieldUpdateOperationsInput | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type blog_page_settingsCreateManyInput = {
+    id?: number
+    hero_title?: string
+    hero_subtitle: string
+    updated_at?: Date | string
+  }
+
+  export type blog_page_settingsUpdateManyMutationInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_subtitle?: StringFieldUpdateOperationsInput | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type blog_page_settingsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_subtitle?: StringFieldUpdateOperationsInput | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type homepage_settingsCreateInput = {
+    id?: number
+    hero_title: string
+    hero_highlight: string
+    hero_description: string
+    hero_images: JsonNullValueInput | InputJsonValue
+    cta_text: string
+    cta_link: string
+    updated_at?: Date | string
+  }
+
+  export type homepage_settingsUncheckedCreateInput = {
+    id?: number
+    hero_title: string
+    hero_highlight: string
+    hero_description: string
+    hero_images: JsonNullValueInput | InputJsonValue
+    cta_text: string
+    cta_link: string
+    updated_at?: Date | string
+  }
+
+  export type homepage_settingsUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_highlight?: StringFieldUpdateOperationsInput | string
+    hero_description?: StringFieldUpdateOperationsInput | string
+    hero_images?: JsonNullValueInput | InputJsonValue
+    cta_text?: StringFieldUpdateOperationsInput | string
+    cta_link?: StringFieldUpdateOperationsInput | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type homepage_settingsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_highlight?: StringFieldUpdateOperationsInput | string
+    hero_description?: StringFieldUpdateOperationsInput | string
+    hero_images?: JsonNullValueInput | InputJsonValue
+    cta_text?: StringFieldUpdateOperationsInput | string
+    cta_link?: StringFieldUpdateOperationsInput | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type homepage_settingsCreateManyInput = {
+    id?: number
+    hero_title: string
+    hero_highlight: string
+    hero_description: string
+    hero_images: JsonNullValueInput | InputJsonValue
+    cta_text: string
+    cta_link: string
+    updated_at?: Date | string
+  }
+
+  export type homepage_settingsUpdateManyMutationInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_highlight?: StringFieldUpdateOperationsInput | string
+    hero_description?: StringFieldUpdateOperationsInput | string
+    hero_images?: JsonNullValueInput | InputJsonValue
+    cta_text?: StringFieldUpdateOperationsInput | string
+    cta_link?: StringFieldUpdateOperationsInput | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type homepage_settingsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    hero_title?: StringFieldUpdateOperationsInput | string
+    hero_highlight?: StringFieldUpdateOperationsInput | string
+    hero_description?: StringFieldUpdateOperationsInput | string
+    hero_images?: JsonNullValueInput | InputJsonValue
+    cta_text?: StringFieldUpdateOperationsInput | string
+    cta_link?: StringFieldUpdateOperationsInput | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type newslettersCreateInput = {
@@ -82276,6 +87220,110 @@ export namespace Prisma {
   export type contactsSumOrderByAggregateInput = {
     id?: SortOrder
   }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type contact_page_settingsOrderByRelevanceInput = {
+    fields: contact_page_settingsOrderByRelevanceFieldEnum | contact_page_settingsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type contact_page_settingsCountOrderByAggregateInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_subtitle?: SortOrder
+    hero_description?: SortOrder
+    address?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    social_links?: SortOrder
+    schedule_title?: SortOrder
+    schedule_description?: SortOrder
+    schedule?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type contact_page_settingsAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type contact_page_settingsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_subtitle?: SortOrder
+    hero_description?: SortOrder
+    address?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    schedule_title?: SortOrder
+    schedule_description?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type contact_page_settingsMinOrderByAggregateInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_subtitle?: SortOrder
+    hero_description?: SortOrder
+    address?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    schedule_title?: SortOrder
+    schedule_description?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type contact_page_settingsSumOrderByAggregateInput = {
+    id?: SortOrder
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
+  }
 
   export type course_timelineOrderByRelevanceInput = {
     fields: course_timelineOrderByRelevanceFieldEnum | course_timelineOrderByRelevanceFieldEnum[]
@@ -83392,6 +88440,161 @@ export namespace Prisma {
     _max?: NestedEnumnews_events_statusNullableFilter<$PrismaModel>
   }
 
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
+  export type blog_postsOrderByRelevanceInput = {
+    fields: blog_postsOrderByRelevanceFieldEnum | blog_postsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type blog_postsCountOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    excerpt?: SortOrder
+    content?: SortOrder
+    category?: SortOrder
+    author?: SortOrder
+    image_url?: SortOrder
+    read_time?: SortOrder
+    featured?: SortOrder
+    status?: SortOrder
+    published_at?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type blog_postsAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type blog_postsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    excerpt?: SortOrder
+    content?: SortOrder
+    category?: SortOrder
+    author?: SortOrder
+    image_url?: SortOrder
+    read_time?: SortOrder
+    featured?: SortOrder
+    status?: SortOrder
+    published_at?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type blog_postsMinOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    excerpt?: SortOrder
+    content?: SortOrder
+    category?: SortOrder
+    author?: SortOrder
+    image_url?: SortOrder
+    read_time?: SortOrder
+    featured?: SortOrder
+    status?: SortOrder
+    published_at?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type blog_postsSumOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
+  }
+
+  export type blog_page_settingsOrderByRelevanceInput = {
+    fields: blog_page_settingsOrderByRelevanceFieldEnum | blog_page_settingsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type blog_page_settingsCountOrderByAggregateInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_subtitle?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type blog_page_settingsAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type blog_page_settingsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_subtitle?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type blog_page_settingsMinOrderByAggregateInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_subtitle?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type blog_page_settingsSumOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type homepage_settingsOrderByRelevanceInput = {
+    fields: homepage_settingsOrderByRelevanceFieldEnum | homepage_settingsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type homepage_settingsCountOrderByAggregateInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_highlight?: SortOrder
+    hero_description?: SortOrder
+    hero_images?: SortOrder
+    cta_text?: SortOrder
+    cta_link?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type homepage_settingsAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type homepage_settingsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_highlight?: SortOrder
+    hero_description?: SortOrder
+    cta_text?: SortOrder
+    cta_link?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type homepage_settingsMinOrderByAggregateInput = {
+    id?: SortOrder
+    hero_title?: SortOrder
+    hero_highlight?: SortOrder
+    hero_description?: SortOrder
+    cta_text?: SortOrder
+    cta_link?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type homepage_settingsSumOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
   export type newslettersOrderByRelevanceInput = {
     fields: newslettersOrderByRelevanceFieldEnum | newslettersOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -83863,29 +89066,6 @@ export namespace Prisma {
     _min?: NestedDecimalFilter<$PrismaModel>
     _max?: NestedDecimalFilter<$PrismaModel>
   }
-  export type JsonFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
 
   export type Enumplacement_test_results_statusNullableFilter<$PrismaModel = never> = {
     equals?: $Enums.placement_test_results_status | Enumplacement_test_results_statusFieldRefInput<$PrismaModel> | null
@@ -83962,32 +89142,6 @@ export namespace Prisma {
     total_questions?: SortOrder
     percentage?: SortOrder
     oral_review_marks?: SortOrder
-  }
-  export type JsonWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedJsonFilter<$PrismaModel>
-    _max?: NestedJsonFilter<$PrismaModel>
   }
 
   export type Enumplacement_test_results_statusNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -84296,11 +89450,6 @@ export namespace Prisma {
     not?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel> | $Enums.programs_test_required | null
   }
 
-  export type BoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
-  }
-
   export type Academic_calendarListRelationFilter = {
     every?: academic_calendarWhereInput
     some?: academic_calendarWhereInput
@@ -84441,14 +89590,6 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel>
     _max?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel>
-  }
-
-  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type Enumsession_change_requests_statusNullableFilter<$PrismaModel = never> = {
@@ -86791,6 +91932,10 @@ export namespace Prisma {
     set?: $Enums.news_events_status | null
   }
 
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
+  }
+
   export type oral_assignmentsCreateNestedOneWithoutOral_assignment_submissionsInput = {
     create?: XOR<oral_assignmentsCreateWithoutOral_assignment_submissionsInput, oral_assignmentsUncheckedCreateWithoutOral_assignment_submissionsInput>
     connectOrCreate?: oral_assignmentsCreateOrConnectWithoutOral_assignment_submissionsInput
@@ -87089,10 +92234,6 @@ export namespace Prisma {
 
   export type NullableEnumprograms_test_requiredFieldUpdateOperationsInput = {
     set?: $Enums.programs_test_required | null
-  }
-
-  export type BoolFieldUpdateOperationsInput = {
-    set?: boolean
   }
 
   export type academic_calendarUpdateManyWithoutProgramsNestedInput = {
@@ -88484,6 +93625,29 @@ export namespace Prisma {
     gte?: InputJsonValue
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type NestedEnumcourse_work_statusNullableFilter<$PrismaModel = never> = {
     equals?: $Enums.course_work_status | Enumcourse_work_statusFieldRefInput<$PrismaModel> | null
@@ -88672,6 +93836,19 @@ export namespace Prisma {
     _max?: NestedEnumnews_events_statusNullableFilter<$PrismaModel>
   }
 
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
+  }
+
   export type NestedEnumoral_assignment_submissions_statusNullableFilter<$PrismaModel = never> = {
     equals?: $Enums.oral_assignment_submissions_status | Enumoral_assignment_submissions_statusFieldRefInput<$PrismaModel> | null
     in?: $Enums.oral_assignment_submissions_status[] | null
@@ -88773,29 +93950,6 @@ export namespace Prisma {
     notIn?: $Enums.placement_test_results_status[] | null
     not?: NestedEnumplacement_test_results_statusNullableFilter<$PrismaModel> | $Enums.placement_test_results_status | null
   }
-  export type NestedJsonFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
-        Required<NestedJsonFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
-
-  export type NestedJsonFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
 
   export type NestedEnumplacement_test_results_statusNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.placement_test_results_status | Enumplacement_test_results_statusFieldRefInput<$PrismaModel> | null
@@ -88872,11 +94026,6 @@ export namespace Prisma {
     not?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel> | $Enums.programs_test_required | null
   }
 
-  export type NestedBoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
-  }
-
   export type NestedEnumprograms_statusNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.programs_status | Enumprograms_statusFieldRefInput<$PrismaModel> | null
     in?: $Enums.programs_status[] | null
@@ -88895,14 +94044,6 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel>
     _max?: NestedEnumprograms_test_requiredNullableFilter<$PrismaModel>
-  }
-
-  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type NestedEnumsession_change_requests_statusNullableFilter<$PrismaModel = never> = {

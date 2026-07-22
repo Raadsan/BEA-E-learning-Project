@@ -7,6 +7,7 @@
     "start": "cross-env PORT=7004 node server.js",
     "build": "prisma generate",
     "postinstall": "prisma generate",
+    "seed:super-admin": "node prisma/seedSuperAdmin.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "cross-env PORT=7004 nodemon server.js --ignore \"../frontend/\"",
     "client": "npm run dev --prefix ../frontend",

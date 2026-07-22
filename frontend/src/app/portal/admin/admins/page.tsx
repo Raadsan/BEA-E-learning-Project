@@ -23,7 +23,7 @@ import { useEffect } from "react";
 
 export default function AdminsPage() {
   const router = useRouter();
-  const { isSuperAdmin } = useAdminPermissions();
+  const { isSuperAdmin, user: currentUser } = useAdminPermissions();
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
 
@@ -123,6 +123,14 @@ export default function AdminsPage() {
   };
 
   const handleDeleteClick = (id) => {
+    if (Number(currentUser?.id) === Number(id)) {
+      showToast("You cannot delete your own logged-in account.", "error");
+      return;
+    }
+    if ((allUsers || []).length <= 1) {
+      showToast("At least one admin account must remain.", "error");
+      return;
+    }
     setBulkModal({
       isOpen: true,
       action: 'delete',
@@ -469,6 +477,11 @@ export default function AdminsPage() {
     </>
   ) : null;
 
+  const handleAdminSelectionChange = (ids) => {
+    const currentAdminId = Number(currentUser?.id);
+    setSelectedAdmins(ids.filter((id) => Number(id) !== currentAdminId));
+  };
+
 
 
 
@@ -498,7 +511,7 @@ export default function AdminsPage() {
             onAddClick={handleAddClick}
             selectable={true}
             selectedItems={selectedAdmins}
-            onSelectionChange={setSelectedAdmins}
+            onSelectionChange={handleAdminSelectionChange}
             getRowId={(row) => row.id}
             filters={filters}
             customActions={customActions}
