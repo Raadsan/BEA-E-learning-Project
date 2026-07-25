@@ -18,6 +18,30 @@ export default function UsersPage() {
 
   // Selection state
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const selectedUserRecords = (usersData || []).filter((user) => selectedUsers.includes(user.id));
+  const selectedUserTypes = new Set(selectedUserRecords.map((user) => user.user_type));
+  const relatedData = [
+    ...(selectedUserTypes.has("student")
+      ? [
+          "Assignments and submissions",
+          "Attendance records",
+          "Course work and exam results",
+          "Payments and certificates",
+          "Placement and proficiency test results",
+          "Requests, reviews, and notifications",
+        ]
+      : []),
+    ...(selectedUserTypes.has("teacher")
+      ? [
+          "Assigned classes (the classes will remain unassigned)",
+          "Timetables (the schedules will remain unassigned)",
+          "Teacher reviews and notifications",
+        ]
+      : []),
+    ...(selectedUserTypes.has("ielts_student")
+      ? ["IELTS/TOEFL registration record"]
+      : []),
+  ];
 
   // Filtering & Sorting State
   const [statusFilter, setStatusFilter] = useState("all");
@@ -86,7 +110,7 @@ export default function UsersPage() {
       closeBulkModal();
     } catch (err) {
       showToast(
-        `Failed to perform bulk action: ${err?.data?.error || err.message || "Unknown error"}`,
+        err?.data?.error || "The requested action could not be completed. Please try again.",
         "error"
       );
       setBulkModal((prev) => ({ ...prev, isSubmitting: false }));
@@ -559,9 +583,32 @@ export default function UsersPage() {
             <div className="p-6">
               <div className={`p-4 rounded-lg border mb-5 ${isDark ? "bg-gray-700/30 border-gray-600" : "bg-blue-50/50 border-blue-100"}`}>
                 <p className={`text-sm leading-relaxed ${isDark ? "text-gray-300" : "text-gray-600"}`}>
-                  You are about to <span className="font-extrabold underline capitalize">{bulkModal.action}</span> <span className="font-bold">{selectedUsers.length}</span> selected users. This action cannot be undone.
+                  You are about to <span className="font-extrabold underline capitalize">{bulkModal.action}</span> <span className="font-bold">{selectedUsers.length}</span> selected user(s).
+                  {bulkModal.action === "delete" && " The account will only be deleted if it has no related records."}
                 </p>
               </div>
+
+              {bulkModal.action === "delete" && relatedData.length > 0 && (
+                <div className={`mb-5 rounded-lg border p-4 ${isDark ? "border-amber-800 bg-amber-950/30" : "border-amber-200 bg-amber-50"}`}>
+                  <p className={`mb-2 text-sm font-bold ${isDark ? "text-amber-300" : "text-amber-900"}`}>
+                    The system will check these related sections:
+                  </p>
+                  <ul className={`list-disc space-y-1 pl-5 text-sm ${isDark ? "text-amber-200" : "text-amber-800"}`}>
+                    {relatedData.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                  <p className={`mt-3 text-xs font-semibold ${isDark ? "text-red-300" : "text-red-700"}`}>
+                    If records exist in any of these sections, deletion will be blocked and their exact counts will be shown. Remove or reassign them first.
+                  </p>
+                </div>
+              )}
+
+              {bulkModal.action === "delete" && selectedUserTypes.has("admin") && (
+                <div className={`mb-5 rounded-lg border p-3 text-sm ${isDark ? "border-gray-600 bg-gray-700/40 text-gray-300" : "border-gray-200 bg-gray-50 text-gray-700"}`}>
+                  Admin accounts have no student or teaching records. Their saved audit names remain for historical tracking.
+                </div>
+              )}
               
               <div className="space-y-2">
                 <label className={`block text-xs font-bold uppercase tracking-wider ${isDark ? "text-gray-300" : "text-gray-600"}`}>

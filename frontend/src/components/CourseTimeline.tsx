@@ -2,25 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
-import {
-  timelineData as staticTimelineData,
-  normalizeTimelineRecords,
-  getTimelineYear,
-} from "@/lib/timelineData";
+import { normalizeTimelineRecords } from "@/lib/timelineData";
 import { API_URL } from "@/constants";
+
+type TimelineRecord = ReturnType<typeof normalizeTimelineRecords>[number];
 
 export default function CourseTimeline() {
   const [isVisible, setIsVisible] = useState(false);
-  const [timelineData, setTimelineData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
-  const [years, setYears] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [timelineData, setTimelineData] = useState<TimelineRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const sectionRef = useRef(null);
   const { isDarkMode } = useTheme();
 
-  // Fetch timeline data from API, fallback to static data only if API completely fails
+  // Only show active timeline records returned by the database API.
   useEffect(() => {
     const fetchTimelineData = async () => {
       try {
@@ -28,33 +23,14 @@ export default function CourseTimeline() {
         if (!response.ok) throw new Error("Failed to fetch timeline data");
         const data = await response.json();
 
-        const raw = data?.length > 0 ? data : staticTimelineData;
-        const finalData = normalizeTimelineRecords(raw);
+        const finalData = normalizeTimelineRecords(Array.isArray(data) ? data : []);
         setTimelineData(finalData);
-
-        const extractedYears = [...new Set(finalData.map(getTimelineYear))].sort(
-          (a, b) => parseInt(a) - parseInt(b)
-        );
-
-        setYears(extractedYears);
-
-        // If current year is not in the data, default to the first available year
-        const currentYearStr = new Date().getFullYear().toString();
-        if (!extractedYears.includes(currentYearStr) && extractedYears.length > 0) {
-          setSelectedYear(extractedYears[0]);
-        }
 
         setError(null);
       } catch (err) {
-        console.warn("⚠️ API failed, using static data:", err.message);
-        const fallback = normalizeTimelineRecords(staticTimelineData);
-        setTimelineData(fallback);
-
-        const extractedYears = [...new Set(fallback.map(getTimelineYear))].sort(
-          (a, b) => parseInt(a) - parseInt(b)
-        );
-        setYears(extractedYears);
-        setError(null);
+        console.error("Error fetching course timeline:", err);
+        setTimelineData([]);
+        setError("Unable to load timeline data. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -62,12 +38,6 @@ export default function CourseTimeline() {
 
     fetchTimelineData();
   }, []);
-
-  // Filter data when selectedYear or timelineData changes
-  useEffect(() => {
-    const filtered = timelineData.filter((item) => getTimelineYear(item) === selectedYear);
-    setFilteredData(filtered);
-  }, [selectedYear, timelineData]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -92,10 +62,10 @@ export default function CourseTimeline() {
         <div className="max-w-5xl mx-auto">
           <div className={`mb-8 sm:mb-10 text-center ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>
-              Course Timeline {selectedYear}
+              Course Timeline
             </h2>
             <p className={`text-base sm:text-lg ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
-              Plan ahead with our comprehensive {selectedYear} course calendar. All courses include recorded sessions if you miss a live class.
+              Plan ahead with our comprehensive course calendar. All courses include recorded sessions if you miss a live class.
             </p>
           </div>
 
@@ -110,10 +80,10 @@ export default function CourseTimeline() {
                   Unable to load timeline data. Please try again later.
                 </p>
               </div>
-            ) : filteredData.length === 0 ? (
+            ) : timelineData.length === 0 ? (
               <div className="p-8 text-center">
                 <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  No timeline data available for {selectedYear}.
+                  No course timeline data is available yet.
                 </p>
               </div>
             ) : (
@@ -136,7 +106,7 @@ export default function CourseTimeline() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.map((item, index) => (
+                    {timelineData.map((item, index) => (
                       <tr
                         key={index}
                         className="bg-white"
@@ -181,6 +151,7 @@ export default function CourseTimeline() {
               </div>
             )}
           </div>
+
         </div>
       </div>
     </section>

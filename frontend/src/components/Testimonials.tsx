@@ -13,37 +13,6 @@ type Testimonial = {
   rating?: number;
 };
 
-const sampleTestimonials: Testimonial[] = [
-  {
-    id: -1,
-    quote: "BEA transformed my confidence and helped me communicate clearly in both my studies and professional life.",
-    student_name: "Mohamed",
-    student_role: "IELTS Exam Preparation Student",
-    rating: 5,
-  },
-  {
-    id: -2,
-    quote: "The lessons are practical, engaging, and easy to follow. I now speak English with much more confidence.",
-    student_name: "Amina",
-    student_role: "General English Student",
-    rating: 5,
-  },
-  {
-    id: -3,
-    quote: "My writing and presentation skills improved greatly thanks to the support and guidance of my teachers.",
-    student_name: "Abdullahi",
-    student_role: "Academic Writing Student",
-    rating: 5,
-  },
-  {
-    id: -4,
-    quote: "BEA gave me the skills and motivation I needed to reach my learning goals and prepare for new opportunities.",
-    student_name: "Hodan",
-    student_role: "Professional Skills Student",
-    rating: 5,
-  },
-];
-
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
     <article className="relative flex w-full min-w-full flex-shrink-0 snap-center flex-col items-center overflow-hidden rounded-xl border border-gray-200 bg-white px-6 pb-8 pt-36 text-center sm:px-8">
@@ -134,22 +103,20 @@ export default function Testimonials() {
         const response = await fetch(`${API_URL}/testimonials`);
         if (!response.ok) throw new Error("Failed to fetch");
         const data = await response.json();
-        const liveTestimonials = Array.isArray(data) ? data : [];
-        const neededSamples = Math.max(0, 4 - liveTestimonials.length);
-        const liveNames = new Set(liveTestimonials.map((item: Testimonial) => item.student_name.toLowerCase()));
-        const additionalSamples = sampleTestimonials
-          .filter((item) => !liveNames.has(item.student_name.toLowerCase()))
-          .slice(0, neededSamples);
-        setTestimonials([...liveTestimonials, ...additionalSamples]);
+        setTestimonials(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Error fetching testimonials:", err);
-        setTestimonials(sampleTestimonials);
+        setTestimonials([]);
       } finally {
         setLoading(false);
       }
     };
     fetchTestimonials();
   }, []);
+
+  if (!loading && testimonials.length === 0) {
+    return null;
+  }
 
   return (
     <section ref={sectionRef} className={`overflow-hidden py-12 sm:py-16 lg:py-20 ${isDarkMode ? "bg-[#04003a]" : "bg-white"}`}>
@@ -168,8 +135,6 @@ export default function Testimonials() {
 
         {loading ? (
           <div className="flex justify-center py-20"><div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[#010080]" /></div>
-        ) : testimonials.length === 0 ? (
-          <p className={`py-10 text-center ${isDarkMode ? "text-white" : "text-gray-600"}`}>No student stories available yet.</p>
         ) : (
           <div className={`relative mx-auto max-w-[390px] transition-opacity duration-700 ${isVisible ? "opacity-100" : "opacity-0"}`}>
             <div

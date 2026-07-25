@@ -434,13 +434,71 @@ export const updateStudent = async (req, res) => {
   }
 };
 
+export const deleteStudentWithDependencies = async (tx, studentId) => {
+  const student = await tx.students.findUnique({
+    where: { student_id: studentId },
+    select: { student_id: true },
+  });
+  if (!student) {
+    const error = new Error("Student not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const checks = [
+    ["assignment_submissions", "Assignment submissions", { student_id: studentId }],
+    ["attendance", "Attendance records", { student_id: studentId }],
+    ["course_work_submissions", "Course work submissions", { student_id: studentId }],
+    ["exam_submissions", "Exam submissions", { student_id: studentId }],
+    ["freezing_requests", "Freezing requests", { student_id: studentId }],
+    ["issued_certificates", "Issued certificates", { student_id: studentId }],
+    ["level_up_requests", "Level-up requests", { student_id: studentId }],
+    ["notifications", "Notifications", { OR: [{ user_id: studentId }, { sender_id: studentId }] }],
+    ["oral_assignment_submissions", "Oral assignment submissions", { student_id: studentId }],
+    ["payments", "Payments", { student_id: studentId }],
+    ["placement_test_results", "Placement test results", { student_id: studentId }],
+    ["proficiency_test_results", "Proficiency test results", { student_id: studentId }],
+    ["session_change_requests", "Session-change requests", { student_id: studentId }],
+    ["student_class_history", "Class history", { student_id: studentId }],
+    ["student_reviews", "Student reviews", { student_id: studentId }],
+    ["teacher_reviews", "Teacher reviews", { student_id: studentId }],
+    ["writing_task_submissions", "Writing-task submissions", { student_id: studentId }],
+  ];
+  const counts = await Promise.all(
+    checks.map(([model, label, where]) =>
+      tx[model].count({ where }).then((count) => ({ table: model, label, count }))
+    )
+  );
+  const dependencies = counts.filter(({ count }) => count > 0);
+
+  if (dependencies.length > 0) {
+    const details = dependencies.map(({ label, count }) => `${label}: ${count}`).join(", ");
+    const error = new Error(
+      `This student cannot be deleted because related records still exist in ${dependencies.length} section(s): ${details}. Delete those records first, then try again.`
+    );
+    error.statusCode = 409;
+    error.dependencies = dependencies;
+    throw error;
+  }
+
+  await tx.students.delete({ where: { student_id: studentId } });
+};
+
 // DELETE STUDENT
 export const deleteStudent = async (req, res) => {
   try {
-    await prisma.students.delete({ where: { student_id: req.params.id } });
+    await prisma.$transaction(
+      (tx) => deleteStudentWithDependencies(tx, req.params.id),
+      { maxWait: 10000, timeout: 30000 }
+    );
     res.json({ success: true, message: "Deleted" });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error("Delete student error:", err);
+    res.status(err.statusCode || 500).json({
+      success: false,
+      error: err.message,
+      dependencies: err.dependencies,
+    });
   }
 };
 

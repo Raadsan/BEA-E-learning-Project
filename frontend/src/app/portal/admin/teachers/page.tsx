@@ -139,7 +139,7 @@ export default function TeachersPage() {
 
   const handleDelete = (id) => {
     setConfirmationModal({
-      isOpen: true, title: "Delete Teacher", message: "Are you sure? This action cannot be undone.",
+      isOpen: true, title: "Delete Teacher", message: "Delete this teacher? The teacher will not be deleted while they still have assigned classes, timetables, reviews, or notifications. The system will show what must be removed or reassigned first.",
       onConfirm: async () => {
         setConfirmationModal(prev => ({ ...prev, isLoading: true }));
         try {
@@ -147,7 +147,7 @@ export default function TeachersPage() {
           setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false });
         } catch (error) {
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
-          showToast("Failed to delete teacher.", "error");
+          showToast(error?.data?.error || "Failed to delete teacher.", "error");
         }
       },
       isLoading: false
