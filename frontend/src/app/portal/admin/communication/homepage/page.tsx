@@ -7,7 +7,12 @@ import { resolveMediaUrl } from "@/constants";
 import { useToast } from "@/components/Toast";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
 
-const initial = { hero_title: "", hero_highlight: "", hero_description: "", hero_images: [] as string[], cta_text: "", cta_link: "/auth/registration" };
+const initial = {
+  hero_title: "", hero_highlight: "", hero_description: "", hero_images: [] as string[],
+  cta_text: "", cta_link: "/auth/registration", featured_enabled: true,
+  featured_heading: "", featured_label: "", featured_title: "",
+  featured_video_url: "", featured_thumbnail: "",
+};
 
 export default function HomepageManagement() {
   const { data, isLoading } = useGetHomepageQuery();

@@ -548,19 +548,19 @@ model news_events {
 }
 
 model blog_posts {
-  id           Int       @id @default(autoincrement())
-  title        String    @db.VarChar(255)
-  excerpt      String    @db.Text
-  content      String    @db.LongText
-  category     String    @db.VarChar(100)
-  author       String    @default("BEA Team") @db.VarChar(150)
-  image_url    String?   @db.VarChar(500)
-  read_time    String?   @db.VarChar(50)
-  featured     Boolean   @default(false)
-  status       String    @default("published") @db.VarChar(20)
-  published_at DateTime  @default(now()) @db.DateTime(0)
-  created_at   DateTime  @default(now()) @db.Timestamp(0)
-  updated_at   DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+  id           Int      @id @default(autoincrement())
+  title        String   @db.VarChar(255)
+  excerpt      String   @db.Text
+  content      String   @db.LongText
+  category     String   @db.VarChar(100)
+  author       String   @default("BEA Team") @db.VarChar(150)
+  image_url    String?  @db.VarChar(500)
+  read_time    String?  @db.VarChar(50)
+  featured     Boolean  @default(false)
+  status       String   @default("published") @db.VarChar(20)
+  published_at DateTime @default(now()) @db.DateTime(0)
+  created_at   DateTime @default(now()) @db.Timestamp(0)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamp(0)
 
   @@index([status, published_at])
   @@index([category])
@@ -574,14 +574,20 @@ model blog_page_settings {
 }
 
 model homepage_settings {
-  id              Int      @id @default(1)
-  hero_title      String   @db.VarChar(255)
-  hero_highlight  String   @db.VarChar(255)
-  hero_description String  @db.Text
-  hero_images     Json
-  cta_text        String   @db.VarChar(100)
-  cta_link        String   @db.VarChar(255)
-  updated_at      DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  id                 Int      @id @default(1)
+  hero_title         String   @db.VarChar(255)
+  hero_highlight     String   @db.VarChar(255)
+  hero_description   String   @db.Text
+  hero_images        Json
+  cta_text           String   @db.VarChar(100)
+  cta_link           String   @db.VarChar(255)
+  featured_enabled   Boolean  @default(true)
+  featured_heading   String   @default("English for specific purpose (ESP)") @db.VarChar(255)
+  featured_label     String   @default("Featured Video") @db.VarChar(100)
+  featured_title     String   @default("Master English for Specific Purposes") @db.VarChar(255)
+  featured_video_url String   @default("https://www.youtube.com/watch?v=erjMgola4fQ") @db.VarChar(500)
+  featured_thumbnail String?  @db.VarChar(500)
+  updated_at         DateTime @default(now()) @updatedAt @db.Timestamp(0)
 }
 
 model newsletters {

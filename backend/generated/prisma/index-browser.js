@@ -603,6 +603,12 @@ exports.Prisma.Homepage_settingsScalarFieldEnum = {
   hero_images: 'hero_images',
   cta_text: 'cta_text',
   cta_link: 'cta_link',
+  featured_enabled: 'featured_enabled',
+  featured_heading: 'featured_heading',
+  featured_label: 'featured_label',
+  featured_title: 'featured_title',
+  featured_video_url: 'featured_video_url',
+  featured_thumbnail: 'featured_thumbnail',
   updated_at: 'updated_at'
 };
 
@@ -1336,7 +1342,12 @@ exports.Prisma.homepage_settingsOrderByRelevanceFieldEnum = {
   hero_highlight: 'hero_highlight',
   hero_description: 'hero_description',
   cta_text: 'cta_text',
-  cta_link: 'cta_link'
+  cta_link: 'cta_link',
+  featured_heading: 'featured_heading',
+  featured_label: 'featured_label',
+  featured_title: 'featured_title',
+  featured_video_url: 'featured_video_url',
+  featured_thumbnail: 'featured_thumbnail'
 };
 
 exports.Prisma.newslettersOrderByRelevanceFieldEnum = {

@@ -408,6 +408,7 @@ export const ADMIN_ROUTE_RULES: {
   { prefix: "/portal/admin/reviews/student-reviews", permission: "reviews", pageKey: "student_reviews" },
   { prefix: "/portal/admin/communication/announcements", permission: "communication", pageKey: "announcements" },
   { prefix: "/portal/admin/communication/news", permission: "communication", pageKey: "news_events" },
+  { prefix: "/portal/admin/communication/featured-video", permission: "communication", pageKey: "news_events" },
   { prefix: "/portal/admin/communication/course-timeline", permission: "communication", pageKey: "course_timeline" },
   { prefix: "/portal/admin/communication/testimonials", permission: "communication", pageKey: "testimonials" },
   { prefix: "/portal/admin/communication/tutorials", permission: "communication", pageKey: "tutorials" },

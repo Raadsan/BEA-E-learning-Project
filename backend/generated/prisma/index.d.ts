@@ -38789,6 +38789,12 @@ export namespace Prisma {
     hero_description: string | null
     cta_text: string | null
     cta_link: string | null
+    featured_enabled: boolean | null
+    featured_heading: string | null
+    featured_label: string | null
+    featured_title: string | null
+    featured_video_url: string | null
+    featured_thumbnail: string | null
     updated_at: Date | null
   }
 
@@ -38799,6 +38805,12 @@ export namespace Prisma {
     hero_description: string | null
     cta_text: string | null
     cta_link: string | null
+    featured_enabled: boolean | null
+    featured_heading: string | null
+    featured_label: string | null
+    featured_title: string | null
+    featured_video_url: string | null
+    featured_thumbnail: string | null
     updated_at: Date | null
   }
 
@@ -38810,6 +38822,12 @@ export namespace Prisma {
     hero_images: number
     cta_text: number
     cta_link: number
+    featured_enabled: number
+    featured_heading: number
+    featured_label: number
+    featured_title: number
+    featured_video_url: number
+    featured_thumbnail: number
     updated_at: number
     _all: number
   }
@@ -38830,6 +38848,12 @@ export namespace Prisma {
     hero_description?: true
     cta_text?: true
     cta_link?: true
+    featured_enabled?: true
+    featured_heading?: true
+    featured_label?: true
+    featured_title?: true
+    featured_video_url?: true
+    featured_thumbnail?: true
     updated_at?: true
   }
 
@@ -38840,6 +38864,12 @@ export namespace Prisma {
     hero_description?: true
     cta_text?: true
     cta_link?: true
+    featured_enabled?: true
+    featured_heading?: true
+    featured_label?: true
+    featured_title?: true
+    featured_video_url?: true
+    featured_thumbnail?: true
     updated_at?: true
   }
 
@@ -38851,6 +38881,12 @@ export namespace Prisma {
     hero_images?: true
     cta_text?: true
     cta_link?: true
+    featured_enabled?: true
+    featured_heading?: true
+    featured_label?: true
+    featured_title?: true
+    featured_video_url?: true
+    featured_thumbnail?: true
     updated_at?: true
     _all?: true
   }
@@ -38949,6 +38985,12 @@ export namespace Prisma {
     hero_images: JsonValue
     cta_text: string
     cta_link: string
+    featured_enabled: boolean
+    featured_heading: string
+    featured_label: string
+    featured_title: string
+    featured_video_url: string
+    featured_thumbnail: string | null
     updated_at: Date
     _count: Homepage_settingsCountAggregateOutputType | null
     _avg: Homepage_settingsAvgAggregateOutputType | null
@@ -38979,6 +39021,12 @@ export namespace Prisma {
     hero_images?: boolean
     cta_text?: boolean
     cta_link?: boolean
+    featured_enabled?: boolean
+    featured_heading?: boolean
+    featured_label?: boolean
+    featured_title?: boolean
+    featured_video_url?: boolean
+    featured_thumbnail?: boolean
     updated_at?: boolean
   }, ExtArgs["result"]["homepage_settings"]>
 
@@ -38992,10 +39040,16 @@ export namespace Prisma {
     hero_images?: boolean
     cta_text?: boolean
     cta_link?: boolean
+    featured_enabled?: boolean
+    featured_heading?: boolean
+    featured_label?: boolean
+    featured_title?: boolean
+    featured_video_url?: boolean
+    featured_thumbnail?: boolean
     updated_at?: boolean
   }
 
-  export type homepage_settingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "hero_title" | "hero_highlight" | "hero_description" | "hero_images" | "cta_text" | "cta_link" | "updated_at", ExtArgs["result"]["homepage_settings"]>
+  export type homepage_settingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "hero_title" | "hero_highlight" | "hero_description" | "hero_images" | "cta_text" | "cta_link" | "featured_enabled" | "featured_heading" | "featured_label" | "featured_title" | "featured_video_url" | "featured_thumbnail" | "updated_at", ExtArgs["result"]["homepage_settings"]>
 
   export type $homepage_settingsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "homepage_settings"
@@ -39008,6 +39062,12 @@ export namespace Prisma {
       hero_images: Prisma.JsonValue
       cta_text: string
       cta_link: string
+      featured_enabled: boolean
+      featured_heading: string
+      featured_label: string
+      featured_title: string
+      featured_video_url: string
+      featured_thumbnail: string | null
       updated_at: Date
     }, ExtArgs["result"]["homepage_settings"]>
     composites: {}
@@ -39385,6 +39445,12 @@ export namespace Prisma {
     readonly hero_images: FieldRef<"homepage_settings", 'Json'>
     readonly cta_text: FieldRef<"homepage_settings", 'String'>
     readonly cta_link: FieldRef<"homepage_settings", 'String'>
+    readonly featured_enabled: FieldRef<"homepage_settings", 'Boolean'>
+    readonly featured_heading: FieldRef<"homepage_settings", 'String'>
+    readonly featured_label: FieldRef<"homepage_settings", 'String'>
+    readonly featured_title: FieldRef<"homepage_settings", 'String'>
+    readonly featured_video_url: FieldRef<"homepage_settings", 'String'>
+    readonly featured_thumbnail: FieldRef<"homepage_settings", 'String'>
     readonly updated_at: FieldRef<"homepage_settings", 'DateTime'>
   }
     
@@ -71956,6 +72022,12 @@ export namespace Prisma {
     hero_images: 'hero_images',
     cta_text: 'cta_text',
     cta_link: 'cta_link',
+    featured_enabled: 'featured_enabled',
+    featured_heading: 'featured_heading',
+    featured_label: 'featured_label',
+    featured_title: 'featured_title',
+    featured_video_url: 'featured_video_url',
+    featured_thumbnail: 'featured_thumbnail',
     updated_at: 'updated_at'
   };
 
@@ -72890,7 +72962,12 @@ export namespace Prisma {
     hero_highlight: 'hero_highlight',
     hero_description: 'hero_description',
     cta_text: 'cta_text',
-    cta_link: 'cta_link'
+    cta_link: 'cta_link',
+    featured_heading: 'featured_heading',
+    featured_label: 'featured_label',
+    featured_title: 'featured_title',
+    featured_video_url: 'featured_video_url',
+    featured_thumbnail: 'featured_thumbnail'
   };
 
   export type homepage_settingsOrderByRelevanceFieldEnum = (typeof homepage_settingsOrderByRelevanceFieldEnum)[keyof typeof homepage_settingsOrderByRelevanceFieldEnum]
@@ -76488,6 +76565,12 @@ export namespace Prisma {
     hero_images?: JsonFilter<"homepage_settings">
     cta_text?: StringFilter<"homepage_settings"> | string
     cta_link?: StringFilter<"homepage_settings"> | string
+    featured_enabled?: BoolFilter<"homepage_settings"> | boolean
+    featured_heading?: StringFilter<"homepage_settings"> | string
+    featured_label?: StringFilter<"homepage_settings"> | string
+    featured_title?: StringFilter<"homepage_settings"> | string
+    featured_video_url?: StringFilter<"homepage_settings"> | string
+    featured_thumbnail?: StringNullableFilter<"homepage_settings"> | string | null
     updated_at?: DateTimeFilter<"homepage_settings"> | Date | string
   }
 
@@ -76499,6 +76582,12 @@ export namespace Prisma {
     hero_images?: SortOrder
     cta_text?: SortOrder
     cta_link?: SortOrder
+    featured_enabled?: SortOrder
+    featured_heading?: SortOrder
+    featured_label?: SortOrder
+    featured_title?: SortOrder
+    featured_video_url?: SortOrder
+    featured_thumbnail?: SortOrderInput | SortOrder
     updated_at?: SortOrder
     _relevance?: homepage_settingsOrderByRelevanceInput
   }
@@ -76514,6 +76603,12 @@ export namespace Prisma {
     hero_images?: JsonFilter<"homepage_settings">
     cta_text?: StringFilter<"homepage_settings"> | string
     cta_link?: StringFilter<"homepage_settings"> | string
+    featured_enabled?: BoolFilter<"homepage_settings"> | boolean
+    featured_heading?: StringFilter<"homepage_settings"> | string
+    featured_label?: StringFilter<"homepage_settings"> | string
+    featured_title?: StringFilter<"homepage_settings"> | string
+    featured_video_url?: StringFilter<"homepage_settings"> | string
+    featured_thumbnail?: StringNullableFilter<"homepage_settings"> | string | null
     updated_at?: DateTimeFilter<"homepage_settings"> | Date | string
   }, "id">
 
@@ -76525,6 +76620,12 @@ export namespace Prisma {
     hero_images?: SortOrder
     cta_text?: SortOrder
     cta_link?: SortOrder
+    featured_enabled?: SortOrder
+    featured_heading?: SortOrder
+    featured_label?: SortOrder
+    featured_title?: SortOrder
+    featured_video_url?: SortOrder
+    featured_thumbnail?: SortOrderInput | SortOrder
     updated_at?: SortOrder
     _count?: homepage_settingsCountOrderByAggregateInput
     _avg?: homepage_settingsAvgOrderByAggregateInput
@@ -76544,6 +76645,12 @@ export namespace Prisma {
     hero_images?: JsonWithAggregatesFilter<"homepage_settings">
     cta_text?: StringWithAggregatesFilter<"homepage_settings"> | string
     cta_link?: StringWithAggregatesFilter<"homepage_settings"> | string
+    featured_enabled?: BoolWithAggregatesFilter<"homepage_settings"> | boolean
+    featured_heading?: StringWithAggregatesFilter<"homepage_settings"> | string
+    featured_label?: StringWithAggregatesFilter<"homepage_settings"> | string
+    featured_title?: StringWithAggregatesFilter<"homepage_settings"> | string
+    featured_video_url?: StringWithAggregatesFilter<"homepage_settings"> | string
+    featured_thumbnail?: StringNullableWithAggregatesFilter<"homepage_settings"> | string | null
     updated_at?: DateTimeWithAggregatesFilter<"homepage_settings"> | Date | string
   }
 
@@ -82581,6 +82688,12 @@ export namespace Prisma {
     hero_images: JsonNullValueInput | InputJsonValue
     cta_text: string
     cta_link: string
+    featured_enabled?: boolean
+    featured_heading?: string
+    featured_label?: string
+    featured_title?: string
+    featured_video_url?: string
+    featured_thumbnail?: string | null
     updated_at?: Date | string
   }
 
@@ -82592,6 +82705,12 @@ export namespace Prisma {
     hero_images: JsonNullValueInput | InputJsonValue
     cta_text: string
     cta_link: string
+    featured_enabled?: boolean
+    featured_heading?: string
+    featured_label?: string
+    featured_title?: string
+    featured_video_url?: string
+    featured_thumbnail?: string | null
     updated_at?: Date | string
   }
 
@@ -82603,6 +82722,12 @@ export namespace Prisma {
     hero_images?: JsonNullValueInput | InputJsonValue
     cta_text?: StringFieldUpdateOperationsInput | string
     cta_link?: StringFieldUpdateOperationsInput | string
+    featured_enabled?: BoolFieldUpdateOperationsInput | boolean
+    featured_heading?: StringFieldUpdateOperationsInput | string
+    featured_label?: StringFieldUpdateOperationsInput | string
+    featured_title?: StringFieldUpdateOperationsInput | string
+    featured_video_url?: StringFieldUpdateOperationsInput | string
+    featured_thumbnail?: NullableStringFieldUpdateOperationsInput | string | null
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -82614,6 +82739,12 @@ export namespace Prisma {
     hero_images?: JsonNullValueInput | InputJsonValue
     cta_text?: StringFieldUpdateOperationsInput | string
     cta_link?: StringFieldUpdateOperationsInput | string
+    featured_enabled?: BoolFieldUpdateOperationsInput | boolean
+    featured_heading?: StringFieldUpdateOperationsInput | string
+    featured_label?: StringFieldUpdateOperationsInput | string
+    featured_title?: StringFieldUpdateOperationsInput | string
+    featured_video_url?: StringFieldUpdateOperationsInput | string
+    featured_thumbnail?: NullableStringFieldUpdateOperationsInput | string | null
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -82625,6 +82756,12 @@ export namespace Prisma {
     hero_images: JsonNullValueInput | InputJsonValue
     cta_text: string
     cta_link: string
+    featured_enabled?: boolean
+    featured_heading?: string
+    featured_label?: string
+    featured_title?: string
+    featured_video_url?: string
+    featured_thumbnail?: string | null
     updated_at?: Date | string
   }
 
@@ -82636,6 +82773,12 @@ export namespace Prisma {
     hero_images?: JsonNullValueInput | InputJsonValue
     cta_text?: StringFieldUpdateOperationsInput | string
     cta_link?: StringFieldUpdateOperationsInput | string
+    featured_enabled?: BoolFieldUpdateOperationsInput | boolean
+    featured_heading?: StringFieldUpdateOperationsInput | string
+    featured_label?: StringFieldUpdateOperationsInput | string
+    featured_title?: StringFieldUpdateOperationsInput | string
+    featured_video_url?: StringFieldUpdateOperationsInput | string
+    featured_thumbnail?: NullableStringFieldUpdateOperationsInput | string | null
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -82647,6 +82790,12 @@ export namespace Prisma {
     hero_images?: JsonNullValueInput | InputJsonValue
     cta_text?: StringFieldUpdateOperationsInput | string
     cta_link?: StringFieldUpdateOperationsInput | string
+    featured_enabled?: BoolFieldUpdateOperationsInput | boolean
+    featured_heading?: StringFieldUpdateOperationsInput | string
+    featured_label?: StringFieldUpdateOperationsInput | string
+    featured_title?: StringFieldUpdateOperationsInput | string
+    featured_video_url?: StringFieldUpdateOperationsInput | string
+    featured_thumbnail?: NullableStringFieldUpdateOperationsInput | string | null
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -88564,6 +88713,12 @@ export namespace Prisma {
     hero_images?: SortOrder
     cta_text?: SortOrder
     cta_link?: SortOrder
+    featured_enabled?: SortOrder
+    featured_heading?: SortOrder
+    featured_label?: SortOrder
+    featured_title?: SortOrder
+    featured_video_url?: SortOrder
+    featured_thumbnail?: SortOrder
     updated_at?: SortOrder
   }
 
@@ -88578,6 +88733,12 @@ export namespace Prisma {
     hero_description?: SortOrder
     cta_text?: SortOrder
     cta_link?: SortOrder
+    featured_enabled?: SortOrder
+    featured_heading?: SortOrder
+    featured_label?: SortOrder
+    featured_title?: SortOrder
+    featured_video_url?: SortOrder
+    featured_thumbnail?: SortOrder
     updated_at?: SortOrder
   }
 
@@ -88588,6 +88749,12 @@ export namespace Prisma {
     hero_description?: SortOrder
     cta_text?: SortOrder
     cta_link?: SortOrder
+    featured_enabled?: SortOrder
+    featured_heading?: SortOrder
+    featured_label?: SortOrder
+    featured_title?: SortOrder
+    featured_video_url?: SortOrder
+    featured_thumbnail?: SortOrder
     updated_at?: SortOrder
   }
 

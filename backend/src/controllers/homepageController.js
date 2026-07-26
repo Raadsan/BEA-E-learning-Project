@@ -8,6 +8,12 @@ const defaults = {
   hero_images: ['/images/A Path to Global Opportunities.jpg', '/images/Innovative Learning Environment.jpg', '/images/Student—Centered Learning.jpg'],
   cta_text: 'Start Learning Today',
   cta_link: '/auth/registration',
+  featured_enabled: true,
+  featured_heading: 'English for specific purpose (ESP)',
+  featured_label: 'Featured Video',
+  featured_title: 'Master English for Specific Purposes',
+  featured_video_url: 'https://www.youtube.com/watch?v=erjMgola4fQ',
+  featured_thumbnail: null,
 };
 
 export const getHomepageSettings = async (_req, res) => {
@@ -24,9 +30,22 @@ export const updateHomepageSettings = async (req, res) => {
       hero_images: Array.isArray(req.body.hero_images) ? req.body.hero_images.filter(Boolean).slice(0, 6) : [],
       cta_text: String(req.body.cta_text || '').trim(),
       cta_link: String(req.body.cta_link || '').trim(),
+      featured_enabled: req.body.featured_enabled !== false,
+      featured_heading: String(req.body.featured_heading || '').trim(),
+      featured_label: String(req.body.featured_label || '').trim(),
+      featured_title: String(req.body.featured_title || '').trim(),
+      featured_video_url: String(req.body.featured_video_url || '').trim(),
+      featured_thumbnail: String(req.body.featured_thumbnail || '').trim() || null,
     };
     const words = payload.hero_description.split(/\s+/).filter(Boolean).length;
     if (!payload.hero_title || !payload.hero_highlight || !payload.hero_description || !payload.hero_images.length || !payload.cta_text || !payload.cta_link) return res.status(400).json({ error: 'Complete all homepage fields' });
+    if (!payload.featured_heading || !payload.featured_label || !payload.featured_title || !payload.featured_video_url) return res.status(400).json({ error: 'Complete all featured video fields' });
+    try {
+      const videoUrl = new URL(payload.featured_video_url);
+      if (!['http:', 'https:'].includes(videoUrl.protocol)) throw new Error();
+    } catch {
+      return res.status(400).json({ error: 'Enter a valid featured video URL' });
+    }
     if (words > 300) return res.status(400).json({ error: 'Hero description cannot exceed 300 words' });
     res.json(await prisma.homepage_settings.upsert({ where: { id: 1 }, create: { id: 1, ...payload }, update: payload }));
   } catch (error) { res.status(500).json({ error: error.message }); }
