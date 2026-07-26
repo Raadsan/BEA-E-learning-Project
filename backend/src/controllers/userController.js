@@ -1,4 +1,6 @@
 import prisma from '../lib/prisma.js';
+import { deleteStudentWithDependencies } from './studentController.js';
+import { deleteTeacherWithDependencies } from './teacherController.js';
 
 const normalizeStatus = (status) => {
     if (!status) return 'Active';
@@ -38,6 +40,32 @@ export const bulkActionUsers = async (req, res) => {
 
     try {
         await prisma.$transaction(async (tx) => {
+            if (action === 'delete') {
+                const adminIds = userIds
+                    .filter((userId) => userId.startsWith('admin_'))
+                    .map((userId) => parseInt(userId.slice('admin_'.length), 10))
+                    .filter((id) => !Number.isNaN(id));
+                const actorId = parseInt(req.user?.userId ?? req.user?.id, 10);
+
+                if (!Number.isNaN(actorId) && adminIds.includes(actorId)) {
+                    const error = new Error("You cannot delete your own logged-in account.");
+                    error.statusCode = 403;
+                    throw error;
+                }
+
+                if (adminIds.length > 0) {
+                    const [adminCount, selectedAdminCount] = await Promise.all([
+                        tx.admins.count(),
+                        tx.admins.count({ where: { id: { in: adminIds } } }),
+                    ]);
+                    if (adminCount - selectedAdminCount < 1) {
+                        const error = new Error("At least one admin account must remain.");
+                        error.statusCode = 409;
+                        throw error;
+                    }
+                }
+            }
+
             for (const userId of userIds) {
                 const parts = userId.split('_');
                 if (parts.length < 2) continue;
@@ -56,7 +84,7 @@ export const bulkActionUsers = async (req, res) => {
                     }
                 } else if (type === 'teacher') {
                     if (action === 'delete') {
-                        await tx.teachers.delete({ where: { id: numericId } });
+                        await deleteTeacherWithDependencies(tx, numericId);
                     } else {
                         await tx.teachers.update({
                             where: { id: numericId },
@@ -65,7 +93,7 @@ export const bulkActionUsers = async (req, res) => {
                     }
                 } else if (type === 'student') {
                     if (action === 'delete') {
-                        await tx.students.delete({ where: { student_id: idString } });
+                        await deleteStudentWithDependencies(tx, idString);
                     } else {
                         await tx.students.update({
                             where: { student_id: idString },
@@ -83,9 +111,15 @@ export const bulkActionUsers = async (req, res) => {
                     }
                 }
             }
-        });
+        }, { maxWait: 10000, timeout: 30000 });
         res.json({ message: `Bulk action ${action} completed successfully` });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        const isTimeout = err?.code === 'P2028' || /expired transaction|transaction.*timeout/i.test(err?.message || '');
+        res.status(err.statusCode || (isTimeout ? 503 : 500)).json({
+            error: isTimeout
+                ? "The deletion took too long because this user has a large amount of related data. Please try deleting the user individually."
+                : err.message,
+            dependencies: err.dependencies,
+        });
     }
 };

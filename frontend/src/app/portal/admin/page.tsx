@@ -280,7 +280,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="min-w-0 h-full flex">
-              <UpcomingEventsList />
+              <UpcomingEventsList limit={3} viewAllHref="/portal/admin/communication/news" />
             </div>
           </div>
 

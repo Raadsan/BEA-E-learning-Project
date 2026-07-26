@@ -256,10 +256,38 @@ export const updateAdmin = async (req, res) => {
 
 export const deleteAdmin = async (req, res) => {
     try {
-        await prisma.admins.delete({ where: { id: parseInt(req.params.id) } });
+        const adminId = parseInt(req.params.id, 10);
+        if (Number.isNaN(adminId)) {
+            return res.status(400).json({ error: 'Invalid admin ID' });
+        }
+
+        const actorId = getActorAdminId(req);
+        if (actorId === adminId) {
+            return res.status(403).json({ error: 'You cannot delete your own logged-in account.' });
+        }
+
+        await prisma.$transaction(async (tx) => {
+            const [admin, adminCount] = await Promise.all([
+                tx.admins.findUnique({ where: { id: adminId }, select: { id: true } }),
+                tx.admins.count(),
+            ]);
+
+            if (!admin) {
+                const error = new Error('Admin not found');
+                error.statusCode = 404;
+                throw error;
+            }
+            if (adminCount <= 1) {
+                const error = new Error('The final admin account cannot be deleted. At least one admin must remain.');
+                error.statusCode = 409;
+                throw error;
+            }
+
+            await tx.admins.delete({ where: { id: adminId } });
+        });
         res.json({ message: 'Deleted' });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(err.statusCode || 500).json({ error: err.message });
     }
 };
 
@@ -274,10 +302,33 @@ export const bulkActionAdmins = async (req, res) => {
 
     try {
         const actor = await getActorAdmin(req);
+        const actorId = actor?.id || getActorAdminId(req);
+        const normalizedAdminIds = [...new Set(
+            adminIds.map((id) => parseInt(id, 10)).filter((id) => !Number.isNaN(id))
+        )];
+
+        if (normalizedAdminIds.length === 0) {
+            return res.status(400).json({ error: "No valid admin IDs were provided" });
+        }
+        if (action === 'delete' && actorId && normalizedAdminIds.includes(actorId)) {
+            return res.status(403).json({ error: "You cannot delete your own logged-in account." });
+        }
+
         await prisma.$transaction(async (tx) => {
-            for (const adminId of adminIds) {
-                const numericId = parseInt(adminId, 10);
-                if (isNaN(numericId)) continue;
+            if (action === 'delete') {
+                const [adminCount, selectedExistingCount] = await Promise.all([
+                    tx.admins.count(),
+                    tx.admins.count({ where: { id: { in: normalizedAdminIds } } }),
+                ]);
+
+                if (adminCount - selectedExistingCount < 1) {
+                    const error = new Error("At least one admin account must remain and cannot be deleted.");
+                    error.statusCode = 409;
+                    throw error;
+                }
+            }
+
+            for (const numericId of normalizedAdminIds) {
 
                 if (action === 'delete') {
                     await tx.admins.delete({ where: { id: numericId } });
@@ -296,6 +347,6 @@ export const bulkActionAdmins = async (req, res) => {
         });
         res.json({ message: `Bulk action ${action} completed successfully` });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(err.statusCode || 500).json({ error: err.message });
     }
 };

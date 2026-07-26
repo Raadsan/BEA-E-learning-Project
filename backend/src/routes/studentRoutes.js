@@ -4,7 +4,7 @@ import {
   approveStudent, rejectStudent, extendStudentDeadline, getSexDistribution, getStudentLocations,
   getTopStudents, getStudentsByClass, getMyClasses, getStudentProgress
 } from "../controllers/studentController.js";
-import { verifyToken } from "../controllers/authController.js";
+import { verifyToken, isAdmin } from "../controllers/authController.js";
 import { upload, withStoredUpload } from "../controllers/uploadController.js";
 
 const router = express.Router();
@@ -25,6 +25,6 @@ router.patch("/:id/reject", rejectStudent);
 router.patch("/:id/extend", verifyToken, extendStudentDeadline);
 router.get("/:id", getStudent);
 router.put("/:id", withStoredUpload(upload.single("profile_picture")), updateStudent);
-router.delete("/:id", deleteStudent);
+router.delete("/:id", verifyToken, isAdmin, deleteStudent);
 
 export default router;

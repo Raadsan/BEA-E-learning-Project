@@ -39,6 +39,8 @@ import { reportApi } from "./api/reportApi";
 import { levelUpApi } from "./api/levelUpApi";
 import { unitProgressApi } from "./api/unitProgressApi";
 import { certificateApi } from "./api/certificateApi";
+import { blogApi } from "./api/blogApi";
+import { homepageApi } from "./api/homepageApi";
 
 export const store = configureStore({
     reducer: {
@@ -82,6 +84,8 @@ export const store = configureStore({
         [levelUpApi.reducerPath]: levelUpApi.reducer,
         [unitProgressApi.reducerPath]: unitProgressApi.reducer,
         [certificateApi.reducerPath]: certificateApi.reducer,
+        [blogApi.reducerPath]: blogApi.reducer,
+        [homepageApi.reducerPath]: homepageApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(
@@ -124,6 +128,8 @@ export const store = configureStore({
             reportApi.middleware,
             levelUpApi.middleware,
             unitProgressApi.middleware,
-            certificateApi.middleware
+            certificateApi.middleware,
+            blogApi.middleware,
+            homepageApi.middleware
         ),
 });

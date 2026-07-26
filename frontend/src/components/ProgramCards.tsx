@@ -12,6 +12,7 @@ import {
   formatProgramDescription,
 } from "@/utils/programCatalog";
 import { API_BASE_URL, resolveMediaUrl } from "@/constants";
+import { getYouTubeEmbedUrl, isYouTubeUrl } from "@/utils/youtube";
 
 // Video Card Component
 function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
@@ -21,10 +22,7 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
   const handlePlayClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (videoRef.current) {
-      videoRef.current.play();
-      setIsPlaying(true);
-    }
+    setIsPlaying(true);
   };
 
   const handleVideoPlay = () => {
@@ -45,43 +43,19 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
     >
       {/* Video/Image with Play Icon */}
       <div className="relative h-40 sm:h-44 md:h-48 bg-black overflow-hidden">
-        {program.video ? (
+        {program.video && isPlaying ? (
           <>
-            <video
-              ref={videoRef}
-              src={program.video}
+            <iframe
+              src={`${getYouTubeEmbedUrl(program.video)}?autoplay=1`}
               className="w-full h-full object-cover"
               width="100%"
               height="100%"
-              controls
-              controlsList="nodownload"
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              poster={program.image}
-              onPlay={handleVideoPlay}
-              onPause={handleVideoPause}
               onClick={(e) => e.stopPropagation()}
-              onDoubleClick={(e) => e.stopPropagation()}
               style={{ display: 'block' }}
-            >
-              Your browser does not support the video tag.
-            </video>
-            {/* Play Icon Overlay - Only show when video is paused */}
-            {!isPlaying && (
-              <div
-                className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors cursor-pointer"
-                onClick={handlePlayClick}
-                style={{ pointerEvents: 'auto' }}
-              >
-                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg pointer-events-none">
-                  <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                  </svg>
-                </div>
-              </div>
-            )}
+              title={program.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
           </>
         ) : (
           <>
@@ -92,7 +66,7 @@ function VideoProgramCard({ program, index, isDarkMode, isVisible }) {
               className="object-cover"
             />
             {/* Play Icon Overlay for images */}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors" onClick={program.video ? handlePlayClick : undefined}>
               <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
                 <svg className="w-6 h-6 text-gray-700 ml-1" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
@@ -171,7 +145,7 @@ export default function ProgramCards() {
     id: program.id,
     title: program.title,
     description: formatProgramDescription(program.description),
-    video: resolveMediaUrl(program.video),
+    video: isYouTubeUrl(program.video) ? program.video : resolveMediaUrl(program.video),
     image: resolveMediaUrl(program.image) || "/images/book1.jpg",
     link: getProgramRoute(program.title),
     color: index % 2 === 0 ? "blue" : "red",

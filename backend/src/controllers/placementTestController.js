@@ -30,6 +30,64 @@ export const getPlacementTestById = async (req, res) => {
     }
 };
 
+export const updatePlacementTest = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (Number.isNaN(id)) {
+            return res.status(400).json({ error: "Invalid placement test ID" });
+        }
+
+        const existing = await prisma.placement_tests.findUnique({ where: { id } });
+        if (!existing) {
+            return res.status(404).json({ error: "Placement test not found" });
+        }
+
+        const { title, description, duration_minutes, questions, status } = req.body;
+        const updated = await prisma.placement_tests.update({
+            where: { id },
+            data: {
+                title,
+                description,
+                duration_minutes:
+                    duration_minutes === undefined || duration_minutes === null
+                        ? undefined
+                        : Number(duration_minutes),
+                questions,
+                status,
+            },
+        });
+
+        res.json(updated);
+    } catch (err) {
+        console.error("Update placement test error:", err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const deletePlacementTest = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (Number.isNaN(id)) {
+            return res.status(400).json({ error: "Invalid placement test ID" });
+        }
+
+        const existing = await prisma.placement_tests.findUnique({ where: { id } });
+        if (!existing) {
+            return res.status(404).json({ error: "Placement test not found" });
+        }
+
+        await prisma.$transaction([
+            prisma.placement_test_results.deleteMany({ where: { test_id: id } }),
+            prisma.placement_tests.delete({ where: { id } }),
+        ]);
+
+        res.json({ message: "Placement test deleted successfully" });
+    } catch (err) {
+        console.error("Delete placement test error:", err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
 const scorePlacementAnswers = (questions, answers) => {
     let score = 0;
     let total_questions = 0;

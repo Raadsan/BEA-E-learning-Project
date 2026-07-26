@@ -9,6 +9,7 @@ import { studentApi } from "@/lib/api/studentApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import { resolveMediaUrl } from "@/constants";
+import { isYouTubeUrl } from "@/utils/youtube";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
 import AdminTableActions from "@/components/admin/AdminTableActions";
 
@@ -57,7 +58,7 @@ export default function ProgramsPage() {
   const programs = backendPrograms?.map((program) => ({
     ...program,
     image: program.image ? resolveMediaUrl(program.image) : null,
-    video: program.video ? resolveMediaUrl(program.video) : null,
+    video: program.video ? (isYouTubeUrl(program.video) ? program.video : resolveMediaUrl(program.video)) : null,
     curriculum_file: program.curriculum_file ? resolveMediaUrl(program.curriculum_file) : null,
   })) || [];
 
@@ -94,7 +95,7 @@ export default function ProgramsPage() {
     setEditingProgram(program);
     setFormData({
       title: program.title || "", description: program.description || "",
-      status: program.status || "active", image: null, video: null, curriculum: null,
+      status: program.status || "active", image: null, video: program.video || "", curriculum: null,
       curriculum_file: program.curriculum_file || null,
       price: program.price || "", discount: program.discount || "", test_required: program.test_required || "none",
       show_on_website: program.show_on_website !== false && program.show_on_website !== 0 && program.show_on_website !== "0" && program.show_on_website !== "false",
@@ -228,7 +229,6 @@ export default function ProgramsPage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         if (name === "image") setImagePreview(reader.result);
-        else if (name === "video") setVideoPreview(reader.result);
       };
       reader.readAsDataURL(files[0]);
     }
@@ -243,7 +243,7 @@ export default function ProgramsPage() {
       submitFormData.append("description", formData.description);
       if (!editingProgram || formData.status !== editingProgram.status) submitFormData.append("status", formData.status);
       if (formData.image) submitFormData.append("image", formData.image);
-      if (formData.video) submitFormData.append("video", formData.video);
+      if (formData.video) submitFormData.append("video", String(formData.video));
       if (formData.curriculum) submitFormData.append("curriculum", formData.curriculum);
       submitFormData.append("price", String(formData.price || 0));
       submitFormData.append("discount", String(formData.discount || 0));

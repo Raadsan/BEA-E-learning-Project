@@ -397,7 +397,7 @@ export default function StudentsPage() {
             setIsDeleteModalOpen(false);
             setStudentToDelete(null);
         } catch (error) {
-            showToast("Failed to delete.", "error");
+            showToast(error?.data?.error || "Failed to delete.", "error");
         }
     };
 
@@ -909,7 +909,7 @@ export default function StudentsPage() {
                     onClose={() => setIsDeleteModalOpen(false)}
                     onConfirm={handleConfirmDelete}
                     title="Delete Student"
-                    message={`Are you sure you want to delete ${studentToDelete?.full_name}? This action cannot be undone.`}
+                    message={`Delete ${studentToDelete?.full_name}? The student will not be deleted if they still have assignments, attendance, results, payments, certificates, requests, reviews, or notifications. The system will show what must be removed first.`}
                     confirmText="Delete"
                     isDanger={true}
                     isLoading={isDeleting || isDeletingIelts}

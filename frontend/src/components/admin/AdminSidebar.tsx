@@ -763,6 +763,30 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                   </Link>
                 </li>
                 )}
+                {allowPage("communication", "news_events") && (
+                <li>
+                  <Link href="/portal/admin/communication/blogs" className={getSubMenuItemClasses("/portal/admin/communication/blogs")} style={getSubActiveStyle("/portal/admin/communication/blogs")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/blogs") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25A8.966 8.966 0 0118 3.75c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292" /></svg>
+                    <span className={isActive("/portal/admin/communication/blogs") ? 'text-white' : 'text-gray-100'}>Blogs</span>
+                  </Link>
+                </li>
+                )}
+                {allowPage("communication", "news_events") && (
+                  <li>
+                  <Link href="/portal/admin/communication/homepage" className={getSubMenuItemClasses("/portal/admin/communication/homepage")} style={getSubActiveStyle("/portal/admin/communication/homepage")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/homepage") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10.5L12 3l9 7.5M5 9v11h14V9M9 20v-6h6v6" /></svg>
+                    <span className={isActive("/portal/admin/communication/homepage") ? 'text-white' : 'text-gray-100'}>Homepage Content</span>
+                  </Link>
+                  </li>
+                )}
+                {allowPage("communication", "news_events") && (
+                  <li>
+                  <Link href="/portal/admin/communication/featured-video" className={getSubMenuItemClasses("/portal/admin/communication/featured-video")} style={getSubActiveStyle("/portal/admin/communication/featured-video")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/featured-video") ? 'text-white' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m15 10 4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14M5 18h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2Z" /></svg>
+                    <span className={isActive("/portal/admin/communication/featured-video") ? 'text-white' : 'text-gray-100'}>Featured Video</span>
+                  </Link>
+                  </li>
+                )}
                 {allowPage("communication", "course_timeline") && (
                 <li>
                   <Link href="/portal/admin/communication/course-timeline" className={getSubMenuItemClasses("/portal/admin/communication/course-timeline")} style={getSubActiveStyle("/portal/admin/communication/course-timeline")}>

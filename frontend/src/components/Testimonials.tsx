@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { API_URL, resolveMediaUrl } from "@/constants";
 
@@ -13,146 +13,89 @@ type Testimonial = {
   rating?: number;
 };
 
-function TestimonialCard({
-  testimonial,
-  isDarkMode,
-}: {
-  testimonial: Testimonial;
-  isDarkMode: boolean;
-}) {
+function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
-    <article
-      className={`flex-shrink-0 w-[300px] sm:w-[340px] md:w-[380px] rounded-xl p-5 sm:p-6 shadow-md ${
-        isDarkMode ? "bg-[#050040]" : "bg-white"
-      }`}
-    >
-      <div className="flex gap-1 mb-4">
-        {[...Array(testimonial.rating || 5)].map((_, i) => (
-          <svg
-            key={i}
-            className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
+    <article className="relative flex w-full min-w-full flex-shrink-0 snap-center flex-col items-center overflow-hidden rounded-xl border border-gray-200 bg-white px-6 pb-8 pt-36 text-center sm:px-8">
+      <span className="pointer-events-none absolute -left-2 -top-12 font-serif text-[210px] leading-none text-white/[0.07]">
+        “
+      </span>
+      <div className="absolute right-5 top-5 flex gap-1.5" aria-hidden="true">
+        <span className="h-2.5 w-2.5 rounded-full bg-[#010080]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#010080]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#010080]" />
+      </div>
+
+      <div className="absolute left-1/2 top-6 h-24 w-24 -translate-x-1/2 overflow-hidden rounded-full border-4 border-[#010080] bg-[#010080]">
+        {testimonial.image_url ? (
+          <img
+            src={resolveMediaUrl(testimonial.image_url) || ""}
+            alt={testimonial.student_name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-2xl font-bold text-white">
+            {testimonial.student_name.substring(0, 2).toUpperCase()}
+          </span>
+        )}
+      </div>
+
+      <div className="mb-5 flex gap-1" aria-label={`${testimonial.rating || 5} out of 5 stars`}>
+        {[...Array(testimonial.rating || 5)].map((_, index) => (
+          <svg key={index} className="h-5 w-5 text-[#010080]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
         ))}
       </div>
 
-      <p
-        className={`text-sm leading-relaxed mb-6 line-clamp-5 min-h-[6.5rem] ${
-          isDarkMode ? "text-white" : "text-gray-700"
-        }`}
-      >
-        &quot;{testimonial.quote}&quot;
+      <p className="relative z-10 mb-6 min-h-[7.5rem] text-sm leading-7 text-gray-700 sm:text-base">
+        “{testimonial.quote}”
       </p>
-
-      <div className="flex items-center gap-3 mt-auto">
-        <div className="w-11 h-11 bg-blue-400 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border border-blue-500/20">
-          {testimonial.image_url ? (
-            <img
-              src={resolveMediaUrl(testimonial.image_url) || ""}
-              alt={testimonial.student_name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="text-white font-semibold text-sm">
-              {testimonial.student_name.substring(0, 2).toUpperCase()}
-            </span>
-          )}
-        </div>
-        <div className="min-w-0">
-          <p
-            className="font-bold text-sm truncate"
-            style={{ color: isDarkMode ? "#ffffff" : "#010080" }}
-          >
-            {testimonial.student_name}
-          </p>
-          <p
-            className={`text-xs truncate ${
-              isDarkMode ? "text-white/80" : "text-gray-600"
-            }`}
-          >
-            {testimonial.student_role}
-          </p>
-        </div>
+      <div className="mt-auto">
+        <p className="font-serif text-lg font-bold text-[#010080]">— {testimonial.student_name} —</p>
+        {testimonial.student_role && <p className="mt-1 text-xs text-gray-500 sm:text-sm">{testimonial.student_role}</p>}
       </div>
     </article>
   );
 }
 
-function buildMarqueeItems(items: Testimonial[], offset = 0) {
-  if (items.length === 0) return [];
-  const rotated = [...items.slice(offset), ...items.slice(0, offset)];
-  const minItems = Math.max(rotated.length, 4);
-  const repeated: Testimonial[] = [];
-  while (repeated.length < minItems * 2) {
-    repeated.push(...rotated);
-  }
-  return [...repeated, ...repeated];
-}
-
-function TestimonialsMarqueeRow({
-  items,
-  isDarkMode,
-  direction = "left",
-}: {
-  items: Testimonial[];
-  isDarkMode: boolean;
-  direction?: "left" | "right";
-}) {
-  return (
-    <div className="overflow-hidden testimonials-marquee-wrap">
-      <div
-        className={`flex gap-5 sm:gap-6 px-4 sm:px-6 ${
-          direction === "right"
-            ? "testimonials-marquee-track-reverse"
-            : "testimonials-marquee-track"
-        }`}
-      >
-        {items.map((testimonial, index) => (
-          <TestimonialCard
-            key={`${direction}-${testimonial.id}-${index}`}
-            testimonial={testimonial}
-            isDarkMode={isDarkMode}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function Testimonials() {
   const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-  const { isDarkMode } = useTheme();
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
+  const sectionRef = useRef<HTMLElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const { isDarkMode } = useTheme();
 
-  const { topRowItems, bottomRowItems } = useMemo(() => {
-    if (testimonials.length === 0) {
-      return { topRowItems: [], bottomRowItems: [] };
+  const moveSlider = useCallback((direction: 1 | -1 = 1) => {
+    const slider = sliderRef.current;
+    if (!slider || slider.children.length < 2) return;
+
+    const card = slider.children[0] as HTMLElement;
+    const step = card.offsetWidth;
+    const atEnd = slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - step / 2;
+    const atStart = slider.scrollLeft <= step / 2;
+
+    if (direction === 1 && atEnd) {
+      slider.scrollTo({ left: 0, behavior: "smooth" });
+    } else if (direction === -1 && atStart) {
+      slider.scrollTo({ left: slider.scrollWidth, behavior: "smooth" });
+    } else {
+      slider.scrollBy({ left: step * direction, behavior: "smooth" });
     }
-    const midpoint = Math.ceil(testimonials.length / 2);
-    return {
-      topRowItems: buildMarqueeItems(testimonials, 0),
-      bottomRowItems: buildMarqueeItems(testimonials, midpoint),
-    };
-  }, [testimonials]);
+  }, []);
 
   useEffect(() => {
     if (loading) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIsVisible(true);
-      },
-      { threshold: 0.1 }
-    );
-
+    const observer = new IntersectionObserver(([entry]) => entry.isIntersecting && setIsVisible(true), { threshold: 0.1 });
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
   }, [loading]);
+
+  useEffect(() => {
+    if (loading || testimonials.length < 2) return;
+    const autoScroll = window.setInterval(() => moveSlider(1), 4000);
+    return () => window.clearInterval(autoScroll);
+  }, [loading, moveSlider, testimonials.length]);
 
   useEffect(() => {
     const fetchTestimonials = async () => {
@@ -163,91 +106,53 @@ export default function Testimonials() {
         setTestimonials(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Error fetching testimonials:", err);
-        setTestimonials([
-          {
-            id: 1,
-            quote:
-              "EnglishMaster transformed my career! I went from struggling with presentations to confidently leading international meetings.",
-            student_name: "Mohamed",
-            student_role: "IELTS Exam preparation student",
-            rating: 5,
-          },
-        ]);
+        setTestimonials([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchTestimonials();
   }, []);
 
+  if (!loading && testimonials.length === 0) {
+    return null;
+  }
+
   return (
-    <section
-      ref={sectionRef}
-      className={`py-12 sm:py-16 lg:py-20 overflow-hidden min-h-[300px] ${
-        isDarkMode ? "bg-[#04003a]" : "bg-gray-100"
-      }`}
-    >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
-        <div
-          className={`text-center ${
-            isVisible ? "animate-fade-in-up" : "opacity-0"
-          }`}
-        >
-          <h2
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2 sm:mb-3"
-            style={{ color: isDarkMode ? "#ffffff" : "#010080" }}
-          >
+    <section ref={sectionRef} className={`overflow-hidden py-12 sm:py-16 lg:py-20 ${isDarkMode ? "bg-[#04003a]" : "bg-white"}`}>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={`mb-9 text-center transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>
+          <p className={`mb-2 text-xs font-bold uppercase tracking-[0.3em] ${isDarkMode ? "text-blue-300" : "text-blue-700"}`}>
+            Student success stories
+          </p>
+          <h2 className={`font-serif text-3xl font-bold sm:text-4xl lg:text-5xl ${isDarkMode ? "text-white" : "text-[#010080]"}`}>
             What Our Students Say
           </h2>
-          <p
-            className={`text-sm sm:text-base lg:text-lg px-4 sm:px-0 ${
-              isDarkMode ? "text-white" : "text-gray-700"
-            }`}
-          >
-            Join thousands of successful learners who achieved their English
-            goals with us.
+          <p className={`mx-auto mt-3 max-w-2xl text-sm sm:text-base ${isDarkMode ? "text-white/80" : "text-gray-600"}`}>
+            Real stories from learners who are achieving their English language goals with BEA.
           </p>
         </div>
-      </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-        </div>
-      ) : (
-        <div
-          className={`relative ${isVisible ? "opacity-100" : "opacity-0"} transition-opacity duration-700`}
-        >
-          <div
-            className={`pointer-events-none absolute inset-y-0 left-0 w-12 sm:w-24 z-10 ${
-              isDarkMode
-                ? "bg-gradient-to-r from-[#04003a] to-transparent"
-                : "bg-gradient-to-r from-gray-100 to-transparent"
-            }`}
-          />
-          <div
-            className={`pointer-events-none absolute inset-y-0 right-0 w-12 sm:w-24 z-10 ${
-              isDarkMode
-                ? "bg-gradient-to-l from-[#04003a] to-transparent"
-                : "bg-gradient-to-l from-gray-100 to-transparent"
-            }`}
-          />
+        {loading ? (
+          <div className="flex justify-center py-20"><div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[#010080]" /></div>
+        ) : (
+          <div className={`relative mx-auto max-w-[390px] transition-opacity duration-700 ${isVisible ? "opacity-100" : "opacity-0"}`}>
+            <div
+              ref={sliderRef}
+              className="flex w-full snap-x snap-mandatory overflow-x-auto pb-5 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {testimonials.map((testimonial) => <TestimonialCard key={testimonial.id} testimonial={testimonial} />)}
+            </div>
 
-          <div className="space-y-5 sm:space-y-6">
-            <TestimonialsMarqueeRow
-              items={topRowItems}
-              isDarkMode={isDarkMode}
-              direction="left"
-            />
-            <TestimonialsMarqueeRow
-              items={bottomRowItems}
-              isDarkMode={isDarkMode}
-              direction="right"
-            />
+            {testimonials.length > 1 && (
+              <div className="mt-3 flex justify-center gap-3">
+                <button onClick={() => moveSlider(-1)} aria-label="Previous testimonial" className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#010080] text-xl text-[#010080] transition-colors hover:bg-[#010080] hover:text-white">←</button>
+                <button onClick={() => moveSlider(1)} aria-label="Next testimonial" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#010080] text-xl text-white transition-colors hover:bg-blue-900">→</button>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 }

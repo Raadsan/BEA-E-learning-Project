@@ -13,7 +13,7 @@ export const contactApi = createApi({
             return headers;
         },
     }),
-    tagTypes: ["Contacts"],
+    tagTypes: ["Contacts", "ContactPage"],
     endpoints: (builder) => ({
         getContacts: builder.query<any, void>({
             query: () => "/contact",
@@ -26,10 +26,20 @@ export const contactApi = createApi({
             }),
             invalidatesTags: ["Contacts"],
         }),
+        getContactPage: builder.query<any, void>({
+            query: () => "/contact/page-content",
+            providesTags: ["ContactPage"],
+        }),
+        updateContactPage: builder.mutation<any, any>({
+            query: (body) => ({ url: "/contact/page-content", method: "PUT", body }),
+            invalidatesTags: ["ContactPage"],
+        }),
     }),
 });
 
 export const {
     useGetContactsQuery,
     useDeleteContactMutation,
+    useGetContactPageQuery,
+    useUpdateContactPageMutation,
 } = contactApi;

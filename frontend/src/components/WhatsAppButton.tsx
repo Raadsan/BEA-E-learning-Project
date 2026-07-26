@@ -1,11 +1,14 @@
 "use client";
 
 import React from "react";
+import { useGetContactPageQuery } from "@/lib/api/contactApi";
 
 const WhatsAppButton = () => {
+    const { data } = useGetContactPageQuery();
+    const whatsappNumber = String(data?.phone || "252611242857").replace(/\D/g, "");
     return (
         <a
-            href="https://wa.me/252611242857"
+            href={`https://wa.me/${whatsappNumber}`}
             target="_blank"
             rel="noopener noreferrer"
             className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-full shadow-lg hover:bg-[#20bd5a] transition-all hover:scale-110 animate-bounce-soft"

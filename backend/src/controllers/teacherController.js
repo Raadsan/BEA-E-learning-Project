@@ -100,13 +100,69 @@ export const updateTeacher = async (req, res) => {
   }
 };
 
+export const deleteTeacherWithDependencies = async (tx, teacherId) => {
+  const teacher = await tx.teachers.findUnique({
+    where: { id: teacherId },
+    select: { id: true, teacher_id: true },
+  });
+  if (!teacher) {
+    const error = new Error("Teacher not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const checks = [
+    ["classes", "Assigned classes", { teacher_id: teacherId }],
+    ["timetables", "Timetable entries", { teacher_id: teacherId }],
+  ];
+  if (teacher.teacher_id) {
+    checks.push(
+      ["student_reviews", "Student reviews", { teacher_id: teacher.teacher_id }],
+      ["teacher_reviews", "Teacher reviews", { teacher_id: teacher.teacher_id }],
+      ["notifications", "Notifications", {
+        OR: [{ user_id: teacher.teacher_id }, { sender_id: teacher.teacher_id }],
+      }]
+    );
+  }
+
+  const counts = await Promise.all(
+    checks.map(([model, label, where]) =>
+      tx[model].count({ where }).then((count) => ({ table: model, label, count }))
+    )
+  );
+  const dependencies = counts.filter(({ count }) => count > 0);
+
+  if (dependencies.length > 0) {
+    const details = dependencies.map(({ label, count }) => `${label}: ${count}`).join(", ");
+    const error = new Error(
+      `This teacher cannot be deleted because related records still exist in ${dependencies.length} section(s): ${details}. Remove or reassign those records first, then try again.`
+    );
+    error.statusCode = 409;
+    error.dependencies = dependencies;
+    throw error;
+  }
+
+  await tx.teachers.delete({ where: { id: teacherId } });
+};
+
 // DELETE TEACHER
 export const deleteTeacher = async (req, res) => {
   try {
-    await prisma.teachers.delete({ where: { id: parseInt(req.params.id) } });
+    const teacherId = parseInt(req.params.id, 10);
+    if (Number.isNaN(teacherId)) {
+      return res.status(400).json({ error: "Invalid teacher ID" });
+    }
+    await prisma.$transaction(
+      (tx) => deleteTeacherWithDependencies(tx, teacherId),
+      { maxWait: 10000, timeout: 30000 }
+    );
     res.json({ message: "Deleted" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Delete teacher error:", err);
+    res.status(err.statusCode || 500).json({
+      error: err.message,
+      dependencies: err.dependencies,
+    });
   }
 };
 
@@ -148,7 +204,7 @@ export const bulkActionTeachers = async (req, res) => {
         if (isNaN(numericId)) continue;
 
         if (action === 'delete') {
-          await tx.teachers.delete({ where: { id: numericId } });
+          await deleteTeacherWithDependencies(tx, numericId);
         } else {
           await tx.teachers.update({
             where: { id: numericId },
@@ -156,7 +212,7 @@ export const bulkActionTeachers = async (req, res) => {
           });
         }
       }
-    });
+    }, { maxWait: 10000, timeout: 30000 });
     res.json({ message: `Bulk action ${action} completed successfully` });
   } catch (err) {
     res.status(500).json({ error: err.message });

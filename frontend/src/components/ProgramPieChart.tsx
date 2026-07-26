@@ -20,14 +20,14 @@ const ProgramPieChart = ({ data, unit = "Students" }) => {
     }
 
     const barSize = getDynamicBarSize(chartWidth, chartData.length, 1);
-    const labelAngle = chartData.length > 2 ? -35 : 0;
+    const shortLabel = (value: string) => value.length > 16 ? `${value.slice(0, 14)}...` : value;
 
     return (
         <ChartCanvas chartRef={chartRef} className="h-full min-h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                     data={chartData}
-                    margin={{ top: 16, right: 12, left: 0, bottom: labelAngle ? 8 : 0 }}
+                    margin={{ top: 16, right: 12, left: 0, bottom: 0 }}
                     barCategoryGap="18%"
                 >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -38,9 +38,10 @@ const ProgramPieChart = ({ data, unit = "Students" }) => {
                         tick={{ fill: '#6B7280', fontSize: 11 }}
                         dy={10}
                         interval={0}
-                        angle={labelAngle}
-                        textAnchor={labelAngle ? "end" : "middle"}
-                        height={labelAngle ? 72 : 36}
+                        angle={0}
+                        textAnchor="middle"
+                        height={40}
+                        tickFormatter={shortLabel}
                     />
                     <YAxis
                         axisLine={false}

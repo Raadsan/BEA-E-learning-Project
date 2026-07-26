@@ -213,7 +213,7 @@ export default function TestimonialsPage() {
                 </div>
             )
         },
-        { key: "student_name", label: "Student Name", width: "200px" },
+        { key: "student_name", label: "Full Name", width: "200px" },
         { key: "student_role", label: "Role", width: "200px" },
         {
             key: "quote",
@@ -266,7 +266,7 @@ export default function TestimonialsPage() {
             <main className="flex-1 bg-gray-50">
                 <div className="w-full px-8 py-6">
                     <DataTable
-                        title="Student Testimonials Management"
+                        title="Testimonials Management"
                         columns={columns}
                         data={testimonials}
                         onAddClick={canAdd ? handleCreate : undefined}
@@ -309,7 +309,7 @@ export default function TestimonialsPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                            Student Name <span className="text-red-500">*</span>
+                                            Full Name <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -332,7 +332,7 @@ export default function TestimonialsPage() {
                                             value={formData.student_role}
                                             onChange={handleInputChange}
                                             required
-                                            placeholder="e.g. IELTS Student"
+                                            placeholder="e.g. Teacher, Parent, or Learner"
                                             className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
                                                 }`}
                                         />
@@ -342,7 +342,7 @@ export default function TestimonialsPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                            Student Photo
+                                            Photo
                                         </label>
                                         <div className="flex items-center gap-4">
                                             <div className={`w-16 h-16 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden bg-gray-50/50 ${isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'}`}>
@@ -440,7 +440,7 @@ export default function TestimonialsPage() {
                                         onChange={handleInputChange}
                                         required
                                         rows={4}
-                                        placeholder="Enter the student's testimonial quote here..."
+                                        placeholder="Enter the testimonial quote here..."
                                         className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-600'
                                             }`}
                                     />

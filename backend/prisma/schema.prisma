@@ -3,14 +3,9 @@ generator client {
   output   = "../generated/prisma"
 }
 
-
-
 datasource db {
   provider = "mysql"
-
 }
-
-
 
 model IELTSTOEFL {
   student_id              String          @id @db.VarChar(50)
@@ -79,10 +74,10 @@ model ProficiencyTestStudents {
   place_of_birth        String?                                   @db.VarChar(255)
   residency_country     String?                                   @db.VarChar(255)
   residency_city        String?                                   @db.VarChar(255)
-  created_by              Int?
-  updated_by              Int?
-  created_by_name         String?                                   @db.VarChar(200)
-  updated_by_name         String?                                   @db.VarChar(200)
+  created_by            Int?
+  updated_by            Int?
+  created_by_name       String?                                   @db.VarChar(200)
+  updated_by_name       String?                                   @db.VarChar(200)
 }
 
 model migrations {
@@ -301,6 +296,21 @@ model contacts {
   @@index([email], map: "idx_email")
 }
 
+model contact_page_settings {
+  id                   Int      @id @default(1)
+  hero_title           String   @db.VarChar(255)
+  hero_subtitle        String   @db.VarChar(255)
+  hero_description     String   @db.Text
+  address              String   @db.VarChar(500)
+  phone                String   @db.VarChar(100)
+  email                String   @db.VarChar(255)
+  social_links         Json
+  schedule_title       String   @db.VarChar(255)
+  schedule_description String   @db.Text
+  schedule             Json
+  updated_at           DateTime @default(now()) @updatedAt @db.Timestamp(0)
+}
+
 model course_timeline {
   id            Int       @id @default(autoincrement())
   term_serial   String    @unique(map: "term_serial") @db.VarChar(50)
@@ -461,24 +471,24 @@ model issued_certificates {
 }
 
 model learning_materials {
-  id            Int                        @id @default(autoincrement())
-  title         String                     @db.VarChar(255)
-  type          learning_materials_type
-  program_id    Int?
-  subprogram_id Int?
-  level         String?                    @default("All") @db.VarChar(50)
-  subject       String?                    @db.VarChar(100)
-  description   String?                    @db.Text
-  url           String                     @db.Text
-  status        learning_materials_status? @default(Active)
-  created_at    DateTime?                  @default(now()) @db.Timestamp(0)
-  updated_at    DateTime?                  @default(now()) @db.Timestamp(0)
-  created_by    Int?
-  updated_by    Int?
-  created_by_name String?                  @db.VarChar(200)
-  updated_by_name String?                  @db.VarChar(200)
-  programs      programs?                  @relation(fields: [program_id], references: [id], onUpdate: NoAction, map: "fk_material_program")
-  subprograms   subprograms?               @relation(fields: [subprogram_id], references: [id], onUpdate: NoAction, map: "fk_material_subprogram")
+  id              Int                        @id @default(autoincrement())
+  title           String                     @db.VarChar(255)
+  type            learning_materials_type
+  program_id      Int?
+  subprogram_id   Int?
+  level           String?                    @default("All") @db.VarChar(50)
+  subject         String?                    @db.VarChar(100)
+  description     String?                    @db.Text
+  url             String                     @db.Text
+  status          learning_materials_status? @default(Active)
+  created_at      DateTime?                  @default(now()) @db.Timestamp(0)
+  updated_at      DateTime?                  @default(now()) @db.Timestamp(0)
+  created_by      Int?
+  updated_by      Int?
+  created_by_name String?                    @db.VarChar(200)
+  updated_by_name String?                    @db.VarChar(200)
+  programs        programs?                  @relation(fields: [program_id], references: [id], onUpdate: NoAction, map: "fk_material_program")
+  subprograms     subprograms?               @relation(fields: [subprogram_id], references: [id], onUpdate: NoAction, map: "fk_material_subprogram")
 
   @@index([program_id], map: "fk_material_program")
   @@index([subprogram_id], map: "fk_material_subprogram")
@@ -535,6 +545,49 @@ model news_events {
   status      news_events_status? @default(active)
   created_at  DateTime?           @default(now()) @db.Timestamp(0)
   updated_at  DateTime?           @default(now()) @db.Timestamp(0)
+}
+
+model blog_posts {
+  id           Int      @id @default(autoincrement())
+  title        String   @db.VarChar(255)
+  excerpt      String   @db.Text
+  content      String   @db.LongText
+  category     String   @db.VarChar(100)
+  author       String   @default("BEA Team") @db.VarChar(150)
+  image_url    String?  @db.VarChar(500)
+  read_time    String?  @db.VarChar(50)
+  featured     Boolean  @default(false)
+  status       String   @default("published") @db.VarChar(20)
+  published_at DateTime @default(now()) @db.DateTime(0)
+  created_at   DateTime @default(now()) @db.Timestamp(0)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamp(0)
+
+  @@index([status, published_at])
+  @@index([category])
+}
+
+model blog_page_settings {
+  id            Int      @id @default(1)
+  hero_title    String   @default("BEA Blog") @db.VarChar(255)
+  hero_subtitle String   @db.VarChar(500)
+  updated_at    DateTime @default(now()) @updatedAt @db.Timestamp(0)
+}
+
+model homepage_settings {
+  id                 Int      @id @default(1)
+  hero_title         String   @db.VarChar(255)
+  hero_highlight     String   @db.VarChar(255)
+  hero_description   String   @db.Text
+  hero_images        Json
+  cta_text           String   @db.VarChar(100)
+  cta_link           String   @db.VarChar(255)
+  featured_enabled   Boolean  @default(true)
+  featured_heading   String   @default("English for specific purpose (ESP)") @db.VarChar(255)
+  featured_label     String   @default("Featured Video") @db.VarChar(100)
+  featured_title     String   @default("Master English for Specific Purposes") @db.VarChar(255)
+  featured_video_url String   @default("https://www.youtube.com/watch?v=erjMgola4fQ") @db.VarChar(500)
+  featured_thumbnail String?  @db.VarChar(500)
+  updated_at         DateTime @default(now()) @updatedAt @db.Timestamp(0)
 }
 
 model newsletters {
@@ -801,22 +854,22 @@ model review_windows {
 }
 
 model review_assignments {
-  id            Int       @id @default(autoincrement())
-  review_type   String    @db.VarChar(20)
-  title         String    @db.VarChar(255)
-  description   String?   @db.Text
-  start_date    DateTime  @db.DateTime(0)
-  end_date      DateTime  @db.DateTime(0)
-  program_id   Int?
-  class_id      Int?
-  course_id     Int?
-  subprogram_id Int?
-  status        String    @default("active") @db.VarChar(20)
-  questions     Json?
-  questionnaire_url String? @db.VarChar(500)
-  created_by    Int?
-  created_at    DateTime? @default(now()) @db.Timestamp(0)
-  updated_at    DateTime? @default(now()) @updatedAt @db.Timestamp(0)
+  id                Int       @id @default(autoincrement())
+  review_type       String    @db.VarChar(20)
+  title             String    @db.VarChar(255)
+  description       String?   @db.Text
+  start_date        DateTime  @db.DateTime(0)
+  end_date          DateTime  @db.DateTime(0)
+  program_id        Int?
+  class_id          Int?
+  course_id         Int?
+  subprogram_id     Int?
+  status            String    @default("active") @db.VarChar(20)
+  questions         Json?
+  questionnaire_url String?   @db.VarChar(500)
+  created_by        Int?
+  created_at        DateTime? @default(now()) @db.Timestamp(0)
+  updated_at        DateTime? @default(now()) @updatedAt @db.Timestamp(0)
 
   @@index([review_type, status], map: "idx_review_assignments_type_status")
   @@index([program_id], map: "idx_review_assignments_program")
@@ -824,6 +877,7 @@ model review_assignments {
   @@index([course_id], map: "idx_review_assignments_course")
   @@index([subprogram_id], map: "idx_review_assignments_subprogram")
 }
+
 model student_review_questions {
   id            Int       @id @default(autoincrement())
   question_text String    @db.Text
@@ -832,17 +886,17 @@ model student_review_questions {
 }
 
 model student_reviews {
-  id          Int       @id @default(autoincrement())
-  teacher_id  String    @db.VarChar(50)
-  student_id  String    @db.VarChar(50)
-  class_id    Int
-  term_serial String    @db.VarChar(50)
-  rating      Int?
-  comment     String?   @db.Text
-  answers     Json?
+  id            Int       @id @default(autoincrement())
+  teacher_id    String    @db.VarChar(50)
+  student_id    String    @db.VarChar(50)
+  class_id      Int
+  term_serial   String    @db.VarChar(50)
+  rating        Int?
+  comment       String?   @db.Text
+  answers       Json?
   assignment_id Int?
-  created_at  DateTime? @default(now()) @db.Timestamp(0)
-  classes     classes   @relation(fields: [class_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "student_reviews_ibfk_1")
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  classes       classes   @relation(fields: [class_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "student_reviews_ibfk_1")
 
   @@index([class_id], map: "class_id")
   @@index([assignment_id], map: "idx_student_reviews_assignment")
@@ -935,17 +989,17 @@ model teacher_review_questions {
 }
 
 model teacher_reviews {
-  id          Int       @id @default(autoincrement())
-  student_id  String    @db.VarChar(50)
-  teacher_id  String    @db.VarChar(50)
-  class_id    Int
-  term_serial String    @db.VarChar(50)
-  rating      Int?
-  comment     String?   @db.Text
-  answers     Json?
+  id            Int       @id @default(autoincrement())
+  student_id    String    @db.VarChar(50)
+  teacher_id    String    @db.VarChar(50)
+  class_id      Int
+  term_serial   String    @db.VarChar(50)
+  rating        Int?
+  comment       String?   @db.Text
+  answers       Json?
   assignment_id Int?
-  created_at  DateTime? @default(now()) @db.Timestamp(0)
-  classes     classes   @relation(fields: [class_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teacher_reviews_ibfk_1")
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  classes       classes   @relation(fields: [class_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teacher_reviews_ibfk_1")
 
   @@index([class_id], map: "class_id")
   @@index([assignment_id], map: "idx_teacher_reviews_assignment")

@@ -15,6 +15,8 @@ const parseShowOnWebsite = (value, fallback = true) => {
   return ["true", "1", "yes", "on"].includes(String(value).toLowerCase());
 };
 
+const isYouTubeUrl = (value) => !value || /^https?:\/\/(?:www\.|m\.)?(?:youtube\.com|youtu\.be)\//i.test(value);
+
 // CREATE PROGRAM
 export const createProgram = async (req, res) => {
   try {
@@ -24,11 +26,12 @@ export const createProgram = async (req, res) => {
     const curriculumFile = files.find(f => f.fieldname === 'curriculum');
     
     const image = imageFile ? getStoredFileUrl(imageFile) : null;
-    const video = videoFile ? getStoredFileUrl(videoFile) : null;
+    const video = req.body.video || (videoFile ? getStoredFileUrl(videoFile) : null);
     const curriculum_file = curriculumFile ? getStoredFileUrl(curriculumFile) : null;
 
     const { title, description, status, price, discount, test_required, show_on_website } = req.body;
     if (!title) return res.status(400).json({ error: "Title is required" });
+    if (!isYouTubeUrl(video)) return res.status(400).json({ error: "Video must be a valid YouTube URL" });
 
     const createAudit = await buildCreateAudit(req, 'System');
 
@@ -90,6 +93,7 @@ export const updateProgram = async (req, res) => {
     const curriculumFile = files.find(f => f.fieldname === 'curriculum');
 
     const data = { ...req.body };
+    if (!isYouTubeUrl(data.video)) return res.status(400).json({ error: "Video must be a valid YouTube URL" });
     if (imageFile) data.image = getStoredFileUrl(imageFile);
     if (videoFile) data.video = getStoredFileUrl(videoFile);
     if (curriculumFile) data.curriculum_file = getStoredFileUrl(curriculumFile);

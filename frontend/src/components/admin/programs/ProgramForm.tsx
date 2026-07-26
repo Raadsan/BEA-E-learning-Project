@@ -101,18 +101,21 @@ export default function ProgramForm({
 
                         <div>
                             <label htmlFor="video" className={`block text-sm font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                Video
+                                YouTube Video URL
                             </label>
                             <input
-                                type="file"
+                                type="url"
                                 id="video"
                                 name="video"
-                                accept="video/*"
-                                onChange={handleFileChange}
+                                value={formData.video || ""}
+                                onChange={handleInputChange}
+                                placeholder="https://www.youtube.com/watch?v=..."
+                                pattern="https?://(www\.|m\.)?(youtube\.com|youtu\.be)/.+"
+                                title="Enter a valid YouTube link"
                                 className={`w-full px-4 py-2 text-sm border rounded-lg focus:outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600'}`}
                             />
                             {videoPreview && (
-                                <div className="mt-2 text-xs text-blue-500 font-medium">Video selected</div>
+                                <div className="mt-2 truncate text-xs font-medium text-blue-500">{videoPreview}</div>
                             )}
                         </div>
 

@@ -2,12 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
-import Image from "next/image";
+import { useGetBlogPageQuery } from "@/lib/api/blogApi";
+import { resolveMediaUrl } from "@/constants";
 
 export default function Blogs() {
   const { isDarkMode } = useTheme();
   const [visibleSections, setVisibleSections] = useState<any>({});
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedBlog, setSelectedBlog] = useState<any>(null);
+  const { data, isLoading } = useGetBlogPageQuery(false);
   const sectionRefs = {
     hero: useRef(null),
     content: useRef(null),
@@ -30,76 +33,8 @@ export default function Blogs() {
     return () => observers.forEach(obs => obs.disconnect());
   }, []);
 
-  const categories = ["All", "Learning Tips", "Student Success", "Language Skills", "Career Development"];
-
-  const blogs = [
-    {
-      id: 1,
-      title: "10 Effective Tips to Improve Your English Speaking Skills",
-      excerpt: "Discover practical strategies to boost your confidence and fluency in English conversation. From daily practice routines to immersive techniques...",
-      category: "Learning Tips",
-      author: "BEA Team",
-      date: "November 28, 2025",
-      readTime: "5 min read",
-      image: "/images/blog1.jpg",
-      featured: true
-    },
-    {
-      id: 2,
-      title: "How to Prepare for IELTS in 30 Days",
-      excerpt: "A comprehensive guide to maximizing your IELTS preparation in just one month. Learn the key strategies for each section...",
-      category: "Learning Tips",
-      author: "BEA Team",
-      date: "November 25, 2025",
-      readTime: "8 min read",
-      image: "/images/blog2.jpg",
-      featured: true
-    },
-    {
-      id: 3,
-      title: "Success Story: From Beginner to Advanced in 12 Months",
-      excerpt: "Meet Ahmed, a BEA student who transformed his English proficiency from A1 to C1 level in just one year...",
-      category: "Student Success",
-      author: "BEA Team",
-      date: "November 22, 2025",
-      readTime: "4 min read",
-      image: "/images/blog3.jpg",
-      featured: false
-    },
-    {
-      id: 4,
-      title: "The Importance of English in Today's Global Job Market",
-      excerpt: "Explore how English proficiency opens doors to international career opportunities and higher earning potential...",
-      category: "Career Development",
-      author: "BEA Team",
-      date: "November 18, 2025",
-      readTime: "6 min read",
-      image: "/images/blog4.jpg",
-      featured: false
-    },
-    {
-      id: 5,
-      title: "Mastering Business English: Essential Vocabulary and Phrases",
-      excerpt: "Learn the key business English expressions that will help you communicate professionally in the workplace...",
-      category: "Language Skills",
-      author: "BEA Team",
-      date: "November 15, 2025",
-      readTime: "7 min read",
-      image: "/images/blog5.jpg",
-      featured: false
-    },
-    {
-      id: 6,
-      title: "Common Grammar Mistakes and How to Avoid Them",
-      excerpt: "Identify and correct the most frequent grammar errors made by English learners at all levels...",
-      category: "Language Skills",
-      author: "BEA Team",
-      date: "November 10, 2025",
-      readTime: "5 min read",
-      image: "/images/blog6.jpg",
-      featured: false
-    }
-  ];
+  const blogs = data?.posts || [];
+  const categories = ["All", ...Array.from(new Set(blogs.map((blog: any) => blog.category)))] as string[];
 
   const filteredBlogs = selectedCategory === "All" 
     ? blogs 
@@ -127,10 +62,10 @@ export default function Blogs() {
             </svg>
           </div>
           <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 ${visibleSections.hero ? 'animate-fade-in-down' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
-            BEA Blog
+            {data?.settings?.hero_title || "BEA Blog"}
           </h1>
           <p className={`text-base sm:text-lg text-white/90 max-w-2xl mx-auto ${visibleSections.hero ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
-            Insights, tips, and stories to help you on your English learning journey
+            {data?.settings?.hero_subtitle || "Insights, tips, and stories to help you on your English learning journey"}
           </p>
         </div>
       </section>
@@ -160,6 +95,8 @@ export default function Blogs() {
           </div>
 
           {/* Blog Grid */}
+          {isLoading && <p className="py-12 text-center text-gray-500">Loading articles...</p>}
+          {!isLoading && filteredBlogs.length === 0 && <p className="py-12 text-center text-gray-500">No published articles yet.</p>}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {filteredBlogs.map((blog, index) => (
               <article 
@@ -169,6 +106,7 @@ export default function Blogs() {
               >
                 {/* Blog Image */}
                 <div className="relative h-48 sm:h-52 overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600">
+                  {blog.image_url && <img src={resolveMediaUrl(blog.image_url) || blog.image_url} alt={blog.title} className="absolute inset-0 h-full w-full object-cover" />}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <svg className="w-16 h-16 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
@@ -198,13 +136,13 @@ export default function Blogs() {
                     <div className="flex items-center gap-2">
                       <span>{blog.author}</span>
                       <span>•</span>
-                      <span>{blog.date}</span>
+                      <span>{new Date(blog.published_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</span>
                     </div>
-                    <span>{blog.readTime}</span>
+                    <span>{blog.read_time}</span>
                   </div>
 
                   {/* Read More Button */}
-                  <button className={`mt-4 w-full py-2.5 rounded-lg font-semibold text-sm transition-colors ${isDarkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                  <button onClick={() => setSelectedBlog(blog)} className={`mt-4 w-full py-2.5 rounded-lg font-semibold text-sm transition-colors ${isDarkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
                     Read More
                   </button>
                 </div>
@@ -212,14 +150,20 @@ export default function Blogs() {
             ))}
           </div>
 
-          {/* Load More */}
-          <div className={`mt-10 sm:mt-12 text-center ${visibleSections.content ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.5s' }}>
-            <button className={`px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 ${isDarkMode ? 'bg-white text-[#010080] hover:bg-gray-100' : 'bg-[#010080] text-white hover:bg-[#010060]'}`}>
-              Load More Articles
-            </button>
-          </div>
         </div>
       </section>
+      {selectedBlog && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/60 p-4" onClick={() => setSelectedBlog(null)}>
+          <article className={`mx-auto my-8 max-w-3xl rounded-2xl p-6 sm:p-10 ${isDarkMode ? "bg-[#050040] text-white" : "bg-white text-gray-900"}`} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setSelectedBlog(null)} className="float-right text-2xl" aria-label="Close">×</button>
+            {selectedBlog.image_url && <img src={resolveMediaUrl(selectedBlog.image_url) || selectedBlog.image_url} alt={selectedBlog.title} className="mb-6 max-h-96 w-full rounded-xl object-cover" />}
+            <span className="text-sm font-semibold text-blue-600">{selectedBlog.category}</span>
+            <h2 className="mt-2 text-3xl font-bold">{selectedBlog.title}</h2>
+            <p className="mt-2 text-sm text-gray-500">{selectedBlog.author} · {new Date(selectedBlog.published_at).toLocaleDateString()} · {selectedBlog.read_time}</p>
+            <div className="mt-6 whitespace-pre-wrap leading-7">{selectedBlog.content}</div>
+          </article>
+        </div>
+      )}
     </div>
   );
 }

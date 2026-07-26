@@ -77,7 +77,7 @@ export default function Header() {
     <header className={`sticky top-0 z-50 transition-all duration-300 ${isDarkMode ? 'bg-[#03002e]' : (mobileMenuOpen ? 'bg-white' : 'bg-white/95 backdrop-blur-sm')}`} style={{ fontFamily: 'var(--font-opensans)' }}>
       {/* Top Blue Line Container */}
       <div className="w-full h-6 bg-[#010080] flex items-center justify-center">
-        <span className="text-white text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase">Blue Print English Academy</span>
+        <span className="text-white text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase"></span>
       </div>
 
       <div className="container mx-auto px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8">

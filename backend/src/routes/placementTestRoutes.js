@@ -7,6 +7,8 @@ import {
   getAllPlacementResults,
   getStudentPlacementResults,
   gradePlacementTest,
+  updatePlacementTest,
+  deletePlacementTest,
 } from "../controllers/placementTestController.js";
 import { verifyToken, isAdmin } from "../controllers/authController.js";
 
@@ -21,5 +23,7 @@ router.get("/:id", getPlacementTestById);
 
 // Admin only
 router.post("/", verifyToken, isAdmin, createPlacementTest);
+router.put("/:id", verifyToken, isAdmin, updatePlacementTest);
+router.delete("/:id", verifyToken, isAdmin, deletePlacementTest);
 
 export default router;

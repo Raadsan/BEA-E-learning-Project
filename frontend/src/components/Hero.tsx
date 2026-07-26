@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useGetHomepageQuery } from "@/lib/api/homepageApi";
+import { resolveMediaUrl } from "@/constants";
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const { data } = useGetHomepageQuery();
 
-  const slides = [
+  const defaultSlides = [
     {
       id: 1,
       image: "/images/A Path to Global Opportunities.jpg",
@@ -25,6 +28,7 @@ export default function Hero() {
       alt: "Student-Centered Learning"
     },
   ];
+  const slides = (data?.hero_images?.length ? data.hero_images : defaultSlides.map((slide) => slide.image)).map((image: string, index: number) => ({ id: index + 1, image: image.startsWith('/images/') ? image : (resolveMediaUrl(image) || image), alt: `${data?.hero_title || 'BEA'} slide ${index + 1}` }));
 
   // Auto-play slideshow
   useEffect(() => {
@@ -95,28 +99,28 @@ export default function Hero() {
             {/* Main Heading - Balanced Sizes */}
             <h1 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-serif font-extrabold mb-3 sm:mb-4 md:mb-5 lg:mb-7 leading-[1.15] tracking-tight">
               <span className="inline-block drop-shadow-2xl animate-slide-in-left">
-                Master English with
+                {data?.hero_title || "Master English with"}
               </span>
               <br />
               <span className="inline-block bg-gradient-to-r from-red-500 via-red-600 to-red-700 bg-clip-text text-transparent drop-shadow-lg animate-slide-in-right" style={{ WebkitTextFillColor: 'transparent', WebkitBackgroundClip: 'text' }}>
-                Global Standards
+                {data?.hero_highlight || "Global Standards"}
               </span>
             </h1>
 
             {/* Description - Balanced Sizes */}
             <p className="text-white/95 text-sm sm:text-base md:text-lg lg:text-xl mb-5 sm:mb-6 md:mb-7 lg:mb-8 leading-relaxed max-w-lg md:max-w-xl lg:max-w-2xl drop-shadow-lg font-medium animate-fade-in delay-300">
-              Structured learning from A1 to C2, powered by CEFR framework and GSE scoring. Join thousands of learners across Somalia achieving their English language goals.
+              {data?.hero_description || "Structured learning from A1 to C2, powered by CEFR framework and GSE scoring. Join thousands of learners across Somalia achieving their English language goals."}
             </p>
 
             {/* Premium CTA Button */}
             <div className="animate-fade-in delay-500">
               <Link
-                href="/auth/registration"
+                href={data?.cta_link || "/auth/registration"}
                 className="group inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-red-600 to-red-700 text-white px-5 sm:px-6 md:px-8 lg:px-10 py-2.5 sm:py-3 md:py-4 lg:py-5 rounded-xl font-bold hover:from-red-700 hover:to-red-800 transition-all duration-500 text-sm sm:text-base md:text-lg lg:text-xl shadow-2xl hover:shadow-red-600/50 transform hover:scale-105 hover:-translate-y-1 active:scale-95 ring-2 ring-white/20 hover:ring-white/40"
               >
                 <span className="text-base sm:text-lg md:text-xl lg:text-2xl transition-transform duration-300 group-hover:translate-x-1">→</span>
                 <span className="relative">
-                  Start Learning Today
+                  {data?.cta_text || "Start Learning Today"}
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white/50 group-hover:w-full transition-all duration-300"></span>
                 </span>
               </Link>

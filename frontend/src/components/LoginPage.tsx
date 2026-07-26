@@ -3,12 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useTheme } from "@/context/ThemeContext";
 import { useLoginMutation } from "@/lib/api/authApi";
 import { redirectAfterLogin, saveAuthSession } from "@/utils/authSession";
 
 export default function LoginPage() {
-  const { isDarkMode } = useTheme();
   const [login, { isLoading }] = useLoginMutation();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -60,32 +58,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
-      <div
-        className="hidden md:flex md:w-1/2 relative items-center justify-center"
-        style={{ backgroundColor: "#010080" }}
-      >
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white rounded-full"></div>
-          <div className="absolute bottom-20 right-20 w-48 h-48 border-2 border-white rounded-full"></div>
-        </div>
-        <div className="relative z-10 text-center px-12">
-          <Image src="/images/footerlogo.png" alt="BEA Logo" width={280} height={100} className="mx-auto mb-8" />
-          <h1 className="text-4xl font-serif font-bold text-white mb-4">Welcome Back!</h1>
-          <p className="text-blue-200 text-lg leading-relaxed max-w-md mx-auto">
-            Sign in with your email and password to access your portal.
-          </p>
-        </div>
-      </div>
-
-      <div className="w-full md:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 bg-gray-50">
-        <div className="w-full max-w-md">
-          <div className="md:hidden text-center mb-6 sm:mb-8">
-            <Image src="/images/headerlogo.png" alt="BEA Logo" width={180} height={60} className="mx-auto" />
+    <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10 sm:px-6">
+      <div className="flex min-h-[680px] w-full max-w-xl flex-col justify-center bg-white px-6 py-10 shadow-2xl sm:px-14 sm:py-12">
+          <div className="mb-7 text-center">
+            <Image
+              src="/images/headerlogo.png"
+              alt="BEA Logo"
+              width={280}
+              height={135}
+              className="mx-auto h-[120px] w-[250px] object-contain sm:h-[135px] sm:w-[280px]"
+              priority
+            />
           </div>
-
           <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-2" style={{ color: isDarkMode ? "#ffffff" : "#010080" }}>
+            <h2 className="text-3xl font-serif font-bold mb-2 text-[#010080]">
               Sign In
             </h2>
             <p className="text-gray-600 text-sm sm:text-base">Enter your credentials to access your account</p>
@@ -176,8 +162,7 @@ export default function LoginPage() {
               </Link>
             </p>
           </form>
-        </div>
       </div>
-    </div>
+    </main>
   );
 }

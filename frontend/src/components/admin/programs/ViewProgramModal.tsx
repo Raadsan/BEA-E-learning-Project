@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useGetSubprogramsByProgramIdQuery } from "@/lib/api/subprogramApi";
 import AuditTrailSection from "@/components/admin/AuditTrailSection";
+import { getYouTubeEmbedUrl } from "@/utils/youtube";
 
 export default function ViewProgramModal({ program, onClose, isDark }) {
     const { data: subprograms, isLoading, isError } = useGetSubprogramsByProgramIdQuery(program?.id, {
@@ -120,7 +121,7 @@ export default function ViewProgramModal({ program, onClose, isDark }) {
                                     <div className={`p-3 rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
                                         <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'
                                             }`}>Video</label>
-                                        <video src={program.video} controls className="w-full h-48 object-cover rounded" />
+                                        <iframe src={getYouTubeEmbedUrl(program.video)} title={program.title} className="h-48 w-full rounded" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
                                     </div>
                                 )}
                             </div>
