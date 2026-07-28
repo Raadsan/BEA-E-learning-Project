@@ -289,11 +289,30 @@ export const updateStudent = async (req, res) => {
     const data = { ...req.body };
     if (req.file) data.profile_picture = getStoredFileUrl(req.file);
 
+    // The general students table stores a single full_name value. The shared
+    // admin form also sends IELTS/proficiency-only fields, which Prisma rejects.
+    const submittedFirstName = String(data.first_name || "").trim();
+    const submittedLastName = String(data.last_name || "").trim();
+    if (submittedFirstName || submittedLastName) {
+      data.full_name = `${submittedFirstName} ${submittedLastName}`.trim();
+    }
+
     // Clean up fields that do not exist on the schema or cannot be updated directly
     delete data.id;
     delete data.student_id;
     delete data.type;
+    delete data.first_name;
+    delete data.last_name;
+    delete data.gender;
     delete data.confirmPassword;
+    delete data.confirm_password;
+    delete data.verification_method;
+    delete data.certificate_institution;
+    delete data.certificate_date;
+    delete data.certificate_document;
+    delete data.exam_type;
+    delete data.status;
+    delete data.registration_date;
     delete data.created_by;
     delete data.created_by_name;
     delete data.updated_by;

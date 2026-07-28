@@ -77,7 +77,10 @@ export const assignmentApi = createApi({
                 if (body instanceof FormData) {
                     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
                     try {
-                        const response = await fetch(`${DIRECT_API_URL}/assignments/submit`, {
+                        // Use the website's same-origin API proxy. A direct :7004
+                        // request works locally but is commonly blocked in production
+                        // by TLS, firewall, or CORS configuration.
+                        const response = await fetch(`${API_URL}/assignments/submit`, {
                             method: "POST",
                             headers: token ? { Authorization: `Bearer ${token}` } : {},
                             body,

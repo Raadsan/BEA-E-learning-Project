@@ -789,7 +789,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                             selectedAssignment.file_url.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i) ? (
                                                 <img className="w-full max-h-96 object-contain rounded-lg" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} alt="Submission" />
                                             ) : selectedAssignment.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
-                                                <video controls className="w-full rounded-lg" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} />
+                                                <video controls className="mx-auto aspect-video w-full max-w-3xl max-h-[420px] rounded-lg bg-black object-contain" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} />
                                             ) : (
                                                 <audio controls className="w-full" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} />
                                             )
@@ -857,7 +857,7 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                                     </button>
                                                 </div>
                                                 {uploadedFile.type.startsWith('video/') ? (
-                                                    <video controls className="w-full rounded-lg" src={filePreviewUrl} />
+                                                    <video controls className="mx-auto aspect-video w-full max-w-3xl max-h-[420px] rounded-lg bg-black object-contain" src={filePreviewUrl} />
                                                 ) : uploadedFile.type.startsWith('image/') ? (
                                                     <img className="w-full max-h-96 object-contain rounded-lg" src={filePreviewUrl} alt="Preview" />
                                                 ) : (
