@@ -22361,6 +22361,8 @@ export namespace Prisma {
     start_date: number
     end_date: number
     holidays: number
+    class_ids: number
+    subprogram_ids: number
     display_order: number
     is_active: number
     created_at: number
@@ -22409,6 +22411,8 @@ export namespace Prisma {
     start_date?: true
     end_date?: true
     holidays?: true
+    class_ids?: true
+    subprogram_ids?: true
     display_order?: true
     is_active?: true
     created_at?: true
@@ -22508,6 +22512,8 @@ export namespace Prisma {
     start_date: Date
     end_date: Date
     holidays: string | null
+    class_ids: JsonValue | null
+    subprogram_ids: JsonValue | null
     display_order: number
     is_active: boolean | null
     created_at: Date | null
@@ -22539,6 +22545,8 @@ export namespace Prisma {
     start_date?: boolean
     end_date?: boolean
     holidays?: boolean
+    class_ids?: boolean
+    subprogram_ids?: boolean
     display_order?: boolean
     is_active?: boolean
     created_at?: boolean
@@ -22553,13 +22561,15 @@ export namespace Prisma {
     start_date?: boolean
     end_date?: boolean
     holidays?: boolean
+    class_ids?: boolean
+    subprogram_ids?: boolean
     display_order?: boolean
     is_active?: boolean
     created_at?: boolean
     updated_at?: boolean
   }
 
-  export type course_timelineOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "term_serial" | "start_date" | "end_date" | "holidays" | "display_order" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["course_timeline"]>
+  export type course_timelineOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "term_serial" | "start_date" | "end_date" | "holidays" | "class_ids" | "subprogram_ids" | "display_order" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["course_timeline"]>
 
   export type $course_timelinePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "course_timeline"
@@ -22570,6 +22580,8 @@ export namespace Prisma {
       start_date: Date
       end_date: Date
       holidays: string | null
+      class_ids: Prisma.JsonValue | null
+      subprogram_ids: Prisma.JsonValue | null
       display_order: number
       is_active: boolean | null
       created_at: Date | null
@@ -22948,6 +22960,8 @@ export namespace Prisma {
     readonly start_date: FieldRef<"course_timeline", 'DateTime'>
     readonly end_date: FieldRef<"course_timeline", 'DateTime'>
     readonly holidays: FieldRef<"course_timeline", 'String'>
+    readonly class_ids: FieldRef<"course_timeline", 'Json'>
+    readonly subprogram_ids: FieldRef<"course_timeline", 'Json'>
     readonly display_order: FieldRef<"course_timeline", 'Int'>
     readonly is_active: FieldRef<"course_timeline", 'Boolean'>
     readonly created_at: FieldRef<"course_timeline", 'DateTime'>
@@ -71746,6 +71760,8 @@ export namespace Prisma {
     start_date: 'start_date',
     end_date: 'end_date',
     holidays: 'holidays',
+    class_ids: 'class_ids',
+    subprogram_ids: 'subprogram_ids',
     display_order: 'display_order',
     is_active: 'is_active',
     created_at: 'created_at',
@@ -75158,6 +75174,8 @@ export namespace Prisma {
     start_date?: DateTimeFilter<"course_timeline"> | Date | string
     end_date?: DateTimeFilter<"course_timeline"> | Date | string
     holidays?: StringNullableFilter<"course_timeline"> | string | null
+    class_ids?: JsonNullableFilter<"course_timeline">
+    subprogram_ids?: JsonNullableFilter<"course_timeline">
     display_order?: IntFilter<"course_timeline"> | number
     is_active?: BoolNullableFilter<"course_timeline"> | boolean | null
     created_at?: DateTimeNullableFilter<"course_timeline"> | Date | string | null
@@ -75170,6 +75188,8 @@ export namespace Prisma {
     start_date?: SortOrder
     end_date?: SortOrder
     holidays?: SortOrderInput | SortOrder
+    class_ids?: SortOrderInput | SortOrder
+    subprogram_ids?: SortOrderInput | SortOrder
     display_order?: SortOrder
     is_active?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -75186,6 +75206,8 @@ export namespace Prisma {
     start_date?: DateTimeFilter<"course_timeline"> | Date | string
     end_date?: DateTimeFilter<"course_timeline"> | Date | string
     holidays?: StringNullableFilter<"course_timeline"> | string | null
+    class_ids?: JsonNullableFilter<"course_timeline">
+    subprogram_ids?: JsonNullableFilter<"course_timeline">
     display_order?: IntFilter<"course_timeline"> | number
     is_active?: BoolNullableFilter<"course_timeline"> | boolean | null
     created_at?: DateTimeNullableFilter<"course_timeline"> | Date | string | null
@@ -75198,6 +75220,8 @@ export namespace Prisma {
     start_date?: SortOrder
     end_date?: SortOrder
     holidays?: SortOrderInput | SortOrder
+    class_ids?: SortOrderInput | SortOrder
+    subprogram_ids?: SortOrderInput | SortOrder
     display_order?: SortOrder
     is_active?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -75218,6 +75242,8 @@ export namespace Prisma {
     start_date?: DateTimeWithAggregatesFilter<"course_timeline"> | Date | string
     end_date?: DateTimeWithAggregatesFilter<"course_timeline"> | Date | string
     holidays?: StringNullableWithAggregatesFilter<"course_timeline"> | string | null
+    class_ids?: JsonNullableWithAggregatesFilter<"course_timeline">
+    subprogram_ids?: JsonNullableWithAggregatesFilter<"course_timeline">
     display_order?: IntWithAggregatesFilter<"course_timeline"> | number
     is_active?: BoolNullableWithAggregatesFilter<"course_timeline"> | boolean | null
     created_at?: DateTimeNullableWithAggregatesFilter<"course_timeline"> | Date | string | null
@@ -81144,6 +81170,8 @@ export namespace Prisma {
     start_date: Date | string
     end_date: Date | string
     holidays?: string | null
+    class_ids?: NullableJsonNullValueInput | InputJsonValue
+    subprogram_ids?: NullableJsonNullValueInput | InputJsonValue
     display_order: number
     is_active?: boolean | null
     created_at?: Date | string | null
@@ -81156,6 +81184,8 @@ export namespace Prisma {
     start_date: Date | string
     end_date: Date | string
     holidays?: string | null
+    class_ids?: NullableJsonNullValueInput | InputJsonValue
+    subprogram_ids?: NullableJsonNullValueInput | InputJsonValue
     display_order: number
     is_active?: boolean | null
     created_at?: Date | string | null
@@ -81167,6 +81197,8 @@ export namespace Prisma {
     start_date?: DateTimeFieldUpdateOperationsInput | Date | string
     end_date?: DateTimeFieldUpdateOperationsInput | Date | string
     holidays?: NullableStringFieldUpdateOperationsInput | string | null
+    class_ids?: NullableJsonNullValueInput | InputJsonValue
+    subprogram_ids?: NullableJsonNullValueInput | InputJsonValue
     display_order?: IntFieldUpdateOperationsInput | number
     is_active?: NullableBoolFieldUpdateOperationsInput | boolean | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -81179,6 +81211,8 @@ export namespace Prisma {
     start_date?: DateTimeFieldUpdateOperationsInput | Date | string
     end_date?: DateTimeFieldUpdateOperationsInput | Date | string
     holidays?: NullableStringFieldUpdateOperationsInput | string | null
+    class_ids?: NullableJsonNullValueInput | InputJsonValue
+    subprogram_ids?: NullableJsonNullValueInput | InputJsonValue
     display_order?: IntFieldUpdateOperationsInput | number
     is_active?: NullableBoolFieldUpdateOperationsInput | boolean | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -81191,6 +81225,8 @@ export namespace Prisma {
     start_date: Date | string
     end_date: Date | string
     holidays?: string | null
+    class_ids?: NullableJsonNullValueInput | InputJsonValue
+    subprogram_ids?: NullableJsonNullValueInput | InputJsonValue
     display_order: number
     is_active?: boolean | null
     created_at?: Date | string | null
@@ -81202,6 +81238,8 @@ export namespace Prisma {
     start_date?: DateTimeFieldUpdateOperationsInput | Date | string
     end_date?: DateTimeFieldUpdateOperationsInput | Date | string
     holidays?: NullableStringFieldUpdateOperationsInput | string | null
+    class_ids?: NullableJsonNullValueInput | InputJsonValue
+    subprogram_ids?: NullableJsonNullValueInput | InputJsonValue
     display_order?: IntFieldUpdateOperationsInput | number
     is_active?: NullableBoolFieldUpdateOperationsInput | boolean | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -81214,6 +81252,8 @@ export namespace Prisma {
     start_date?: DateTimeFieldUpdateOperationsInput | Date | string
     end_date?: DateTimeFieldUpdateOperationsInput | Date | string
     holidays?: NullableStringFieldUpdateOperationsInput | string | null
+    class_ids?: NullableJsonNullValueInput | InputJsonValue
+    subprogram_ids?: NullableJsonNullValueInput | InputJsonValue
     display_order?: IntFieldUpdateOperationsInput | number
     is_active?: NullableBoolFieldUpdateOperationsInput | boolean | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -87486,6 +87526,8 @@ export namespace Prisma {
     start_date?: SortOrder
     end_date?: SortOrder
     holidays?: SortOrder
+    class_ids?: SortOrder
+    subprogram_ids?: SortOrder
     display_order?: SortOrder
     is_active?: SortOrder
     created_at?: SortOrder

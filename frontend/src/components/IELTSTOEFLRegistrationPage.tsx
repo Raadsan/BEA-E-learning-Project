@@ -201,9 +201,9 @@ export default function IELTSTOEFLRegistrationPage() {
   };
 
   return (
-    <div className={`min-h-screen flex ${isDarkMode ? 'bg-[#03002e]' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen flex items-start justify-center px-4 py-10 sm:px-6 ${isDarkMode ? 'bg-[#03002e]' : 'bg-gray-100'}`}>
       {/* Left Side - Brand Section */}
-      <div className="hidden md:flex md:w-1/2 fixed left-0 top-0 h-screen items-center justify-center overflow-hidden" style={{ backgroundColor: '#010080' }}>
+      <div className="hidden" style={{ backgroundColor: '#010080' }}>
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white rounded-full"></div>
           <div className="absolute bottom-20 right-20 w-48 h-48 border-2 border-white rounded-full"></div>
@@ -238,13 +238,16 @@ export default function IELTSTOEFLRegistrationPage() {
       </div>
 
       {/* Right Side - Registration Form */}
-      <div className="w-full md:w-1/2 md:ml-[50%] min-h-screen flex flex-col p-4 sm:p-6 md:p-8 lg:p-12 bg-gray-50 overflow-y-auto">
+      <div className="w-full max-w-3xl flex flex-col bg-white px-4 py-6 shadow-2xl sm:px-8 lg:px-12">
         <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4 self-start">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
           <span className="text-sm font-medium">Go Back</span>
         </button>
 
         <div className="w-full max-w-xl py-6 mx-auto flex-grow flex flex-col justify-center">
+          <div className="text-center mb-6">
+            <Image src="/images/headerlogo.png" alt="BEA Logo" width={280} height={135} className="mx-auto h-[120px] w-[250px] object-contain" priority />
+          </div>
           <div className="text-center mb-8">
             <h2 className="text-4xl font-serif font-bold mb-1" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>Admission Portal</h2>
             <p className="text-sm text-gray-600">IELTS & TOEFL Registration - 4 Simple Steps</p>

@@ -6,6 +6,7 @@ import { useGetPlacementTestByIdQuery } from "@/lib/api/placementTestApi";
 
 import Loader from "@/components/Loader";
 import { groupQuestionsByPartForAdminPreview } from "@/utils/testQuestions";
+import SectionInformation, { buildSectionInformation } from "@/components/assessments/SectionInformation";
 
 export default function PlacementTestDetailsPage() {
     const router = useRouter();
@@ -126,6 +127,13 @@ export default function PlacementTestDetailsPage() {
                                                 'Part 4: Final Assessment (MCQ)'}
                                 </h3>
                             </div>
+
+                            <SectionInformation
+                                meta={buildSectionInformation(
+                                    questionsByPart[partNum],
+                                    partNum === 1 ? "Basic Structure" : partNum === 2 ? "Comprehension" : partNum === 3 ? "Written Ability" : "Final Assessment"
+                                )}
+                            />
 
                             <div className="space-y-4">
                                 {questionsByPart[partNum].length === 0 ? (

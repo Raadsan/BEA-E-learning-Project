@@ -312,15 +312,17 @@ model contact_page_settings {
 }
 
 model course_timeline {
-  id            Int       @id @default(autoincrement())
-  term_serial   String    @unique(map: "term_serial") @db.VarChar(50)
-  start_date    DateTime  @db.Date
-  end_date      DateTime  @db.Date
-  holidays      String?   @db.Text
-  display_order Int
-  is_active     Boolean?  @default(true)
-  created_at    DateTime? @default(now()) @db.Timestamp(0)
-  updated_at    DateTime? @default(now()) @db.Timestamp(0)
+  id             Int       @id @default(autoincrement())
+  term_serial    String    @unique(map: "term_serial") @db.VarChar(50)
+  start_date     DateTime  @db.Date
+  end_date       DateTime  @db.Date
+  holidays       String?   @db.Text
+  class_ids      Json?
+  subprogram_ids Json?
+  display_order  Int
+  is_active      Boolean?  @default(true)
+  created_at     DateTime? @default(now()) @db.Timestamp(0)
+  updated_at     DateTime? @default(now()) @db.Timestamp(0)
 
   @@index([display_order], map: "idx_display_order")
   @@index([is_active], map: "idx_is_active")

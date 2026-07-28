@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/placementTestApi";
 import { useSendTestReminderEmailMutation } from "@/lib/api/notificationApi";
 import { ensureQuestionNumbers } from "@/utils/testQuestions";
+import SectionInformation, { buildSectionInformation } from "@/components/assessments/SectionInformation";
 
 const PLACEMENT_MAX_PART = 4;
 
@@ -269,6 +270,15 @@ export default function TakePlacementTestPage() {
           <div className="bg-[#010080] text-white px-5 py-2 rounded-lg font-mono text-lg font-semibold min-w-[100px] text-center">
             {formatTime(timeRemaining)}
           </div>
+        </div>
+
+        <div className="sticky top-2 z-20">
+          <SectionInformation
+            meta={buildSectionInformation(
+              currentPartQuestions,
+              `Part ${currentPart}`
+            )}
+          />
         </div>
 
         {/* Question Area */}

@@ -47,8 +47,6 @@ const CountdownCircle = ({ value, label, max, color, isDark }) => {
 };
 
 const DashboardTermCounter = ({ isDark, user }) => {
-    const { data: dbTimelines = [], isLoading } = useGetTimelinesQuery();
-
     // Get current date info for calendar check (Memoized to prevent instability)
     const { currentMonth, currentYear } = useMemo(() => {
         const d = new Date();
@@ -65,6 +63,10 @@ const DashboardTermCounter = ({ isDark, user }) => {
         () => resolveStudentSubprogramId(user, studentClass, allSubprograms),
         [user, studentClass, allSubprograms]
     );
+    const { data: dbTimelines = [], isLoading } = useGetTimelinesQuery({
+        class_id: user?.class_id,
+        subprogram_id: subprogramId,
+    });
 
     // Fetch Academic Timetable to check if classes are scheduled
     const { data: academicCalendar, isLoading: calendarLoading } = useGetAcademicCalendarQuery(
@@ -136,7 +138,10 @@ const DashboardTermCounter = ({ isDark, user }) => {
             }
 
             if (targetTerm) {
-                const difference = mode === "active" ? targetTerm.end.getTime() - now.getTime() : 0;
+                // Use the same Course Timeline dates as the public website:
+                // active terms count down to the end; upcoming terms to the start.
+                const targetDate = mode === "active" ? targetTerm.end : targetTerm.start;
+                const difference = targetDate.getTime() - now.getTime();
 
                 setTimeLeft(prev => {
                     const newDays = difference > 0 ? Math.floor(difference / (1000 * 60 * 60 * 24)) : 0;
@@ -192,13 +197,13 @@ const DashboardTermCounter = ({ isDark, user }) => {
                 <div className="text-center md:text-left">
                     <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-2 ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-700'}`}>
                         <span className={`w-2 h-2 rounded-full animate-pulse ${timeLeft.label === "No Scheduled Classes" ? "bg-red-500" : "bg-blue-500"}`}></span>
-                        Term Cycle Information
+                        Course Timeline
                     </div>
                     <h2 className={`text-2xl font-bold mb-1 ${isDark ? "text-white" : "text-[#010080]"}`}>
                         {timeLeft.termSerial}
                     </h2>
                     <p className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                        {timeLeft.label === "No Scheduled Classes" ? "No Timetable Assigned" : `Cycle ${timeLeft.label}`}
+                        {timeLeft.label === "No Scheduled Classes" ? "No Timeline Assigned" : timeLeft.label}
                     </p>
                 </div>
 

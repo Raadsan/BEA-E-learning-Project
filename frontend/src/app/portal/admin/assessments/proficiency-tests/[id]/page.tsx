@@ -7,6 +7,7 @@ import { resolveMediaUrl } from "@/constants";
 
 import Loader from "@/components/Loader";
 import { groupQuestionsByPartForAdminPreview } from "@/utils/testQuestions";
+import SectionInformation, { buildSectionInformation } from "@/components/assessments/SectionInformation";
 
 export default function ProficiencyTestDetailsPage() {
     const router = useRouter();
@@ -140,6 +141,13 @@ export default function ProficiencyTestDetailsPage() {
                                                     'Part 5: Audio Interpretation (Listening)'}
                                 </h3>
                             </div>
+
+                            <SectionInformation
+                                meta={buildSectionInformation(
+                                    questionsByPart[pNum],
+                                    pNum === 1 ? "Basic Structure" : pNum === 2 ? "Comprehension" : pNum === 3 ? "Written Ability" : pNum === 4 ? "Final Assessment" : "Audio Interpretation"
+                                )}
+                            />
 
                             <div className="space-y-4">
                                 {questionsByPart[pNum].length === 0 ? (

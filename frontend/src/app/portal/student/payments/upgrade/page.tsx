@@ -71,6 +71,12 @@ export default function UpgradePaymentPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
           {studentPackages.map((pkg) => {
+            const packageDiscountPercent = pkg.basePrice > 0
+              ? Math.round(((pkg.basePrice - pkg.packagePrice) / pkg.basePrice) * 100)
+              : 0;
+            const scholarshipDiscountPercent = pkg.packagePrice > 0
+              ? Math.round(((pkg.packagePrice - pkg.studentPrice) / pkg.packagePrice) * 100)
+              : 0;
             const isExpanded = expandedPkgId === pkg.id;
             const descriptionLines = (pkg.description || "• Standard access\n• Study materials\n• Academic support")
               .split("\n")
@@ -87,6 +93,11 @@ export default function UpgradePaymentPage() {
                     : "bg-white border-gray-200 hover:border-blue-100 shadow-sm"
                 } hover:-translate-y-2 hover:shadow-2xl hover:z-10`}
               >
+                {(packageDiscountPercent > 0 || scholarshipDiscountPercent > 0) && (
+                  <div className="absolute right-5 top-5 rounded-full bg-green-600 px-3 py-1 text-xs font-bold text-white shadow">
+                    {Math.max(packageDiscountPercent, scholarshipDiscountPercent)}% OFF
+                  </div>
+                )}
                 <div className="mb-6">
                   <h3 className={`text-xl font-semibold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
                     {pkg.package_name}
@@ -100,12 +111,12 @@ export default function UpgradePaymentPage() {
                   </div>
                   {pkg.hasPackageDiscount && (
                     <p className="text-sm text-amber-600 mt-2 font-semibold">
-                      Package discount applied (regular ${pkg.basePrice.toFixed(2)})
+                      {packageDiscountPercent}% package discount
                     </p>
                   )}
                   {pkg.hasScholarshipDiscount && (
                     <p className="text-sm text-green-600 mt-2 font-semibold">
-                      Scholarship/discount applied (was ${pkg.packagePrice.toFixed(2)})
+                      {scholarshipDiscountPercent}% scholarship discount
                     </p>
                   )}
                 </div>

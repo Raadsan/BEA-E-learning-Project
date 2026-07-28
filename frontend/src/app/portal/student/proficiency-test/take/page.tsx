@@ -13,6 +13,7 @@ import {
 import { useGetIeltsToeflStudentQuery } from "@/lib/api/ieltsToeflApi";
 import { useSendTestReminderEmailMutation } from "@/lib/api/notificationApi";
 import { ensureQuestionNumbers } from "@/utils/testQuestions";
+import SectionInformation, { buildSectionInformation } from "@/components/assessments/SectionInformation";
 
 const PROFICIENCY_MAX_PART = 5;
 
@@ -256,6 +257,15 @@ export default function TakeProficiencyTestPage() {
                         }`}>
                         {formatTime(timeRemaining)}
                     </div>
+                </div>
+
+                <div className="sticky top-2 z-20">
+                    <SectionInformation
+                        meta={buildSectionInformation(
+                            currentPartQuestions,
+                            `Part ${currentPart}`
+                        )}
+                    />
                 </div>
 
                 {/* Main Card */}

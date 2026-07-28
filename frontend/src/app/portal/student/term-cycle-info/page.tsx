@@ -301,8 +301,8 @@ export default function TermCycleInfoPage() {
   return (
     <div className="space-y-8 px-6 md:px-8 pt-4 pb-6 md:pb-8">
         <StudentPageHeader
-          title="Term Cycle Information"
-          description="Access your academic schedule and term progress."
+          title="Course Timeline"
+          description="Access your course timeline, academic schedule and term progress."
           actions={
             <div className="flex items-center gap-3">
               <select

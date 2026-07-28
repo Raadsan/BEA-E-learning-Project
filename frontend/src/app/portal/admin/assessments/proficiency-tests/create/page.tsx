@@ -14,6 +14,7 @@ import { useToast } from "@/components/Toast";
 import { v4 as uuidv4 } from "uuid";
 import { useDarkMode } from "@/context/ThemeContext";
 import PassageSubQuestionsEditor from "@/components/admin/assessments/PassageSubQuestionsEditor";
+import SectionMetadataFields, { attachSectionMetadata, defaultSectionMeta } from "@/components/admin/assessments/SectionMetadataFields";
 import {
     ensureQuestionNumbers,
     formatQuestionLabel,
@@ -46,6 +47,11 @@ export default function CreateProficiencyTestPage() {
     });
 
     const [questions, setQuestions] = useState([]);
+    const [sectionMetadata, setSectionMetadata] = useState({
+        1: defaultSectionMeta("MCQs"), 2: defaultSectionMeta("Reading passage"),
+        3: defaultSectionMeta("Essay"), 4: defaultSectionMeta("MCQs"),
+        5: defaultSectionMeta("Audio"),
+    });
 
     // Load existing test data if it's a draft
     useEffect(() => {
@@ -60,6 +66,17 @@ export default function CreateProficiencyTestPage() {
                 ? JSON.parse(existingTest.questions)
                 : existingTest.questions;
             setQuestions(ensureQuestionNumbers(parsedQuestions || [], PROFICIENCY_MAX_PART));
+            setSectionMetadata((previous) => {
+                const next = { ...previous };
+                const loadedParts = new Set();
+                (parsedQuestions || []).forEach((q) => {
+                    if (q.sectionMeta && q.part && !loadedParts.has(q.part)) {
+                        next[q.part] = q.sectionMeta;
+                        loadedParts.add(q.part);
+                    }
+                });
+                return next;
+            });
         }
     }, [existingTest]);
     const [editingIndex, setEditingIndex] = useState(null);
@@ -118,27 +135,31 @@ export default function CreateProficiencyTestPage() {
     const addToTestList = () => {
         let q = null;
         const type = steps[currentStep - 1].type;
+        const currentCount = questions.filter((item) => item.part === currentStep).length;
+        if (editingIndex === null && currentCount >= sectionMetadata[currentStep].questions) {
+            return showToast(`Part ${currentStep} cannot exceed ${sectionMetadata[currentStep].questions} questions`, "error");
+        }
         if (type === "mcq") {
             if (!currentMCQ.questionText || currentMCQ.options.some(o => !o)) {
                 return showToast("Fill all MCQ fields", "error");
             }
-            q = { ...currentMCQ, part: currentStep };
+            q = { ...currentMCQ, part: currentStep, sectionMeta: sectionMetadata[currentStep] };
         } else if (type === "passage") {
             if (!currentPassage.passageText || currentPassage.subQuestions.length === 0) {
                 return showToast("Add passage text and sub-questions", "error");
             }
             const totalPoints = currentPassage.subQuestions.reduce((acc, sq) => acc + (parseInt(sq.points) || 0), 0);
-            q = { ...currentPassage, points: totalPoints, part: currentStep };
+            q = { ...currentPassage, points: totalPoints, part: currentStep, sectionMeta: sectionMetadata[currentStep] };
         } else if (type === "essay") {
             if (!currentEssay.title) {
                 return showToast("Add essay title", "error");
             }
-            q = { ...currentEssay, part: currentStep };
+            q = { ...currentEssay, part: currentStep, sectionMeta: sectionMetadata[currentStep] };
         } else if (type === "audio") {
             if (!currentAudio.title || !currentAudio.audioUrl) {
                 return showToast("Add audio title and URL", "error");
             }
-            q = { ...currentAudio, part: currentStep };
+            q = { ...currentAudio, part: currentStep, sectionMeta: sectionMetadata[currentStep] };
         }
 
         const nextQuestions =
@@ -206,7 +227,7 @@ export default function CreateProficiencyTestPage() {
             const payload = {
                 ...testData,
                 title: draftTitle,
-                questions: renumberQuestionsByPart(questions, PROFICIENCY_MAX_PART),
+                questions: attachSectionMetadata(renumberQuestionsByPart(questions, PROFICIENCY_MAX_PART), sectionMetadata),
                 status: "draft",
             };
             if (testId) {
@@ -230,7 +251,7 @@ export default function CreateProficiencyTestPage() {
         try {
             const payload = {
                 ...testData,
-                questions: renumberQuestionsByPart(questions, PROFICIENCY_MAX_PART),
+                questions: attachSectionMetadata(renumberQuestionsByPart(questions, PROFICIENCY_MAX_PART), sectionMetadata),
                 status: "active",
             };
             if (testId) {
@@ -373,6 +394,12 @@ export default function CreateProficiencyTestPage() {
                                     </div>
                                 </div>
                             </div>
+
+                            <SectionMetadataFields
+                                value={sectionMetadata[currentStep]}
+                                currentCount={questions.filter((q) => q.part === currentStep).length}
+                                onChange={(value) => setSectionMetadata({ ...sectionMetadata, [currentStep]: value })}
+                            />
 
                             {/* 2. Question Form Box */}
                             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">

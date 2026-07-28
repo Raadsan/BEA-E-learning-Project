@@ -292,10 +292,10 @@ export default function RegistrationPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex items-start justify-center bg-gray-100 px-4 py-10 sm:px-6">
       {/* Left Side - Brand Section (Fixed, Like Sign In Page) */}
       <div
-        className="hidden md:flex md:w-1/2 fixed left-0 top-0 h-screen items-center justify-center"
+        className="hidden"
         style={{ backgroundColor: '#010080' }}
       >
         {/* Background Circle Patterns */}
@@ -368,7 +368,7 @@ export default function RegistrationPage() {
       </div>
 
       {/* Right Side - Registration Form (Scrollable) */}
-      <div className="w-full md:w-1/2 md:ml-[50%] min-h-screen flex flex-col p-4 sm:p-6 md:p-8 lg:p-12 bg-gray-50 overflow-y-auto">
+      <div className="w-full max-w-3xl flex flex-col bg-white px-4 py-6 shadow-2xl sm:px-8 lg:px-12">
         {/* Back Button */}
         <button
           onClick={() => router.back()}
@@ -382,7 +382,7 @@ export default function RegistrationPage() {
 
         <div className="w-full max-w-xl py-6 mx-auto flex-grow flex flex-col justify-center">
           {/* Mobile Logo */}
-          <div className="md:hidden text-center mb-6 sm:mb-8">
+          <div className="text-center mb-6 sm:mb-8">
             <Image
               src="/images/headerlogo.png"
               alt="BEA Logo"

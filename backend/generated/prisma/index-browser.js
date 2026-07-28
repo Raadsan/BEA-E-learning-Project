@@ -375,6 +375,8 @@ exports.Prisma.Course_timelineScalarFieldEnum = {
   start_date: 'start_date',
   end_date: 'end_date',
   holidays: 'holidays',
+  class_ids: 'class_ids',
+  subprogram_ids: 'subprogram_ids',
   display_order: 'display_order',
   is_active: 'is_active',
   created_at: 'created_at',

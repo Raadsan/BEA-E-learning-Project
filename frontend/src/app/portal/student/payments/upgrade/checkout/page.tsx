@@ -125,12 +125,12 @@ export default function CheckoutPage() {
                             </p>
                             {selectedPackage.hasPackageDiscount && (
                                 <p className="text-sm text-amber-600 mt-2 font-medium">
-                                    Package discount applied (regular price ${selectedPackage.basePrice.toFixed(2)})
+                                    {selectedPackage.basePrice > 0 ? Math.round(((selectedPackage.basePrice - selectedPackage.packagePrice) / selectedPackage.basePrice) * 100) : 0}% package discount
                                 </p>
                             )}
                             {selectedPackage.hasScholarshipDiscount && (
                                 <p className="text-sm text-green-600 mt-2 font-medium">
-                                    Your scholarship/discount was applied (package price ${selectedPackage.packagePrice.toFixed(2)})
+                                    {selectedPackage.packagePrice > 0 ? Math.round(((selectedPackage.packagePrice - selectedPackage.studentPrice) / selectedPackage.packagePrice) * 100) : 0}% scholarship discount
                                 </p>
                             )}
                             {isFree && (

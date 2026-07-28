@@ -7,6 +7,8 @@ import { useToast } from "@/components/Toast";
 import { API_URL } from "@/constants";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
 import AdminTableActions from "@/components/admin/AdminTableActions";
+import { useGetClassesQuery } from "@/lib/api/classApi";
+import { useGetSubprogramsQuery } from "@/lib/api/subprogramApi";
 
 export default function CourseTimelinePage() {
     const { isDark } = useDarkMode();
@@ -21,11 +23,15 @@ export default function CourseTimelinePage() {
     const [timelineToDelete, setTimelineToDelete] = useState(null);
     const [selectedYear, setSelectedYear] = useState("All");
     const [years, setYears] = useState(["All"]);
+    const { data: classes = [] } = useGetClassesQuery();
+    const { data: subprograms = [] } = useGetSubprogramsQuery();
     const [formData, setFormData] = useState({
         term_serial: "",
         start_date: "",
         end_date: "",
         holidays: "",
+        class_ids: [],
+        subprogram_ids: [],
     });
 
     // Fetch timelines
@@ -91,6 +97,8 @@ export default function CourseTimelinePage() {
             start_date: "",
             end_date: "",
             holidays: "",
+            class_ids: [],
+            subprogram_ids: [],
         });
         setShowModal(true);
     };
@@ -103,6 +111,8 @@ export default function CourseTimelinePage() {
             start_date: timeline.start_date,
             end_date: timeline.end_date,
             holidays: timeline.holidays || "",
+            class_ids: Array.isArray(timeline.class_ids) ? timeline.class_ids.map(Number) : [],
+            subprogram_ids: Array.isArray(timeline.subprogram_ids) ? timeline.subprogram_ids.map(Number) : [],
         });
         setShowModal(true);
     };
@@ -360,6 +370,34 @@ export default function CourseTimelinePage() {
                                             }`}
                                     />
                                 </div>
+
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Assign Classes</label>
+                                        <div className={`max-h-40 overflow-y-auto rounded-xl border p-3 space-y-2 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                                            {(classes || []).map((item) => {
+                                                const itemId = Number(item.id);
+                                                return <label key={itemId} className="flex items-center gap-2 text-sm">
+                                                    <input type="checkbox" checked={formData.class_ids.includes(itemId)} onChange={(e) => setFormData((old) => ({ ...old, class_ids: e.target.checked ? [...old.class_ids, itemId] : old.class_ids.filter((id) => id !== itemId) }))} />
+                                                    {item.class_name}
+                                                </label>;
+                                            })}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Assign Subprograms</label>
+                                        <div className={`max-h-40 overflow-y-auto rounded-xl border p-3 space-y-2 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                                            {(subprograms || []).map((item) => {
+                                                const itemId = Number(item.id);
+                                                return <label key={itemId} className="flex items-center gap-2 text-sm">
+                                                    <input type="checkbox" checked={formData.subprogram_ids.includes(itemId)} onChange={(e) => setFormData((old) => ({ ...old, subprogram_ids: e.target.checked ? [...old.subprogram_ids, itemId] : old.subprogram_ids.filter((id) => id !== itemId) }))} />
+                                                    {item.subprogram_name}
+                                                </label>;
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-500">Leave both lists empty to make this timeline available to every student.</p>
                             </div>
 
                             <div className={`mt-6 pt-6 border-t flex justify-end gap-3 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>

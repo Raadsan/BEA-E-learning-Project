@@ -15,8 +15,8 @@ export const courseTimelineApi = createApi({
     }),
     tagTypes: ['CourseTimeline'],
     endpoints: (builder) => ({
-        getTimelines: builder.query<any, void>({
-            query: () => '/',
+        getTimelines: builder.query<any, { class_id?: number | string; subprogram_id?: number | string } | void>({
+            query: (params) => ({ url: '/', params: params || undefined }),
             providesTags: ['CourseTimeline'],
         }),
         getTimeline: builder.query({
