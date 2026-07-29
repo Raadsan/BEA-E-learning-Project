@@ -17,26 +17,43 @@ export default function CourseTimeline() {
 
   // Only show active timeline records returned by the database API.
   useEffect(() => {
+    let active = true;
+
     const fetchTimelineData = async () => {
       try {
         const response = await fetch(`${API_URL}/course-timeline`);
-        if (!response.ok) throw new Error("Failed to fetch timeline data");
+
+        if (!response.ok) {
+          if (active) {
+            setTimelineData([]);
+            setError("Unable to load timeline data. Please try again later.");
+          }
+          return;
+        }
+
         const data = await response.json();
+        if (!active) return;
 
         const finalData = normalizeTimelineRecords(Array.isArray(data) ? data : []);
         setTimelineData(finalData);
-
         setError(null);
-      } catch (err) {
-        console.error("Error fetching course timeline:", err);
-        setTimelineData([]);
-        setError("Unable to load timeline data. Please try again later.");
+      } catch {
+        if (active) {
+          setTimelineData([]);
+          setError("Unable to load timeline data. Please try again later.");
+        }
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     };
 
     fetchTimelineData();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {

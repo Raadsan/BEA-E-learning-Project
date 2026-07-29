@@ -98,20 +98,35 @@ export default function Testimonials() {
   }, [loading, moveSlider, testimonials.length]);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchTestimonials = async () => {
       try {
-        const response = await fetch(`${API_URL}/testimonials`);
-        if (!response.ok) throw new Error("Failed to fetch");
+        const response = await fetch(`${API_URL}/testimonials`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          setTestimonials([]);
+          return;
+        }
+
         const data = await response.json();
         setTestimonials(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Error fetching testimonials:", err);
-        setTestimonials([]);
+      } catch (error) {
+        if (error instanceof Error && error.name !== "AbortError") {
+          setTestimonials([]);
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
+
     fetchTestimonials();
+
+    return () => controller.abort();
   }, []);
 
   if (!loading && testimonials.length === 0) {
