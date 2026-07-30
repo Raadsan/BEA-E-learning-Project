@@ -4,7 +4,8 @@ import {
   getTeacherSubmittedReviews,
   getActiveStudentReviewAssignment, getStudentReviewAssignments,
   createStudentReviewAssignment, updateStudentReviewAssignment, deleteStudentReviewAssignment,
-  getQuestions, getAllQuestions, createQuestion, updateQuestion, deleteQuestion
+  getQuestions, getAllQuestions, createQuestion, updateQuestion, deleteQuestion,
+  getTeacherReviewBoxes
 } from "../controllers/studentReviewController.js";
 import { verifyToken, isAdmin } from "../controllers/authController.js";
 
@@ -24,6 +25,9 @@ router.post("/", submitStudentReview);
 
 // Teacher: get reviews I submitted
 router.get("/submitted-by-me", getTeacherSubmittedReviews);
+
+// Teacher: get student review boxes visible to this teacher
+router.get("/assignments/teacher/boxes", getTeacherReviewBoxes);
 
 // Get reviews for a specific student
 router.get("/my/:student_id", getStudentReviews);

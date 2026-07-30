@@ -67,7 +67,9 @@ export default function FreezingRequestPage() {
       label: "Period",
       render: (row) => (
         <span className="text-sm">
-          {new Date(row.start_date).toLocaleDateString()} - {new Date(row.end_date).toLocaleDateString()}
+          {row?.start_date ? new Date(row.start_date).toLocaleDateString() : "N/A"}
+          {" - "}
+          {row?.end_date ? new Date(row.end_date).toLocaleDateString() : "N/A"}
         </span>
       )
     },
@@ -86,7 +88,7 @@ export default function FreezingRequestPage() {
     {
       key: "admin_response",
       label: "Academy Feedback",
-      render: (row) => row.admin_response ? (
+      render: (row) => row?.admin_response ? (
         <div className="max-w-xs truncate text-xs italic opacity-80" title={row.admin_response}>
           {row.admin_response}
         </div>

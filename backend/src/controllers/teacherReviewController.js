@@ -65,6 +65,15 @@ const buildAssignmentText = (body, existing = {}) => JSON.stringify({
     updated_at: new Date().toISOString(),
 });
 
+const parseDate = (val) => {
+    if (!val) return new Date(0);
+    if (val instanceof Date) return val;
+    const s = String(val).trim();
+    if (!s) return new Date(0);
+    const d = new Date(s);
+    return Number.isNaN(d.getTime()) ? new Date(0) : d;
+};
+
 const serializeAssignment = async (assignmentOrRow) => {
     const assignment = assignmentOrRow?.question_text ? parseAssignmentRow(assignmentOrRow) : assignmentOrRow;
     if (!assignment) return assignment;
@@ -75,8 +84,15 @@ const serializeAssignment = async (assignmentOrRow) => {
     ]);
     const response_count = await prisma.teacher_reviews.count({ where: { assignment_id: assignment.id } });
     const now = new Date();
-    const starts = new Date(assignment.start_date);
-    const ends = new Date(assignment.end_date);
+    const starts = parseDate(assignment.start_date);
+    const ends = parseDate(assignment.end_date);
+
+    let computed_status = assignment.status || 'active';
+    if (assignment.status === 'active') {
+        if (now < starts) computed_status = 'upcoming';
+        else if (now > ends) computed_status = 'closed';
+        else computed_status = 'open';
+    }
 
     return {
         ...assignment,
@@ -85,7 +101,7 @@ const serializeAssignment = async (assignmentOrRow) => {
         subprogram_name: subprogram?.subprogram_name || cls?.subprograms?.subprogram_name || null,
         program_name: program?.title || subprogram?.programs?.title || subprogram?.programs?.program_name || cls?.subprograms?.programs?.title || cls?.subprograms?.programs?.program_name || null,
         response_count,
-        computed_status: assignment.status !== 'active' ? assignment.status : now < starts ? 'upcoming' : now > ends ? 'closed' : 'open',
+        computed_status,
     };
 };
 
@@ -187,19 +203,33 @@ export const submitTeacherReview = async (req, res) => {
         }
 
         let assignment = null;
-        if (assignment_id) assignment = await findOpenAssignment({ assignmentId: assignment_id, classId: class_id });
-        else await assertReviewWindowOpen(REVIEW_TYPE);
+        if (assignment_id) {
+            const parsedAssignmentId = parseInt(assignment_id, 10);
+            const existingReview = await prisma.teacher_reviews.findFirst({
+                where: {
+                    student_id,
+                    assignment_id: parsedAssignmentId,
+                }
+            });
+            if (existingReview) {
+                return res.status(400).json({ error: 'You have already completed this evaluation questionnaire. It cannot be submitted again.' });
+            }
+
+            assignment = await findOpenAssignment({ assignmentId: assignment_id, classId: class_id });
+        } else {
+            await assertReviewWindowOpen(REVIEW_TYPE);
+        }
 
         const review = await prisma.teacher_reviews.create({
             data: {
                 student_id,
                 teacher_id: String(teacher_id),
-                class_id: parseInt(class_id, 10),
+                class_id: class_id ? parseInt(class_id, 10) : null,
                 term_serial,
                 rating: parseInt(rating, 10),
                 comment,
                 answers,
-                assignment_id: assignment?.id || null,
+                assignment_id: assignment?.id || (assignment_id ? parseInt(assignment_id, 10) : null),
             },
         });
         res.status(201).json(review);
@@ -241,6 +271,69 @@ export const getActiveTeacherReviewAssignment = async (req, res) => {
         const assignment = await findOpenAssignment(req.query);
         res.json(assignment ? await serializeAssignment(assignment) : null);
     } catch (err) { res.status(err.statusCode || 500).json({ error: err.message }); }
+};
+
+export const getStudentTeacherReviewBoxes = async (req, res) => {
+    try {
+        const student_id = req.user.userId;
+        const student = await prisma.students.findUnique({ where: { student_id } });
+        const scope = await getClassScope(student?.class_id || req.query.class_id);
+
+        const targetClass = scope.classId;
+        const targetSubprogram = scope.subprogramId;
+        const targetProgram = scope.programId;
+
+        const rows = await prisma.teacher_review_questions.findMany({
+            orderBy: { created_at: 'desc' }
+        });
+
+        const now = new Date();
+
+        const submittedReviews = await prisma.teacher_reviews.findMany({
+            where: { student_id },
+            select: { assignment_id: true }
+        });
+
+        const submittedAssignmentIds = new Set(submittedReviews.map(r => r.assignment_id).filter(Boolean));
+
+        const parsedAssignments = rows.map(parseAssignmentRow).filter(Boolean);
+
+        const matchingAssignments = parsedAssignments.filter((assignment) => {
+            if (assignment.status === 'inactive') return false;
+            const classOk = !assignment.class_id || assignment.class_id === targetClass;
+            const subprogramOk = !assignment.subprogram_id || assignment.subprogram_id === targetSubprogram;
+            const programOk = !assignment.program_id || assignment.program_id === targetProgram;
+            return classOk && subprogramOk && programOk;
+        });
+
+        const boxes = await Promise.all(matchingAssignments.map(async (assignment) => {
+            const serialized = await serializeAssignment(assignment);
+            const starts = new Date(assignment.start_date);
+            const ends = new Date(assignment.end_date);
+            const isSubmitted = submittedAssignmentIds.has(assignment.id);
+
+            let computed_status = 'pending';
+            if (isSubmitted) {
+                computed_status = 'completed';
+            } else if (now < starts) {
+                computed_status = 'pending';
+            } else if (now > ends) {
+                computed_status = 'closed';
+            } else {
+                computed_status = 'active';
+            }
+
+            return {
+                ...serialized,
+                is_submitted: isSubmitted,
+                computed_status,
+            };
+        }));
+
+        res.json(boxes);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
 export const getTeacherReviewAssignments = async (_req, res) => {

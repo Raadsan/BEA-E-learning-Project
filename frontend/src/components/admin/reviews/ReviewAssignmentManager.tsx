@@ -185,15 +185,18 @@ export default function ReviewAssignmentManager({ reviewType }: Props) {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
+      const formatToISO = (str: string) => {
+        if (!str) return str;
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? str : d.toISOString();
+      };
+
       const payload = {
         type: reviewType,
         title: formData.title,
         description: formData.description,
-        // datetime-local has no timezone. Convert the administrator's selected
-        // local time to an ISO instant before it reaches the server, so the
-        // review does not open/close three hours early on a UTC server.
-        start_date: new Date(formData.start_date).toISOString(),
-        end_date: new Date(formData.end_date).toISOString(),
+        start_date: formatToISO(formData.start_date),
+        end_date: formatToISO(formData.end_date),
         program_id: formData.program_id || null,
         subprogram_id: formData.subprogram_id || null,
         class_id: formData.class_id || null,

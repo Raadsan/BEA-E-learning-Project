@@ -95,6 +95,10 @@ export const classApi = createApi({
       query: () => "/student/schedules",
       providesTags: ["ClassSchedules"],
     }),
+    getAvailableSessionClasses: builder.query<any[], void>({
+      query: () => "/student/available-sessions",
+      providesTags: ["Classes"],
+    }),
   }),
 });
 
@@ -111,5 +115,6 @@ export const {
   useUpdateClassScheduleMutation,
   useDeleteClassScheduleMutation,
   useGetStudentSchedulesQuery,
+  useGetAvailableSessionClassesQuery,
 } = classApi;
 

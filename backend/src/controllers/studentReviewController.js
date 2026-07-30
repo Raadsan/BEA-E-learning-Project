@@ -323,6 +323,77 @@ export const deleteQuestion = async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
+// GET ALL STUDENT REVIEW BOXES — for teachers to see what boxes are active/upcoming/closed
+export const getTeacherReviewBoxes = async (req, res) => {
+    try {
+        const teacherId = req.user.userId;
+
+        // Get all classes this teacher teaches
+        const teacherClasses = await prisma.classes.findMany({
+            where: { teacher_id: parseInt(teacherId) },
+            include: { subprograms: { include: { programs: true } } }
+        });
+
+        // Get all review assignment rows
+        const rows = await prisma.student_review_questions.findMany({ orderBy: { created_at: 'desc' } });
+        const assignments = rows.map(parseAssignmentRow).filter(Boolean);
+
+        const now = new Date();
+
+        // For each assignment, check if it applies to any of teacher's classes
+        const results = [];
+        for (const assignment of assignments) {
+            let matches = false;
+
+            if (!assignment.class_id && !assignment.subprogram_id && !assignment.program_id) {
+                // Global box — visible to all teachers
+                matches = true;
+            } else {
+                for (const cls of teacherClasses) {
+                    const classMatch = !assignment.class_id || assignment.class_id === cls.id;
+                    const subprogramMatch = !assignment.subprogram_id || assignment.subprogram_id === cls.subprogram_id;
+                    const programMatch = !assignment.program_id || assignment.program_id === (cls.subprograms?.program_id);
+                    if (classMatch && subprogramMatch && programMatch) {
+                        matches = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!matches) continue;
+
+            // Count reviews submitted in this box
+            const response_count = await prisma.student_reviews.count({ where: { assignment_id: assignment.id } });
+
+            // Compute status
+            const starts = new Date(assignment.start_date);
+            const ends = new Date(assignment.end_date);
+            let computed_status = assignment.status !== 'active'
+                ? assignment.status
+                : now < starts ? 'upcoming' : now > ends ? 'closed' : 'open';
+
+            // Enrich with names
+            const [cls, subprogram, program] = await Promise.all([
+                assignment.class_id ? prisma.classes.findUnique({ where: { id: assignment.class_id }, include: { subprograms: { include: { programs: true } } } }) : null,
+                assignment.subprogram_id ? prisma.subprograms.findUnique({ where: { id: assignment.subprogram_id }, include: { programs: true } }) : null,
+                assignment.program_id ? prisma.programs.findUnique({ where: { id: assignment.program_id } }) : null,
+            ]);
+
+            results.push({
+                ...assignment,
+                class_name: cls?.class_name || null,
+                subprogram_name: subprogram?.subprogram_name || cls?.subprograms?.subprogram_name || null,
+                program_name: program?.title || subprogram?.programs?.title || cls?.subprograms?.programs?.title || null,
+                response_count,
+                computed_status,
+            });
+        }
+
+        res.json(results);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+};
+
+
 
 
 

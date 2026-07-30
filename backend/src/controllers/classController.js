@@ -119,6 +119,76 @@ export const getClassesBySubprogramId = async (req, res) => {
   }
 };
 
+// GET AVAILABLE SESSION SHIFTS FOR STUDENT (same subprogram, different shift)
+export const getAvailableSessionClasses = async (req, res) => {
+  try {
+    const studentId = req.user.userId;
+
+    const student = await prisma.students.findUnique({ where: { student_id: studentId } });
+    if (!student || !student.class_id) {
+      return res.json([]);
+    }
+
+    const currentClass = await prisma.classes.findUnique({
+      where: { id: student.class_id },
+      include: { shifts: true }
+    });
+    if (!currentClass || !currentClass.subprogram_id) {
+      return res.json([]);
+    }
+
+    const currentShiftId = currentClass.shift_id;
+
+    const formatTime = (timeVal) => {
+      if (!timeVal) return '';
+      if (timeVal instanceof Date) {
+        const hours = timeVal.getUTCHours().toString().padStart(2, '0');
+        const minutes = timeVal.getUTCMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+      }
+      const str = timeVal.toString();
+      if (str.includes('T')) {
+        const parts = str.split('T');
+        if (parts[1]) return parts[1].substring(0, 5);
+      }
+      return str;
+    };
+
+    // Get all classes in same subprogram (excluding current class)
+    const classes = await prisma.classes.findMany({
+      where: {
+        subprogram_id: currentClass.subprogram_id,
+        id: { not: currentClass.id }
+      },
+      include: { shifts: true }
+    });
+
+    // Build unique shifts from those classes (skip classes with no shift, skip same shift as current)
+    const seenShiftIds = new Set();
+    const result = [];
+
+    for (const cls of classes) {
+      if (!cls.shifts) continue;           // skip classes without a shift
+      if (cls.shift_id === currentShiftId) continue; // skip same shift as student's current
+      if (seenShiftIds.has(cls.shift_id)) continue;  // deduplicate by shift
+
+      seenShiftIds.add(cls.shift_id);
+      result.push({
+        id: cls.id,              // class_id used for submission
+        shift_id: cls.shift_id,
+        shift_name: cls.shifts.shift_name || '',
+        shift_session: cls.shifts.session_type || '',
+        shift_start: formatTime(cls.shifts.start_time),
+        shift_end: formatTime(cls.shifts.end_time),
+      });
+    }
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // GET SINGLE CLASS
 export const getClass = async (req, res) => {
   try {

@@ -1,7 +1,7 @@
 import express from "express";
 import {
   createClass, getClasses, getClass, updateClass, deleteClass,
-  getClassesBySubprogramId
+  getClassesBySubprogramId, getAvailableSessionClasses
 } from "../controllers/classController.js";
 import {
   createClassSchedule,
@@ -24,6 +24,7 @@ router.get("/subprogram/:subprogram_id", getClassesBySubprogramId);
 
 // Class Schedule routes nested under classes
 router.get("/all-schedules", isAdmin, getAllClassSchedules);
+router.get("/student/available-sessions", getAvailableSessionClasses);
 router.get("/student/schedules", getStudentSchedules);
 router.get("/:class_id/schedules", getClassSchedules);
 router.post("/:class_id/schedules", isAdmin, createClassSchedule);

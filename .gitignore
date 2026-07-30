@@ -1,0 +1,15 @@
+# Secrets — never commit
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+frontend/.env*.local
+
+# Dependencies
+**/node_modules/
+
+# Uploaded media (keep on server disk, never in git)
+backend/uploads/
+
+# Logs
+*.log

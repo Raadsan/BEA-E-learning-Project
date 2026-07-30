@@ -1,7 +1,7 @@
 import express from "express";
 import {
   submitTeacherReview, getTeacherReviews, getTeachersToReview, getAllTeacherReviews,
-  getActiveTeacherReviewAssignment, getTeacherReviewAssignments,
+  getActiveTeacherReviewAssignment, getStudentTeacherReviewBoxes, getTeacherReviewAssignments,
   createTeacherReviewAssignment, updateTeacherReviewAssignment, deleteTeacherReviewAssignment,
   getQuestions, getAllQuestions, createQuestion, updateQuestion, deleteQuestion
 } from "../controllers/teacherReviewController.js";
@@ -13,6 +13,7 @@ router.use(verifyToken);
 
 // Review assignment boxes
 router.get("/assignments/active", getActiveTeacherReviewAssignment);
+router.get("/assignments/student/boxes", getStudentTeacherReviewBoxes);
 router.get("/admin/assignments", isAdmin, getTeacherReviewAssignments);
 router.post("/admin/assignments", isAdmin, createTeacherReviewAssignment);
 router.put("/admin/assignments/:id", isAdmin, updateTeacherReviewAssignment);

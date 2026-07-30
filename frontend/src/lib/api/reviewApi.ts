@@ -55,6 +55,14 @@ export const reviewApi = createApi({
             query: ({ type, ...params }) => ({ url: `/${type}-reviews/assignments/active`, params }),
             providesTags: (_result, _error, arg) => [{ type: 'ReviewAssignments', id: `${arg.type}-active` }],
         }),
+        getStudentReviewBoxes: builder.query<any, void>({
+            query: () => "/teacher-reviews/assignments/student/boxes",
+            providesTags: ['ReviewAssignments', 'TeacherReviews'],
+        }),
+        getTeacherReviewBoxes: builder.query<any, void>({
+            query: () => "/student-reviews/assignments/teacher/boxes",
+            providesTags: ['ReviewAssignments', 'StudentReviews'],
+        }),
         createReviewAssignment: builder.mutation({
             query: ({ type, ...body }) => ({ url: `/${type}-reviews/admin/assignments`, method: 'POST', body }),
             invalidatesTags: (_result, _error, { type }) => [{ type: 'ReviewAssignments', id: type }],
@@ -116,6 +124,8 @@ export const {
     useGetAllStudentReviewsQuery,
     useGetReviewAssignmentsQuery,
     useGetActiveReviewAssignmentQuery,
+    useGetStudentReviewBoxesQuery,
+    useGetTeacherReviewBoxesQuery,
     useCreateReviewAssignmentMutation,
     useUpdateReviewAssignmentMutation,
     useDeleteReviewAssignmentMutation,
