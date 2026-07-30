@@ -43,13 +43,27 @@ export default function ShiftsPage() {
         setIsModalOpen(true);
     };
 
-    const handleEdit = (shift) => {
+    const formatTimeForInput = (timeVal: any) => {
+        if (!timeVal) return "";
+        let timeStr = timeVal.toString();
+        if (timeStr.includes("T")) {
+            const parts = timeStr.split("T");
+            if (parts[1]) {
+                timeStr = parts[1].substring(0, 5);
+            }
+        } else if (timeStr.length >= 5) {
+            timeStr = timeStr.substring(0, 5);
+        }
+        return timeStr;
+    };
+
+    const handleEdit = (shift: any) => {
         setEditingShift(shift);
         setFormData({
             shift_name: shift.shift_name || "",
             session_type: shift.session_type || "",
-            start_time: shift.start_time || "",
-            end_time: shift.end_time || ""
+            start_time: formatTimeForInput(shift.start_time),
+            end_time: formatTimeForInput(shift.end_time)
         });
         setIsModalOpen(true);
     };
