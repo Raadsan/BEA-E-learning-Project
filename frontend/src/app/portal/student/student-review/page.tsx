@@ -5,13 +5,13 @@ import { useDarkMode } from "@/context/ThemeContext";
 import StudentPageHeader from "@/components/student/StudentPageHeader";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetTimelinesQuery } from "@/lib/api/courseTimelineApi";
-import { useGetTeachersToReviewQuery, useSubmitTeacherReviewMutation, useGetQuestionsQuery, useGetStudentReviewsQuery, useGetReviewWindowQuery } from "@/lib/api/reviewApi";
+import { useGetTeachersToReviewQuery, useSubmitTeacherReviewMutation, useGetQuestionsQuery, useGetStudentReviewsQuery, useGetReviewWindowQuery, useGetActiveReviewAssignmentQuery } from "@/lib/api/reviewApi";
 import { useToast } from "@/components/Toast";
 import { isProficiencyOnlyStudent } from "@/utils/programCatalog";
 import { getReviewClosedMessage } from "@/utils/reviewWindow";
 
 // Sub-component for individual teacher accordion
-const TeacherReviewAccordion = ({ teacher, isOpen, onToggle, questions, classId, termSerial, refetchReviews, isReviewed, onReviewSuccess }) => {
+const TeacherReviewAccordion = ({ teacher, isOpen, onToggle, questions, classId, termSerial, assignmentId, refetchReviews, isReviewed, onReviewSuccess }) => {
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
   const [submitReview, { isLoading }] = useSubmitTeacherReviewMutation();
@@ -57,7 +57,8 @@ const TeacherReviewAccordion = ({ teacher, isOpen, onToggle, questions, classId,
         term_serial: termSerial,
         rating: overallRating,
         comment,
-        answers: formattedAnswers
+        answers: formattedAnswers,
+        assignment_id: assignmentId || null,
       }).unwrap();
 
       showToast("Evaluation submitted successfully!", "success");
@@ -221,9 +222,15 @@ export default function StudentReviewPage() {
   const { data: timelines = [] } = useGetTimelinesQuery();
   const { data: questions = [] } = useGetQuestionsQuery("teacher");
   const { data: reviewWindow, isLoading: windowLoading } = useGetReviewWindowQuery("teacher");
+  const { data: activeAssignment, isLoading: assignmentLoading } = useGetActiveReviewAssignmentQuery(
+    { type: "teacher", class_id: user?.class_id },
+    { skip: !user?.class_id || isProficiencyOnlyStudent(user) }
+  );
 
   const isProficiencyOnly = isProficiencyOnlyStudent(user);
-  const isReviewOpen = reviewWindow?.is_open === true;
+  // A class-specific review assignment takes priority over the old global
+  // review window.  This makes the scheduled review box enforce its own time.
+  const isReviewOpen = activeAssignment ? activeAssignment.computed_status === "open" : reviewWindow?.is_open === true;
 
   const { data: teachersToReview = [], isLoading: teachersLoading, refetch } = useGetTeachersToReviewQuery(undefined, {
     skip: !user || isProficiencyOnly
@@ -277,7 +284,7 @@ export default function StudentReviewPage() {
           description="Select a teacher below to expand the evaluation form. Your feedback helps us improve."
         />
 
-        {!windowLoading && !isReviewOpen && (
+        {!windowLoading && !assignmentLoading && !isReviewOpen && (
           <div className={`mb-6 rounded-2xl border p-5 ${isDark ? 'bg-amber-900/20 border-amber-800 text-amber-200' : 'bg-amber-50 border-amber-200 text-amber-900'}`}>
             <p className="font-semibold">Review period is closed</p>
             <p className="text-sm mt-1 opacity-90">{getReviewClosedMessage(reviewWindow)}</p>
@@ -308,6 +315,7 @@ export default function StudentReviewPage() {
                   questions={questions}
                   classId={user?.class_id}
                   termSerial={currentTermSerial}
+                  assignmentId={activeAssignment?.id}
                   refetchReviews={handleRefetch}
                   isReviewed={reviewed}
                   onReviewSuccess={handleReviewSuccess}

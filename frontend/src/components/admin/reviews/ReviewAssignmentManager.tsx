@@ -189,8 +189,11 @@ export default function ReviewAssignmentManager({ reviewType }: Props) {
         type: reviewType,
         title: formData.title,
         description: formData.description,
-        start_date: formData.start_date,
-        end_date: formData.end_date,
+        // datetime-local has no timezone. Convert the administrator's selected
+        // local time to an ISO instant before it reaches the server, so the
+        // review does not open/close three hours early on a UTC server.
+        start_date: new Date(formData.start_date).toISOString(),
+        end_date: new Date(formData.end_date).toISOString(),
         program_id: formData.program_id || null,
         subprogram_id: formData.subprogram_id || null,
         class_id: formData.class_id || null,
