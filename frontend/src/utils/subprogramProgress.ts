@@ -62,7 +62,7 @@ const CURRICULUM_SLOTS: CurriculumSlot[] = [
         step: 4,
     },
     { type: "ils", ilsNumber: 2, name: "Integrated Language Skills 2", band: "A2+ - B1+" },
-    { type: "main", match: /intermediate\s*plus/i, band: "B2 - C1", step: 5 },
+    { type: "main", match: /intermediate\s*plus/i, band: "A2+ - B1+", step: 5 },
     { type: "main", match: /upper\s*intermediate/i, band: "B2 - C1", step: 6 },
     { type: "ils", ilsNumber: 3, name: "Integrated Language Skills 3", band: "B2 - C1" },
     {

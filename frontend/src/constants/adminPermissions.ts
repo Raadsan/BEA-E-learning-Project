@@ -65,6 +65,7 @@ export const PERMISSION_MODULE_PAGES: Partial<
     { key: "newsletter", label: "Newsletter Subscribers", path: "/portal/admin/communication/newsletter" },
   ],
   payments: [
+    { key: 'expired_payments', label: 'Student Payment Access', path: '/portal/admin/payments/expired' },
     { key: "payment_packages", label: "Payment Packages", path: "/portal/admin/payments/packages" },
     { key: "payment_history", label: "Payment History", path: "/portal/admin/payments/history" },
   ],
@@ -382,6 +383,7 @@ export const ADMIN_ROUTE_RULES: {
   pageKey?: string;
   superOnly?: boolean;
 }[] = [
+  { prefix: '/portal/admin/payments/expired', permission: 'payments', pageKey: 'expired_payments' },
   { prefix: "/portal/admin/admins", permission: "dashboard", superOnly: true },
   { prefix: "/portal/admin/users", permission: "users" },
   { prefix: "/portal/admin/teachers", permission: "teachers" },

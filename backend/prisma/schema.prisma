@@ -920,7 +920,7 @@ model students {
   chosen_subprogram      String?                       @db.VarChar(255)
   completed_subprograms  String?                       @db.Text
   sponsor_name           String?                       @db.VarChar(255)
-  paid_until             DateTime?                     @db.Date
+  paid_until             DateTime?                     @db.DateTime(0)
   funding_status         students_funding_status?      @default(Paid)
   sponsorship_package    students_sponsorship_package? @default(None)
   funding_amount         Decimal?                      @db.Decimal(10, 2)

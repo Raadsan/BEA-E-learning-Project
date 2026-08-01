@@ -53,6 +53,19 @@ export const paymentApi = createApi({
                 return [];
             },
         }),
+        getExpiredPayments: builder.query<any[], void>({
+            query: () => '/expired',
+            providesTags: ['Payments'],
+            transformResponse: (response: any) => response?.accessStudents || response?.expiredPayments || [],
+        }),
+        extendExpiredPayment: builder.mutation<any, { studentId: string; quantity: number; unit: string }>({
+            query: ({ studentId, quantity, unit }) => ({
+                url: `/expired/${encodeURIComponent(studentId)}/extend`,
+                method: 'PATCH',
+                body: { quantity, unit },
+            }),
+            invalidatesTags: ['Payments'],
+        }),
         createEvcPayment: builder.mutation({
             query: (body) => ({
                 url: "/evc",
@@ -107,6 +120,8 @@ export const paymentApi = createApi({
 export const {
     useGetStudentPaymentsQuery,
     useGetAllPaymentsQuery,
+    useGetExpiredPaymentsQuery,
+    useExtendExpiredPaymentMutation,
     useCreateEvcPaymentMutation,
     useCreateBankPaymentMutation,
     useCreateWaafiPaymentMutation

@@ -297,7 +297,9 @@ export const getCurrentUser = async (req, res) => {
       case 'student': {
         const studentRow = await prisma.students.findUnique({ where: { student_id: userId } });
         if (studentRow) {
-          const programDetails = await prisma.programs.findFirst({ where: { title: studentRow.chosen_program } });
+          const programDetails = studentRow.chosen_program
+            ? await prisma.programs.findFirst({ where: { title: studentRow.chosen_program } })
+            : null;
           const certificatesCount = await prisma.issued_certificates.count({ where: { student_id: studentRow.student_id } });
           const completedCoursesCount = studentRow.completed_subprograms
             ? studentRow.completed_subprograms.split(',').filter((s) => s.trim()).length

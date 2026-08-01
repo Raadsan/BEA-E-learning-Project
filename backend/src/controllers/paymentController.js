@@ -239,6 +239,106 @@ export const getPayments = async (req, res) => {
     }
 };
 
+export const getExpiredPayments = async (req, res) => {
+    try {
+        const now = new Date();
+        const students = await prisma.students.findMany({
+            orderBy: { full_name: 'asc' },
+            select: {
+                student_id: true,
+                full_name: true,
+                email: true,
+                phone: true,
+                chosen_program: true,
+                chosen_subprogram: true,
+                funding_status: true,
+                paid_until: true,
+                approval_status: true,
+            },
+        });
+
+        const studentIds = students.map((student) => student.student_id);
+        const payments = studentIds.length > 0
+            ? await prisma.payments.findMany({
+                where: { student_id: { in: studentIds } },
+                orderBy: { created_at: 'desc' },
+            })
+            : [];
+
+        const latestPaymentByStudent = new Map();
+        for (const payment of payments) {
+            if (payment.student_id && !latestPaymentByStudent.has(payment.student_id)) {
+                latestPaymentByStudent.set(payment.student_id, payment);
+            }
+        }
+
+        const accessStudents = students.map((student) => {
+            const latestPayment = latestPaymentByStudent.get(student.student_id);
+            const expiryDate = student.paid_until ? new Date(student.paid_until) : null;
+            const remainingSeconds = expiryDate
+                ? Math.trunc((expiryDate.getTime() - now.getTime()) / 1000)
+                : null;
+            const accessStatus = remainingSeconds == null
+                ? 'no_expiry'
+                : remainingSeconds >= 0 ? 'active' : 'expired';
+
+            return {
+                ...student,
+                funding_status: String(student.funding_status || '').replaceAll('_', ' '),
+                expiry_date: student.paid_until,
+                access_status: accessStatus,
+                remaining_seconds: remainingSeconds,
+                last_payment_amount: latestPayment?.amount != null ? Number(latestPayment.amount) : null,
+                last_payment_date: latestPayment?.created_at || null,
+                payment_method: latestPayment?.method || null,
+                payment_status: latestPayment?.status || null,
+            };
+        });
+
+        res.json({ success: true, accessStudents });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+export const extendExpiredPayment = async (req, res) => {
+    try {
+        const studentId = String(req.params.studentId || '').trim();
+        const quantity = Number(req.body.quantity);
+        const unit = String(req.body.unit || '').toLowerCase();
+        const allowedUnits = ['hours', 'days', 'weeks', 'months'];
+
+        if (!studentId || !Number.isInteger(quantity) || quantity < 1 || quantity > 10000 || !allowedUnits.includes(unit)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Provide a whole quantity from 1 to 10000 and a valid unit: hours, days, weeks, or months.',
+            });
+        }
+
+        const student = await prisma.students.findUnique({ where: { student_id: studentId } });
+        if (!student) return res.status(404).json({ success: false, error: 'Student not found.' });
+
+        const now = new Date();
+        const currentExpiry = student.paid_until ? new Date(student.paid_until) : null;
+        const newExpiry = currentExpiry && currentExpiry > now ? new Date(currentExpiry) : new Date(now);
+
+        if (unit === 'hours') newExpiry.setHours(newExpiry.getHours() + quantity);
+        if (unit === 'days') newExpiry.setDate(newExpiry.getDate() + quantity);
+        if (unit === 'weeks') newExpiry.setDate(newExpiry.getDate() + (quantity * 7));
+        if (unit === 'months') newExpiry.setMonth(newExpiry.getMonth() + quantity);
+
+        const updated = await prisma.students.update({
+            where: { student_id: studentId },
+            data: { paid_until: newExpiry },
+            select: { student_id: true, full_name: true, paid_until: true },
+        });
+
+        res.json({ success: true, student: updated, message: `Access extended by ${quantity} ${unit}.` });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
 export const getStudentPayments = async (req, res) => {
     try {
         const { studentId } = req.params;

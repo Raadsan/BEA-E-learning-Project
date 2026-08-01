@@ -452,7 +452,7 @@ export default function MyCoursesPage() {
                                         <div className="relative h-full min-h-[300px] flex flex-col items-center justify-center">
                                             <Image
                                                 src={programImage}
-                                                alt={studentProgram.program_name}
+                                                alt={studentProgram?.program_name || studentProgram?.title || 'Student course program'}
                                                 fill
                                                 className="object-cover"
                                                 unoptimized

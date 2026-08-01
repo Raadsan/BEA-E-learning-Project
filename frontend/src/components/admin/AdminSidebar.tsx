@@ -918,6 +918,16 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                   </Link>
                 </li>
                 )}
+                {allowPage('payments', 'expired_payments') && (
+                <li>
+                  <Link href='/portal/admin/payments/expired' className={getSubMenuItemClasses('/portal/admin/payments/expired')} style={getSubActiveStyle('/portal/admin/payments/expired')}>
+                    <svg className={`w-4 h-4 ${isActive('/portal/admin/payments/expired') ? 'text-white' : 'text-gray-300'}`} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4m0 4h.01M5.07 19h13.86a2 2 0 001.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16a2 2 0 001.73 3z' />
+                    </svg>
+                    <span className={isActive('/portal/admin/payments/expired') ? 'text-white' : 'text-gray-100'}>Student Payment Access</span>
+                  </Link>
+                </li>
+                )}
               </ul>
             )}
           </li>

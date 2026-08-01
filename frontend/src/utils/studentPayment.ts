@@ -62,10 +62,8 @@ export function isStudentSubscriptionActive(
   if (!user.paid_until) return false;
 
   const expiryDate = new Date(user.paid_until);
-  const today = new Date();
-  expiryDate.setHours(0, 0, 0, 0);
-  today.setHours(0, 0, 0, 0);
-  return expiryDate >= today;
+  if (Number.isNaN(expiryDate.getTime())) return false;
+  return expiryDate.getTime() >= Date.now();
 }
 
 export function mapPackagePrograms(pkg: any) {
