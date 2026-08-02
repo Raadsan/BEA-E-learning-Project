@@ -129,7 +129,7 @@ export default function CreateExamPage() {
             passage: "",
             instructions: "Record your voice reading this passage.",
             timeLimit: 10, // Minutes
-            points: 20 // Default points
+            points: "" as number | "" // Teacher enters the oral marks
         }
     });
 
@@ -144,6 +144,8 @@ export default function CreateExamPage() {
     const [editingItemId, setEditingItemId] = useState(null); // Track which item is being edited
     const [tempReadingQ, setTempReadingQ] = useState({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, correctAnswer: '', points: 2 });
     const [tempListeningQ, setTempListeningQ] = useState({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, correctAnswer: '', points: 2 });
+    const [editingReadingId, setEditingReadingId] = useState(null);
+    const [editingListeningId, setEditingListeningId] = useState(null);
 
     // Fetch existing if editing
     const { data: assignments } = useGetAssignmentsQuery({ type: 'exam' }, { skip: !editId });
@@ -273,18 +275,19 @@ export default function CreateExamPage() {
     };
 
     const addReadingItem = () => {
-        if (!tempReadingQ.questionText) return showToast("Question text is required", "error");
-        setPapers(prev => ({
-            ...prev,
-            paper2: {
-                ...prev.paper2,
-                questions: [...prev.paper2.questions, { ...tempReadingQ, id: uuidv4() }]
-            }
-        }));
-        // Reset
+        if (!tempReadingQ.questionText.trim()) return showToast("Question text is required", "error");
+        setPapers(prev => ({ ...prev, paper2: { ...prev.paper2, questions: editingReadingId
+            ? prev.paper2.questions.map(q => q.id === editingReadingId ? { ...tempReadingQ, id: editingReadingId } : q)
+            : [...prev.paper2.questions, { ...tempReadingQ, id: uuidv4() }] } }));
+        showToast(editingReadingId ? "Reading question updated" : "Reading question added", "success");
+        setEditingReadingId(null);
         setTempReadingQ({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, correctAnswer: '', points: 2 });
     };
 
+    const editReadingItem = (question) => {
+        setEditingReadingId(question.id);
+        setTempReadingQ({ type: question.type || 'mcq', questionText: question.questionText || "", options: [...(question.options || ["", "", "", ""])], correctOption: question.correctOption ?? 0, correctAnswer: question.correctAnswer || '', points: Number(question.points) || 1 });
+    };
     const removeReadingItem = (id) => {
         setPapers(prev => ({ ...prev, paper2: { ...prev.paper2, questions: prev.paper2.questions.filter(x => x.id !== id) } }));
     };
@@ -318,17 +321,19 @@ export default function CreateExamPage() {
     };
 
     const addListeningItem = () => {
-        if (!tempListeningQ.questionText) return showToast("Question text is required", "error");
-        setPapers(prev => ({
-            ...prev,
-            paper3: {
-                ...prev.paper3,
-                questions: [...prev.paper3.questions, { ...tempListeningQ, id: uuidv4() }]
-            }
-        }));
+        if (!tempListeningQ.questionText.trim()) return showToast("Question text is required", "error");
+        setPapers(prev => ({ ...prev, paper3: { ...prev.paper3, questions: editingListeningId
+            ? prev.paper3.questions.map(q => q.id === editingListeningId ? { ...tempListeningQ, id: editingListeningId } : q)
+            : [...prev.paper3.questions, { ...tempListeningQ, id: uuidv4() }] } }));
+        showToast(editingListeningId ? "Listening question updated" : "Listening question added", "success");
+        setEditingListeningId(null);
         setTempListeningQ({ type: 'mcq', questionText: "", options: ["", "", "", ""], correctOption: 0, correctAnswer: '', points: 2 });
     };
 
+    const editListeningItem = (question) => {
+        setEditingListeningId(question.id);
+        setTempListeningQ({ type: question.type || 'mcq', questionText: question.questionText || "", options: [...(question.options || ["", "", "", ""])], correctOption: question.correctOption ?? 0, correctAnswer: question.correctAnswer || '', points: Number(question.points) || 1 });
+    };
     const removeListeningItem = (id) => {
         setPapers(prev => ({ ...prev, paper3: { ...prev.paper3, questions: prev.paper3.questions.filter(x => x.id !== id) } }));
     };
@@ -355,8 +360,10 @@ export default function CreateExamPage() {
         total += papers.paper2.questions.reduce((acc, q) => acc + (Number(q.points) || 0), 0);
         // P3
         total += papers.paper3.questions.reduce((acc, q) => acc + (Number(q.points) || 0), 0);
-        // P4 - Always include oral/speaking points
-        total += Number(papers.paper4.points) || 0;
+        // P4 - Count only when the oral section has been configured
+        if (papers.paper4.passage?.trim()) {
+            total += Number(papers.paper4.points) || 0;
+        }
 
         return total;
     };
@@ -396,6 +403,12 @@ export default function CreateExamPage() {
     const handleSubmit = async () => {
         if (!basicInfo.title || !basicInfo.program_id) {
             showToast("Title and Program are required.", "error");
+            return;
+        }
+
+        if (papers.paper4.passage?.trim() && Number(papers.paper4.points) <= 0) {
+            showToast("Enter the marks for Part 4 Oral before publishing.", "error");
+            setCurrentStep(4);
             return;
         }
 
@@ -905,7 +918,7 @@ export default function CreateExamPage() {
                                                         />
                                                     </div>
                                                     <button onClick={addReadingItem} className="py-2 px-6 bg-[#010080] text-white rounded-lg font-bold text-sm hover:opacity-90">
-                                                        + Add Question
+                                                        {editingReadingId ? "Update Question" : "+ Add Question"}
                                                     </button>
                                                 </div>
                                             </div>
@@ -919,14 +932,11 @@ export default function CreateExamPage() {
                                                             <span className="font-bold text-[#010080] mr-1">{i + 1}:</span>
                                                             {q.questionText}
                                                         </p>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeReadingItem(q.id)}
-                                                            className="text-gray-400 hover:text-red-500 shrink-0"
-                                                        >
-                                                            <TrashIcon className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{Number(q.points) || 0} pts</span>
+                                                            <button type="button" onClick={() => editReadingItem(q)} className="text-gray-400 hover:text-blue-600" title="Edit question"><PencilSquareIcon className="w-4 h-4" /></button>
+                                                            <button type="button" onClick={() => removeReadingItem(q.id)} className="text-gray-400 hover:text-red-500" title="Delete question"><TrashIcon className="w-4 h-4" /></button>
+                                                        </div>                                                    </div>
                                                 ))}
                                             </div>
                                         )}
@@ -1032,7 +1042,7 @@ export default function CreateExamPage() {
                                                         />
                                                     </div>
                                                     <button onClick={addListeningItem} className="py-2 px-6 bg-[#010080] text-white rounded-lg font-bold text-sm hover:opacity-90">
-                                                        + Add Question
+                                                        {editingListeningId ? "Update Question" : "+ Add Question"}
                                                     </button>
                                                 </div>
                                             </div>
@@ -1049,8 +1059,9 @@ export default function CreateExamPage() {
                                                             {q.questionText}
                                                         </p>
                                                         <div className="flex items-center gap-2 shrink-0">
-                                                            <span className="text-xs font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{q.points ?? 2} pts</span>
-                                                            <button
+                                                            <span className="text-xs font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{Number(q.points) || 0} pts</span>
+<button type="button" onClick={() => editListeningItem(q)} className="text-gray-400 hover:text-blue-600" title="Edit question"><PencilSquareIcon className="w-4 h-4" /></button>
+                                                                                                                        <button
                                                                 type="button"
                                                                 onClick={() => removeListeningItem(q.id)}
                                                                 className="text-gray-400 hover:text-red-500"
@@ -1093,9 +1104,15 @@ export default function CreateExamPage() {
                                                 <span className="text-xs font-bold uppercase text-blue-700">Total Marks</span>
                                                 <input
                                                     type="number"
-                                                    className="w-16 bg-transparent font-bold text-center border-b border-blue-300 focus:border-blue-500 outline-none"
+                                                    className="w-24 bg-transparent font-bold text-center border-b border-blue-300 focus:border-blue-500 outline-none"
+                                                    min="1"
+                                                    step="1"
+                                                    placeholder="Enter marks"
                                                     value={papers.paper4.points}
-                                                    onChange={(e) => setPapers(prev => ({ ...prev, paper4: { ...prev.paper4, points: parseInt(e.target.value) || 0 } }))}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        if (/^\d*$/.test(value)) setPapers(prev => ({ ...prev, paper4: { ...prev.paper4, points: value === "" ? ("" as const) : Number(value) } }));
+                                                    }}
                                                 />
                                                 <span className="text-xs font-bold text-blue-700">pts</span>
                                             </div>

@@ -146,7 +146,7 @@ export default function TakeExamPage() {
             }
 
             // Paper 4: Oral
-            if (raw.paper4) {
+            if (raw.paper4?.passage?.trim()) {
                 steps.push({
                     id: `p4_oral`,
                     part: 4,

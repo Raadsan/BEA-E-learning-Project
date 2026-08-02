@@ -1,6 +1,7 @@
 import multer from "multer";
 import path from "path";
 import { persistRequestUploads, getStoredFileUrl } from "../utils/fileStorage.js";
+import { createPresignedUploadUrl } from "../utils/s3Service.js";
 
 const ALLOWED_EXTENSIONS = new Set([
     ".pdf",
@@ -97,5 +98,18 @@ export const uploadFile = (req, res) => {
     } catch (error) {
         console.error("Upload error:", error);
         res.status(500).json({ error: "File upload failed" });
+    }
+};
+
+export const createPresignedUpload = async (req, res) => {
+    try {
+        const { filename, mimetype, size } = req.body;
+        if (!filename || !mimetype) return res.status(400).json({ error: "Filename and file type are required" });
+        if (Number(size) > 500 * 1024 * 1024) return res.status(400).json({ error: "File is larger than the 500 MB limit" });
+        const result = await createPresignedUploadUrl({ originalname: filename, mimetype });
+        res.json(result);
+    } catch (error) {
+        console.error("Presigned S3 upload error:", error);
+        res.status(500).json({ error: error.message || "Could not prepare S3 upload" });
     }
 };

@@ -121,3 +121,13 @@ export async function getS3ObjectStream(storedValue) {
         contentLength: response.ContentLength,
     };
 }
+
+export async function createPresignedUploadUrl({ originalname, mimetype, expiresIn = 900 }) {
+    if (!isS3Enabled()) throw new Error("S3 is not configured");
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const filename = `${uniqueSuffix}${path.extname(originalname || "")}`;
+    const key = buildS3Key(filename);
+    const command = new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: mimetype || "application/octet-stream" });
+    const uploadUrl = await getSignedUrl(getS3Client(), command, { expiresIn });
+    return { uploadUrl, url: buildPublicUrl(key), key, filename };
+}
