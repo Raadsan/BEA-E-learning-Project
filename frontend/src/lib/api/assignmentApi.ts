@@ -5,7 +5,7 @@ const SCHEDULE_FIELDS = ["start_date", "due_date", "end_date"] as const;
 
 /** Convert browser-local datetime-local values to UTC ISO before sending them. */
 function normalizeAssignmentSchedule<T extends Record<string, any>>(body: T): T {
-    const normalized = { ...body };
+    const normalized: Record<string, unknown> = { ...body };
     for (const field of SCHEDULE_FIELDS) {
         const value = normalized[field];
         if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(value)) {
@@ -13,7 +13,7 @@ function normalizeAssignmentSchedule<T extends Record<string, any>>(body: T): T 
             if (!Number.isNaN(parsed.getTime())) normalized[field] = parsed.toISOString();
         }
     }
-    return normalized;
+    return normalized as T;
 }
 
 export const assignmentApi = createApi({
