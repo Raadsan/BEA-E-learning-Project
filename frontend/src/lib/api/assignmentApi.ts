@@ -1,6 +1,21 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { API_URL, DIRECT_API_URL } from "@/constants";
 
+const SCHEDULE_FIELDS = ["start_date", "due_date", "end_date"] as const;
+
+/** Convert browser-local datetime-local values to UTC ISO before sending them. */
+function normalizeAssignmentSchedule<T extends Record<string, any>>(body: T): T {
+    const normalized = { ...body };
+    for (const field of SCHEDULE_FIELDS) {
+        const value = normalized[field];
+        if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(value)) {
+            const parsed = new Date(value);
+            if (!Number.isNaN(parsed.getTime())) normalized[field] = parsed.toISOString();
+        }
+    }
+    return normalized;
+}
+
 export const assignmentApi = createApi({
     reducerPath: "assignmentApi",
     baseQuery: fetchBaseQuery({
@@ -53,7 +68,7 @@ export const assignmentApi = createApi({
             query: (body) => ({
                 url: "/create",
                 method: "POST",
-                body,
+                body: normalizeAssignmentSchedule(body),
             }),
             invalidatesTags: ["Assignments"],
         }),
@@ -61,7 +76,7 @@ export const assignmentApi = createApi({
             query: ({ id, ...body }) => ({
                 url: `/update/${id}`,
                 method: "PUT",
-                body,
+                body: normalizeAssignmentSchedule(body),
             }),
             invalidatesTags: ["Assignments"],
         }),
@@ -154,7 +169,7 @@ export const assignmentApi = createApi({
             query: ({ id, type, start_date, end_date }) => ({
                 url: `/reopen-submission/${id}`,
                 method: "PATCH",
-                body: { type, start_date, end_date },
+                body: normalizeAssignmentSchedule({ type, start_date, end_date }),
             }),
             invalidatesTags: ["Assignments"],
         }),

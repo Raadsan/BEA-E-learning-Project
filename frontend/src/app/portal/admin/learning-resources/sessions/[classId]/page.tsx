@@ -5,14 +5,16 @@ import { useParams, useRouter } from "next/navigation";
 
 import DataTable from "@/components/DataTable";
 import { useGetClassSchedulesQuery, useGetClassQuery } from "@/lib/api/classApi";
-import { useCreateClassScheduleMutation, useUpdateClassScheduleMutation } from "@/lib/api/classApi";
+import { useCreateClassScheduleMutation, useDeleteClassScheduleMutation, useUpdateClassScheduleMutation } from "@/lib/api/classApi";
 import { useToast } from "@/components/Toast";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 export default function ClassSessionsPage() {
     const params = useParams();
     const router = useRouter();
     const classId = params.classId;
     const { showToast } = useToast();
+    const { canEdit, canDelete } = usePagePermissions("class_management", "online_sessions");
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSession, setEditingSession] = useState(null);
@@ -23,6 +25,7 @@ export default function ClassSessionsPage() {
 
     const [createSchedule, { isLoading: isCreating }] = useCreateClassScheduleMutation();
     const [updateSchedule, { isLoading: isUpdating }] = useUpdateClassScheduleMutation();
+    const [deleteSchedule, { isLoading: isDeleting }] = useDeleteClassScheduleMutation();
 
     // State for bulk rows
     const [sessionRows, setSessionRows] = useState([]);
@@ -175,6 +178,15 @@ export default function ClassSessionsPage() {
         setIsModalOpen(true);
     };
 
+    const handleDelete = async (session) => {
+        if (!window.confirm(`Delete ${session.title}? This action cannot be undone.`)) return;
+        try {
+            await deleteSchedule(session.id).unwrap();
+            showToast("Session deleted successfully!", "success");
+        } catch (error) {
+            showToast(error?.data?.error || "Failed to delete session.", "error");
+        }
+    };
     const extractMeetingId = (link) => {
         if (!link) return "-";
         if (link.includes('zoom.us/j/')) {
@@ -287,11 +299,10 @@ export default function ClassSessionsPage() {
             key: "actions",
             label: "Actions",
             render: (_, row) => (
-                <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-900 p-1">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                </button>
+                <div className="flex items-center gap-2">
+                    {canEdit && <button type="button" onClick={() => handleEdit(row)} className="rounded-lg p-2 text-blue-600 hover:bg-blue-50 hover:text-blue-900" title="Edit session" aria-label={`Edit ${row.title}`}><svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>}
+                    {canDelete && <button type="button" disabled={isDeleting} onClick={() => handleDelete(row)} className="rounded-lg p-2 text-red-600 hover:bg-red-50 hover:text-red-900 disabled:opacity-50" title="Delete session" aria-label={`Delete ${row.title}`}><svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16" /></svg></button>}
+                </div>
             ),
         },
     ];

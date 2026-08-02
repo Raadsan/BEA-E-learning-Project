@@ -33,7 +33,7 @@ export default function HomepageManagement() {
     if (!files.length) return;
     try {
       setUploading(true);
-      const results = await Promise.all(files.map(uploadFileRequest));
+      const results = await Promise.all(files.map((file) => uploadFileRequest(file, { requireS3: true })));
       setForm((old) => ({ ...old, hero_images: [...old.hero_images, ...results.map((item) => item.url)].slice(0, 6) }));
       showToast("Hero images uploaded", "success");
     } catch { showToast("Image upload failed", "error"); }

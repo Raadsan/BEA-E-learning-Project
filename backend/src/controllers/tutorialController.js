@@ -6,7 +6,10 @@ const pickTutorialFields = (body) => {
 
     if (title !== undefined) data.title = String(title).trim();
     if (description !== undefined) data.description = description || null;
-    if (media_type !== undefined) data.media_type = media_type === 'audio' ? 'audio' : 'video';
+    if (media_type !== undefined) {
+        const allowedTypes = ['video', 'audio', 'image', 'document'];
+        data.media_type = allowedTypes.includes(media_type) ? media_type : 'video';
+    }
     if (media_url !== undefined) data.media_url = media_url || null;
     if (status !== undefined) data.status = status === 'inactive' ? 'inactive' : 'active';
 
@@ -45,7 +48,7 @@ export const createTutorial = async (req, res) => {
             return res.status(400).json({ error: 'Title is required' });
         }
         if (!media_url) {
-            return res.status(400).json({ error: 'Please upload a video or audio file' });
+            return res.status(400).json({ error: 'Please upload a video, audio, image, or document file' });
         }
 
         const tutorial = await prisma.tutorials.create({

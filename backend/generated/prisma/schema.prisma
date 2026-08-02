@@ -523,6 +523,23 @@ model tutorials {
   updated_at  DateTime? @default(now()) @updatedAt @db.Timestamp(0)
 }
 
+model student_support_requests {
+  id          Int       @id @default(autoincrement())
+  student_id  String    @db.VarChar(50)
+  category    String    @db.VarChar(50)
+  subject     String    @db.VarChar(255)
+  message     String    @db.Text
+  status      String    @default("open") @db.VarChar(20)
+  admin_reply String?   @db.Text
+  replied_by  Int?
+  replied_at  DateTime? @db.DateTime(0)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+
+  @@index([student_id])
+  @@index([status])
+}
+
 model policies {
   id          Int       @id @default(autoincrement())
   slug        String    @unique @db.VarChar(120)
@@ -906,52 +923,53 @@ model student_reviews {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model students {
-  student_id             String                        @id @db.VarChar(50)
-  full_name              String                        @db.VarChar(255)
-  email                  String                        @unique(map: "email") @db.VarChar(255)
-  phone                  String?                       @db.VarChar(50)
-  age                    Int?
-  sex                    students_sex?                 @default(Male)
-  date_of_birth          DateTime?                     @db.Date
-  place_of_birth         String?                       @db.VarChar(255)
-  residency_country      String?                       @db.VarChar(100)
-  residency_city         String?                       @db.VarChar(100)
-  chosen_program         String?                       @db.VarChar(255)
-  chosen_subprogram      String?                       @db.VarChar(255)
-  completed_subprograms  String?                       @db.Text
-  sponsor_name           String?                       @db.VarChar(255)
-  paid_until             DateTime?                     @db.DateTime(0)
-  funding_status         students_funding_status?      @default(Paid)
-  sponsorship_package    students_sponsorship_package? @default(None)
-  funding_amount         Decimal?                      @db.Decimal(10, 2)
-  funding_month          String?                       @db.VarChar(50)
-  scholarship_percentage Int?
-  expiry_date            DateTime?                     @db.DateTime(0)
-  is_extended            Boolean?                      @default(false)
-  reminder_sent          Boolean?                      @default(false)
-  admin_expiry_notified  Boolean?                      @default(false)
-  password               String                        @db.VarChar(255)
-  parent_name            String?                       @db.VarChar(255)
-  parent_email           String?                       @db.VarChar(255)
-  parent_phone           String?                       @db.VarChar(50)
-  parent_relation        String?                       @db.VarChar(100)
-  parent_res_county      String?                       @db.VarChar(100)
-  parent_res_city        String?                       @db.VarChar(100)
-  created_at             DateTime                      @default(now()) @db.Timestamp(0)
-  updated_at             DateTime                      @default(now()) @db.Timestamp(0)
-  approval_status        students_approval_status?     @default(pending)
-  reset_password_token   String?                       @db.VarChar(255)
-  reset_password_expires DateTime?                     @db.DateTime(0)
-  class_id               Int?
-  created_by             Int?
-  updated_by             Int?
-  created_by_name        String?                       @db.VarChar(200)
-  updated_by_name        String?                       @db.VarChar(200)
-  profile_picture        String?                       @db.VarChar(255)
-  assignment_submissions assignment_submissions[]
-  attendance             attendance[]
-  level_up_requests      level_up_requests[]
-  classes                classes?                      @relation(fields: [class_id], references: [id], onUpdate: NoAction, map: "fk_students_class")
+  student_id              String                        @id @db.VarChar(50)
+  full_name               String                        @db.VarChar(255)
+  email                   String                        @unique(map: "email") @db.VarChar(255)
+  phone                   String?                       @db.VarChar(50)
+  age                     Int?
+  sex                     students_sex?                 @default(Male)
+  date_of_birth           DateTime?                     @db.Date
+  place_of_birth          String?                       @db.VarChar(255)
+  residency_country       String?                       @db.VarChar(100)
+  residency_city          String?                       @db.VarChar(100)
+  chosen_program          String?                       @db.VarChar(255)
+  chosen_subprogram       String?                       @db.VarChar(255)
+  completed_subprograms   String?                       @db.Text
+  sponsor_name            String?                       @db.VarChar(255)
+  paid_until              DateTime?                     @db.DateTime(0)
+  payment_access_extended Boolean                       @default(false)
+  funding_status          students_funding_status?      @default(Paid)
+  sponsorship_package     students_sponsorship_package? @default(None)
+  funding_amount          Decimal?                      @db.Decimal(10, 2)
+  funding_month           String?                       @db.VarChar(50)
+  scholarship_percentage  Int?
+  expiry_date             DateTime?                     @db.DateTime(0)
+  is_extended             Boolean?                      @default(false)
+  reminder_sent           Boolean?                      @default(false)
+  admin_expiry_notified   Boolean?                      @default(false)
+  password                String                        @db.VarChar(255)
+  parent_name             String?                       @db.VarChar(255)
+  parent_email            String?                       @db.VarChar(255)
+  parent_phone            String?                       @db.VarChar(50)
+  parent_relation         String?                       @db.VarChar(100)
+  parent_res_county       String?                       @db.VarChar(100)
+  parent_res_city         String?                       @db.VarChar(100)
+  created_at              DateTime                      @default(now()) @db.Timestamp(0)
+  updated_at              DateTime                      @default(now()) @db.Timestamp(0)
+  approval_status         students_approval_status?     @default(pending)
+  reset_password_token    String?                       @db.VarChar(255)
+  reset_password_expires  DateTime?                     @db.DateTime(0)
+  class_id                Int?
+  created_by              Int?
+  updated_by              Int?
+  created_by_name         String?                       @db.VarChar(200)
+  updated_by_name         String?                       @db.VarChar(200)
+  profile_picture         String?                       @db.VarChar(255)
+  assignment_submissions  assignment_submissions[]
+  attendance              attendance[]
+  level_up_requests       level_up_requests[]
+  classes                 classes?                      @relation(fields: [class_id], references: [id], onUpdate: NoAction, map: "fk_students_class")
 
   @@index([class_id], map: "fk_students_class")
   @@index([chosen_program], map: "idx_chosen_program")
@@ -1069,6 +1087,8 @@ model timetables {
   program_id           Int
   subprogram_id        Int
   date                 DateTime?   @db.Date
+  end_date             DateTime?   @db.Date
+  timeline_group_id    String?     @db.VarChar(50)
   day                  String      @db.VarChar(20)
   week_number          Int?
   start_time           DateTime?   @db.Time(0)

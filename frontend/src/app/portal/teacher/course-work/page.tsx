@@ -202,8 +202,8 @@ export default function CourseWorkPage() {
             subprogram_id: spId ? String(spId) : "",
             class_id: assignment.class_id,
             unit: assignment.unit || "",
-            start_date: assignment.start_date ? new Date(assignment.start_date).toISOString().slice(0, 16) : "",
-            due_date: assignment.due_date ? new Date(assignment.due_date).toISOString().slice(0, 16) : "",
+            start_date: assignment.start_date ? formatDatetimeLocalValue(new Date(assignment.start_date)) : "",
+            due_date: assignment.due_date ? formatDatetimeLocalValue(new Date(assignment.due_date)) : "",
             status: assignment.status || "active",
             total_points: assignment.total_points || "100"
         });

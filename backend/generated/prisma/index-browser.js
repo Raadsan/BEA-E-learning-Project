@@ -548,6 +548,20 @@ exports.Prisma.TutorialsScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.Student_support_requestsScalarFieldEnum = {
+  id: 'id',
+  student_id: 'student_id',
+  category: 'category',
+  subject: 'subject',
+  message: 'message',
+  status: 'status',
+  admin_reply: 'admin_reply',
+  replied_by: 'replied_by',
+  replied_at: 'replied_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.PoliciesScalarFieldEnum = {
   id: 'id',
   slug: 'slug',
@@ -886,6 +900,7 @@ exports.Prisma.StudentsScalarFieldEnum = {
   completed_subprograms: 'completed_subprograms',
   sponsor_name: 'sponsor_name',
   paid_until: 'paid_until',
+  payment_access_extended: 'payment_access_extended',
   funding_status: 'funding_status',
   sponsorship_package: 'sponsorship_package',
   funding_amount: 'funding_amount',
@@ -1002,6 +1017,8 @@ exports.Prisma.TimetablesScalarFieldEnum = {
   program_id: 'program_id',
   subprogram_id: 'subprogram_id',
   date: 'date',
+  end_date: 'end_date',
+  timeline_group_id: 'timeline_group_id',
   day: 'day',
   week_number: 'week_number',
   start_time: 'start_time',
@@ -1308,6 +1325,15 @@ exports.Prisma.tutorialsOrderByRelevanceFieldEnum = {
   status: 'status'
 };
 
+exports.Prisma.student_support_requestsOrderByRelevanceFieldEnum = {
+  student_id: 'student_id',
+  category: 'category',
+  subject: 'subject',
+  message: 'message',
+  status: 'status',
+  admin_reply: 'admin_reply'
+};
+
 exports.Prisma.policiesOrderByRelevanceFieldEnum = {
   slug: 'slug',
   title: 'title',
@@ -1553,6 +1579,7 @@ exports.Prisma.timetable_eventsOrderByRelevanceFieldEnum = {
 };
 
 exports.Prisma.timetablesOrderByRelevanceFieldEnum = {
+  timeline_group_id: 'timeline_group_id',
   day: 'day',
   subject: 'subject',
   type: 'type',
@@ -1845,6 +1872,7 @@ exports.Prisma.ModelName = {
   learning_materials: 'learning_materials',
   level_up_requests: 'level_up_requests',
   tutorials: 'tutorials',
+  student_support_requests: 'student_support_requests',
   policies: 'policies',
   news_events: 'news_events',
   blog_posts: 'blog_posts',

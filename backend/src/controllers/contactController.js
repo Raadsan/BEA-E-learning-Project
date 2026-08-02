@@ -89,3 +89,41 @@ export const deleteContact = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+export const createSupportRequest = async (req, res) => {
+    try {
+        const student_id = String(req.user.userId);
+        const { category, subject, message } = req.body;
+        if (!category?.trim() || !subject?.trim() || !message?.trim()) return res.status(400).json({ error: "Category, subject and message are required" });
+        const request = await prisma.student_support_requests.create({ data: { student_id, category: category.trim(), subject: subject.trim(), message: message.trim() } });
+        await prisma.notifications.create({ data: { user_id: null, sender_id: student_id, type: "student_support", title: "New student support request", message: subject.trim(), metadata: { support_request_id: request.id, path: "/portal/admin/communication/student-support" } } });
+        res.status(201).json(request);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+};
+
+export const getMySupportRequests = async (req, res) => {
+    try { res.json(await prisma.student_support_requests.findMany({ where: { student_id: String(req.user.userId) }, orderBy: { created_at: "desc" } })); }
+    catch (err) { res.status(500).json({ error: err.message }); }
+};
+
+export const getSupportRequests = async (_req, res) => {
+    try {
+        const requests = await prisma.student_support_requests.findMany({ orderBy: { created_at: "desc" } });
+        const studentIds = [...new Set(requests.map((item) => item.student_id))];
+        const students = await prisma.students.findMany({ where: { student_id: { in: studentIds } }, select: { student_id: true, full_name: true, email: true } });
+        const studentMap = new Map(students.map((student) => [student.student_id, student]));
+        res.json(requests.map((item) => ({ ...item, student: studentMap.get(item.student_id) || null })));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+};
+
+export const replySupportRequest = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10); const reply = String(req.body.reply || "").trim();
+        if (!reply) return res.status(400).json({ error: "Reply message is required" });
+        const existing = await prisma.student_support_requests.findUnique({ where: { id } });
+        if (!existing) return res.status(404).json({ error: "Support request not found" });
+        const updated = await prisma.student_support_requests.update({ where: { id }, data: { admin_reply: reply, status: "answered", replied_by: parseInt(req.user.userId, 10) || null, replied_at: new Date() } });
+        await prisma.notifications.create({ data: { user_id: existing.student_id, sender_id: String(req.user.userId), type: "support_reply", title: "Support team replied", message: reply, metadata: { support_request_id: id, path: "/portal/student/student-support" } } });
+        res.json(updated);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+};

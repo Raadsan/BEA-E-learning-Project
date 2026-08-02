@@ -17,6 +17,7 @@ async function parseJsonResponse(response: Response) {
 export async function POST(request: NextRequest) {
   try {
     const auth = request.headers.get("authorization");
+    const requireS3 = request.headers.get("x-require-s3");
     const incoming = await request.formData();
     const file = incoming.get("file");
 
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
     for (const path of BACKEND_UPLOAD_PATHS) {
       const response = await fetch(`${backendOrigin}${path}`, {
         method: "POST",
-        headers: auth ? { Authorization: auth } : {},
+        headers: { ...(auth ? { Authorization: auth } : {}), ...(requireS3 ? { "x-require-s3": requireS3 } : {}) },
         body: outbound,
       });
 

@@ -21,6 +21,7 @@ export default function FeaturedVideo() {
   const title = data?.featured_title || "Master English for Specific Purposes";
   const videoUrl = data?.featured_video_url || "https://www.youtube.com/watch?v=erjMgola4fQ";
   const youtubeId = getYoutubeId(videoUrl);
+  const hostedVideoUrl = youtubeId ? "" : (resolveMediaUrl(videoUrl) || videoUrl);
   const thumbnail = data?.featured_thumbnail
     ? (resolveMediaUrl(data.featured_thumbnail) || data.featured_thumbnail)
     : youtubeId ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` : "";

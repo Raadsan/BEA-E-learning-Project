@@ -9,7 +9,7 @@ export type UploadResponse = {
 /** Same-origin upload proxy (forwards to backend, with fallback paths). */
 const UPLOAD_PROXY_URL = "/api/upload";
 
-export async function uploadFileRequest(file: File): Promise<UploadResponse> {
+export async function uploadFileRequest(file: File, options?: { requireS3?: boolean }): Promise<UploadResponse> {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -24,7 +24,7 @@ export async function uploadFileRequest(file: File): Promise<UploadResponse> {
   try {
     response = await fetch(UPLOAD_PROXY_URL, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, ...(options?.requireS3 ? { "x-require-s3": "true" } : {}) },
       body: formData,
     });
   } catch {

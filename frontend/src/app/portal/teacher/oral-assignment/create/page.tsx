@@ -10,7 +10,7 @@ import {
 } from "@/lib/api/assignmentApi";
 import { useToast } from "@/components/Toast";
 import { API_URL, resolveMediaUrl } from "@/constants";
-import { syncAssignmentSchedule, splitDurationMinutes } from "@/utils/assignmentSchedule";
+import { formatDatetimeLocalValue, syncAssignmentSchedule, splitDurationMinutes } from "@/utils/assignmentSchedule";
 
 import { useDarkMode } from "@/context/ThemeContext";
 
@@ -83,8 +83,8 @@ function OralAssignmentCreateContent() {
                     description: assignment.description || "",
                     class_id: assignment.class_id,
                     program_id: assignment.program_id,
-                    due_date: assignment.due_date ? new Date(assignment.due_date).toISOString().slice(0, 16) : "",
-                    start_date: assignment.start_date ? new Date(assignment.start_date).toISOString().slice(0, 16) : "",
+                    due_date: assignment.due_date ? formatDatetimeLocalValue(new Date(assignment.due_date)) : "",
+                    start_date: assignment.start_date ? formatDatetimeLocalValue(new Date(assignment.start_date)) : "",
                     total_points: assignment.total_points,
                     status: assignment.status || "active",
                     duration: assignment.duration || 30,

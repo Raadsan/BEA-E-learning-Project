@@ -27,6 +27,7 @@ async function extendSubscription(studentEmail, packageId, paidAmount) {
             where: { student_id: student.student_id },
             data: {
                 paid_until: newPaidUntil,
+                payment_access_extended: false,
                 sponsorship_package: mapMonthsToSponsorshipEnum(durationMonths),
                 funding_status: student.funding_status === 'Full Scholarship' ? 'Full Scholarship' : 'Paid',
                 funding_amount: paidAmount ?? expectedAmount,
@@ -253,6 +254,7 @@ export const getExpiredPayments = async (req, res) => {
                 chosen_subprogram: true,
                 funding_status: true,
                 paid_until: true,
+                payment_access_extended: true,
                 approval_status: true,
             },
         });
@@ -329,7 +331,7 @@ export const extendExpiredPayment = async (req, res) => {
 
         const updated = await prisma.students.update({
             where: { student_id: studentId },
-            data: { paid_until: newExpiry },
+            data: { paid_until: newExpiry, payment_access_extended: true },
             select: { student_id: true, full_name: true, paid_until: true },
         });
 
@@ -339,6 +341,44 @@ export const extendExpiredPayment = async (req, res) => {
     }
 };
 
+export const updatePaymentAccessExpiry = async (req, res) => {
+    try {
+        const studentId = String(req.params.studentId || '').trim();
+        const expiryDate = new Date(req.body.expiryDate);
+        if (!studentId || !req.body.expiryDate || Number.isNaN(expiryDate.getTime())) {
+            return res.status(400).json({ success: false, error: 'Provide a valid expiry date and time.' });
+        }
+        const student = await prisma.students.findUnique({ where: { student_id: studentId } });
+        if (!student) return res.status(404).json({ success: false, error: 'Student not found.' });
+        if (!student.payment_access_extended) return res.status(409).json({ success: false, error: 'Only manually extended access can be edited.' });
+        const updated = await prisma.students.update({
+            where: { student_id: studentId },
+            data: { paid_until: expiryDate, payment_access_extended: true },
+            select: { student_id: true, full_name: true, paid_until: true },
+        });
+        res.json({ success: true, student: updated, message: 'Student access expiry updated.' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+export const revokePaymentAccess = async (req, res) => {
+    try {
+        const studentId = String(req.params.studentId || '').trim();
+        if (!studentId) return res.status(400).json({ success: false, error: 'Student ID is required.' });
+        const student = await prisma.students.findUnique({ where: { student_id: studentId } });
+        if (!student) return res.status(404).json({ success: false, error: 'Student not found.' });
+        if (!student.payment_access_extended) return res.status(409).json({ success: false, error: 'Only manually extended access can be revoked.' });
+        const updated = await prisma.students.update({
+            where: { student_id: studentId },
+            data: { paid_until: new Date(Date.now() - 1000), payment_access_extended: false },
+            select: { student_id: true, full_name: true, paid_until: true },
+        });
+        res.json({ success: true, student: updated, message: 'Student access revoked.' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
 export const getStudentPayments = async (req, res) => {
     try {
         const { studentId } = req.params;

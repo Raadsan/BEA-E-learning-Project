@@ -66,6 +66,14 @@ export const paymentApi = createApi({
             }),
             invalidatesTags: ['Payments'],
         }),
+        updatePaymentAccessExpiry: builder.mutation<any, { studentId: string; expiryDate: string }>({
+            query: ({ studentId, expiryDate }) => ({ url: `/expired/${encodeURIComponent(studentId)}/expiry`, method: 'PATCH', body: { expiryDate } }),
+            invalidatesTags: ['Payments'],
+        }),
+        revokePaymentAccess: builder.mutation<any, { studentId: string }>({
+            query: ({ studentId }) => ({ url: `/expired/${encodeURIComponent(studentId)}/access`, method: 'DELETE' }),
+            invalidatesTags: ['Payments'],
+        }),
         createEvcPayment: builder.mutation({
             query: (body) => ({
                 url: "/evc",
@@ -122,6 +130,8 @@ export const {
     useGetAllPaymentsQuery,
     useGetExpiredPaymentsQuery,
     useExtendExpiredPaymentMutation,
+    useUpdatePaymentAccessExpiryMutation,
+    useRevokePaymentAccessMutation,
     useCreateEvcPaymentMutation,
     useCreateBankPaymentMutation,
     useCreateWaafiPaymentMutation

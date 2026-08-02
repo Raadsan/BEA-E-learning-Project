@@ -85,6 +85,9 @@ export const uploadFile = (req, res) => {
         if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
         const fileUrl = getStoredFileUrl(req.file);
+        if (req.headers["x-require-s3"] === "true" && !req.file.storageKey) {
+            return res.status(503).json({ error: "S3 upload failed. The file was not saved; check S3 configuration and permissions." });
+        }
         res.json({
             message: "File uploaded successfully",
             url: fileUrl,

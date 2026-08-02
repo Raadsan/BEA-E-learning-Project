@@ -16,6 +16,38 @@ export const timetableApi = createApi({
     }),
     tagTypes: ["Timetables"],
     endpoints: (builder) => ({
+        getTimelineRanges: builder.query<any[], void>({
+            query: () => "/timeline-ranges",
+            providesTags: [{ type: "Timetables", id: "RANGES" }],
+        }),
+        createTimelineRange: builder.mutation({
+            query: (body) => ({ url: "/timeline-ranges", method: "POST", body }),
+            invalidatesTags: [{ type: "Timetables", id: "RANGES" }],
+        }),
+        updateTimelineRange: builder.mutation({
+            query: ({ groupId, ...body }) => ({ url: `/timeline-ranges/${groupId}`, method: "PUT", body }),
+            invalidatesTags: [{ type: "Timetables", id: "RANGES" }],
+        }),
+        deleteTimelineRange: builder.mutation({
+            query: (groupId) => ({ url: `/timeline-ranges/${groupId}`, method: "DELETE" }),
+            invalidatesTags: [{ type: "Timetables", id: "RANGES" }],
+        }),
+        getTimelineActivities: builder.query<any[], { groupId: string; subprogramId: number }>({
+            query: ({ groupId, subprogramId }) => `/timeline-ranges/${groupId}/activities/${subprogramId}`,
+            providesTags: [{ type: "Timetables", id: "ACTIVITIES" }],
+        }),
+        createTimelineActivity: builder.mutation({
+            query: (body) => ({ url: "/timeline-activities", method: "POST", body }),
+            invalidatesTags: [{ type: "Timetables", id: "ACTIVITIES" }],
+        }),
+        updateTimelineActivity: builder.mutation({
+            query: ({ id, ...body }) => ({ url: `/timeline-activities/${id}`, method: "PUT", body }),
+            invalidatesTags: [{ type: "Timetables", id: "ACTIVITIES" }],
+        }),
+        deleteTimelineActivity: builder.mutation({
+            query: (id) => ({ url: `/timeline-activities/${id}`, method: "DELETE" }),
+            invalidatesTags: [{ type: "Timetables", id: "ACTIVITIES" }],
+        }),
         // GET timetables for a subprogram
         getTimetable: builder.query({
             query: (subprogramId) => `/${subprogramId}`,
@@ -60,6 +92,14 @@ export const timetableApi = createApi({
 });
 
 export const {
+    useGetTimelineRangesQuery,
+    useCreateTimelineRangeMutation,
+    useUpdateTimelineRangeMutation,
+    useDeleteTimelineRangeMutation,
+    useGetTimelineActivitiesQuery,
+    useCreateTimelineActivityMutation,
+    useUpdateTimelineActivityMutation,
+    useDeleteTimelineActivityMutation,
     useGetTimetableQuery,
     useCreateEntryMutation,
     useUpdateEntryMutation,

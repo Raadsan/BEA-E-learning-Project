@@ -25,6 +25,8 @@ export default function TutorialMediaPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const src = resolveMediaUrl(item.media_url);
   const isAudio = item.media_type === "audio";
+  const isImage = item.media_type === "image";
+  const isDocument = item.media_type === "document";
 
   const toggleFullscreen = async () => {
     const el = containerRef.current;
@@ -48,7 +50,11 @@ export default function TutorialMediaPlayer({
       className={`relative bg-black rounded-xl overflow-hidden ${isFullscreen ? "w-screen h-screen flex items-center justify-center" : ""} ${className}`}
       onDoubleClick={toggleFullscreen}
     >
-      {isAudio ? (
+      {isDocument ? (
+        <div className="flex min-h-[240px] flex-col items-center justify-center gap-4 bg-white p-8 text-center"><svg className="h-16 w-16 text-[#010080]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V7l-5-5H7a2 2 0 00-2 2v15a2 2 0 002 2z" /></svg><p className="font-semibold text-gray-800">{item.title || "Document"}</p><a href={src} target="_blank" rel="noreferrer" className="rounded-lg bg-[#010080] px-5 py-2.5 font-semibold text-white">Open / Download Document</a></div>
+      ) : isImage ? (
+        <img src={src} alt={item.title || "Tutorial image"} className="max-h-[75vh] w-full object-contain" />
+      ) : isAudio ? (
         <div className="w-full p-8 md:p-12 flex flex-col items-center justify-center gap-6 min-h-[180px]">
           <div className="w-20 h-20 rounded-full bg-[#010080]/30 flex items-center justify-center">
             <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">

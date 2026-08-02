@@ -13,9 +13,12 @@ export const contactApi = createApi({
             return headers;
         },
     }),
-    tagTypes: ["Contacts", "ContactPage"],
+    tagTypes: ["Contacts", "ContactPage", "Support"],
     endpoints: (builder) => ({
-        getContacts: builder.query<any, void>({
+        getMySupportRequests: builder.query<any[], void>({ query: () => "/contact/support/mine", providesTags: ["Support"] }),
+        getSupportRequests: builder.query<any[], void>({ query: () => "/contact/support/admin", providesTags: ["Support"] }),
+        createSupportRequest: builder.mutation<any, any>({ query: (body) => ({ url: "/contact/support", method: "POST", body }), invalidatesTags: ["Support"] }),
+        replySupportRequest: builder.mutation<any, { id: number; reply: string }>({ query: ({ id, reply }) => ({ url: `/contact/support/${id}/reply`, method: "PATCH", body: { reply } }), invalidatesTags: ["Support"] }),        getContacts: builder.query<any, void>({
             query: () => "/contact",
             providesTags: ["Contacts"],
         }),
@@ -42,4 +45,8 @@ export const {
     useDeleteContactMutation,
     useGetContactPageQuery,
     useUpdateContactPageMutation,
+    useGetMySupportRequestsQuery,
+    useGetSupportRequestsQuery,
+    useCreateSupportRequestMutation,
+    useReplySupportRequestMutation,
 } = contactApi;

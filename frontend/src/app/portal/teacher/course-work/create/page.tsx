@@ -12,6 +12,7 @@ import { useGetProgramsQuery } from "@/lib/api/programApi";
 
 import { useToast } from "@/components/Toast";
 import { useDarkMode } from "@/context/ThemeContext";
+import { formatDatetimeLocalValue } from "@/utils/assignmentSchedule";
 
 export default function CreateCourseWorkPage() {
     const router = useRouter();
@@ -57,8 +58,8 @@ export default function CreateCourseWorkPage() {
             setTestData({
                 title: editingAssignment.title,
                 description: editingAssignment.description,
-                start_date: editingAssignment.start_date ? new Date(editingAssignment.start_date).toISOString().slice(0, 16) : "",
-                due_date: editingAssignment.due_date ? new Date(editingAssignment.due_date).toISOString().slice(0, 16) : "",
+                start_date: editingAssignment.start_date ? formatDatetimeLocalValue(new Date(editingAssignment.start_date)) : "",
+                due_date: editingAssignment.due_date ? formatDatetimeLocalValue(new Date(editingAssignment.due_date)) : "",
                 class_id: editingAssignment.class_id,
                 program_id: editingAssignment.program_id,
                 subprogram_id: editingAssignment.subprogram_id || "",

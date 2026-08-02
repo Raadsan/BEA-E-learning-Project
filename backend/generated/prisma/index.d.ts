@@ -144,6 +144,11 @@ export type level_up_requests = $Result.DefaultSelection<Prisma.$level_up_reques
  */
 export type tutorials = $Result.DefaultSelection<Prisma.$tutorialsPayload>
 /**
+ * Model student_support_requests
+ * 
+ */
+export type student_support_requests = $Result.DefaultSelection<Prisma.$student_support_requestsPayload>
+/**
  * Model policies
  * 
  */
@@ -1221,6 +1226,16 @@ export class PrismaClient<
   get tutorials(): Prisma.tutorialsDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.student_support_requests`: Exposes CRUD operations for the **student_support_requests** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Student_support_requests
+    * const student_support_requests = await prisma.student_support_requests.findMany()
+    * ```
+    */
+  get student_support_requests(): Prisma.student_support_requestsDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.policies`: Exposes CRUD operations for the **policies** model.
     * Example usage:
     * ```ts
@@ -2029,6 +2044,7 @@ export namespace Prisma {
     learning_materials: 'learning_materials',
     level_up_requests: 'level_up_requests',
     tutorials: 'tutorials',
+    student_support_requests: 'student_support_requests',
     policies: 'policies',
     news_events: 'news_events',
     blog_posts: 'blog_posts',
@@ -2079,7 +2095,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "iELTSTOEFL" | "proficiencyTestStudents" | "migrations" | "academic_calendar" | "admins" | "announcements" | "assignment_submissions" | "assignments" | "attendance" | "certificates" | "class_schedules" | "classes" | "contacts" | "contact_page_settings" | "course_timeline" | "course_work" | "course_work_submissions" | "courses" | "exam_submissions" | "exams" | "freezing_requests" | "ielts_registrations" | "issued_certificates" | "learning_materials" | "level_up_requests" | "tutorials" | "policies" | "news_events" | "blog_posts" | "blog_page_settings" | "homepage_settings" | "newsletters" | "notifications" | "oral_assignment_submissions" | "oral_assignments" | "payment_packages" | "payments" | "placement_test_results" | "placement_tests" | "proficiency_test_results" | "proficiency_tests" | "program_payment_packages" | "programs" | "session_change_requests" | "shift_sessions" | "shifts" | "student_class_history" | "review_windows" | "review_assignments" | "student_review_questions" | "student_reviews" | "students" | "subprograms" | "teacher_review_questions" | "teacher_reviews" | "teachers" | "testimonials" | "timetable_events" | "timetables" | "writing_task_submissions" | "writing_tasks"
+      modelProps: "iELTSTOEFL" | "proficiencyTestStudents" | "migrations" | "academic_calendar" | "admins" | "announcements" | "assignment_submissions" | "assignments" | "attendance" | "certificates" | "class_schedules" | "classes" | "contacts" | "contact_page_settings" | "course_timeline" | "course_work" | "course_work_submissions" | "courses" | "exam_submissions" | "exams" | "freezing_requests" | "ielts_registrations" | "issued_certificates" | "learning_materials" | "level_up_requests" | "tutorials" | "student_support_requests" | "policies" | "news_events" | "blog_posts" | "blog_page_settings" | "homepage_settings" | "newsletters" | "notifications" | "oral_assignment_submissions" | "oral_assignments" | "payment_packages" | "payments" | "placement_test_results" | "placement_tests" | "proficiency_test_results" | "proficiency_tests" | "program_payment_packages" | "programs" | "session_change_requests" | "shift_sessions" | "shifts" | "student_class_history" | "review_windows" | "review_assignments" | "student_review_questions" | "student_reviews" | "students" | "subprograms" | "teacher_review_questions" | "teacher_reviews" | "teachers" | "testimonials" | "timetable_events" | "timetables" | "writing_task_submissions" | "writing_tasks"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3796,6 +3812,72 @@ export namespace Prisma {
           count: {
             args: Prisma.tutorialsCountArgs<ExtArgs>
             result: $Utils.Optional<TutorialsCountAggregateOutputType> | number
+          }
+        }
+      }
+      student_support_requests: {
+        payload: Prisma.$student_support_requestsPayload<ExtArgs>
+        fields: Prisma.student_support_requestsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.student_support_requestsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$student_support_requestsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.student_support_requestsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$student_support_requestsPayload>
+          }
+          findFirst: {
+            args: Prisma.student_support_requestsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$student_support_requestsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.student_support_requestsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$student_support_requestsPayload>
+          }
+          findMany: {
+            args: Prisma.student_support_requestsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$student_support_requestsPayload>[]
+          }
+          create: {
+            args: Prisma.student_support_requestsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$student_support_requestsPayload>
+          }
+          createMany: {
+            args: Prisma.student_support_requestsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.student_support_requestsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$student_support_requestsPayload>
+          }
+          update: {
+            args: Prisma.student_support_requestsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$student_support_requestsPayload>
+          }
+          deleteMany: {
+            args: Prisma.student_support_requestsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.student_support_requestsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.student_support_requestsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$student_support_requestsPayload>
+          }
+          aggregate: {
+            args: Prisma.Student_support_requestsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateStudent_support_requests>
+          }
+          groupBy: {
+            args: Prisma.student_support_requestsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Student_support_requestsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.student_support_requestsCountArgs<ExtArgs>
+            result: $Utils.Optional<Student_support_requestsCountAggregateOutputType> | number
           }
         }
       }
@@ -6243,6 +6325,7 @@ export namespace Prisma {
     learning_materials?: learning_materialsOmit
     level_up_requests?: level_up_requestsOmit
     tutorials?: tutorialsOmit
+    student_support_requests?: student_support_requestsOmit
     policies?: policiesOmit
     news_events?: news_eventsOmit
     blog_posts?: blog_postsOmit
@@ -34898,6 +34981,997 @@ export namespace Prisma {
 
 
   /**
+   * Model student_support_requests
+   */
+
+  export type AggregateStudent_support_requests = {
+    _count: Student_support_requestsCountAggregateOutputType | null
+    _avg: Student_support_requestsAvgAggregateOutputType | null
+    _sum: Student_support_requestsSumAggregateOutputType | null
+    _min: Student_support_requestsMinAggregateOutputType | null
+    _max: Student_support_requestsMaxAggregateOutputType | null
+  }
+
+  export type Student_support_requestsAvgAggregateOutputType = {
+    id: number | null
+    replied_by: number | null
+  }
+
+  export type Student_support_requestsSumAggregateOutputType = {
+    id: number | null
+    replied_by: number | null
+  }
+
+  export type Student_support_requestsMinAggregateOutputType = {
+    id: number | null
+    student_id: string | null
+    category: string | null
+    subject: string | null
+    message: string | null
+    status: string | null
+    admin_reply: string | null
+    replied_by: number | null
+    replied_at: Date | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type Student_support_requestsMaxAggregateOutputType = {
+    id: number | null
+    student_id: string | null
+    category: string | null
+    subject: string | null
+    message: string | null
+    status: string | null
+    admin_reply: string | null
+    replied_by: number | null
+    replied_at: Date | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type Student_support_requestsCountAggregateOutputType = {
+    id: number
+    student_id: number
+    category: number
+    subject: number
+    message: number
+    status: number
+    admin_reply: number
+    replied_by: number
+    replied_at: number
+    created_at: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type Student_support_requestsAvgAggregateInputType = {
+    id?: true
+    replied_by?: true
+  }
+
+  export type Student_support_requestsSumAggregateInputType = {
+    id?: true
+    replied_by?: true
+  }
+
+  export type Student_support_requestsMinAggregateInputType = {
+    id?: true
+    student_id?: true
+    category?: true
+    subject?: true
+    message?: true
+    status?: true
+    admin_reply?: true
+    replied_by?: true
+    replied_at?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type Student_support_requestsMaxAggregateInputType = {
+    id?: true
+    student_id?: true
+    category?: true
+    subject?: true
+    message?: true
+    status?: true
+    admin_reply?: true
+    replied_by?: true
+    replied_at?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type Student_support_requestsCountAggregateInputType = {
+    id?: true
+    student_id?: true
+    category?: true
+    subject?: true
+    message?: true
+    status?: true
+    admin_reply?: true
+    replied_by?: true
+    replied_at?: true
+    created_at?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type Student_support_requestsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which student_support_requests to aggregate.
+     */
+    where?: student_support_requestsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of student_support_requests to fetch.
+     */
+    orderBy?: student_support_requestsOrderByWithRelationInput | student_support_requestsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: student_support_requestsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` student_support_requests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` student_support_requests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned student_support_requests
+    **/
+    _count?: true | Student_support_requestsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Student_support_requestsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Student_support_requestsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Student_support_requestsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Student_support_requestsMaxAggregateInputType
+  }
+
+  export type GetStudent_support_requestsAggregateType<T extends Student_support_requestsAggregateArgs> = {
+        [P in keyof T & keyof AggregateStudent_support_requests]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateStudent_support_requests[P]>
+      : GetScalarType<T[P], AggregateStudent_support_requests[P]>
+  }
+
+
+
+
+  export type student_support_requestsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: student_support_requestsWhereInput
+    orderBy?: student_support_requestsOrderByWithAggregationInput | student_support_requestsOrderByWithAggregationInput[]
+    by: Student_support_requestsScalarFieldEnum[] | Student_support_requestsScalarFieldEnum
+    having?: student_support_requestsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Student_support_requestsCountAggregateInputType | true
+    _avg?: Student_support_requestsAvgAggregateInputType
+    _sum?: Student_support_requestsSumAggregateInputType
+    _min?: Student_support_requestsMinAggregateInputType
+    _max?: Student_support_requestsMaxAggregateInputType
+  }
+
+  export type Student_support_requestsGroupByOutputType = {
+    id: number
+    student_id: string
+    category: string
+    subject: string
+    message: string
+    status: string
+    admin_reply: string | null
+    replied_by: number | null
+    replied_at: Date | null
+    created_at: Date
+    updated_at: Date
+    _count: Student_support_requestsCountAggregateOutputType | null
+    _avg: Student_support_requestsAvgAggregateOutputType | null
+    _sum: Student_support_requestsSumAggregateOutputType | null
+    _min: Student_support_requestsMinAggregateOutputType | null
+    _max: Student_support_requestsMaxAggregateOutputType | null
+  }
+
+  type GetStudent_support_requestsGroupByPayload<T extends student_support_requestsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Student_support_requestsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Student_support_requestsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Student_support_requestsGroupByOutputType[P]>
+            : GetScalarType<T[P], Student_support_requestsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type student_support_requestsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    student_id?: boolean
+    category?: boolean
+    subject?: boolean
+    message?: boolean
+    status?: boolean
+    admin_reply?: boolean
+    replied_by?: boolean
+    replied_at?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["student_support_requests"]>
+
+
+
+  export type student_support_requestsSelectScalar = {
+    id?: boolean
+    student_id?: boolean
+    category?: boolean
+    subject?: boolean
+    message?: boolean
+    status?: boolean
+    admin_reply?: boolean
+    replied_by?: boolean
+    replied_at?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }
+
+  export type student_support_requestsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "student_id" | "category" | "subject" | "message" | "status" | "admin_reply" | "replied_by" | "replied_at" | "created_at" | "updated_at", ExtArgs["result"]["student_support_requests"]>
+
+  export type $student_support_requestsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "student_support_requests"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      student_id: string
+      category: string
+      subject: string
+      message: string
+      status: string
+      admin_reply: string | null
+      replied_by: number | null
+      replied_at: Date | null
+      created_at: Date
+      updated_at: Date
+    }, ExtArgs["result"]["student_support_requests"]>
+    composites: {}
+  }
+
+  type student_support_requestsGetPayload<S extends boolean | null | undefined | student_support_requestsDefaultArgs> = $Result.GetResult<Prisma.$student_support_requestsPayload, S>
+
+  type student_support_requestsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<student_support_requestsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Student_support_requestsCountAggregateInputType | true
+    }
+
+  export interface student_support_requestsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['student_support_requests'], meta: { name: 'student_support_requests' } }
+    /**
+     * Find zero or one Student_support_requests that matches the filter.
+     * @param {student_support_requestsFindUniqueArgs} args - Arguments to find a Student_support_requests
+     * @example
+     * // Get one Student_support_requests
+     * const student_support_requests = await prisma.student_support_requests.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends student_support_requestsFindUniqueArgs>(args: SelectSubset<T, student_support_requestsFindUniqueArgs<ExtArgs>>): Prisma__student_support_requestsClient<$Result.GetResult<Prisma.$student_support_requestsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Student_support_requests that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {student_support_requestsFindUniqueOrThrowArgs} args - Arguments to find a Student_support_requests
+     * @example
+     * // Get one Student_support_requests
+     * const student_support_requests = await prisma.student_support_requests.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends student_support_requestsFindUniqueOrThrowArgs>(args: SelectSubset<T, student_support_requestsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__student_support_requestsClient<$Result.GetResult<Prisma.$student_support_requestsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Student_support_requests that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {student_support_requestsFindFirstArgs} args - Arguments to find a Student_support_requests
+     * @example
+     * // Get one Student_support_requests
+     * const student_support_requests = await prisma.student_support_requests.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends student_support_requestsFindFirstArgs>(args?: SelectSubset<T, student_support_requestsFindFirstArgs<ExtArgs>>): Prisma__student_support_requestsClient<$Result.GetResult<Prisma.$student_support_requestsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Student_support_requests that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {student_support_requestsFindFirstOrThrowArgs} args - Arguments to find a Student_support_requests
+     * @example
+     * // Get one Student_support_requests
+     * const student_support_requests = await prisma.student_support_requests.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends student_support_requestsFindFirstOrThrowArgs>(args?: SelectSubset<T, student_support_requestsFindFirstOrThrowArgs<ExtArgs>>): Prisma__student_support_requestsClient<$Result.GetResult<Prisma.$student_support_requestsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Student_support_requests that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {student_support_requestsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Student_support_requests
+     * const student_support_requests = await prisma.student_support_requests.findMany()
+     * 
+     * // Get first 10 Student_support_requests
+     * const student_support_requests = await prisma.student_support_requests.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const student_support_requestsWithIdOnly = await prisma.student_support_requests.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends student_support_requestsFindManyArgs>(args?: SelectSubset<T, student_support_requestsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$student_support_requestsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Student_support_requests.
+     * @param {student_support_requestsCreateArgs} args - Arguments to create a Student_support_requests.
+     * @example
+     * // Create one Student_support_requests
+     * const Student_support_requests = await prisma.student_support_requests.create({
+     *   data: {
+     *     // ... data to create a Student_support_requests
+     *   }
+     * })
+     * 
+     */
+    create<T extends student_support_requestsCreateArgs>(args: SelectSubset<T, student_support_requestsCreateArgs<ExtArgs>>): Prisma__student_support_requestsClient<$Result.GetResult<Prisma.$student_support_requestsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Student_support_requests.
+     * @param {student_support_requestsCreateManyArgs} args - Arguments to create many Student_support_requests.
+     * @example
+     * // Create many Student_support_requests
+     * const student_support_requests = await prisma.student_support_requests.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends student_support_requestsCreateManyArgs>(args?: SelectSubset<T, student_support_requestsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Student_support_requests.
+     * @param {student_support_requestsDeleteArgs} args - Arguments to delete one Student_support_requests.
+     * @example
+     * // Delete one Student_support_requests
+     * const Student_support_requests = await prisma.student_support_requests.delete({
+     *   where: {
+     *     // ... filter to delete one Student_support_requests
+     *   }
+     * })
+     * 
+     */
+    delete<T extends student_support_requestsDeleteArgs>(args: SelectSubset<T, student_support_requestsDeleteArgs<ExtArgs>>): Prisma__student_support_requestsClient<$Result.GetResult<Prisma.$student_support_requestsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Student_support_requests.
+     * @param {student_support_requestsUpdateArgs} args - Arguments to update one Student_support_requests.
+     * @example
+     * // Update one Student_support_requests
+     * const student_support_requests = await prisma.student_support_requests.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends student_support_requestsUpdateArgs>(args: SelectSubset<T, student_support_requestsUpdateArgs<ExtArgs>>): Prisma__student_support_requestsClient<$Result.GetResult<Prisma.$student_support_requestsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Student_support_requests.
+     * @param {student_support_requestsDeleteManyArgs} args - Arguments to filter Student_support_requests to delete.
+     * @example
+     * // Delete a few Student_support_requests
+     * const { count } = await prisma.student_support_requests.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends student_support_requestsDeleteManyArgs>(args?: SelectSubset<T, student_support_requestsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Student_support_requests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {student_support_requestsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Student_support_requests
+     * const student_support_requests = await prisma.student_support_requests.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends student_support_requestsUpdateManyArgs>(args: SelectSubset<T, student_support_requestsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Student_support_requests.
+     * @param {student_support_requestsUpsertArgs} args - Arguments to update or create a Student_support_requests.
+     * @example
+     * // Update or create a Student_support_requests
+     * const student_support_requests = await prisma.student_support_requests.upsert({
+     *   create: {
+     *     // ... data to create a Student_support_requests
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Student_support_requests we want to update
+     *   }
+     * })
+     */
+    upsert<T extends student_support_requestsUpsertArgs>(args: SelectSubset<T, student_support_requestsUpsertArgs<ExtArgs>>): Prisma__student_support_requestsClient<$Result.GetResult<Prisma.$student_support_requestsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Student_support_requests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {student_support_requestsCountArgs} args - Arguments to filter Student_support_requests to count.
+     * @example
+     * // Count the number of Student_support_requests
+     * const count = await prisma.student_support_requests.count({
+     *   where: {
+     *     // ... the filter for the Student_support_requests we want to count
+     *   }
+     * })
+    **/
+    count<T extends student_support_requestsCountArgs>(
+      args?: Subset<T, student_support_requestsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Student_support_requestsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Student_support_requests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Student_support_requestsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Student_support_requestsAggregateArgs>(args: Subset<T, Student_support_requestsAggregateArgs>): Prisma.PrismaPromise<GetStudent_support_requestsAggregateType<T>>
+
+    /**
+     * Group by Student_support_requests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {student_support_requestsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends student_support_requestsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: student_support_requestsGroupByArgs['orderBy'] }
+        : { orderBy?: student_support_requestsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, student_support_requestsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetStudent_support_requestsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the student_support_requests model
+   */
+  readonly fields: student_support_requestsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for student_support_requests.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__student_support_requestsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the student_support_requests model
+   */
+  interface student_support_requestsFieldRefs {
+    readonly id: FieldRef<"student_support_requests", 'Int'>
+    readonly student_id: FieldRef<"student_support_requests", 'String'>
+    readonly category: FieldRef<"student_support_requests", 'String'>
+    readonly subject: FieldRef<"student_support_requests", 'String'>
+    readonly message: FieldRef<"student_support_requests", 'String'>
+    readonly status: FieldRef<"student_support_requests", 'String'>
+    readonly admin_reply: FieldRef<"student_support_requests", 'String'>
+    readonly replied_by: FieldRef<"student_support_requests", 'Int'>
+    readonly replied_at: FieldRef<"student_support_requests", 'DateTime'>
+    readonly created_at: FieldRef<"student_support_requests", 'DateTime'>
+    readonly updated_at: FieldRef<"student_support_requests", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * student_support_requests findUnique
+   */
+  export type student_support_requestsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the student_support_requests
+     */
+    select?: student_support_requestsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the student_support_requests
+     */
+    omit?: student_support_requestsOmit<ExtArgs> | null
+    /**
+     * Filter, which student_support_requests to fetch.
+     */
+    where: student_support_requestsWhereUniqueInput
+  }
+
+  /**
+   * student_support_requests findUniqueOrThrow
+   */
+  export type student_support_requestsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the student_support_requests
+     */
+    select?: student_support_requestsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the student_support_requests
+     */
+    omit?: student_support_requestsOmit<ExtArgs> | null
+    /**
+     * Filter, which student_support_requests to fetch.
+     */
+    where: student_support_requestsWhereUniqueInput
+  }
+
+  /**
+   * student_support_requests findFirst
+   */
+  export type student_support_requestsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the student_support_requests
+     */
+    select?: student_support_requestsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the student_support_requests
+     */
+    omit?: student_support_requestsOmit<ExtArgs> | null
+    /**
+     * Filter, which student_support_requests to fetch.
+     */
+    where?: student_support_requestsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of student_support_requests to fetch.
+     */
+    orderBy?: student_support_requestsOrderByWithRelationInput | student_support_requestsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for student_support_requests.
+     */
+    cursor?: student_support_requestsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` student_support_requests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` student_support_requests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of student_support_requests.
+     */
+    distinct?: Student_support_requestsScalarFieldEnum | Student_support_requestsScalarFieldEnum[]
+  }
+
+  /**
+   * student_support_requests findFirstOrThrow
+   */
+  export type student_support_requestsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the student_support_requests
+     */
+    select?: student_support_requestsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the student_support_requests
+     */
+    omit?: student_support_requestsOmit<ExtArgs> | null
+    /**
+     * Filter, which student_support_requests to fetch.
+     */
+    where?: student_support_requestsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of student_support_requests to fetch.
+     */
+    orderBy?: student_support_requestsOrderByWithRelationInput | student_support_requestsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for student_support_requests.
+     */
+    cursor?: student_support_requestsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` student_support_requests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` student_support_requests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of student_support_requests.
+     */
+    distinct?: Student_support_requestsScalarFieldEnum | Student_support_requestsScalarFieldEnum[]
+  }
+
+  /**
+   * student_support_requests findMany
+   */
+  export type student_support_requestsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the student_support_requests
+     */
+    select?: student_support_requestsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the student_support_requests
+     */
+    omit?: student_support_requestsOmit<ExtArgs> | null
+    /**
+     * Filter, which student_support_requests to fetch.
+     */
+    where?: student_support_requestsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of student_support_requests to fetch.
+     */
+    orderBy?: student_support_requestsOrderByWithRelationInput | student_support_requestsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing student_support_requests.
+     */
+    cursor?: student_support_requestsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` student_support_requests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` student_support_requests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of student_support_requests.
+     */
+    distinct?: Student_support_requestsScalarFieldEnum | Student_support_requestsScalarFieldEnum[]
+  }
+
+  /**
+   * student_support_requests create
+   */
+  export type student_support_requestsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the student_support_requests
+     */
+    select?: student_support_requestsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the student_support_requests
+     */
+    omit?: student_support_requestsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a student_support_requests.
+     */
+    data: XOR<student_support_requestsCreateInput, student_support_requestsUncheckedCreateInput>
+  }
+
+  /**
+   * student_support_requests createMany
+   */
+  export type student_support_requestsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many student_support_requests.
+     */
+    data: student_support_requestsCreateManyInput | student_support_requestsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * student_support_requests update
+   */
+  export type student_support_requestsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the student_support_requests
+     */
+    select?: student_support_requestsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the student_support_requests
+     */
+    omit?: student_support_requestsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a student_support_requests.
+     */
+    data: XOR<student_support_requestsUpdateInput, student_support_requestsUncheckedUpdateInput>
+    /**
+     * Choose, which student_support_requests to update.
+     */
+    where: student_support_requestsWhereUniqueInput
+  }
+
+  /**
+   * student_support_requests updateMany
+   */
+  export type student_support_requestsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update student_support_requests.
+     */
+    data: XOR<student_support_requestsUpdateManyMutationInput, student_support_requestsUncheckedUpdateManyInput>
+    /**
+     * Filter which student_support_requests to update
+     */
+    where?: student_support_requestsWhereInput
+    /**
+     * Limit how many student_support_requests to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * student_support_requests upsert
+   */
+  export type student_support_requestsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the student_support_requests
+     */
+    select?: student_support_requestsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the student_support_requests
+     */
+    omit?: student_support_requestsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the student_support_requests to update in case it exists.
+     */
+    where: student_support_requestsWhereUniqueInput
+    /**
+     * In case the student_support_requests found by the `where` argument doesn't exist, create a new student_support_requests with this data.
+     */
+    create: XOR<student_support_requestsCreateInput, student_support_requestsUncheckedCreateInput>
+    /**
+     * In case the student_support_requests was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<student_support_requestsUpdateInput, student_support_requestsUncheckedUpdateInput>
+  }
+
+  /**
+   * student_support_requests delete
+   */
+  export type student_support_requestsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the student_support_requests
+     */
+    select?: student_support_requestsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the student_support_requests
+     */
+    omit?: student_support_requestsOmit<ExtArgs> | null
+    /**
+     * Filter which student_support_requests to delete.
+     */
+    where: student_support_requestsWhereUniqueInput
+  }
+
+  /**
+   * student_support_requests deleteMany
+   */
+  export type student_support_requestsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which student_support_requests to delete
+     */
+    where?: student_support_requestsWhereInput
+    /**
+     * Limit how many student_support_requests to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * student_support_requests without action
+   */
+  export type student_support_requestsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the student_support_requests
+     */
+    select?: student_support_requestsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the student_support_requests
+     */
+    omit?: student_support_requestsOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model policies
    */
 
@@ -60299,6 +61373,7 @@ export namespace Prisma {
     completed_subprograms: string | null
     sponsor_name: string | null
     paid_until: Date | null
+    payment_access_extended: boolean | null
     funding_status: $Enums.students_funding_status | null
     sponsorship_package: $Enums.students_sponsorship_package | null
     funding_amount: Decimal | null
@@ -60344,6 +61419,7 @@ export namespace Prisma {
     completed_subprograms: string | null
     sponsor_name: string | null
     paid_until: Date | null
+    payment_access_extended: boolean | null
     funding_status: $Enums.students_funding_status | null
     sponsorship_package: $Enums.students_sponsorship_package | null
     funding_amount: Decimal | null
@@ -60389,6 +61465,7 @@ export namespace Prisma {
     completed_subprograms: number
     sponsor_name: number
     paid_until: number
+    payment_access_extended: number
     funding_status: number
     sponsorship_package: number
     funding_amount: number
@@ -60454,6 +61531,7 @@ export namespace Prisma {
     completed_subprograms?: true
     sponsor_name?: true
     paid_until?: true
+    payment_access_extended?: true
     funding_status?: true
     sponsorship_package?: true
     funding_amount?: true
@@ -60499,6 +61577,7 @@ export namespace Prisma {
     completed_subprograms?: true
     sponsor_name?: true
     paid_until?: true
+    payment_access_extended?: true
     funding_status?: true
     sponsorship_package?: true
     funding_amount?: true
@@ -60544,6 +61623,7 @@ export namespace Prisma {
     completed_subprograms?: true
     sponsor_name?: true
     paid_until?: true
+    payment_access_extended?: true
     funding_status?: true
     sponsorship_package?: true
     funding_amount?: true
@@ -60676,6 +61756,7 @@ export namespace Prisma {
     completed_subprograms: string | null
     sponsor_name: string | null
     paid_until: Date | null
+    payment_access_extended: boolean
     funding_status: $Enums.students_funding_status | null
     sponsorship_package: $Enums.students_sponsorship_package | null
     funding_amount: Decimal | null
@@ -60740,6 +61821,7 @@ export namespace Prisma {
     completed_subprograms?: boolean
     sponsor_name?: boolean
     paid_until?: boolean
+    payment_access_extended?: boolean
     funding_status?: boolean
     sponsorship_package?: boolean
     funding_amount?: boolean
@@ -60792,6 +61874,7 @@ export namespace Prisma {
     completed_subprograms?: boolean
     sponsor_name?: boolean
     paid_until?: boolean
+    payment_access_extended?: boolean
     funding_status?: boolean
     sponsorship_package?: boolean
     funding_amount?: boolean
@@ -60821,7 +61904,7 @@ export namespace Prisma {
     profile_picture?: boolean
   }
 
-  export type studentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"student_id" | "full_name" | "email" | "phone" | "age" | "sex" | "date_of_birth" | "place_of_birth" | "residency_country" | "residency_city" | "chosen_program" | "chosen_subprogram" | "completed_subprograms" | "sponsor_name" | "paid_until" | "funding_status" | "sponsorship_package" | "funding_amount" | "funding_month" | "scholarship_percentage" | "expiry_date" | "is_extended" | "reminder_sent" | "admin_expiry_notified" | "password" | "parent_name" | "parent_email" | "parent_phone" | "parent_relation" | "parent_res_county" | "parent_res_city" | "created_at" | "updated_at" | "approval_status" | "reset_password_token" | "reset_password_expires" | "class_id" | "created_by" | "updated_by" | "created_by_name" | "updated_by_name" | "profile_picture", ExtArgs["result"]["students"]>
+  export type studentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"student_id" | "full_name" | "email" | "phone" | "age" | "sex" | "date_of_birth" | "place_of_birth" | "residency_country" | "residency_city" | "chosen_program" | "chosen_subprogram" | "completed_subprograms" | "sponsor_name" | "paid_until" | "payment_access_extended" | "funding_status" | "sponsorship_package" | "funding_amount" | "funding_month" | "scholarship_percentage" | "expiry_date" | "is_extended" | "reminder_sent" | "admin_expiry_notified" | "password" | "parent_name" | "parent_email" | "parent_phone" | "parent_relation" | "parent_res_county" | "parent_res_city" | "created_at" | "updated_at" | "approval_status" | "reset_password_token" | "reset_password_expires" | "class_id" | "created_by" | "updated_by" | "created_by_name" | "updated_by_name" | "profile_picture", ExtArgs["result"]["students"]>
   export type studentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     assignment_submissions?: boolean | students$assignment_submissionsArgs<ExtArgs>
     attendance?: boolean | students$attendanceArgs<ExtArgs>
@@ -60854,6 +61937,7 @@ export namespace Prisma {
       completed_subprograms: string | null
       sponsor_name: string | null
       paid_until: Date | null
+      payment_access_extended: boolean
       funding_status: $Enums.students_funding_status | null
       sponsorship_package: $Enums.students_sponsorship_package | null
       funding_amount: Prisma.Decimal | null
@@ -61269,6 +62353,7 @@ export namespace Prisma {
     readonly completed_subprograms: FieldRef<"students", 'String'>
     readonly sponsor_name: FieldRef<"students", 'String'>
     readonly paid_until: FieldRef<"students", 'DateTime'>
+    readonly payment_access_extended: FieldRef<"students", 'Boolean'>
     readonly funding_status: FieldRef<"students", 'students_funding_status'>
     readonly sponsorship_package: FieldRef<"students", 'students_sponsorship_package'>
     readonly funding_amount: FieldRef<"students", 'Decimal'>
@@ -68160,6 +69245,8 @@ export namespace Prisma {
     program_id: number | null
     subprogram_id: number | null
     date: Date | null
+    end_date: Date | null
+    timeline_group_id: string | null
     day: string | null
     week_number: number | null
     start_time: Date | null
@@ -68181,6 +69268,8 @@ export namespace Prisma {
     program_id: number | null
     subprogram_id: number | null
     date: Date | null
+    end_date: Date | null
+    timeline_group_id: string | null
     day: string | null
     week_number: number | null
     start_time: Date | null
@@ -68202,6 +69291,8 @@ export namespace Prisma {
     program_id: number
     subprogram_id: number
     date: number
+    end_date: number
+    timeline_group_id: number
     day: number
     week_number: number
     start_time: number
@@ -68243,6 +69334,8 @@ export namespace Prisma {
     program_id?: true
     subprogram_id?: true
     date?: true
+    end_date?: true
+    timeline_group_id?: true
     day?: true
     week_number?: true
     start_time?: true
@@ -68264,6 +69357,8 @@ export namespace Prisma {
     program_id?: true
     subprogram_id?: true
     date?: true
+    end_date?: true
+    timeline_group_id?: true
     day?: true
     week_number?: true
     start_time?: true
@@ -68285,6 +69380,8 @@ export namespace Prisma {
     program_id?: true
     subprogram_id?: true
     date?: true
+    end_date?: true
+    timeline_group_id?: true
     day?: true
     week_number?: true
     start_time?: true
@@ -68393,6 +69490,8 @@ export namespace Prisma {
     program_id: number
     subprogram_id: number
     date: Date | null
+    end_date: Date | null
+    timeline_group_id: string | null
     day: string
     week_number: number | null
     start_time: Date | null
@@ -68433,6 +69532,8 @@ export namespace Prisma {
     program_id?: boolean
     subprogram_id?: boolean
     date?: boolean
+    end_date?: boolean
+    timeline_group_id?: boolean
     day?: boolean
     week_number?: boolean
     start_time?: boolean
@@ -68459,6 +69560,8 @@ export namespace Prisma {
     program_id?: boolean
     subprogram_id?: boolean
     date?: boolean
+    end_date?: boolean
+    timeline_group_id?: boolean
     day?: boolean
     week_number?: boolean
     start_time?: boolean
@@ -68475,7 +69578,7 @@ export namespace Prisma {
     year?: boolean
   }
 
-  export type timetablesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "program_id" | "subprogram_id" | "date" | "day" | "week_number" | "start_time" | "end_time" | "subject" | "teacher_id" | "created_at" | "updated_at" | "type" | "activity_type" | "activity_title" | "activity_description" | "month" | "year", ExtArgs["result"]["timetables"]>
+  export type timetablesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "program_id" | "subprogram_id" | "date" | "end_date" | "timeline_group_id" | "day" | "week_number" | "start_time" | "end_time" | "subject" | "teacher_id" | "created_at" | "updated_at" | "type" | "activity_type" | "activity_title" | "activity_description" | "month" | "year", ExtArgs["result"]["timetables"]>
   export type timetablesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     programs?: boolean | programsDefaultArgs<ExtArgs>
     subprograms?: boolean | subprogramsDefaultArgs<ExtArgs>
@@ -68494,6 +69597,8 @@ export namespace Prisma {
       program_id: number
       subprogram_id: number
       date: Date | null
+      end_date: Date | null
+      timeline_group_id: string | null
       day: string
       week_number: number | null
       start_time: Date | null
@@ -68884,6 +69989,8 @@ export namespace Prisma {
     readonly program_id: FieldRef<"timetables", 'Int'>
     readonly subprogram_id: FieldRef<"timetables", 'Int'>
     readonly date: FieldRef<"timetables", 'DateTime'>
+    readonly end_date: FieldRef<"timetables", 'DateTime'>
+    readonly timeline_group_id: FieldRef<"timetables", 'String'>
     readonly day: FieldRef<"timetables", 'String'>
     readonly week_number: FieldRef<"timetables", 'Int'>
     readonly start_time: FieldRef<"timetables", 'DateTime'>
@@ -71969,6 +73076,23 @@ export namespace Prisma {
   export type TutorialsScalarFieldEnum = (typeof TutorialsScalarFieldEnum)[keyof typeof TutorialsScalarFieldEnum]
 
 
+  export const Student_support_requestsScalarFieldEnum: {
+    id: 'id',
+    student_id: 'student_id',
+    category: 'category',
+    subject: 'subject',
+    message: 'message',
+    status: 'status',
+    admin_reply: 'admin_reply',
+    replied_by: 'replied_by',
+    replied_at: 'replied_at',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+  };
+
+  export type Student_support_requestsScalarFieldEnum = (typeof Student_support_requestsScalarFieldEnum)[keyof typeof Student_support_requestsScalarFieldEnum]
+
+
   export const PoliciesScalarFieldEnum: {
     id: 'id',
     slug: 'slug',
@@ -72382,6 +73506,7 @@ export namespace Prisma {
     completed_subprograms: 'completed_subprograms',
     sponsor_name: 'sponsor_name',
     paid_until: 'paid_until',
+    payment_access_extended: 'payment_access_extended',
     funding_status: 'funding_status',
     sponsorship_package: 'sponsorship_package',
     funding_amount: 'funding_amount',
@@ -72519,6 +73644,8 @@ export namespace Prisma {
     program_id: 'program_id',
     subprogram_id: 'subprogram_id',
     date: 'date',
+    end_date: 'end_date',
+    timeline_group_id: 'timeline_group_id',
     day: 'day',
     week_number: 'week_number',
     start_time: 'start_time',
@@ -72930,6 +74057,18 @@ export namespace Prisma {
   export type tutorialsOrderByRelevanceFieldEnum = (typeof tutorialsOrderByRelevanceFieldEnum)[keyof typeof tutorialsOrderByRelevanceFieldEnum]
 
 
+  export const student_support_requestsOrderByRelevanceFieldEnum: {
+    student_id: 'student_id',
+    category: 'category',
+    subject: 'subject',
+    message: 'message',
+    status: 'status',
+    admin_reply: 'admin_reply'
+  };
+
+  export type student_support_requestsOrderByRelevanceFieldEnum = (typeof student_support_requestsOrderByRelevanceFieldEnum)[keyof typeof student_support_requestsOrderByRelevanceFieldEnum]
+
+
   export const policiesOrderByRelevanceFieldEnum: {
     slug: 'slug',
     title: 'title',
@@ -73271,6 +74410,7 @@ export namespace Prisma {
 
 
   export const timetablesOrderByRelevanceFieldEnum: {
+    timeline_group_id: 'timeline_group_id',
     day: 'day',
     subject: 'subject',
     type: 'type',
@@ -76275,6 +77415,91 @@ export namespace Prisma {
     updated_at?: DateTimeNullableWithAggregatesFilter<"tutorials"> | Date | string | null
   }
 
+  export type student_support_requestsWhereInput = {
+    AND?: student_support_requestsWhereInput | student_support_requestsWhereInput[]
+    OR?: student_support_requestsWhereInput[]
+    NOT?: student_support_requestsWhereInput | student_support_requestsWhereInput[]
+    id?: IntFilter<"student_support_requests"> | number
+    student_id?: StringFilter<"student_support_requests"> | string
+    category?: StringFilter<"student_support_requests"> | string
+    subject?: StringFilter<"student_support_requests"> | string
+    message?: StringFilter<"student_support_requests"> | string
+    status?: StringFilter<"student_support_requests"> | string
+    admin_reply?: StringNullableFilter<"student_support_requests"> | string | null
+    replied_by?: IntNullableFilter<"student_support_requests"> | number | null
+    replied_at?: DateTimeNullableFilter<"student_support_requests"> | Date | string | null
+    created_at?: DateTimeFilter<"student_support_requests"> | Date | string
+    updated_at?: DateTimeFilter<"student_support_requests"> | Date | string
+  }
+
+  export type student_support_requestsOrderByWithRelationInput = {
+    id?: SortOrder
+    student_id?: SortOrder
+    category?: SortOrder
+    subject?: SortOrder
+    message?: SortOrder
+    status?: SortOrder
+    admin_reply?: SortOrderInput | SortOrder
+    replied_by?: SortOrderInput | SortOrder
+    replied_at?: SortOrderInput | SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    _relevance?: student_support_requestsOrderByRelevanceInput
+  }
+
+  export type student_support_requestsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: student_support_requestsWhereInput | student_support_requestsWhereInput[]
+    OR?: student_support_requestsWhereInput[]
+    NOT?: student_support_requestsWhereInput | student_support_requestsWhereInput[]
+    student_id?: StringFilter<"student_support_requests"> | string
+    category?: StringFilter<"student_support_requests"> | string
+    subject?: StringFilter<"student_support_requests"> | string
+    message?: StringFilter<"student_support_requests"> | string
+    status?: StringFilter<"student_support_requests"> | string
+    admin_reply?: StringNullableFilter<"student_support_requests"> | string | null
+    replied_by?: IntNullableFilter<"student_support_requests"> | number | null
+    replied_at?: DateTimeNullableFilter<"student_support_requests"> | Date | string | null
+    created_at?: DateTimeFilter<"student_support_requests"> | Date | string
+    updated_at?: DateTimeFilter<"student_support_requests"> | Date | string
+  }, "id">
+
+  export type student_support_requestsOrderByWithAggregationInput = {
+    id?: SortOrder
+    student_id?: SortOrder
+    category?: SortOrder
+    subject?: SortOrder
+    message?: SortOrder
+    status?: SortOrder
+    admin_reply?: SortOrderInput | SortOrder
+    replied_by?: SortOrderInput | SortOrder
+    replied_at?: SortOrderInput | SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    _count?: student_support_requestsCountOrderByAggregateInput
+    _avg?: student_support_requestsAvgOrderByAggregateInput
+    _max?: student_support_requestsMaxOrderByAggregateInput
+    _min?: student_support_requestsMinOrderByAggregateInput
+    _sum?: student_support_requestsSumOrderByAggregateInput
+  }
+
+  export type student_support_requestsScalarWhereWithAggregatesInput = {
+    AND?: student_support_requestsScalarWhereWithAggregatesInput | student_support_requestsScalarWhereWithAggregatesInput[]
+    OR?: student_support_requestsScalarWhereWithAggregatesInput[]
+    NOT?: student_support_requestsScalarWhereWithAggregatesInput | student_support_requestsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"student_support_requests"> | number
+    student_id?: StringWithAggregatesFilter<"student_support_requests"> | string
+    category?: StringWithAggregatesFilter<"student_support_requests"> | string
+    subject?: StringWithAggregatesFilter<"student_support_requests"> | string
+    message?: StringWithAggregatesFilter<"student_support_requests"> | string
+    status?: StringWithAggregatesFilter<"student_support_requests"> | string
+    admin_reply?: StringNullableWithAggregatesFilter<"student_support_requests"> | string | null
+    replied_by?: IntNullableWithAggregatesFilter<"student_support_requests"> | number | null
+    replied_at?: DateTimeNullableWithAggregatesFilter<"student_support_requests"> | Date | string | null
+    created_at?: DateTimeWithAggregatesFilter<"student_support_requests"> | Date | string
+    updated_at?: DateTimeWithAggregatesFilter<"student_support_requests"> | Date | string
+  }
+
   export type policiesWhereInput = {
     AND?: policiesWhereInput | policiesWhereInput[]
     OR?: policiesWhereInput[]
@@ -78335,6 +79560,7 @@ export namespace Prisma {
     completed_subprograms?: StringNullableFilter<"students"> | string | null
     sponsor_name?: StringNullableFilter<"students"> | string | null
     paid_until?: DateTimeNullableFilter<"students"> | Date | string | null
+    payment_access_extended?: BoolFilter<"students"> | boolean
     funding_status?: Enumstudents_funding_statusNullableFilter<"students"> | $Enums.students_funding_status | null
     sponsorship_package?: Enumstudents_sponsorship_packageNullableFilter<"students"> | $Enums.students_sponsorship_package | null
     funding_amount?: DecimalNullableFilter<"students"> | Decimal | DecimalJsLike | number | string | null
@@ -78384,6 +79610,7 @@ export namespace Prisma {
     completed_subprograms?: SortOrderInput | SortOrder
     sponsor_name?: SortOrderInput | SortOrder
     paid_until?: SortOrderInput | SortOrder
+    payment_access_extended?: SortOrder
     funding_status?: SortOrderInput | SortOrder
     sponsorship_package?: SortOrderInput | SortOrder
     funding_amount?: SortOrderInput | SortOrder
@@ -78437,6 +79664,7 @@ export namespace Prisma {
     completed_subprograms?: StringNullableFilter<"students"> | string | null
     sponsor_name?: StringNullableFilter<"students"> | string | null
     paid_until?: DateTimeNullableFilter<"students"> | Date | string | null
+    payment_access_extended?: BoolFilter<"students"> | boolean
     funding_status?: Enumstudents_funding_statusNullableFilter<"students"> | $Enums.students_funding_status | null
     sponsorship_package?: Enumstudents_sponsorship_packageNullableFilter<"students"> | $Enums.students_sponsorship_package | null
     funding_amount?: DecimalNullableFilter<"students"> | Decimal | DecimalJsLike | number | string | null
@@ -78486,6 +79714,7 @@ export namespace Prisma {
     completed_subprograms?: SortOrderInput | SortOrder
     sponsor_name?: SortOrderInput | SortOrder
     paid_until?: SortOrderInput | SortOrder
+    payment_access_extended?: SortOrder
     funding_status?: SortOrderInput | SortOrder
     sponsorship_package?: SortOrderInput | SortOrder
     funding_amount?: SortOrderInput | SortOrder
@@ -78539,6 +79768,7 @@ export namespace Prisma {
     completed_subprograms?: StringNullableWithAggregatesFilter<"students"> | string | null
     sponsor_name?: StringNullableWithAggregatesFilter<"students"> | string | null
     paid_until?: DateTimeNullableWithAggregatesFilter<"students"> | Date | string | null
+    payment_access_extended?: BoolWithAggregatesFilter<"students"> | boolean
     funding_status?: Enumstudents_funding_statusNullableWithAggregatesFilter<"students"> | $Enums.students_funding_status | null
     sponsorship_package?: Enumstudents_sponsorship_packageNullableWithAggregatesFilter<"students"> | $Enums.students_sponsorship_package | null
     funding_amount?: DecimalNullableWithAggregatesFilter<"students"> | Decimal | DecimalJsLike | number | string | null
@@ -79112,6 +80342,8 @@ export namespace Prisma {
     program_id?: IntFilter<"timetables"> | number
     subprogram_id?: IntFilter<"timetables"> | number
     date?: DateTimeNullableFilter<"timetables"> | Date | string | null
+    end_date?: DateTimeNullableFilter<"timetables"> | Date | string | null
+    timeline_group_id?: StringNullableFilter<"timetables"> | string | null
     day?: StringFilter<"timetables"> | string
     week_number?: IntNullableFilter<"timetables"> | number | null
     start_time?: DateTimeNullableFilter<"timetables"> | Date | string | null
@@ -79136,6 +80368,8 @@ export namespace Prisma {
     program_id?: SortOrder
     subprogram_id?: SortOrder
     date?: SortOrderInput | SortOrder
+    end_date?: SortOrderInput | SortOrder
+    timeline_group_id?: SortOrderInput | SortOrder
     day?: SortOrder
     week_number?: SortOrderInput | SortOrder
     start_time?: SortOrderInput | SortOrder
@@ -79164,6 +80398,8 @@ export namespace Prisma {
     program_id?: IntFilter<"timetables"> | number
     subprogram_id?: IntFilter<"timetables"> | number
     date?: DateTimeNullableFilter<"timetables"> | Date | string | null
+    end_date?: DateTimeNullableFilter<"timetables"> | Date | string | null
+    timeline_group_id?: StringNullableFilter<"timetables"> | string | null
     day?: StringFilter<"timetables"> | string
     week_number?: IntNullableFilter<"timetables"> | number | null
     start_time?: DateTimeNullableFilter<"timetables"> | Date | string | null
@@ -79188,6 +80424,8 @@ export namespace Prisma {
     program_id?: SortOrder
     subprogram_id?: SortOrder
     date?: SortOrderInput | SortOrder
+    end_date?: SortOrderInput | SortOrder
+    timeline_group_id?: SortOrderInput | SortOrder
     day?: SortOrder
     week_number?: SortOrderInput | SortOrder
     start_time?: SortOrderInput | SortOrder
@@ -79217,6 +80455,8 @@ export namespace Prisma {
     program_id?: IntWithAggregatesFilter<"timetables"> | number
     subprogram_id?: IntWithAggregatesFilter<"timetables"> | number
     date?: DateTimeNullableWithAggregatesFilter<"timetables"> | Date | string | null
+    end_date?: DateTimeNullableWithAggregatesFilter<"timetables"> | Date | string | null
+    timeline_group_id?: StringNullableWithAggregatesFilter<"timetables"> | string | null
     day?: StringWithAggregatesFilter<"timetables"> | string
     week_number?: IntNullableWithAggregatesFilter<"timetables"> | number | null
     start_time?: DateTimeNullableWithAggregatesFilter<"timetables"> | Date | string | null
@@ -82386,6 +83626,101 @@ export namespace Prisma {
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type student_support_requestsCreateInput = {
+    student_id: string
+    category: string
+    subject: string
+    message: string
+    status?: string
+    admin_reply?: string | null
+    replied_by?: number | null
+    replied_at?: Date | string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type student_support_requestsUncheckedCreateInput = {
+    id?: number
+    student_id: string
+    category: string
+    subject: string
+    message: string
+    status?: string
+    admin_reply?: string | null
+    replied_by?: number | null
+    replied_at?: Date | string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type student_support_requestsUpdateInput = {
+    student_id?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    subject?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    admin_reply?: NullableStringFieldUpdateOperationsInput | string | null
+    replied_by?: NullableIntFieldUpdateOperationsInput | number | null
+    replied_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type student_support_requestsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    student_id?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    subject?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    admin_reply?: NullableStringFieldUpdateOperationsInput | string | null
+    replied_by?: NullableIntFieldUpdateOperationsInput | number | null
+    replied_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type student_support_requestsCreateManyInput = {
+    id?: number
+    student_id: string
+    category: string
+    subject: string
+    message: string
+    status?: string
+    admin_reply?: string | null
+    replied_by?: number | null
+    replied_at?: Date | string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type student_support_requestsUpdateManyMutationInput = {
+    student_id?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    subject?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    admin_reply?: NullableStringFieldUpdateOperationsInput | string | null
+    replied_by?: NullableIntFieldUpdateOperationsInput | number | null
+    replied_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type student_support_requestsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    student_id?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    subject?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    admin_reply?: NullableStringFieldUpdateOperationsInput | string | null
+    replied_by?: NullableIntFieldUpdateOperationsInput | number | null
+    replied_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type policiesCreateInput = {
     slug: string
     title: string
@@ -84619,6 +85954,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -84667,6 +86003,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -84715,6 +86052,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -84763,6 +86101,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -84811,6 +86150,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -84856,6 +86196,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -84900,6 +86241,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -85520,6 +86862,8 @@ export namespace Prisma {
 
   export type timetablesCreateInput = {
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -85543,6 +86887,8 @@ export namespace Prisma {
     program_id: number
     subprogram_id: number
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -85561,6 +86907,8 @@ export namespace Prisma {
 
   export type timetablesUpdateInput = {
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -85584,6 +86932,8 @@ export namespace Prisma {
     program_id?: IntFieldUpdateOperationsInput | number
     subprogram_id?: IntFieldUpdateOperationsInput | number
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -85605,6 +86955,8 @@ export namespace Prisma {
     program_id: number
     subprogram_id: number
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -85623,6 +86975,8 @@ export namespace Prisma {
 
   export type timetablesUpdateManyMutationInput = {
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -85643,6 +86997,8 @@ export namespace Prisma {
     program_id?: IntFieldUpdateOperationsInput | number
     subprogram_id?: IntFieldUpdateOperationsInput | number
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -88487,6 +89843,64 @@ export namespace Prisma {
     created_by?: SortOrder
   }
 
+  export type student_support_requestsOrderByRelevanceInput = {
+    fields: student_support_requestsOrderByRelevanceFieldEnum | student_support_requestsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type student_support_requestsCountOrderByAggregateInput = {
+    id?: SortOrder
+    student_id?: SortOrder
+    category?: SortOrder
+    subject?: SortOrder
+    message?: SortOrder
+    status?: SortOrder
+    admin_reply?: SortOrder
+    replied_by?: SortOrder
+    replied_at?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type student_support_requestsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    replied_by?: SortOrder
+  }
+
+  export type student_support_requestsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    student_id?: SortOrder
+    category?: SortOrder
+    subject?: SortOrder
+    message?: SortOrder
+    status?: SortOrder
+    admin_reply?: SortOrder
+    replied_by?: SortOrder
+    replied_at?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type student_support_requestsMinOrderByAggregateInput = {
+    id?: SortOrder
+    student_id?: SortOrder
+    category?: SortOrder
+    subject?: SortOrder
+    message?: SortOrder
+    status?: SortOrder
+    admin_reply?: SortOrder
+    replied_by?: SortOrder
+    replied_at?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type student_support_requestsSumOrderByAggregateInput = {
+    id?: SortOrder
+    replied_by?: SortOrder
+  }
+
   export type policiesOrderByRelevanceInput = {
     fields: policiesOrderByRelevanceFieldEnum | policiesOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -90317,6 +91731,7 @@ export namespace Prisma {
     completed_subprograms?: SortOrder
     sponsor_name?: SortOrder
     paid_until?: SortOrder
+    payment_access_extended?: SortOrder
     funding_status?: SortOrder
     sponsorship_package?: SortOrder
     funding_amount?: SortOrder
@@ -90371,6 +91786,7 @@ export namespace Prisma {
     completed_subprograms?: SortOrder
     sponsor_name?: SortOrder
     paid_until?: SortOrder
+    payment_access_extended?: SortOrder
     funding_status?: SortOrder
     sponsorship_package?: SortOrder
     funding_amount?: SortOrder
@@ -90416,6 +91832,7 @@ export namespace Prisma {
     completed_subprograms?: SortOrder
     sponsor_name?: SortOrder
     paid_until?: SortOrder
+    payment_access_extended?: SortOrder
     funding_status?: SortOrder
     sponsorship_package?: SortOrder
     funding_amount?: SortOrder
@@ -90905,6 +92322,8 @@ export namespace Prisma {
     program_id?: SortOrder
     subprogram_id?: SortOrder
     date?: SortOrder
+    end_date?: SortOrder
+    timeline_group_id?: SortOrder
     day?: SortOrder
     week_number?: SortOrder
     start_time?: SortOrder
@@ -90935,6 +92354,8 @@ export namespace Prisma {
     program_id?: SortOrder
     subprogram_id?: SortOrder
     date?: SortOrder
+    end_date?: SortOrder
+    timeline_group_id?: SortOrder
     day?: SortOrder
     week_number?: SortOrder
     start_time?: SortOrder
@@ -90956,6 +92377,8 @@ export namespace Prisma {
     program_id?: SortOrder
     subprogram_id?: SortOrder
     date?: SortOrder
+    end_date?: SortOrder
+    timeline_group_id?: SortOrder
     day?: SortOrder
     week_number?: SortOrder
     start_time?: SortOrder
@@ -94672,6 +96095,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -94719,6 +96143,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -94832,6 +96257,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -94879,6 +96305,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -95159,6 +96586,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -95206,6 +96634,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -95327,6 +96756,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -95374,6 +96804,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -95955,6 +97386,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -96002,6 +97434,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -96468,6 +97901,7 @@ export namespace Prisma {
     completed_subprograms?: StringNullableFilter<"students"> | string | null
     sponsor_name?: StringNullableFilter<"students"> | string | null
     paid_until?: DateTimeNullableFilter<"students"> | Date | string | null
+    payment_access_extended?: BoolFilter<"students"> | boolean
     funding_status?: Enumstudents_funding_statusNullableFilter<"students"> | $Enums.students_funding_status | null
     sponsorship_package?: Enumstudents_sponsorship_packageNullableFilter<"students"> | $Enums.students_sponsorship_package | null
     funding_amount?: DecimalNullableFilter<"students"> | Decimal | DecimalJsLike | number | string | null
@@ -97364,6 +98798,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -97411,6 +98846,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -97518,6 +98954,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -97565,6 +99002,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -98322,6 +99760,8 @@ export namespace Prisma {
 
   export type timetablesCreateWithoutProgramsInput = {
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -98343,6 +99783,8 @@ export namespace Prisma {
     id?: number
     subprogram_id: number
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -98512,6 +99954,8 @@ export namespace Prisma {
     program_id?: IntFilter<"timetables"> | number
     subprogram_id?: IntFilter<"timetables"> | number
     date?: DateTimeNullableFilter<"timetables"> | Date | string | null
+    end_date?: DateTimeNullableFilter<"timetables"> | Date | string | null
+    timeline_group_id?: StringNullableFilter<"timetables"> | string | null
     day?: StringFilter<"timetables"> | string
     week_number?: IntNullableFilter<"timetables"> | number | null
     start_time?: DateTimeNullableFilter<"timetables"> | Date | string | null
@@ -99591,6 +101035,8 @@ export namespace Prisma {
 
   export type timetablesCreateWithoutSubprogramsInput = {
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -99612,6 +101058,8 @@ export namespace Prisma {
     id?: number
     program_id: number
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -100005,6 +101453,8 @@ export namespace Prisma {
 
   export type timetablesCreateWithoutTeachersInput = {
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -100027,6 +101477,8 @@ export namespace Prisma {
     program_id: number
     subprogram_id: number
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -100840,6 +102292,7 @@ export namespace Prisma {
     completed_subprograms?: string | null
     sponsor_name?: string | null
     paid_until?: Date | string | null
+    payment_access_extended?: boolean
     funding_status?: $Enums.students_funding_status | null
     sponsorship_package?: $Enums.students_sponsorship_package | null
     funding_amount?: Decimal | DecimalJsLike | number | string | null
@@ -101123,6 +102576,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -101170,6 +102624,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -101217,6 +102672,7 @@ export namespace Prisma {
     completed_subprograms?: NullableStringFieldUpdateOperationsInput | string | null
     sponsor_name?: NullableStringFieldUpdateOperationsInput | string | null
     paid_until?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    payment_access_extended?: BoolFieldUpdateOperationsInput | boolean
     funding_status?: NullableEnumstudents_funding_statusFieldUpdateOperationsInput | $Enums.students_funding_status | null
     sponsorship_package?: NullableEnumstudents_sponsorship_packageFieldUpdateOperationsInput | $Enums.students_sponsorship_package | null
     funding_amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -101669,6 +103125,8 @@ export namespace Prisma {
     id?: number
     subprogram_id: number
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -101850,6 +103308,8 @@ export namespace Prisma {
 
   export type timetablesUpdateWithoutProgramsInput = {
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -101871,6 +103331,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     subprogram_id?: IntFieldUpdateOperationsInput | number
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -101891,6 +103353,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     subprogram_id?: IntFieldUpdateOperationsInput | number
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -102233,6 +103697,8 @@ export namespace Prisma {
     id?: number
     program_id: number
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -102488,6 +103954,8 @@ export namespace Prisma {
 
   export type timetablesUpdateWithoutSubprogramsInput = {
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -102509,6 +103977,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -102529,6 +103999,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     program_id?: IntFieldUpdateOperationsInput | number
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -102566,6 +104038,8 @@ export namespace Prisma {
     program_id: number
     subprogram_id: number
     date?: Date | string | null
+    end_date?: Date | string | null
+    timeline_group_id?: string | null
     day: string
     week_number?: number | null
     start_time?: Date | string | null
@@ -102646,6 +104120,8 @@ export namespace Prisma {
 
   export type timetablesUpdateWithoutTeachersInput = {
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -102668,6 +104144,8 @@ export namespace Prisma {
     program_id?: IntFieldUpdateOperationsInput | number
     subprogram_id?: IntFieldUpdateOperationsInput | number
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -102688,6 +104166,8 @@ export namespace Prisma {
     program_id?: IntFieldUpdateOperationsInput | number
     subprogram_id?: IntFieldUpdateOperationsInput | number
     date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timeline_group_id?: NullableStringFieldUpdateOperationsInput | string | null
     day?: StringFieldUpdateOperationsInput | string
     week_number?: NullableIntFieldUpdateOperationsInput | number | null
     start_time?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

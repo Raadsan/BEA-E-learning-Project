@@ -18,7 +18,7 @@ import TutorialPreviewOverlay from "@/components/tutorials/TutorialPreviewOverla
 const defaultForm = () => ({
     title: "",
     description: "",
-    media_type: "video" as "video" | "audio",
+    media_type: "video" as "video" | "audio" | "image" | "document",
     media_url: "",
     status: "active",
 });
@@ -57,7 +57,7 @@ export default function TutorialsPage() {
         setFormData({
             title: item.title || "",
             description: item.description || "",
-            media_type: item.media_type === "audio" ? "audio" : "video",
+            media_type: (["video", "audio", "image", "document"].includes(item.media_type) ? item.media_type : "video") as "video" | "audio" | "image" | "document",
             media_url: item.media_url || "",
             status: item.status || "active",
         });
@@ -70,18 +70,20 @@ export default function TutorialsPage() {
 
         const isVideo = file.type.startsWith("video/");
         const isAudio = file.type.startsWith("audio/");
-        if (!isVideo && !isAudio) {
-            showToast("Please upload a video or audio file only.", "error");
+        const isImage = file.type.startsWith("image/");
+        const isDocument = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain"].includes(file.type) || /\.(pdf|doc|docx|txt)$/i.test(file.name);
+        if (!isVideo && !isAudio && !isImage && !isDocument) {
+            showToast("Please upload video, audio, image, PDF, Word, or text files only.", "error");
             return;
         }
 
         setIsUploading(true);
         try {
-            const result = await uploadFileRequest(file);
+            const result = await uploadFileRequest(file, { requireS3: true });
             setFormData((prev) => ({
                 ...prev,
                 media_url: result.url,
-                media_type: isAudio ? "audio" : "video",
+                media_type: isAudio ? "audio" : isImage ? "image" : isDocument ? "document" : "video",
             }));
             showToast("File uploaded successfully!", "success");
         } catch (err: any) {
@@ -99,7 +101,7 @@ export default function TutorialsPage() {
             return;
         }
         if (!formData.media_url) {
-            showToast("Please upload a video or audio file", "error");
+            showToast("Please upload a video, audio, image, or document file", "error");
             return;
         }
 
@@ -134,7 +136,7 @@ export default function TutorialsPage() {
                     <div>
                         <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Tutorials</h1>
                         <p className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                            Create and manage video & audio tutorials
+                            Create and manage S3-hosted videos, audio, images, and documents
                         </p>
                     </div>
                     {canAdd && (
@@ -295,11 +297,13 @@ export default function TutorialsPage() {
                             <label className="block text-sm font-medium mb-1">Media Type</label>
                             <select
                                 value={formData.media_type}
-                                onChange={(e) => setFormData({ ...formData, media_type: e.target.value as "video" | "audio" })}
+                                onChange={(e) => setFormData({ ...formData, media_type: e.target.value as "video" | "audio" | "image" | "document", media_url: "" })}
                                 className={`w-full px-4 py-2 rounded-lg border ${isDark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-300"}`}
                             >
                                 <option value="video">Video</option>
                                 <option value="audio">Audio</option>
+                                <option value="image">Image</option>
+                                <option value="document">Document</option>
                             </select>
                         </div>
                         <div>
@@ -315,13 +319,13 @@ export default function TutorialsPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">Upload {formData.media_type === "audio" ? "Audio" : "Video"} *</label>
+                        <label className="block text-sm font-medium mb-1">Upload {formData.media_type.charAt(0).toUpperCase() + formData.media_type.slice(1)} *</label>
                         <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
                             isDark ? "border-gray-600 hover:border-blue-500 bg-gray-900/50" : "border-gray-300 hover:border-[#010080] bg-gray-50"
                         }`}>
                             <input
                                 type="file"
-                                accept={formData.media_type === "audio" ? "audio/*" : "video/*"}
+                                accept={formData.media_type === "audio" ? "audio/*" : formData.media_type === "video" ? "video/*" : formData.media_type === "image" ? "image/*" : ".pdf,.doc,.docx,.txt"}
                                 onChange={handleUpload}
                                 className="hidden"
                                 disabled={isUploading}

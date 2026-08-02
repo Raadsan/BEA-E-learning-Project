@@ -8,11 +8,18 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import Modal from '@/components/Modal';
 import { useDarkMode } from '@/context/ThemeContext';
 import { usePagePermissions } from '@/hooks/usePagePermissions';
-import { useExtendExpiredPaymentMutation, useGetExpiredPaymentsQuery } from '@/lib/api/paymentApi';
+import { useExtendExpiredPaymentMutation, useGetExpiredPaymentsQuery, useRevokePaymentAccessMutation, useUpdatePaymentAccessExpiryMutation } from '@/lib/api/paymentApi';
 
 const formatDate = (value?: string | null) => value
   ? new Date(value).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
   : 'N/A';
+
+function toDateTimeLocal(value?: string | null) {
+  if (!value) return '';
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
 
 function formatDuration(totalSeconds: number | null) {
   if (totalSeconds == null) return 'No expiry set';
@@ -31,10 +38,14 @@ function formatDuration(totalSeconds: number | null) {
 
 export default function ExpiredPaymentsPage() {
   const { isDark } = useDarkMode();
-  const { canView, canEdit } = usePagePermissions('payments', 'expired_payments');
+  const { canView, canEdit, canDelete } = usePagePermissions('payments', 'expired_payments');
   const { data: rows = [], isLoading, isError, refetch } = useGetExpiredPaymentsQuery();
   const [extendPayment, { isLoading: isExtending }] = useExtendExpiredPaymentMutation();
+  const [updateExpiry, { isLoading: isUpdating }] = useUpdatePaymentAccessExpiryMutation();
+  const [revokeAccess, { isLoading: isRevoking }] = useRevokePaymentAccessMutation();
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [studentToEdit, setStudentToEdit] = useState<any>(null);
+  const [editedExpiry, setEditedExpiry] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState('days');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -47,7 +58,7 @@ export default function ExpiredPaymentsPage() {
     total: rows.length,
     active: rows.filter((row: any) => row.access_status === 'active').length,
     expired: rows.filter((row: any) => row.access_status === 'expired').length,
-    noExpiry: rows.filter((row: any) => row.access_status === 'no_expiry').length,
+    manual: rows.filter((row: any) => row.payment_access_extended).length,
   }), [rows]);
 
   const closeExtendModal = () => {
@@ -70,6 +81,35 @@ export default function ExpiredPaymentsPage() {
     }
   };
 
+  const openEditModal = (student: any) => {
+    setStudentToEdit(student);
+    setEditedExpiry(toDateTimeLocal(student.expiry_date));
+  };
+
+  const handleUpdateExpiry = async () => {
+    if (!studentToEdit || !editedExpiry) {
+      toast.error('Choose an expiry date and time.');
+      return;
+    }
+    try {
+      const result = await updateExpiry({ studentId: studentToEdit.student_id, expiryDate: new Date(editedExpiry).toISOString() }).unwrap();
+      toast.success(result.message || 'Access expiry updated.');
+      setStudentToEdit(null);
+      setEditedExpiry('');
+    } catch (error: any) {
+      toast.error(error?.data?.error || 'Unable to update access expiry.');
+    }
+  };
+
+  const handleRevoke = async (student: any) => {
+    if (!window.confirm(`Revoke all current access for ${student.full_name}? This will expire their access immediately.`)) return;
+    try {
+      const result = await revokeAccess({ studentId: student.student_id }).unwrap();
+      toast.success(result.message || 'Student access revoked.');
+    } catch (error: any) {
+      toast.error(error?.data?.error || 'Unable to revoke student access.');
+    }
+  };
   const columns = [
     {
       key: 'full_name', label: 'Student',
@@ -103,7 +143,9 @@ export default function ExpiredPaymentsPage() {
       key: 'actions', label: 'Action',
       render: (_: unknown, row: any) => (
         <div className='flex items-center gap-2'>
-          {canEdit && <button type='button' onClick={() => setSelectedStudent(row)} className='rounded-lg p-2 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20' title='Extend access' aria-label={`Extend access for ${row.full_name}`}><svg className='h-5 w-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z' /><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 5v4m2-2h-4' /></svg></button>}
+          {canEdit && row.access_status === 'expired' && !row.payment_access_extended && <button type='button' onClick={() => setSelectedStudent(row)} className='rounded-lg p-2 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20' title='Add extra time' aria-label={`Add extra time for ${row.full_name}`}><svg className='h-5 w-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z' /><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 5v4m2-2h-4' /></svg></button>}
+          {canEdit && row.payment_access_extended && <button type='button' onClick={() => openEditModal(row)} className='rounded-lg p-2 text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20' title='Edit manual access time' aria-label={`Edit manual access for ${row.full_name}`}><svg className='h-5 w-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7' /><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z' /></svg></button>}
+          {canDelete && row.payment_access_extended && <button type='button' disabled={isRevoking} onClick={() => handleRevoke(row)} className='rounded-lg p-2 text-red-700 hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20' title='Delete manual access time' aria-label={`Delete manual access for ${row.full_name}`}><svg className='h-5 w-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16' /></svg></button>}
           {canView && <Link href={`/portal/admin/students/${row.student_id}`} className='rounded-lg p-2 text-[#010080] hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20' title='View student' aria-label={`View ${row.full_name}`}><svg className='h-5 w-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' /><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' /></svg></Link>}
         </div>
       ),
@@ -123,12 +165,12 @@ export default function ExpiredPaymentsPage() {
           </div>
         </div>
 
-        <div className='mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4'>
+        <div className='mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
           {[
             { label: 'All Students', value: stats.total, color: 'text-blue-700 dark:text-blue-300' },
             { label: 'Confirmed / Active', value: stats.active, color: 'text-green-700 dark:text-green-300' },
             { label: 'Expired', value: stats.expired, color: 'text-red-700 dark:text-red-300' },
-            { label: 'No Expiry', value: stats.noExpiry, color: 'text-gray-700 dark:text-gray-300' },
+            { label: 'Manual Extensions', value: stats.manual, color: 'text-amber-700 dark:text-amber-300' },
           ].map((item) => <div key={item.label} className={`rounded-xl border p-4 ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}><p className='text-xs font-semibold uppercase text-gray-500'>{item.label}</p><p className={`mt-1 text-2xl font-bold ${item.color}`}>{item.value}</p></div>)}
         </div>
 
@@ -145,7 +187,7 @@ export default function ExpiredPaymentsPage() {
             showAddButton={false}
             rowsPerPage={15}
             emptyMessage='No students match this status.'
-            customHeaderLeft={<select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className='h-8 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-white'><option value='all'>All statuses</option><option value='active'>Confirmed / Active</option><option value='expired'>Expired</option><option value='no_expiry'>No Expiry</option></select>}
+            customHeaderLeft={<select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className='h-8 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-white'><option value='all'>All statuses</option><option value='active'>Confirmed / Active</option><option value='expired'>Expired</option></select>}
           />
         )}
       </div>
@@ -177,6 +219,25 @@ export default function ExpiredPaymentsPage() {
           <div className='flex justify-end gap-3'>
             <button type='button' disabled={isExtending} onClick={closeExtendModal} className='rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 disabled:opacity-50 dark:border-gray-600 dark:text-gray-200'>Cancel</button>
             <button type='button' disabled={isExtending || quantity < 1} onClick={handleExtend} className='rounded-lg bg-[#010080] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50'>{isExtending ? 'Extending...' : 'Extend access'}</button>
+          </div>
+        </div>
+      )}
+    </Modal>
+    <Modal isOpen={!!studentToEdit} onClose={() => !isUpdating && setStudentToEdit(null)} title='Edit Student Access' size='sm' closeOnClickOutside={!isUpdating}>
+      {studentToEdit && (
+        <div className='space-y-5'>
+          <div className='rounded-lg bg-gray-50 p-4 dark:bg-gray-800'>
+            <p className='font-semibold text-gray-900 dark:text-white'>{studentToEdit.full_name}</p>
+            <p className='mt-1 text-sm text-gray-500'>Current expiry: {formatDate(studentToEdit.expiry_date)}</p>
+          </div>
+          <div>
+            <label className='mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200'>New expiry date and time</label>
+            <input type='datetime-local' value={editedExpiry} onChange={(event) => setEditedExpiry(event.target.value)} className='w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white' />
+            <p className='mt-2 text-xs text-gray-500'>Choose an earlier time to reduce access, or a later time to increase it.</p>
+          </div>
+          <div className='flex justify-end gap-3'>
+            <button type='button' disabled={isUpdating} onClick={() => setStudentToEdit(null)} className='rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 disabled:opacity-50 dark:border-gray-600 dark:text-gray-200'>Cancel</button>
+            <button type='button' disabled={isUpdating || !editedExpiry} onClick={handleUpdateExpiry} className='rounded-lg bg-[#010080] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50'>{isUpdating ? 'Saving...' : 'Save changes'}</button>
           </div>
         </div>
       )}

@@ -98,7 +98,7 @@ export default function BAdminSidebar({ isOpen, onClose }) {
       } else {
         setOpenSubSection(null);
       }
-    } else if (pathname?.includes("/communication/contacts") || pathname?.includes("/communication/newsletter")) {
+    } else if (pathname?.includes("/communication/contacts") || pathname?.includes("/communication/student-support") || pathname?.includes("/communication/newsletter")) {
       setOpenSection('inquiries');
       setOpenSubSection(null);
     } else if (pathname?.startsWith("/portal/admin/communication")) {
@@ -860,6 +860,10 @@ export default function BAdminSidebar({ isOpen, onClose }) {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span className={isActive("/portal/admin/communication/contacts") ? 'text-white' : 'text-gray-100'}>Contact Messages</span>
+                  </Link>
+                  <Link href="/portal/admin/communication/student-support" className={getSubMenuItemClasses("/portal/admin/communication/student-support")} style={getSubActiveStyle("/portal/admin/communication/student-support")}>
+                    <svg className={`w-4 h-4 ${isActive("/portal/admin/communication/student-support") ? "text-white" : "text-gray-300"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 4v-4z" /></svg>
+                    <span className={isActive("/portal/admin/communication/student-support") ? "text-white" : "text-gray-100"}>Student Support</span>
                   </Link>
                 </li>
                 )}
