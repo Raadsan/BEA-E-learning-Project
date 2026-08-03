@@ -59,7 +59,8 @@ const fileFilter = (req, file, cb) => {
 
 export const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 50 * 1024 * 1024 },
+    // Keep this aligned with the production nginx client_max_body_size.
+    limits: { fileSize: 100 * 1024 * 1024 },
     fileFilter,
 });
 
