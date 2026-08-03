@@ -253,9 +253,12 @@ export const getExpiredPayments = async (req, res) => {
                 chosen_program: true,
                 chosen_subprogram: true,
                 funding_status: true,
+                funding_amount: true,
+                funding_month: true,
                 paid_until: true,
                 payment_access_extended: true,
                 approval_status: true,
+                created_at: true,
             },
         });
 
@@ -276,6 +279,10 @@ export const getExpiredPayments = async (req, res) => {
 
         const accessStudents = students.map((student) => {
             const latestPayment = latestPaymentByStudent.get(student.student_id);
+            const legacyFundingAmount = student.funding_amount != null
+                ? Number(student.funding_amount)
+                : null;
+            const hasLegacyRegistrationPayment = !latestPayment && legacyFundingAmount != null;
             const expiryDate = student.paid_until ? new Date(student.paid_until) : null;
             const remainingSeconds = expiryDate
                 ? Math.trunc((expiryDate.getTime() - now.getTime()) / 1000)
@@ -290,10 +297,15 @@ export const getExpiredPayments = async (req, res) => {
                 expiry_date: student.paid_until,
                 access_status: accessStatus,
                 remaining_seconds: remainingSeconds,
-                last_payment_amount: latestPayment?.amount != null ? Number(latestPayment.amount) : null,
-                last_payment_date: latestPayment?.created_at || null,
-                payment_method: latestPayment?.method || null,
-                payment_status: latestPayment?.status || null,
+                last_payment_amount: latestPayment?.amount != null
+                    ? Number(latestPayment.amount)
+                    : legacyFundingAmount,
+                last_payment_date: latestPayment?.created_at
+                    || (hasLegacyRegistrationPayment ? student.created_at : null),
+                payment_method: latestPayment?.method
+                    || (hasLegacyRegistrationPayment ? 'admin' : null),
+                payment_status: latestPayment?.status
+                    || (hasLegacyRegistrationPayment ? 'paid' : null),
             };
         });
 

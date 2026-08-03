@@ -97,6 +97,9 @@ export const createStudent = async (req, res) => {
           paid_months,
         })
       : null;
+    const registrationFundingAmount = (funding_amount !== undefined && funding_amount !== null && funding_amount !== "")
+      ? parseFloat(funding_amount)
+      : computedFundingAmount;
 
     // Placement / proficiency entry window: 24 hours from registration
     const expiryDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -132,19 +135,16 @@ export const createStudent = async (req, res) => {
     }
 
     let initialPaidUntil = null;
-    if (paymentStatus === 'Paid' && transactionId && paymentAmount > 0) {
+    if (activeFundingStatus) {
+      // The admin creation form records a confirmed registration payment/funding.
       initialPaidUntil = await computePaidUntil(prisma, {
-        funding_status: activeFundingStatus || 'Paid',
+        funding_status: activeFundingStatus,
         sponsorship_package,
         paid_months: regMonths,
       });
-    } else if (
-      activeFundingStatus &&
-      !isPartialScholarshipStatus(activeFundingStatus) &&
-      grantsAccessWithoutPayment(activeFundingStatus)
-    ) {
+    } else if (paymentStatus === 'Paid' && transactionId && paymentAmount > 0) {
       initialPaidUntil = await computePaidUntil(prisma, {
-        funding_status: activeFundingStatus,
+        funding_status: 'Paid',
         sponsorship_package,
         paid_months: regMonths,
       });
@@ -177,14 +177,10 @@ export const createStudent = async (req, res) => {
         parent_res_county: parent_res_county || null,
         parent_res_city: parent_res_city || null,
         class_id: (class_id && class_id !== "") ? parseInt(class_id) : null,
-        funding_status: normalizeFundingStatusForPrisma(
-          paymentStatus === 'Paid' ? 'Paid' : (activeFundingStatus || 'Paid')
-        ),
+        funding_status: normalizeFundingStatusForPrisma(activeFundingStatus || 'Paid'),
         sponsorship_package: sponsorshipEnum,
         sponsor_name: sponsor_name || null,
-        funding_amount: (funding_amount && funding_amount !== "")
-          ? parseFloat(funding_amount)
-          : computedFundingAmount,
+        funding_amount: registrationFundingAmount,
         funding_month: funding_month || (activeFundingStatus
           ? new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
           : null),
@@ -193,7 +189,8 @@ export const createStudent = async (req, res) => {
         expiry_date: expiryDate,
         date_of_birth: (date_of_birth && date_of_birth !== "") ? new Date(date_of_birth) : null,
         place_of_birth: place_of_birth || null,
-        approval_status: approval_status || 'pending',
+        // New students must always enter the approval workflow as pending.
+        approval_status: 'pending',
         ...createAudit,
       }
     });
@@ -222,6 +219,21 @@ export const createStudent = async (req, res) => {
           status: 'pending',
           payer_phone: req.body.payment.payerPhone || null,
           program_id: chosen_program
+        }
+      });
+    } else if (activeFundingStatus) {
+      // Payments entered by an admin during student creation are already
+      // confirmed and must appear in Payment History / Student Payment Access.
+      await prisma.payments.create({
+        data: {
+          student_id: student.student_id,
+          method: activeFundingStatus === 'Sponsorship' ? 'sponsorship' : 'admin',
+          provider_transaction_id: `ADMIN-REG-${student.student_id}-${Date.now()}`,
+          amount: Math.max(Number(registrationFundingAmount) || 0, 0),
+          currency: 'USD',
+          status: 'paid',
+          payer_phone: phone || null,
+          program_id: chosen_program,
         }
       });
     }

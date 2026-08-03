@@ -31,6 +31,9 @@ const AssignClassModal = dynamic(() => import("@/components/admin/students/Assig
 const AssignSubprogramModal = dynamic(() => import("@/components/admin/students/AssignSubprogramModal"), { ssr: false });
 const ConfirmationModal = dynamic(() => import("@/components/ConfirmationModal"), { ssr: false });
 
+const getCurrentFundingMonth = () =>
+    new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
+
 export default function StudentsPage() {
     const { isDark } = useDarkMode();
     const { showToast } = useToast();
@@ -70,7 +73,7 @@ export default function StudentsPage() {
         confirmPassword: "", parent_name: "", parent_email: "", parent_phone: "",
         parent_relation: "", parent_res_county: "", parent_res_city: "",
         funding_status: "Paid", sponsorship_package: "",
-        funding_amount: "", funding_month: "", scholarship_percentage: "", paid_months: "1",
+        funding_amount: "", funding_month: getCurrentFundingMonth(), scholarship_percentage: "", paid_months: "1",
         sponsor_name: "",
         verification_method: "Proficiency Exam",
         certificate_institution: "",
@@ -215,7 +218,7 @@ export default function StudentsPage() {
             confirmPassword: "", parent_name: "", parent_email: "", parent_phone: "",
             parent_relation: "", parent_res_county: "", parent_res_city: "",
             funding_status: "Paid", sponsorship_package: "",
-            funding_amount: "", funding_month: "", scholarship_percentage: "", paid_months: "1",
+            funding_amount: "", funding_month: getCurrentFundingMonth(), scholarship_percentage: "", paid_months: "1",
             sponsor_name: "",
             verification_method: "Proficiency Exam",
             certificate_institution: "",

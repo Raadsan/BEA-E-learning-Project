@@ -59,7 +59,9 @@ export function isStudentSubscriptionActive(
 
   if (status === "Full Scholarship" || status === "Sponsorship") return true;
 
-  if (!user.paid_until) return false;
+  // A missing end date means the account has no expiry limit. Keep this
+  // consistent with the admin Payment Access page, which displays "No Expiry".
+  if (!user.paid_until) return true;
 
   const expiryDate = new Date(user.paid_until);
   if (Number.isNaN(expiryDate.getTime())) return false;

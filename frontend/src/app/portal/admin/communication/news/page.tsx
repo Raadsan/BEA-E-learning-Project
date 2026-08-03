@@ -132,7 +132,7 @@ export default function NewsPage() {
 
         try {
             setIsUploading(true);
-            const data = await uploadFileRequest(file);
+            const data = await uploadFileRequest(file, { requireS3: true });
             setFormData((prev) => ({
                 ...prev,
                 image_url: data.url,

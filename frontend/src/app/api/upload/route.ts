@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const backendOrigin = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:7004")
+const backendOrigin = (process.env.BACKEND_URL || "http://127.0.0.1:7004")
   .trim()
   .replace(/\/api\/?$/, "");
 

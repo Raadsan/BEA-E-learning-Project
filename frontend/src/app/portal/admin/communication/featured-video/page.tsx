@@ -38,7 +38,7 @@ export default function FeaturedVideoManagement() {
     if (!isEditing || !file) return;
     try {
       setUploading(true);
-      const result = await uploadFileRequest(file);
+      const result = await uploadFileRequest(file, { requireS3: true });
       setForm((old) => ({ ...old, featured_thumbnail: result.url }));
       showToast("Video thumbnail uploaded", "success");
     } catch {

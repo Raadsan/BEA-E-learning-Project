@@ -28,7 +28,7 @@ export default function StudentApprovalModal({
 
         setSelectedSubprogramId(matchedSubprogram ? String(matchedSubprogram.id) : "");
         setSelectedClassId?.("");
-    }, [isOpen, student?.id, student?.chosen_subprogram, subprograms, setSelectedClassId]);
+    }, [isOpen, student?.id, student?.chosen_subprogram, setSelectedClassId]);
 
     if (!isOpen || !student) return null;
 

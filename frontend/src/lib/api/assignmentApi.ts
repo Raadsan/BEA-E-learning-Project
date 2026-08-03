@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_URL, DIRECT_API_URL } from "@/constants";
+import { API_URL } from "@/constants";
 
 const SCHEDULE_FIELDS = ["start_date", "due_date", "end_date"] as const;
 
@@ -157,9 +157,7 @@ export const assignmentApi = createApi({
         }),
         gradeSubmission: builder.mutation({
             query: ({ id, formData }) => ({
-                url: formData instanceof FormData
-                    ? `${DIRECT_API_URL}/assignments/grade/${id}`
-                    : `/grade/${id}`,
+                url: `/grade/${id}`,
                 method: "PUT",
                 body: formData,
             }),
