@@ -6,8 +6,8 @@ export type UploadResponse = {
   error?: string;
 };
 
-/** Same-origin upload proxy: browser -> BEA backend -> S3. */
-const UPLOAD_PROXY_URL = "/api/upload";
+/** Same-origin backend route: browser -> BEA backend -> S3. */
+const UPLOAD_URL = "/api/uploads";
 
 export async function uploadFileRequest(file: File, options?: { requireS3?: boolean }): Promise<UploadResponse> {
   const token =
@@ -22,7 +22,7 @@ export async function uploadFileRequest(file: File, options?: { requireS3?: bool
 
   let response: Response;
   try {
-    response = await fetch(UPLOAD_PROXY_URL, {
+    response = await fetch(UPLOAD_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, ...(options?.requireS3 ? { "x-require-s3": "true" } : {}) },
       body: formData,
