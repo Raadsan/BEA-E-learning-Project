@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import TutorialPreviewOverlay from "./TutorialPreviewOverlay";
+import { resolveMediaUrl } from "@/constants";
 
 type TutorialItem = {
   id: number;
@@ -75,7 +76,7 @@ export default function TutorialBrowseGrid({
               <button
                 type="button"
                 onClick={() => setPreviewItem(item)}
-                className={`relative aspect-video w-full flex items-center justify-center ${
+                className={`relative aspect-video w-full flex items-center justify-center overflow-hidden ${
                   isDark ? "bg-gray-900" : "bg-gradient-to-br from-[#010080]/10 to-blue-100"
                 }`}
               >
@@ -86,8 +87,45 @@ export default function TutorialBrowseGrid({
                     </svg>
                     <span className="text-xs font-bold uppercase tracking-wider">Audio</span>
                   </div>
+                ) : item.media_type === "image" && item.media_url ? (
+                  <>
+                    <img
+                      src={resolveMediaUrl(item.media_url) || ""}
+                      alt={item.title}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors" />
+                    <div className="relative z-10 w-10 h-10 rounded-full bg-white/80 flex items-center justify-center shadow">
+                      <svg className="w-5 h-5 text-[#010080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </>
+                ) : item.media_type === "document" ? (
+                  <div className="flex flex-col items-center gap-2 text-[#010080]">
+                    <svg className="w-14 h-14 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V7l-5-5H7a2 2 0 00-2 2v15a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-xs font-bold uppercase tracking-wider">Document</span>
+                  </div>
                 ) : (
                   <>
+                    {item.media_type === "video" && item.media_url && (
+                      <video
+                        src={`${resolveMediaUrl(item.media_url)}#t=0.1`}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        className="absolute inset-0 h-full w-full object-cover"
+                        aria-hidden="true"
+                        onLoadedMetadata={(event) => {
+                          const video = event.currentTarget;
+                          if (Number.isFinite(video.duration) && video.duration > 0) {
+                            video.currentTime = Math.min(0.1, video.duration / 2);
+                          }
+                        }}
+                      />
+                    )}
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
                     <div className="relative z-10 w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
                       <svg className="w-8 h-8 text-[#010080] ml-1" fill="currentColor" viewBox="0 0 24 24">
@@ -98,7 +136,13 @@ export default function TutorialBrowseGrid({
                 )}
                 <span
                   className={`absolute top-3 left-3 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                    item.media_type === "audio" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
+                    item.media_type === "audio"
+                      ? "bg-purple-100 text-purple-700"
+                      : item.media_type === "image"
+                      ? "bg-green-100 text-green-700"
+                      : item.media_type === "document"
+                      ? "bg-orange-100 text-orange-700"
+                      : "bg-blue-100 text-blue-700"
                   }`}
                 >
                   {item.media_type || "video"}
