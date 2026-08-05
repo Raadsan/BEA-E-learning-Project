@@ -101,11 +101,11 @@ export async function getSignedFileUrl(storedValue, expiresIn = 3600) {
     const key = resolveS3Key(storedValue);
     if (!key) return null;
 
-    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const command = new GetObjectCommand({ Bucket: bucket, Key: key, ...(range ? { Range: range } : {}) });
     return getSignedUrl(getS3Client(), command, { expiresIn });
 }
 
-export async function getS3ObjectStream(storedValue) {
+export async function getS3ObjectStream(storedValue, range) {
     if (!isS3Enabled()) return null;
 
     const key = resolveS3Key(storedValue);
@@ -119,6 +119,8 @@ export async function getS3ObjectStream(storedValue) {
         stream: response.Body,
         contentType: response.ContentType,
         contentLength: response.ContentLength,
+        contentRange: response.ContentRange,
+        acceptRanges: response.AcceptRanges,
     };
 }
 
