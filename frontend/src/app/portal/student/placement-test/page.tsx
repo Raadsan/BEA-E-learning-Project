@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
-import { useGetPlacementTestsQuery, useGetStudentPlacementResultsQuery } from "@/lib/api/placementTestApi";
+import { useGetPlacementTestsQuery, useGetStudentPlacementResultsQuery, useStartPlacementTestMutation, useGetPlacementLockStatusQuery } from "@/lib/api/placementTestApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import RichTextContent from "@/components/assessments/RichTextContent";
 
@@ -13,8 +13,12 @@ export default function PlacementTestPage() {
   const { data: tests, isLoading: testsLoading, error } = useGetPlacementTestsQuery();
 
   const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
+  const [startPlacementTest, { isLoading: isStarting }] = useStartPlacementTestMutation();
   const studentIdForResults = user?.id || user?.student_id;
   const { data: results, isLoading: resultsLoading } = useGetStudentPlacementResultsQuery(studentIdForResults, {
+    skip: !studentIdForResults,
+  });
+  const { data: lockStatus, isLoading: lockLoading } = useGetPlacementLockStatusQuery(studentIdForResults, {
     skip: !studentIdForResults,
   });
 
@@ -25,7 +29,7 @@ export default function PlacementTestPage() {
     if (activeTests.length === 0) return null;
 
     // Simple deterministic hash based on student_id to pick a test
-    const studentId = user.id || user.student_id || "guest";
+    const studentId = studentIdForResults || "guest";
     let hash = 0;
     for (let i = 0; i < studentId.toString().length; i++) {
       hash = (hash << 5) - hash + studentId.toString().charCodeAt(i);
@@ -34,9 +38,9 @@ export default function PlacementTestPage() {
 
     const index = Math.abs(hash) % activeTests.length;
     return activeTests[index];
-  }, [tests, user.id, user.student_id]);
+  }, [tests, studentIdForResults]);
 
-  const hasTakenTest = results?.find(r => r.student_id === (user.id || user.student_id)); // Check for any placement test taken by this student
+  const hasTakenTest = results?.find(r => r.student_id === studentIdForResults); // Check for any placement test taken by this student
 
   React.useEffect(() => {
     if (hasTakenTest) {
@@ -63,7 +67,23 @@ export default function PlacementTestPage() {
     return new Date() > expiry;
   }, [user?.expiry_date]);
 
-  const isLoading = testsLoading || resultsLoading || userLoading;
+  const isLoading = testsLoading || resultsLoading || userLoading || lockLoading;
+
+  const handleStartTest = async () => {
+    if (!activeTest || !studentIdForResults) return;
+    try {
+      await startPlacementTest({
+        test_id: activeTest.id,
+        student_id: studentIdForResults,
+      }).unwrap();
+      router.push(`/portal/student/placement-test/take?id=${activeTest.id}`);
+    } catch (err: any) {
+      alert(err?.data?.error || "Unable to start the placement test.");
+      if (err?.data?.result?.id) {
+        router.push(`/portal/student/placement-test/results?id=${err.data.result.id}`);
+      }
+    }
+  };
 
   if (isLoading) {
     return (
@@ -183,12 +203,37 @@ export default function PlacementTestPage() {
                   View My Results
                 </button>
               </>
+            ) : lockStatus?.locked ? (
+              <>
+                <div className={`w-full p-5 rounded-xl border flex flex-col items-center gap-3 ${
+                  isDark ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'
+                }`}>
+                  <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <p className={`text-sm font-semibold text-center ${isDark ? 'text-red-400' : 'text-red-700'}`}>
+                    Your access to this test has been locked.
+                  </p>
+                  <p className={`text-xs text-center ${isDark ? 'text-red-300/70' : 'text-red-600/80'}`}>
+                    You left the test without submitting. Please contact your admin to request access.
+                  </p>
+                </div>
+                <button
+                  onClick={() => router.push('/portal/student')}
+                  className="px-8 py-2.5 rounded-xl text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-all"
+                >
+                  Back to Dashboard
+                </button>
+              </>
             ) : (
               <button
-                onClick={() => router.push(`/portal/student/placement-test/take?id=${activeTest.id}`)}
+                onClick={handleStartTest}
+                disabled={isStarting}
                 className="px-12 py-3 bg-[#010080] hover:bg-[#000060] text-white font-medium rounded-xl transition-all shadow-lg hover:shadow-blue-900/20 w-full max-w-xs"
               >
-                Start Placement Test
+                {isStarting ? "Starting..." : "Start Placement Test"}
               </button>
             )}
           </div>

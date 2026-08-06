@@ -753,6 +753,17 @@ model proficiency_test_results {
   @@index([test_id], map: "idx_test_id")
 }
 
+model assessment_attempt_locks {
+  id         Int      @id @default(autoincrement())
+  test_type  String   @db.VarChar(20)
+  test_id    Int
+  student_id String   @db.VarChar(50)
+  started_at DateTime @default(now()) @db.Timestamp(0)
+
+  @@unique([test_type, test_id, student_id], map: "unique_assessment_attempt_lock")
+  @@index([student_id], map: "idx_attempt_lock_student")
+}
+
 model proficiency_tests {
   id                       Int                        @id @default(autoincrement())
   title                    String                     @db.VarChar(255)

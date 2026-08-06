@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
  
 import DataTable from "@/components/DataTable";
-import { useGetAllPlacementResultsQuery } from "@/lib/api/placementTestApi";
+import { useGetAllPlacementResultsQuery, useUnlockPlacementAttemptMutation } from "@/lib/api/placementTestApi";
 import { useExtendStudentDeadlineMutation } from "@/lib/api/studentApi";
 import { useToast } from "@/components/Toast";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
@@ -57,6 +57,7 @@ export default function PlacementResultsPage() {
  
     const { data: results, isLoading, error, refetch } = useGetAllPlacementResultsQuery();
     const [extendStudentDeadline] = useExtendStudentDeadlineMutation();
+    const [unlockPlacementAttempt, { isLoading: isUnlocking }] = useUnlockPlacementAttemptMutation();
  
     const columns = [
         {
@@ -114,16 +115,24 @@ export default function PlacementResultsPage() {
         {
             key: "time_status",
             label: "Life Status",
-            width: "150px",
+            width: "160px",
             render: (_, row) => {
+                const isDroppedOut = row.approval_status === 'inactive';
                 const isExpired = row.expiry_date ? new Date(row.expiry_date) < new Date() : false;
                 const hasSubmitted = row.has_submitted === true;
-                const isActive = !hasSubmitted && !isExpired;
-                
+                const exitedTest = row.status === 'started_not_submitted';
+                const isActive = !hasSubmitted && !isExpired && !isDroppedOut;
+
                 let label = "Active";
                 let colorClass = "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
-                
-                if (hasSubmitted) {
+
+                if (isDroppedOut) {
+                    label = "Dropped Out";
+                    colorClass = "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800";
+                } else if (exitedTest) {
+                    label = "Exited Test";
+                    colorClass = "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800";
+                } else if (hasSubmitted) {
                     label = row.status === 'completed' ? "Completed" : "Submitted";
                     colorClass = "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800";
                 } else if (isExpired) {
@@ -137,12 +146,29 @@ export default function PlacementResultsPage() {
                     colorClass = "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800";
                 }
 
+                if (isDroppedOut) {
+                    return (
+                        <div className="flex flex-col gap-0.5">
+                            <span
+                                className={`px-2 py-1 rounded text-xs font-bold border cursor-default ${colorClass}`}
+                            >
+                                {label}
+                            </span>
+                            {row.expiry_date && (
+                                <span className="text-[10px] text-gray-400 dark:text-gray-500 pl-0.5">
+                                    {new Date(row.expiry_date).toLocaleDateString()}
+                                </span>
+                            )}
+                        </div>
+                    );
+                }
+
                 return (
                     <LiveAdminTimer
                         expiryDate={row.expiry_date}
                         label={label}
                         colorClass={colorClass}
-                        onClick={isExpired && !hasSubmitted ? () => {
+                        onClick={isExpired && !hasSubmitted && !isDroppedOut ? () => {
                             setStudentToExtend(row);
                             setExtraTime("");
                             setTimeUnit("minutes");
@@ -158,9 +184,10 @@ export default function PlacementResultsPage() {
             render: (val) => {
                 const isPending = val === 'pending_review';
                 const isNotTaken = val === 'not_taken';
+                const exitedTest = val === 'started_not_submitted';
                 return (
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${isNotTaken ? 'bg-gray-100 text-gray-600' : isPending ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                        {isNotTaken ? 'Not Taken' : isPending ? 'Pending Review' : (val || 'Completed')}
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${exitedTest ? 'bg-orange-100 text-orange-800' : isNotTaken ? 'bg-gray-100 text-gray-600' : isPending ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                        {exitedTest ? 'Not Submitted' : isNotTaken ? 'Not Taken' : isPending ? 'Pending Review' : (val || 'Completed')}
                     </span>
                 )
             },
@@ -170,6 +197,25 @@ export default function PlacementResultsPage() {
             label: "Actions",
             render: (_, row) => (
                 <div className="flex gap-2">
+                    {row.is_locked && row.attempt_id && (
+                    <button
+                        disabled={isUnlocking}
+                        onClick={async () => {
+                            if (!window.confirm(`Allow ${row.student_name} to retake this placement test?`)) return;
+                            try {
+                                await unlockPlacementAttempt(row.attempt_id).unwrap();
+                                showToast("Student can now retake the placement test", "success");
+                                refetch();
+                            } catch (err: any) {
+                                showToast(err?.data?.error || "Failed to allow retake", "error");
+                            }
+                        }}
+                        className="px-3 py-1.5 text-xs font-bold rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 disabled:opacity-50"
+                        title="Allow Retake"
+                    >
+                        Allow Retake
+                    </button>
+                    )}
                     {canView && row.has_submitted && (
                     <button
                         onClick={() => router.push(`/portal/admin/assessments/placement-tests/results/${row.id}`)}

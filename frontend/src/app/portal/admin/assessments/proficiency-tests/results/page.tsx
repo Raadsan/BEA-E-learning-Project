@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
  
 import DataTable from "@/components/DataTable";
-import { useGetAllProficiencyResultsQuery } from "@/lib/api/proficiencyTestApi";
+import { useGetAllProficiencyResultsQuery, useUnlockProficiencyAttemptMutation } from "@/lib/api/proficiencyTestApi";
 import { useExtendStudentDeadlineMutation } from "@/lib/api/studentApi";
 import { useExtendCandidateDeadlineMutation } from "@/lib/api/proficiencyTestStudentsApi";
 import { useToast } from "@/components/Toast";
@@ -59,6 +59,7 @@ export default function ProficiencyTestResultsPage() {
     const { data: results, isLoading, error, refetch } = useGetAllProficiencyResultsQuery();
     const [extendStudentDeadline] = useExtendStudentDeadlineMutation();
     const [extendCandidateDeadline] = useExtendCandidateDeadlineMutation();
+    const [unlockProficiencyAttempt, { isLoading: isUnlocking }] = useUnlockProficiencyAttemptMutation();
  
     const columns = [
         {
@@ -114,12 +115,16 @@ export default function ProficiencyTestResultsPage() {
             render: (_, row) => {
                 const isExpired = row.expiry_date ? new Date(row.expiry_date) < new Date() : false;
                 const hasSubmitted = row.status === 'completed' || row.status === 'graded' || row.status === 'reviewed' || row.status === 'pending' || row.score !== null;
+                const exitedTest = row.status === 'started_not_submitted';
                 const isActive = row.status === 'active' || row.status === 'in_progress';
                 
                 let label = "Active";
                 let colorClass = "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
                 
-                if (hasSubmitted) {
+                if (exitedTest) {
+                    label = "Exited Test";
+                    colorClass = "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800";
+                } else if (hasSubmitted) {
                     label = row.status === 'completed' || row.status === 'graded' ? "Completed" : "Submitted";
                     colorClass = "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800";
                 } else if (isExpired) {
@@ -157,12 +162,13 @@ export default function ProficiencyTestResultsPage() {
                     pending: 'bg-yellow-100 text-yellow-800',
                     graded: 'bg-green-100 text-green-800',
                     reviewed: 'bg-blue-100 text-blue-800',
-                    completed: 'bg-green-100 text-green-800'
+                    completed: 'bg-green-100 text-green-800',
+                    started_not_submitted: 'bg-orange-100 text-orange-800'
                 };
 
                 return (
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyles[status] || 'bg-gray-100 text-gray-800'}`}>
-                        {status === 'pending' ? 'Pending Review' : (status.charAt(0).toUpperCase() + status.slice(1))}
+                        {status === 'started_not_submitted' ? 'Not Submitted' : status === 'pending' ? 'Pending Review' : (status.charAt(0).toUpperCase() + status.slice(1))}
                     </span>
                 )
             },
@@ -172,6 +178,25 @@ export default function ProficiencyTestResultsPage() {
             label: "Actions",
             render: (_, row) => (
                 <div className="flex gap-2">
+                    {row.is_locked && row.attempt_id && (
+                    <button
+                        disabled={isUnlocking}
+                        onClick={async () => {
+                            if (!window.confirm(`Allow ${row.student_name} to retake this proficiency test?`)) return;
+                            try {
+                                await unlockProficiencyAttempt(row.attempt_id).unwrap();
+                                showToast("Student can now retake the proficiency test", "success");
+                                refetch();
+                            } catch (err: any) {
+                                showToast(err?.data?.error || "Failed to allow retake", "error");
+                            }
+                        }}
+                        className="px-3 py-1.5 text-xs font-bold rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 disabled:opacity-50"
+                        title="Allow Retake"
+                    >
+                        Allow Retake
+                    </button>
+                    )}
                     {canView && (
                     <button
                         onClick={() => router.push(`/portal/admin/assessments/proficiency-tests/results/${row.id}`)}

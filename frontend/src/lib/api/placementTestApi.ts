@@ -38,8 +38,27 @@ export const placementTestApi = createApi({
             }),
             invalidatesTags: ["PlacementResult"],
         }),
+        startPlacementTest: builder.mutation({
+            query: (data) => ({
+                url: "/start",
+                method: "POST",
+                body: data,
+            }),
+            invalidatesTags: ["PlacementResult"],
+        }),
+        unlockPlacementAttempt: builder.mutation({
+            query: (attemptId) => ({
+                url: `/attempts/${attemptId}/lock`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["PlacementResult"],
+        }),
         getStudentPlacementResults: builder.query({
             query: (studentId) => `/results/${studentId}`,
+            providesTags: ["PlacementResult"],
+        }),
+        getPlacementLockStatus: builder.query<any, string>({
+            query: (studentId) => `/lock-status/${studentId}`,
             providesTags: ["PlacementResult"],
         }),
         getAllPlacementResults: builder.query<any, void>({
@@ -90,7 +109,10 @@ export const {
     useGetPlacementTestsQuery,
     useGetPlacementTestByIdQuery,
     useSubmitPlacementTestMutation,
+    useStartPlacementTestMutation,
+    useUnlockPlacementAttemptMutation,
     useGetStudentPlacementResultsQuery,
+    useGetPlacementLockStatusQuery,
     useGetAllPlacementResultsQuery,
     useGradePlacementTestMutation,
     useCreatePlacementTestMutation,

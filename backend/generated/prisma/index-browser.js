@@ -752,6 +752,14 @@ exports.Prisma.Proficiency_test_resultsScalarFieldEnum = {
   feedback: 'feedback'
 };
 
+exports.Prisma.Assessment_attempt_locksScalarFieldEnum = {
+  id: 'id',
+  test_type: 'test_type',
+  test_id: 'test_id',
+  student_id: 'student_id',
+  started_at: 'started_at'
+};
+
 exports.Prisma.Proficiency_testsScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -1439,6 +1447,11 @@ exports.Prisma.proficiency_test_resultsOrderByRelevanceFieldEnum = {
   feedback: 'feedback'
 };
 
+exports.Prisma.assessment_attempt_locksOrderByRelevanceFieldEnum = {
+  test_type: 'test_type',
+  student_id: 'student_id'
+};
+
 exports.Prisma.proficiency_testsOrderByRelevanceFieldEnum = {
   title: 'title',
   description: 'description'
@@ -1887,6 +1900,7 @@ exports.Prisma.ModelName = {
   placement_test_results: 'placement_test_results',
   placement_tests: 'placement_tests',
   proficiency_test_results: 'proficiency_test_results',
+  assessment_attempt_locks: 'assessment_attempt_locks',
   proficiency_tests: 'proficiency_tests',
   program_payment_packages: 'program_payment_packages',
   programs: 'programs',

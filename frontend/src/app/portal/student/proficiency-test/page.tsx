@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useToast } from "@/components/Toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { useGetProficiencyTestsQuery, useGetStudentProficiencyResultsQuery } from "@/lib/api/proficiencyTestApi";
+import { useGetProficiencyTestsQuery, useGetStudentProficiencyResultsQuery, useStartProficiencyTestMutation } from "@/lib/api/proficiencyTestApi";
 import { isProficiencyOnlyStudent } from "@/utils/programCatalog";
 import { useGetIeltsToeflStudentQuery } from "@/lib/api/ieltsToeflApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
@@ -17,6 +17,7 @@ export default function ProficiencyTestPage() {
     const { data: tests, isLoading: testsLoading } = useGetProficiencyTestsQuery();
 
     const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
+    const [startProficiencyTest, { isLoading: isStarting }] = useStartProficiencyTestMutation();
     const studentId = user?.id || user?.student_id;
 
     const { data: results, isLoading: resultsLoading } = useGetStudentProficiencyResultsQuery(studentId, {
@@ -86,9 +87,22 @@ export default function ProficiencyTestPage() {
             showToast("Extra time granted! You can now start your proficiency test.", 'success');
         }
         prevExpiredRef.current = isWindowExpired;
-    }, [isWindowExpired]);
+    }, [isWindowExpired, showToast]);
 
     const isLoading = testsLoading || resultsLoading || studentLoading || userLoading || (hasTakenTest && true);
+
+    const handleStartTest = async () => {
+        if (!activeTest || !studentId || isWindowExpired) return;
+        try {
+            await startProficiencyTest({ test_id: activeTest.id, student_id: studentId }).unwrap();
+            router.push(`/portal/student/proficiency-test/take?id=${activeTest.id}`);
+        } catch (err: any) {
+            showToast(err?.data?.error || "Unable to start the proficiency test.", 'error');
+            if (err?.data?.result?.id) {
+                router.push(`/portal/student/proficiency-test/results?id=${err.data.result.id}`);
+            }
+        }
+    };
 
     if (isLoading) {
         return (
@@ -229,14 +243,14 @@ export default function ProficiencyTestPage() {
                             </>
                         ) : (
                             <button
-                                onClick={() => router.push(`/portal/student/proficiency-test/take?id=${activeTest.id}`)}
-                                disabled={isWindowExpired}
+                                onClick={handleStartTest}
+                                disabled={isWindowExpired || isStarting}
                                 className={`px-12 py-3 font-bold rounded-xl transition-all shadow-lg w-full max-w-xs ${isWindowExpired
                                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
                                     : 'bg-[#010080] hover:bg-[#000060] text-white hover:shadow-blue-900/20 active:scale-95'
                                     }`}
                             >
-                                {isWindowExpired ? "Entry Blocked" : "Start Proficiency Test"}
+                                {isWindowExpired ? "Entry Blocked" : isStarting ? "Starting..." : "Start Proficiency Test"}
                             </button>
                         )}
                     </div>

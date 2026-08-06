@@ -56,6 +56,12 @@ export const submitProficiencyTest = async (req, res) => {
         const { test_id, student_id, answers } = req.body;
         const test = await prisma.proficiency_tests.findUnique({ where: { id: parseInt(test_id) } });
         if (!test) return res.status(404).json({ error: "Test not found" });
+        const existing = await prisma.proficiency_test_results.findFirst({
+            where: { test_id: parseInt(test_id), student_id: String(student_id) },
+        });
+        if (existing) {
+            return res.status(400).json({ error: "You have already submitted this proficiency test", result: existing });
+        }
 
         const questions = typeof test.questions === 'string' ? JSON.parse(test.questions) : test.questions;
         let score = 0;
@@ -88,12 +94,80 @@ export const submitProficiencyTest = async (req, res) => {
     }
 };
 
-export const getAllProficiencyResults = async (req, res) => {
+export const startProficiencyTest = async (req, res) => {
+    try {
+        const testId = Number(req.body.test_id);
+        const studentId = String(req.body.student_id || "");
+        if (!testId || !studentId) return res.status(400).json({ error: "test_id and student_id are required" });
+        const [test, result, lock] = await Promise.all([
+            prisma.proficiency_tests.findUnique({ where: { id: testId } }),
+            prisma.proficiency_test_results.findFirst({ where: { test_id: testId, student_id: studentId } }),
+            prisma.assessment_attempt_locks.findUnique({
+                where: {
+                    test_type_test_id_student_id: {
+                        test_type: "proficiency", test_id: testId, student_id: studentId,
+                    },
+                },
+            }),
+        ]);
+        if (!test) return res.status(404).json({ error: "Test not found" });
+        if (result) return res.status(409).json({ error: "You have already taken this proficiency test", result });
+        if (lock) {
+            return res.status(409).json({
+                error: "You left this test without submitting. Ask an admin to allow a retake.",
+                attempt: lock,
+            });
+        }
+        const attempt = await prisma.assessment_attempt_locks.create({
+            data: { test_type: "proficiency", test_id: testId, student_id: studentId },
+        });
+        res.status(201).json(attempt);
+    } catch (err) {
+        if (err?.code === "P2002") return res.status(409).json({ error: "This proficiency test attempt is locked." });
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const getStudentProficiencyResults = async (req, res) => {
     try {
         const results = await prisma.proficiency_test_results.findMany({
-            include: { proficiency_tests: true },
-            orderBy: { submitted_at: 'desc' }
+            where: { student_id: String(req.params.studentId) },
+            orderBy: { submitted_at: "desc" },
         });
+        res.json(results);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const unlockProficiencyAttempt = async (req, res) => {
+    try {
+        const id = Number(req.params.attemptId);
+        const attempt = await prisma.assessment_attempt_locks.findUnique({ where: { id } });
+        if (!attempt || attempt.test_type !== "proficiency") return res.status(404).json({ error: "Attempt not found" });
+        const result = await prisma.proficiency_test_results.findFirst({
+            where: { test_id: attempt.test_id, student_id: attempt.student_id },
+        });
+        if (result) return res.status(400).json({ error: "A submitted test cannot be unlocked here" });
+        await prisma.assessment_attempt_locks.delete({ where: { id } });
+        res.json({ message: "Proficiency test retake allowed" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const getAllProficiencyResults = async (req, res) => {
+    try {
+        const [results, attemptLocks] = await Promise.all([
+            prisma.proficiency_test_results.findMany({
+                include: { proficiency_tests: true },
+                orderBy: { submitted_at: 'desc' }
+            }),
+            prisma.assessment_attempt_locks.findMany({
+                where: { test_type: "proficiency" },
+                orderBy: { started_at: "desc" },
+            }),
+        ]);
 
         const populated = await Promise.all(results.map(async (result) => {
             let student_name = 'Unknown Student';
@@ -146,7 +220,32 @@ export const getAllProficiencyResults = async (req, res) => {
             };
         }));
 
-        res.json(populated);
+        const submittedKeys = new Set(results.map((result) => `${result.test_id}:${result.student_id}`));
+        const exitedRows = await Promise.all(attemptLocks
+            .filter((attempt) => !submittedKeys.has(`${attempt.test_id}:${attempt.student_id}`))
+            .map(async (attempt) => {
+                const candidate = await prisma.ProficiencyTestStudents.findUnique({ where: { student_id: attempt.student_id } });
+                const student = candidate ? null : await prisma.students.findUnique({ where: { student_id: attempt.student_id } });
+                return {
+                    id: `attempt-${attempt.id}`,
+                    attempt_id: attempt.id,
+                    test_id: attempt.test_id,
+                    student_id: attempt.student_id,
+                    student_name: candidate
+                        ? `${candidate.first_name || ''} ${candidate.last_name || ''}`.trim()
+                        : (student?.full_name || 'Unknown Student'),
+                    started_at: attempt.started_at,
+                    submitted_at: null,
+                    score: null,
+                    total_points: null,
+                    percentage: null,
+                    status: 'started_not_submitted',
+                    is_locked: true,
+                    is_candidate: Boolean(candidate),
+                    expiry_date: candidate?.expiry_date || student?.expiry_date || null,
+                };
+            }));
+        res.json([...exitedRows, ...populated]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

@@ -123,6 +123,93 @@ const scorePlacementAnswers = (questions, answers) => {
     return { score, total_questions, percentage, hasEssay };
 };
 
+export const startPlacementTest = async (req, res) => {
+    try {
+        const testId = Number(req.body.test_id);
+        const studentId = String(req.body.student_id || "");
+        if (!testId || !studentId) {
+            return res.status(400).json({ error: "test_id and student_id are required" });
+        }
+
+        const [test, result, lock] = await Promise.all([
+            prisma.placement_tests.findUnique({ where: { id: testId } }),
+            prisma.placement_test_results.findFirst({ where: { test_id: testId, student_id: studentId } }),
+            prisma.assessment_attempt_locks.findUnique({
+                where: {
+                    test_type_test_id_student_id: {
+                        test_type: "placement",
+                        test_id: testId,
+                        student_id: studentId,
+                    },
+                },
+            }),
+        ]);
+        if (!test) return res.status(404).json({ error: "Test not found" });
+        if (result) return res.status(409).json({ error: "You have already taken this placement test", result });
+        if (lock) {
+            return res.status(409).json({
+                error: "You left this test without submitting. Ask an admin to allow a retake.",
+                attempt: lock,
+            });
+        }
+
+        const attempt = await prisma.assessment_attempt_locks.create({
+            data: { test_type: "placement", test_id: testId, student_id: studentId },
+        });
+        res.status(201).json(attempt);
+    } catch (err) {
+        if (err?.code === "P2002") {
+            return res.status(409).json({ error: "This placement test attempt is locked." });
+        }
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const unlockPlacementAttempt = async (req, res) => {
+    try {
+        const id = Number(req.params.attemptId);
+        const attempt = await prisma.assessment_attempt_locks.findUnique({ where: { id } });
+        if (!attempt || attempt.test_type !== "placement") {
+            return res.status(404).json({ error: "Attempt not found" });
+        }
+        const result = await prisma.placement_test_results.findFirst({
+            where: { test_id: attempt.test_id, student_id: attempt.student_id },
+        });
+        if (result) return res.status(400).json({ error: "A submitted test cannot be unlocked here" });
+
+        await prisma.assessment_attempt_locks.delete({ where: { id } });
+        res.json({ message: "Placement test retake allowed" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Check if a student has an active (unsubmitted) attempt lock
+export const getPlacementLockStatus = async (req, res) => {
+    try {
+        const studentId = String(req.params.studentId || "");
+        if (!studentId) return res.status(400).json({ error: "studentId is required" });
+
+        const lock = await prisma.assessment_attempt_locks.findFirst({
+            where: { test_type: "placement", student_id: studentId },
+            orderBy: { started_at: "desc" },
+        });
+
+        if (!lock) return res.json({ locked: false });
+
+        // Check if this lock belongs to an already-submitted test (should not happen, but safety check)
+        const submitted = await prisma.placement_test_results.findFirst({
+            where: { test_id: lock.test_id, student_id: studentId },
+        });
+
+        if (submitted) return res.json({ locked: false });
+
+        return res.json({ locked: true, attempt: lock });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 export const submitPlacementTest = async (req, res) => {
     try {
         const { test_id, student_id, answers } = req.body;
@@ -226,11 +313,15 @@ export const gradePlacementTest = async (req, res) => {
 
 export const getAllPlacementResults = async (req, res) => {
     try {
-        const [results, placementPrograms] = await Promise.all([
+        const [results, placementPrograms, attemptLocks] = await Promise.all([
             prisma.placement_test_results.findMany({ orderBy: { submitted_at: 'desc' } }),
             prisma.programs.findMany({
                 where: { test_required: 'placement' },
                 select: { title: true },
+            }),
+            prisma.assessment_attempt_locks.findMany({
+                where: { test_type: "placement" },
+                orderBy: { started_at: "desc" },
             }),
         ]);
 
@@ -252,6 +343,7 @@ export const getAllPlacementResults = async (req, res) => {
 
         const studentsById = new Map(eligibleStudents.map((student) => [student.student_id, student]));
         const submittedStudentIds = new Set(results.map((result) => result.student_id).filter(Boolean));
+        const lockedStudentIds = new Set(attemptLocks.map((attempt) => attempt.student_id));
 
         // Keep every submitted result, including legacy results whose program was later changed.
         const submittedRows = await Promise.all(results.map(async (result) => {
@@ -270,9 +362,34 @@ export const getAllPlacementResults = async (req, res) => {
             };
         }));
 
-        // Add registered students whose selected program requires placement and who never submitted.
+        const exitedRows = await Promise.all(attemptLocks
+            .filter((attempt) => !submittedStudentIds.has(attempt.student_id))
+            .map(async (attempt) => {
+                const student = studentsById.get(attempt.student_id)
+                    || await prisma.students.findUnique({ where: { student_id: attempt.student_id }, select: { student_id: true, full_name: true, expiry_date: true, approval_status: true } });
+                return {
+                    id: `attempt-${attempt.id}`,
+                    attempt_id: attempt.id,
+                    student_id: attempt.student_id,
+                    student_name: student?.full_name || '-',
+                    test_id: attempt.test_id,
+                    score: null,
+                    total_questions: null,
+                    percentage: null,
+                    recommended_level: null,
+                    submitted_at: null,
+                    started_at: attempt.started_at,
+                    status: 'started_not_submitted',
+                    expiry_date: student?.expiry_date || null,
+                    approval_status: student?.approval_status || null,
+                    has_submitted: false,
+                    is_locked: true,
+                };
+            }));
+
+        // Add registered students who never entered the test.
         const notTakenRows = eligibleStudents
-            .filter((student) => !submittedStudentIds.has(student.student_id))
+            .filter((student) => !submittedStudentIds.has(student.student_id) && !lockedStudentIds.has(student.student_id))
             .map((student) => ({
                 id: `not-taken-${student.student_id}`,
                 student_id: student.student_id,
@@ -292,7 +409,7 @@ export const getAllPlacementResults = async (req, res) => {
                 has_submitted: false,
             }));
 
-        res.json([...notTakenRows, ...submittedRows]);
+        res.json([...exitedRows, ...notTakenRows, ...submittedRows]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

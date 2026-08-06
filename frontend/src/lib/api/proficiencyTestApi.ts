@@ -54,6 +54,21 @@ export const proficiencyTestApi = createApi({
             }),
             invalidatesTags: ['ProficiencyTest'],
         }),
+        startProficiencyTest: builder.mutation({
+            query: (data) => ({
+                url: '/proficiency-tests/start',
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['ProficiencyTest'],
+        }),
+        unlockProficiencyAttempt: builder.mutation({
+            query: (attemptId) => ({
+                url: `/proficiency-tests/attempts/${attemptId}/lock`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['ProficiencyTest'],
+        }),
         getStudentProficiencyResults: builder.query({
             query: (studentId) => `/proficiency-tests/student/${studentId}/results`,
             providesTags: ['ProficiencyTest'],
@@ -80,6 +95,8 @@ export const {
     useUpdateProficiencyTestMutation,
     useDeleteProficiencyTestMutation,
     useSubmitProficiencyTestMutation,
+    useStartProficiencyTestMutation,
+    useUnlockProficiencyAttemptMutation,
     useGetStudentProficiencyResultsQuery,
     useGradeProficiencyTestMutation,
     useGetAllProficiencyResultsQuery,

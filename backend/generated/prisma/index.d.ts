@@ -219,6 +219,11 @@ export type placement_tests = $Result.DefaultSelection<Prisma.$placement_testsPa
  */
 export type proficiency_test_results = $Result.DefaultSelection<Prisma.$proficiency_test_resultsPayload>
 /**
+ * Model assessment_attempt_locks
+ * 
+ */
+export type assessment_attempt_locks = $Result.DefaultSelection<Prisma.$assessment_attempt_locksPayload>
+/**
  * Model proficiency_tests
  * 
  */
@@ -1376,6 +1381,16 @@ export class PrismaClient<
   get proficiency_test_results(): Prisma.proficiency_test_resultsDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.assessment_attempt_locks`: Exposes CRUD operations for the **assessment_attempt_locks** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Assessment_attempt_locks
+    * const assessment_attempt_locks = await prisma.assessment_attempt_locks.findMany()
+    * ```
+    */
+  get assessment_attempt_locks(): Prisma.assessment_attempt_locksDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.proficiency_tests`: Exposes CRUD operations for the **proficiency_tests** model.
     * Example usage:
     * ```ts
@@ -2059,6 +2074,7 @@ export namespace Prisma {
     placement_test_results: 'placement_test_results',
     placement_tests: 'placement_tests',
     proficiency_test_results: 'proficiency_test_results',
+    assessment_attempt_locks: 'assessment_attempt_locks',
     proficiency_tests: 'proficiency_tests',
     program_payment_packages: 'program_payment_packages',
     programs: 'programs',
@@ -2095,7 +2111,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "iELTSTOEFL" | "proficiencyTestStudents" | "migrations" | "academic_calendar" | "admins" | "announcements" | "assignment_submissions" | "assignments" | "attendance" | "certificates" | "class_schedules" | "classes" | "contacts" | "contact_page_settings" | "course_timeline" | "course_work" | "course_work_submissions" | "courses" | "exam_submissions" | "exams" | "freezing_requests" | "ielts_registrations" | "issued_certificates" | "learning_materials" | "level_up_requests" | "tutorials" | "student_support_requests" | "policies" | "news_events" | "blog_posts" | "blog_page_settings" | "homepage_settings" | "newsletters" | "notifications" | "oral_assignment_submissions" | "oral_assignments" | "payment_packages" | "payments" | "placement_test_results" | "placement_tests" | "proficiency_test_results" | "proficiency_tests" | "program_payment_packages" | "programs" | "session_change_requests" | "shift_sessions" | "shifts" | "student_class_history" | "review_windows" | "review_assignments" | "student_review_questions" | "student_reviews" | "students" | "subprograms" | "teacher_review_questions" | "teacher_reviews" | "teachers" | "testimonials" | "timetable_events" | "timetables" | "writing_task_submissions" | "writing_tasks"
+      modelProps: "iELTSTOEFL" | "proficiencyTestStudents" | "migrations" | "academic_calendar" | "admins" | "announcements" | "assignment_submissions" | "assignments" | "attendance" | "certificates" | "class_schedules" | "classes" | "contacts" | "contact_page_settings" | "course_timeline" | "course_work" | "course_work_submissions" | "courses" | "exam_submissions" | "exams" | "freezing_requests" | "ielts_registrations" | "issued_certificates" | "learning_materials" | "level_up_requests" | "tutorials" | "student_support_requests" | "policies" | "news_events" | "blog_posts" | "blog_page_settings" | "homepage_settings" | "newsletters" | "notifications" | "oral_assignment_submissions" | "oral_assignments" | "payment_packages" | "payments" | "placement_test_results" | "placement_tests" | "proficiency_test_results" | "assessment_attempt_locks" | "proficiency_tests" | "program_payment_packages" | "programs" | "session_change_requests" | "shift_sessions" | "shifts" | "student_class_history" | "review_windows" | "review_assignments" | "student_review_questions" | "student_reviews" | "students" | "subprograms" | "teacher_review_questions" | "teacher_reviews" | "teachers" | "testimonials" | "timetable_events" | "timetables" | "writing_task_submissions" | "writing_tasks"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4805,6 +4821,72 @@ export namespace Prisma {
           }
         }
       }
+      assessment_attempt_locks: {
+        payload: Prisma.$assessment_attempt_locksPayload<ExtArgs>
+        fields: Prisma.assessment_attempt_locksFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.assessment_attempt_locksFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$assessment_attempt_locksPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.assessment_attempt_locksFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$assessment_attempt_locksPayload>
+          }
+          findFirst: {
+            args: Prisma.assessment_attempt_locksFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$assessment_attempt_locksPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.assessment_attempt_locksFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$assessment_attempt_locksPayload>
+          }
+          findMany: {
+            args: Prisma.assessment_attempt_locksFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$assessment_attempt_locksPayload>[]
+          }
+          create: {
+            args: Prisma.assessment_attempt_locksCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$assessment_attempt_locksPayload>
+          }
+          createMany: {
+            args: Prisma.assessment_attempt_locksCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.assessment_attempt_locksDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$assessment_attempt_locksPayload>
+          }
+          update: {
+            args: Prisma.assessment_attempt_locksUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$assessment_attempt_locksPayload>
+          }
+          deleteMany: {
+            args: Prisma.assessment_attempt_locksDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.assessment_attempt_locksUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.assessment_attempt_locksUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$assessment_attempt_locksPayload>
+          }
+          aggregate: {
+            args: Prisma.Assessment_attempt_locksAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAssessment_attempt_locks>
+          }
+          groupBy: {
+            args: Prisma.assessment_attempt_locksGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Assessment_attempt_locksGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.assessment_attempt_locksCountArgs<ExtArgs>
+            result: $Utils.Optional<Assessment_attempt_locksCountAggregateOutputType> | number
+          }
+        }
+      }
       proficiency_tests: {
         payload: Prisma.$proficiency_testsPayload<ExtArgs>
         fields: Prisma.proficiency_testsFieldRefs
@@ -6340,6 +6422,7 @@ export namespace Prisma {
     placement_test_results?: placement_test_resultsOmit
     placement_tests?: placement_testsOmit
     proficiency_test_results?: proficiency_test_resultsOmit
+    assessment_attempt_locks?: assessment_attempt_locksOmit
     proficiency_tests?: proficiency_testsOmit
     program_payment_packages?: program_payment_packagesOmit
     programs?: programsOmit
@@ -50040,6 +50123,931 @@ export namespace Prisma {
 
 
   /**
+   * Model assessment_attempt_locks
+   */
+
+  export type AggregateAssessment_attempt_locks = {
+    _count: Assessment_attempt_locksCountAggregateOutputType | null
+    _avg: Assessment_attempt_locksAvgAggregateOutputType | null
+    _sum: Assessment_attempt_locksSumAggregateOutputType | null
+    _min: Assessment_attempt_locksMinAggregateOutputType | null
+    _max: Assessment_attempt_locksMaxAggregateOutputType | null
+  }
+
+  export type Assessment_attempt_locksAvgAggregateOutputType = {
+    id: number | null
+    test_id: number | null
+  }
+
+  export type Assessment_attempt_locksSumAggregateOutputType = {
+    id: number | null
+    test_id: number | null
+  }
+
+  export type Assessment_attempt_locksMinAggregateOutputType = {
+    id: number | null
+    test_type: string | null
+    test_id: number | null
+    student_id: string | null
+    started_at: Date | null
+  }
+
+  export type Assessment_attempt_locksMaxAggregateOutputType = {
+    id: number | null
+    test_type: string | null
+    test_id: number | null
+    student_id: string | null
+    started_at: Date | null
+  }
+
+  export type Assessment_attempt_locksCountAggregateOutputType = {
+    id: number
+    test_type: number
+    test_id: number
+    student_id: number
+    started_at: number
+    _all: number
+  }
+
+
+  export type Assessment_attempt_locksAvgAggregateInputType = {
+    id?: true
+    test_id?: true
+  }
+
+  export type Assessment_attempt_locksSumAggregateInputType = {
+    id?: true
+    test_id?: true
+  }
+
+  export type Assessment_attempt_locksMinAggregateInputType = {
+    id?: true
+    test_type?: true
+    test_id?: true
+    student_id?: true
+    started_at?: true
+  }
+
+  export type Assessment_attempt_locksMaxAggregateInputType = {
+    id?: true
+    test_type?: true
+    test_id?: true
+    student_id?: true
+    started_at?: true
+  }
+
+  export type Assessment_attempt_locksCountAggregateInputType = {
+    id?: true
+    test_type?: true
+    test_id?: true
+    student_id?: true
+    started_at?: true
+    _all?: true
+  }
+
+  export type Assessment_attempt_locksAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which assessment_attempt_locks to aggregate.
+     */
+    where?: assessment_attempt_locksWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of assessment_attempt_locks to fetch.
+     */
+    orderBy?: assessment_attempt_locksOrderByWithRelationInput | assessment_attempt_locksOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: assessment_attempt_locksWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` assessment_attempt_locks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` assessment_attempt_locks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned assessment_attempt_locks
+    **/
+    _count?: true | Assessment_attempt_locksCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Assessment_attempt_locksAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Assessment_attempt_locksSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Assessment_attempt_locksMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Assessment_attempt_locksMaxAggregateInputType
+  }
+
+  export type GetAssessment_attempt_locksAggregateType<T extends Assessment_attempt_locksAggregateArgs> = {
+        [P in keyof T & keyof AggregateAssessment_attempt_locks]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAssessment_attempt_locks[P]>
+      : GetScalarType<T[P], AggregateAssessment_attempt_locks[P]>
+  }
+
+
+
+
+  export type assessment_attempt_locksGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: assessment_attempt_locksWhereInput
+    orderBy?: assessment_attempt_locksOrderByWithAggregationInput | assessment_attempt_locksOrderByWithAggregationInput[]
+    by: Assessment_attempt_locksScalarFieldEnum[] | Assessment_attempt_locksScalarFieldEnum
+    having?: assessment_attempt_locksScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Assessment_attempt_locksCountAggregateInputType | true
+    _avg?: Assessment_attempt_locksAvgAggregateInputType
+    _sum?: Assessment_attempt_locksSumAggregateInputType
+    _min?: Assessment_attempt_locksMinAggregateInputType
+    _max?: Assessment_attempt_locksMaxAggregateInputType
+  }
+
+  export type Assessment_attempt_locksGroupByOutputType = {
+    id: number
+    test_type: string
+    test_id: number
+    student_id: string
+    started_at: Date
+    _count: Assessment_attempt_locksCountAggregateOutputType | null
+    _avg: Assessment_attempt_locksAvgAggregateOutputType | null
+    _sum: Assessment_attempt_locksSumAggregateOutputType | null
+    _min: Assessment_attempt_locksMinAggregateOutputType | null
+    _max: Assessment_attempt_locksMaxAggregateOutputType | null
+  }
+
+  type GetAssessment_attempt_locksGroupByPayload<T extends assessment_attempt_locksGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Assessment_attempt_locksGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Assessment_attempt_locksGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Assessment_attempt_locksGroupByOutputType[P]>
+            : GetScalarType<T[P], Assessment_attempt_locksGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type assessment_attempt_locksSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    test_type?: boolean
+    test_id?: boolean
+    student_id?: boolean
+    started_at?: boolean
+  }, ExtArgs["result"]["assessment_attempt_locks"]>
+
+
+
+  export type assessment_attempt_locksSelectScalar = {
+    id?: boolean
+    test_type?: boolean
+    test_id?: boolean
+    student_id?: boolean
+    started_at?: boolean
+  }
+
+  export type assessment_attempt_locksOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "test_type" | "test_id" | "student_id" | "started_at", ExtArgs["result"]["assessment_attempt_locks"]>
+
+  export type $assessment_attempt_locksPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "assessment_attempt_locks"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      test_type: string
+      test_id: number
+      student_id: string
+      started_at: Date
+    }, ExtArgs["result"]["assessment_attempt_locks"]>
+    composites: {}
+  }
+
+  type assessment_attempt_locksGetPayload<S extends boolean | null | undefined | assessment_attempt_locksDefaultArgs> = $Result.GetResult<Prisma.$assessment_attempt_locksPayload, S>
+
+  type assessment_attempt_locksCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<assessment_attempt_locksFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Assessment_attempt_locksCountAggregateInputType | true
+    }
+
+  export interface assessment_attempt_locksDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['assessment_attempt_locks'], meta: { name: 'assessment_attempt_locks' } }
+    /**
+     * Find zero or one Assessment_attempt_locks that matches the filter.
+     * @param {assessment_attempt_locksFindUniqueArgs} args - Arguments to find a Assessment_attempt_locks
+     * @example
+     * // Get one Assessment_attempt_locks
+     * const assessment_attempt_locks = await prisma.assessment_attempt_locks.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends assessment_attempt_locksFindUniqueArgs>(args: SelectSubset<T, assessment_attempt_locksFindUniqueArgs<ExtArgs>>): Prisma__assessment_attempt_locksClient<$Result.GetResult<Prisma.$assessment_attempt_locksPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Assessment_attempt_locks that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {assessment_attempt_locksFindUniqueOrThrowArgs} args - Arguments to find a Assessment_attempt_locks
+     * @example
+     * // Get one Assessment_attempt_locks
+     * const assessment_attempt_locks = await prisma.assessment_attempt_locks.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends assessment_attempt_locksFindUniqueOrThrowArgs>(args: SelectSubset<T, assessment_attempt_locksFindUniqueOrThrowArgs<ExtArgs>>): Prisma__assessment_attempt_locksClient<$Result.GetResult<Prisma.$assessment_attempt_locksPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Assessment_attempt_locks that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {assessment_attempt_locksFindFirstArgs} args - Arguments to find a Assessment_attempt_locks
+     * @example
+     * // Get one Assessment_attempt_locks
+     * const assessment_attempt_locks = await prisma.assessment_attempt_locks.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends assessment_attempt_locksFindFirstArgs>(args?: SelectSubset<T, assessment_attempt_locksFindFirstArgs<ExtArgs>>): Prisma__assessment_attempt_locksClient<$Result.GetResult<Prisma.$assessment_attempt_locksPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Assessment_attempt_locks that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {assessment_attempt_locksFindFirstOrThrowArgs} args - Arguments to find a Assessment_attempt_locks
+     * @example
+     * // Get one Assessment_attempt_locks
+     * const assessment_attempt_locks = await prisma.assessment_attempt_locks.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends assessment_attempt_locksFindFirstOrThrowArgs>(args?: SelectSubset<T, assessment_attempt_locksFindFirstOrThrowArgs<ExtArgs>>): Prisma__assessment_attempt_locksClient<$Result.GetResult<Prisma.$assessment_attempt_locksPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Assessment_attempt_locks that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {assessment_attempt_locksFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Assessment_attempt_locks
+     * const assessment_attempt_locks = await prisma.assessment_attempt_locks.findMany()
+     * 
+     * // Get first 10 Assessment_attempt_locks
+     * const assessment_attempt_locks = await prisma.assessment_attempt_locks.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const assessment_attempt_locksWithIdOnly = await prisma.assessment_attempt_locks.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends assessment_attempt_locksFindManyArgs>(args?: SelectSubset<T, assessment_attempt_locksFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$assessment_attempt_locksPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Assessment_attempt_locks.
+     * @param {assessment_attempt_locksCreateArgs} args - Arguments to create a Assessment_attempt_locks.
+     * @example
+     * // Create one Assessment_attempt_locks
+     * const Assessment_attempt_locks = await prisma.assessment_attempt_locks.create({
+     *   data: {
+     *     // ... data to create a Assessment_attempt_locks
+     *   }
+     * })
+     * 
+     */
+    create<T extends assessment_attempt_locksCreateArgs>(args: SelectSubset<T, assessment_attempt_locksCreateArgs<ExtArgs>>): Prisma__assessment_attempt_locksClient<$Result.GetResult<Prisma.$assessment_attempt_locksPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Assessment_attempt_locks.
+     * @param {assessment_attempt_locksCreateManyArgs} args - Arguments to create many Assessment_attempt_locks.
+     * @example
+     * // Create many Assessment_attempt_locks
+     * const assessment_attempt_locks = await prisma.assessment_attempt_locks.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends assessment_attempt_locksCreateManyArgs>(args?: SelectSubset<T, assessment_attempt_locksCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Assessment_attempt_locks.
+     * @param {assessment_attempt_locksDeleteArgs} args - Arguments to delete one Assessment_attempt_locks.
+     * @example
+     * // Delete one Assessment_attempt_locks
+     * const Assessment_attempt_locks = await prisma.assessment_attempt_locks.delete({
+     *   where: {
+     *     // ... filter to delete one Assessment_attempt_locks
+     *   }
+     * })
+     * 
+     */
+    delete<T extends assessment_attempt_locksDeleteArgs>(args: SelectSubset<T, assessment_attempt_locksDeleteArgs<ExtArgs>>): Prisma__assessment_attempt_locksClient<$Result.GetResult<Prisma.$assessment_attempt_locksPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Assessment_attempt_locks.
+     * @param {assessment_attempt_locksUpdateArgs} args - Arguments to update one Assessment_attempt_locks.
+     * @example
+     * // Update one Assessment_attempt_locks
+     * const assessment_attempt_locks = await prisma.assessment_attempt_locks.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends assessment_attempt_locksUpdateArgs>(args: SelectSubset<T, assessment_attempt_locksUpdateArgs<ExtArgs>>): Prisma__assessment_attempt_locksClient<$Result.GetResult<Prisma.$assessment_attempt_locksPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Assessment_attempt_locks.
+     * @param {assessment_attempt_locksDeleteManyArgs} args - Arguments to filter Assessment_attempt_locks to delete.
+     * @example
+     * // Delete a few Assessment_attempt_locks
+     * const { count } = await prisma.assessment_attempt_locks.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends assessment_attempt_locksDeleteManyArgs>(args?: SelectSubset<T, assessment_attempt_locksDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Assessment_attempt_locks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {assessment_attempt_locksUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Assessment_attempt_locks
+     * const assessment_attempt_locks = await prisma.assessment_attempt_locks.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends assessment_attempt_locksUpdateManyArgs>(args: SelectSubset<T, assessment_attempt_locksUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Assessment_attempt_locks.
+     * @param {assessment_attempt_locksUpsertArgs} args - Arguments to update or create a Assessment_attempt_locks.
+     * @example
+     * // Update or create a Assessment_attempt_locks
+     * const assessment_attempt_locks = await prisma.assessment_attempt_locks.upsert({
+     *   create: {
+     *     // ... data to create a Assessment_attempt_locks
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Assessment_attempt_locks we want to update
+     *   }
+     * })
+     */
+    upsert<T extends assessment_attempt_locksUpsertArgs>(args: SelectSubset<T, assessment_attempt_locksUpsertArgs<ExtArgs>>): Prisma__assessment_attempt_locksClient<$Result.GetResult<Prisma.$assessment_attempt_locksPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Assessment_attempt_locks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {assessment_attempt_locksCountArgs} args - Arguments to filter Assessment_attempt_locks to count.
+     * @example
+     * // Count the number of Assessment_attempt_locks
+     * const count = await prisma.assessment_attempt_locks.count({
+     *   where: {
+     *     // ... the filter for the Assessment_attempt_locks we want to count
+     *   }
+     * })
+    **/
+    count<T extends assessment_attempt_locksCountArgs>(
+      args?: Subset<T, assessment_attempt_locksCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Assessment_attempt_locksCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Assessment_attempt_locks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Assessment_attempt_locksAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Assessment_attempt_locksAggregateArgs>(args: Subset<T, Assessment_attempt_locksAggregateArgs>): Prisma.PrismaPromise<GetAssessment_attempt_locksAggregateType<T>>
+
+    /**
+     * Group by Assessment_attempt_locks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {assessment_attempt_locksGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends assessment_attempt_locksGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: assessment_attempt_locksGroupByArgs['orderBy'] }
+        : { orderBy?: assessment_attempt_locksGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, assessment_attempt_locksGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAssessment_attempt_locksGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the assessment_attempt_locks model
+   */
+  readonly fields: assessment_attempt_locksFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for assessment_attempt_locks.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__assessment_attempt_locksClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the assessment_attempt_locks model
+   */
+  interface assessment_attempt_locksFieldRefs {
+    readonly id: FieldRef<"assessment_attempt_locks", 'Int'>
+    readonly test_type: FieldRef<"assessment_attempt_locks", 'String'>
+    readonly test_id: FieldRef<"assessment_attempt_locks", 'Int'>
+    readonly student_id: FieldRef<"assessment_attempt_locks", 'String'>
+    readonly started_at: FieldRef<"assessment_attempt_locks", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * assessment_attempt_locks findUnique
+   */
+  export type assessment_attempt_locksFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the assessment_attempt_locks
+     */
+    select?: assessment_attempt_locksSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the assessment_attempt_locks
+     */
+    omit?: assessment_attempt_locksOmit<ExtArgs> | null
+    /**
+     * Filter, which assessment_attempt_locks to fetch.
+     */
+    where: assessment_attempt_locksWhereUniqueInput
+  }
+
+  /**
+   * assessment_attempt_locks findUniqueOrThrow
+   */
+  export type assessment_attempt_locksFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the assessment_attempt_locks
+     */
+    select?: assessment_attempt_locksSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the assessment_attempt_locks
+     */
+    omit?: assessment_attempt_locksOmit<ExtArgs> | null
+    /**
+     * Filter, which assessment_attempt_locks to fetch.
+     */
+    where: assessment_attempt_locksWhereUniqueInput
+  }
+
+  /**
+   * assessment_attempt_locks findFirst
+   */
+  export type assessment_attempt_locksFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the assessment_attempt_locks
+     */
+    select?: assessment_attempt_locksSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the assessment_attempt_locks
+     */
+    omit?: assessment_attempt_locksOmit<ExtArgs> | null
+    /**
+     * Filter, which assessment_attempt_locks to fetch.
+     */
+    where?: assessment_attempt_locksWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of assessment_attempt_locks to fetch.
+     */
+    orderBy?: assessment_attempt_locksOrderByWithRelationInput | assessment_attempt_locksOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for assessment_attempt_locks.
+     */
+    cursor?: assessment_attempt_locksWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` assessment_attempt_locks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` assessment_attempt_locks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of assessment_attempt_locks.
+     */
+    distinct?: Assessment_attempt_locksScalarFieldEnum | Assessment_attempt_locksScalarFieldEnum[]
+  }
+
+  /**
+   * assessment_attempt_locks findFirstOrThrow
+   */
+  export type assessment_attempt_locksFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the assessment_attempt_locks
+     */
+    select?: assessment_attempt_locksSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the assessment_attempt_locks
+     */
+    omit?: assessment_attempt_locksOmit<ExtArgs> | null
+    /**
+     * Filter, which assessment_attempt_locks to fetch.
+     */
+    where?: assessment_attempt_locksWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of assessment_attempt_locks to fetch.
+     */
+    orderBy?: assessment_attempt_locksOrderByWithRelationInput | assessment_attempt_locksOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for assessment_attempt_locks.
+     */
+    cursor?: assessment_attempt_locksWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` assessment_attempt_locks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` assessment_attempt_locks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of assessment_attempt_locks.
+     */
+    distinct?: Assessment_attempt_locksScalarFieldEnum | Assessment_attempt_locksScalarFieldEnum[]
+  }
+
+  /**
+   * assessment_attempt_locks findMany
+   */
+  export type assessment_attempt_locksFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the assessment_attempt_locks
+     */
+    select?: assessment_attempt_locksSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the assessment_attempt_locks
+     */
+    omit?: assessment_attempt_locksOmit<ExtArgs> | null
+    /**
+     * Filter, which assessment_attempt_locks to fetch.
+     */
+    where?: assessment_attempt_locksWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of assessment_attempt_locks to fetch.
+     */
+    orderBy?: assessment_attempt_locksOrderByWithRelationInput | assessment_attempt_locksOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing assessment_attempt_locks.
+     */
+    cursor?: assessment_attempt_locksWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` assessment_attempt_locks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` assessment_attempt_locks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of assessment_attempt_locks.
+     */
+    distinct?: Assessment_attempt_locksScalarFieldEnum | Assessment_attempt_locksScalarFieldEnum[]
+  }
+
+  /**
+   * assessment_attempt_locks create
+   */
+  export type assessment_attempt_locksCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the assessment_attempt_locks
+     */
+    select?: assessment_attempt_locksSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the assessment_attempt_locks
+     */
+    omit?: assessment_attempt_locksOmit<ExtArgs> | null
+    /**
+     * The data needed to create a assessment_attempt_locks.
+     */
+    data: XOR<assessment_attempt_locksCreateInput, assessment_attempt_locksUncheckedCreateInput>
+  }
+
+  /**
+   * assessment_attempt_locks createMany
+   */
+  export type assessment_attempt_locksCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many assessment_attempt_locks.
+     */
+    data: assessment_attempt_locksCreateManyInput | assessment_attempt_locksCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * assessment_attempt_locks update
+   */
+  export type assessment_attempt_locksUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the assessment_attempt_locks
+     */
+    select?: assessment_attempt_locksSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the assessment_attempt_locks
+     */
+    omit?: assessment_attempt_locksOmit<ExtArgs> | null
+    /**
+     * The data needed to update a assessment_attempt_locks.
+     */
+    data: XOR<assessment_attempt_locksUpdateInput, assessment_attempt_locksUncheckedUpdateInput>
+    /**
+     * Choose, which assessment_attempt_locks to update.
+     */
+    where: assessment_attempt_locksWhereUniqueInput
+  }
+
+  /**
+   * assessment_attempt_locks updateMany
+   */
+  export type assessment_attempt_locksUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update assessment_attempt_locks.
+     */
+    data: XOR<assessment_attempt_locksUpdateManyMutationInput, assessment_attempt_locksUncheckedUpdateManyInput>
+    /**
+     * Filter which assessment_attempt_locks to update
+     */
+    where?: assessment_attempt_locksWhereInput
+    /**
+     * Limit how many assessment_attempt_locks to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * assessment_attempt_locks upsert
+   */
+  export type assessment_attempt_locksUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the assessment_attempt_locks
+     */
+    select?: assessment_attempt_locksSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the assessment_attempt_locks
+     */
+    omit?: assessment_attempt_locksOmit<ExtArgs> | null
+    /**
+     * The filter to search for the assessment_attempt_locks to update in case it exists.
+     */
+    where: assessment_attempt_locksWhereUniqueInput
+    /**
+     * In case the assessment_attempt_locks found by the `where` argument doesn't exist, create a new assessment_attempt_locks with this data.
+     */
+    create: XOR<assessment_attempt_locksCreateInput, assessment_attempt_locksUncheckedCreateInput>
+    /**
+     * In case the assessment_attempt_locks was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<assessment_attempt_locksUpdateInput, assessment_attempt_locksUncheckedUpdateInput>
+  }
+
+  /**
+   * assessment_attempt_locks delete
+   */
+  export type assessment_attempt_locksDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the assessment_attempt_locks
+     */
+    select?: assessment_attempt_locksSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the assessment_attempt_locks
+     */
+    omit?: assessment_attempt_locksOmit<ExtArgs> | null
+    /**
+     * Filter which assessment_attempt_locks to delete.
+     */
+    where: assessment_attempt_locksWhereUniqueInput
+  }
+
+  /**
+   * assessment_attempt_locks deleteMany
+   */
+  export type assessment_attempt_locksDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which assessment_attempt_locks to delete
+     */
+    where?: assessment_attempt_locksWhereInput
+    /**
+     * Limit how many assessment_attempt_locks to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * assessment_attempt_locks without action
+   */
+  export type assessment_attempt_locksDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the assessment_attempt_locks
+     */
+    select?: assessment_attempt_locksSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the assessment_attempt_locks
+     */
+    omit?: assessment_attempt_locksOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model proficiency_tests
    */
 
@@ -73325,6 +74333,17 @@ export namespace Prisma {
   export type Proficiency_test_resultsScalarFieldEnum = (typeof Proficiency_test_resultsScalarFieldEnum)[keyof typeof Proficiency_test_resultsScalarFieldEnum]
 
 
+  export const Assessment_attempt_locksScalarFieldEnum: {
+    id: 'id',
+    test_type: 'test_type',
+    test_id: 'test_id',
+    student_id: 'student_id',
+    started_at: 'started_at'
+  };
+
+  export type Assessment_attempt_locksScalarFieldEnum = (typeof Assessment_attempt_locksScalarFieldEnum)[keyof typeof Assessment_attempt_locksScalarFieldEnum]
+
+
   export const Proficiency_testsScalarFieldEnum: {
     id: 'id',
     title: 'title',
@@ -74214,6 +75233,14 @@ export namespace Prisma {
   };
 
   export type proficiency_test_resultsOrderByRelevanceFieldEnum = (typeof proficiency_test_resultsOrderByRelevanceFieldEnum)[keyof typeof proficiency_test_resultsOrderByRelevanceFieldEnum]
+
+
+  export const assessment_attempt_locksOrderByRelevanceFieldEnum: {
+    test_type: 'test_type',
+    student_id: 'student_id'
+  };
+
+  export type assessment_attempt_locksOrderByRelevanceFieldEnum = (typeof assessment_attempt_locksOrderByRelevanceFieldEnum)[keyof typeof assessment_attempt_locksOrderByRelevanceFieldEnum]
 
 
   export const proficiency_testsOrderByRelevanceFieldEnum: {
@@ -78671,6 +79698,62 @@ export namespace Prisma {
     graded_at?: DateTimeNullableWithAggregatesFilter<"proficiency_test_results"> | Date | string | null
     graded_by?: IntNullableWithAggregatesFilter<"proficiency_test_results"> | number | null
     feedback?: StringNullableWithAggregatesFilter<"proficiency_test_results"> | string | null
+  }
+
+  export type assessment_attempt_locksWhereInput = {
+    AND?: assessment_attempt_locksWhereInput | assessment_attempt_locksWhereInput[]
+    OR?: assessment_attempt_locksWhereInput[]
+    NOT?: assessment_attempt_locksWhereInput | assessment_attempt_locksWhereInput[]
+    id?: IntFilter<"assessment_attempt_locks"> | number
+    test_type?: StringFilter<"assessment_attempt_locks"> | string
+    test_id?: IntFilter<"assessment_attempt_locks"> | number
+    student_id?: StringFilter<"assessment_attempt_locks"> | string
+    started_at?: DateTimeFilter<"assessment_attempt_locks"> | Date | string
+  }
+
+  export type assessment_attempt_locksOrderByWithRelationInput = {
+    id?: SortOrder
+    test_type?: SortOrder
+    test_id?: SortOrder
+    student_id?: SortOrder
+    started_at?: SortOrder
+    _relevance?: assessment_attempt_locksOrderByRelevanceInput
+  }
+
+  export type assessment_attempt_locksWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    test_type_test_id_student_id?: assessment_attempt_locksTest_typeTest_idStudent_idCompoundUniqueInput
+    AND?: assessment_attempt_locksWhereInput | assessment_attempt_locksWhereInput[]
+    OR?: assessment_attempt_locksWhereInput[]
+    NOT?: assessment_attempt_locksWhereInput | assessment_attempt_locksWhereInput[]
+    test_type?: StringFilter<"assessment_attempt_locks"> | string
+    test_id?: IntFilter<"assessment_attempt_locks"> | number
+    student_id?: StringFilter<"assessment_attempt_locks"> | string
+    started_at?: DateTimeFilter<"assessment_attempt_locks"> | Date | string
+  }, "id" | "test_type_test_id_student_id">
+
+  export type assessment_attempt_locksOrderByWithAggregationInput = {
+    id?: SortOrder
+    test_type?: SortOrder
+    test_id?: SortOrder
+    student_id?: SortOrder
+    started_at?: SortOrder
+    _count?: assessment_attempt_locksCountOrderByAggregateInput
+    _avg?: assessment_attempt_locksAvgOrderByAggregateInput
+    _max?: assessment_attempt_locksMaxOrderByAggregateInput
+    _min?: assessment_attempt_locksMinOrderByAggregateInput
+    _sum?: assessment_attempt_locksSumOrderByAggregateInput
+  }
+
+  export type assessment_attempt_locksScalarWhereWithAggregatesInput = {
+    AND?: assessment_attempt_locksScalarWhereWithAggregatesInput | assessment_attempt_locksScalarWhereWithAggregatesInput[]
+    OR?: assessment_attempt_locksScalarWhereWithAggregatesInput[]
+    NOT?: assessment_attempt_locksScalarWhereWithAggregatesInput | assessment_attempt_locksScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"assessment_attempt_locks"> | number
+    test_type?: StringWithAggregatesFilter<"assessment_attempt_locks"> | string
+    test_id?: IntWithAggregatesFilter<"assessment_attempt_locks"> | number
+    student_id?: StringWithAggregatesFilter<"assessment_attempt_locks"> | string
+    started_at?: DateTimeWithAggregatesFilter<"assessment_attempt_locks"> | Date | string
   }
 
   export type proficiency_testsWhereInput = {
@@ -85021,6 +86104,59 @@ export namespace Prisma {
     feedback?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type assessment_attempt_locksCreateInput = {
+    test_type: string
+    test_id: number
+    student_id: string
+    started_at?: Date | string
+  }
+
+  export type assessment_attempt_locksUncheckedCreateInput = {
+    id?: number
+    test_type: string
+    test_id: number
+    student_id: string
+    started_at?: Date | string
+  }
+
+  export type assessment_attempt_locksUpdateInput = {
+    test_type?: StringFieldUpdateOperationsInput | string
+    test_id?: IntFieldUpdateOperationsInput | number
+    student_id?: StringFieldUpdateOperationsInput | string
+    started_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type assessment_attempt_locksUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    test_type?: StringFieldUpdateOperationsInput | string
+    test_id?: IntFieldUpdateOperationsInput | number
+    student_id?: StringFieldUpdateOperationsInput | string
+    started_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type assessment_attempt_locksCreateManyInput = {
+    id?: number
+    test_type: string
+    test_id: number
+    student_id: string
+    started_at?: Date | string
+  }
+
+  export type assessment_attempt_locksUpdateManyMutationInput = {
+    test_type?: StringFieldUpdateOperationsInput | string
+    test_id?: IntFieldUpdateOperationsInput | number
+    student_id?: StringFieldUpdateOperationsInput | string
+    started_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type assessment_attempt_locksUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    test_type?: StringFieldUpdateOperationsInput | string
+    test_id?: IntFieldUpdateOperationsInput | number
+    student_id?: StringFieldUpdateOperationsInput | string
+    started_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type proficiency_testsCreateInput = {
     title: string
     description?: string | null
@@ -90931,6 +92067,52 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumproficiency_test_results_statusNullableFilter<$PrismaModel>
     _max?: NestedEnumproficiency_test_results_statusNullableFilter<$PrismaModel>
+  }
+
+  export type assessment_attempt_locksOrderByRelevanceInput = {
+    fields: assessment_attempt_locksOrderByRelevanceFieldEnum | assessment_attempt_locksOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type assessment_attempt_locksTest_typeTest_idStudent_idCompoundUniqueInput = {
+    test_type: string
+    test_id: number
+    student_id: string
+  }
+
+  export type assessment_attempt_locksCountOrderByAggregateInput = {
+    id?: SortOrder
+    test_type?: SortOrder
+    test_id?: SortOrder
+    student_id?: SortOrder
+    started_at?: SortOrder
+  }
+
+  export type assessment_attempt_locksAvgOrderByAggregateInput = {
+    id?: SortOrder
+    test_id?: SortOrder
+  }
+
+  export type assessment_attempt_locksMaxOrderByAggregateInput = {
+    id?: SortOrder
+    test_type?: SortOrder
+    test_id?: SortOrder
+    student_id?: SortOrder
+    started_at?: SortOrder
+  }
+
+  export type assessment_attempt_locksMinOrderByAggregateInput = {
+    id?: SortOrder
+    test_type?: SortOrder
+    test_id?: SortOrder
+    student_id?: SortOrder
+    started_at?: SortOrder
+  }
+
+  export type assessment_attempt_locksSumOrderByAggregateInput = {
+    id?: SortOrder
+    test_id?: SortOrder
   }
 
   export type Enumproficiency_tests_statusNullableFilter<$PrismaModel = never> = {
