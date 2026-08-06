@@ -7,12 +7,12 @@ export type AudioRecorderStatus = "idle" | "recording" | "recorded" | "error";
 function pickSupportedMimeType(): string {
     if (typeof window === "undefined" || typeof MediaRecorder === "undefined") return "";
     const candidates = [
-        // Safari / iOS supports mp4 / aac
-        "audio/mp4",
-        "audio/aac",
-        // Chrome / Firefox prefer webm+opus
+        // Chrome / Firefox produce the most reliable real-time playback with Opus.
         "audio/webm;codecs=opus",
         "audio/webm",
+        // Safari / iOS fallback
+        "audio/mp4",
+        "audio/aac",
         // Firefox fallback
         "audio/ogg;codecs=opus",
         "audio/ogg",
@@ -92,7 +92,7 @@ export function useAudioRecorder() {
 
         try {
             reset();
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
             streamRef.current = stream;
 
             const mimeType = pickSupportedMimeType();
@@ -117,7 +117,8 @@ export function useAudioRecorder() {
             };
 
             mediaRecorderRef.current = recorder;
-            recorder.start(); // No timeslice — fires ondataavailable once on stop (universally compatible incl. Safari/iOS)
+            recorder.start(1000); // Flush chunks while recording so long recordings finalize quickly.
+            // — fires ondataavailable once on stop (universally compatible incl. Safari/iOS)
             startTimeRef.current = Date.now();
             timerRef.current = setInterval(() => {
                 setDurationSec(Math.floor((Date.now() - startTimeRef.current) / 1000));

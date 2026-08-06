@@ -119,12 +119,12 @@ export default function ProficiencyTestResultsPage() {
                 let label = "Active";
                 let colorClass = "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
                 
-                if (isExpired) {
+                if (hasSubmitted) {
+                    label = row.status === 'completed' || row.status === 'graded' ? "Completed" : "Submitted";
+                    colorClass = "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800";
+                } else if (isExpired) {
                     label = "Time End";
                     colorClass = "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800";
-                } else if (hasSubmitted) {
-                    label = "Submitted";
-                    colorClass = "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800";
                 } else if (isActive) {
                     label = "Active";
                     colorClass = "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
@@ -138,7 +138,7 @@ export default function ProficiencyTestResultsPage() {
                         expiryDate={row.expiry_date}
                         label={label}
                         colorClass={colorClass}
-                        onClick={isExpired ? () => {
+                        onClick={isExpired && !hasSubmitted ? () => {
                             setStudentToExtend(row);
                             setExtraTime("");
                             setTimeUnit("minutes");

@@ -12,6 +12,7 @@ import { useToast } from "@/components/Toast";
 import { v4 as uuidv4 } from "uuid";
 import { useDarkMode } from "@/context/ThemeContext";
 import PassageSubQuestionsEditor from "@/components/admin/assessments/PassageSubQuestionsEditor";
+import RichTextEditor from "@/components/assessments/RichTextEditor";
 import SectionMetadataFields, { attachSectionMetadata, defaultSectionMeta } from "@/components/admin/assessments/SectionMetadataFields";
 import {
   ensureQuestionNumbers,
@@ -337,14 +338,7 @@ export default function CreatePlacementTestPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-                    <textarea
-                      name="description"
-                      value={testData.description}
-                      onChange={handleTestChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none transition-colors"
-                      rows={3}
-                      placeholder="Enter a brief description..."
-                    />
+                    <RichTextEditor value={testData.description} onChange={(description) => setTestData({ ...testData, description })} placeholder="Enter a brief description..." />
                   </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div>
@@ -483,13 +477,7 @@ export default function CreatePlacementTestPage() {
                   <div className="space-y-5">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Reading Passage</label>
-                      <textarea
-                        value={currentPassage.passageText}
-                        onChange={e => setCurrentPassage({ ...currentPassage, passageText: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-colors"
-                        rows={4}
-                        placeholder="Paste your text passage here..."
-                      />
+                      <RichTextEditor value={currentPassage.passageText} onChange={(passageText) => setCurrentPassage({ ...currentPassage, passageText })} placeholder="Paste your text passage here..." minHeight={160} />
                     </div>
 
                     <PassageSubQuestionsEditor
@@ -532,13 +520,7 @@ export default function CreatePlacementTestPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Instructions</label>
-                      <textarea
-                        value={currentEssay.description}
-                        onChange={e => setCurrentEssay({ ...currentEssay, description: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-colors"
-                        rows={3}
-                        placeholder="Describe the task..."
-                      />
+                      <RichTextEditor value={currentEssay.description} onChange={(description) => setCurrentEssay({ ...currentEssay, description })} placeholder="Describe the task..." />
                     </div>
                     <div className="grid grid-cols-2 gap-6">
                       <div>

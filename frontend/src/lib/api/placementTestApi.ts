@@ -47,10 +47,16 @@ export const placementTestApi = createApi({
             providesTags: ["PlacementResult"],
         }),
         gradePlacementTest: builder.mutation({
-            query: ({ resultId, ...data }) => ({
+            query: ({ resultId, essayMarks, oralReviewMarks, feedbackFile, recommendedLevel }) => ({
                 url: `/results/${resultId}/grade`,
                 method: "PUT",
-                body: data,
+                body: {
+                    essay_marks: essayMarks,
+                    oral_review_marks: oralReviewMarks,
+                    feedback_file: feedbackFile,
+                    recommended_level: recommendedLevel,
+                    status: "completed",
+                },
             }),
             invalidatesTags: ["PlacementResult"],
         }),

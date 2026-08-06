@@ -11,6 +11,7 @@ import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
 import { useUploadFileMutation } from "@/lib/api/uploadApi";
 
 import { useToast } from "@/components/Toast";
+import RichTextEditor from "@/components/assessments/RichTextEditor";
 import {
     formatDatetimeLocalValue,
     syncAssignmentSchedule,
@@ -836,12 +837,7 @@ export default function CreateExamPage() {
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <div>
                                             <label className="block text-sm font-bold uppercase text-gray-500 mb-2">Reading Passage</label>
-                                            <textarea
-                                                className="w-full p-4 border rounded-xl bg-gray-50 min-h-[200px]"
-                                                placeholder="Paste the passage here..."
-                                                value={papers.paper2.passage}
-                                                onChange={(e) => setPapers(prev => ({ ...prev, paper2: { ...prev.paper2, passage: e.target.value } }))}
-                                            />
+                                            <RichTextEditor value={papers.paper2.passage} onChange={(passage) => setPapers(prev => ({ ...prev, paper2: { ...prev.paper2, passage } }))} placeholder="Paste the passage here..." minHeight={220} />
                                         </div>
                                         <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100">
                                             <h3 className="font-bold text-gray-800 mb-4">Add Comprehension Question</h3>
@@ -1082,12 +1078,7 @@ export default function CreateExamPage() {
                                         <div className="bg-orange-50 p-6 rounded-xl border border-orange-100">
                                             <h3 className="font-bold text-orange-900 mb-2">Oral Examination</h3>
                                             <p className="text-sm text-orange-800 mb-4">Paste the passage below. Students will be prompted to record themselves reading it.</p>
-                                            <textarea
-                                                className="w-full p-4 border border-orange-200 rounded-xl bg-white shadow-sm h-48 focus:ring-2 ring-orange-200 outline-none"
-                                                placeholder="Oral passage text..."
-                                                value={papers.paper4.passage}
-                                                onChange={(e) => setPapers(prev => ({ ...prev, paper4: { ...prev.paper4, passage: e.target.value } }))}
-                                            />
+                                            <RichTextEditor value={papers.paper4.passage} onChange={(passage) => setPapers(prev => ({ ...prev, paper4: { ...prev.paper4, passage } }))} placeholder="Oral passage text..." minHeight={190} />
                                         </div>
                                         <div className="flex justify-end gap-4 mt-4">
                                             <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">

@@ -46,6 +46,17 @@ export default function ResultsPage() {
 
   const studentAnswers = typeof result.answers === 'string' ? JSON.parse(result.answers) : (result.answers || {});
   const testQuestions = typeof test.questions === 'string' ? JSON.parse(test.questions) : (test.questions || []);
+  let essayMarks: Record<string, number> = {};
+  try {
+    essayMarks = result.essay_marks
+      ? (typeof result.essay_marks === 'string' ? JSON.parse(result.essay_marks) : result.essay_marks)
+      : {};
+  } catch { essayMarks = {}; }
+  const essayTotal = Object.values(essayMarks).reduce<number>((sum, mark) => sum + (Number(mark) || 0), 0);
+  const essayMax = testQuestions.filter((q) => q.type === 'essay').reduce((sum, q) => sum + (Number(q.points) || 0), 0);
+  const oralMarks = Number(result.oral_review_marks) || 0;
+  const objectiveScore = Math.max(0, Number(result.score) - essayTotal - oralMarks);
+  const objectiveMax = Math.max(0, Number(result.total_questions) - essayMax - 20);
 
   return (
     <main className="min-h-screen bg-gray-50 py-10 px-4">
@@ -54,28 +65,34 @@ export default function ResultsPage() {
         {/* Simple Results Summary */}
         <div className="bg-white p-10 rounded-xl border border-gray-200 text-center space-y-4">
           <h1 className="text-2xl font-semibold text-gray-900">Placement Test Results</h1>
-          <p className="text-gray-500 text-sm">Review your performance and test evaluation below.</p>
+          <p className="text-gray-500 text-sm">Review your complete objective, essay, and oral evaluation below.</p>
+          {result.recommended_level && <p className="text-sm font-semibold text-[#010080]">Recommended Level: {result.recommended_level}</p>}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
-            <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 flex flex-col items-center">
-              <span className="text-[10px] font-bold text-gray-400 uppercase">Score</span>
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 pt-4">
+            <div className="p-4 rounded-lg bg-blue-50 border border-blue-100 flex flex-col items-center">
+              <span className="text-[10px] font-bold text-blue-500 uppercase">Final Score</span>
               <span className="text-xl font-semibold text-[#010080] mt-1">{result.score} / {result.total_questions}</span>
             </div>
             <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 flex flex-col items-center">
-              <span className="text-[10px] font-bold text-gray-400 uppercase">Accuracy</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase">Objective</span>
+              <span className="text-xl font-semibold text-gray-900 mt-1">{objectiveScore} / {objectiveMax}</span>
+            </div>
+            <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 flex flex-col items-center">
+              <span className="text-[10px] font-bold text-gray-400 uppercase">Essay</span>
+              <span className="text-xl font-semibold text-gray-900 mt-1">{essayTotal} / {essayMax}</span>
+            </div>
+            <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 flex flex-col items-center">
+              <span className="text-[10px] font-bold text-gray-400 uppercase">Oral</span>
+              <span className="text-xl font-semibold text-gray-900 mt-1">{oralMarks} / 20</span>
+            </div>
+            <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 flex flex-col items-center">
+              <span className="text-[10px] font-bold text-gray-400 uppercase">Percentage</span>
               <span className="text-xl font-semibold text-gray-900 mt-1">{Math.round(result.percentage)}%</span>
             </div>
-            {result.status === 'completed' ? (
-              <div className="p-4 rounded-lg bg-green-50 border border-green-100 flex flex-col items-center">
-                <span className="text-[10px] font-bold text-green-600 uppercase">Status</span>
-                <span className="text-xl font-semibold text-green-700 mt-1">Completed</span>
-              </div>
-            ) : (
-              <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-100 flex flex-col items-center">
-                <span className="text-[10px] font-bold text-yellow-600 uppercase">Status</span>
-                <span className="text-lg font-semibold text-yellow-700 mt-1">Pending Review</span>
-              </div>
-            )}
+            <div className={`p-4 rounded-lg border flex flex-col items-center ${result.status === 'completed' ? 'bg-green-50 border-green-100' : 'bg-yellow-50 border-yellow-100'}`}>
+              <span className={`text-[10px] font-bold uppercase ${result.status === 'completed' ? 'text-green-600' : 'text-yellow-600'}`}>Status</span>
+              <span className={`text-base font-semibold mt-1 ${result.status === 'completed' ? 'text-green-700' : 'text-yellow-700'}`}>{result.status === 'completed' ? 'Completed' : 'Pending Review'}</span>
+            </div>
           </div>
         </div>
 
@@ -148,7 +165,7 @@ export default function ResultsPage() {
                     <div className="flex flex-col gap-3 mt-4">
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-bold text-green-600 uppercase px-2 py-0.5 bg-green-50 rounded">Graded</span>
-                        <span className="font-bold text-gray-900">{result.essay_marks || 0} / {q.points || 0} Marks</span>
+                        <span className="font-bold text-gray-900">{Number(essayMarks[q.id]) || 0} / {q.points || 0} Marks</span>
                       </div>
                       {result.feedback_file && (
                         <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all hover:shadow-md ${typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? 'bg-blue-900/10 border-blue-800' : 'bg-blue-50/50 border-blue-100'}`}>

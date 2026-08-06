@@ -18,6 +18,7 @@ import { resolveMediaUrl, resolveSubmissionFileUrl } from "@/constants";
 import { normalizeExamPapers, getExamPaperPrefix, isOralPaper } from "@/utils/examPapers";
 
 import DataTable from "@/components/DataTable";
+import RichTextContent from "@/components/assessments/RichTextContent";
 import { useAssignmentNow } from "@/hooks/useAssignmentNow";
 import {
     getAssignmentWindowStatus,
@@ -511,7 +512,7 @@ export default function ExamsPage() {
                                     {paper.passage && !oralPaper && (
                                         <div className={`p-5 rounded-xl border mb-6 bg-gray-50/50 dark:bg-gray-900/50 italic text-sm leading-relaxed border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400`}>
                                             <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Reading Passage:</p>
-                                            {paper.passage}
+                                            <RichTextContent html={paper.passage} />
                                         </div>
                                     )}
 
@@ -545,7 +546,7 @@ export default function ExamsPage() {
                                                 {paper.passage && (
                                                     <div className={`mb-4 p-4 rounded-lg text-sm leading-relaxed ${isDark ? 'bg-gray-900/40' : 'bg-white'}`}>
                                                         <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Passage to read:</p>
-                                                        {paper.passage}
+                                                        <RichTextContent html={paper.passage} />
                                                     </div>
                                                 )}
                                                 {paper.instructions && (
@@ -564,7 +565,7 @@ export default function ExamsPage() {
                                                             <span className="text-xs">Loading recording...</span>
                                                         </div>
                                                     ) : gradingAudioUrl ? (
-                                                        <audio controls src={gradingAudioUrl} className="w-full" />
+                                                        <audio key={gradingAudioUrl} controls preload="metadata" src={gradingAudioUrl} className="w-full" />
                                                     ) : (
                                                         <p className="text-xs text-gray-400 italic">Could not load the student recording.</p>
                                                     )}

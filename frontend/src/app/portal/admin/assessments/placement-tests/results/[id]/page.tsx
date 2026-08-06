@@ -13,7 +13,7 @@ export default function AdminResultDetailsPage() {
 
     // In a real optimized app, we would have a getResultById endpoint.
     // Here we filter from all results for simplicity as per current API capabilities.
-    const { data: allResults, isLoading: resultsLoading } = useGetAllPlacementResultsQuery();
+    const { data: allResults, isLoading: resultsLoading, refetch: refetchResults } = useGetAllPlacementResultsQuery();
     const result = allResults?.find(r => r.id.toString() === id);
 
     const { data: test, isLoading: testLoading } = useGetPlacementTestByIdQuery(result?.test_id, {
@@ -24,6 +24,7 @@ export default function AdminResultDetailsPage() {
     const [essayMarks, setEssayMarks] = useState<Record<string, string>>({});
     const [oralReviewMarks, setOralReviewMarks] = useState("");
     const [feedbackFile, setFeedbackFile] = useState(null);
+    const [recommendedLevel, setRecommendedLevel] = useState("");
 
     const studentAnswers = result ? (typeof result.answers === 'string' ? JSON.parse(result.answers) : (result.answers || {})) : {};
     const questions = test ? (typeof test.questions === 'string' ? JSON.parse(test.questions) : (test.questions || [])) : [];
@@ -32,25 +33,9 @@ export default function AdminResultDetailsPage() {
     useEffect(() => {
         if (result && questions.length > 0) {
             setOralReviewMarks(result.oral_review_marks === null || result.oral_review_marks === undefined ? "" : result.oral_review_marks);
+            setRecommendedLevel(result.recommended_level || "");
 
             let initialMarks = {};
-
-            // 1. Calculate auto-scores for Passage (as requested)
-            // Plus any other types that might have subquestions
-            questions.forEach(q => {
-                if (q.type === 'passage' || q.type === 'mcq' || q.type === 'multiple_choice') {
-                    const subqs = q.subQuestions || q.subquestions;
-                    if (subqs && Array.isArray(subqs) && subqs.length > 0) {
-                        let pScore = 0;
-                        subqs.forEach(sq => {
-                            if (studentAnswers[sq.id] === sq.options[sq.correctOption]) {
-                                pScore += (parseInt(sq.points) || 1);
-                            }
-                        });
-                        initialMarks[q.id] = pScore;
-                    }
-                }
-            });
 
             // 2. Overwrite with saved marks from database (including JSON manual marks)
             if (result.essay_marks) {
@@ -120,15 +105,14 @@ export default function AdminResultDetailsPage() {
 
         setIsSubmitting(true);
         try {
-            // Calculate total essay marks awarded
-            const totalEssayMarks = Object.values(essayMarks).reduce<number>((a, b) => a + (parseInt(b || "0", 10) || 0), 0);
-
             await gradePlacementTest({
                 resultId: id,
                 essayMarks: essayMarks, // Send the object now
                 oralReviewMarks: oralReviewMarks,
-                feedbackFile
+                feedbackFile,
+                recommendedLevel
             }).unwrap();
+            await refetchResults();
 
             showToast("Grading completed successfully!", "success");
         } catch (err) {
@@ -268,7 +252,7 @@ export default function AdminResultDetailsPage() {
                             <div className="space-y-4">
                                 <label className="block text-sm font-semibold text-gray-700 mb-3">3. Assign Marks</label>
                                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
-                                    {questions.filter(q => q.type === 'essay' || q.type === 'passage').map((q) => (
+                                    {questions.filter(q => q.type === 'essay').map((q) => (
                                         <div key={q.id} className="flex items-center justify-between gap-4">
                                             <div className="flex-1 min-w-0">
                                                 <span className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter block">{q.type}</span>
@@ -293,19 +277,23 @@ export default function AdminResultDetailsPage() {
                                         </div>
                                     ))}
 
+                                    <div className="pt-3 border-t border-gray-200">
+                                        <label className="text-xs font-bold text-gray-600 uppercase">Recommended Level</label>
+                                        <input value={recommendedLevel} onChange={(e) => setRecommendedLevel(e.target.value)} placeholder="e.g. Beginner, Intermediate, Advanced" className="mt-2 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                                    </div>
                                     <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-200">
                                         <span className="text-sm text-blue-800 font-bold flex-1 uppercase tracking-tight">Oral Review Grade</span>
                                         <div className="flex items-center gap-2">
                                             <input
                                                 type="number"
                                                 min="0"
-                                                max="100"
+                                                max="20"
                                                 placeholder="0"
                                                 className="w-16 p-2 text-sm border border-blue-200 bg-blue-50/30 rounded-lg text-center font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                                 value={oralReviewMarks}
                                                 onChange={(e) => setOralReviewMarks(e.target.value)}
                                             />
-                                            <span className="text-xs text-gray-700 font-bold w-12"> / 10 pt</span>
+                                            <span className="text-xs text-gray-700 font-bold w-12"> / 20 pt</span>
                                         </div>
                                     </div>
                                 </div>
@@ -325,16 +313,16 @@ export default function AdminResultDetailsPage() {
                 )}
 
                 {/* Grading Result - ONLY for Completed tests with essay marks */}
-                {result.status === 'completed' && result.feedback_file && (
+                {result.status === 'completed' && (
                     <div className="bg-green-50 p-6 rounded-xl border border-green-200 shadow-sm mb-8 flex justify-between items-center">
                         <div>
                             <h3 className="text-green-800 font-bold">Grading Completed</h3>
                             <p className="text-sm text-green-700 mt-1">
-                                Essay Marks: <strong>{result.essay_marks || 0}</strong> |
+                                Essay Marks: <strong>{Object.values(essayMarks).reduce<number>((sum, mark) => sum + (Number(mark) || 0), 0)}</strong> |
                                 Oral Review: <strong>{result.oral_review_marks || 0}</strong>
                             </p>
                         </div>
-                        <a
+                        {result.feedback_file && <a
                             href={resolveMediaUrl(result.feedback_file) || "#"}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -342,7 +330,7 @@ export default function AdminResultDetailsPage() {
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                             Download Corrected File
-                        </a>
+                        </a>}
                     </div>
                 )}
 

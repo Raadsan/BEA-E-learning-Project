@@ -10,6 +10,7 @@ import { useToast } from "@/components/Toast";
 import { API_URL, resolveMediaUrl } from "@/constants";
 import { getAssignmentTimerTargetMs } from "@/utils/assignmentSchedule";
 import AudioRecorderPanel from "@/components/student/AudioRecorderPanel";
+import RichTextContent from "@/components/assessments/RichTextContent";
 
 export default function TakeExamPage() {
     const { isDark } = useDarkMode();
@@ -393,8 +394,8 @@ export default function TakeExamPage() {
                         {(currentStep.type === "editing" || currentStep.type === "reading_mcq" || currentStep.type === "listening_mcq" || currentStep.type === "reading_short" || currentStep.type === "listening_short") && (
                             <div className="space-y-6">
                                 {(currentStep.type === "reading_mcq" || currentStep.type === "reading_short") && (
-                                    <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-sm text-gray-700 leading-relaxed font-normal mb-8 max-h-[300px] overflow-y-auto">
-                                        {currentStep.passage}
+                                    <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-sm text-gray-700 leading-relaxed font-normal mb-8 max-h-[300px] overflow-y-auto whitespace-pre-wrap text-left">
+                                        <RichTextContent html={currentStep.passage} />
                                     </div>
                                 )}
                                 {(currentStep.type === "listening_mcq" || currentStep.type === "listening_short") && (
@@ -493,8 +494,8 @@ export default function TakeExamPage() {
                         {/* Oral Type - Same as Placement Passage Logic */}
                         {currentStep.type === "oral" && (
                             <div className="flex flex-col gap-8">
-                                <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-sm text-gray-700 leading-relaxed font-normal dark:bg-gray-900/40 dark:border-gray-700 dark:text-gray-300">
-                                    {currentStep.passage}
+                                <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-sm text-gray-700 leading-relaxed font-normal dark:bg-gray-900/40 dark:border-gray-700 dark:text-gray-300 whitespace-pre-wrap text-left">
+                                    <RichTextContent html={currentStep.passage} />
                                 </div>
                                 <div className="p-1 border-t border-gray-50 pt-6">
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Instructions</p>

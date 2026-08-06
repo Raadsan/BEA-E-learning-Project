@@ -14,6 +14,7 @@ import { useGetIeltsToeflStudentQuery } from "@/lib/api/ieltsToeflApi";
 import { useSendTestReminderEmailMutation } from "@/lib/api/notificationApi";
 import { ensureQuestionNumbers } from "@/utils/testQuestions";
 import SectionInformation, { buildSectionInformation } from "@/components/assessments/SectionInformation";
+import RichTextContent from "@/components/assessments/RichTextContent";
 
 const PROFICIENCY_MAX_PART = 5;
 
@@ -183,7 +184,7 @@ export default function TakeProficiencyTestPage() {
     const isLast = currentQuestionIdx === questions.length - 1;
     const currentPart = currentQ.part || 1;
     const currentPartQuestions = questions.filter(q => (q.part || 1) === currentPart);
-    const storedQuestionNumber = currentQ?.questionNumber;
+    const displayQuestionNumber = currentPartQuestions.findIndex(q => q.id === currentQ?.id) + 1;
 
     const formatTime = (s) => {
         if (s === null) return "00:00:00";
@@ -273,7 +274,7 @@ export default function TakeProficiencyTestPage() {
                     <div className="flex justify-between items-center mb-10 pb-4 border-b dark:border-gray-700">
                         <div className="flex flex-col gap-1">
                             <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-500 opacity-60">Part {currentPart}</span>
-                            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Question {storedQuestionNumber} of {currentPartQuestions.length}</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Question {displayQuestionNumber} of {currentPartQuestions.length}</span>
                         </div>
                         <span className="text-[10px] font-bold px-3 py-1 rounded-full uppercase bg-blue-100 text-blue-600 self-start">
                             {currentQ.type === 'multiple_choice' ? 'MCQ' : currentQ.type.toUpperCase()}
@@ -284,7 +285,7 @@ export default function TakeProficiencyTestPage() {
                         {(currentQ.type === "mcq" || currentQ.type === "multiple_choice") && (
                             <div className="space-y-6">
                                 <h2 className={`text-xl font-semibold leading-relaxed mb-8 ${textColor}`}>
-                                    {storedQuestionNumber}: {currentQ.questionText || currentQ.question}
+                                    {displayQuestionNumber}: {currentQ.questionText || currentQ.question}
                                 </h2>
                                 <div className="space-y-4">
                                     {currentQ.options.map((opt, i) => (
@@ -300,14 +301,14 @@ export default function TakeProficiencyTestPage() {
                         {currentQ.type === "passage" && (
                             <div className="flex flex-col gap-8">
                                 <div className={`p-8 rounded-2xl border leading-relaxed text-base italic ${isDark ? 'bg-gray-700/30 border-gray-600 text-gray-300' : 'bg-blue-50/30 border-blue-100 text-gray-700'}`}>
-                                    {currentQ.passageText}
+                                    <RichTextContent html={currentQ.passageText} />
                                 </div>
                                 {(() => {
                                     const sq = currentQ.subQuestions[currentSubQuestionIdx];
                                     if (!sq) return null;
                                     return (
                                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                            <h3 className={`text-lg font-bold ${textColor}`}>{sq.questionNumber || currentSubQuestionIdx + 1}: {sq.questionText}</h3>
+                                            <h3 className={`text-lg font-bold ${textColor}`}>{currentSubQuestionIdx + 1}: {sq.questionText}</h3>
                                             <div className="space-y-3">
                                                 {sq.options.map((opt, oi) => (
                                                     <label key={oi} className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${answers[sq.id] === opt ? 'border-blue-600 bg-blue-50/50' : 'border-gray-50 dark:border-gray-700 hover:border-blue-100'}`}>
@@ -325,7 +326,7 @@ export default function TakeProficiencyTestPage() {
 
                         {(currentQ.type === "essay" || currentQ.type === "audio") && (
                             <div className="space-y-6">
-                                <h2 className={`text-xl font-bold ${textColor}`}>{storedQuestionNumber}: {currentQ.title || "Subjective and Writing"}</h2>
+                                <h2 className={`text-xl font-bold ${textColor}`}>{displayQuestionNumber}: {currentQ.title || "Subjective and Writing"}</h2>
                                 {currentQ.type === "audio" && (
                                     <div className={`p-4 rounded-2xl flex items-center gap-4 ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
                                         <audio controls className="w-full h-10">
@@ -333,7 +334,7 @@ export default function TakeProficiencyTestPage() {
                                         </audio>
                                     </div>
                                 )}
-                                <p className={`text-sm font-medium leading-relaxed italic ${secondaryText}`}>{currentQ.description}</p>
+                                <RichTextContent html={currentQ.description} className={`text-sm font-medium leading-relaxed ${secondaryText}`} />
                                 <textarea
                                     value={answers[currentQ.id] || ""}
                                     onChange={e => handleAnswerChange(currentQ.id, e.target.value)}

@@ -10,8 +10,10 @@ import {
 import { useSendTestReminderEmailMutation } from "@/lib/api/notificationApi";
 import { ensureQuestionNumbers } from "@/utils/testQuestions";
 import SectionInformation, { buildSectionInformation } from "@/components/assessments/SectionInformation";
+import RichTextContent from "@/components/assessments/RichTextContent";
 
 const PLACEMENT_MAX_PART = 4;
+const formatOptionText = (option) => String(option ?? "").replace(/^\s*[A-Z][.)]\s*/i, "");
 
 export default function TakePlacementTestPage() {
   const router = useRouter();
@@ -192,7 +194,7 @@ export default function TakePlacementTestPage() {
   // For passages, we might want to stay on the same "Question X" or indicate sub-step.
   // Let's keep "Question X of Y" referring to the MAIN questions for simplicity, 
   // maybe add "Sub-question A of B" logic if needed, but for now strict to main.
-  const storedQuestionNumber = currentQ?.questionNumber;
+  const displayQuestionNumber = currentPartQuestions.findIndex(q => q.id === currentQ?.id) + 1;
 
   const handleNext = () => {
     // PASSAGE SUB-QUESTION NAVIGATION
@@ -262,10 +264,10 @@ export default function TakePlacementTestPage() {
     <main className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="w-full px-8">
         {/* Simple Header */}
-        <div className="bg-white p-8 rounded-xl border border-gray-200 mb-6 flex justify-between items-center shadow-sm">
+        <div className="bg-white p-5 sm:p-8 rounded-xl border border-gray-200 mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-5 shadow-sm">
           <div className="space-y-1">
             <h1 className="text-xl font-semibold text-gray-900">{test.title}</h1>
-            <p className="text-sm text-gray-500">{test.description}</p>
+            <RichTextContent html={test.description} className="text-sm text-gray-500" />
           </div>
           <div className="bg-[#010080] text-white px-5 py-2 rounded-lg font-mono text-lg font-semibold min-w-[100px] text-center">
             {formatTime(timeRemaining)}
@@ -282,24 +284,24 @@ export default function TakePlacementTestPage() {
         </div>
 
         {/* Question Area */}
-        <div className="bg-white p-10 rounded-xl border border-gray-200 min-h-[450px] shadow-sm">
+        <div className="bg-white p-5 sm:p-8 lg:p-10 rounded-xl border border-gray-200 min-h-[450px] shadow-sm">
           <div className="flex justify-between items-center mb-10 pb-4 border-b">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-              Part {currentPart}: Question {storedQuestionNumber} of {currentPartQuestions.length}
+              Part {currentPart}: Question {displayQuestionNumber} of {currentPartQuestions.length}
             </span>
             <span className="text-[10px] font-bold text-[#010080] bg-blue-50 px-3 py-1 rounded uppercase">{currentQ?.type}</span>
           </div>
 
           {currentQ?.type === "mcq" && (
-            <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-gray-800 leading-relaxed">
-                {storedQuestionNumber}: {currentQ.questionText}
+            <div className="space-y-6 w-full max-w-4xl">
+              <h2 className="text-lg font-semibold text-gray-800 leading-relaxed text-left">
+                {displayQuestionNumber}: {currentQ.questionText}
               </h2>
               <div className="space-y-3 pt-2">
                 {currentQ.options.map((opt, i) => (
                   <label key={i} className={`flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${answers[currentQ.id] === opt ? 'border-[#010080] bg-blue-50/20' : 'border-gray-100 hover:border-gray-200'}`}>
                     <input type="radio" checked={answers[currentQ.id] === opt} onChange={() => handleAnswerChange(currentQ.id, opt)} className="w-4 h-4 accent-[#010080]" />
-                    <span className={`text-sm font-medium ${answers[currentQ.id] === opt ? 'text-[#010080]' : 'text-gray-600'}`}>{opt}</span>
+                    <span className="w-7 shrink-0 text-xs font-bold text-gray-500">{String.fromCharCode(65 + i)}.</span><span className={`text-sm font-medium ${answers[currentQ.id] === opt ? 'text-[#010080]' : 'text-gray-600'}`}>{formatOptionText(opt)}</span>
                   </label>
                 ))}
               </div>
@@ -307,9 +309,9 @@ export default function TakePlacementTestPage() {
           )}
 
           {currentQ?.type === "passage" && (
-            <div className="flex flex-col gap-8">
-              <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-sm text-gray-700 leading-relaxed font-normal">
-                {currentQ.passageText}
+            <div className="flex flex-col gap-8 w-full max-w-5xl">
+              <div className="bg-gray-50 p-5 sm:p-6 rounded-xl border border-gray-100 text-sm text-gray-700 leading-7 font-normal text-left">
+                <RichTextContent html={currentQ.passageText} />
               </div>
 
               {/* Render ONLY current sub-question */}
@@ -321,13 +323,13 @@ export default function TakePlacementTestPage() {
                   return (
                     <div key={currentSubQuestionIdx} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                       <p className="text-base font-semibold text-gray-900">
-                        {sq.questionNumber || currentSubQuestionIdx + 1}: {sq.questionText}
+                        {currentSubQuestionIdx + 1}: {sq.questionText}
                       </p>
                       <div className="space-y-2">
                         {sq.options.map((opt, oi) => (
                           <label key={oi} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${answers[sq.id] === opt ? 'border-[#010080] bg-blue-50/20' : 'border-gray-50 hover:bg-gray-50'}`}>
                             <input type="radio" checked={answers[sq.id] === opt} onChange={() => handleAnswerChange(sq.id, opt)} className="accent-[#010080] w-4 h-4" />
-                            <span className="text-sm font-medium text-gray-600">{opt}</span>
+                            <span className="w-7 shrink-0 text-xs font-bold text-gray-500">{String.fromCharCode(65 + oi)}.</span><span className="text-sm font-medium text-gray-600">{formatOptionText(opt)}</span>
                           </label>
                         ))}
                       </div>
@@ -352,11 +354,12 @@ export default function TakePlacementTestPage() {
 
           {currentQ?.type === "essay" && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">{storedQuestionNumber}: {currentQ.title}</h2>
-              <p className="text-sm text-gray-600 font-medium leading-relaxed">{currentQ.description}</p>
+              <h2 className="text-xl font-semibold text-gray-900">{displayQuestionNumber}: {currentQ.title}</h2>
+              <RichTextContent html={currentQ.description} className="text-sm text-gray-600 font-medium leading-relaxed" />
+              <div className="flex justify-between text-xs font-semibold"><span>Maximum {currentQ.maxWords || 250} words</span><span>{String(answers[currentQ.id] || "").trim() ? String(answers[currentQ.id]).trim().split(/\s+/).length : 0} / {currentQ.maxWords || 250} words</span></div>
               <textarea
                 value={answers[currentQ.id] || ""}
-                onChange={e => handleAnswerChange(currentQ.id, e.target.value)}
+                onChange={e => { const words = e.target.value.trim().split(/\s+/).filter(Boolean); if (words.length <= (currentQ.maxWords || 250)) handleAnswerChange(currentQ.id, e.target.value); }}
                 onPaste={(e) => { e.preventDefault(); }}
                 onCopy={(e) => { e.preventDefault(); }}
                 onCut={(e) => { e.preventDefault(); }}

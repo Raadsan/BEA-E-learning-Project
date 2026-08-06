@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetPlacementTestsQuery, useGetStudentPlacementResultsQuery } from "@/lib/api/placementTestApi";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
+import RichTextContent from "@/components/assessments/RichTextContent";
 
 export default function PlacementTestPage() {
   const router = useRouter();
@@ -112,7 +113,7 @@ export default function PlacementTestPage() {
   return (
     <main className={`flex-1 overflow-y-auto ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="w-full px-8 pt-4 pb-6 flex items-center justify-center min-h-full">
-        <div className={`rounded-3xl shadow-lg p-12 max-w-2xl w-full border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+        <div className={`rounded-3xl shadow-lg p-6 sm:p-10 lg:p-12 max-w-5xl w-full border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
           }`}>
 
           {/* Header Icon */}
@@ -124,13 +125,14 @@ export default function PlacementTestPage() {
             </div>
           </div>
 
-          <h1 className={`text-4xl font-bold text-center mb-4 ${isDark ? 'text-white' : 'text-[#010080]'}`}>
+          <h1 className={`text-3xl sm:text-4xl font-bold text-left mb-4 ${isDark ? 'text-white' : 'text-[#010080]'}`}>
             {activeTest.title}
           </h1>
 
-          <p className={`text-lg text-center mb-10 leading-relaxed ${isDark ? 'text-gray-400' : 'text-black'}`}>
-            {activeTest.description || "This test will help us determine your current English proficiency level and recommend the most suitable course for you."}
-          </p>
+          <RichTextContent
+            html={activeTest.description || "This test will help us determine your current English proficiency level and recommend the most suitable course for you."}
+            className={`text-base sm:text-lg text-left mb-10 leading-7 max-w-4xl ${isDark ? 'text-gray-400' : 'text-gray-700'}`}
+          />
 
           <div className="grid grid-cols-2 gap-6 mb-8">
             <div className={`p-6 rounded-2xl flex flex-col items-center justify-center ${isDark ? 'bg-gray-750' : 'bg-gray-50'}`}>

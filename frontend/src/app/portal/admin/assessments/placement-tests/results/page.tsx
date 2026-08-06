@@ -66,7 +66,7 @@ export default function PlacementResultsPage() {
         {
             key: "submitted_at",
             label: "Test Date",
-            render: (val) => new Date(val).toLocaleDateString(),
+            render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span>,
         },
         {
             key: "percentage",
@@ -74,7 +74,7 @@ export default function PlacementResultsPage() {
             render: (val, row) => (
                 <div className="flex flex-col">
                     <span className="font-semibold text-gray-900 dark:text-white">
-                        {Math.round(val)}%
+                        {val === null || val === undefined ? "-" : `${Math.round(val)}%`}
                     </span>
                     {row.status === 'pending_review' && (
                         <span className="text-[10px] text-yellow-600 font-bold uppercase tracking-tight">Partial</span>
@@ -88,7 +88,7 @@ export default function PlacementResultsPage() {
             render: (val) => {
                 const level = val;
 
-                if (!level) return <span className="text-xs text-gray-400 font-medium italic">Evaluating...</span>;
+                if (!level) return <span className="text-xs text-gray-400 font-medium italic">-</span>;
 
                 const levelColors = {
                     "Advanced": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
@@ -117,18 +117,18 @@ export default function PlacementResultsPage() {
             width: "150px",
             render: (_, row) => {
                 const isExpired = row.expiry_date ? new Date(row.expiry_date) < new Date() : false;
-                const hasSubmitted = row.status === 'completed' || row.status === 'pending_review' || row.score !== null;
-                const isActive = row.status === 'active' || row.status === 'in_progress';
+                const hasSubmitted = row.has_submitted === true;
+                const isActive = !hasSubmitted && !isExpired;
                 
                 let label = "Active";
                 let colorClass = "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
                 
-                if (isExpired) {
+                if (hasSubmitted) {
+                    label = row.status === 'completed' ? "Completed" : "Submitted";
+                    colorClass = "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800";
+                } else if (isExpired) {
                     label = "Time End";
                     colorClass = "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800";
-                } else if (hasSubmitted) {
-                    label = "Submitted";
-                    colorClass = "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800";
                 } else if (isActive) {
                     label = "Active";
                     colorClass = "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
@@ -142,7 +142,7 @@ export default function PlacementResultsPage() {
                         expiryDate={row.expiry_date}
                         label={label}
                         colorClass={colorClass}
-                        onClick={isExpired ? () => {
+                        onClick={isExpired && !hasSubmitted ? () => {
                             setStudentToExtend(row);
                             setExtraTime("");
                             setTimeUnit("minutes");
@@ -157,9 +157,10 @@ export default function PlacementResultsPage() {
             label: "Status",
             render: (val) => {
                 const isPending = val === 'pending_review';
+                const isNotTaken = val === 'not_taken';
                 return (
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${isPending ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                        {isPending ? 'Pending Review' : (val || 'Completed')}
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${isNotTaken ? 'bg-gray-100 text-gray-600' : isPending ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                        {isNotTaken ? 'Not Taken' : isPending ? 'Pending Review' : (val || 'Completed')}
                     </span>
                 )
             },
@@ -169,7 +170,7 @@ export default function PlacementResultsPage() {
             label: "Actions",
             render: (_, row) => (
                 <div className="flex gap-2">
-                    {canView && (
+                    {canView && row.has_submitted && (
                     <button
                         onClick={() => router.push(`/portal/admin/assessments/placement-tests/results/${row.id}`)}
                         className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
