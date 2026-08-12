@@ -75,7 +75,8 @@ export default function StudentSupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 pb-20 pt-4 dark:bg-gray-900 sm:px-10">
+    <>
+      <div className="min-h-screen bg-gray-50 px-6 pb-20 pt-4 dark:bg-gray-900 sm:px-10">
       <StudentPageHeader
         title="Student Support Centre"
         description="Send a message to the support team and follow their reply here."
@@ -195,7 +196,7 @@ export default function StudentSupportPage() {
           )}
         </section>
       </div>
-    </div>
+      </div>
 
       <ConfirmDeleteModal
         isOpen={deleteModal.open}
@@ -204,5 +205,6 @@ export default function StudentSupportPage() {
         subject={deleteModal.item?.subject}
         isLoading={deleting}
       />
+    </>
   );
 }
