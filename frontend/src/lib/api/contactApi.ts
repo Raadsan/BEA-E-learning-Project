@@ -18,7 +18,9 @@ export const contactApi = createApi({
         getMySupportRequests: builder.query<any[], void>({ query: () => "/contact/support/mine", providesTags: ["Support"] }),
         getSupportRequests: builder.query<any[], void>({ query: () => "/contact/support/admin", providesTags: ["Support"] }),
         createSupportRequest: builder.mutation<any, any>({ query: (body) => ({ url: "/contact/support", method: "POST", body }), invalidatesTags: ["Support"] }),
-        replySupportRequest: builder.mutation<any, { id: number; reply: string }>({ query: ({ id, reply }) => ({ url: `/contact/support/${id}/reply`, method: "PATCH", body: { reply } }), invalidatesTags: ["Support"] }),        getContacts: builder.query<any, void>({
+        replySupportRequest: builder.mutation<any, { id: number; reply: string }>({ query: ({ id, reply }) => ({ url: `/contact/support/${id}/reply`, method: "PATCH", body: { reply } }), invalidatesTags: ["Support"] }),
+        deleteSupportRequest: builder.mutation<any, number | string>({ query: (id) => ({ url: `/contact/support/${id}`, method: "DELETE" }), invalidatesTags: ["Support"] }),
+        getContacts: builder.query<any, void>({
             query: () => "/contact",
             providesTags: ["Contacts"],
         }),
@@ -49,4 +51,5 @@ export const {
     useGetSupportRequestsQuery,
     useCreateSupportRequestMutation,
     useReplySupportRequestMutation,
+    useDeleteSupportRequestMutation,
 } = contactApi;

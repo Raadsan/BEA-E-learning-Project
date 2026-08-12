@@ -63,7 +63,8 @@ export default function AdminProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password) {
+    const isPasswordChange = Boolean(formData.password.trim() && formData.confirmPassword.trim());
+    if (isPasswordChange) {
       if (formData.password !== formData.confirmPassword) {
         showToast("Passwords do not match", "error");
         return;
@@ -83,7 +84,7 @@ export default function AdminProfilePage() {
       submitData.append("email", formData.email);
       submitData.append("phone", formData.phone || "");
       submitData.append("bio", formData.bio || "");
-      if (formData.password) submitData.append("password", formData.password);
+      if (isPasswordChange) submitData.append("password", formData.password);
       if (selectedImage) submitData.append("profile_picture", selectedImage);
 
       await updateAdmin(submitData).unwrap();
@@ -225,11 +226,11 @@ export default function AdminProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>New Password</label>
-                      <input type="password" name="password" value={formData.password} onChange={handleInputChange} placeholder="Leave blank to keep current" className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-[#010080] focus:outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'}`} />
+                      <input type="password" name="password" value={formData.password} onChange={handleInputChange} autoComplete="new-password" placeholder="Leave blank to keep current" className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-[#010080] focus:outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'}`} />
                     </div>
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Confirm Password</label>
-                      <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} placeholder="Confirm new password" className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-[#010080] focus:outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'}`} />
+                      <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} autoComplete="new-password" placeholder="Confirm new password" className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-[#010080] focus:outline-none ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'}`} />
                     </div>
                   </div>
                 </div>

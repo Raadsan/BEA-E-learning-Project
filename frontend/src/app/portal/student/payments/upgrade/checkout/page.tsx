@@ -25,7 +25,7 @@ export default function CheckoutPage() {
     const [createBank] = useCreateBankPaymentMutation();
 
     const [selectedPackage, setSelectedPackage] = useState(null);
-    const [method, setMethod] = useState("waafi"); // Default to Waafi
+    const [method, setMethod] = useState("waafi"); // 'waafi' | 'bank'
     const [phone, setPhone] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -64,6 +64,23 @@ export default function CheckoutPage() {
 
         setIsProcessing(true);
         try {
+            if (method === "bank") {
+                // Bank Transfer – submit reference and wait for admin confirmation
+                const res = await createBank({
+                    amount: amountDue,
+                    packageId: selectedPackage.id,
+                    studentEmail: user.email,
+                    description: `${selectedPackage.package_name} for ${user.full_name}`,
+                }).unwrap();
+                showToast(
+                    res.message || "Bank transfer request submitted. Admin will confirm your payment shortly.",
+                    "success"
+                );
+                localStorage.removeItem("selectedUpgradePackage");
+                router.push("/portal/student/payments");
+                return;
+            }
+
             const res = await createWaafi({
                 payerPhone: phone || "000000000",
                 amount: amountDue,
@@ -157,33 +174,20 @@ export default function CheckoutPage() {
                     <section>
                         <h2 className="text-lg font-semibold">Payment method</h2>
 
-                        <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
+                        <div className={`rounded-xl border overflow-hidden p-5 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
                             {/* WAAFI */}
-                            <div
-                                className={`transition-all duration-300 ${isDark ? 'bg-blue-900/10' : 'bg-blue-50/30'}`}
-                            >
-                                <div className={`flex items-center justify-between p-5`}>
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center border-blue-600`}>
-                                            <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-1.5 bg-emerald-500 rounded text-white font-bold text-[10px]">WAF</div>
-                                            <span className="text-sm font-medium">Waafi Mobile</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="px-5 pb-5">
-                                    <input
-                                        type="text"
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        placeholder="Enter Waafi Number (061XXXXXXX)"
-                                        className={`w-full px-4 py-3 rounded-lg border outline-none transition-all text-sm font-medium ${isDark ? 'bg-gray-900 border-gray-700 focus:border-blue-500' : 'bg-gray-50 border-gray-200 focus:border-blue-600'}`}
-                                        autoFocus
-                                    />
-                                </div>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-1.5 bg-emerald-500 rounded text-white font-bold text-[10px]">WAF</div>
+                                <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Waafi Mobile</span>
                             </div>
+                            <input
+                                type="text"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                placeholder="Enter Waafi Number (061XXXXXXX)"
+                                className={`w-full px-4 py-3 rounded-lg border outline-none transition-all text-sm font-medium ${isDark ? 'bg-gray-900 border-gray-700 focus:border-blue-500 text-white' : 'bg-gray-50 border-gray-200 focus:border-blue-600'}`}
+                                autoFocus
+                            />
                         </div>
                     </section>
                     )}

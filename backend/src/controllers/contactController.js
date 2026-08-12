@@ -127,3 +127,11 @@ export const replySupportRequest = async (req, res) => {
         res.json(updated);
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
+
+export const deleteSupportRequest = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        await prisma.student_support_requests.delete({ where: { id } });
+        res.json({ message: "Support request deleted successfully" });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+};

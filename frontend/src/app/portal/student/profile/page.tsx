@@ -61,7 +61,8 @@ export default function StudentProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password) {
+    const isPasswordChange = Boolean(formData.password.trim() && formData.confirmPassword.trim());
+    if (isPasswordChange) {
       if (formData.password !== formData.confirmPassword) {
         showToast("Passwords do not match", "error");
         return;
@@ -80,7 +81,7 @@ export default function StudentProfilePage() {
       submitData.append("phone", formData.phone);
       submitData.append("residency_country", formData.residency_country);
       submitData.append("residency_city", formData.residency_city);
-      if (formData.password) submitData.append("password", formData.password);
+      if (isPasswordChange) submitData.append("password", formData.password);
       if (selectedImage) submitData.append("profile_picture", selectedImage);
 
       await updateStudent(submitData).unwrap();

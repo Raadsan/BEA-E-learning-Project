@@ -124,7 +124,7 @@ export default function AdminProficiencyResultDetailsPage() {
         // Validation: Check if any essay/audio mark exceeds the question's points
         const essayQuestions = questions.filter(q => q.type === 'essay' || q.type === 'audio');
         for (const q of essayQuestions) {
-            const mark = parseInt(essayMarks[q.id]);
+            const mark = parseFloat(essayMarks[q.id]);
             if (mark > q.points) {
                 showToast(`Mark for "${q.title}" cannot exceed ${q.points} points.`, "error");
                 return;
@@ -296,12 +296,12 @@ export default function AdminProficiencyResultDetailsPage() {
                                                     type="number"
                                                     min="0"
                                                     max={q.points}
+                                                    step="any"
                                                     placeholder="0"
                                                     className={`w-16 p-1.5 text-sm border rounded-lg text-center font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none ${(q.type === 'essay' || q.type === 'audio') ? 'border-blue-300 bg-blue-50/20' : 'border-gray-200 bg-gray-50/30'
                                                         }`}
                                                     value={essayMarks[q.id] === undefined ? '' : essayMarks[q.id]}
                                                     onChange={(e) => {
-                                                        const val = parseFloat(e.target.value);
                                                         setEssayMarks(prev => ({ ...prev, [q.id]: e.target.value }));
                                                     }}
                                                 />
@@ -317,6 +317,7 @@ export default function AdminProficiencyResultDetailsPage() {
                                                 type="number"
                                                 min="0"
                                                 max="100"
+                                                step="any"
                                                 placeholder="0"
                                                 className="w-16 p-2 text-sm border border-blue-200 bg-blue-50/30 rounded-lg text-center font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                                 value={oralReviewMarks}

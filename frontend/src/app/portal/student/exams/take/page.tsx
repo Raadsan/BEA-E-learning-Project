@@ -179,29 +179,35 @@ export default function TakeExamPage() {
         return null;
     }, [user?.id, testId]);
 
+    const [isExamStarted, setIsExamStarted] = useState(false);
+
     // Initialize/read persistent timer when exam is opened
     useEffect(() => {
         const hasTimer = assignment?.duration || assignment?.end_date || assignment?.due_date;
         if (!hasTimer || !timerKey || timeRemaining !== null) return;
 
         const savedTarget = localStorage.getItem(timerKey);
-        let targetTime;
-
         if (savedTarget) {
-            targetTime = parseInt(savedTarget, 10);
-        } else {
-            targetTime = getAssignmentTimerTargetMs(assignment, Date.now());
-            if (!targetTime) return;
-            localStorage.setItem(timerKey, targetTime.toString());
-        }
-
-        const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
-        setTimeRemaining(remaining);
-
-        if (remaining <= 0) {
-            handleFinalSubmit(true);
+            setIsExamStarted(true);
+            const targetTime = parseInt(savedTarget, 10);
+            const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
+            setTimeRemaining(remaining);
+            if (remaining <= 0) {
+                handleFinalSubmit(true);
+            }
         }
     }, [assignment, timerKey, timeRemaining]);
+
+    const startExamNow = () => {
+        if (!timerKey || !assignment) return;
+        const targetTime = getAssignmentTimerTargetMs(assignment, Date.now());
+        if (targetTime) {
+            localStorage.setItem(timerKey, targetTime.toString());
+            const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
+            setTimeRemaining(remaining);
+        }
+        setIsExamStarted(true);
+    };
 
     // Timer countdown loop
     useEffect(() => {
@@ -325,6 +331,69 @@ export default function TakeExamPage() {
     };
 
     if (testsLoading || !assignment || flattenedSteps.length === 0) return <Loader fullPage />;
+
+    // Exam Instructions / Overview Start Screen
+    if (!isExamStarted) {
+        return (
+            <main className={`min-h-screen py-10 px-4 sm:px-10 transition-colors flex items-center justify-center ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+                <div className={`p-8 sm:p-12 rounded-3xl border border-gray-200 shadow-xl max-w-3xl w-full ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+                    <div className="flex justify-center mb-6">
+                        <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
+                            <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <h1 className={`text-3xl font-bold text-center mb-2 ${isDark ? 'text-white' : 'text-[#010080]'}`}>
+                        {assignment.title}
+                    </h1>
+                    <p className="text-center text-sm text-gray-500 mb-8">Official BEA Assessment • Exam Portal</p>
+
+                    {assignment.description && (
+                        <div className={`p-6 rounded-2xl mb-8 border ${isDark ? 'bg-gray-750 border-gray-700' : 'bg-blue-50/50 border-blue-100'}`}>
+                            <h3 className="font-bold text-sm text-blue-900 dark:text-blue-300 uppercase tracking-wider mb-2">Instructions & Notes</h3>
+                            <RichTextContent html={assignment.description} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed" />
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-3 gap-4 mb-8">
+                        <div className={`p-4 rounded-xl text-center border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
+                            <span className="block text-xs text-gray-400 font-bold uppercase mb-1">Time Limit</span>
+                            <span className="text-xl font-extrabold text-[#010080] dark:text-blue-400">{assignment.duration || 60} mins</span>
+                        </div>
+                        <div className={`p-4 rounded-xl text-center border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
+                            <span className="block text-xs text-gray-400 font-bold uppercase mb-1">Questions</span>
+                            <span className="text-xl font-extrabold text-[#010080] dark:text-blue-400">{flattenedSteps.length}</span>
+                        </div>
+                        <div className={`p-4 rounded-xl text-center border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
+                            <span className="block text-xs text-gray-400 font-bold uppercase mb-1">Total Marks</span>
+                            <span className="text-xl font-extrabold text-[#010080] dark:text-blue-400">{assignment.total_points || 100} pts</span>
+                        </div>
+                    </div>
+
+                    <div className={`p-6 rounded-2xl mb-8 border ${isDark ? 'bg-amber-900/20 border-amber-800/40 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-900'}`}>
+                        <h4 className="font-bold text-sm mb-2 flex items-center gap-2">
+                            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            Exam Rules
+                        </h4>
+                        <ul className="text-xs space-y-1.5 list-disc list-inside opacity-90">
+                            <li>Once you click <strong>Start Exam</strong>, the countdown timer will begin immediately.</li>
+                            <li>Do not refresh or close the browser tab during the exam.</li>
+                            <li>Answer all questions carefully before the time runs out.</li>
+                        </ul>
+                    </div>
+
+                    <button
+                        onClick={startExamNow}
+                        className="w-full py-4 bg-[#010080] hover:bg-blue-900 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.99]"
+                    >
+                        Start Exam Now
+                    </button>
+                </div>
+            </main>
+        );
+    }
 
     const currentStep = flattenedSteps[currentStepIdx];
     const isFirst = currentStepIdx === 0;

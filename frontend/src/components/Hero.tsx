@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useGetHomepageQuery } from "@/lib/api/homepageApi";
@@ -9,7 +9,8 @@ import { resolveMediaUrl } from "@/constants";
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const { data } = useGetHomepageQuery();
+  const sectionRef = useRef(null);
+  const { data, isLoading } = useGetHomepageQuery();
 
   const defaultSlides = [
     {
@@ -28,10 +29,15 @@ export default function Hero() {
       alt: "Student-Centered Learning"
     },
   ];
-  const slides = (data?.hero_images?.length ? data.hero_images : defaultSlides.map((slide) => slide.image)).map((image: string, index: number) => ({ id: index + 1, image: image.startsWith('/images/') ? image : (resolveMediaUrl(image) || image), alt: `${data?.hero_title || 'BEA'} slide ${index + 1}` }));
+
+  // Only compute slides after data has settled to avoid the default→API flash
+  const slides = isLoading
+    ? []
+    : (data?.hero_images?.length ? data.hero_images : defaultSlides.map((slide) => slide.image)).map((image: string, index: number) => ({ id: index + 1, image: image.startsWith('/images/') ? image : (resolveMediaUrl(image) || image), alt: `${data?.hero_title || 'BEA'} slide ${index + 1}` }));
 
   // Auto-play slideshow
   useEffect(() => {
+    if (slides.length === 0) return;
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 6000); // Change slide every 6 seconds
@@ -62,6 +68,15 @@ export default function Hero() {
       setTimeout(() => setIsAnimating(false), 1000);
     }
   };
+
+  // Show gradient skeleton while loading to avoid flash of default images
+  if (isLoading) {
+    return (
+      <section className="relative w-full overflow-hidden h-[400px] sm:h-[480px] md:h-[560px] lg:h-[650px] xl:h-[720px] 2xl:h-[800px]">
+        <div className="w-full h-full bg-gradient-to-br from-[#010080] via-[#050040] to-[#03002e] animate-pulse" />
+      </section>
+    );
+  }
 
   return (
     <section className="relative w-full overflow-hidden h-[400px] sm:h-[480px] md:h-[560px] lg:h-[650px] xl:h-[720px] 2xl:h-[800px]">

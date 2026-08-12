@@ -63,7 +63,8 @@ export default function StudentSettingsPage() {
         e.preventDefault();
 
         // Validate password fields if changing password
-        if (formData.password) {
+        const isPasswordChange = Boolean(formData.password.trim() && formData.confirmPassword.trim());
+        if (isPasswordChange) {
             if (formData.password !== formData.confirmPassword) {
                 showToast("Passwords do not match", "error");
                 return;
@@ -86,7 +87,7 @@ export default function StudentSettingsPage() {
                 residency_city: formData.residency_city,
             };
 
-            if (formData.password) {
+            if (isPasswordChange) {
                 updateData.password = formData.password;
             }
 

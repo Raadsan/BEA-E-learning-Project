@@ -2,17 +2,17 @@
 
 import { useState, useEffect, useMemo } from "react";
 
-import { useGetClassesQuery } from "@/lib/api/classApi";
-import { useGetStudentsQuery } from "@/lib/api/studentApi";
+import { useGetStudentsByClassQuery } from "@/lib/api/studentApi";
 import { useGetAttendanceQuery, useSaveAttendanceMutation } from "@/lib/api/attendanceApi";
+import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
 import { useDarkMode } from "@/context/ThemeContext";
 import DataTable from "@/components/DataTable";
 import { Toast } from "@/components/Toast";
 
 export default function AttendancePage() {
   const { isDark } = useDarkMode();
-  const { data: classesData = [], isLoading: classesLoading } = useGetClassesQuery();
-  const { data: studentsData = [], isLoading: studentsLoading } = useGetStudentsQuery();
+  // Use teacher-scoped query so only the teacher's own classes appear
+  const { data: classesData = [], isLoading: classesLoading } = useGetTeacherClassesQuery();
 
   const [selectedClass, setSelectedClass] = useState(null);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10)); // YYYY-MM-DD
@@ -20,7 +20,13 @@ export default function AttendancePage() {
   const [toast, setToast] = useState(null);
 
   const classes = classesData || [];
-  const students = Array.isArray(studentsData) ? studentsData : (studentsData?.students || []);
+
+  // Fetch students for the selected class only (server-side filter)
+  const { data: studentsRaw = [], isLoading: studentsLoading } = useGetStudentsByClassQuery(
+    selectedClass?.id,
+    { skip: !selectedClass?.id }
+  );
+  const students = Array.isArray(studentsRaw) ? studentsRaw : (studentsRaw?.students || []);
 
   // Generate last 7 days for history logs
   const historyDates = useMemo(() => {
@@ -121,8 +127,8 @@ export default function AttendancePage() {
 
   const [saveAttendance, { isLoading: saving }] = useSaveAttendanceMutation();
 
-  // Filter students by selected class
-  const filteredStudents = selectedClass ? students.filter(s => s.class_id == selectedClass.id) : [];
+  // All students fetched are already filtered by the selected class
+  const filteredStudents = students;
 
   useEffect(() => {
     if (attendanceData) {

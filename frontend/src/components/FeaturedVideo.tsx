@@ -19,7 +19,7 @@ export default function FeaturedVideo() {
   const heading = data?.featured_heading || "English for specific purpose (ESP)";
   const label = data?.featured_label || "Featured Video";
   const title = data?.featured_title || "Master English for Specific Purposes";
-  const videoUrl = data?.featured_video_url || "https://www.youtube.com/watch?v=erjMgola4fQ";
+  const videoUrl = data?.featured_video_url ;
   const youtubeId = getYoutubeId(videoUrl);
   const hostedVideoUrl = youtubeId ? "" : (resolveMediaUrl(videoUrl) || videoUrl);
   const thumbnail = data?.featured_thumbnail
@@ -60,11 +60,15 @@ export default function FeaturedVideo() {
                 onClick={() => setIsPlaying(true)}
               >
                 {/* Cover Image / Thumbnail */}
-                <img
-                  src={thumbnail}
-                  alt={`${heading} Cover`}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
+                {thumbnail ? (
+                  <img
+                    src={thumbnail}
+                    alt={`${heading} Cover`}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[#010080] via-blue-900 to-[#03002e]" />
+                )}
 
                 {/* Overlay Gradient */}
                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors duration-300" />

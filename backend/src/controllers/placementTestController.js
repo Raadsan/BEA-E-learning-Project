@@ -387,9 +387,13 @@ export const getAllPlacementResults = async (req, res) => {
                 };
             }));
 
-        // Add registered students who never entered the test.
+        // Add registered students who never entered the test, excluding dismissed ones.
         const notTakenRows = eligibleStudents
-            .filter((student) => !submittedStudentIds.has(student.student_id) && !lockedStudentIds.has(student.student_id))
+            .filter((student) =>
+                !submittedStudentIds.has(student.student_id) &&
+                !lockedStudentIds.has(student.student_id) &&
+                student.approval_status !== 'placement_dismissed'
+            )
             .map((student) => ({
                 id: `not-taken-${student.student_id}`,
                 student_id: student.student_id,
@@ -410,6 +414,42 @@ export const getAllPlacementResults = async (req, res) => {
             }));
 
         res.json([...exitedRows, ...notTakenRows, ...submittedRows]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const deletePlacementResult = async (req, res) => {
+    try {
+        const { resultId } = req.params;
+
+        // "student-{studentId}" — dismiss a Not Taken student from the results view
+        if (resultId && resultId.startsWith("student-")) {
+            const studentId = resultId.replace("student-", "");
+            await prisma.students.update({
+                where: { student_id: studentId },
+                data: { approval_status: 'placement_dismissed' },
+            });
+            return res.json({ message: "Student dismissed from placement results" });
+        }
+
+        // "attempt-{attemptId}" — delete an exited/time-end attempt lock
+        if (resultId && resultId.startsWith("attempt-")) {
+            const attemptId = parseInt(resultId.replace("attempt-", ""), 10);
+            if (isNaN(attemptId)) return res.status(400).json({ error: "Invalid attempt ID" });
+            await prisma.assessment_attempt_locks.delete({ where: { id: attemptId } });
+            return res.json({ message: "Attempt record deleted successfully" });
+        }
+
+        // Numeric ID — delete a submitted placement_test_results record
+        const id = parseInt(resultId, 10);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: "Invalid result ID" });
+        }
+        await prisma.placement_test_results.delete({
+            where: { id },
+        });
+        res.json({ message: "Placement result deleted successfully" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

@@ -12,6 +12,7 @@ import {
   startPlacementTest,
   unlockPlacementAttempt,
   getPlacementLockStatus,
+  deletePlacementResult,
 } from "../controllers/placementTestController.js";
 import { verifyToken, isAdmin } from "../controllers/authController.js";
 
@@ -25,6 +26,7 @@ router.delete("/attempts/:attemptId/lock", verifyToken, isAdmin, unlockPlacement
 router.get("/results/all", verifyToken, isAdmin, getAllPlacementResults);
 router.get("/results/:studentId", getStudentPlacementResults);
 router.put("/results/:resultId/grade", verifyToken, isAdmin, gradePlacementTest);
+router.delete("/results/:resultId", verifyToken, isAdmin, deletePlacementResult);
 router.get("/:id", getPlacementTestById);
 
 // Admin only

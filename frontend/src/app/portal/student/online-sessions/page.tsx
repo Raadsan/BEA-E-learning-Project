@@ -11,7 +11,6 @@ export default function OnlineSessionsPage() {
   const { isDark } = useDarkMode();
   const { showToast } = useToast();
   const { data: user, isLoading: userLoading } = useGetCurrentUserQuery();
-  const [activeMeeting, setActiveMeeting] = useState(null);
 
   // Fetch student's class
   const { data: classData, isLoading: classLoading } = useGetClassQuery(
@@ -125,43 +124,28 @@ export default function OnlineSessionsPage() {
     return { upcomingSessions: upcoming, pastSessions: past };
   }, [schedulesData, studentClass]);
 
-  // Helper function to handle Zoom/Meet link transformations
-  const getEmbeddableUrl = (url) => {
-    if (!url) return "";
-
-    // Zoom Link Transformation
-    if (url.includes("zoom.us/j/")) {
-      // Convert standard join link to web client format
-      // https://zoom.us/j/MEETING_ID -> https://zoom.us/wc/join/MEETING_ID
-      return url.replace("/j/", "/wc/join/");
+  // Extract clean HTTP/HTTPS URL from potentially messy string (e.g. copied calendar invite)
+  const extractUrl = (text) => {
+    if (!text) return "";
+    const match = String(text).match(/https?:\/\/[^\s]+/);
+    if (match) return match[0];
+    const cleaned = String(text).trim();
+    if (cleaned.startsWith("www.") || cleaned.includes("zoom.us") || cleaned.includes("meet.google")) {
+      return "https://" + cleaned;
     }
-
-    return url;
+    return cleaned;
   };
 
-  const handleOpenInWindow = (url) => {
-    if (!url) return;
-
-    const width = window.innerWidth * 0.9;
-    const height = window.innerHeight * 0.9;
-    const left = (window.innerWidth - width) / 2;
-    const top = (window.innerHeight - height) / 2;
-
-    window.open(
-      url,
-      "OnlineSession",
-      `width=${width},height=${height},left=${left},top=${top},toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
-    );
-    showToast("Opening session in a dedicated window...", "info");
-  };
-
-  const handleJoinMeeting = (session) => {
-    setActiveMeeting(session);
-    showToast(`Joining ${session.className} session...`, "success");
-  };
-
-  const handleBackToSessions = () => {
-    setActiveMeeting(null);
+  // Direct join in new tab – no embedded view
+  const handleJoin = (session) => {
+    const raw = session?.zoomLink;
+    const url = extractUrl(raw);
+    if (!url || !url.startsWith("http")) {
+      showToast("No valid meeting link available for this session.", "error");
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+    showToast(`Opening ${session.className} session...`, "success");
   };
 
   const bg = isDark ? "bg-gray-900" : "bg-gray-100";
@@ -170,12 +154,7 @@ export default function OnlineSessionsPage() {
     if (!dateString) return "N/A";
     const [year, month, day] = dateString.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    return date.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   };
 
   const formatTime = (timeString) => {
@@ -189,145 +168,6 @@ export default function OnlineSessionsPage() {
         <div className="py-6 text-center">
           <div className={`p-6 rounded-xl shadow ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
             <p className={isDark ? "text-gray-300" : "text-gray-600"}>Loading online sessions...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (activeMeeting) {
-    const embedUrl = getEmbeddableUrl(activeMeeting.zoomLink);
-    const isGoogleMeet = activeMeeting.zoomLink?.includes("meet.google.com");
-    const isZoom = activeMeeting.zoomLink?.includes("zoom.us");
-
-    // We prioritize the feeling of STAYING INSIDE by keeping the Sidebar/Header
-    // and showing a premium "Press to Enter" state for blocked providers.
-    const blocksEmbedding = isGoogleMeet || isZoom;
-
-    return (
-      <div className={`min-h-screen transition-colors pt-4 w-full px-6 sm:px-10 pb-20 ${bg}`}>
-        <div className="max-w-7xl mx-auto h-full flex flex-col">
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleBackToSessions}
-                className={`p-2 rounded-xl transition-all ${isDark ? "bg-gray-800 hover:bg-gray-700 text-white" : "bg-white hover:bg-gray-100 text-gray-900 border border-gray-200 shadow-sm"}`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-              </button>
-              <div>
-                <h1 className={`text-3xl font-bold tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
-                  {activeMeeting.className}
-                </h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="flex h-2 w-2 rounded-full bg-green-500 animate-ping"></span>
-                  <p className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                    Session is Live • Instructor: {studentClass?.teacher_name || "Assigned Teacher"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className={`flex-1 rounded-[2.5rem] overflow-hidden shadow-2xl border-4 ${isDark ? "border-gray-800 bg-gray-900" : "border-white bg-[#f8fafc]"} relative flex flex-col items-center justify-center min-h-[68vh]`}>
-            {blocksEmbedding ? (
-              <div className="text-center p-12 max-w-2xl relative z-10">
-                <div className="mb-10 relative inline-block">
-                  <div className="w-40 h-40 bg-gradient-to-br from-[#010080] to-blue-600 rounded-full flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(1,0,128,0.4)] transition-transform hover:scale-105 duration-500">
-                    {isGoogleMeet ? (
-                      <svg className="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                    ) : (
-                      <svg className="w-20 h-20 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 7.2L16 11V7a1 1 0 00-1-1H3a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-4l5 3.8a.5.5 0 00.8-.4V7.6a.5.5 0 00-.8-.4z" />
-                      </svg>
-                    )}
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-green-500 rounded-full border-4 border-gray-900 flex items-center justify-center">
-                    <span className="w-3 h-3 bg-white rounded-full animate-pulse"></span>
-                  </div>
-                </div>
-
-                <h2 className={`text-4xl font-extrabold mb-5 ${isDark ? "text-white" : "text-gray-900"} tracking-tight`}>
-                  Enter the Classroom
-                </h2>
-
-                <p className={`mb-12 ${isDark ? "text-gray-400" : "text-gray-600"} text-xl font-medium max-w-lg mx-auto leading-relaxed`}>
-                  This session is hosted on **{isGoogleMeet ? "Google Meet" : "Zoom"}**.
-                  Click below to open the secure classroom view while keeping your BEA student portal active.
-                </p>
-
-                <div className="space-y-6">
-                  <button
-                    onClick={() => handleOpenInWindow(activeMeeting.zoomLink)}
-                    className="w-full sm:w-auto px-16 py-6 bg-[#010080] text-white rounded-[2rem] font-bold text-2xl transition-all hover:scale-[1.04] hover:shadow-[0_25px_60px_-15px_rgba(1,0,128,0.5)] active:scale-95 flex items-center justify-center gap-4 group"
-                  >
-                    <span>Join Session Now</span>
-                    <svg className="w-8 h-8 group-hover:translate-x-1.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </button>
-
-                  <div>
-                    <a
-                      href={activeMeeting.zoomLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:underline ${isDark ? "text-gray-500 hover:text-white" : "text-gray-400 hover:text-[#010080]"}`}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                      Use standard browser tab
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <>
-                <iframe
-                  src={embedUrl}
-                  className="w-full h-full border-none"
-                  allow="camera; microphone; fullscreen; display-capture; autoplay"
-                  title="Online Session Meeting"
-                ></iframe>
-
-                <div className="absolute top-6 right-6 group">
-                  <button
-                    onClick={() => handleOpenInWindow(activeMeeting.zoomLink)}
-                    className={`p-4 rounded-2xl shadow-2xl border transition-all transform hover:scale-110 active:scale-95 ${isDark ? "bg-gray-800/90 border-gray-700 text-white" : "bg-white/90 border-gray-200 text-[#010080]"} backdrop-blur-xl`}
-                    title="Pop out to integrated window"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                    </svg>
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* Background Decorative Elements */}
-            <div className={`absolute top-0 left-0 w-64 h-64 bg-[#010080] opacity-[0.03] blur-[100px] pointer-events-none`}></div>
-            <div className={`absolute bottom-0 right-0 w-96 h-96 bg-blue-500 opacity-[0.03] blur-[120px] pointer-events-none`}></div>
-          </div>
-
-          <div className={`mt-8 flex items-center justify-between p-6 rounded-3xl ${isDark ? "bg-gray-800/40 border-gray-800" : "bg-white border-gray-100 shadow-sm"} border`}>
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-2xl ${isDark ? "bg-blue-500/10 text-blue-400" : "bg-blue-50 text-blue-600"}`}>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className={`font-bold ${isDark ? "text-white" : "text-gray-900"}`}>System Integration Policy</h3>
-                <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mt-0.5`}>
-                  Zoom and Google Meet prohibit direct embedding for security. We've optimized this window to provide the best possible performance while staying synced with your progress.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -408,16 +248,16 @@ export default function OnlineSessionsPage() {
                         </div>
                       </div>
 
-                      {session.zoomLink && isActive ? (
+                      {session.zoomLink ? (
                         <button
-                          onClick={() => handleJoinMeeting(session)}
-                          className="block w-full text-center px-4 py-3 rounded-lg font-semibold transition-colors bg-green-500 hover:bg-green-600 text-white shadow-md"
+                          onClick={() => handleJoin(session)}
+                          className="block w-full text-center px-4 py-3 rounded-lg font-semibold transition-all bg-[#010080] hover:bg-blue-800 text-white shadow-md hover:scale-[1.02] active:scale-95"
                         >
-                          🎥 Join Live Session
+                          🎥 Join Session
                         </button>
                       ) : (
                         <div className={`w-full text-center px-4 py-3 rounded-lg font-semibold ${isDark ? "bg-gray-700 text-gray-400" : "bg-gray-200 text-gray-500"} cursor-not-allowed`}>
-                          {session.zoomLink ? "Session Not Started" : "Link Not Available"}
+                          Link Not Available
                         </div>
                       )}
                     </div>

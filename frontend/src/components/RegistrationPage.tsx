@@ -857,27 +857,15 @@ export default function RegistrationPage() {
 
                   <p className="text-sm text-gray-600 mb-3">Payment method <span className="text-red-500">*</span></p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="w-full">
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('waafi')}
-                      className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${paymentMethod === 'waafi' ? 'bg-blue-50 border-green-600' : 'bg-white border-gray-100'}`}
+                      className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${paymentMethod === 'waafi' ? 'bg-blue-50 border-green-600' : 'bg-white border-gray-100'}`}
                     >
                       <div className="text-left">
                         <p className="font-bold text-[#010080]">EVC - Waafi</p>
                         <p className="text-xs text-gray-500 mt-1">Instant mobile payment</p>
-                      </div>
-                      <div className="text-sm font-bold text-[#010080]">${APPLICATION_FEE.toFixed(2)}</div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('bank')}
-                      className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${paymentMethod === 'bank' ? 'bg-blue-50 border-green-600' : 'bg-white border-gray-100'}`}
-                    >
-                      <div className="text-left">
-                        <p className="font-bold text-[#010080]">Bank Transfer</p>
-                        <p className="text-xs text-gray-500 mt-1">Manual transfer (confirm later)</p>
                       </div>
                       <div className="text-sm font-bold text-[#010080]">${APPLICATION_FEE.toFixed(2)}</div>
                     </button>

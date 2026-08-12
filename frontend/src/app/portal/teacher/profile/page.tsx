@@ -69,7 +69,8 @@ export default function TeacherProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password) {
+    const isPasswordChange = Boolean(formData.password.trim() && formData.confirmPassword.trim());
+    if (isPasswordChange) {
       if (formData.password !== formData.confirmPassword) {
         showToast("Passwords do not match", "error");
         return;
@@ -91,7 +92,7 @@ export default function TeacherProfilePage() {
       submitData.append("country", formData.country);
       submitData.append("city", formData.city);
       submitData.append("bio", formData.bio);
-      if (formData.password) submitData.append("password", formData.password);
+      if (isPasswordChange) submitData.append("password", formData.password);
       if (selectedImage) submitData.append("profile_picture", selectedImage);
 
       await updateTeacher(submitData).unwrap();

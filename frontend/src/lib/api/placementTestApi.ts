@@ -102,6 +102,13 @@ export const placementTestApi = createApi({
             }),
             invalidatesTags: ["PlacementTest"],
         }),
+        deletePlacementResult: builder.mutation({
+            query: (resultId) => ({
+                url: `/results/${resultId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["PlacementResult"],
+        }),
     }),
 });
 
@@ -118,4 +125,5 @@ export const {
     useCreatePlacementTestMutation,
     useUpdatePlacementTestMutation,
     useDeletePlacementTestMutation,
+    useDeletePlacementResultMutation,
 } = placementTestApi;
