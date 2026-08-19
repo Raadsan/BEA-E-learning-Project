@@ -30,17 +30,25 @@ export function ChartFilterSelect({ className = "", ...props }: ChartFilterSelec
 
 type ChartHeaderProps = {
     title: React.ReactNode;
+    subtitle?: React.ReactNode;
     icon?: React.ReactNode;
     filters?: React.ReactNode;
 };
 
-export function ChartHeader({ title, icon, filters }: ChartHeaderProps) {
+export function ChartHeader({ title, subtitle, icon, filters }: ChartHeaderProps) {
     return (
-        <div className="flex flex-col gap-3 mb-4 min-w-0">
-            <h3 className={`${CHART_TITLE_CLASS} flex items-center gap-2`}>
-                {icon}
-                {title}
-            </h3>
+        <div className="flex flex-col gap-2.5 mb-4 min-w-0">
+            <div>
+                <h3 className={`${CHART_TITLE_CLASS} flex items-center gap-2`}>
+                    {icon}
+                    {title}
+                </h3>
+                {subtitle && (
+                    <p className="text-[10px] sm:text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-0.5">
+                        {subtitle}
+                    </p>
+                )}
+            </div>
             {filters ? <div className={CHART_FILTERS_CLASS}>{filters}</div> : null}
         </div>
     );

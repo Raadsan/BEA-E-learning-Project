@@ -13,7 +13,7 @@ router.get("/classes", verifyToken, getTeacherClasses);          // alias for fr
 router.get("/programs", verifyToken, getTeacherPrograms);
 router.get("/dashboard/stats", verifyToken, getDashboardStats);
 router.post("/bulk-action", verifyToken, isAdmin, bulkActionTeachers);
-router.post("/", createTeacher);
+router.post("/", withStoredUpload(upload.single("profile_picture")), createTeacher);
 router.get("/", getTeachers);
 router.get("/:id", getTeacher);
 router.put("/:id", withStoredUpload(upload.single("profile_picture")), updateTeacher);

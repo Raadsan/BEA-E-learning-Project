@@ -32,6 +32,7 @@ export default function TeacherProfilePage() {
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -49,6 +50,7 @@ export default function TeacherProfilePage() {
       });
       setSelectedImage(null);
       setImagePreview(null);
+      setRemoveImage(false);
     }
   }, [user]);
 
@@ -56,10 +58,18 @@ export default function TeacherProfilePage() {
     const file = e.target.files[0];
     if (file) {
       setSelectedImage(file);
+      setRemoveImage(false);
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    setRemoveImage(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleInputChange = (e) => {
@@ -84,7 +94,6 @@ export default function TeacherProfilePage() {
 
     try {
       const submitData = new FormData();
-      submitData.append("id", user.id);
       submitData.append("full_name", formData.full_name);
       submitData.append("email", formData.email);
       submitData.append("phone", formData.phone);
@@ -93,15 +102,24 @@ export default function TeacherProfilePage() {
       submitData.append("city", formData.city);
       submitData.append("bio", formData.bio);
       if (isPasswordChange) submitData.append("password", formData.password);
-      if (selectedImage) submitData.append("profile_picture", selectedImage);
+      if (selectedImage) {
+        submitData.append("profile_picture", selectedImage);
+      } else if (removeImage) {
+        submitData.append("remove_image", "true");
+      }
+      submitData.append("id", String(user.id));
 
-      await updateTeacher(submitData).unwrap();
+      await updateTeacher({
+        id: user.id,
+        body: submitData,
+      } as any).unwrap();
       showToast("Profile updated successfully!", "success");
       setIsEditing(false);
       refetch();
       setFormData(prev => ({ ...prev, password: "", confirmPassword: "" }));
       setSelectedImage(null);
       setImagePreview(null);
+      setRemoveImage(false);
     } catch (error: any) {
       showToast(error?.data?.error || "Failed to update profile", "error");
     }
@@ -122,6 +140,7 @@ export default function TeacherProfilePage() {
       });
       setSelectedImage(null);
       setImagePreview(null);
+      setRemoveImage(false);
     }
     setIsEditing(false);
   };
@@ -134,8 +153,7 @@ export default function TeacherProfilePage() {
     );
   }
 
-  const profileSrc = imagePreview
-    || resolveProfileImageUrl(user?.profile_picture);
+  const profileSrc = removeImage ? null : (imagePreview || resolveProfileImageUrl(user?.profile_picture));
 
   const inputClass = (editing: boolean) => `w-full px-4 py-2.5 rounded-lg border transition-colors ${
     editing
@@ -152,32 +170,62 @@ export default function TeacherProfilePage() {
 
           <div className="px-8 py-6">
             {/* Avatar + Name row */}
-            <div className="flex items-end -mt-20 mb-6">
-              <div className="relative group">
-                <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
-                <div
-                  className={`w-32 h-32 rounded-full border-4 overflow-hidden ${isDark ? 'border-gray-800' : 'border-white'} shadow-lg bg-gray-200 flex items-center justify-center ${isEditing ? 'cursor-pointer' : ''}`}
-                  onClick={() => isEditing && fileInputRef.current?.click()}
-                >
-                  {profileSrc ? (
-                    <img src={profileSrc} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="text-4xl font-bold text-gray-400">
-                      {user?.full_name?.charAt(0) || "T"}
-                    </div>
-                  )}
-                  {isEditing && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                        <circle cx="12" cy="13" r="4" />
-                      </svg>
-                    </div>
-                  )}
+            <div className="flex flex-col sm:flex-row sm:items-end -mt-20 mb-6 gap-4">
+              <div className="flex flex-col items-center sm:items-start gap-2">
+                <div className="relative group">
+                  <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
+                  <div
+                    className={`w-32 h-32 rounded-full border-4 overflow-hidden ${isDark ? 'border-gray-800' : 'border-white'} shadow-lg bg-gray-200 flex items-center justify-center ${isEditing ? 'cursor-pointer' : ''}`}
+                    onClick={() => isEditing && fileInputRef.current?.click()}
+                  >
+                    {profileSrc ? (
+                      <img src={profileSrc} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-4xl font-bold text-gray-400">
+                        {user?.full_name?.charAt(0) || "T"}
+                      </div>
+                    )}
+                    {isEditing && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                          <circle cx="12" cy="13" r="4" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {isEditing && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-xs px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold transition-colors flex items-center gap-1 border border-blue-200"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      {profileSrc ? "Change Photo" : "Upload Photo"}
+                    </button>
+                    {profileSrc && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="text-xs px-2.5 py-1 rounded-md bg-red-50 text-red-600 hover:bg-red-100 font-semibold transition-colors flex items-center gap-1 border border-red-200"
+                        title="Remove profile image"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Remove Photo
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
-              <div className="ml-6 flex-1">
+              <div className="sm:ml-4 flex-1 text-center sm:text-left">
                 <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.full_name}</h2>
                 <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Teacher Account</p>
               </div>
@@ -185,7 +233,7 @@ export default function TeacherProfilePage() {
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="bg-[#010080] hover:bg-[#010080]/90 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2"
+                  className="bg-[#010080] hover:bg-[#010080]/90 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />

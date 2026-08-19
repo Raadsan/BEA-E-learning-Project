@@ -39,9 +39,19 @@ const toStreamRef = (storedValue?: string | null): string | null => {
   return value.replace(/^\//, "");
 };
 
-/** Backend stream URL — works for private S3, local legacy files, video/audio/images. */
+/** Backend stream URL — returns direct S3/remote URLs as-is, and routes local/legacy files through stream API. */
 export const resolveStreamUrl = (storedValue?: string | null): string | null => {
-  const ref = toStreamRef(storedValue);
+  if (!storedValue) return null;
+  const value = storedValue.trim();
+  if (!value) return null;
+
+  // Direct AWS S3 URL or external URL -> load directly from cloud/CDN
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  // Local or legacy relative path -> stream through backend
+  const ref = value.replace(/^\//, "");
   if (!ref) return null;
 
   const encoded = encodeURIComponent(ref);

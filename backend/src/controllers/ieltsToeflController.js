@@ -2,6 +2,7 @@ import prisma from '../lib/prisma.js';
 import { validateEmailRobust } from '../utils/emailValidator.js';
 import bcrypt from "bcryptjs";
 import { generateStudentId } from "../utils/idGenerator.js";
+import { getStoredFileUrl } from '../utils/fileStorage.js';
 import {
     sendWaafiPayment,
     isWaafiPaymentSuccess,
@@ -14,6 +15,7 @@ import {
     enrichWithAudit,
     backfillMissingCreatedBy,
 } from '../utils/auditTrail.js';
+import { sendProficiencyExamAccessGranted } from '../utils/emailService.js';
 
 export const getAllIeltsStudents = async (req, res) => {
     try {
@@ -27,6 +29,13 @@ export const getAllIeltsStudents = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+function parseDateForPrisma(dateVal) {
+    if (!dateVal) return null;
+    if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? null : dateVal;
+    const d = new Date(dateVal);
+    return isNaN(d.getTime()) ? null : d;
+}
 
 export const createIeltsStudent = async (req, res) => {
     try {
@@ -59,8 +68,41 @@ export const createIeltsStudent = async (req, res) => {
 
         const createAudit = await buildCreateAudit(req, 'Self registration');
 
+        // Sanitize date fields for Prisma
+        if (rest.date_of_birth) {
+            rest.date_of_birth = parseDateForPrisma(rest.date_of_birth);
+        } else {
+            delete rest.date_of_birth;
+        }
+
+        if (rest.certificate_date) {
+            rest.certificate_date = parseDateForPrisma(rest.certificate_date);
+        } else {
+            delete rest.certificate_date;
+        }
+
+        if (rest.exam_booking_date) {
+            rest.exam_booking_date = parseDateForPrisma(rest.exam_booking_date);
+        } else {
+            delete rest.exam_booking_date;
+        }
+
+        if (!rest.exam_type) {
+            rest.exam_type = (chosen_program && String(chosen_program).toLowerCase().includes('toefl')) ? 'TOEFL' : 'IELTS';
+        }
+
+        if (!rest.verification_method) {
+            rest.verification_method = 'Exam Booking';
+        }
+
+        let certificateDocumentUrl = rest.certificate_document || null;
+        if (req.file) {
+            certificateDocumentUrl = getStoredFileUrl(req.file);
+        }
+
         const data = {
             ...rest,
+            certificate_document: certificateDocumentUrl,
             student_id,
             email: emailStr,
             chosen_program,
@@ -70,10 +112,11 @@ export const createIeltsStudent = async (req, res) => {
             ...createAudit,
         };
 
-        if (payment && payment.method === 'mwallet_account') {
+        if (payment && (payment.method === 'mwallet_account' || payment.method === 'waafi' || payment.method === 'evc')) {
+            const payerPhone = payment.payerPhone || payment.accountNumber || payment.phone;
             const waafiResponse = await sendWaafiPayment({
                 transactionId: `WAAFI-${Date.now()}`,
-                accountNo: payment.payerPhone,
+                accountNo: payerPhone,
                 amount: parseFloat(payment.amount),
                 description: `IELTS Registration`
             });
@@ -81,7 +124,7 @@ export const createIeltsStudent = async (req, res) => {
                 data.payment_method = 'mwallet_account';
                 data.transaction_id = getWaafiTransactionId(waafiResponse, `WAAFI-${Date.now()}`);
                 data.payment_amount = parseFloat(payment.amount);
-                data.payer_phone = payment.payerPhone;
+                data.payer_phone = payerPhone;
             } else {
                 return res.status(400).json({ error: getWaafiErrorMessage(waafiResponse) });
             }
@@ -109,9 +152,24 @@ export const getIeltsStudent = async (req, res) => {
 export const updateIeltsStudent = async (req, res) => {
     try {
         const data = { ...req.body };
+        if (req.file) {
+            data.certificate_document = getStoredFileUrl(req.file);
+        } else if (req.body.certificate_document === "" || req.body.certificate_document === "null" || req.body.certificate_document === null) {
+            data.certificate_document = null;
+        }
+
         if (data.password) {
             const salt = await bcrypt.genSalt(10);
             data.password = await bcrypt.hash(data.password, salt);
+        }
+        if ('date_of_birth' in data) {
+            data.date_of_birth = parseDateForPrisma(data.date_of_birth);
+        }
+        if ('certificate_date' in data) {
+            data.certificate_date = parseDateForPrisma(data.certificate_date);
+        }
+        if ('exam_booking_date' in data) {
+            data.exam_booking_date = parseDateForPrisma(data.exam_booking_date);
         }
         delete data.created_by;
         delete data.created_by_name;
@@ -237,6 +295,21 @@ export const extendIeltsDeadline = async (req, res) => {
                 ...(await buildUpdateAudit(req)),
             },
         });
+
+        // Send email notification to student
+        if (updated.email) {
+            try {
+                const hours = Math.max(1, Math.round(Number(durationMinutes) / 60));
+                await sendProficiencyExamAccessGranted({
+                    to: updated.email,
+                    name: `${updated.first_name || ''} ${updated.last_name || ''}`.trim() || updated.first_name || 'Student',
+                    hours
+                });
+            } catch (mailErr) {
+                console.error("⚠️ Failed to send proficiency exam access email:", mailErr?.message || mailErr);
+            }
+        }
+
         res.json({ success: true, student: updated });
     } catch (err) {
         res.status(500).json({ error: err.message });

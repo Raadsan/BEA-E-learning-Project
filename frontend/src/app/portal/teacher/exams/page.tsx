@@ -128,7 +128,7 @@ export default function ExamsPage() {
             const isAutoGradable = q.type === 'mcq' || q.type === 'true_false' || q.type === 'short_answer' || !q.type || q.type === 'multiple_choice' || prefix?.includes('editing');
 
             if (isAutoGradable && normalize(studentAns) === normalize(correctAns)) {
-                autoScore += parseInt(q.points || 1);
+                autoScore += parseFloat(q.points || 1);
             }
         };
 
@@ -533,6 +533,7 @@ export default function ExamsPage() {
                                                     <div className="flex items-center gap-2">
                                                         <input
                                                             type="number"
+                                                            step="any"
                                                             min="0"
                                                             max={paper.points || 20}
                                                             placeholder="0"
@@ -658,6 +659,7 @@ export default function ExamsPage() {
                                                     <div className="flex items-center gap-2">
                                                         <input
                                                             type="number"
+                                                            step="any"
                                                             min="0"
                                                             max={paper.essay.points || 30}
                                                             placeholder="0"
@@ -714,6 +716,7 @@ export default function ExamsPage() {
                                     <label className="block text-sm font-semibold opacity-75 mb-1.5">Total Calculated Marks</label>
                                     <input
                                         type="number"
+                                        step="any"
                                         disabled
                                         value={gradeData.score}
                                         className={`w-full px-3 py-3 rounded-lg border text-center font-bold text-2xl bg-gray-50/50 dark:bg-gray-900/50 outline-none`}

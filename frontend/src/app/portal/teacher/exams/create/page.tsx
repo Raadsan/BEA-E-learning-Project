@@ -19,6 +19,7 @@ import {
 } from "@/utils/assignmentSchedule";
 import { useDarkMode } from "@/context/ThemeContext";
 import { v4 as uuidv4 } from "uuid";
+import SectionMetadataFields, { defaultSectionMeta } from "@/components/admin/assessments/SectionMetadataFields";
 
 // Icons
 import {
@@ -49,6 +50,7 @@ export default function CreateExamPage() {
     const [basicInfo, setBasicInfo] = useState({
         title: "",
         description: "",
+        instructions: "",
         start_date: "",
         end_date: "",
         class_id: "",
@@ -110,25 +112,63 @@ export default function CreateExamPage() {
     const [papers, setPapers] = useState({
         paper1: {
             title: "Writing [Paper 1]",
-            editing: [], // { id, text, options, correctOption, correction, points }
+            instructions: "Answer the grammar editing questions and complete the essay prompt.",
+            sectionMeta: {
+                sectionName: "Paper 1: Writing & Grammar",
+                questions: 6,
+                format: "Grammar MCQs & Essay",
+                marks: 30,
+                targetScore: "24/30",
+                skillsAssessed: "Grammar, Sentence Structure, Written Expression",
+                instructions: "Answer all grammar editing questions and complete the essay prompt."
+            },
+            editing: [] as any[], // { id, text, options, correctOption, correction, points }
             essay: { id: uuidv4(), prompt: "", points: 20, wordCount: 300 }
         },
         paper2: {
             title: "Comprehension/Reading [Paper 2]",
+            instructions: "Read the passage carefully and answer the comprehension questions below.",
+            sectionMeta: {
+                sectionName: "Paper 2: Reading Comprehension",
+                questions: 5,
+                format: "Reading Passage & Questions",
+                marks: 25,
+                targetScore: "20/25",
+                skillsAssessed: "Reading comprehension, inference, vocabulary in context",
+                instructions: "Read the passage carefully and answer the comprehension questions below."
+            },
             passage: "",
-            questions: [] // { id, type, questionText, options, correctOption, points }
+            questions: [] as any[] // { id, type, questionText, options, correctOption, points }
         },
         paper3: {
             title: "Listening [Paper 3]",
-            audioFile: null, // "filename.mp3" after upload or object if pending? 
-            // We will upload immediately upon selection for better UX in wizard
+            instructions: "Listen to the audio recording and answer the questions below.",
+            sectionMeta: {
+                sectionName: "Paper 3: Listening Comprehension",
+                questions: 5,
+                format: "Audio Track & MCQs",
+                marks: 25,
+                targetScore: "20/25",
+                skillsAssessed: "Listening comprehension, detail extraction, spoken context",
+                instructions: "Listen carefully to the audio recording and answer all listening questions."
+            },
+            audioFile: null as any,
             audioUrl: "",
-            questions: []
+            questions: [] as any[]
         },
         paper4: {
             title: "Oral/Speaking [Paper 4]",
+            instructions: "Record your voice reading this passage clearly.",
+            sectionMeta: {
+                sectionName: "Paper 4: Oral Reading / Speaking",
+                questions: 1,
+                format: "Voice Recording / Oral Passage",
+                marks: 20,
+                targetScore: "16/20",
+                skillsAssessed: "Pronunciation, fluency, intonation, clarity",
+                instructions: "Read the oral passage aloud clearly and submit your voice recording."
+            },
             passage: "",
-            instructions: "Record your voice reading this passage.",
             timeLimit: 10, // Minutes
             points: "" as number | "" // Teacher enters the oral marks
         }
@@ -157,6 +197,7 @@ export default function CreateExamPage() {
             setBasicInfo({
                 title: editingAssignment.title,
                 description: editingAssignment.description,
+                instructions: editingAssignment.instructions || "",
                 start_date: editingAssignment.start_date ? formatDatetimeLocalValue(new Date(editingAssignment.start_date)) : "",
                 end_date: editingAssignment.end_date ? formatDatetimeLocalValue(new Date(editingAssignment.end_date))
                     : editingAssignment.due_date ? formatDatetimeLocalValue(new Date(editingAssignment.due_date)) : "",
@@ -175,7 +216,44 @@ export default function CreateExamPage() {
                         ? JSON.parse(editingAssignment.questions)
                         : editingAssignment.questions;
                     if (parsed.paper1 || parsed.paper2) {
-                        setPapers(parsed);
+                        setPapers(prev => ({
+                            paper1: {
+                                ...prev.paper1,
+                                ...(parsed.paper1 || {}),
+                                sectionMeta: parsed.paper1?.sectionMeta || {
+                                    ...prev.paper1.sectionMeta,
+                                    sectionName: parsed.paper1?.title || prev.paper1.sectionMeta.sectionName,
+                                    instructions: parsed.paper1?.instructions || prev.paper1.sectionMeta.instructions,
+                                },
+                            },
+                            paper2: {
+                                ...prev.paper2,
+                                ...(parsed.paper2 || {}),
+                                sectionMeta: parsed.paper2?.sectionMeta || {
+                                    ...prev.paper2.sectionMeta,
+                                    sectionName: parsed.paper2?.title || prev.paper2.sectionMeta.sectionName,
+                                    instructions: parsed.paper2?.instructions || prev.paper2.sectionMeta.instructions,
+                                },
+                            },
+                            paper3: {
+                                ...prev.paper3,
+                                ...(parsed.paper3 || {}),
+                                sectionMeta: parsed.paper3?.sectionMeta || {
+                                    ...prev.paper3.sectionMeta,
+                                    sectionName: parsed.paper3?.title || prev.paper3.sectionMeta.sectionName,
+                                    instructions: parsed.paper3?.instructions || prev.paper3.sectionMeta.instructions,
+                                },
+                            },
+                            paper4: {
+                                ...prev.paper4,
+                                ...(parsed.paper4 || {}),
+                                sectionMeta: parsed.paper4?.sectionMeta || {
+                                    ...prev.paper4.sectionMeta,
+                                    sectionName: parsed.paper4?.title || prev.paper4.sectionMeta.sectionName,
+                                    instructions: parsed.paper4?.instructions || prev.paper4.sectionMeta.instructions,
+                                },
+                            },
+                        }));
                     }
                 } catch (e) {
                     console.error("Failed to parse existing questions", e);
@@ -601,6 +679,20 @@ export default function CreateExamPage() {
                                             />
                                         </div>
                                     </div>
+                                    <div className="col-span-2">
+                                        <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">
+                                            Exam Instructions
+                                            <span className="font-normal normal-case text-gray-400"> — shown to students before starting</span>
+                                        </label>
+                                        <textarea
+                                            name="instructions"
+                                            value={basicInfo.instructions}
+                                            onChange={handleInfoChange}
+                                            rows={4}
+                                            placeholder="e.g. Read all questions carefully before answering. You have 2 hours to complete this exam. No external materials allowed."
+                                            className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-[#010080]/20 outline-none resize-none"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -621,6 +713,20 @@ export default function CreateExamPage() {
                                 {/* STEP 1: WRITING */}
                                 {currentStep === 1 && (
                                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <SectionMetadataFields
+                                            value={papers.paper1.sectionMeta}
+                                            currentCount={papers.paper1.editing.length + (papers.paper1.essay?.prompt ? 1 : 0)}
+                                            showInstructionsField={true}
+                                            onChange={(val) => setPapers(prev => ({
+                                                ...prev,
+                                                paper1: {
+                                                    ...prev.paper1,
+                                                    instructions: val.instructions || prev.paper1.instructions,
+                                                    sectionMeta: val
+                                                }
+                                            }))}
+                                        />
+
                                         {/* Part A: Editing */}
                                         <div className="bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
                                             <div className="flex justify-between items-center mb-4">
@@ -835,6 +941,20 @@ export default function CreateExamPage() {
                                 {/* STEP 2: READING */}
                                 {currentStep === 2 && (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <SectionMetadataFields
+                                            value={papers.paper2.sectionMeta}
+                                            currentCount={papers.paper2.questions.length}
+                                            showInstructionsField={true}
+                                            onChange={(val) => setPapers(prev => ({
+                                                ...prev,
+                                                paper2: {
+                                                    ...prev.paper2,
+                                                    instructions: val.instructions || prev.paper2.instructions,
+                                                    sectionMeta: val
+                                                }
+                                            }))}
+                                        />
+
                                         <div>
                                             <label className="block text-sm font-bold uppercase text-gray-500 mb-2">Reading Passage</label>
                                             <RichTextEditor value={papers.paper2.passage} onChange={(passage) => setPapers(prev => ({ ...prev, paper2: { ...prev.paper2, passage } }))} placeholder="Paste the passage here..." minHeight={220} />
@@ -942,6 +1062,20 @@ export default function CreateExamPage() {
                                 {/* STEP 3: LISTENING */}
                                 {currentStep === 3 && (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <SectionMetadataFields
+                                            value={papers.paper3.sectionMeta}
+                                            currentCount={papers.paper3.questions.length}
+                                            showInstructionsField={true}
+                                            onChange={(val) => setPapers(prev => ({
+                                                ...prev,
+                                                paper3: {
+                                                    ...prev.paper3,
+                                                    instructions: val.instructions || prev.paper3.instructions,
+                                                    sectionMeta: val
+                                                }
+                                            }))}
+                                        />
+
                                         <div className="bg-purple-50 p-6 rounded-xl border border-purple-100 flex items-center justify-between">
                                             <div>
                                                 <h3 className="font-bold text-purple-900">Audio Track</h3>
@@ -1075,6 +1209,20 @@ export default function CreateExamPage() {
                                 {/* STEP 4: ORAL */}
                                 {currentStep === 4 && (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <SectionMetadataFields
+                                            value={papers.paper4.sectionMeta}
+                                            currentCount={papers.paper4.passage?.trim() ? 1 : 0}
+                                            showInstructionsField={true}
+                                            onChange={(val) => setPapers(prev => ({
+                                                ...prev,
+                                                paper4: {
+                                                    ...prev.paper4,
+                                                    instructions: val.instructions || prev.paper4.instructions,
+                                                    sectionMeta: val
+                                                }
+                                            }))}
+                                        />
+
                                         <div className="bg-orange-50 p-6 rounded-xl border border-orange-100">
                                             <h3 className="font-bold text-orange-900 mb-2">Oral Examination</h3>
                                             <p className="text-sm text-orange-800 mb-4">Paste the passage below. Students will be prompted to record themselves reading it.</p>

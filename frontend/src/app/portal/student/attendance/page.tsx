@@ -83,32 +83,52 @@ export default function AttendancePage() {
   ];
 
   const columns = [
-    { label: "Program Name", key: "program_name", render: (row) => row.program_name || row.course_title || "General Program" },
-    { label: "Level / Class", key: "subprogram_name", render: (row) => row.subprogram_name || row.class_name || "Basic Level" },
-    { label: "Date", key: "date", render: (row) => row.date ? new Date(row.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) : "-" },
+    { label: "Program Name", key: "program_name", render: (_val, row) => row?.program_name || row?.course_title || "General Program" },
+    { label: "Level / Class", key: "subprogram_name", render: (_val, row) => row?.subprogram_name || row?.class_name || "Basic Level" },
+    {
+      label: "Date",
+      key: "date",
+      render: (_val, row) => {
+        const d = row?.date;
+        if (!d) return "-";
+        try {
+          const parsed = new Date(d);
+          if (isNaN(parsed.getTime())) return String(d);
+          return parsed.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+        } catch { return String(d); }
+      }
+    },
     {
       label: "Hour One",
       key: "hour1",
-      render: (row) => (
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.hour1 === 1 ? 'bg-green-100 text-green-700' :
-          row.hour1 === 2 ? 'bg-orange-100 text-orange-700' :
+      render: (_val, row) => {
+        const h = row?.hour1;
+        return (
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+            h === 1 ? 'bg-green-100 text-green-700' :
+            h === 2 ? 'bg-orange-100 text-orange-700' :
             'bg-red-100 text-red-700'
           }`}>
-          {row.hour1 === 1 ? "Present" : row.hour1 === 2 ? "Excused" : "Absent"}
-        </span>
-      )
+            {h === 1 ? "Present" : h === 2 ? "Excused" : "Absent"}
+          </span>
+        );
+      }
     },
     {
       label: "Hour Two",
       key: "hour2",
-      render: (row) => (
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.hour2 === 1 ? 'bg-green-100 text-green-700' :
-          row.hour2 === 2 ? 'bg-orange-100 text-orange-700' :
+      render: (_val, row) => {
+        const h = row?.hour2;
+        return (
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+            h === 1 ? 'bg-green-100 text-green-700' :
+            h === 2 ? 'bg-orange-100 text-orange-700' :
             'bg-red-100 text-red-700'
           }`}>
-          {row.hour2 === 1 ? "Present" : row.hour2 === 2 ? "Excused" : "Absent"}
-        </span>
-      )
+            {h === 1 ? "Present" : h === 2 ? "Excused" : "Absent"}
+          </span>
+        );
+      }
     }
   ];
 

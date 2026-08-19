@@ -123,7 +123,7 @@ model admins {
   full_name              String?   @db.VarChar(200)
   bio                    String?   @db.Text
   profile_image          String?   @db.VarChar(500)
-  profile_picture        String?   @db.VarChar(255)
+  profile_picture        String?   @db.VarChar(1000)
   permissions            String?   @db.Text
   created_by             Int?
   updated_by             Int?
@@ -406,6 +406,7 @@ model exams {
   id               Int                @id @default(autoincrement())
   title            String             @db.VarChar(255)
   description      String?            @db.Text
+  instructions     String?            @db.Text
   start_date       DateTime?          @db.DateTime(0)
   end_date         DateTime?          @db.DateTime(0)
   class_id         Int?
@@ -703,7 +704,7 @@ model placement_test_results {
   id                Int                            @id @default(autoincrement())
   student_id        String?                        @db.VarChar(50)
   test_id           Int
-  score             Int
+  score             Decimal?                       @db.Decimal(5, 2)
   total_questions   Int
   percentage        Decimal                        @db.Decimal(5, 2)
   recommended_level String?                        @db.VarChar(50)
@@ -794,6 +795,7 @@ model program_payment_packages {
 model programs {
   id                       Int                        @id @default(autoincrement())
   image                    String?                    @db.VarChar(255)
+  program_code             String?                    @db.VarChar(50)
   title                    String                     @db.VarChar(255)
   description              String?                    @db.Text
   created_at               DateTime                   @default(now()) @db.Timestamp(0)
@@ -975,7 +977,7 @@ model students {
   updated_by             Int?
   created_by_name        String?                       @db.VarChar(200)
   updated_by_name        String?                       @db.VarChar(200)
-  profile_picture        String?                       @db.VarChar(255)
+  profile_picture        String?                       @db.VarChar(1000)
   assignment_submissions assignment_submissions[]
   attendance             attendance[]
   level_up_requests      level_up_requests[]
@@ -1056,7 +1058,7 @@ model teachers {
   updated_at             DateTime         @default(now()) @db.Timestamp(0)
   reset_password_token   String?          @db.VarChar(255)
   reset_password_expires DateTime?        @db.DateTime(0)
-  profile_picture        String?          @db.VarChar(255)
+  profile_picture        String?          @db.VarChar(1000)
   classes                classes[]
   timetables             timetables[]
 

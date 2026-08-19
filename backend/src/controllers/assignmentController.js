@@ -297,6 +297,7 @@ export const createAssignment = async (req, res) => {
             if (type === 'exam') {
                 prismaData.end_date = data.end_date ? new Date(data.end_date) : null;
                 prismaData.duration = data.duration ? parseInt(data.duration) : null;
+                prismaData.instructions = data.instructions ? String(data.instructions) : null;
             } else if (type === 'oral_assignment' || type === 'course_work') {
                 prismaData.duration = data.duration ? parseInt(data.duration) : null;
                 if (type === 'oral_assignment' && data.submission_type) {
@@ -396,7 +397,7 @@ export const gradeSubmission = async (req, res) => {
         const subModelName = tableMapping[type]?.sub;
         if (!subModelName) return res.status(400).json({ error: "Invalid type" });
 
-        const parsedScore = score !== undefined && score !== "" ? parseInt(score, 10) : NaN;
+        const parsedScore = score !== undefined && score !== "" ? parseFloat(score) : NaN;
         if (Number.isNaN(parsedScore) || parsedScore < 0) {
             return res.status(400).json({ error: "Valid score is required" });
         }
@@ -463,6 +464,7 @@ export const getAssignmentStats = async (req, res) => {
         const writingWhere = {};
         const oralWhere = {};
         const courseworkWhere = {};
+        const studentWhere = {};
 
         if (class_id) {
             const classIdInt = parseInt(class_id);
@@ -470,6 +472,7 @@ export const getAssignmentStats = async (req, res) => {
             writingWhere.class_id = classIdInt;
             oralWhere.class_id = classIdInt;
             courseworkWhere.class_id = classIdInt;
+            studentWhere.class_id = classIdInt;
         }
         if (program_id) {
             const programIdInt = parseInt(program_id);
@@ -477,33 +480,118 @@ export const getAssignmentStats = async (req, res) => {
             writingWhere.program_id = programIdInt;
             oralWhere.program_id = programIdInt;
             courseworkWhere.program_id = programIdInt;
+
+            const prog = await prisma.programs.findUnique({ where: { id: programIdInt } });
+            if (prog) {
+                studentWhere.OR = [
+                    { chosen_program: prog.title },
+                    { chosen_program: String(programIdInt) }
+                ];
+            }
         }
 
-        const examsCount = await prisma.exams.count({ where: examWhere });
-        const writingTasksCount = await prisma.assignments.count({ where: writingWhere });
-        const oralAssignmentsCount = await prisma.oral_assignments.count({ where: oralWhere });
-        const courseworkCount = await prisma.course_work.count({ where: courseworkWhere });
+        const totalStudents = await prisma.students.count({ where: studentWhere }) || 1;
 
-        // Counts of submissions
-        const examSubs = await prisma.exam_submissions.count();
-        const writingSubs = await prisma.assignment_submissions.count();
-        const oralSubs = await prisma.oral_assignment_submissions.count();
-        const courseworkSubs = await prisma.course_work_submissions.count();
+        // 1. Writing Tasks
+        const writingTasks = await prisma.assignments.findMany({
+            where: writingWhere,
+            select: { id: true, total_points: true }
+        });
+        const writingIds = writingTasks.map(t => t.id);
+        const writingSubs = writingIds.length > 0
+            ? await prisma.assignment_submissions.findMany({
+                where: { assignment_id: { in: writingIds } },
+                select: { score: true, assignment_id: true }
+            })
+            : [];
+        const writingPointsMap = new Map(writingTasks.map(t => [t.id, t.total_points || 100]));
+        const writingScores = writingSubs.filter(s => s.score !== null).map(s => {
+            const maxPts = writingPointsMap.get(s.assignment_id) || 100;
+            return (Number(s.score) / maxPts) * 100;
+        });
+        const writingExpected = Math.max(1, writingTasks.length * totalStudents);
+        const writingCompletion = Math.min(100, Math.round((writingSubs.length / writingExpected) * 100));
+        const writingAvgScore = writingScores.length > 0
+            ? Number((writingScores.reduce((a, b) => a + b, 0) / writingScores.length).toFixed(1))
+            : (writingTasks.length > 0 ? 0 : 0);
 
-        // Calculate dynamic completion rates or sensible defaults
-        const getRate = (subs, count, def) => {
-            if (count === 0 || subs === 0) return def;
-            const rate = Math.round((subs / (count * 5)) * 100);
-            return Math.min(Math.max(rate, 25), 100);
-        };
+        // 2. Exams
+        const examTasks = await prisma.exams.findMany({
+            where: examWhere,
+            select: { id: true, total_points: true }
+        });
+        const examIds = examTasks.map(t => t.id);
+        const examSubs = examIds.length > 0
+            ? await prisma.exam_submissions.findMany({
+                where: { assignment_id: { in: examIds } },
+                select: { score: true, assignment_id: true }
+            })
+            : [];
+        const examPointsMap = new Map(examTasks.map(t => [t.id, t.total_points || 100]));
+        const examScores = examSubs.filter(s => s.score !== null).map(s => {
+            const maxPts = examPointsMap.get(s.assignment_id) || 100;
+            return (Number(s.score) / maxPts) * 100;
+        });
+        const examExpected = Math.max(1, examTasks.length * totalStudents);
+        const examCompletion = Math.min(100, Math.round((examSubs.length / examExpected) * 100));
+        const examAvgScore = examScores.length > 0
+            ? Number((examScores.reduce((a, b) => a + b, 0) / examScores.length).toFixed(1))
+            : (examTasks.length > 0 ? 0 : 0);
+
+        // 3. Oral Assignments
+        const oralTasks = await prisma.oral_assignments.findMany({
+            where: oralWhere,
+            select: { id: true, total_points: true }
+        });
+        const oralIds = oralTasks.map(t => t.id);
+        const oralSubs = oralIds.length > 0
+            ? await prisma.oral_assignment_submissions.findMany({
+                where: { assignment_id: { in: oralIds } },
+                select: { score: true, assignment_id: true }
+            })
+            : [];
+        const oralPointsMap = new Map(oralTasks.map(t => [t.id, t.total_points || 100]));
+        const oralScores = oralSubs.filter(s => s.score !== null).map(s => {
+            const maxPts = oralPointsMap.get(s.assignment_id) || 100;
+            return (Number(s.score) / maxPts) * 100;
+        });
+        const oralExpected = Math.max(1, oralTasks.length * totalStudents);
+        const oralCompletion = Math.min(100, Math.round((oralSubs.length / oralExpected) * 100));
+        const oralAvgScore = oralScores.length > 0
+            ? Number((oralScores.reduce((a, b) => a + b, 0) / oralScores.length).toFixed(1))
+            : (oralTasks.length > 0 ? 0 : 0);
+
+        // 4. Coursework
+        const courseworkTasks = await prisma.course_work.findMany({
+            where: courseworkWhere,
+            select: { id: true, total_points: true }
+        });
+        const courseworkIds = courseworkTasks.map(t => t.id);
+        const courseworkSubs = courseworkIds.length > 0
+            ? await prisma.course_work_submissions.findMany({
+                where: { assignment_id: { in: courseworkIds } },
+                select: { score: true, assignment_id: true }
+            })
+            : [];
+        const courseworkPointsMap = new Map(courseworkTasks.map(t => [t.id, t.total_points || 100]));
+        const courseworkScores = courseworkSubs.filter(s => s.score !== null).map(s => {
+            const maxPts = courseworkPointsMap.get(s.assignment_id) || 100;
+            return (Number(s.score) / maxPts) * 100;
+        });
+        const courseworkExpected = Math.max(1, courseworkTasks.length * totalStudents);
+        const courseworkCompletion = Math.min(100, Math.round((courseworkSubs.length / courseworkExpected) * 100));
+        const courseworkAvgScore = courseworkScores.length > 0
+            ? Number((courseworkScores.reduce((a, b) => a + b, 0) / courseworkScores.length).toFixed(1))
+            : (courseworkTasks.length > 0 ? 0 : 0);
 
         res.json([
-            { type: 'writing_task', completionRate: getRate(writingSubs, writingTasksCount, 85), avgScore: 88.5 },
-            { type: 'exam', completionRate: getRate(examSubs, examsCount, 75), avgScore: 78.2 },
-            { type: 'oral_assignment', completionRate: getRate(oralSubs, oralAssignmentsCount, 90), avgScore: 92.0 },
-            { type: 'course_work', completionRate: getRate(courseworkSubs, courseworkCount, 80), avgScore: 85.0 }
+            { type: 'writing_task', completionRate: writingCompletion, avgScore: writingAvgScore },
+            { type: 'exam', completionRate: examCompletion, avgScore: examAvgScore },
+            { type: 'oral_assignment', completionRate: oralCompletion, avgScore: oralAvgScore },
+            { type: 'course_work', completionRate: courseworkCompletion, avgScore: courseworkAvgScore }
         ]);
     } catch (err) {
+        console.error("getAssignmentStats error:", err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -511,13 +599,97 @@ export const getAssignmentStats = async (req, res) => {
 // GET PERFORMANCE CLUSTERS (TIERS)
 export const getPerformanceClusters = async (req, res) => {
     try {
-        // Return a clean array directly for Recharts as expected by the frontend component
+        const { program_id, class_id } = req.query;
+        const studentWhere = {};
+        if (class_id) studentWhere.class_id = parseInt(class_id);
+        if (program_id) {
+            const progId = parseInt(program_id);
+            const prog = await prisma.programs.findUnique({ where: { id: progId } });
+            if (prog) {
+                studentWhere.OR = [
+                    { chosen_program: prog.title },
+                    { chosen_program: String(progId) }
+                ];
+            }
+        }
+
+        const students = await prisma.students.findMany({
+            where: studentWhere,
+            select: { student_id: true }
+        });
+
+        if (students.length === 0) {
+            return res.json([
+                { category: 'High', count: 0, percentage: 0 },
+                { category: 'Average', count: 0, percentage: 0 },
+                { category: 'Low', count: 0, percentage: 0 }
+            ]);
+        }
+
+        const studentIds = students.map(s => s.student_id);
+
+        const [writingSubs, examSubs, oralSubs, cwSubs] = await Promise.all([
+            prisma.assignment_submissions.findMany({
+                where: { student_id: { in: studentIds }, score: { not: null } },
+                include: { assignments: { select: { total_points: true } } }
+            }),
+            prisma.exam_submissions.findMany({
+                where: { student_id: { in: studentIds }, score: { not: null } },
+                include: { exams: { select: { total_points: true } } }
+            }),
+            prisma.oral_assignment_submissions.findMany({
+                where: { student_id: { in: studentIds }, score: { not: null } },
+                include: { oral_assignments: { select: { total_points: true } } }
+            }),
+            prisma.course_work_submissions.findMany({
+                where: { student_id: { in: studentIds }, score: { not: null } },
+                include: { course_work: { select: { total_points: true } } }
+            })
+        ]);
+
+        const studentScoresMap = {};
+        const pushScore = (studentId, score, maxPoints) => {
+            if (!studentId || score === null) return;
+            if (!studentScoresMap[studentId]) studentScoresMap[studentId] = [];
+            const maxPts = maxPoints || 100;
+            studentScoresMap[studentId].push((Number(score) / maxPts) * 100);
+        };
+
+        writingSubs.forEach(s => pushScore(s.student_id, s.score, s.assignments?.total_points));
+        examSubs.forEach(s => pushScore(s.student_id, s.score, s.exams?.total_points));
+        oralSubs.forEach(s => pushScore(s.student_id, s.score, s.oral_assignments?.total_points));
+        cwSubs.forEach(s => pushScore(s.student_id, s.score, s.course_work?.total_points));
+
+        let highCount = 0;
+        let avgCount = 0;
+        let lowCount = 0;
+
+        students.forEach(s => {
+            const scores = studentScoresMap[s.student_id];
+            if (!scores || scores.length === 0) {
+                // If no submissions, not counted in low or counted according to baseline
+                return;
+            }
+            const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+            if (avg >= 80) highCount++;
+            else if (avg >= 60) avgCount++;
+            else lowCount++;
+        });
+
+        const totalActive = highCount + avgCount + lowCount;
+        const total = totalActive > 0 ? totalActive : students.length;
+
+        const highPct = total > 0 ? Number(((highCount / total) * 100).toFixed(1)) : 0;
+        const avgPct = total > 0 ? Number(((avgCount / total) * 100).toFixed(1)) : 0;
+        const lowPct = total > 0 ? Number(((lowCount / total) * 100).toFixed(1)) : 0;
+
         res.json([
-            { category: 'High', count: 18, percentage: 60.0 },
-            { category: 'Average', count: 9, percentage: 30.0 },
-            { category: 'Low', count: 3, percentage: 10.0 }
+            { category: 'High', count: highCount, percentage: highPct },
+            { category: 'Average', count: avgCount, percentage: avgPct },
+            { category: 'Low', count: lowCount, percentage: lowPct }
         ]);
     } catch (err) {
+        console.error("getPerformanceClusters error:", err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -696,6 +868,7 @@ export const updateAssignment = async (req, res) => {
             if (type === 'exam') {
                 prismaData.end_date = data.end_date ? new Date(data.end_date) : null;
                 prismaData.duration = data.duration ? parseInt(data.duration) : undefined;
+                if (data.instructions !== undefined) prismaData.instructions = data.instructions ? String(data.instructions) : null;
             } else if (type === 'oral_assignment' || type === 'course_work') {
                 prismaData.duration = data.duration ? parseInt(data.duration) : undefined;
                 if (type === 'oral_assignment' && data.submission_type) {

@@ -1,17 +1,28 @@
-const WAAFI_SUCCESS_CODES = new Set(["0000", "0", "2001"]);
+const WAAFI_SUCCESS_CODES = new Set(["0000", "0", "2001", "200"]);
 
 export const isWaafiPaymentSuccess = (response) => {
   if (!response) return false;
-  const code = String(response.responseCode ?? response.code ?? "");
+  
+  const code = String(response.responseCode ?? response.code ?? response.errorCode ?? "").trim();
   if (WAAFI_SUCCESS_CODES.has(code)) return true;
-  if (response.status === "SUCCESS") return true;
-  if (response.serviceParams?.status === "SUCCESS") return true;
-  if (response.params?.state === "APPROVED") return true;
+
+  const msg = String(response.responseMsg ?? response.message ?? "").toUpperCase();
+  if (msg.includes("SUCCESS") || msg.includes("APPROVED") || msg.includes("PROCESSED")) return true;
+
+  const state = String(
+    response.params?.state ?? 
+    response.serviceParams?.status ?? 
+    response.status ?? 
+    ""
+  ).toUpperCase();
+
+  if (state === "APPROVED" || state === "SUCCESS" || state === "PAID") return true;
+
   return false;
 };
 
 export const getWaafiErrorMessage = (response) =>
-  response?.responseMsg || response?.message || "Payment failed";
+  response?.responseMsg || response?.message || response?.params?.state || "Payment failed";
 
 export const getWaafiTransactionId = (response, fallback) =>
   response?.params?.transactionId ||

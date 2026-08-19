@@ -62,10 +62,16 @@ export default function IELTSTOEFLRegistrationPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const selectedProgramObj = programs.find(p => p.title === formData.chosen_program);
+  const selectedProgramObj = programs.find(p => 
+    p.title === formData.chosen_program || 
+    (formData.chosen_program && p.title.toLowerCase() === formData.chosen_program.toLowerCase()) ||
+    p.title.toLowerCase().includes('ielts') || 
+    p.title.toLowerCase().includes('toefl')
+  );
   const programPrice = selectedProgramObj ? parseFloat(selectedProgramObj.price || 0) : 0;
   const programDiscount = selectedProgramObj ? parseFloat(selectedProgramObj.discount || 0) : 0;
-  const APPLICATION_FEE = Math.max(0, programPrice - programDiscount);
+  const rawFee = programPrice - programDiscount;
+  const APPLICATION_FEE = rawFee > 0 ? rawFee : (programPrice > 0 ? programPrice : 0.01);
 
   // Update cities when country changes
   useEffect(() => {
@@ -86,7 +92,7 @@ export default function IELTSTOEFLRegistrationPage() {
   // Set default program when programs are loaded (IELTS/TOEFL)
   useEffect(() => {
     if (programs && Array.isArray(programs) && programs.length > 0) {
-      const ieltsProgram = programs.find(p => p.title.toLowerCase().includes('ielts'));
+      const ieltsProgram = programs.find(p => p.title.toLowerCase().includes('ielts') || p.title.toLowerCase().includes('toefl'));
       if (ieltsProgram && !formData.chosen_program) {
         setFormData(prev => ({ ...prev, chosen_program: ieltsProgram.title }));
       }
@@ -130,15 +136,12 @@ export default function IELTSTOEFLRegistrationPage() {
         }
       }
 
-      // Verification validation on step 2
+      // Verification validation on step 2 (relaxed/optional)
       if (currentStep === 2) {
-        if (!formData.hasCertificate) {
-          showToast("Please choose a verification method", "error");
-          return;
-        }
+        // Automatically default examType if not selected
         if (!formData.examType) {
-          showToast("Please select an exam type", "error");
-          return;
+          const derived = formData.chosen_program?.toLowerCase().includes('toefl') ? 'toefl' : 'ielts';
+          setFormData(prev => ({ ...prev, examType: derived }));
         }
       }
 
@@ -151,18 +154,19 @@ export default function IELTSTOEFLRegistrationPage() {
     setIsPaying(true);
 
     try {
+      const derivedExamType = (formData.examType || (formData.chosen_program?.toLowerCase().includes('toefl') ? 'TOEFL' : 'IELTS')).toUpperCase();
       const payload = {
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-        chosen_program: formData.chosen_program,
-        age: parseInt(formData.age),
-        sex: formData.sex.charAt(0).toUpperCase() + formData.sex.slice(1).toLowerCase(),
+        chosen_program: formData.chosen_program || selectedProgramObj?.title || "IELTS & TOEFL TEST PREPARATION COURSES",
+        age: formData.age ? parseInt(formData.age) : null,
+        sex: formData.sex ? (formData.sex.charAt(0).toUpperCase() + formData.sex.slice(1).toLowerCase()) : 'Male',
         residency_country: formData.country,
         residency_city: formData.city,
-        exam_type: formData.examType.toUpperCase(),
+        exam_type: derivedExamType,
         verification_method: formData.hasCertificate === 'yes' ? 'Certificate' : 'Exam Booking',
         certificate_institution: formData.certificateInstitution || null,
         certificate_date: formData.certificateDate || null,
@@ -503,14 +507,6 @@ export default function IELTSTOEFLRegistrationPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Exam Preparation For <span className="text-red-500">*</span></label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, examType: 'ielts' }))} className={`py-4 px-6 border rounded-xl font-bold transition-all ${formData.examType === 'ielts' ? 'bg-blue-50 border-[#010080] text-[#010080]' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>IELTS</button>
-                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, examType: 'toefl' }))} className={`py-4 px-6 border rounded-xl font-bold transition-all ${formData.examType === 'toefl' ? 'bg-blue-50 border-[#010080] text-[#010080]' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>TOEFL</button>
-                    </div>
-                  </div>
-
                   <div className="mt-8 flex justify-between items-center">
                     <button type="button" onClick={() => setCurrentStep(1)} className="px-6 py-3 rounded-lg bg-gray-200 text-gray-700 font-semibold text-sm transition-all hover:bg-gray-300">Back</button>
                     <button type="submit" className="px-8 py-3 rounded-lg text-white font-semibold transition-all hover:opacity-90 shadow-md active:scale-95" style={{ backgroundColor: '#010080' }}>Next Step</button>
@@ -593,7 +589,7 @@ export default function IELTSTOEFLRegistrationPage() {
                       <div className="w-10 h-10 rounded-md bg-green-100 flex-shrink-0" />
                       <div>
                         <h4 className="font-bold text-[#010080]">Program Selection</h4>
-                        <p className="text-sm text-gray-600 font-medium">{formData.chosen_program} ({formData.examType.toUpperCase()})</p>
+                        <p className="text-sm text-gray-600 font-medium">{formData.chosen_program} ({formData.examType ? formData.examType.toUpperCase() : 'IELTS'})</p>
                       </div>
                     </div>
 

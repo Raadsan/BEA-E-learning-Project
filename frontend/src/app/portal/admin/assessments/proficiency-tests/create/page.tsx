@@ -253,14 +253,14 @@ export default function CreateProficiencyTestPage() {
             const payload = {
                 ...testData,
                 questions: attachSectionMetadata(renumberQuestionsByPart(questions, PROFICIENCY_MAX_PART), sectionMetadata),
-                status: "active",
+                status: testData.status || "active",
             };
             if (testId) {
                 await updateTest({ id: testId, ...payload }).unwrap();
             } else {
                 await createTest(payload).unwrap();
             }
-            showToast("Proficiency Test Published Successfully!", "success");
+            showToast("Proficiency Test Saved Successfully!", "success");
             router.push("/portal/admin/assessments/proficiency-tests");
         } catch (err) {
             showToast("Failed to finalize test", "error");
@@ -324,7 +324,7 @@ export default function CreateProficiencyTestPage() {
                                 Back to Tests
                             </button>
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-900">{testId ? 'Continue Draft' : 'Create Proficiency Test'}</h1>
+                                <h1 className="text-3xl font-bold text-gray-900">{testId ? 'Edit Proficiency Test' : 'Create Proficiency Test'}</h1>
                                 <p className="mt-2 text-gray-600">Complete the 5-part process to build a professional proficiency test.</p>
                             </div>
                         </div>

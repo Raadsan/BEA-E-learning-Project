@@ -82,7 +82,7 @@ export default function CourseTimeline() {
               Course Timeline
             </h2>
             <p className={`text-base sm:text-lg ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
-              Plan ahead with our comprehensive course calendar. All courses include recorded sessions if you miss a live class.
+              Plan ahead with our comprehensive course calendar.  (Please note that event dates may change due to adjustments in the Hijri calendar or other unexpected outside factors. We will update you quickly if any schedule shifts happen.).
             </p>
           </div>
 

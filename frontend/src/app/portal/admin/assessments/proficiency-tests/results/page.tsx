@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
  
 import DataTable from "@/components/DataTable";
-import { useGetAllProficiencyResultsQuery, useUnlockProficiencyAttemptMutation } from "@/lib/api/proficiencyTestApi";
+import { useGetAllProficiencyResultsQuery, useUnlockProficiencyAttemptMutation, useDeleteProficiencyResultMutation } from "@/lib/api/proficiencyTestApi";
 import { useExtendStudentDeadlineMutation } from "@/lib/api/studentApi";
 import { useExtendCandidateDeadlineMutation } from "@/lib/api/proficiencyTestStudentsApi";
+import { useExtendIeltsDeadlineMutation } from "@/lib/api/ieltsToeflApi";
 import { useToast } from "@/components/Toast";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
  
@@ -44,6 +45,75 @@ const LiveAdminTimer = ({ expiryDate, label, colorClass, onClick }) => {
         </span>
     );
 };
+
+// ─── Confirm Delete Modal ──────────────────────────────────────────────────────
+function ConfirmDeleteModal({ isOpen, onClose, onConfirm, studentName, isLoading }) {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative w-full max-w-sm rounded-2xl shadow-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 className="text-base font-bold text-gray-900 dark:text-white">Delete Result</h3>
+                        <p className="text-xs text-gray-500 mt-0.5">This action cannot be undone.</p>
+                    </div>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Are you sure you want to delete the proficiency result record for{" "}
+                    <span className="font-bold text-gray-900 dark:text-white">{studentName}</span>?
+                </p>
+                <div className="flex gap-3 pt-1">
+                    <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        Cancel
+                    </button>
+                    <button onClick={onConfirm} disabled={isLoading} className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-colors disabled:opacity-50">
+                        {isLoading ? "Deleting..." : "Delete"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─── Confirm Retake Modal ─────────────────────────────────────────────────────
+function ConfirmRetakeModal({ isOpen, onClose, onConfirm, studentName, isLoading }) {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative w-full max-w-sm rounded-2xl shadow-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 className="text-base font-bold text-gray-900 dark:text-white">Allow Retake</h3>
+                        <p className="text-xs text-gray-500 mt-0.5">The student will be able to retake the test.</p>
+                    </div>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Allow <span className="font-bold text-gray-900 dark:text-white">{studentName}</span> to retake this proficiency test?
+                </p>
+                <div className="flex gap-3 pt-1">
+                    <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        Cancel
+                    </button>
+                    <button onClick={onConfirm} disabled={isLoading} className="flex-1 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition-colors disabled:opacity-50">
+                        {isLoading ? "Processing..." : "Allow Retake"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
  
 export default function ProficiencyTestResultsPage() {
     const router = useRouter();
@@ -55,12 +125,59 @@ export default function ProficiencyTestResultsPage() {
     const [studentToExtend, setStudentToExtend] = useState<any>(null);
     const [extraTime, setExtraTime] = useState("");
     const [timeUnit, setTimeUnit] = useState("minutes");
+
+    // States for delete modal
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [rowToDelete, setRowToDelete] = useState<any>(null);
+
+    // States for retake modal
+    const [retakeModalOpen, setRetakeModalOpen] = useState(false);
+    const [rowToRetake, setRowToRetake] = useState<any>(null);
  
-    const { data: results, isLoading, error, refetch } = useGetAllProficiencyResultsQuery();
+    const { data: results, isLoading, refetch } = useGetAllProficiencyResultsQuery();
     const [extendStudentDeadline] = useExtendStudentDeadlineMutation();
     const [extendCandidateDeadline] = useExtendCandidateDeadlineMutation();
+    const [extendIeltsDeadline] = useExtendIeltsDeadlineMutation();
     const [unlockProficiencyAttempt, { isLoading: isUnlocking }] = useUnlockProficiencyAttemptMutation();
- 
+    const [deleteProficiencyResult, { isLoading: isDeletingResult }] = useDeleteProficiencyResultMutation();
+
+    const getDeleteKey = (row: any): string | null => {
+        if (row.has_submitted && typeof row.id === 'number') return String(row.id);
+        if (row.attempt_id && (row.status === 'started_not_submitted' || row.is_locked)) return `attempt-${row.attempt_id}`;
+        if (row.student_id) return `student-${row.student_id}`;
+        return null;
+    };
+
+    const handleDeleteClick = (row: any) => { setRowToDelete(row); setDeleteModalOpen(true); };
+
+    const handleDeleteConfirm = async () => {
+        const key = getDeleteKey(rowToDelete);
+        if (!key) { showToast("No deletable record found for this row", "error"); return; }
+        try {
+            await deleteProficiencyResult(key).unwrap();
+            showToast("Record deleted successfully", "success");
+            setDeleteModalOpen(false);
+            setRowToDelete(null);
+            refetch();
+        } catch (err: any) {
+            showToast(err?.data?.error || "Failed to delete record", "error");
+        }
+    };
+
+    const handleRetakeClick = (row: any) => { setRowToRetake(row); setRetakeModalOpen(true); };
+
+    const handleRetakeConfirm = async () => {
+        try {
+            await unlockProficiencyAttempt(rowToRetake.attempt_id).unwrap();
+            showToast("Student can now retake the proficiency test", "success");
+            setRetakeModalOpen(false);
+            setRowToRetake(null);
+            refetch();
+        } catch (err: any) {
+            showToast(err?.data?.error || "Failed to allow retake", "error");
+        }
+    };
+
     const columns = [
         {
             key: "student_name",
@@ -70,7 +187,10 @@ export default function ProficiencyTestResultsPage() {
         {
             key: "submitted_at",
             label: "Test Date",
-            render: (val, row) => new Date(val || row.created_at).toLocaleDateString(),
+            render: (val, row) => {
+                const d = val || row.created_at;
+                return d ? new Date(d).toLocaleDateString() : <span className="text-gray-400">-</span>;
+            },
         },
         {
             key: "score",
@@ -78,12 +198,10 @@ export default function ProficiencyTestResultsPage() {
             render: (val, row) => (
                 <div className="flex flex-col">
                     <span className="font-semibold text-gray-900 dark:text-white">
-                        {val !== null ? `${val} / ${row.total_points || row.total_questions || 0}` : "N/A"}
+                        {val !== null && val !== undefined ? `${val} / ${row.total_points || row.total_questions || 0}` : "-"}
                     </span>
-                    {row.percentage !== null && (
-                        <span className="text-xs text-gray-500">
-                            {Math.round(row.percentage)}%
-                        </span>
+                    {row.percentage !== null && row.percentage !== undefined && (
+                        <span className="text-xs text-gray-500">{Math.round(row.percentage)}%</span>
                     )}
                 </div>
             ),
@@ -92,18 +210,16 @@ export default function ProficiencyTestResultsPage() {
             key: "recommended_level",
             label: "Level",
             render: (val) => {
-                const level = val;
-
-                if (!level) return <span className="text-xs text-gray-400 font-medium italic">-</span>;
-
+                if (!val) return <span className="text-xs text-gray-400 font-medium italic">-</span>;
                 const levelColors = {
                     "Advanced": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
                     "Intermediate": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
                     "Standard": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+                    "Beginner": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
                 };
                 return (
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${levelColors[level] || "bg-gray-100 text-gray-800"}`}>
-                        {level}
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${levelColors[val] || "bg-gray-100 text-gray-800"}`}>
+                        {val}
                     </span>
                 );
             },
@@ -111,23 +227,28 @@ export default function ProficiencyTestResultsPage() {
         {
             key: "time_status",
             label: "Life Status",
-            width: "150px",
+            width: "160px",
             render: (_, row) => {
-                const isExpired = row.expiry_date ? new Date(row.expiry_date) < new Date() : false;
-                const hasSubmitted = row.status === 'completed' || row.status === 'graded' || row.status === 'reviewed' || row.status === 'pending' || row.score !== null;
+                const isDroppedOut = row.approval_status === 'inactive' || row.approval_status === 'rejected';
+                const isExpired = row.expiry_date ? new Date(row.expiry_date).getTime() < Date.now() : false;
+                const hasSubmitted = row.has_submitted === true || row.status === 'completed' || row.status === 'graded' || row.status === 'reviewed';
                 const exitedTest = row.status === 'started_not_submitted';
-                const isActive = row.status === 'active' || row.status === 'in_progress';
-                
+                const hasExpiry = Boolean(row.expiry_date);
+                const isActive = !hasSubmitted && !isExpired && !isDroppedOut && hasExpiry;
+
                 let label = "Active";
                 let colorClass = "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
-                
-                if (exitedTest) {
+
+                if (isDroppedOut) {
+                    label = "Dropped Out";
+                    colorClass = "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800";
+                } else if (exitedTest) {
                     label = "Exited Test";
                     colorClass = "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800";
                 } else if (hasSubmitted) {
-                    label = row.status === 'completed' || row.status === 'graded' ? "Completed" : "Submitted";
+                    label = (row.status === 'completed' || row.status === 'graded') ? "Completed" : "Submitted";
                     colorClass = "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800";
-                } else if (isExpired) {
+                } else if (isExpired && hasExpiry) {
                     label = "Time End";
                     colorClass = "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800";
                 } else if (isActive) {
@@ -138,15 +259,23 @@ export default function ProficiencyTestResultsPage() {
                     colorClass = "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800";
                 }
 
+                if (isDroppedOut) {
+                    return (
+                        <span className={`px-2 py-1 rounded text-xs font-bold border cursor-default ${colorClass}`}>
+                            {label}
+                        </span>
+                    );
+                }
+
                 return (
                     <LiveAdminTimer
                         expiryDate={row.expiry_date}
                         label={label}
                         colorClass={colorClass}
-                        onClick={isExpired && !hasSubmitted ? () => {
+                        onClick={((isExpired && hasExpiry) || label === "Pending") && !hasSubmitted && !isDroppedOut ? () => {
                             setStudentToExtend(row);
-                            setExtraTime("");
-                            setTimeUnit("minutes");
+                            setExtraTime("24");
+                            setTimeUnit("hours");
                             setIsExtensionModalOpen(true);
                         } : undefined}
                     />
@@ -157,60 +286,72 @@ export default function ProficiencyTestResultsPage() {
             key: "status",
             label: "Status",
             render: (val) => {
-                const status = val;
                 const statusStyles = {
                     pending: 'bg-yellow-100 text-yellow-800',
                     graded: 'bg-green-100 text-green-800',
                     reviewed: 'bg-blue-100 text-blue-800',
                     completed: 'bg-green-100 text-green-800',
-                    started_not_submitted: 'bg-orange-100 text-orange-800'
+                    started_not_submitted: 'bg-orange-100 text-orange-800',
+                    not_taken: 'bg-gray-100 text-gray-600',
                 };
-
+                const label = val === 'started_not_submitted' ? 'Not Submitted'
+                    : val === 'pending' ? 'Pending Review'
+                    : val === 'not_taken' ? 'Not Taken'
+                    : val ? (val.charAt(0).toUpperCase() + val.slice(1)) : '-';
                 return (
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyles[status] || 'bg-gray-100 text-gray-800'}`}>
-                        {status === 'started_not_submitted' ? 'Not Submitted' : status === 'pending' ? 'Pending Review' : (status.charAt(0).toUpperCase() + status.slice(1))}
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyles[val] || 'bg-gray-100 text-gray-800'}`}>
+                        {label}
                     </span>
-                )
+                );
             },
         },
         {
             key: "actions",
             label: "Actions",
-            render: (_, row) => (
-                <div className="flex gap-2">
-                    {row.is_locked && row.attempt_id && (
-                    <button
-                        disabled={isUnlocking}
-                        onClick={async () => {
-                            if (!window.confirm(`Allow ${row.student_name} to retake this proficiency test?`)) return;
-                            try {
-                                await unlockProficiencyAttempt(row.attempt_id).unwrap();
-                                showToast("Student can now retake the proficiency test", "success");
-                                refetch();
-                            } catch (err: any) {
-                                showToast(err?.data?.error || "Failed to allow retake", "error");
-                            }
-                        }}
-                        className="px-3 py-1.5 text-xs font-bold rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 disabled:opacity-50"
-                        title="Allow Retake"
-                    >
-                        Allow Retake
-                    </button>
-                    )}
-                    {canView && (
-                    <button
-                        onClick={() => router.push(`/portal/admin/assessments/proficiency-tests/results/${row.id}`)}
-                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                        title="View Details"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                    </button>
-                    )}
-                </div>
-            ),
+            render: (_, row) => {
+                const deleteKey = getDeleteKey(row);
+                return (
+                    <div className="flex items-center gap-2">
+                        {/* Allow Retake — only for exited/locked attempts */}
+                        {row.is_locked && row.attempt_id && (
+                            <button
+                                disabled={isUnlocking}
+                                onClick={() => handleRetakeClick(row)}
+                                className="px-3 py-1.5 text-xs font-bold rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 disabled:opacity-50 transition-colors"
+                                title="Allow Retake"
+                            >
+                                Allow Retake
+                            </button>
+                        )}
+                        {/* View Details — only for submitted rows */}
+                        {canView && row.has_submitted && (
+                            <button
+                                onClick={() => router.push(`/portal/admin/assessments/proficiency-tests/results/${row.id}`)}
+                                className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1.5 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                title="View Details"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        )}
+                        {/* Delete */}
+                        {deleteKey && (
+                            <button
+                                disabled={isDeletingResult}
+                                onClick={() => handleDeleteClick(row)}
+                                className="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-50"
+                                title="Delete Record"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+                );
+            },
         },
     ];
  
@@ -231,14 +372,29 @@ export default function ProficiencyTestResultsPage() {
                     />
                 </div>
             </main>
+
+            {/* ── Delete Confirmation Modal ── */}
+            <ConfirmDeleteModal
+                isOpen={deleteModalOpen}
+                onClose={() => { setDeleteModalOpen(false); setRowToDelete(null); }}
+                onConfirm={handleDeleteConfirm}
+                studentName={rowToDelete?.student_name || rowToDelete?.name || rowToDelete?.full_name}
+                isLoading={isDeletingResult}
+            />
+
+            {/* ── Allow Retake Confirmation Modal ── */}
+            <ConfirmRetakeModal
+                isOpen={retakeModalOpen}
+                onClose={() => { setRetakeModalOpen(false); setRowToRetake(null); }}
+                onConfirm={handleRetakeConfirm}
+                studentName={rowToRetake?.student_name || rowToRetake?.name || rowToRetake?.full_name}
+                isLoading={isUnlocking}
+            />
  
-            {/* Access Time Extension Modal */}
+            {/* ── Access Time Extension Modal ── */}
             {isExtensionModalOpen && studentToExtend && (
                 <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-                    <div
-                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                        onClick={() => setIsExtensionModalOpen(false)}
-                    />
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsExtensionModalOpen(false)} />
                     <div className="relative w-full max-w-md rounded-2xl shadow-2xl p-6 border bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 space-y-6">
                         <div className="flex items-center justify-between border-b pb-4 dark:border-gray-700">
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -282,10 +438,7 @@ export default function ProficiencyTestResultsPage() {
                         </div>
 
                         <div className="flex justify-end gap-3 pt-2">
-                            <button
-                                onClick={() => setIsExtensionModalOpen(false)}
-                                className="px-6 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-colors"
-                            >
+                            <button onClick={() => setIsExtensionModalOpen(false)} className="px-6 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-colors">
                                 Cancel
                             </button>
                             <button
@@ -296,23 +449,19 @@ export default function ProficiencyTestResultsPage() {
                                     }
                                     const durationMinutes = timeUnit === "hours" ? parseInt(extraTime) * 60 : parseInt(extraTime);
                                     try {
-                                        const isCandidate = studentToExtend.is_candidate;
-                                        if (isCandidate) {
-                                            await extendCandidateDeadline({
-                                                id: studentToExtend.student_id,
-                                                durationMinutes: durationMinutes
-                                            }).unwrap();
+                                        const sId = studentToExtend.student_id;
+                                        const isIelts = sId && (sId.startsWith("BEA-ST-GEN") || sId.includes("IELTS") || sId.includes("TOEFL"));
+                                        if (isIelts) {
+                                            await extendIeltsDeadline({ id: sId, durationMinutes }).unwrap();
+                                        } else if (studentToExtend.is_candidate) {
+                                            await extendCandidateDeadline({ id: sId, durationMinutes }).unwrap();
                                         } else {
-                                            await extendStudentDeadline({
-                                                id: studentToExtend.student_id,
-                                                durationMinutes: durationMinutes
-                                            }).unwrap();
+                                            await extendStudentDeadline({ id: sId, durationMinutes }).unwrap();
                                         }
                                         showToast("Extra time added successfully!", "success");
                                         setIsExtensionModalOpen(false);
                                         refetch();
                                     } catch (err: any) {
-                                        console.error("Failed to extend deadline:", err);
                                         showToast(err?.data?.error || "Failed to extend access time", "error");
                                     }
                                 }}

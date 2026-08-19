@@ -142,11 +142,11 @@ const AssignmentCompletionChart = ({ programs = [], classes = [], students = [] 
                                 dataKey="label"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: '#6b7280', fontSize: 11 }}
+                                tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 500 }}
                                 interval={0}
-                                angle={chartData.length > 3 ? -20 : 0}
-                                textAnchor={chartData.length > 3 ? "end" : "middle"}
-                                height={chartData.length > 3 ? 56 : 30}
+                                angle={0}
+                                textAnchor="middle"
+                                height={35}
                             />
                             <YAxis
                                 axisLine={false}

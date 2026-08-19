@@ -32,14 +32,29 @@ export const createTeacher = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    let profilePictureUrl = null;
+    if (req.file) {
+      profilePictureUrl = getStoredFileUrl(req.file);
+    } else if (req.body.profile_picture) {
+      profilePictureUrl = req.body.profile_picture;
+    }
+
     const teacher = await prisma.teachers.create({
       data: {
-        full_name, email: emailStr, phone, country, city, specialization,
-        highest_qualification, 
+        full_name,
+        email: emailStr,
+        phone: phone || null,
+        country: country || null,
+        city: city || null,
+        specialization: specialization || null,
+        highest_qualification: highest_qualification || null,
         years_experience: years_experience ? parseInt(years_experience) : null,
-        bio, portfolio_link, skills,
+        bio: bio || null,
+        portfolio_link: portfolio_link || null,
+        skills: skills || null,
         hire_date: hire_date ? new Date(hire_date) : null,
-        password: hashedPassword
+        password: hashedPassword,
+        profile_picture: profilePictureUrl,
       }
     });
 
@@ -77,21 +92,57 @@ export const getTeacher = async (req, res) => {
 export const updateTeacher = async (req, res) => {
   try {
     const { id } = req.params;
-    const existing = await prisma.teachers.findUnique({ where: { id: parseInt(id) } });
+    const teacherId = parseInt(id);
+    if (isNaN(teacherId)) return res.status(400).json({ error: "Invalid teacher ID" });
+
+    const existing = await prisma.teachers.findUnique({ where: { id: teacherId } });
     if (!existing) return res.status(404).json({ error: "Not found" });
 
     const data = { ...req.body };
-    if (req.file) data.profile_picture = getStoredFileUrl(req.file);
-    if (data.password) {
+    // Strip fields that don't belong in the teachers table
+    delete data.id;
+    delete data.teacher_id;
+    delete data.confirmPassword;
+    delete data.confirm_password;
+    delete data.created_at;
+    delete data.updated_at;
+    delete data.remove_image;   // ← must always be removed — not a DB column
+    delete data.role;           // teachers have no role column
+
+    if (req.file) {
+      // New image uploaded → use stored URL (S3 or local)
+      data.profile_picture = getStoredFileUrl(req.file);
+    } else if (
+      req.body.remove_image === "true" ||
+      req.body.remove_image === true ||
+      req.body.profile_picture === "" ||
+      req.body.profile_picture === null ||
+      req.body.profile_picture === "null" ||
+      req.body.profile_picture === "remove"
+    ) {
+      // Explicit removal → clear the picture
+      data.profile_picture = null;
+    } else {
+      // No image action → preserve existing (don't touch profile_picture)
+      delete data.profile_picture;
+    }
+
+    if (data.password && data.password.trim() !== "") {
       const salt = await bcrypt.genSalt(10);
       data.password = await bcrypt.hash(data.password, salt);
+    } else {
+      delete data.password;
     }
     
-    if (data.years_experience) data.years_experience = parseInt(data.years_experience);
-    if (data.hire_date) data.hire_date = new Date(data.hire_date);
+    if (data.years_experience !== undefined) {
+      data.years_experience = data.years_experience ? parseInt(data.years_experience) : null;
+    }
+    if (data.hire_date !== undefined) {
+      data.hire_date = data.hire_date ? new Date(data.hire_date) : null;
+    }
 
     const updated = await prisma.teachers.update({
-      where: { id: parseInt(id) },
+      where: { id: teacherId },
       data
     });
     res.json({ message: "Updated", teacher: updated });

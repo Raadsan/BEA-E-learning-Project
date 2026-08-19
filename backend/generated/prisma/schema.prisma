@@ -406,6 +406,7 @@ model exams {
   id               Int                @id @default(autoincrement())
   title            String             @db.VarChar(255)
   description      String?            @db.Text
+  instructions     String?            @db.Text
   start_date       DateTime?          @db.DateTime(0)
   end_date         DateTime?          @db.DateTime(0)
   class_id         Int?
@@ -704,7 +705,7 @@ model placement_test_results {
   id                Int                            @id @default(autoincrement())
   student_id        String?                        @db.VarChar(50)
   test_id           Int
-  score             Int
+  score             Decimal?                       @db.Decimal(5, 2)
   total_questions   Int
   percentage        Decimal                        @db.Decimal(5, 2)
   recommended_level String?                        @db.VarChar(50)
@@ -795,6 +796,7 @@ model program_payment_packages {
 model programs {
   id                       Int                        @id @default(autoincrement())
   image                    String?                    @db.VarChar(255)
+  program_code             String?                    @db.VarChar(50)
   title                    String                     @db.VarChar(255)
   description              String?                    @db.Text
   created_at               DateTime                   @default(now()) @db.Timestamp(0)

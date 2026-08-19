@@ -299,7 +299,25 @@ export const updateStudent = async (req, res) => {
     if (!existing) return res.status(404).json({ success: false, error: "Not found" });
 
     const data = { ...req.body };
-    if (req.file) data.profile_picture = getStoredFileUrl(req.file);
+    if (req.file) {
+      // New image uploaded → store URL
+      data.profile_picture = getStoredFileUrl(req.file);
+    } else if (
+      req.body.remove_image === "true" ||
+      req.body.remove_image === true ||
+      req.body.profile_picture === "" ||
+      req.body.profile_picture === null ||
+      req.body.profile_picture === "null" ||
+      req.body.profile_picture === "remove"
+    ) {
+      // Explicit removal → clear the picture
+      data.profile_picture = null;
+    } else {
+      // No image action → preserve existing (don't touch)
+      delete data.profile_picture;
+    }
+    // remove_image is never a DB column — must always be stripped
+    delete data.remove_image;
 
     // The general students table stores a single full_name value. The shared
     // admin form also sends IELTS/proficiency-only fields, which Prisma rejects.

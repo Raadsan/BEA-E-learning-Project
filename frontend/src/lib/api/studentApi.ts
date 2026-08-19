@@ -76,12 +76,15 @@ export const studentApi = createApi({
         let id;
         let body;
 
-        if (data instanceof FormData) {
+        if (data && typeof data === 'object' && 'id' in data && 'body' in data) {
+          id = data.id;
+          body = data.body;
+        } else if (data instanceof FormData) {
           id = data.get("id");
           body = data;
         } else {
           // Fallback for simple JSON updates if used elsewhere
-          const { id: dataId, ...rest } = data;
+          const { id: dataId, ...rest } = data || {};
           id = dataId;
           body = rest;
         }

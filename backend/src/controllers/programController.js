@@ -29,7 +29,7 @@ export const createProgram = async (req, res) => {
     const video = req.body.video || (videoFile ? getStoredFileUrl(videoFile) : null);
     const curriculum_file = curriculumFile ? getStoredFileUrl(curriculumFile) : null;
 
-    const { title, description, status, price, discount, test_required, show_on_website } = req.body;
+    const { title, program_code, description, status, price, discount, test_required, show_on_website } = req.body;
     if (!title) return res.status(400).json({ error: "Title is required" });
     if (!isYouTubeUrl(video)) return res.status(400).json({ error: "Video must be a valid YouTube URL" });
 
@@ -37,7 +37,9 @@ export const createProgram = async (req, res) => {
 
     const program = await prisma.programs.create({
       data: {
-        title, description, status, 
+        title,
+        program_code: program_code ? program_code.trim() : null,
+        description, status, 
         price: price ? parseFloat(price) : 0,
         discount: discount ? parseFloat(discount) : 0,
         test_required, image, video, curriculum_file,

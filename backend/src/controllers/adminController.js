@@ -191,14 +191,34 @@ export const updateAdmin = async (req, res) => {
         if (!existing) return res.status(404).json({ error: 'Not found' });
 
         const data = { ...req.body };
+        // Strip fields that don't belong in admins table
         delete data.confirmPassword;
+        delete data.confirm_password;
         delete data.id;
         delete data.created_by;
         delete data.created_by_name;
         delete data.updated_by;
         delete data.updated_by_name;
+        delete data.remove_image;   // ← not a DB column, must always be removed
+        delete data.profile_image;  // ← legacy field, use profile_picture only
 
-        if (req.file) data.profile_picture = getStoredFileUrl(req.file);
+        if (req.file) {
+            // New image uploaded → store URL
+            data.profile_picture = getStoredFileUrl(req.file);
+        } else if (
+            req.body.remove_image === "true" ||
+            req.body.remove_image === true ||
+            req.body.profile_picture === "" ||
+            req.body.profile_picture === null ||
+            req.body.profile_picture === "null" ||
+            req.body.profile_picture === "remove"
+        ) {
+            // Explicit removal → clear the picture
+            data.profile_picture = null;
+        } else {
+            // No image action → preserve existing (don't touch)
+            delete data.profile_picture;
+        }
 
         const nextRole = data.role || existing.role || 'super';
         if (nextRole === 'technical' || existing.role === 'technical') {

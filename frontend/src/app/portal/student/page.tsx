@@ -289,6 +289,8 @@ export default function StudentDashboard() {
         const expiryDate = getParsedExpiry(user?.expiry_date);
         const now = new Date();
         const isExpired = timeUntilExpiry.isExpired;
+        // Check if admin has granted exam access (expiry_date is in the future)
+        const isExamActive = expiryDate ? expiryDate.getTime() > now.getTime() : false;
 
         if (assessmentType === "placement") {
             // ... (keep placement logic same or update if needed)
@@ -327,6 +329,28 @@ export default function StudentDashboard() {
                     description: "Your proficiency results are under review. You will be notified once your program enrollment is finalized.",
                     icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
                     type: "completed"
+                };
+            }
+
+            // Certificate student handling
+            const isCertStudent = (ieltsInfo?.student?.verification_method || user?.verification_method || "").toLowerCase().includes("certificate");
+            if (isCertStudent) {
+                if (isExamActive) {
+                    return {
+                        title: "Proficiency Test Access Granted",
+                        description: "Administration has authorized you to take the Proficiency Test. Please start and complete your test before your window expires.",
+                        link: "/portal/student/proficiency-test",
+                        btnText: "Start Test",
+                        icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
+                        type: "action",
+                        isCountdown: true
+                    };
+                }
+                return {
+                    title: "Pending for Approval",
+                    description: "Your application is pending review by the administration. You submitted a certificate during registration and do not need to take any exam. You will be notified once your application is approved.",
+                    icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+                    type: "pending"
                 };
             }
 
@@ -410,35 +434,63 @@ export default function StudentDashboard() {
 
     // Process attendance for chart (Last 4 weeks)
     const processAttendanceData = () => {
-        if (!studentAttendance?.records || !Array.isArray(studentAttendance.records)) {
-            return [
-                { week: "Week 1", value: 0 },
-                { week: "Week 2", value: 0 },
-                { week: "Week 3", value: 0 },
-                { week: "Week 4", value: 0 },
-            ];
+        const defaultWeeks = [
+            { week: "Week 1", value: 0 },
+            { week: "Week 2", value: 0 },
+            { week: "Week 3", value: 0 },
+            { week: "Week 4", value: 0 },
+        ];
+
+        const records = studentAttendance?.records;
+        if (!records || !Array.isArray(records) || records.length === 0) {
+            return defaultWeeks;
         }
 
-        // Group by week (simple 5-session windows)
-        const records = [...studentAttendance.records].reverse(); // Oldest first
+        // Calculate weekly attendance for the last 4 7-day periods
+        const now = new Date();
+        const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
         const weeks = [];
 
-        for (let i = 0; i < 4; i++) {
-            const weekRecords = records.slice(i * 5, (i + 1) * 5);
-            if (weekRecords.length === 0) {
-                weeks.push({ week: `Week ${4 - i}`, value: 0 });
-                continue;
-            }
+        for (let i = 3; i >= 0; i--) {
+            const weekEnd = new Date(now.getTime() - i * oneWeekMs);
+            const weekStart = new Date(now.getTime() - (i + 1) * oneWeekMs);
 
-            const attended = weekRecords.reduce((acc, r) => acc + (r.hour1 === 1 ? 1 : 0) + (r.hour2 === 1 ? 1 : 0), 0);
-            const total = weekRecords.length * 2;
-            weeks.push({
-                week: `Week ${4 - i}`,
-                value: Math.round((attended / total) * 100)
+            const weekRecords = records.filter(r => {
+                if (!r.date) return false;
+                const d = new Date(r.date);
+                return d >= weekStart && d < weekEnd;
+            });
+
+            const weekLabel = `Week ${4 - i}`;
+
+            if (weekRecords.length === 0) {
+                weeks.push({ week: weekLabel, value: 0 });
+            } else {
+                const attended = weekRecords.reduce((acc, r) => acc + (r.hour1 === 1 ? 1 : 0) + (r.hour2 === 1 ? 1 : 0), 0);
+                const total = weekRecords.length * 2;
+                const rate = total > 0 ? Math.round((attended / total) * 100) : 0;
+                weeks.push({ week: weekLabel, value: rate });
+            }
+        }
+
+        // If no records fell in the strict recent calendar weeks, group available records into 4 chronological blocks
+        const hasAnyData = weeks.some(w => w.value > 0);
+        if (!hasAnyData && records.length > 0) {
+            const sorted = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            const chunkSize = Math.max(1, Math.ceil(sorted.length / 4));
+            return [0, 1, 2, 3].map(idx => {
+                const chunk = sorted.slice(idx * chunkSize, (idx + 1) * chunkSize);
+                if (chunk.length === 0) return { week: `Week ${idx + 1}`, value: 0 };
+                const att = chunk.reduce((acc, r) => acc + (r.hour1 === 1 ? 1 : 0) + (r.hour2 === 1 ? 1 : 0), 0);
+                const tot = chunk.length * 2;
+                return {
+                    week: `Week ${idx + 1}`,
+                    value: tot > 0 ? Math.round((att / tot) * 100) : 0
+                };
             });
         }
 
-        return weeks.reverse();
+        return weeks;
     };
 
     const attendanceData = processAttendanceData();

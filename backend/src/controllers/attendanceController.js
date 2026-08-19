@@ -131,32 +131,141 @@ export const getAttendanceReport = async (req, res) => {
     }
 };
 
-// GET STATS (Simplified)
+// GET STATS (Dynamic Attendance Stats for Admin & Teacher)
 export const getStats = async (req, res) => {
     try {
-        const { class_id, program_id } = req.query;
+        const { class_id, program_id, timeFrame = 'Weekly' } = req.query;
         const where = {};
-        if (class_id) where.class_id = parseInt(class_id);
-        
+        const now = new Date();
+
+        // Scope to teacher's classes if logged-in user is a teacher
+        if (req.user && req.user.role === 'teacher') {
+            const teacherId = parseInt(req.user.userId || req.user.id);
+            const teacherClasses = await prisma.classes.findMany({
+                where: { teacher_id: teacherId },
+                select: { id: true }
+            });
+            const teacherClassIds = teacherClasses.map(c => c.id);
+            if (class_id) {
+                const requestedClassId = parseInt(class_id);
+                if (!teacherClassIds.includes(requestedClassId)) {
+                    return res.json([]);
+                }
+                where.class_id = requestedClassId;
+            } else {
+                where.class_id = { in: teacherClassIds };
+            }
+        } else {
+            // Admin or general query
+            if (class_id) {
+                where.class_id = parseInt(class_id);
+            } else if (program_id) {
+                const progId = parseInt(program_id);
+                const classesInProg = await prisma.classes.findMany({
+                    where: { program_id: progId },
+                    select: { id: true }
+                });
+                where.class_id = { in: classesInProg.map(c => c.id) };
+            }
+        }
+
+        if (timeFrame === 'Today') {
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            where.date = { gte: today };
+        } else if (timeFrame === 'Monthly') {
+            const last6Months = new Date(now);
+            last6Months.setMonth(now.getMonth() - 5);
+            last6Months.setDate(1);
+            where.date = { gte: last6Months };
+        } else if (timeFrame === 'Yearly') {
+            const lastYear = new Date(now);
+            lastYear.setFullYear(now.getFullYear() - 1);
+            where.date = { gte: lastYear };
+        } else {
+            // Weekly / Daily: look back 90 days to capture all term cycles & recent sessions
+            const lookback = new Date(now);
+            lookback.setDate(now.getDate() - 90);
+            where.date = { gte: lookback };
+        }
+
         const attendance = await prisma.attendance.findMany({
             where,
             orderBy: { date: 'asc' }
         });
 
-        // Basic grouping logic for stats
-        const stats = attendance.reduce((acc, curr) => {
-            const dateStr = curr.date.toISOString().split('T')[0];
-            if (!acc[dateStr]) acc[dateStr] = { name: dateStr, attended: 0, absent: 0 };
-            
-            const isAttended = curr.hour1 === 1 || curr.hour2 === 1;
-            if (isAttended) acc[dateStr].attended++;
-            else acc[dateStr].absent++;
-            
-            return acc;
-        }, {});
+        const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const dayNamesShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const stats = {};
 
-        res.json(Object.values(stats));
+        for (const curr of attendance) {
+            const d = new Date(curr.date);
+            const dateIso = d.toISOString().split('T')[0];
+            const dayName = dayNamesShort[d.getUTCDay() !== undefined ? d.getUTCDay() : d.getDay()];
+            let key = dateIso;
+            let displayName = `${monthNamesShort[d.getMonth()]} ${d.getDate()}`;
+
+            if (timeFrame === 'Today') {
+                displayName = 'Today';
+                key = 'Today';
+            } else if (timeFrame === 'Daily' || timeFrame === 'Weekly') {
+                displayName = `${monthNamesShort[d.getMonth()]} ${d.getDate()}`;
+                key = dateIso;
+            } else if (timeFrame === 'Monthly') {
+                const weekNum = Math.ceil(d.getDate() / 7);
+                displayName = `${monthNamesShort[d.getMonth()]} W${weekNum}`;
+                key = `${d.getFullYear()}_${d.getMonth()}_w${weekNum}`;
+            } else if (timeFrame === 'Yearly') {
+                displayName = `${monthNamesShort[d.getMonth()]} ${d.getFullYear()}`;
+                key = `${d.getFullYear()}_${d.getMonth()}`;
+            }
+
+            if (!stats[key]) {
+                stats[key] = {
+                    name: displayName,
+                    date: dateIso,
+                    dayOfWeek: dayName,
+                    attended: 0,
+                    absent: 0,
+                    total: 0,
+                    percentage: 0
+                };
+            }
+
+            const attendedHours = (curr.hour1 === 1 ? 1 : 0) + (curr.hour2 === 1 ? 1 : 0);
+            const absentHours = (curr.hour1 === 0 ? 1 : 0) + (curr.hour2 === 0 ? 1 : 0);
+
+            stats[key].attended += attendedHours;
+            stats[key].absent += absentHours;
+            stats[key].total += (attendedHours + absentHours);
+        }
+
+        const result = Object.values(stats).map(item => ({
+            ...item,
+            percentage: item.total > 0 ? Number(((item.attended / item.total) * 100).toFixed(1)) : 0
+        }));
+
+        // Baseline skeleton if empty
+        if (result.length === 0) {
+            const last7Days = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(now);
+                d.setDate(now.getDate() - i);
+                last7Days.push({
+                    name: `${monthNamesShort[d.getMonth()]} ${d.getDate()}`,
+                    date: d.toISOString().split('T')[0],
+                    dayOfWeek: dayNamesShort[d.getDay()],
+                    attended: 0,
+                    absent: 0,
+                    total: 0,
+                    percentage: 0
+                });
+            }
+            return res.json(last7Days);
+        }
+
+        res.json(result);
     } catch (err) {
+        console.error("getStats error:", err);
         res.status(500).json({ error: err.message });
     }
 };

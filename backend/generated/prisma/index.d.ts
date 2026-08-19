@@ -27815,6 +27815,7 @@ export namespace Prisma {
     id: number | null
     title: string | null
     description: string | null
+    instructions: string | null
     start_date: Date | null
     end_date: Date | null
     class_id: number | null
@@ -27835,6 +27836,7 @@ export namespace Prisma {
     id: number | null
     title: string | null
     description: string | null
+    instructions: string | null
     start_date: Date | null
     end_date: Date | null
     class_id: number | null
@@ -27855,6 +27857,7 @@ export namespace Prisma {
     id: number
     title: number
     description: number
+    instructions: number
     start_date: number
     end_date: number
     class_id: number
@@ -27897,6 +27900,7 @@ export namespace Prisma {
     id?: true
     title?: true
     description?: true
+    instructions?: true
     start_date?: true
     end_date?: true
     class_id?: true
@@ -27917,6 +27921,7 @@ export namespace Prisma {
     id?: true
     title?: true
     description?: true
+    instructions?: true
     start_date?: true
     end_date?: true
     class_id?: true
@@ -27937,6 +27942,7 @@ export namespace Prisma {
     id?: true
     title?: true
     description?: true
+    instructions?: true
     start_date?: true
     end_date?: true
     class_id?: true
@@ -28044,6 +28050,7 @@ export namespace Prisma {
     id: number
     title: string
     description: string | null
+    instructions: string | null
     start_date: Date | null
     end_date: Date | null
     class_id: number | null
@@ -28083,6 +28090,7 @@ export namespace Prisma {
     id?: boolean
     title?: boolean
     description?: boolean
+    instructions?: boolean
     start_date?: boolean
     end_date?: boolean
     class_id?: boolean
@@ -28107,6 +28115,7 @@ export namespace Prisma {
     id?: boolean
     title?: boolean
     description?: boolean
+    instructions?: boolean
     start_date?: boolean
     end_date?: boolean
     class_id?: boolean
@@ -28123,7 +28132,7 @@ export namespace Prisma {
     media_url?: boolean
   }
 
-  export type examsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "start_date" | "end_date" | "class_id" | "program_id" | "subprogram_id" | "due_date" | "total_points" | "status" | "created_by" | "duration" | "questions" | "created_at" | "updated_at" | "media_url", ExtArgs["result"]["exams"]>
+  export type examsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "instructions" | "start_date" | "end_date" | "class_id" | "program_id" | "subprogram_id" | "due_date" | "total_points" | "status" | "created_by" | "duration" | "questions" | "created_at" | "updated_at" | "media_url", ExtArgs["result"]["exams"]>
   export type examsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     exam_submissions?: boolean | exams$exam_submissionsArgs<ExtArgs>
     _count?: boolean | ExamsCountOutputTypeDefaultArgs<ExtArgs>
@@ -28138,6 +28147,7 @@ export namespace Prisma {
       id: number
       title: string
       description: string | null
+      instructions: string | null
       start_date: Date | null
       end_date: Date | null
       class_id: number | null
@@ -28525,6 +28535,7 @@ export namespace Prisma {
     readonly id: FieldRef<"exams", 'Int'>
     readonly title: FieldRef<"exams", 'String'>
     readonly description: FieldRef<"exams", 'String'>
+    readonly instructions: FieldRef<"exams", 'String'>
     readonly start_date: FieldRef<"exams", 'DateTime'>
     readonly end_date: FieldRef<"exams", 'DateTime'>
     readonly class_id: FieldRef<"exams", 'Int'>
@@ -47086,7 +47097,7 @@ export namespace Prisma {
   export type Placement_test_resultsAvgAggregateOutputType = {
     id: number | null
     test_id: number | null
-    score: number | null
+    score: Decimal | null
     total_questions: number | null
     percentage: Decimal | null
     oral_review_marks: Decimal | null
@@ -47095,7 +47106,7 @@ export namespace Prisma {
   export type Placement_test_resultsSumAggregateOutputType = {
     id: number | null
     test_id: number | null
-    score: number | null
+    score: Decimal | null
     total_questions: number | null
     percentage: Decimal | null
     oral_review_marks: Decimal | null
@@ -47105,7 +47116,7 @@ export namespace Prisma {
     id: number | null
     student_id: string | null
     test_id: number | null
-    score: number | null
+    score: Decimal | null
     total_questions: number | null
     percentage: Decimal | null
     recommended_level: string | null
@@ -47120,7 +47131,7 @@ export namespace Prisma {
     id: number | null
     student_id: string | null
     test_id: number | null
-    score: number | null
+    score: Decimal | null
     total_questions: number | null
     percentage: Decimal | null
     recommended_level: string | null
@@ -47304,7 +47315,7 @@ export namespace Prisma {
     id: number
     student_id: string | null
     test_id: number
-    score: number
+    score: Decimal | null
     total_questions: number
     percentage: Decimal
     recommended_level: string | null
@@ -47378,7 +47389,7 @@ export namespace Prisma {
       id: number
       student_id: string | null
       test_id: number
-      score: number
+      score: Prisma.Decimal | null
       total_questions: number
       percentage: Prisma.Decimal
       recommended_level: string | null
@@ -47760,7 +47771,7 @@ export namespace Prisma {
     readonly id: FieldRef<"placement_test_results", 'Int'>
     readonly student_id: FieldRef<"placement_test_results", 'String'>
     readonly test_id: FieldRef<"placement_test_results", 'Int'>
-    readonly score: FieldRef<"placement_test_results", 'Int'>
+    readonly score: FieldRef<"placement_test_results", 'Decimal'>
     readonly total_questions: FieldRef<"placement_test_results", 'Int'>
     readonly percentage: FieldRef<"placement_test_results", 'Decimal'>
     readonly recommended_level: FieldRef<"placement_test_results", 'String'>
@@ -53100,6 +53111,7 @@ export namespace Prisma {
   export type ProgramsMinAggregateOutputType = {
     id: number | null
     image: string | null
+    program_code: string | null
     title: string | null
     description: string | null
     created_at: Date | null
@@ -53120,6 +53132,7 @@ export namespace Prisma {
   export type ProgramsMaxAggregateOutputType = {
     id: number | null
     image: string | null
+    program_code: string | null
     title: string | null
     description: string | null
     created_at: Date | null
@@ -53140,6 +53153,7 @@ export namespace Prisma {
   export type ProgramsCountAggregateOutputType = {
     id: number
     image: number
+    program_code: number
     title: number
     description: number
     created_at: number
@@ -53178,6 +53192,7 @@ export namespace Prisma {
   export type ProgramsMinAggregateInputType = {
     id?: true
     image?: true
+    program_code?: true
     title?: true
     description?: true
     created_at?: true
@@ -53198,6 +53213,7 @@ export namespace Prisma {
   export type ProgramsMaxAggregateInputType = {
     id?: true
     image?: true
+    program_code?: true
     title?: true
     description?: true
     created_at?: true
@@ -53218,6 +53234,7 @@ export namespace Prisma {
   export type ProgramsCountAggregateInputType = {
     id?: true
     image?: true
+    program_code?: true
     title?: true
     description?: true
     created_at?: true
@@ -53325,6 +53342,7 @@ export namespace Prisma {
   export type ProgramsGroupByOutputType = {
     id: number
     image: string | null
+    program_code: string | null
     title: string
     description: string | null
     created_at: Date
@@ -53364,6 +53382,7 @@ export namespace Prisma {
   export type programsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     image?: boolean
+    program_code?: boolean
     title?: boolean
     description?: boolean
     created_at?: boolean
@@ -53392,6 +53411,7 @@ export namespace Prisma {
   export type programsSelectScalar = {
     id?: boolean
     image?: boolean
+    program_code?: boolean
     title?: boolean
     description?: boolean
     created_at?: boolean
@@ -53409,7 +53429,7 @@ export namespace Prisma {
     updated_by_name?: boolean
   }
 
-  export type programsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "image" | "title" | "description" | "created_at" | "video" | "status" | "price" | "discount" | "curriculum_file" | "test_required" | "show_on_website" | "updated_at" | "created_by" | "updated_by" | "created_by_name" | "updated_by_name", ExtArgs["result"]["programs"]>
+  export type programsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "image" | "program_code" | "title" | "description" | "created_at" | "video" | "status" | "price" | "discount" | "curriculum_file" | "test_required" | "show_on_website" | "updated_at" | "created_by" | "updated_by" | "created_by_name" | "updated_by_name", ExtArgs["result"]["programs"]>
   export type programsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     academic_calendar?: boolean | programs$academic_calendarArgs<ExtArgs>
     learning_materials?: boolean | programs$learning_materialsArgs<ExtArgs>
@@ -53431,6 +53451,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: number
       image: string | null
+      program_code: string | null
       title: string
       description: string | null
       created_at: Date
@@ -53822,6 +53843,7 @@ export namespace Prisma {
   interface programsFieldRefs {
     readonly id: FieldRef<"programs", 'Int'>
     readonly image: FieldRef<"programs", 'String'>
+    readonly program_code: FieldRef<"programs", 'String'>
     readonly title: FieldRef<"programs", 'String'>
     readonly description: FieldRef<"programs", 'String'>
     readonly created_at: FieldRef<"programs", 'DateTime'>
@@ -73965,6 +73987,7 @@ export namespace Prisma {
     id: 'id',
     title: 'title',
     description: 'description',
+    instructions: 'instructions',
     start_date: 'start_date',
     end_date: 'end_date',
     class_id: 'class_id',
@@ -74373,6 +74396,7 @@ export namespace Prisma {
   export const ProgramsScalarFieldEnum: {
     id: 'id',
     image: 'image',
+    program_code: 'program_code',
     title: 'title',
     description: 'description',
     created_at: 'created_at',
@@ -75002,6 +75026,7 @@ export namespace Prisma {
   export const examsOrderByRelevanceFieldEnum: {
     title: 'title',
     description: 'description',
+    instructions: 'instructions',
     questions: 'questions',
     media_url: 'media_url'
   };
@@ -75260,6 +75285,7 @@ export namespace Prisma {
 
   export const programsOrderByRelevanceFieldEnum: {
     image: 'image',
+    program_code: 'program_code',
     title: 'title',
     description: 'description',
     video: 'video',
@@ -77816,6 +77842,7 @@ export namespace Prisma {
     id?: IntFilter<"exams"> | number
     title?: StringFilter<"exams"> | string
     description?: StringNullableFilter<"exams"> | string | null
+    instructions?: StringNullableFilter<"exams"> | string | null
     start_date?: DateTimeNullableFilter<"exams"> | Date | string | null
     end_date?: DateTimeNullableFilter<"exams"> | Date | string | null
     class_id?: IntNullableFilter<"exams"> | number | null
@@ -77837,6 +77864,7 @@ export namespace Prisma {
     id?: SortOrder
     title?: SortOrder
     description?: SortOrderInput | SortOrder
+    instructions?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     end_date?: SortOrderInput | SortOrder
     class_id?: SortOrderInput | SortOrder
@@ -77862,6 +77890,7 @@ export namespace Prisma {
     NOT?: examsWhereInput | examsWhereInput[]
     title?: StringFilter<"exams"> | string
     description?: StringNullableFilter<"exams"> | string | null
+    instructions?: StringNullableFilter<"exams"> | string | null
     start_date?: DateTimeNullableFilter<"exams"> | Date | string | null
     end_date?: DateTimeNullableFilter<"exams"> | Date | string | null
     class_id?: IntNullableFilter<"exams"> | number | null
@@ -77883,6 +77912,7 @@ export namespace Prisma {
     id?: SortOrder
     title?: SortOrder
     description?: SortOrderInput | SortOrder
+    instructions?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     end_date?: SortOrderInput | SortOrder
     class_id?: SortOrderInput | SortOrder
@@ -77911,6 +77941,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"exams"> | number
     title?: StringWithAggregatesFilter<"exams"> | string
     description?: StringNullableWithAggregatesFilter<"exams"> | string | null
+    instructions?: StringNullableWithAggregatesFilter<"exams"> | string | null
     start_date?: DateTimeNullableWithAggregatesFilter<"exams"> | Date | string | null
     end_date?: DateTimeNullableWithAggregatesFilter<"exams"> | Date | string | null
     class_id?: IntNullableWithAggregatesFilter<"exams"> | number | null
@@ -79444,7 +79475,7 @@ export namespace Prisma {
     id?: IntFilter<"placement_test_results"> | number
     student_id?: StringNullableFilter<"placement_test_results"> | string | null
     test_id?: IntFilter<"placement_test_results"> | number
-    score?: IntFilter<"placement_test_results"> | number
+    score?: DecimalNullableFilter<"placement_test_results"> | Decimal | DecimalJsLike | number | string | null
     total_questions?: IntFilter<"placement_test_results"> | number
     percentage?: DecimalFilter<"placement_test_results"> | Decimal | DecimalJsLike | number | string
     recommended_level?: StringNullableFilter<"placement_test_results"> | string | null
@@ -79460,7 +79491,7 @@ export namespace Prisma {
     id?: SortOrder
     student_id?: SortOrderInput | SortOrder
     test_id?: SortOrder
-    score?: SortOrder
+    score?: SortOrderInput | SortOrder
     total_questions?: SortOrder
     percentage?: SortOrder
     recommended_level?: SortOrderInput | SortOrder
@@ -79480,7 +79511,7 @@ export namespace Prisma {
     NOT?: placement_test_resultsWhereInput | placement_test_resultsWhereInput[]
     student_id?: StringNullableFilter<"placement_test_results"> | string | null
     test_id?: IntFilter<"placement_test_results"> | number
-    score?: IntFilter<"placement_test_results"> | number
+    score?: DecimalNullableFilter<"placement_test_results"> | Decimal | DecimalJsLike | number | string | null
     total_questions?: IntFilter<"placement_test_results"> | number
     percentage?: DecimalFilter<"placement_test_results"> | Decimal | DecimalJsLike | number | string
     recommended_level?: StringNullableFilter<"placement_test_results"> | string | null
@@ -79496,7 +79527,7 @@ export namespace Prisma {
     id?: SortOrder
     student_id?: SortOrderInput | SortOrder
     test_id?: SortOrder
-    score?: SortOrder
+    score?: SortOrderInput | SortOrder
     total_questions?: SortOrder
     percentage?: SortOrder
     recommended_level?: SortOrderInput | SortOrder
@@ -79520,7 +79551,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"placement_test_results"> | number
     student_id?: StringNullableWithAggregatesFilter<"placement_test_results"> | string | null
     test_id?: IntWithAggregatesFilter<"placement_test_results"> | number
-    score?: IntWithAggregatesFilter<"placement_test_results"> | number
+    score?: DecimalNullableWithAggregatesFilter<"placement_test_results"> | Decimal | DecimalJsLike | number | string | null
     total_questions?: IntWithAggregatesFilter<"placement_test_results"> | number
     percentage?: DecimalWithAggregatesFilter<"placement_test_results"> | Decimal | DecimalJsLike | number | string
     recommended_level?: StringNullableWithAggregatesFilter<"placement_test_results"> | string | null
@@ -79901,6 +79932,7 @@ export namespace Prisma {
     NOT?: programsWhereInput | programsWhereInput[]
     id?: IntFilter<"programs"> | number
     image?: StringNullableFilter<"programs"> | string | null
+    program_code?: StringNullableFilter<"programs"> | string | null
     title?: StringFilter<"programs"> | string
     description?: StringNullableFilter<"programs"> | string | null
     created_at?: DateTimeFilter<"programs"> | Date | string
@@ -79926,6 +79958,7 @@ export namespace Prisma {
   export type programsOrderByWithRelationInput = {
     id?: SortOrder
     image?: SortOrderInput | SortOrder
+    program_code?: SortOrderInput | SortOrder
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     created_at?: SortOrder
@@ -79955,6 +79988,7 @@ export namespace Prisma {
     OR?: programsWhereInput[]
     NOT?: programsWhereInput | programsWhereInput[]
     image?: StringNullableFilter<"programs"> | string | null
+    program_code?: StringNullableFilter<"programs"> | string | null
     title?: StringFilter<"programs"> | string
     description?: StringNullableFilter<"programs"> | string | null
     created_at?: DateTimeFilter<"programs"> | Date | string
@@ -79980,6 +80014,7 @@ export namespace Prisma {
   export type programsOrderByWithAggregationInput = {
     id?: SortOrder
     image?: SortOrderInput | SortOrder
+    program_code?: SortOrderInput | SortOrder
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     created_at?: SortOrder
@@ -80008,6 +80043,7 @@ export namespace Prisma {
     NOT?: programsScalarWhereWithAggregatesInput | programsScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"programs"> | number
     image?: StringNullableWithAggregatesFilter<"programs"> | string | null
+    program_code?: StringNullableWithAggregatesFilter<"programs"> | string | null
     title?: StringWithAggregatesFilter<"programs"> | string
     description?: StringNullableWithAggregatesFilter<"programs"> | string | null
     created_at?: DateTimeWithAggregatesFilter<"programs"> | Date | string
@@ -84020,6 +84056,7 @@ export namespace Prisma {
   export type examsCreateInput = {
     title: string
     description?: string | null
+    instructions?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     class_id?: number | null
@@ -84041,6 +84078,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
+    instructions?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     class_id?: number | null
@@ -84061,6 +84099,7 @@ export namespace Prisma {
   export type examsUpdateInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    instructions?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     class_id?: NullableIntFieldUpdateOperationsInput | number | null
@@ -84082,6 +84121,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    instructions?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     class_id?: NullableIntFieldUpdateOperationsInput | number | null
@@ -84103,6 +84143,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
+    instructions?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     class_id?: number | null
@@ -84122,6 +84163,7 @@ export namespace Prisma {
   export type examsUpdateManyMutationInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    instructions?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     class_id?: NullableIntFieldUpdateOperationsInput | number | null
@@ -84142,6 +84184,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    instructions?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     class_id?: NullableIntFieldUpdateOperationsInput | number | null
@@ -85816,7 +85859,7 @@ export namespace Prisma {
   export type placement_test_resultsCreateInput = {
     student_id?: string | null
     test_id: number
-    score: number
+    score?: Decimal | DecimalJsLike | number | string | null
     total_questions: number
     percentage: Decimal | DecimalJsLike | number | string
     recommended_level?: string | null
@@ -85832,7 +85875,7 @@ export namespace Prisma {
     id?: number
     student_id?: string | null
     test_id: number
-    score: number
+    score?: Decimal | DecimalJsLike | number | string | null
     total_questions: number
     percentage: Decimal | DecimalJsLike | number | string
     recommended_level?: string | null
@@ -85847,7 +85890,7 @@ export namespace Prisma {
   export type placement_test_resultsUpdateInput = {
     student_id?: NullableStringFieldUpdateOperationsInput | string | null
     test_id?: IntFieldUpdateOperationsInput | number
-    score?: IntFieldUpdateOperationsInput | number
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     total_questions?: IntFieldUpdateOperationsInput | number
     percentage?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     recommended_level?: NullableStringFieldUpdateOperationsInput | string | null
@@ -85863,7 +85906,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     student_id?: NullableStringFieldUpdateOperationsInput | string | null
     test_id?: IntFieldUpdateOperationsInput | number
-    score?: IntFieldUpdateOperationsInput | number
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     total_questions?: IntFieldUpdateOperationsInput | number
     percentage?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     recommended_level?: NullableStringFieldUpdateOperationsInput | string | null
@@ -85879,7 +85922,7 @@ export namespace Prisma {
     id?: number
     student_id?: string | null
     test_id: number
-    score: number
+    score?: Decimal | DecimalJsLike | number | string | null
     total_questions: number
     percentage: Decimal | DecimalJsLike | number | string
     recommended_level?: string | null
@@ -85894,7 +85937,7 @@ export namespace Prisma {
   export type placement_test_resultsUpdateManyMutationInput = {
     student_id?: NullableStringFieldUpdateOperationsInput | string | null
     test_id?: IntFieldUpdateOperationsInput | number
-    score?: IntFieldUpdateOperationsInput | number
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     total_questions?: IntFieldUpdateOperationsInput | number
     percentage?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     recommended_level?: NullableStringFieldUpdateOperationsInput | string | null
@@ -85910,7 +85953,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     student_id?: NullableStringFieldUpdateOperationsInput | string | null
     test_id?: IntFieldUpdateOperationsInput | number
-    score?: IntFieldUpdateOperationsInput | number
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     total_questions?: IntFieldUpdateOperationsInput | number
     percentage?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     recommended_level?: NullableStringFieldUpdateOperationsInput | string | null
@@ -86295,6 +86338,7 @@ export namespace Prisma {
 
   export type programsCreateInput = {
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -86320,6 +86364,7 @@ export namespace Prisma {
   export type programsUncheckedCreateInput = {
     id?: number
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -86344,6 +86389,7 @@ export namespace Prisma {
 
   export type programsUpdateInput = {
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -86369,6 +86415,7 @@ export namespace Prisma {
   export type programsUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -86394,6 +86441,7 @@ export namespace Prisma {
   export type programsCreateManyInput = {
     id?: number
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -86413,6 +86461,7 @@ export namespace Prisma {
 
   export type programsUpdateManyMutationInput = {
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -86433,6 +86482,7 @@ export namespace Prisma {
   export type programsUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -90449,6 +90499,7 @@ export namespace Prisma {
     id?: SortOrder
     title?: SortOrder
     description?: SortOrder
+    instructions?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
     class_id?: SortOrder
@@ -90479,6 +90530,7 @@ export namespace Prisma {
     id?: SortOrder
     title?: SortOrder
     description?: SortOrder
+    instructions?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
     class_id?: SortOrder
@@ -90499,6 +90551,7 @@ export namespace Prisma {
     id?: SortOrder
     title?: SortOrder
     description?: SortOrder
+    instructions?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
     class_id?: SortOrder
@@ -92304,6 +92357,7 @@ export namespace Prisma {
   export type programsCountOrderByAggregateInput = {
     id?: SortOrder
     image?: SortOrder
+    program_code?: SortOrder
     title?: SortOrder
     description?: SortOrder
     created_at?: SortOrder
@@ -92332,6 +92386,7 @@ export namespace Prisma {
   export type programsMaxOrderByAggregateInput = {
     id?: SortOrder
     image?: SortOrder
+    program_code?: SortOrder
     title?: SortOrder
     description?: SortOrder
     created_at?: SortOrder
@@ -92352,6 +92407,7 @@ export namespace Prisma {
   export type programsMinOrderByAggregateInput = {
     id?: SortOrder
     image?: SortOrder
+    program_code?: SortOrder
     title?: SortOrder
     description?: SortOrder
     created_at?: SortOrder
@@ -97015,6 +97071,7 @@ export namespace Prisma {
 
   export type programsCreateWithoutAcademic_calendarInput = {
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -97039,6 +97096,7 @@ export namespace Prisma {
   export type programsUncheckedCreateWithoutAcademic_calendarInput = {
     id?: number
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -97122,6 +97180,7 @@ export namespace Prisma {
 
   export type programsUpdateWithoutAcademic_calendarInput = {
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -97146,6 +97205,7 @@ export namespace Prisma {
   export type programsUncheckedUpdateWithoutAcademic_calendarInput = {
     id?: IntFieldUpdateOperationsInput | number
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -99508,6 +99568,7 @@ export namespace Prisma {
   export type examsCreateWithoutExam_submissionsInput = {
     title: string
     description?: string | null
+    instructions?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     class_id?: number | null
@@ -99528,6 +99589,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
+    instructions?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     class_id?: number | null
@@ -99563,6 +99625,7 @@ export namespace Prisma {
   export type examsUpdateWithoutExam_submissionsInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    instructions?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     class_id?: NullableIntFieldUpdateOperationsInput | number | null
@@ -99583,6 +99646,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    instructions?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     class_id?: NullableIntFieldUpdateOperationsInput | number | null
@@ -99762,6 +99826,7 @@ export namespace Prisma {
 
   export type programsCreateWithoutLearning_materialsInput = {
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -99786,6 +99851,7 @@ export namespace Prisma {
   export type programsUncheckedCreateWithoutLearning_materialsInput = {
     id?: number
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -99869,6 +99935,7 @@ export namespace Prisma {
 
   export type programsUpdateWithoutLearning_materialsInput = {
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -99893,6 +99960,7 @@ export namespace Prisma {
   export type programsUncheckedUpdateWithoutLearning_materialsInput = {
     id?: IntFieldUpdateOperationsInput | number
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -100618,6 +100686,7 @@ export namespace Prisma {
 
   export type programsCreateWithoutProgram_payment_packagesInput = {
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -100642,6 +100711,7 @@ export namespace Prisma {
   export type programsUncheckedCreateWithoutProgram_payment_packagesInput = {
     id?: number
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -100709,6 +100779,7 @@ export namespace Prisma {
 
   export type programsUpdateWithoutProgram_payment_packagesInput = {
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -100733,6 +100804,7 @@ export namespace Prisma {
   export type programsUncheckedUpdateWithoutProgram_payment_packagesInput = {
     id?: IntFieldUpdateOperationsInput | number
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -102136,6 +102208,7 @@ export namespace Prisma {
 
   export type programsCreateWithoutSubprogramsInput = {
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -102160,6 +102233,7 @@ export namespace Prisma {
   export type programsUncheckedCreateWithoutSubprogramsInput = {
     id?: number
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -102375,6 +102449,7 @@ export namespace Prisma {
 
   export type programsUpdateWithoutSubprogramsInput = {
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -102399,6 +102474,7 @@ export namespace Prisma {
   export type programsUncheckedUpdateWithoutSubprogramsInput = {
     id?: IntFieldUpdateOperationsInput | number
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -102814,6 +102890,7 @@ export namespace Prisma {
 
   export type programsCreateWithoutTimetablesInput = {
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -102838,6 +102915,7 @@ export namespace Prisma {
   export type programsUncheckedCreateWithoutTimetablesInput = {
     id?: number
     image?: string | null
+    program_code?: string | null
     title: string
     description?: string | null
     created_at?: Date | string
@@ -102975,6 +103053,7 @@ export namespace Prisma {
 
   export type programsUpdateWithoutTimetablesInput = {
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -102999,6 +103078,7 @@ export namespace Prisma {
   export type programsUncheckedUpdateWithoutTimetablesInput = {
     id?: IntFieldUpdateOperationsInput | number
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    program_code?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string

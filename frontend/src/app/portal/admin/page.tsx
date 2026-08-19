@@ -103,7 +103,15 @@ export default function AdminDashboard() {
       return inProgram ? acc + 1 : acc;
     }, 0);
 
-    return { name: program.title, value: 1, studentCount: count };
+    const displayName = program.program_code || program.title;
+
+    return { 
+      name: displayName,
+      program_code: program.program_code || displayName,
+      fullName: program.title,
+      value: count, 
+      studentCount: count 
+    };
   });
 
   // Calculate total students just for reference if needed, though we use studentCount now
@@ -266,7 +274,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 min-w-0 items-stretch">
             <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100 flex flex-col min-w-0 h-full overflow-hidden">
               <div className="mb-4 min-w-0 shrink-0">
                 <h2 className="text-lg font-semibold text-gray-800 dark:text-white whitespace-nowrap">Student Enrollment Data</h2>
@@ -284,8 +292,8 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Star Students - Full Width */}
-          <div className="mb-6">
+          {/* Star Students - Full Width with clean spacing */}
+          <div className="mt-8 mb-10">
             <StarStudentsList programs={programsData} classes={classesData} />
           </div>
         </div>

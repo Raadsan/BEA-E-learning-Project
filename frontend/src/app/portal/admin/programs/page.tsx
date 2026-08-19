@@ -45,7 +45,7 @@ export default function ProgramsPage() {
   });
 
   const [formData, setFormData] = useState({
-    title: "", description: "", status: "active", show_on_website: true, image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none"
+    title: "", program_code: "", description: "", status: "active", show_on_website: true, image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none"
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
@@ -86,7 +86,7 @@ export default function ProgramsPage() {
 
   const handleAddProgram = () => {
     setEditingProgram(null);
-    setFormData({ title: "", description: "", status: "active", show_on_website: true, image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none" });
+    setFormData({ title: "", program_code: "", description: "", status: "active", show_on_website: true, image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none" });
     setImagePreview(null); setVideoPreview(null);
     setIsModalOpen(true);
   };
@@ -94,7 +94,7 @@ export default function ProgramsPage() {
   const handleEdit = (program) => {
     setEditingProgram(program);
     setFormData({
-      title: program.title || "", description: program.description || "",
+      title: program.title || "", program_code: program.program_code || "", description: program.description || "",
       status: program.status || "active", image: null, video: program.video || "", curriculum: null,
       curriculum_file: program.curriculum_file || null,
       price: program.price || "", discount: program.discount || "", test_required: program.test_required || "none",
@@ -146,8 +146,8 @@ export default function ProgramsPage() {
           setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "blue" });
         } catch (error) {
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
-          console.error("Failed to update status:", error);
-          showToast("Failed to update program status", "error");
+          console.error(error);
+          showToast("Failed to update status", "error");
         }
       },
       isLoading: false, confirmButtonColor: "blue"
@@ -157,16 +157,17 @@ export default function ProgramsPage() {
   // handleDelete
   const handleDelete = (id) => {
     setConfirmationModal({
-      isOpen: true, title: "Delete Program", message: "Are you sure? This action cannot be undone.",
+      isOpen: true, title: "Delete Program",
+      message: "Are you sure you want to delete this program? This action cannot be undone.",
       onConfirm: async () => {
         setConfirmationModal(prev => ({ ...prev, isLoading: true }));
         try {
           await deleteProgram(id).unwrap();
           showToast("Program deleted successfully", "success");
-          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "red" });
+          setConfirmationModal({ isOpen: false, title: "", message: "", onConfirm: null, isLoading: false, confirmButtonColor: "blue" });
         } catch (error) {
           setConfirmationModal(prev => ({ ...prev, isLoading: false }));
-          console.error("Failed to delete program:", error);
+          console.error(error);
           showToast("Failed to delete program", "error");
         }
       },
@@ -210,7 +211,7 @@ export default function ProgramsPage() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false); setEditingProgram(null);
-    setFormData({ title: "", description: "", status: "active", show_on_website: true, image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none" });
+    setFormData({ title: "", program_code: "", description: "", status: "active", show_on_website: true, image: null, video: null, curriculum: null, curriculum_file: null, price: "", discount: "", test_required: "none" });
     setImagePreview(null); setVideoPreview(null);
   };
 
@@ -240,6 +241,7 @@ export default function ProgramsPage() {
     try {
       const submitFormData = new FormData();
       submitFormData.append("title", formData.title);
+      submitFormData.append("program_code", formData.program_code || "");
       submitFormData.append("description", formData.description);
       if (!editingProgram || formData.status !== editingProgram.status) submitFormData.append("status", formData.status);
       if (formData.image) submitFormData.append("image", formData.image);
@@ -271,7 +273,18 @@ export default function ProgramsPage() {
   };
 
   const columns = [
-    { key: "title", label: "Title" },
+    { key: "title", label: "Program Name" },
+    {
+      key: "program_code",
+      label: "Program Code",
+      render: (val: any) => val ? (
+        <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/50">
+          {val}
+        </span>
+      ) : (
+        <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
+      ),
+    },
     // {
     //   key: "media", label: "Media (Image/Video)",
     //   render: (_, row) => (

@@ -52,7 +52,10 @@ const ProgramPieChart = ({ data, unit = "Students" }) => {
                     <Tooltip
                         contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}
                         itemStyle={{ color: '#374151', fontWeight: 600 }}
-                        formatter={(value) => [`${value} ${unit}`, 'Enrolled']}
+                        formatter={(value, name, item) => [
+                            `${value} ${unit}`,
+                            item.payload.fullName ? `${item.payload.fullName} (${item.payload.program_code || item.payload.name})` : 'Enrolled'
+                        ]}
                         cursor={{ fill: '#F3F4F6' }}
                     />
                     <Legend

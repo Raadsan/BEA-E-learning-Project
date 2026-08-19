@@ -450,6 +450,7 @@ exports.Prisma.ExamsScalarFieldEnum = {
   id: 'id',
   title: 'title',
   description: 'description',
+  instructions: 'instructions',
   start_date: 'start_date',
   end_date: 'end_date',
   class_id: 'class_id',
@@ -783,6 +784,7 @@ exports.Prisma.Program_payment_packagesScalarFieldEnum = {
 exports.Prisma.ProgramsScalarFieldEnum = {
   id: 'id',
   image: 'image',
+  program_code: 'program_code',
   title: 'title',
   description: 'description',
   created_at: 'created_at',
@@ -1280,6 +1282,7 @@ exports.Prisma.exam_submissionsOrderByRelevanceFieldEnum = {
 exports.Prisma.examsOrderByRelevanceFieldEnum = {
   title: 'title',
   description: 'description',
+  instructions: 'instructions',
   questions: 'questions',
   media_url: 'media_url'
 };
@@ -1463,6 +1466,7 @@ exports.Prisma.program_payment_packagesOrderByRelevanceFieldEnum = {
 
 exports.Prisma.programsOrderByRelevanceFieldEnum = {
   image: 'image',
+  program_code: 'program_code',
   title: 'title',
   description: 'description',
   video: 'video',

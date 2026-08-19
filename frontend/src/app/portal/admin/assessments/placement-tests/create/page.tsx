@@ -232,14 +232,14 @@ export default function CreatePlacementTestPage() {
       const payload = {
         ...testData,
         questions: attachSectionMetadata(renumberQuestionsByPart(questions, PLACEMENT_MAX_PART), sectionMetadata),
-        status: "active",
+        status: testData.status || "active",
       };
       if (testId) {
         await updateTest({ id: testId, ...payload }).unwrap();
       } else {
         await createTest(payload).unwrap();
       }
-      showToast("Placement Test Published Successfully!", "success");
+      showToast("Placement Test Saved Successfully!", "success");
       router.push("/portal/admin/assessments/placement-tests");
     } catch (err) {
       showToast("Failed to finalize test", "error");
@@ -305,7 +305,7 @@ export default function CreatePlacementTestPage() {
                 Back to Tests
               </button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{testId ? 'Continue Draft' : 'Create Placement Test'}</h1>
+                <h1 className="text-3xl font-bold text-gray-900">{testId ? 'Edit Placement Test' : 'Create Placement Test'}</h1>
                 <p className="mt-2 text-gray-600">Complete the 4-part process to build a comprehensive placement test.</p>
               </div>
             </div>
@@ -340,7 +340,7 @@ export default function CreatePlacementTestPage() {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
                     <RichTextEditor value={testData.description} onChange={(description) => setTestData({ ...testData, description })} placeholder="Enter a brief description..." />
                   </div>
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Duration (minutes)</label>
                       <div className="relative">
@@ -354,6 +354,19 @@ export default function CreatePlacementTestPage() {
                         />
                         <span className="absolute right-4 top-2.5 text-gray-500 text-sm pointer-events-none">min</span>
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                      <select
+                        name="status"
+                        value={testData.status || "active"}
+                        onChange={handleTestChange}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-800 font-medium focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none cursor-pointer"
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="draft">Draft</option>
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Current Marks ({steps[currentStep - 1].title})</label>

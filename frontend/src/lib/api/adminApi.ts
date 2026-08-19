@@ -36,11 +36,14 @@ export const adminApi = createApi({
                 let id;
                 let body;
 
-                if (data instanceof FormData) {
+                if (data && typeof data === 'object' && 'id' in data && 'body' in data) {
+                    id = data.id;
+                    body = data.body;
+                } else if (data instanceof FormData) {
                     id = data.get("id");
                     body = data;
                 } else {
-                    const { id: dataId, ...rest } = data;
+                    const { id: dataId, ...rest } = data || {};
                     id = dataId;
                     body = rest;
                 }
@@ -51,7 +54,7 @@ export const adminApi = createApi({
                     body,
                 };
             },
-            invalidatesTags: (result, error, { id }) => [{ type: "Admins", id }, "Admins", "Auth"],
+            invalidatesTags: ["Admins", "Auth"],
         }),
         deleteAdmin: builder.mutation({
             query: (id) => ({

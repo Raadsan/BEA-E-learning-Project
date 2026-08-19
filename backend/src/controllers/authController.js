@@ -284,10 +284,14 @@ export const getCurrentUser = async (req, res) => {
         if (admin) {
           user = {
             ...buildAdminAuthUser(admin),
+            // Include all profile-editable fields
+            first_name: admin.first_name,
+            last_name: admin.last_name,
             username: admin.username,
             phone: admin.phone,
             bio: admin.bio,
             profile_picture: admin.profile_picture,
+            profile_image: admin.profile_image,
             created_at: admin.created_at,
           };
         }
@@ -383,6 +387,7 @@ export const getCurrentUser = async (req, res) => {
         if (user) {
           user = {
             id: user.id,
+            teacher_id: user.teacher_id,
             full_name: user.full_name,
             email: user.email,
             role: 'teacher',
@@ -392,7 +397,11 @@ export const getCurrentUser = async (req, res) => {
             specialization: user.specialization,
             bio: user.bio,
             profile_picture: user.profile_picture,
-            status: user.status
+            status: user.status,
+            hire_date: user.hire_date,
+            years_experience: user.years_experience,
+            highest_qualification: user.highest_qualification,
+            created_at: user.created_at,
           };
         }
         break;

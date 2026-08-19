@@ -28,7 +28,7 @@ export default function ProficiencyTestPage() {
         skip: !studentId,
     });
 
-    const [windowTimeLeft, setWindowTimeLeft] = React.useState(null);
+    const [windowTimeLeft, setWindowTimeLeft] = React.useState<number | null>(null);
 
     // Entry window countdown logic
     React.useEffect(() => {
@@ -36,7 +36,7 @@ export default function ProficiencyTestPage() {
         if (!expiryDateStr) return;
 
         const calculateTime = () => {
-            const getParsedExpiry = (dateVal) => {
+            const getParsedExpiry = (dateVal: any) => {
                 if (!dateVal) return null;
                 if (dateVal instanceof Date) return dateVal;
                 const dStr = dateVal.toString();
@@ -64,11 +64,9 @@ export default function ProficiencyTestPage() {
         const activeTests = tests.filter(t => t.status === 'active');
         if (activeTests.length === 0) return null;
 
-        // Pick first active test
         return activeTests[0];
     }, [tests]);
 
-    const prog = (user?.chosen_program || user?.program || "").toString().toLowerCase();
     const isProficiencyOnly = isProficiencyOnlyStudent(user);
     const hasTakenTest = results?.find(r => r.test_id === activeTest?.id);
 
@@ -78,7 +76,6 @@ export default function ProficiencyTestPage() {
         }
     }, [hasTakenTest, router, isProficiencyOnly]);
 
-    // Hook Order Fix: Compute window state and refs early
     const isWindowExpired = (windowTimeLeft !== null && windowTimeLeft <= 0) && !isProficiencyOnly;
     const prevExpiredRef = React.useRef(isWindowExpired);
 
@@ -122,28 +119,32 @@ export default function ProficiencyTestPage() {
         );
     }
 
-    // Parse questions if they are a string
     const questionsList = typeof activeTest.questions === 'string' ? JSON.parse(activeTest.questions) : activeTest.questions;
 
-    const formatWindowTime = (seconds) => {
+    const formatWindowTime = (seconds: number | null) => {
         if (seconds === null) return "Calculating...";
         if (seconds <= 0) return "Expired";
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${m}:${s.toString().padStart(2, "0")}`;
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        if (hrs > 0) {
+            return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+        }
+        return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     };
+
+    const isCertificateStudent = (studentInfo?.student?.verification_method || user?.verification_method || "").toLowerCase().includes("certificate");
 
     return (
         <main className={`flex-1 overflow-y-auto ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <div className="w-full px-8 pt-4 pb-6 flex items-center justify-center min-h-full">
-                <div className={`rounded-3xl shadow-lg p-12 max-w-2xl w-full border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
-                    }`}>
+                <div className={`rounded-3xl shadow-lg p-12 max-w-2xl w-full border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
 
-                    {/* Window Status Banner - Hide for Proficiency Only Students */}
+                    {/* Window Status Banner */}
                     {!isProficiencyOnly && (
                         <div className={`mb-8 p-4 rounded-2xl flex items-center justify-between border-2 transition-all ${isWindowExpired
                             ? 'bg-red-50 border-red-100 text-red-600'
-                            : windowTimeLeft < 120
+                            : (windowTimeLeft !== null && windowTimeLeft < 120)
                                 ? 'bg-amber-50 border-amber-100 text-amber-600 animate-pulse'
                                 : 'bg-green-50 border-green-100 text-green-600'
                             }`}>
@@ -155,7 +156,7 @@ export default function ProficiencyTestPage() {
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">Entry Window</p>
-                                    <p className="text-sm font-bold">{isWindowExpired ? "Access Blocked" : "Time to Start"}</p>
+                                    <p className="text-sm font-bold">{isWindowExpired ? (isCertificateStudent ? "Pending Review" : "Access Blocked") : "Time to Start"}</p>
                                 </div>
                             </div>
                             <div className="text-xl font-mono font-black">
@@ -188,7 +189,11 @@ export default function ProficiencyTestPage() {
                         </div>
                         <div className={`p-6 rounded-2xl flex flex-col items-center justify-center ${isDark ? 'bg-gray-750' : 'bg-gray-50'}`}>
                             <span className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Duration</span>
-                            <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{activeTest.duration_minutes} minutes</span>
+                            <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                {activeTest.duration_minutes >= 60 && activeTest.duration_minutes % 60 === 0
+                                    ? `${activeTest.duration_minutes / 60} Hours`
+                                    : `${activeTest.duration_minutes || 60} mins`}
+                            </span>
                         </div>
                     </div>
 
@@ -199,12 +204,19 @@ export default function ProficiencyTestPage() {
                         </h2>
                         <ul className={`space-y-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                             {isWindowExpired ? (
-                                <li className="flex items-start gap-3 p-4 bg-red-100 rounded-xl text-red-700 font-bold">
-                                    <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                    </svg>
-                                    <span>YOUR ENTRY WINDOW HAS EXPIRED. YOU CANNOT START THE TEST NOW. PLEASE CONTACT ADMINISTRATION FOR EXTRA TIME.</span>
-                                </li>
+                                isCertificateStudent ? (
+                                    <li className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800 font-bold">
+                                        <svg className="w-5 h-5 flex-shrink-0 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                        <span>CERTIFICATE UNDER REVIEW (PENDING): You submitted a certificate during registration. Your application is currently pending admin review. You do not need to take this exam unless Admin grants you 24-hour exam access.</span>
+                                    </li>
+                                ) : (
+                                    <li className="flex items-start gap-3 p-4 bg-red-100 rounded-xl text-red-700 font-bold">
+                                        <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                        </svg>
+                                        <span>YOUR ENTRY WINDOW HAS EXPIRED. YOU CANNOT START THE TEST NOW. PLEASE CONTACT ADMINISTRATION FOR EXTRA TIME.</span>
+                                    </li>
+                                )
                             ) : (
                                 <>
                                     <li className="flex items-start gap-3">
@@ -250,7 +262,9 @@ export default function ProficiencyTestPage() {
                                     : 'bg-[#010080] hover:bg-[#000060] text-white hover:shadow-blue-900/20 active:scale-95'
                                     }`}
                             >
-                                {isWindowExpired ? "Entry Blocked" : isStarting ? "Starting..." : "Start Proficiency Test"}
+                                {isWindowExpired
+                                    ? (isCertificateStudent ? "Pending Certificate Review" : "Entry Blocked")
+                                    : isStarting ? "Starting..." : "Start Proficiency Test"}
                             </button>
                         )}
                     </div>

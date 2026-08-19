@@ -2,11 +2,19 @@ import prisma from '../lib/prisma.js';
 
 const programAcronyms = {
     "8-Level General English Course for Adults": "GEP",
+    "GENERAL ENGLISH PROGRAM (GEP) FOR ADULTS": "GEP",
     "English For Specific Purposes Program": "ESP",
+    "ENGLISH FOR SPECIFIC PURPOSES (ESP) PROGRAM": "ESP",
+    "ENGLISH FOR SPECIFIC PURPOSES (ESP) PROGRAM ": "ESP",
     "IELTS and TOEFL Test Preparation Courses": "IELTOEF",
+    "IELTS & TOEFL TEST PREPARATION COURSES": "IELTOEF",
     "Soft Skills and Workplace Training Programs": "SSWTP",
+    "SOFT SKILLS AND WORKPLACE TRAINING PROGRAMS": "SSWTP",
     "BEA Academic Writing Program": "AWP",
+    "BEA ACADEMIC WRITING PROGRAM": "AWP",
     "Digital Literacy and Virtual Communication": "DLVCS",
+    "DIGITAL LITERACY AND VIRTUAL COMMUNICATION SKILLS PROGRAM": "DLVCS",
+    "ESL PROFIENCY CERTIFICATION PROGRAM": "PCP",
     "Proficiency Test Only": "PROFI"
 };
 
@@ -20,7 +28,34 @@ export const generateStudentId = async (tableName, programName = "") => {
     const yy = String(today.getFullYear()).slice(-2);
     const dateStr = `${yy}${mm}${dd}`;
 
-    const acronym = programAcronyms[programName] || "GEN";
+    let acronym = "GEN";
+    const cleanName = programName ? String(programName).trim() : "";
+
+    if (cleanName && programAcronyms[cleanName]) {
+        acronym = programAcronyms[cleanName];
+    } else if (cleanName && programAcronyms[cleanName.toUpperCase()]) {
+        acronym = programAcronyms[cleanName.toUpperCase()];
+    } else if (cleanName) {
+        try {
+            const progId = parseInt(cleanName, 10);
+            const prog = await prisma.programs.findFirst({
+                where: {
+                    OR: [
+                        { id: !isNaN(progId) ? progId : -1 },
+                        { title: { contains: cleanName } },
+                        { program_code: { equals: cleanName } }
+                    ]
+                },
+                select: { program_code: true }
+            });
+            if (prog && prog.program_code) {
+                acronym = prog.program_code.trim().toUpperCase();
+            }
+        } catch {
+            acronym = "GEN";
+        }
+    }
+
     const prefix = `BEA-ST-${acronym}-${dateStr}-`;
     const lookupPrefix = `BEA-ST-${acronym}-`;
 

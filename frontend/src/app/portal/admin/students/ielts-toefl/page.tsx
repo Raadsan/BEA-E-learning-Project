@@ -119,6 +119,37 @@ export default function IELTSTOEFLStudentsPage() {
   const [assignSubprogramId, setAssignSubprogramId] = useState("");
   const [assignClassId, setAssignClassId] = useState("");
 
+  // Generate Exam Access Modal State
+  const [isGenerateExamModalOpen, setIsGenerateExamModalOpen] = useState(false);
+  const [studentForExam, setStudentForExam] = useState<any>(null);
+  const [examHours, setExamHours] = useState("24");
+  const [isGeneratingExam, setIsGeneratingExam] = useState(false);
+
+  const handleOpenGenerateExamModal = (student: any) => {
+    setStudentForExam(student);
+    setExamHours("24");
+    setIsGenerateExamModalOpen(true);
+  };
+
+  const handleGenerateExamSubmit = async () => {
+    if (!studentForExam || !examHours || isNaN(Number(examHours)) || Number(examHours) <= 0) {
+      showToast("Please enter a valid number of hours", "error");
+      return;
+    }
+    setIsGeneratingExam(true);
+    try {
+      const durationMinutes = Math.round(Number(examHours) * 60);
+      await extendDeadline({ id: studentForExam.student_id, durationMinutes }).unwrap();
+      showToast(`Proficiency exam access (${examHours}h) generated and email sent to ${studentForExam.first_name || 'student'}!`, "success");
+      setIsGenerateExamModalOpen(false);
+      setStudentForExam(null);
+    } catch (err: any) {
+      showToast(err?.data?.error || "Failed to generate exam access", "error");
+    } finally {
+      setIsGeneratingExam(false);
+    }
+  };
+
   const getClassName = (classId) => {
     if (!classId) return null;
     return classes.find((c) => c.id == classId)?.class_name || null;
@@ -583,6 +614,21 @@ export default function IELTSTOEFLStudentsPage() {
       ),
     },
     {
+      key: "verification_method",
+      label: "Verification",
+      width: "140px",
+      render: (val, row) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+            {val || "Exam Booking"}
+          </span>
+          {row.certificate_document && (
+            <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold">📄 Has Certificate</span>
+          )}
+        </div>
+      ),
+    },
+    {
       key: "class_name",
       label: "Assigned Class",
       width: "130px",
@@ -637,20 +683,93 @@ export default function IELTSTOEFLStudentsPage() {
     {
       key: "actions",
       label: "Actions",
-      width: "150px",
-      render: (_, row) => (
-        <AdminTableActions
-          canView={canView}
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canAssign={canAssign}
-          onView={() => handleViewClick(row)}
-          onEdit={() => handleEditClick(row)}
-          onDelete={() => handleDeleteClick(row)}
-          onAssign={() => handleOpenAssignModal(row)}
-          assignTitle="Assign Class"
-        />
-      ),
+      width: "220px",
+      render: (_, row) => {
+        const isCert = (row.verification_method || "").toLowerCase().includes("certificate");
+        const isExamActive = row.expiry_date ? new Date(row.expiry_date).getTime() > Date.now() : false;
+        const rowStatus = (row.status || "").toLowerCase();
+        const isPending = rowStatus === "pending";
+        const isApproved = rowStatus === "approved";
+
+        return (
+          <div className="flex items-center gap-1 flex-wrap">
+            {/* View */}
+            {canView && (
+              <button
+                onClick={() => handleViewClick(row)}
+                className="text-green-600 p-1 hover:bg-green-50 dark:hover:bg-green-900/30 rounded"
+                title="View student"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+            )}
+            {/* Edit */}
+            {canEdit && (
+              <button
+                onClick={() => handleEditClick(row)}
+                className="text-blue-600 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded"
+                title="Edit student"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+            )}
+            {/* Delete */}
+            {canDelete && (
+              <button
+                onClick={() => handleDeleteClick(row)}
+                className="text-red-600 p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
+                title="Delete student"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            )}
+            {/* Assign Class — only when Approved */}
+            {canAssign && isApproved && (
+              <button
+                onClick={() => handleOpenAssignModal(row)}
+                className="text-purple-600 p-1 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded"
+                title="Assign Class"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </button>
+            )}
+            {/* Certificate student + Pending → exam grant button / active indicator */}
+            {canAssign && isCert && isPending && (
+              isExamActive ? (
+                <button
+                  onClick={() => handleOpenGenerateExamModal(row)}
+                  title="Exam Access is Active (Click to extend or re-generate)"
+                  className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-lg bg-green-50 text-green-700 border border-green-300 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700 transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                >
+                  <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Exam Active
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleOpenGenerateExamModal(row)}
+                  title="Generate Proficiency Exam Access & Send Email"
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700 transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                >
+                  <svg className="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                  Generate Exam
+                </button>
+              )
+            )}
+          </div>
+        );
+      },
     },
   ];
   if (isLoading) {
@@ -706,7 +825,7 @@ export default function IELTSTOEFLStudentsPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
                       </div>
                       <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full pl-10 pr-10 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold text-[13px] focus:ring-2 focus:ring-[#010080]/20 focus:border-[#010080] outline-none appearance-none transition-all shadow-sm hover:border-gray-300 cursor-pointer">
-                        <option value="all">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="paid">Paid</option><option value="rejected">Rejected</option>
+                        <option value="all">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option>
                       </select>
                       <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></div>
                     </div>
@@ -1066,6 +1185,118 @@ export default function IELTSTOEFLStudentsPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ── Generate Exam Access Modal ── */}
+      {isGenerateExamModalOpen && studentForExam && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => { if (!isGeneratingExam) setIsGenerateExamModalOpen(false); }}
+          />
+          <div className={`relative w-full max-w-md rounded-2xl shadow-2xl p-6 border space-y-6 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-100 text-gray-900'}`}>
+            <div className={`flex items-center justify-between border-b pb-4 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                </div>
+                Generate Proficiency Exam Access
+              </h3>
+              <button
+                disabled={isGeneratingExam}
+                onClick={() => setIsGenerateExamModalOpen(false)}
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* Student Info Card */}
+            <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-900/50 border-gray-700' : 'bg-amber-50/60 border-amber-200/60'}`}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 font-bold flex items-center justify-center flex-shrink-0">
+                  {studentForExam.first_name?.[0] || "S"}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                    {`${studentForExam.first_name || ''} ${studentForExam.last_name || ''}`}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    📧 {studentForExam.email || 'No email registered'}
+                  </p>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-400 font-medium mt-0.5">
+                    📄 Method: {studentForExam.verification_method || 'Certificate'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Hours Input */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                Exam Window Duration (Hours)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  max="168"
+                  value={examHours}
+                  onChange={(e) => setExamHours(e.target.value)}
+                  placeholder="e.g. 24"
+                  className={`w-full px-4 py-2.5 rounded-xl border font-bold text-base outline-none focus:ring-2 focus:ring-[#010080] ${isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                />
+                <div className={`px-4 py-2.5 rounded-xl border flex items-center font-bold text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-gray-300' : 'bg-gray-100 border-gray-300 text-gray-700'}`}>
+                  Hours
+                </div>
+              </div>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                Default is 24 hours. The student's countdown starts immediately upon generation.
+              </p>
+            </div>
+
+            {/* Email Notification Note */}
+            <div className={`p-3 rounded-xl border flex items-start gap-2.5 text-xs ${isDark ? 'bg-blue-950/30 border-blue-800/50 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-800'}`}>
+              <svg className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span>
+                An official email notification with portal login link will automatically be sent to <strong>{studentForExam.email}</strong>.
+              </span>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isGeneratingExam}
+                onClick={() => setIsGenerateExamModalOpen(false)}
+                className={`flex-1 px-4 py-2.5 rounded-xl border font-bold text-sm transition-all ${isDark ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'} disabled:opacity-50`}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isGeneratingExam || !examHours || Number(examHours) <= 0}
+                onClick={handleGenerateExamSubmit}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#010080] hover:bg-[#010080]/90 text-white font-bold text-sm shadow-lg shadow-[#010080]/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95"
+              >
+                {isGeneratingExam ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    Generate & Send
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

@@ -328,7 +328,10 @@ export const getAllPlacementResults = async (req, res) => {
         const placementProgramTitles = placementPrograms.map((program) => program.title);
         const eligibleStudents = placementProgramTitles.length
             ? await prisma.students.findMany({
-                where: { chosen_program: { in: placementProgramTitles } },
+                where: {
+                    chosen_program: { in: placementProgramTitles },
+                    approval_status: { notIn: ['inactive', 'rejected'] }
+                },
                 select: {
                     student_id: true,
                     full_name: true,
@@ -387,12 +390,11 @@ export const getAllPlacementResults = async (req, res) => {
                 };
             }));
 
-        // Add registered students who never entered the test, excluding dismissed ones.
+        // Add registered students who never entered the test, excluding inactive ones.
         const notTakenRows = eligibleStudents
             .filter((student) =>
                 !submittedStudentIds.has(student.student_id) &&
-                !lockedStudentIds.has(student.student_id) &&
-                student.approval_status !== 'placement_dismissed'
+                !lockedStudentIds.has(student.student_id)
             )
             .map((student) => ({
                 id: `not-taken-${student.student_id}`,
@@ -423,14 +425,34 @@ export const deletePlacementResult = async (req, res) => {
     try {
         const { resultId } = req.params;
 
-        // "student-{studentId}" — dismiss a Not Taken student from the results view
+        // "student-{studentId}" — delete student and all placement records directly from database
         if (resultId && resultId.startsWith("student-")) {
             const studentId = resultId.replace("student-", "");
-            await prisma.students.update({
-                where: { student_id: studentId },
-                data: { approval_status: 'placement_dismissed' },
-            });
-            return res.json({ message: "Student dismissed from placement results" });
+
+            // 1. Delete all placement results for this student
+            await prisma.placement_test_results.deleteMany({
+                where: { student_id: studentId }
+            }).catch(() => {});
+
+            // 2. Delete all attempt locks
+            await prisma.assessment_attempt_locks.deleteMany({
+                where: { test_type: "placement", student_id: studentId }
+            }).catch(() => {});
+
+            // 3. Delete student directly from database
+            try {
+                await prisma.payments.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+                await prisma.attendance.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+                await prisma.notifications.deleteMany({ where: { OR: [{ user_id: studentId }, { sender_id: studentId }] } }).catch(() => {});
+                await prisma.students.delete({ where: { student_id: studentId } });
+            } catch (delErr) {
+                await prisma.students.update({
+                    where: { student_id: studentId },
+                    data: { approval_status: 'inactive' },
+                }).catch(() => {});
+            }
+
+            return res.json({ message: "Record deleted successfully" });
         }
 
         // "attempt-{attemptId}" — delete an exited/time-end attempt lock

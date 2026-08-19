@@ -275,7 +275,7 @@ const DataTable = ({
                         : undefined;
 
                       const rawValue = col.render
-                        ? col.render(cellValue, row, idx)
+                        ? col.render(cellValue, row, startIdx + idx, idx)
                         : cellValue;
 
                       let cellContent = rawValue;

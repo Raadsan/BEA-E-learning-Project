@@ -79,6 +79,8 @@ export default function TakeExamPage() {
                     ...(raw.paper1.editing || []).map((item) => ({ kind: "editing", data: item })),
                     ...(raw.paper1.essay?.prompt ? [{ kind: "essay", data: raw.paper1.essay }] : []),
                 ];
+                const p1Meta = raw.paper1.sectionMeta || { sectionName: "Paper 1: Writing & Grammar" };
+                const p1Inst = raw.paper1.instructions || p1Meta.instructions || "";
                 shufflePart(paper1Items, seed + 1).forEach((item, idx) => {
                     const optionsSeed = seed + 100 + idx;
                     if (item.kind === "editing") {
@@ -94,7 +96,9 @@ export default function TakeExamPage() {
                             type: "editing",
                             questionText: editing.text,
                             options,
-                            badge: "Grammar"
+                            badge: "Grammar",
+                            sectionMeta: p1Meta,
+                            instructions: p1Inst
                         });
                     } else {
                         const essay = item.data;
@@ -106,7 +110,9 @@ export default function TakeExamPage() {
                             title: "Writing Task",
                             description: essay.prompt,
                             wordCount: essay.wordCount || 300,
-                            badge: "Essay"
+                            badge: "Essay",
+                            sectionMeta: p1Meta,
+                            instructions: p1Inst
                         });
                     }
                 });
@@ -114,6 +120,8 @@ export default function TakeExamPage() {
 
             // Paper 2: Reading
             if (raw.paper2?.questions?.length) {
+                const p2Meta = raw.paper2.sectionMeta || { sectionName: "Paper 2: Reading Comprehension" };
+                const p2Inst = raw.paper2.instructions || p2Meta.instructions || "";
                 shufflePart(raw.paper2.questions, seed + 2).forEach((q, idx) => {
                     const optionsSeed = seed + 200 + idx;
                     steps.push({
@@ -124,13 +132,17 @@ export default function TakeExamPage() {
                         questionText: q.questionText,
                         options: getShuffledOptions(q, optionsSeed),
                         questionType: q.type || "mcq",
-                        badge: "Reading"
+                        badge: "Reading",
+                        sectionMeta: p2Meta,
+                        instructions: p2Inst
                     });
                 });
             }
 
             // Paper 3: Listening
             if (raw.paper3?.questions?.length) {
+                const p3Meta = raw.paper3.sectionMeta || { sectionName: "Paper 3: Listening Comprehension" };
+                const p3Inst = raw.paper3.instructions || p3Meta.instructions || "";
                 shufflePart(raw.paper3.questions, seed + 3).forEach((q, idx) => {
                     const optionsSeed = seed + 300 + idx;
                     steps.push({
@@ -141,19 +153,24 @@ export default function TakeExamPage() {
                         questionText: q.questionText,
                         options: getShuffledOptions(q, optionsSeed),
                         questionType: q.type || "mcq",
-                        badge: "Listening"
+                        badge: "Listening",
+                        sectionMeta: p3Meta,
+                        instructions: p3Inst
                     });
                 });
             }
 
             // Paper 4: Oral
             if (raw.paper4?.passage?.trim()) {
+                const p4Meta = raw.paper4.sectionMeta || { sectionName: "Paper 4: Oral Reading / Speaking" };
+                const p4Inst = raw.paper4.instructions || p4Meta.instructions || "";
                 steps.push({
                     id: `p4_oral`,
                     part: 4,
                     type: "oral",
                     passage: raw.paper4.passage,
-                    instructions: raw.paper4.instructions,
+                    instructions: p4Inst,
+                    sectionMeta: p4Meta,
                     badge: "Oral"
                 });
             }
@@ -350,9 +367,16 @@ export default function TakeExamPage() {
                     </h1>
                     <p className="text-center text-sm text-gray-500 mb-8">Official BEA Assessment • Exam Portal</p>
 
+                    {assignment.instructions && (
+                        <div className={`p-6 rounded-2xl mb-4 border ${isDark ? 'bg-gray-750 border-gray-700' : 'bg-blue-50/50 border-blue-100'}`}>
+                            <h3 className="font-bold text-sm text-blue-900 dark:text-blue-300 uppercase tracking-wider mb-2">📋 Exam Instructions</h3>
+                            <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{assignment.instructions}</div>
+                        </div>
+                    )}
+
                     {assignment.description && (
                         <div className={`p-6 rounded-2xl mb-8 border ${isDark ? 'bg-gray-750 border-gray-700' : 'bg-blue-50/50 border-blue-100'}`}>
-                            <h3 className="font-bold text-sm text-blue-900 dark:text-blue-300 uppercase tracking-wider mb-2">Instructions & Notes</h3>
+                            <h3 className="font-bold text-sm text-blue-900 dark:text-blue-300 uppercase tracking-wider mb-2">Notes</h3>
                             <RichTextContent html={assignment.description} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed" />
                         </div>
                     )}
@@ -444,6 +468,45 @@ export default function TakeExamPage() {
                         {formatTime(timeRemaining)}
                     </div>
                 </div>
+
+                {/* Section Information & Instructions Banner */}
+                {currentStep.sectionMeta && (
+                    <div className={`p-5 rounded-xl border mb-6 transition-colors ${isDark ? 'bg-blue-950/40 border-blue-900/60' : 'bg-blue-50/70 border-blue-100'}`}>
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+                            <div className="flex items-center gap-2.5">
+                                <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-[#010080] text-white">
+                                    Part {currentStep.part}
+                                </span>
+                                <h2 className="text-base font-bold text-[#010080] dark:text-blue-300">
+                                    {currentStep.sectionMeta.sectionName || `Part ${currentStep.part} Section`}
+                                </h2>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                                {currentStep.sectionMeta.format && (
+                                    <span className="px-2 py-0.5 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                                        Format: <strong className="font-semibold">{currentStep.sectionMeta.format}</strong>
+                                    </span>
+                                )}
+                                {currentStep.sectionMeta.marks && (
+                                    <span className="px-2 py-0.5 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                                        Marks: <strong className="font-semibold">{currentStep.sectionMeta.marks} pts</strong>
+                                    </span>
+                                )}
+                                {currentStep.sectionMeta.skillsAssessed && (
+                                    <span className="px-2 py-0.5 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hidden sm:inline">
+                                        Skills: <strong className="font-semibold">{currentStep.sectionMeta.skillsAssessed}</strong>
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        {(currentStep.instructions || currentStep.sectionMeta.instructions) && (
+                            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-relaxed border-t border-blue-100/60 dark:border-blue-900/40 pt-2">
+                                <span className="font-semibold text-[#010080] dark:text-blue-400 mr-1">Instructions:</span>
+                                {currentStep.instructions || currentStep.sectionMeta.instructions}
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 {/* Main Question Card Design - Placement Test Replica */}
                 <div className={`p-10 rounded-xl border border-gray-200 min-h-[450px] shadow-sm relative ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>

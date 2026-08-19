@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
+import WebsiteSearch from "@/components/WebsiteSearch";
 
 export default function Header() {
   const [programsOpen, setProgramsOpen] = useState(false);
@@ -185,11 +186,8 @@ export default function Header() {
           {/* 3. Actions (Right Column) - Compact Spacing */}
           <div className="flex items-center justify-end gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-5">
             {/* Responsive Search Bar - Fixed Widths */}
-            <div className="hidden md:block w-40 lg:w-52 xl:w-64 2xl:w-80">
-              <div className={`flex items-center w-full px-2 md:px-3 lg:px-3 py-1.5 md:py-2 lg:py-2 rounded-lg border transition-all duration-300 focus-within:shadow-md ${isDarkMode ? 'bg-[#050040] border-blue-900/50' : 'bg-gray-50 border-gray-200 focus-within:bg-white'}`}>
-                <input type="text" placeholder="Search..." className={`outline-none text-[11px] md:text-xs bg-transparent w-full ${isDarkMode ? 'text-gray-200 placeholder-gray-500' : 'text-gray-700 placeholder-gray-400'}`} />
-                <svg className={`w-3.5 h-3.5 md:w-4 md:h-4 lg:w-4.5 lg:h-4.5 ml-1.5 md:ml-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-              </div>
+            <div className="hidden md:block w-44 lg:w-56 xl:w-64 2xl:w-80">
+              <WebsiteSearch placeholder="Search programs, tests, values..." />
             </div>
 
             <button onClick={toggleTheme} className={`p-1.5 rounded-lg transition-all duration-300 ${isDarkMode ? 'text-yellow-300 hover:text-yellow-200' : 'text-gray-600 hover:text-blue-600'}`}>
@@ -208,10 +206,9 @@ export default function Header() {
       {/* Mobile Menu - Responsive Positioning */}
       <div className={`lg:hidden fixed inset-x-0 top-[calc(1.5rem+3.5rem)] sm:top-[calc(1.5rem+4rem)] md:top-[calc(1.5rem+4.25rem)] bg-white dark:bg-[#03002e] shadow-[0_15px_30px_rgba(0,0,0,0.05)] transition-all duration-300 overflow-hidden ${mobileMenuOpen ? 'max-h-[85vh] opacity-100' : 'max-h-0 opacity-0'}`} style={{ zIndex: 45 }}>
         <div className="p-4 sm:p-5 space-y-4 overflow-y-auto max-h-[80vh]">
-          {/* Mobile Search Bar - Compact & Borderless Side */}
-          <div className={`flex items-center w-full px-4 py-2.5 rounded-xl border-b transition-all duration-300 ${isDarkMode ? 'bg-white/5 border-blue-900/20' : 'bg-[#f8fafc]/50 border-gray-100/50'}`}>
-            <input type="text" placeholder="Search course..." className={`outline-none text-sm bg-transparent w-full ${isDarkMode ? 'text-gray-200 placeholder-gray-500' : 'text-gray-600 placeholder-gray-400'}`} />
-            <svg className={`w-4 h-4 ml-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          {/* Mobile Search Bar */}
+          <div className="w-full">
+            <WebsiteSearch placeholder="Search courses, values, tests..." />
           </div>
 
           {/* Mobile Navigation - Plain Background (Qafiif) */}
