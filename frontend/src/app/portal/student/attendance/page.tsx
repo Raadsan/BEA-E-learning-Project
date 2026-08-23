@@ -26,10 +26,9 @@ export default function AttendancePage() {
 
   const [selectedSubprogramName, setSelectedSubprogramName] = useState("");
 
-  // Extract unique levels from myClasses using useMemo to prevent recalculation
   const levels = useMemo(() => {
-    return myClasses?.reduce((acc, cls) => {
-      if (cls.subprogram_name && !acc.find(l => l.subprogram_name === cls.subprogram_name)) {
+    return myClasses?.reduce((acc: any[], cls: any) => {
+      if (cls.subprogram_name && !acc.find((l: any) => l.subprogram_name === cls.subprogram_name)) {
         acc.push({
           subprogram_id: cls.subprogram_id,
           subprogram_name: cls.subprogram_name,
@@ -40,55 +39,67 @@ export default function AttendancePage() {
     }, []) || [];
   }, [myClasses]);
 
-  // Auto-select level matching user's current level or the first available
   useEffect(() => {
     if (levels.length > 0 && !selectedSubprogramName) {
-      const currentLevel = levels.find(l => l.subprogram_name === user?.chosen_subprogram);
+      const currentLevel = levels.find((l: any) => l.subprogram_name === user?.chosen_subprogram);
       setSelectedSubprogramName(currentLevel ? currentLevel.subprogram_name : levels[0].subprogram_name);
     }
   }, [levels, user?.chosen_subprogram, selectedSubprogramName]);
 
   const allRecords = attendanceData?.records || [];
 
-  // Filter records by selected subprogram
   const records = useMemo(() => {
     if (!selectedSubprogramName) return allRecords;
-    return allRecords.filter(record =>
+    return allRecords.filter((record: any) =>
       record.subprogram_name === selectedSubprogramName ||
-      (!record.subprogram_name && record.class_name && levels.find(l => l.subprogram_name === selectedSubprogramName))
+      (!record.subprogram_name && record.class_name && levels.find((l: any) => l.subprogram_name === selectedSubprogramName))
     );
   }, [allRecords, selectedSubprogramName, levels]);
 
-  // Calculate attendance statistics
-  const stats = records.reduce((acc, record) => {
-    // 0 = Absent, 1 = Present, 2 = Excused
-    const h1 = record.hour1 === 1 ? 1 : 0;
-    const h2 = record.hour2 === 1 ? 1 : 0;
+  // Calculate attendance statistics across Present, Absent, and Excused
+  const stats = useMemo(() => {
+    return records.reduce((acc: any, record: any) => {
+      // 0 = Absent, 1 = Present, 2 = Excused
+      const h1 = record.hour1;
+      const h2 = record.hour2;
 
-    acc.totalDays += 1;
-    acc.presentHours += (h1 + h2);
+      acc.totalDays += 1;
 
-    // Absent means hour is 0
-    const h1Absent = record.hour1 === 0 ? 1 : 0;
-    const h2Absent = record.hour2 === 0 ? 1 : 0;
+      // Present
+      if (h1 === 1) acc.presentHours += 1;
+      if (h2 === 1) acc.presentHours += 1;
 
-    acc.absentHours += (h1Absent + h2Absent);
-    return acc;
-  }, { totalDays: 0, presentHours: 0, absentHours: 0 });
+      // Absent
+      if (h1 === 0) acc.absentHours += 1;
+      if (h2 === 0) acc.absentHours += 1;
 
-  // Pie Chart Data: Present vs Absent
-  const pieData = [
+      // Excused
+      if (h1 === 2) acc.excusedHours += 1;
+      if (h2 === 2) acc.excusedHours += 1;
+
+      return acc;
+    }, { totalDays: 0, presentHours: 0, absentHours: 0, excusedHours: 0 });
+  }, [records]);
+
+  const totalRecordedHours = stats.presentHours + stats.absentHours + stats.excusedHours;
+  const presenceRate = totalRecordedHours > 0
+    ? ((stats.presentHours / totalRecordedHours) * 100).toFixed(1)
+    : "0.0";
+
+  // Pie Chart Data: Present vs Absent vs Excused
+  const pieData = useMemo(() => [
     { name: 'Present Hours', value: stats.presentHours, color: '#10B981' },
-    { name: 'Absent Hours', value: stats.absentHours, color: '#EF4444' }
-  ];
+    { name: 'Absent Hours', value: stats.absentHours, color: '#EF4444' },
+    { name: 'Excused Hours', value: stats.excusedHours, color: '#F59E0B' }
+  ], [stats]);
 
   const columns = [
-    { label: "Program Name", key: "program_name", render: (_val, row) => row?.program_name || row?.course_title || "General Program" },
-    { label: "Level / Class", key: "subprogram_name", render: (_val, row) => row?.subprogram_name || row?.class_name || "Basic Level" },
+    { label: "Program Name", key: "program_name", render: (_val: any, row: any) => row?.program_name || row?.course_title || "General Program" },
+    { label: "Level / Class", key: "subprogram_name", render: (_val: any, row: any) => row?.subprogram_name || row?.class_name || "Basic Level" },
     {
       label: "Date",
       key: "date",
-      render: (_val, row) => {
+      render: (_val: any, row: any) => {
         const d = row?.date;
         if (!d) return "-";
         try {
@@ -101,13 +112,13 @@ export default function AttendancePage() {
     {
       label: "Hour One",
       key: "hour1",
-      render: (_val, row) => {
+      render: (_val: any, row: any) => {
         const h = row?.hour1;
         return (
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-            h === 1 ? 'bg-green-100 text-green-700' :
-            h === 2 ? 'bg-orange-100 text-orange-700' :
-            'bg-red-100 text-red-700'
+          <span className={`px-2.5 py-1 rounded-full text-xs font-black ${
+            h === 1 ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-300' :
+            h === 2 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' :
+            'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300'
           }`}>
             {h === 1 ? "Present" : h === 2 ? "Excused" : "Absent"}
           </span>
@@ -117,13 +128,13 @@ export default function AttendancePage() {
     {
       label: "Hour Two",
       key: "hour2",
-      render: (_val, row) => {
+      render: (_val: any, row: any) => {
         const h = row?.hour2;
         return (
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-            h === 1 ? 'bg-green-100 text-green-700' :
-            h === 2 ? 'bg-orange-100 text-orange-700' :
-            'bg-red-100 text-red-700'
+          <span className={`px-2.5 py-1 rounded-full text-xs font-black ${
+            h === 1 ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-300' :
+            h === 2 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' :
+            'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300'
           }`}>
             {h === 1 ? "Present" : h === 2 ? "Excused" : "Absent"}
           </span>
@@ -138,8 +149,8 @@ export default function AttendancePage() {
     return (
       <div className="flex-1 p-8 space-y-6">
         <div className="h-8 w-48 bg-gray-200 animate-pulse rounded"></div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => <div key={i} className="h-24 bg-gray-200 animate-pulse rounded-xl"></div>)}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-gray-200 animate-pulse rounded-xl"></div>)}
         </div>
         <div className="h-64 bg-gray-200 animate-pulse rounded-xl"></div>
       </div>
@@ -151,24 +162,24 @@ export default function AttendancePage() {
       <div className="w-full">
 
         <StudentPageHeader
-          title="Attendance"
-          description="Your recorded attendance by date and class."
+          title="Attendance Record"
+          description="Your recorded attendance across all classes with Present, Absent, and Excused breakdown."
         />
 
-        {/* Academic Selection Dashboard - Matching Grades Page */}
+        {/* Academic Selection Dashboard */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Level Selection */}
           <div className={`p-4 rounded-xl border transition-all ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-200'}`}>
             <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Select Level</label>
             <div className="relative">
               <select
                 value={selectedSubprogramName}
                 onChange={(e) => setSelectedSubprogramName(e.target.value)}
-                className={`w-full appearance-none pl-3 pr-8 py-2 rounded-lg border text-sm font-medium focus:ring-1 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'
-                  }`}
+                className={`w-full appearance-none pl-3 pr-8 py-2 rounded-lg border text-sm font-medium focus:ring-1 focus:ring-blue-500 outline-none transition-all ${
+                  isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'
+                }`}
               >
                 <option value="">{classesLoading ? "Loading..." : "Select Level"}</option>
-                {levels?.map(level => (
+                {levels?.map((level: any) => (
                   <option key={level.subprogram_name} value={level.subprogram_name}>
                     {level.subprogram_name}
                   </option>
@@ -180,7 +191,6 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          {/* Program Info */}
           <div className={`p-4 rounded-xl border flex flex-col justify-center ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-200'}`}>
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Program</span>
             <div className={`text-sm font-medium line-clamp-1 ${isDark ? 'text-white' : 'text-black'}`}>
@@ -189,77 +199,62 @@ export default function AttendancePage() {
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+        {/* Stats Grid: Total Days, Present Hours, Excused Hours, Absent Hours, Rate */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           {/* Total Days */}
-          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-[#0f172a] border-gray-800 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
-            <div>
-              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Total Days</p>
-              <h2 className="text-2xl font-extrabold">{stats.totalDays}</h2>
-            </div>
-            <div className={`p-3 rounded-xl ${isDark ? "bg-blue-500/10 text-blue-400" : "bg-blue-50 text-blue-600"}`}>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
+          <div className={`p-5 rounded-2xl shadow-sm border flex flex-col justify-between ${isDark ? "bg-[#0f172a] border-gray-800" : "bg-white border-gray-200"}`}>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Days</p>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white">{stats.totalDays}</h2>
+            <p className="text-[10px] text-gray-400 mt-1">{totalRecordedHours} total hours</p>
           </div>
 
           {/* Present Hours */}
-          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-[#0f172a] border-gray-800 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
-            <div>
-              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Present Hours</p>
-              <h2 className="text-2xl font-extrabold text-green-500">{stats.presentHours}</h2>
-            </div>
-            <div className={`p-3 rounded-xl ${isDark ? "bg-green-500/10 text-green-400" : "bg-green-50 text-green-600"}`}>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+          <div className={`p-5 rounded-2xl shadow-sm border flex flex-col justify-between ${isDark ? "bg-[#0f172a] border-gray-800" : "bg-white border-gray-200"}`}>
+            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Present Hours</p>
+            <h2 className="text-2xl font-black text-emerald-600">{stats.presentHours}</h2>
+            <p className="text-[10px] text-emerald-600/70 mt-1">Attended</p>
+          </div>
+
+          {/* Excused Hours */}
+          <div className={`p-5 rounded-2xl shadow-sm border flex flex-col justify-between ${isDark ? "bg-[#0f172a] border-gray-800" : "bg-white border-gray-200"}`}>
+            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider mb-1">Excused</p>
+            <h2 className="text-2xl font-black text-amber-600">{stats.excusedHours}</h2>
+            <p className="text-[10px] text-amber-600/70 mt-1">Cudurdaar</p>
           </div>
 
           {/* Absent Hours */}
-          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-[#0f172a] border-gray-800 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
-            <div>
-              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Absent Hours</p>
-              <h2 className="text-2xl font-extrabold text-red-500">{stats.absentHours}</h2>
-            </div>
-            <div className={`p-3 rounded-xl ${isDark ? "bg-red-500/10 text-red-400" : "bg-red-50 text-red-600"}`}>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+          <div className={`p-5 rounded-2xl shadow-sm border flex flex-col justify-between ${isDark ? "bg-[#0f172a] border-gray-800" : "bg-white border-gray-200"}`}>
+            <p className="text-[10px] font-bold text-red-600 uppercase tracking-wider mb-1">Absent Hours</p>
+            <h2 className="text-2xl font-black text-red-600">{stats.absentHours}</h2>
+            <p className="text-[10px] text-red-600/70 mt-1">Missed</p>
           </div>
 
-          {/* Absent Percentage */}
-          <div className={`p-6 rounded-2xl shadow-md border-2 flex items-center justify-between transition-all hover:shadow-lg ${isDark ? "bg-[#0f172a] border-gray-800 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
-            <div>
-              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Absent Rate</p>
-              <h2 className="text-2xl font-extrabold text-orange-500">
-                {stats.presentHours + stats.absentHours > 0
-                  ? `${((stats.absentHours / (stats.presentHours + stats.absentHours)) * 100).toFixed(1)}%`
-                  : '0%'}
-              </h2>
-            </div>
-            <div className={`p-3 rounded-xl ${isDark ? "bg-orange-500/10 text-orange-400" : "bg-orange-50 text-orange-600"}`}>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
+          {/* Presence Rate */}
+          <div className={`p-5 rounded-2xl shadow-sm border flex flex-col justify-between col-span-2 md:col-span-1 ${isDark ? "bg-[#0f172a] border-gray-800" : "bg-white border-gray-200"}`}>
+            <p className="text-[10px] font-bold text-[#010080] dark:text-blue-400 uppercase tracking-wider mb-1">Presence Rate</p>
+            <h2 className="text-2xl font-black text-[#010080] dark:text-blue-400">{presenceRate}%</h2>
+            <p className="text-[10px] text-gray-400 mt-1">Based on total hours</p>
           </div>
         </div>
 
-        {/* Overview Chart */}
-        <div className={`p-5 rounded-xl shadow-sm border mb-8 ${isDark ? "bg-[#0f172a] border-gray-800" : "bg-white border-gray-100"}`}>
-          <h3 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>Overall Allocation</h3>
-          <div className="h-56 w-full">
+        {/* Overview Chart: 3-Slice Pie Chart */}
+        <div className={`p-6 rounded-2xl shadow-sm border mb-8 ${isDark ? "bg-[#0f172a] border-gray-800" : "bg-white border-gray-200"}`}>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className={`text-sm font-extrabold uppercase tracking-wide ${isDark ? "text-white" : "text-gray-900"}`}>
+              Attendance Allocation (Present, Absent, Excused)
+            </h3>
+            <span className="text-xs font-bold text-gray-400">Total Recorded: {totalRecordedHours} hrs</span>
+          </div>
+
+          <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={50}
-                  outerRadius={70}
+                  innerRadius={55}
+                  outerRadius={80}
                   paddingAngle={5}
                   dataKey="value"
                 >
@@ -268,18 +263,27 @@ export default function AttendancePage() {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', fontSize: '12px' }}
+                  contentStyle={{
+                    borderRadius: '12px',
+                    border: 'none',
+                    backgroundColor: isDark ? '#1e293b' : '#0b1033',
+                    color: '#fff',
+                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2)',
+                    fontSize: '12px',
+                    fontWeight: 'bold'
+                  }}
+                  formatter={(value: any, name: any) => [`${value} Hours`, name]}
                 />
-                <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />
+                <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '12px', fontWeight: 600 }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Tracking Table */}
-        <div className="pb-10 ">
+        <div className="pb-10">
           <DataTable
-            title="Attendance History"
+            title="Attendance History Log"
             columns={columns}
             data={records}
             showAddButton={false}
@@ -290,9 +294,3 @@ export default function AttendancePage() {
     </div>
   );
 }
-
-
-
-
-
-

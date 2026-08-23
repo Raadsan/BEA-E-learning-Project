@@ -6,7 +6,6 @@ import { useGetTeacherReviewBoxesQuery, useGetQuestionsQuery } from "@/lib/api/r
 import { useGetClassesQuery } from "@/lib/api/classApi";
 import { useGetStudentsByClassQuery } from "@/lib/api/studentApi";
 import TeacherReviewForm from "@/components/ReviewFlows/TeacherReviewForm";
-import { getCurrentTerm } from "@/lib/timelineData";
 
 // ─── Status helpers ────────────────────────────────────────────────────────
 const getBadgeStyle = (status: string) => {
@@ -140,8 +139,7 @@ export default function TeacherReviewsPage() {
   const { data: reviewBoxes = [], isLoading: boxesLoading } = useGetTeacherReviewBoxesQuery();
   const { data: classes = [] } = useGetClassesQuery();
 
-  const currentTerm = getCurrentTerm();
-  const termSerial = currentTerm?.termSerial || `BEA-${new Date().getMonth() + 1}/${new Date().getFullYear()}`;
+  const termSerial = `BEA-${new Date().getMonth() + 1}/${new Date().getFullYear()}`;
 
   const [activeBox, setActiveBox] = useState<any>(null);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);

@@ -24,6 +24,7 @@ export const PERMISSION_MODULE_PAGES: Partial<
     { key: "ielts_students", label: "IELTOEF Program Students", path: "/portal/admin/students/ielts-toefl" },
     { key: "proficiency_students", label: "Proficiency Test Students", path: "/portal/admin/students/proficiency-only" },
     { key: "student_discounts", label: "Student Discounts", path: "/portal/admin/students/discounts" },
+    { key: "deleted_students", label: "Deleted Students (Trash)", path: "/portal/admin/students/trash" },
   ],
   academic_management: [
     { key: "programs", label: "Programs", path: "/portal/admin/programs" },
@@ -387,6 +388,7 @@ export const ADMIN_ROUTE_RULES: {
   { prefix: "/portal/admin/admins", permission: "dashboard", superOnly: true },
   { prefix: "/portal/admin/users", permission: "users" },
   { prefix: "/portal/admin/teachers", permission: "teachers" },
+  { prefix: "/portal/admin/students/trash", permission: "student_management", pageKey: "deleted_students" },
   { prefix: "/portal/admin/students/discounts", permission: "student_management", pageKey: "student_discounts" },
   { prefix: "/portal/admin/students/proficiency-only", permission: "student_management", pageKey: "proficiency_students" },
   { prefix: "/portal/admin/students/ielts-toefl", permission: "student_management", pageKey: "ielts_students" },

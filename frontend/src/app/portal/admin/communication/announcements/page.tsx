@@ -82,12 +82,12 @@ export default function AnnouncementsPage() {
     else if (formData.targetType === 'all_teachers') targetAudienceString = "All Teachers";
     else if (formData.targetType === 'all_admins') targetAudienceString = "All Admins";
     else if (formData.targetType === 'by_class') {
-      const cls = classes?.find(c => c.id.toString() === formData.targetId);
+      const cls = classes?.find(c => String(c.id || '') === String(formData.targetId || ''));
       targetAudienceString = cls ? `Class: ${cls.class_name}` : "Class Notification";
     }
     else if (formData.targetType === 'by_student_id') {
-      const st = students?.find(s => s.id.toString() === formData.targetId);
-      targetAudienceString = st ? `Student: ${st.full_name} (${st.student_id})` : "Student Notification";
+      const st = students?.find(s => String(s.student_id || s.id || '') === String(formData.targetId || ''));
+      targetAudienceString = st ? `Student: ${st.full_name || st.name} (${st.student_id || st.id})` : "Student Notification";
     } else targetAudienceString = "General Announcement";
 
     if (editingAnnouncement && formData.targetType === 'manual') targetAudienceString = editingAnnouncement.target_audience;

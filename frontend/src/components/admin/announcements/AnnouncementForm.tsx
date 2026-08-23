@@ -84,8 +84,10 @@ export default function AnnouncementForm({
                                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                                 >
                                     <option value="">Select a Student</option>
-                                    {students?.map(s => (
-                                        <option key={s.id} value={s.id}>{s.full_name} ({s.student_id})</option>
+                                    {students?.map((s, idx) => (
+                                        <option key={s.student_id || s.id || `student-${idx}`} value={s.student_id || s.id}>
+                                            {s.full_name || s.name} ({s.student_id || s.id})
+                                        </option>
                                     ))}
                                 </select>
                             </div>

@@ -226,6 +226,7 @@ export const getStats = async (req, res) => {
                     dayOfWeek: dayName,
                     attended: 0,
                     absent: 0,
+                    excused: 0,
                     total: 0,
                     percentage: 0
                 };
@@ -233,10 +234,12 @@ export const getStats = async (req, res) => {
 
             const attendedHours = (curr.hour1 === 1 ? 1 : 0) + (curr.hour2 === 1 ? 1 : 0);
             const absentHours = (curr.hour1 === 0 ? 1 : 0) + (curr.hour2 === 0 ? 1 : 0);
+            const excusedHours = (curr.hour1 === 2 ? 1 : 0) + (curr.hour2 === 2 ? 1 : 0);
 
             stats[key].attended += attendedHours;
             stats[key].absent += absentHours;
-            stats[key].total += (attendedHours + absentHours);
+            stats[key].excused += excusedHours;
+            stats[key].total += (attendedHours + absentHours + excusedHours);
         }
 
         const result = Object.values(stats).map(item => ({
@@ -256,6 +259,7 @@ export const getStats = async (req, res) => {
                     dayOfWeek: dayNamesShort[d.getDay()],
                     attended: 0,
                     absent: 0,
+                    excused: 0,
                     total: 0,
                     percentage: 0
                 });

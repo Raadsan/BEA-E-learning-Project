@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetProficiencyTestsQuery, useDeleteProficiencyTestMutation } from "@/lib/api/proficiencyTestApi";
+import { useGetProficiencyTestsQuery, useDeleteProficiencyTestMutation, useUpdateProficiencyTestMutation } from "@/lib/api/proficiencyTestApi";
 
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
@@ -10,7 +10,7 @@ import Modal from "@/components/Modal";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
 import { useState } from "react";
 
-const InfoCard = ({ title, description, details, topActions, isDark, onClick, status }) => (
+const InfoCard = ({ title, description, details, topActions, isDark, onClick, status, onStatusChange }: any) => (
     <div
         onClick={onClick}
         className={`rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg border flex flex-col h-full cursor-pointer group ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
@@ -20,14 +20,24 @@ const InfoCard = ({ title, description, details, topActions, isDark, onClick, st
                 <div className="flex-1 pr-4">
                     <div className="flex items-center gap-3 mb-2">
                         <h3 className={`text-xl font-bold leading-tight group-hover:text-blue-600 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${status === 'active'
-                            ? (isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700')
-                            : status === 'draft'
-                                ? (isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-100 text-amber-700')
-                                : (isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-600')
-                            }`}>
-                            {status === 'active' ? 'Active' : status === 'draft' ? 'Draft' : 'Inactive'}
-                        </span>
+                        <select
+                            value={status || 'active'}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                                e.stopPropagation();
+                                onStatusChange?.(e.target.value);
+                            }}
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase outline-none cursor-pointer border-0 ${status === 'active'
+                                ? (isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700')
+                                : status === 'draft'
+                                    ? (isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-100 text-amber-700')
+                                    : (isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-600')
+                                }`}
+                        >
+                            <option value="active" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Active</option>
+                            <option value="draft" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Draft</option>
+                            <option value="inactive" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Inactive</option>
+                        </select>
                     </div>
                     <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                         {description || "No description available."}
@@ -61,9 +71,19 @@ export default function ProficiencyTestsPage() {
     const { canView, canAdd, canEdit, canDelete } = usePagePermissions("assessments", "proficiency_tests");
     const { data: tests, isLoading, error } = useGetProficiencyTestsQuery();
     const [deleteTest] = useDeleteProficiencyTestMutation();
+    const [updateTest] = useUpdateProficiencyTestMutation();
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [testToDelete, setTestToDelete] = useState(null);
+    const [testToDelete, setTestToDelete] = useState<number | null>(null);
+
+    const handleStatusChange = async (testId: number, newStatus: string) => {
+        try {
+            await updateTest({ id: testId, status: newStatus }).unwrap();
+            showToast(`Test status changed to ${newStatus}`, "success");
+        } catch (err) {
+            showToast("Failed to update status", "error");
+        }
+    };
 
     const handleCreateClick = () => {
         router.push("/portal/admin/assessments/proficiency-tests/create");
@@ -168,6 +188,7 @@ export default function ProficiencyTestsPage() {
                                     key={test.id}
                                     isDark={isDark}
                                     status={test.status}
+                                    onStatusChange={(newStatus: string) => handleStatusChange(test.id, newStatus)}
                                     title={test.title}
                                     description={test.description}
                                     onClick={canView ? () => handleView(null, test.id) : undefined}

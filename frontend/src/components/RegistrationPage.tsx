@@ -874,7 +874,7 @@ export default function RegistrationPage() {
                   {/* If EVC selected, show account number field */}
                   {paymentMethod === 'waafi' && (
                     <div className="mt-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Account Number</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Mobile Number</label>
                       <input
                         type="text"
                         placeholder="61XXXXXXX"

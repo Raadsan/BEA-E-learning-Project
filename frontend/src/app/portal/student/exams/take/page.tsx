@@ -73,105 +73,174 @@ export default function TakeExamPage() {
             const seed = strHash(studentId);
             const steps = [];
 
-            // Paper 1: Grammar + Essay (shuffled together within part)
-            if (raw.paper1) {
-                const paper1Items = [
-                    ...(raw.paper1.editing || []).map((item) => ({ kind: "editing", data: item })),
-                    ...(raw.paper1.essay?.prompt ? [{ kind: "essay", data: raw.paper1.essay }] : []),
-                ];
-                const p1Meta = raw.paper1.sectionMeta || { sectionName: "Paper 1: Writing & Grammar" };
-                const p1Inst = raw.paper1.instructions || p1Meta.instructions || "";
-                shufflePart(paper1Items, seed + 1).forEach((item, idx) => {
-                    const optionsSeed = seed + 100 + idx;
-                    if (item.kind === "editing") {
-                        const editing = item.data;
-                        const options = editing.options?.length
-                            ? getShuffledOptions({ type: "mcq", options: editing.options }, optionsSeed)
-                            : editing.correction
-                                ? [editing.correction]
-                                : [];
+            // Case A: Standard object format { paper1, paper2, paper3, paper4 }
+            if (raw && !Array.isArray(raw)) {
+                // Paper 1: Grammar + Essay (shuffled together within part)
+                if (raw.paper1) {
+                    const paper1Items = [
+                        ...(raw.paper1.editing || []).map((item) => ({ kind: "editing", data: item })),
+                        ...(raw.paper1.essay?.prompt ? [{ kind: "essay", data: raw.paper1.essay }] : []),
+                    ];
+                    const p1Meta = raw.paper1.sectionMeta || { sectionName: "Paper 1: Writing & Grammar" };
+                    const p1Inst = raw.paper1.instructions || p1Meta.instructions || assignment.instructions || "";
+                    shufflePart(paper1Items, seed + 1).forEach((item, idx) => {
+                        const optionsSeed = seed + 100 + idx;
+                        if (item.kind === "editing") {
+                            const editing = item.data;
+                            const options = editing.options?.length
+                                ? getShuffledOptions({ type: "mcq", options: editing.options }, optionsSeed)
+                                : editing.correction
+                                    ? [editing.correction]
+                                    : [];
+                            steps.push({
+                                id: `p1_editing_${editing.id || idx}`,
+                                part: 1,
+                                type: "editing",
+                                questionText: editing.text || editing.questionText,
+                                options,
+                                badge: "Grammar",
+                                sectionMeta: p1Meta,
+                                instructions: p1Inst
+                            });
+                        } else {
+                            const essay = item.data;
+                            steps.push({
+                                id: `p1_essay`,
+                                part: 1,
+                                type: "essay",
+                                questionText: essay.prompt || essay.title,
+                                title: essay.title || "Writing Task",
+                                description: essay.prompt || essay.description,
+                                wordCount: essay.wordCount || 300,
+                                badge: "Essay",
+                                sectionMeta: p1Meta,
+                                instructions: p1Inst
+                            });
+                        }
+                    });
+                }
+
+                // Paper 2: Reading
+                if (raw.paper2?.questions?.length) {
+                    const p2Meta = raw.paper2.sectionMeta || { sectionName: "Paper 2: Reading Comprehension" };
+                    const p2Inst = raw.paper2.instructions || p2Meta.instructions || assignment.instructions || "";
+                    shufflePart(raw.paper2.questions, seed + 2).forEach((q, idx) => {
+                        const optionsSeed = seed + 200 + idx;
                         steps.push({
-                            id: `p1_editing_${editing.id}`,
-                            part: 1,
-                            type: "editing",
-                            questionText: editing.text,
-                            options,
-                            badge: "Grammar",
-                            sectionMeta: p1Meta,
-                            instructions: p1Inst
+                            id: `p2_q_${q.id || idx}`,
+                            part: 2,
+                            type: q.type === "short_answer" ? "reading_short" : "reading_mcq",
+                            passage: raw.paper2.passage,
+                            questionText: q.questionText || q.question,
+                            options: getShuffledOptions(q, optionsSeed),
+                            questionType: q.type || "mcq",
+                            badge: "Reading",
+                            sectionMeta: p2Meta,
+                            instructions: p2Inst
                         });
-                    } else {
-                        const essay = item.data;
+                    });
+                }
+
+                // Paper 3: Listening
+                if (raw.paper3?.questions?.length) {
+                    const p3Meta = raw.paper3.sectionMeta || { sectionName: "Paper 3: Listening Comprehension" };
+                    const p3Inst = raw.paper3.instructions || p3Meta.instructions || assignment.instructions || "";
+                    shufflePart(raw.paper3.questions, seed + 3).forEach((q, idx) => {
+                        const optionsSeed = seed + 300 + idx;
                         steps.push({
-                            id: `p1_essay`,
-                            part: 1,
+                            id: `p3_q_${q.id || idx}`,
+                            part: 3,
+                            type: q.type === "short_answer" ? "listening_short" : "listening_mcq",
+                            audioUrl: raw.paper3.audioUrl,
+                            questionText: q.questionText || q.question,
+                            options: getShuffledOptions(q, optionsSeed),
+                            questionType: q.type || "mcq",
+                            badge: "Listening",
+                            sectionMeta: p3Meta,
+                            instructions: p3Inst
+                        });
+                    });
+                }
+
+                // Paper 4: Oral
+                if (raw.paper4?.passage?.trim() || raw.paper4?.instructions?.trim()) {
+                    const p4Meta = raw.paper4.sectionMeta || { sectionName: "Paper 4: Oral Reading / Speaking" };
+                    const p4Inst = raw.paper4.instructions || p4Meta.instructions || assignment.instructions || "";
+                    steps.push({
+                        id: `p4_oral`,
+                        part: 4,
+                        type: "oral",
+                        passage: raw.paper4.passage,
+                        instructions: p4Inst,
+                        sectionMeta: p4Meta,
+                        badge: "Oral"
+                    });
+                }
+            } else if (Array.isArray(raw)) {
+                // Case B: Array of Papers or Array of Questions
+                raw.forEach((paperOrQ, pIdx) => {
+                    const partNum = pIdx + 1;
+                    const secMeta = paperOrQ.sectionMeta || { sectionName: paperOrQ.title || `Part ${partNum}` };
+                    const secInst = paperOrQ.instructions || secMeta.instructions || assignment.instructions || "";
+
+                    if (paperOrQ.questions && Array.isArray(paperOrQ.questions)) {
+                        paperOrQ.questions.forEach((q, qIdx) => {
+                            const optionsSeed = seed + (partNum * 100) + qIdx;
+                            steps.push({
+                                id: `p${partNum}_q_${q.id || qIdx}`,
+                                part: partNum,
+                                type: q.type === "short_answer" ? "reading_short" : (paperOrQ.audioUrl ? "listening_mcq" : "reading_mcq"),
+                                passage: paperOrQ.passage,
+                                audioUrl: paperOrQ.audioUrl,
+                                questionText: q.questionText || q.question || q.text,
+                                options: getShuffledOptions(q, optionsSeed),
+                                questionType: q.type || "mcq",
+                                badge: paperOrQ.audioUrl ? "Listening" : paperOrQ.passage ? "Reading" : "Question",
+                                sectionMeta: secMeta,
+                                instructions: secInst
+                            });
+                        });
+                    } else if (paperOrQ.editing && Array.isArray(paperOrQ.editing)) {
+                        paperOrQ.editing.forEach((ed, eIdx) => {
+                            const optionsSeed = seed + (partNum * 100) + eIdx;
+                            steps.push({
+                                id: `p${partNum}_editing_${ed.id || eIdx}`,
+                                part: partNum,
+                                type: "editing",
+                                questionText: ed.text || ed.questionText,
+                                options: ed.options?.length ? getShuffledOptions({ type: "mcq", options: ed.options }, optionsSeed) : (ed.correction ? [ed.correction] : []),
+                                badge: "Grammar",
+                                sectionMeta: secMeta,
+                                instructions: secInst
+                            });
+                        });
+                    } else if (paperOrQ.essay) {
+                        steps.push({
+                            id: `p${partNum}_essay`,
+                            part: partNum,
                             type: "essay",
-                            questionText: essay.prompt,
-                            title: "Writing Task",
-                            description: essay.prompt,
-                            wordCount: essay.wordCount || 300,
+                            questionText: paperOrQ.essay.prompt || paperOrQ.essay.title,
+                            title: paperOrQ.essay.title || "Writing Task",
+                            description: paperOrQ.essay.prompt || paperOrQ.essay.description,
+                            wordCount: paperOrQ.essay.wordCount || 300,
                             badge: "Essay",
-                            sectionMeta: p1Meta,
-                            instructions: p1Inst
+                            sectionMeta: secMeta,
+                            instructions: secInst
+                        });
+                    } else if (paperOrQ.questionText || paperOrQ.question) {
+                        const optionsSeed = seed + (partNum * 100);
+                        steps.push({
+                            id: `q_${paperOrQ.id || pIdx}`,
+                            part: 1,
+                            type: paperOrQ.type === "short_answer" ? "reading_short" : "reading_mcq",
+                            questionText: paperOrQ.questionText || paperOrQ.question,
+                            options: getShuffledOptions(paperOrQ, optionsSeed),
+                            questionType: paperOrQ.type || "mcq",
+                            badge: "Question",
+                            sectionMeta: secMeta,
+                            instructions: secInst
                         });
                     }
-                });
-            }
-
-            // Paper 2: Reading
-            if (raw.paper2?.questions?.length) {
-                const p2Meta = raw.paper2.sectionMeta || { sectionName: "Paper 2: Reading Comprehension" };
-                const p2Inst = raw.paper2.instructions || p2Meta.instructions || "";
-                shufflePart(raw.paper2.questions, seed + 2).forEach((q, idx) => {
-                    const optionsSeed = seed + 200 + idx;
-                    steps.push({
-                        id: `p2_q_${q.id}`,
-                        part: 2,
-                        type: q.type === "short_answer" ? "reading_short" : "reading_mcq",
-                        passage: raw.paper2.passage,
-                        questionText: q.questionText,
-                        options: getShuffledOptions(q, optionsSeed),
-                        questionType: q.type || "mcq",
-                        badge: "Reading",
-                        sectionMeta: p2Meta,
-                        instructions: p2Inst
-                    });
-                });
-            }
-
-            // Paper 3: Listening
-            if (raw.paper3?.questions?.length) {
-                const p3Meta = raw.paper3.sectionMeta || { sectionName: "Paper 3: Listening Comprehension" };
-                const p3Inst = raw.paper3.instructions || p3Meta.instructions || "";
-                shufflePart(raw.paper3.questions, seed + 3).forEach((q, idx) => {
-                    const optionsSeed = seed + 300 + idx;
-                    steps.push({
-                        id: `p3_q_${q.id}`,
-                        part: 3,
-                        type: q.type === "short_answer" ? "listening_short" : "listening_mcq",
-                        audioUrl: raw.paper3.audioUrl,
-                        questionText: q.questionText,
-                        options: getShuffledOptions(q, optionsSeed),
-                        questionType: q.type || "mcq",
-                        badge: "Listening",
-                        sectionMeta: p3Meta,
-                        instructions: p3Inst
-                    });
-                });
-            }
-
-            // Paper 4: Oral
-            if (raw.paper4?.passage?.trim()) {
-                const p4Meta = raw.paper4.sectionMeta || { sectionName: "Paper 4: Oral Reading / Speaking" };
-                const p4Inst = raw.paper4.instructions || p4Meta.instructions || "";
-                steps.push({
-                    id: `p4_oral`,
-                    part: 4,
-                    type: "oral",
-                    passage: raw.paper4.passage,
-                    instructions: p4Inst,
-                    sectionMeta: p4Meta,
-                    badge: "Oral"
                 });
             }
 
@@ -470,40 +539,40 @@ export default function TakeExamPage() {
                 </div>
 
                 {/* Section Information & Instructions Banner */}
-                {currentStep.sectionMeta && (
-                    <div className={`p-5 rounded-xl border mb-6 transition-colors ${isDark ? 'bg-blue-950/40 border-blue-900/60' : 'bg-blue-50/70 border-blue-100'}`}>
+                {(currentStep.sectionMeta || currentStep.instructions || assignment.instructions) && (
+                    <div className={`p-5 rounded-2xl border mb-6 shadow-xs transition-colors ${isDark ? 'bg-blue-950/30 border-blue-900/50' : 'bg-blue-50/60 border-blue-100'}`}>
                         <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
                             <div className="flex items-center gap-2.5">
-                                <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-[#010080] text-white">
-                                    Part {currentStep.part}
+                                <span className="px-3 py-1 rounded-lg text-xs font-black bg-[#010080] text-white tracking-wide shadow-xs">
+                                    PART {currentStep.part}
                                 </span>
                                 <h2 className="text-base font-bold text-[#010080] dark:text-blue-300">
-                                    {currentStep.sectionMeta.sectionName || `Part ${currentStep.part} Section`}
+                                    {currentStep.sectionMeta?.sectionName || `Part ${currentStep.part}: ${currentStep.badge || 'Assessment'}`}
                                 </h2>
                             </div>
                             <div className="flex flex-wrap items-center gap-2 text-xs">
-                                {currentStep.sectionMeta.format && (
-                                    <span className="px-2 py-0.5 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
-                                        Format: <strong className="font-semibold">{currentStep.sectionMeta.format}</strong>
+                                {currentStep.sectionMeta?.format && (
+                                    <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 font-medium">
+                                        Format: <strong className="font-bold text-[#010080] dark:text-blue-400">{currentStep.sectionMeta.format}</strong>
                                     </span>
                                 )}
-                                {currentStep.sectionMeta.marks && (
-                                    <span className="px-2 py-0.5 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
-                                        Marks: <strong className="font-semibold">{currentStep.sectionMeta.marks} pts</strong>
+                                {currentStep.sectionMeta?.marks && (
+                                    <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 font-medium">
+                                        Marks: <strong className="font-bold text-[#010080] dark:text-blue-400">{currentStep.sectionMeta.marks} pts</strong>
                                     </span>
                                 )}
-                                {currentStep.sectionMeta.skillsAssessed && (
-                                    <span className="px-2 py-0.5 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hidden sm:inline">
-                                        Skills: <strong className="font-semibold">{currentStep.sectionMeta.skillsAssessed}</strong>
+                                {currentStep.sectionMeta?.skillsAssessed && (
+                                    <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 font-medium hidden sm:inline">
+                                        Skills: <strong className="font-bold text-[#010080] dark:text-blue-400">{currentStep.sectionMeta.skillsAssessed}</strong>
                                     </span>
                                 )}
                             </div>
                         </div>
-                        {(currentStep.instructions || currentStep.sectionMeta.instructions) && (
-                            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-relaxed border-t border-blue-100/60 dark:border-blue-900/40 pt-2">
-                                <span className="font-semibold text-[#010080] dark:text-blue-400 mr-1">Instructions:</span>
-                                {currentStep.instructions || currentStep.sectionMeta.instructions}
-                            </p>
+                        {(currentStep.instructions || currentStep.sectionMeta?.instructions || assignment.instructions) && (
+                            <div className="text-xs text-gray-700 dark:text-gray-300 mt-2 leading-relaxed border-t border-blue-100 dark:border-blue-900/40 pt-2 flex items-start gap-1.5">
+                                <span className="font-bold text-[#010080] dark:text-blue-400 shrink-0">📋 Instructions:</span>
+                                <p className="font-medium">{currentStep.instructions || currentStep.sectionMeta?.instructions || assignment.instructions}</p>
+                            </div>
                         )}
                     </div>
                 )}

@@ -36,9 +36,26 @@ export const studentApi = createApi({
       },
     }),
 
-    // GET ALL students
-    getStudents: builder.query<any, void>({
-      query: () => "/",
+    // GET ALL students (supports status filter e.g. status=trash)
+    getStudents: builder.query<any, { status?: string } | void>({
+      query: (params) => {
+        if (params && typeof params === "object" && "status" in params && params.status) {
+          return `/?status=${params.status}`;
+        }
+        return "/";
+      },
+      providesTags: ["Students"],
+      transformResponse: (response: any) => {
+        if (response.success) {
+          return response.students;
+        }
+        return response;
+      },
+    }),
+
+    // GET DELETED STUDENTS (Trash)
+    getDeletedStudents: builder.query<any, void>({
+      query: () => "/?status=trash",
       providesTags: ["Students"],
       transformResponse: (response: any) => {
         if (response.success) {
@@ -98,10 +115,37 @@ export const studentApi = createApi({
       invalidatesTags: ["Students"],
     }),
 
-    // DELETE student
+    // DELETE student (Soft Delete / Move to Trash)
     deleteStudent: builder.mutation({
       query: (id) => ({
         url: `/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Students"],
+    }),
+
+    // RESTORE student from trash
+    restoreStudent: builder.mutation({
+      query: (id) => ({
+        url: `/${id}/restore`,
+        method: "PUT",
+      }),
+      invalidatesTags: ["Students"],
+    }),
+
+    // PERMANENTLY DELETE student
+    permanentDeleteStudent: builder.mutation({
+      query: (id) => ({
+        url: `/${id}/permanent`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Students"],
+    }),
+
+    // EMPTY TRASH
+    emptyTrash: builder.mutation<any, void>({
+      query: () => ({
+        url: "/trash/empty",
         method: "DELETE",
       }),
       invalidatesTags: ["Students"],
@@ -226,10 +270,14 @@ export const studentApi = createApi({
 export const {
   useGetStudentsByClassQuery,
   useGetStudentsQuery,
+  useGetDeletedStudentsQuery,
   useGetStudentQuery,
   useCreateStudentMutation,
   useUpdateStudentMutation,
   useDeleteStudentMutation,
+  useRestoreStudentMutation,
+  usePermanentDeleteStudentMutation,
+  useEmptyTrashMutation,
   useApproveStudentMutation,
   useRejectStudentMutation,
   useExtendStudentDeadlineMutation,

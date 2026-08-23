@@ -27,28 +27,35 @@ const CustomAttendanceTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
-            <div className="bg-[#0b1033] text-white p-3.5 rounded-2xl shadow-2xl border border-[#010080]/60 text-xs min-w-[160px] space-y-1.5 backdrop-blur-md">
+            <div className="bg-[#0b1033] text-white p-3.5 rounded-2xl shadow-2xl border border-[#010080]/60 text-xs min-w-[170px] space-y-1.5 backdrop-blur-md">
                 <div className="font-bold text-sm text-blue-100 mb-1 border-b border-blue-800/40 pb-1 flex justify-between items-center">
                     <span>{label || data.name}</span>
                     {data.dayOfWeek && <span className="text-[10px] uppercase text-blue-300 font-semibold">{data.dayOfWeek}</span>}
                 </div>
-                <div className="flex items-center justify-between gap-3 text-blue-100">
+                <div className="flex items-center justify-between gap-3 text-emerald-300">
                     <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-[#010080]"></span>
-                        Attended:
+                        <span className="w-2 h-2 rounded-full bg-[#10b981]"></span>
+                        Attended (Present):
                     </span>
-                    <span className="font-bold text-white text-sm">{data.attended} hrs</span>
+                    <span className="font-bold text-white text-sm">{data.attended || 0} hrs</span>
                 </div>
-                <div className="flex items-center justify-between gap-3 text-red-100">
+                <div className="flex items-center justify-between gap-3 text-red-300">
                     <span className="flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-[#f40606]"></span>
                         Absent:
                     </span>
-                    <span className="font-bold text-white text-sm">{data.absent} hrs</span>
+                    <span className="font-bold text-white text-sm">{data.absent || 0} hrs</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 text-amber-300">
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[#f59e0b]"></span>
+                        Excused (Cudurdaar):
+                    </span>
+                    <span className="font-bold text-white text-sm">{data.excused || 0} hrs</span>
                 </div>
                 {data.percentage !== undefined && (
                     <div className="flex items-center justify-between gap-3 pt-1 border-t border-blue-800/30 text-[11px]">
-                        <span className="text-gray-300">Rate:</span>
+                        <span className="text-gray-300">Presence Rate:</span>
                         <span className="font-bold text-emerald-400">{data.percentage}%</span>
                     </div>
                 )}
@@ -58,7 +65,7 @@ const CustomAttendanceTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
-const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
+const WeeklyAttendanceChart = ({ programs = [], classes = [] }: { programs?: any[]; classes?: any[] }) => {
     const [selectedProgram, setSelectedProgram] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
     const [timeFrame, setTimeFrame] = useState('Weekly');
@@ -76,8 +83,8 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
     return (
         <div className={CHART_CARD_CLASS}>
             <ChartHeader
-                title="Weekly Class Attendance Overview"
-                subtitle="ATTENDANCE AND ABSENCE TRACKING OVER TIME"
+                title="Class Attendance Breakdown"
+                subtitle="PRESENT, ABSENT, AND EXCUSED ALLOCATION OVER TIME"
                 filters={
                     <>
                         <ChartFilterSelect
@@ -102,7 +109,7 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                             value={timeFrame}
                             onChange={(e) => setTimeFrame(e.target.value)}
                         >
-                            <option value="Weekly">All Recent Sessions</option>
+                            <option value="Weekly">Recent Sessions</option>
                             <option value="Daily">Daily</option>
                             <option value="Today">Today</option>
                             <option value="Monthly">Monthly</option>
@@ -129,7 +136,7 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                 {isLoading ? (
                     <ChartLoading />
                 ) : processedData.length === 0 ? (
-                    <ChartEmpty message="No attendance data available" />
+                    <ChartEmpty message="No attendance data recorded yet" />
                 ) : (
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart
@@ -166,11 +173,11 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                             <Line
                                 type="monotone"
                                 dataKey="attended"
-                                name="Attended"
-                                stroke="#010080"
+                                name="Present (Attended)"
+                                stroke="#10b981"
                                 strokeWidth={2.5}
-                                dot={{ r: 4.5, fill: '#fff', stroke: '#010080', strokeWidth: 2 }}
-                                activeDot={{ r: 6.5, fill: '#010080', stroke: '#fff', strokeWidth: 2 }}
+                                dot={{ r: 4.5, fill: '#fff', stroke: '#10b981', strokeWidth: 2 }}
+                                activeDot={{ r: 6.5, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }}
                             />
                             <Line
                                 type="monotone"
@@ -181,32 +188,48 @@ const WeeklyAttendanceChart = ({ programs = [], classes = [] }) => {
                                 dot={{ r: 4.5, fill: '#fff', stroke: '#f40606', strokeWidth: 2 }}
                                 activeDot={{ r: 6.5, fill: '#f40606', stroke: '#fff', strokeWidth: 2 }}
                             />
+                            <Line
+                                type="monotone"
+                                dataKey="excused"
+                                name="Excused (Cudurdaar)"
+                                stroke="#f59e0b"
+                                strokeWidth={2.5}
+                                dot={{ r: 4.5, fill: '#fff', stroke: '#f59e0b', strokeWidth: 2 }}
+                                activeDot={{ r: 6.5, fill: '#f59e0b', stroke: '#fff', strokeWidth: 2 }}
+                            />
                         </LineChart>
                     </ResponsiveContainer>
                 )}
             </ChartCanvas>
 
             {processedData.length > 0 && (
-                <div className={`${CHART_FOOTER_CLASS} grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4`}>
-                    <div className="text-center p-3 sm:p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Total Attended</p>
-                        <p className="text-xl sm:text-2xl font-bold text-[#010080] dark:text-blue-400">
-                            {processedData.reduce((sum, item) => sum + (item.attended || 0), 0)} <span className="text-sm font-normal text-gray-500">hrs</span>
+                <div className={`${CHART_FOOTER_CLASS} grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4`}>
+                    <div className="text-center p-3 sm:p-4 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
+                        <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-bold uppercase tracking-wider mb-1">Present</p>
+                        <p className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                            {processedData.reduce((sum: number, item: any) => sum + (item.attended || 0), 0)} <span className="text-xs font-normal text-gray-500">hrs</span>
                         </p>
                     </div>
                     <div className="text-center p-3 sm:p-4 bg-red-50/50 dark:bg-red-950/20 rounded-xl border border-red-100 dark:border-red-900/30">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Total Absent</p>
-                        <p className="text-xl sm:text-2xl font-bold text-[#f40606] dark:text-red-400">
-                            {processedData.reduce((sum, item) => sum + (item.absent || 0), 0)} <span className="text-sm font-normal text-gray-500">hrs</span>
+                        <p className="text-[11px] text-red-700 dark:text-red-300 font-bold uppercase tracking-wider mb-1">Absent</p>
+                        <p className="text-xl sm:text-2xl font-black text-red-600 dark:text-red-400">
+                            {processedData.reduce((sum: number, item: any) => sum + (item.absent || 0), 0)} <span className="text-xs font-normal text-gray-500">hrs</span>
                         </p>
                     </div>
-                    <div className="text-center p-3 sm:p-4 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Overall Rate</p>
-                        <p className="text-xl sm:text-2xl font-bold text-[#010080] dark:text-blue-400">
+                    <div className="text-center p-3 sm:p-4 bg-amber-50/50 dark:bg-amber-950/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                        <p className="text-[11px] text-amber-700 dark:text-amber-300 font-bold uppercase tracking-wider mb-1">Excused</p>
+                        <p className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">
+                            {processedData.reduce((sum: number, item: any) => sum + (item.excused || 0), 0)} <span className="text-xs font-normal text-gray-500">hrs</span>
+                        </p>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                        <p className="text-[11px] text-blue-700 dark:text-blue-300 font-bold uppercase tracking-wider mb-1">Presence Rate</p>
+                        <p className="text-xl sm:text-2xl font-black text-[#010080] dark:text-blue-400">
                             {(() => {
-                                const totalAtt = processedData.reduce((sum, item) => sum + (item.attended || 0), 0);
-                                const totalAbs = processedData.reduce((sum, item) => sum + (item.absent || 0), 0);
-                                const total = totalAtt + totalAbs;
+                                const totalAtt = processedData.reduce((sum: number, item: any) => sum + (item.attended || 0), 0);
+                                const totalAbs = processedData.reduce((sum: number, item: any) => sum + (item.absent || 0), 0);
+                                const totalExc = processedData.reduce((sum: number, item: any) => sum + (item.excused || 0), 0);
+                                const total = totalAtt + totalAbs + totalExc;
                                 return total > 0 ? `${((totalAtt / total) * 100).toFixed(1)}%` : '0%';
                             })()}
                         </p>

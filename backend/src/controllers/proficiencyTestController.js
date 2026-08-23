@@ -68,13 +68,76 @@ export const submitProficiencyTest = async (req, res) => {
         let total_points = 0;
         let hasEssay = false;
 
-        questions.forEach(q => {
-            if (q.type === 'mcq' || q.type === 'multiple_choice') {
+        const cleanStr = (s) => (s ? String(s).trim().toLowerCase() : "");
+
+        (questions || []).forEach(q => {
+            const qType = q.type || "mcq";
+
+            if (qType === 'mcq' || qType === 'multiple_choice') {
                 total_points += (q.points || 1);
-                if (answers[q.id] === q.options[q.correctOption]) score += (q.points || 1);
-            } else if (q.type === 'essay') {
+                if (answers[q.id] === q.options?.[q.correctOption]) score += (q.points || 1);
+            } else if (qType === 'tfng') {
+                (q.statements || []).forEach((s, idx) => {
+                    const sPoints = Math.max(1, Math.floor((q.points || 5) / (q.statements.length || 1)));
+                    total_points += sPoints;
+                    const ans = answers[`${q.id}_stmt_${idx}`] || answers[q.id];
+                    if (cleanStr(ans) === cleanStr(s.answer)) score += sPoints;
+                });
+            } else if (qType === 'sentence-completion') {
+                (q.sentences || []).forEach((s, idx) => {
+                    const sPoints = Math.max(1, Math.floor((q.points || 5) / (q.sentences.length || 1)));
+                    total_points += sPoints;
+                    const ans = answers[`${q.id}_sent_${idx}`];
+                    if (cleanStr(ans) === cleanStr(s.answer)) score += sPoints;
+                });
+            } else if (qType === 'form-fill') {
+                (q.fields || []).forEach((f, idx) => {
+                    const fPoints = Math.max(1, Math.floor((q.points || 5) / (q.fields.length || 1)));
+                    total_points += fPoints;
+                    const ans = answers[`${q.id}_field_${idx}`];
+                    if (cleanStr(ans) === cleanStr(f.answer)) score += fPoints;
+                });
+            } else if (qType === 'heading-match') {
+                (q.paragraphs || []).forEach((p, idx) => {
+                    const pPoints = Math.max(1, Math.floor((q.points || 5) / (q.paragraphs.length || 1)));
+                    total_points += pPoints;
+                    const ans = answers[`${q.id}_para_${idx}`];
+                    if (parseInt(ans) === p.correctHeading) score += pPoints;
+                });
+            } else if (qType === 'word-box-fill') {
+                (q.answers || []).forEach((a, idx) => {
+                    const aPoints = Math.max(1, Math.floor((q.points || 5) / (q.answers.length || 1)));
+                    total_points += aPoints;
+                    const ans = answers[`${q.id}_word_${idx}`] || answers[`${q.id}_gap_${a.number}`];
+                    if (cleanStr(ans) === cleanStr(a.answer)) score += aPoints;
+                });
+            } else if (qType === 'passage') {
+                (q.subQuestions || []).forEach((sq, idx) => {
+                    const sqKey = sq.id || `${q.id}_sub_${idx}`;
+                    const sqPoints = parseInt(sq.points) || 1;
+                    total_points += sqPoints;
+
+                    const sqType = sq.type || "mcq";
+                    if (sqType === "mcq") {
+                        if (answers[sqKey] === sq.options?.[sq.correctOption]) score += sqPoints;
+                    } else if (sqType === "tfng") {
+                        if (cleanStr(answers[sqKey]) === cleanStr(sq.tfngAnswer)) score += sqPoints;
+                    } else if (sqType === "fill_blank") {
+                        if (cleanStr(answers[sqKey]) === cleanStr(sq.blankAnswer)) score += sqPoints;
+                    } else if (sqType === "heading_match") {
+                        if (parseInt(answers[sqKey]) === sq.correctHeadingIdx) score += sqPoints;
+                    } else if (sqType === "word_box_fill") {
+                        const wordAnswers = sq.wordBoxAnswers || [];
+                        const perGap = Math.max(1, Math.floor(sqPoints / (wordAnswers.length || 1)));
+                        wordAnswers.forEach((wa, wai) => {
+                            const gapKey = `${sqKey}_gap_${wa.number || wai + 1}`;
+                            if (cleanStr(answers[gapKey]) === cleanStr(wa.answer)) score += perGap;
+                        });
+                    }
+                });
+            } else if (qType === 'essay' || qType === 'table-essay' || qType === 'audio') {
                 hasEssay = true;
-                total_points += (q.points || 0);
+                total_points += (parseInt(q.points) || 10);
             }
         });
 

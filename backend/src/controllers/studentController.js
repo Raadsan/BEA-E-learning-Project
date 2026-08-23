@@ -253,7 +253,10 @@ export const getStudentsByClass = async (req, res) => {
         return res.status(400).json({ success: false, error: "Invalid class ID" });
     }
     const students = await prisma.students.findMany({
-      where: { class_id: classId },
+      where: { 
+        class_id: classId,
+        approval_status: { not: 'inactive' }
+      },
       include: { classes: true },
       orderBy: { created_at: 'desc' }
     });
@@ -263,11 +266,23 @@ export const getStudentsByClass = async (req, res) => {
   }
 };
 
-// GET ALL STUDENTS
+// GET ALL STUDENTS (Supports status=trash / status=inactive / default active)
 export const getStudents = async (req, res) => {
   try {
     await backfillMissingCreatedBy(prisma.students);
+    const { status } = req.query;
+
+    let where = { approval_status: { not: 'inactive' } };
+    if (status === 'trash' || status === 'inactive') {
+      where = { approval_status: 'inactive' };
+    } else if (status === 'all') {
+      where = {};
+    } else if (status && status !== 'active') {
+      where = { approval_status: status };
+    }
+
     const students = await prisma.students.findMany({
+      where,
       include: { classes: true },
       orderBy: { created_at: 'desc' }
     });
@@ -483,73 +498,151 @@ export const updateStudent = async (req, res) => {
   }
 };
 
-export const deleteStudentWithDependencies = async (tx, studentId) => {
-  const student = await tx.students.findUnique({
-    where: { student_id: studentId },
-    select: { student_id: true },
-  });
-  if (!student) {
-    const error = new Error("Student not found");
-    error.statusCode = 404;
-    throw error;
-  }
+// CASCADE DELETE ALL DEPENDENCIES FOR A STUDENT
+export const cascadeDeleteStudent = async (tx, studentId) => {
+  // Delete all dependencies in a safe order
+  await tx.assignment_submissions.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.course_work_submissions.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.exam_submissions.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.oral_assignment_submissions.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.writing_task_submissions.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.attendance.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.payments.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.level_up_requests.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.freezing_requests.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.issued_certificates.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.session_change_requests.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.student_class_history.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.student_reviews.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.teacher_reviews.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.placement_test_results.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.proficiency_test_results.deleteMany({ where: { student_id: studentId } }).catch(() => {});
+  await tx.notifications.deleteMany({
+    where: { OR: [{ user_id: studentId }, { sender_id: studentId }] }
+  }).catch(() => {});
 
-  const checks = [
-    ["assignment_submissions", "Assignment submissions", { student_id: studentId }],
-    ["attendance", "Attendance records", { student_id: studentId }],
-    ["course_work_submissions", "Course work submissions", { student_id: studentId }],
-    ["exam_submissions", "Exam submissions", { student_id: studentId }],
-    ["freezing_requests", "Freezing requests", { student_id: studentId }],
-    ["issued_certificates", "Issued certificates", { student_id: studentId }],
-    ["level_up_requests", "Level-up requests", { student_id: studentId }],
-    ["notifications", "Notifications", { OR: [{ user_id: studentId }, { sender_id: studentId }] }],
-    ["oral_assignment_submissions", "Oral assignment submissions", { student_id: studentId }],
-    ["payments", "Payments", { student_id: studentId }],
-    ["placement_test_results", "Placement test results", { student_id: studentId }],
-    ["proficiency_test_results", "Proficiency test results", { student_id: studentId }],
-    ["session_change_requests", "Session-change requests", { student_id: studentId }],
-    ["student_class_history", "Class history", { student_id: studentId }],
-    ["student_reviews", "Student reviews", { student_id: studentId }],
-    ["teacher_reviews", "Teacher reviews", { student_id: studentId }],
-    ["writing_task_submissions", "Writing-task submissions", { student_id: studentId }],
-  ];
-  const counts = await Promise.all(
-    checks.map(([model, label, where]) =>
-      tx[model].count({ where }).then((count) => ({ table: model, label, count }))
-    )
-  );
-  const dependencies = counts.filter(({ count }) => count > 0);
-
-  if (dependencies.length > 0) {
-    const details = dependencies.map(({ label, count }) => `${label}: ${count}`).join(", ");
-    const error = new Error(
-      `This student cannot be deleted because related records still exist in ${dependencies.length} section(s): ${details}. Delete those records first, then try again.`
-    );
-    error.statusCode = 409;
-    error.dependencies = dependencies;
-    throw error;
-  }
-
+  // Finally delete the student record
   await tx.students.delete({ where: { student_id: studentId } });
 };
 
-// DELETE STUDENT
+// SOFT DELETE STUDENT (Move to Trash / Inactive)
 export const deleteStudent = async (req, res) => {
   try {
-    await prisma.$transaction(
-      (tx) => deleteStudentWithDependencies(tx, req.params.id),
-      { maxWait: 10000, timeout: 30000 }
-    );
-    res.json({ success: true, message: "Deleted" });
-  } catch (err) {
-    console.error("Delete student error:", err);
-    res.status(err.statusCode || 500).json({
-      success: false,
-      error: err.message,
-      dependencies: err.dependencies,
+    const studentId = req.params.id;
+    const existing = await prisma.students.findUnique({
+      where: { student_id: studentId }
     });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: "Student not found" });
+    }
+
+    const updated = await prisma.students.update({
+      where: { student_id: studentId },
+      data: {
+        approval_status: 'inactive',
+        updated_at: new Date()
+      }
+    });
+
+    res.json({
+      success: true,
+      message: "Student moved to trash successfully",
+      student: updated
+    });
+  } catch (err) {
+    console.error("Soft delete student error:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 };
+
+// RESTORE STUDENT FROM TRASH
+export const restoreStudent = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const existing = await prisma.students.findUnique({
+      where: { student_id: studentId }
+    });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: "Student not found" });
+    }
+
+    const updated = await prisma.students.update({
+      where: { student_id: studentId },
+      data: {
+        approval_status: 'approved',
+        updated_at: new Date()
+      }
+    });
+
+    res.json({
+      success: true,
+      message: "Student restored successfully",
+      student: updated
+    });
+  } catch (err) {
+    console.error("Restore student error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// PERMANENTLY DELETE SINGLE STUDENT (Cascading cleanup)
+export const deleteStudentPermanent = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    await prisma.$transaction(
+      async (tx) => {
+        const student = await tx.students.findUnique({
+          where: { student_id: studentId }
+        });
+        if (!student) {
+          const error = new Error("Student not found");
+          error.statusCode = 404;
+          throw error;
+        }
+        await cascadeDeleteStudent(tx, studentId);
+      },
+      { maxWait: 10000, timeout: 30000 }
+    );
+    res.json({ success: true, message: "Student permanently deleted" });
+  } catch (err) {
+    console.error("Permanent delete student error:", err);
+    res.status(err.statusCode || 500).json({ success: false, error: err.message });
+  }
+};
+
+// EMPTY TRASH (Permanently delete all inactive students)
+export const emptyTrash = async (req, res) => {
+  try {
+    const inactiveStudents = await prisma.students.findMany({
+      where: { approval_status: 'inactive' },
+      select: { student_id: true }
+    });
+
+    if (inactiveStudents.length === 0) {
+      return res.json({ success: true, message: "Trash is already empty", count: 0 });
+    }
+
+    await prisma.$transaction(
+      async (tx) => {
+        for (const s of inactiveStudents) {
+          await cascadeDeleteStudent(tx, s.student_id);
+        }
+      },
+      { maxWait: 20000, timeout: 60000 }
+    );
+
+    res.json({
+      success: true,
+      message: `Permanently deleted ${inactiveStudents.length} student(s) from trash`,
+      count: inactiveStudents.length
+    });
+  } catch (err) {
+    console.error("Empty trash error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+export const deleteStudentWithDependencies = cascadeDeleteStudent;
 
 // APPROVE/REJECT
 export const approveStudent = async (req, res) => {
@@ -686,38 +779,100 @@ export const getStudentLocations = async (req, res) => {
 // GET TOP STUDENTS
 export const getTopStudents = async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit || "10");
+    const limit = parseInt(req.query.limit || "10", 10);
     const { program_id, class_id } = req.query;
-    const where = {};
-    if (class_id) where.class_id = parseInt(class_id);
+    
+    // Only enrolled active students assigned to an active class
+    const where = {
+      class_id: { not: null },
+      approval_status: { not: 'inactive' }
+    };
+    if (class_id) where.class_id = parseInt(class_id, 10);
     
     // Resolve string title mapping for chosen_program
     if (program_id) {
-      const progId = parseInt(program_id);
+      const progId = parseInt(program_id, 10);
       if (!isNaN(progId)) {
         const prog = await prisma.programs.findUnique({
           where: { id: progId }
         });
         if (prog) {
-          where.chosen_program = prog.title;
+          where.OR = [
+            { chosen_program: prog.title },
+            { chosen_program: String(progId) }
+          ];
+        } else {
+          where.chosen_program = String(program_id);
         }
+      } else {
+        where.chosen_program = String(program_id);
       }
     }
 
     const students = await prisma.students.findMany({
       where,
-      take: limit,
+      take: 100,
       include: { classes: true },
       orderBy: { created_at: 'desc' }
     });
 
     const populated = await Promise.all(students.map(async (student) => {
-      // Resolve program name from string field or joined record
-      let program_name = student.chosen_program || '-';
+      const studentId = student.student_id;
+      let program_name = student.chosen_program || student.classes?.class_name || '-';
 
-      // Provide realistic, high-performing mock values for star students dashboard display
-      const attendance_rate = 92 + Math.floor(Math.random() * 7); // 92% to 99%
-      const avg_assignment_score = 88 + Math.floor(Math.random() * 10); // 88% to 98%
+      // 1. Calculate Real Dynamic Attendance (1 session per day: hour1=1 → present)
+      const attendanceRecords = await prisma.attendance.findMany({
+        where: { student_id: studentId },
+        select: { hour1: true }
+      });
+      let attendance_rate = 0;
+      if (attendanceRecords.length > 0) {
+        const presentSessions = attendanceRecords.filter(rec => Number(rec.hour1) === 1).length;
+        attendance_rate = Math.min(100, Math.round((presentSessions / attendanceRecords.length) * 100));
+      }
+
+
+      // 2. Calculate Real Dynamic Assignment Scores (Writing Tasks, Coursework, Oral, Class Exams ONLY)
+      const [writingSubs, courseworkSubs, oralSubs, examSubs] = await Promise.all([
+        prisma.assignment_submissions.findMany({
+          where: { student_id: studentId, score: { not: null } },
+          include: { assignments: { select: { total_points: true } } }
+        }),
+        prisma.course_work_submissions.findMany({
+          where: { student_id: studentId, score: { not: null } },
+          include: { course_work: { select: { total_points: true } } }
+        }),
+        prisma.oral_assignment_submissions.findMany({
+          where: { student_id: studentId, score: { not: null } },
+          include: { oral_assignments: { select: { total_points: true } } }
+        }),
+        prisma.exam_submissions.findMany({
+          where: { student_id: studentId, score: { not: null } },
+          include: { exams: { select: { total_points: true } } }
+        })
+      ]);
+
+      const percentageScores = [];
+      writingSubs.forEach(s => {
+        const max = s.assignments?.total_points || 100;
+        if (max > 0) percentageScores.push((Number(s.score) / max) * 100);
+      });
+      courseworkSubs.forEach(s => {
+        const max = s.course_work?.total_points || 100;
+        if (max > 0) percentageScores.push((Number(s.score) / max) * 100);
+      });
+      oralSubs.forEach(s => {
+        const max = s.oral_assignments?.total_points || 100;
+        if (max > 0) percentageScores.push((Number(s.score) / max) * 100);
+      });
+      examSubs.forEach(s => {
+        const max = s.exams?.total_points || 100;
+        if (max > 0) percentageScores.push((Number(s.score) / max) * 100);
+      });
+
+      const avg_assignment_score = percentageScores.length > 0
+        ? Math.min(100, Math.round(percentageScores.reduce((a, b) => a + b, 0) / percentageScores.length))
+        : 0;
 
       return {
         ...student,
@@ -729,9 +884,17 @@ export const getTopStudents = async (req, res) => {
       };
     }));
 
+    // Sort by highest average assignment score, then highest attendance
+    populated.sort((a, b) => {
+      if (b.avg_assignment_score !== a.avg_assignment_score) {
+        return b.avg_assignment_score - a.avg_assignment_score;
+      }
+      return b.attendance_rate - a.attendance_rate;
+    });
+
     res.json({
       success: true,
-      students: populated
+      students: populated.slice(0, limit)
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

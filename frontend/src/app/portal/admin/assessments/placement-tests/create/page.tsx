@@ -122,25 +122,32 @@ export default function CreatePlacementTestPage() {
     let q = null;
     const type = steps[currentStep - 1].type;
     const currentCount = questions.filter((item) => item.part === currentStep).length;
-    if (editingIndex === null && currentCount >= sectionMetadata[currentStep].questions) {
-      return showToast(`Part ${currentStep} cannot exceed ${sectionMetadata[currentStep].questions} questions`, "error");
+    const nextCount = editingIndex === null ? currentCount + 1 : currentCount;
+    const currentMeta = sectionMetadata[currentStep] || defaultSectionMeta();
+    const updatedMeta = {
+      ...currentMeta,
+      questions: Math.max(currentMeta.questions || 1, nextCount),
+    };
+    if (updatedMeta.questions !== currentMeta.questions) {
+      setSectionMetadata((prev) => ({ ...prev, [currentStep]: updatedMeta }));
     }
+
     if (type === "mcq") {
-      if (!currentMCQ.questionText || currentMCQ.options.some(o => !o)) {
+      if (!currentMCQ.questionText || currentMCQ.options.some((o) => !o)) {
         return showToast("Fill all MCQ fields", "error");
       }
-      q = { ...currentMCQ, part: currentStep, sectionMeta: sectionMetadata[currentStep] };
+      q = { ...currentMCQ, part: currentStep, sectionMeta: updatedMeta };
     } else if (type === "passage") {
       if (!currentPassage.passageText || currentPassage.subQuestions.length === 0) {
         return showToast("Add passage text and sub-questions", "error");
       }
       const totalPoints = currentPassage.subQuestions.reduce((acc, sq) => acc + (parseInt(sq.points) || 0), 0);
-      q = { ...currentPassage, points: totalPoints, part: currentStep, sectionMeta: sectionMetadata[currentStep] };
+      q = { ...currentPassage, points: totalPoints, part: currentStep, sectionMeta: updatedMeta };
     } else if (type === "essay") {
       if (!currentEssay.title) {
         return showToast("Add essay title", "error");
       }
-      q = { ...currentEssay, part: currentStep, sectionMeta: sectionMetadata[currentStep] };
+      q = { ...currentEssay, part: currentStep, sectionMeta: updatedMeta };
     }
 
     const nextQuestions =

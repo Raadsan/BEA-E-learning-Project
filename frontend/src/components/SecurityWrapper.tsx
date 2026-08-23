@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-export default function SecurityWrapper({ children }) {
-  const [isBlurred, setIsBlurred] = useState(false);
-
+export default function SecurityWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    // Prevent Print Screen & Developer Tools Shortcuts
-    const handleKeyDown = (e) => {
+    // Only apply desktop keyboard shortcuts prevention (PrintScreen, DevTools keys)
+    const handleKeyDown = (e: KeyboardEvent) => {
       // Print Screen
       if (e.key === "PrintScreen") {
-        navigator.clipboard.writeText("");
-        setIsBlurred(true);
-        setTimeout(() => setIsBlurred(false), 3000);
+        try {
+          navigator.clipboard.writeText("");
+        } catch (_) {
+          // ignore
+        }
       }
       
       // Prevent Ctrl+P (Print), Ctrl+S (Save), F12, Ctrl+Shift+I (DevTools)
@@ -26,39 +26,16 @@ export default function SecurityWrapper({ children }) {
       }
     };
 
-    // Blur screen when app loses focus (prevents background screen recording tools)
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        setIsBlurred(true);
-      } else {
-        setIsBlurred(false);
-      }
-    };
-
-    // Add event listeners
     document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      // Cleanup
       document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
   return (
-    <div 
-      className={`min-h-screen transition-all duration-200 ${isBlurred ? "blur-xl select-none opacity-20" : ""}`}
-    >
+    <div className="min-h-screen" suppressHydrationWarning>
       {children}
-      
-      {isBlurred && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80">
-          <p className="text-white text-2xl font-bold p-8 bg-red-600 rounded-xl">
-            Screenshots and Screen Recording are strictly prohibited!
-          </p>
-        </div>
-      )}
     </div>
   );
 }

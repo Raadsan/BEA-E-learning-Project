@@ -12,7 +12,7 @@ export type SectionMeta = {
 
 export const defaultSectionMeta = (format = "MCQs"): SectionMeta => ({
   sectionName: "",
-  questions: 1,
+  questions: 5,
   format,
   marks: 1,
   targetScore: "",

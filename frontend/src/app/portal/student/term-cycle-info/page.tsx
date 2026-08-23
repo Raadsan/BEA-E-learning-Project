@@ -14,13 +14,13 @@ import { resolveStudentSubprogramId } from "@/utils/resolveStudentSubprogram";
 import { useCreateNotificationMutation } from "@/lib/api/notificationApi";
 import { useToast } from "@/components/Toast";
 import { useCreateLevelUpRequestMutation } from "@/lib/api/levelUpApi";
-import { timelineData, parseDate } from "@/lib/timelineData";
+import { useGetTimelinesQuery } from "@/lib/api/courseTimelineApi";
 import StudentPageHeader from "@/components/student/StudentPageHeader";
 
-const CountdownCircle = ({ value, label, max, color, isDark }) => {
+const CountdownCircle = ({ value, label, max, color, isDark }: any) => {
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / max) * circumference;
+  const offset = circumference - (Math.min(value, max) / max) * circumference;
 
   return (
     <div className="flex flex-col items-center gap-3">
@@ -56,33 +56,45 @@ const CountdownCircle = ({ value, label, max, color, isDark }) => {
   );
 };
 
-const TermCountdown = ({ isDark }) => {
+const TermCountdown = ({ timelines = [], isDark }: { timelines?: any[]; isDark: boolean }) => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, label: "" });
 
   const termData = useMemo(() => {
-    return timelineData.map(term => ({
-      serial: term.termSerial,
-      start: parseDate(term.startDate).toISOString().split('T')[0],
-      end: parseDate(term.endDate).toISOString().split('T')[0]
-    }));
-  }, []);
+    if (!Array.isArray(timelines) || timelines.length === 0) return [];
+    return timelines
+      .map(term => {
+        const start = new Date(term.start_date || term.startDate);
+        const end = new Date(term.end_date || term.endDate);
+        end.setHours(23, 59, 59, 999);
+        return {
+          serial: term.term_serial || term.termSerial || "Term",
+          start,
+          end,
+          holidays: term.holidays || ""
+        };
+      })
+      .filter(t => !isNaN(t.start.getTime()) && !isNaN(t.end.getTime()))
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
+  }, [timelines]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    if (termData.length === 0) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, label: "" });
+      return;
+    }
+
+    const updateTimer = () => {
       const now = new Date();
-      let targetDate = null;
+      let targetDate: Date | null = null;
       let label = "";
 
       for (const term of termData) {
-        const startDate = new Date(term.start);
-        const endDate = new Date(term.end);
-
-        if (now < startDate) {
-          targetDate = startDate;
+        if (now < term.start) {
+          targetDate = term.start;
           label = `${term.serial} Starts In`;
           break;
-        } else if (now < endDate) {
-          targetDate = endDate;
+        } else if (now <= term.end) {
+          targetDate = term.end;
           label = `${term.serial} Ends In`;
           break;
         }
@@ -90,16 +102,24 @@ const TermCountdown = ({ isDark }) => {
 
       if (targetDate) {
         const difference = targetDate.getTime() - now.getTime();
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60),
-          label
-        });
+        if (difference > 0) {
+          setTimeLeft({
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+            minutes: Math.floor((difference / 1000 / 60) % 60),
+            seconds: Math.floor((difference / 1000) % 60),
+            label
+          });
+        } else {
+          setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, label: "" });
+        }
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, label: "" });
       }
-    }, 1000);
+    };
 
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
   }, [termData]);
 
@@ -155,12 +175,21 @@ export default function TermCycleInfoPage() {
   ];
   const years = [2025, 2026, 2027, 2028, 2029, 2030];
 
-  // 1. Term End Check
+  const { data: dbTimelines = [], isLoading: timelinesLoading } = useGetTimelinesQuery({
+    class_id: user?.class_id,
+    subprogram_id: subprogramId
+  });
+
+  // 1. Term End Check - Dynamic from DB
   const termEnded = useMemo(() => {
-    const lastTerm = timelineData[timelineData.length - 1];
-    if (!lastTerm) return false;
-    return new Date() > parseDate(lastTerm.endDate);
-  }, []);
+    if (!dbTimelines || dbTimelines.length === 0) return false;
+    const sorted = [...dbTimelines].sort((a: any, b: any) => new Date(b.end_date).getTime() - new Date(a.end_date).getTime());
+    const lastTerm = sorted[0];
+    if (!lastTerm?.end_date) return false;
+    const lastEnd = new Date(lastTerm.end_date);
+    lastEnd.setHours(23, 59, 59, 999);
+    return new Date() > lastEnd;
+  }, [dbTimelines]);
 
   // 2. Pass Check (Success Rate >= 50%)
   const { data: assignments = [] } = useGetAssignmentsQuery({ subprogram_id: subprogramId ? String(subprogramId) : undefined }, { skip: !subprogramId });
@@ -207,16 +236,64 @@ export default function TermCycleInfoPage() {
     skip: !subprogramId
   });
 
+  const timelineColumns = useMemo(() => [
+    {
+      key: "term_serial",
+      label: "Term Serial",
+      width: "120px",
+      render: (val: string) => <span className="font-extrabold text-[#010080] dark:text-blue-400">{val}</span>
+    },
+    {
+      key: "start_date",
+      label: "Start Date",
+      width: "130px",
+      render: (val: string) => val ? new Date(val).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "-"
+    },
+    {
+      key: "end_date",
+      label: "End Date",
+      width: "130px",
+      render: (val: string) => val ? new Date(val).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "-"
+    },
+    {
+      key: "holidays",
+      label: "Holidays / Special Events",
+      render: (val: string) => (
+        <span className={val ? "text-amber-600 dark:text-amber-400 font-medium text-xs" : "text-gray-400 italic text-xs"}>
+          {val || "No scheduled holiday"}
+        </span>
+      )
+    },
+    {
+      key: "status",
+      label: "Status",
+      width: "130px",
+      render: (_: any, row: any) => {
+        const now = new Date();
+        const start = new Date(row.start_date);
+        const end = new Date(row.end_date);
+        end.setHours(23, 59, 59, 999);
+        if (now >= start && now <= end) {
+          return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-300">● Active Now</span>;
+        }
+        if (now < start) {
+          return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">Upcoming</span>;
+        }
+        return <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">Completed</span>;
+      }
+    }
+  ], []);
+
   const { calendarRows, gridDays } = useMemo(() => {
     const days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"];
     const maxWeeks = 4;
     const rows = [];
 
     for (let w = 1; w <= maxWeeks; w++) {
-      const row = { id: w, week: `Week ${w}` };
+      const row: any = { id: w, week: `Week ${w}` };
       days.forEach((d) => { row[d] = "-"; });
 
-      academicCalendar.forEach((entry) => {
+      academicCalendar.forEach((entry: any) => {
         const day = entry.day || entry.day_of_week;
         const title = entry.activity_title || entry.subject;
         if (Number(entry.week_number) === w && day && days.includes(day) && title) {
@@ -234,12 +311,12 @@ export default function TermCycleInfoPage() {
       key: "week",
       label: "Weeks",
       width: "100px",
-      render: (cellValue, row) => <span className="font-extrabold text-[#010080] dark:text-blue-400">{row.week}</span>
+      render: (cellValue: any, row: any) => <span className="font-extrabold text-[#010080] dark:text-blue-400">{row.week}</span>
     },
     ...gridDays.map(day => ({
       key: day,
       label: day,
-      render: (cellValue, row) => (
+      render: (cellValue: any, row: any) => (
         <div className="py-2">
           {row[day] !== "-" ? (
             <p className="font-bold leading-tight text-gray-900 dark:text-white text-sm">
@@ -254,7 +331,7 @@ export default function TermCycleInfoPage() {
   ], [gridDays]);
 
   const specificEvents = useMemo(() => {
-    return events.map(event => ({
+    return events.map((event: any) => ({
       ...event,
       displayDate: new Date(event.event_date).toLocaleDateString('en-US', {
         month: 'short', day: 'numeric'
@@ -280,7 +357,7 @@ export default function TermCycleInfoPage() {
         user_id: null, // Broadcast to admins
         type: 'course_request',
         title: `[LEVEL UP] ${user?.full_name} Ready for Next Level`,
-        message: `Student ${user?.full_name} (${user?.student_id}) has completed their current term and is requesting promotion to: ${availableSubprograms.find(s => s.id == nextSubprogramId)?.subprogram_name}.`,
+        message: `Student ${user?.full_name} (${user?.student_id}) has completed their current term and is requesting promotion to: ${availableSubprograms.find((s: any) => s.id == nextSubprogramId)?.subprogram_name}.`,
         metadata: {
           student_id: user?.student_id,
           requested_subprogram_id: nextSubprogramId,
@@ -290,7 +367,7 @@ export default function TermCycleInfoPage() {
 
       showToast("Level-up request submitted successfully!", "success");
       setShowRequestModal(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Request error:", err);
       showToast(err?.data?.error || "Failed to submit request", "error");
     } finally {
@@ -333,9 +410,23 @@ export default function TermCycleInfoPage() {
           </p>
         )}
 
-        {/* Term Countdown Timer - Only show if academic plan is created for this month */}
-        {!calendarLoading && (academicCalendar || []).length > 0 && (
-          <TermCountdown isDark={isDark} />
+        {/* Term Countdown Timer - Live from dynamic database Course Timelines */}
+        {!timelinesLoading && (dbTimelines || []).length > 0 && (
+          <TermCountdown timelines={dbTimelines} isDark={isDark} />
+        )}
+
+        {/* Official Course Timelines / Term Schedule Table */}
+        {dbTimelines && dbTimelines.length > 0 && (
+          <div className="mb-8">
+            <DataTable
+              title="Official Course Timelines"
+              columns={timelineColumns}
+              data={dbTimelines}
+              showAddButton={false}
+              isLoading={timelinesLoading}
+              emptyMessage="No course timeline entries found."
+            />
+          </div>
         )}
 
         {/* Weekly Schedule Grid — reads from Admin Academic Timetable */}

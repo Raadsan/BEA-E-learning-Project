@@ -176,7 +176,7 @@ export default function StudentsPage() {
             type: 'ielts',
             class_name: s.class_id ? classes.find(c => c.id == s.class_id)?.class_name : null
         }))
-    ];
+    ].filter(s => s.approval_status !== 'inactive');
 
     // Filter Logic
     const filteredStudents = mergedStudents.filter(student => {
@@ -911,9 +911,9 @@ export default function StudentsPage() {
                     isOpen={isDeleteModalOpen}
                     onClose={() => setIsDeleteModalOpen(false)}
                     onConfirm={handleConfirmDelete}
-                    title="Delete Student"
-                    message={`Delete ${studentToDelete?.full_name}? The student will not be deleted if they still have assignments, attendance, results, payments, certificates, requests, reviews, or notifications. The system will show what must be removed first.`}
-                    confirmText="Delete"
+                    title="Move Student to Trash"
+                    message={`Are you sure you want to move ${studentToDelete?.full_name} (${studentToDelete?.student_id || ""}) to Trash? They will become inactive and will be hidden from classes, attendance, exams, and Star Students. You can restore them anytime from the Deleted Students (Trash) bin.`}
+                    confirmText="Move to Trash"
                     isDanger={true}
                     isLoading={isDeleting || isDeletingIelts}
                 />

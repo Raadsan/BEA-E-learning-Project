@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { resolveMediaUrl } from "@/constants";
@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import UpcomingEventsList from "@/components/UpcomingEventsList";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import DashboardTermCounter from "@/components/student/dashboard/DashboardTermCounter";
+import DataTable from "@/components/DataTable";
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
@@ -217,15 +218,102 @@ export default function StudentDashboard() {
     // Fetch Learning Hours Summary
     const { data: learningSummary, isLoading: learningLoading } = useGetLearningHoursSummaryQuery(
         {
-            class_id: user?.class_id,
+            class_id: user?.class_id || undefined,
             student_id: user?.student_id || user?.id,
             subprogram_name: user?.chosen_subprogram
         },
-        { skip: !user?.class_id }
+        { skip: !user?.id && !user?.student_id }
     );
 
-    // Fetch Leaderboard (Top Students)
-    const { data: leaderboardData = [], isLoading: leaderboardLoading } = useGetTopStudentsQuery({ limit: 5 });
+    // Fetch Leaderboard (Top Students in student's course/program)
+    const { data: leaderboardData = [], isLoading: leaderboardLoading } = useGetTopStudentsQuery({
+        limit: 10,
+        program_id: user?.chosen_program || undefined,
+        class_id: user?.class_id ? String(user.class_id) : undefined
+    }, { skip: !user?.student_id && !user?.id });
+
+    const rankedStarStudents = useMemo(() => {
+        const list = Array.isArray(leaderboardData) ? leaderboardData : (leaderboardData?.students || []);
+        return list.map((student: any, idx: number) => ({
+            ...student,
+            rank: idx + 1
+        }));
+    }, [leaderboardData]);
+
+    const getStarRankBadge = (rank: number) => {
+        switch (rank) {
+            case 1:
+                return <span className="bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-300 text-xs font-bold px-2.5 py-1 rounded-md border border-yellow-300 dark:border-yellow-700/50 inline-flex items-center gap-1 shadow-xs">🥇 1st</span>;
+            case 2:
+                return <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-600 inline-flex items-center gap-1 shadow-xs">🥈 2nd</span>;
+            case 3:
+                return <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-bold px-2.5 py-1 rounded-md border border-amber-300 dark:border-amber-700/50 inline-flex items-center gap-1 shadow-xs">🥉 3rd</span>;
+            default:
+                return <span className="bg-blue-50 dark:bg-blue-950/30 text-[#010080] dark:text-blue-300 text-xs font-bold px-2.5 py-1 rounded-md border border-blue-200 dark:border-blue-800 inline-flex items-center justify-center min-w-[42px] shadow-xs">{rank}th</span>;
+        }
+    };
+
+    const starStudentColumns = [
+        {
+            label: "Rank",
+            key: "rank",
+            width: "90px",
+            render: (value: any, row: any, globalIndex: number) => {
+                const rankNum = row.rank || (typeof globalIndex === 'number' ? globalIndex + 1 : 1);
+                return getStarRankBadge(rankNum);
+            }
+        },
+        {
+            label: "Student Name",
+            key: "full_name",
+            render: (value: any, row: any) => (
+                <div className="flex flex-col">
+                    <span className="text-black dark:text-white font-medium">{value || row.name}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{row.email || row.student_id}</span>
+                </div>
+            )
+        },
+        {
+            label: "Program / Class",
+            key: "program_name",
+            render: (value: any, row: any) => (
+                <div className="flex flex-col">
+                    <span className="text-black dark:text-gray-200">{value || user?.chosen_program || '-'}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{row.class_name || row.subprogram_name || '-'}</span>
+                </div>
+            )
+        },
+        {
+            label: "Attendance",
+            key: "attendance_rate",
+            className: "text-center",
+            render: (value: any) => {
+                const num = Number(value || 0);
+                const display = num % 1 === 0 ? num.toFixed(0) : num.toFixed(1);
+                return (
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold
+                        ${num >= 90 ? 'bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300' :
+                            num >= 75 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300' : 'bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300'}`}>
+                        {display}%
+                    </span>
+                );
+            }
+        },
+        {
+            label: "Avg. Score",
+            key: "avg_assignment_score",
+            className: "text-center",
+            render: (value: any, row: any) => {
+                const num = value !== undefined && value !== null ? Number(value) : Number(row.average_score || 0);
+                const display = num % 1 === 0 ? num.toFixed(0) : num.toFixed(1);
+                return (
+                    <span className="font-bold text-[#010080] dark:text-blue-400">
+                        {display}%
+                    </span>
+                );
+            }
+        }
+    ];
 
     // Fetch Student Progress for "Continue Learning"
     const { data: progressData, isLoading: progressLoading } = useGetStudentProgressQuery();
@@ -430,15 +518,30 @@ export default function StudentDashboard() {
     // Map progress data to find active course
     const activeCourse = Array.isArray(progressData)
         ? progressData.find(p => p.student_id === user?.id && p.progress < 100) || progressData[0]
-        : null;
+        : null;    // Fallback dynamic hours and active sessions calculation from studentAttendance
+    const calculatedHoursLearned = (studentAttendance?.records && Array.isArray(studentAttendance.records))
+        ? studentAttendance.records.reduce((acc, r) => acc + (r.hour1 || 0) + (r.hour2 || 0), 0)
+        : 0;
 
-    // Process attendance for chart (Last 4 weeks)
+    const calculatedActiveSessions = (studentAttendance?.records && Array.isArray(studentAttendance.records))
+        ? new Set(studentAttendance.records.filter(r => (r.hour1 || 0) + (r.hour2 || 0) > 0).map(r => `${r.class_id}_${r.date}`)).size
+        : 0;
+
+    const hoursLearned = (learningSummary?.total_hours !== undefined && learningSummary?.total_hours > 0)
+        ? learningSummary.total_hours
+        : calculatedHoursLearned;
+
+    const totalSessionsActive = (learningSummary?.total_sessions !== undefined && learningSummary?.total_sessions > 0)
+        ? learningSummary.total_sessions
+        : calculatedActiveSessions;
+
+    // Process attendance for chart (Dynamic active term / calendar weeks)
     const processAttendanceData = () => {
         const defaultWeeks = [
-            { week: "Week 1", value: 0 },
-            { week: "Week 2", value: 0 },
-            { week: "Week 3", value: 0 },
-            { week: "Week 4", value: 0 },
+            { week: "Week 1", value: 0, attended: 0, excused: 0, absent: 0, total: 0 },
+            { week: "Week 2", value: 0, attended: 0, excused: 0, absent: 0, total: 0 },
+            { week: "Week 3", value: 0, attended: 0, excused: 0, absent: 0, total: 0 },
+            { week: "Week 4", value: 0, attended: 0, excused: 0, absent: 0, total: 0 },
         ];
 
         const records = studentAttendance?.records;
@@ -446,48 +549,47 @@ export default function StudentDashboard() {
             return defaultWeeks;
         }
 
-        // Calculate weekly attendance for the last 4 7-day periods
-        const now = new Date();
+        const sorted = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+
+        const earliestTime = new Date(sorted[0].date).getTime();
+        const latestTime = new Date(sorted[sorted.length - 1].date).getTime();
+        const spanMs = latestTime - earliestTime;
+
+        let baseStart;
+        if (spanMs <= 28 * 24 * 60 * 60 * 1000) {
+            baseStart = new Date(earliestTime);
+            baseStart.setHours(0, 0, 0, 0);
+        } else {
+            const latestEnd = new Date(latestTime);
+            latestEnd.setHours(23, 59, 59, 999);
+            baseStart = new Date(latestEnd.getTime() - 4 * oneWeekMs);
+            baseStart.setHours(0, 0, 0, 0);
+        }
+
         const weeks = [];
+        for (let i = 0; i < 4; i++) {
+            const weekStart = new Date(baseStart.getTime() + i * oneWeekMs);
+            const weekEnd = new Date(baseStart.getTime() + (i + 1) * oneWeekMs);
 
-        for (let i = 3; i >= 0; i--) {
-            const weekEnd = new Date(now.getTime() - i * oneWeekMs);
-            const weekStart = new Date(now.getTime() - (i + 1) * oneWeekMs);
-
-            const weekRecords = records.filter(r => {
+            const weekRecords = sorted.filter(r => {
                 if (!r.date) return false;
                 const d = new Date(r.date);
                 return d >= weekStart && d < weekEnd;
             });
 
-            const weekLabel = `Week ${4 - i}`;
+            const weekLabel = `Week ${i + 1}`;
 
             if (weekRecords.length === 0) {
-                weeks.push({ week: weekLabel, value: 0 });
+                weeks.push({ week: weekLabel, value: 0, attended: 0, excused: 0, absent: 0, total: 0 });
             } else {
                 const attended = weekRecords.reduce((acc, r) => acc + (r.hour1 === 1 ? 1 : 0) + (r.hour2 === 1 ? 1 : 0), 0);
-                const total = weekRecords.length * 2;
+                const excused = weekRecords.reduce((acc, r) => acc + (r.hour1 === 2 ? 1 : 0) + (r.hour2 === 2 ? 1 : 0), 0);
+                const absent = weekRecords.reduce((acc, r) => acc + (r.hour1 === 0 ? 1 : 0) + (r.hour2 === 0 ? 1 : 0), 0);
+                const total = attended + excused + absent;
                 const rate = total > 0 ? Math.round((attended / total) * 100) : 0;
-                weeks.push({ week: weekLabel, value: rate });
+                weeks.push({ week: weekLabel, value: rate, attended, excused, absent, total });
             }
-        }
-
-        // If no records fell in the strict recent calendar weeks, group available records into 4 chronological blocks
-        const hasAnyData = weeks.some(w => w.value > 0);
-        if (!hasAnyData && records.length > 0) {
-            const sorted = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-            const chunkSize = Math.max(1, Math.ceil(sorted.length / 4));
-            return [0, 1, 2, 3].map(idx => {
-                const chunk = sorted.slice(idx * chunkSize, (idx + 1) * chunkSize);
-                if (chunk.length === 0) return { week: `Week ${idx + 1}`, value: 0 };
-                const att = chunk.reduce((acc, r) => acc + (r.hour1 === 1 ? 1 : 0) + (r.hour2 === 1 ? 1 : 0), 0);
-                const tot = chunk.length * 2;
-                return {
-                    week: `Week ${idx + 1}`,
-                    value: tot > 0 ? Math.round((att / tot) * 100) : 0
-                };
-            });
         }
 
         return weeks;
@@ -499,7 +601,7 @@ export default function StudentDashboard() {
     const stats = {
         coursesCompleted: user?.completed_courses_count || 0,
         certificatesEarned: user?.certificates_count || 0,
-        hoursLearned: learningSummary?.total_hours || 0,
+        hoursLearned: hoursLearned,
         currentLevel: user?.chosen_subprogram_name || user?.chosen_subprogram || "Level 1",
     };
 
@@ -669,19 +771,59 @@ export default function StudentDashboard() {
                                 <DashboardTermCounter isDark={isDark} user={user} />
                             </div>
                             <div className="lg:col-span-1 space-y-6">
-                                <div className={`rounded-xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+                                <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'} shadow-sm`}>
                                     <div className="flex items-center justify-between mb-4">
-                                        <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>My Weekly Attendance</h3>
+                                        <div>
+                                            <h3 className={`text-base font-extrabold ${isDark ? 'text-white' : 'text-gray-900'}`}>My Weekly Attendance</h3>
+                                            <p className="text-[10px] text-gray-400 font-medium">Presence rate by week</p>
+                                        </div>
                                         {attendanceLoading && <span className="animate-spin h-4 w-4 border-2 border-[#010080] border-t-transparent rounded-full"></span>}
                                     </div>
-                                    <div className="space-y-3">
-                                        {attendanceData.map((item) => (
-                                            <div key={item.week} className="flex items-center gap-3">
-                                                <span className={`text-sm font-medium w-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{item.week}</span>
-                                                <div className="flex-1 relative"><div className={`h-6 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}><div className={`h-full rounded transition-all duration-1000 ${item.value > 80 ? 'bg-green-500' : item.value > 50 ? 'bg-blue-600' : 'bg-orange-500'}`} style={{ width: `${(item.value / maxAttendance) * 100}%` }}></div></div></div>
-                                                <span className={`text-xs font-medium w-12 text-right ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{item.value}%</span>
-                                            </div>
-                                        ))}
+                                    <div className="space-y-4">
+                                        {attendanceData.map((item) => {
+                                            const totalHrs = item.total || 0;
+                                            const attPercent = totalHrs > 0 ? (item.attended / totalHrs) * 100 : 0;
+                                            const excPercent = totalHrs > 0 ? (item.excused / totalHrs) * 100 : 0;
+                                            const absPercent = totalHrs > 0 ? (item.absent / totalHrs) * 100 : 0;
+
+                                            return (
+                                                <div key={item.week} className="space-y-1.5">
+                                                    <div className="flex items-center justify-between text-xs font-bold">
+                                                        <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>{item.week}</span>
+                                                        <span className={item.value > 75 ? 'text-green-600' : item.value > 40 ? 'text-amber-600' : 'text-gray-400'}>
+                                                            {item.value}%
+                                                        </span>
+                                                    </div>
+                                                    {/* Multi-segment visual bar */}
+                                                    <div className={`h-3 rounded-full overflow-hidden flex ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                                                        {attPercent > 0 && (
+                                                            <div style={{ width: `${attPercent}%` }} className="bg-emerald-500 h-full" title={`Present: ${item.attended} hrs`} />
+                                                        )}
+                                                        {excPercent > 0 && (
+                                                            <div style={{ width: `${excPercent}%` }} className="bg-amber-500 h-full" title={`Excused: ${item.excused} hrs`} />
+                                                        )}
+                                                        {absPercent > 0 && (
+                                                            <div style={{ width: `${absPercent}%` }} className="bg-red-500 h-full" title={`Absent: ${item.absent} hrs`} />
+                                                        )}
+                                                        {totalHrs === 0 && (
+                                                            <div className="w-full h-full bg-gray-200 dark:bg-gray-700" />
+                                                        )}
+                                                    </div>
+                                                    {totalHrs > 0 && (
+                                                        <div className="flex justify-between text-[9px] text-gray-400">
+                                                            <span className="text-emerald-600 font-semibold">{item.attended}h Present</span>
+                                                            {item.excused > 0 && <span className="text-amber-600 font-semibold">{item.excused}h Excused</span>}
+                                                            {item.absent > 0 && <span className="text-red-500 font-semibold">{item.absent}h Absent</span>}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between text-[10px] text-gray-400 font-bold">
+                                        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Present</span>
+                                        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> Excused</span>
+                                        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500"></span> Absent</span>
                                     </div>
                                 </div>
                                 {programDetails?.curriculum_file && (
@@ -906,7 +1048,7 @@ export default function StudentDashboard() {
                                         <div className="h-64 w-full flex items-center justify-center">
                                             <div className="text-center">
                                                 <div className={`text-3xl font-black mb-1 ${isDark ? 'text-white' : 'text-[#010080]'}`}>
-                                                    {learningSummary?.total_sessions || 0}
+                                                    {totalSessionsActive}
                                                 </div>
                                                 <div className="text-[10px] font-bold uppercase tracking-widest opacity-40">Total Sessions Active</div>
                                             </div>
@@ -914,58 +1056,6 @@ export default function StudentDashboard() {
                                     </div>
                                 </div>
 
-                                {/* Star Students (Top 5) */}
-                                <div className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-100 shadow-sm'}`}>
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-600">
-                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z" />
-                                                </svg>
-                                            </div>
-                                            <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Star Students</h3>
-                                        </div>
-                                        <span className={`text-xs font-medium px-3 py-1 rounded-full ${isDark ? 'bg-[#0b0f19] text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
-                                            Top 5 Performers
-                                        </span>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        {leaderboardLoading ? (
-                                            [1, 2, 3].map(i => <div key={i} className="h-16 w-full animate-pulse bg-gray-200 dark:bg-gray-700 rounded-xl"></div>)
-                                        ) : leaderboardData?.students?.length > 0 ? (
-                                            leaderboardData.students.slice(0, 5).map((student, index) => (
-                                                <div key={student.student_id} className={`flex items-center justify-between p-4 rounded-xl transition-all hover:translate-x-1 ${isDark ? 'hover:bg-[#1a2035]' : 'hover:bg-gray-50'}`}>
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-inner ${index === 0 ? 'bg-yellow-400 text-white shadow-yellow-200' :
-                                                            index === 1 ? 'bg-slate-300 text-white shadow-slate-200' :
-                                                                index === 2 ? 'bg-amber-600/50 text-white shadow-amber-300' :
-                                                                    'bg-gray-100 text-gray-500'
-                                                            }`}>
-                                                            {index + 1}
-                                                        </div>
-                                                        <div>
-                                                            <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                                                {student.full_name}
-                                                            </div>
-                                                            <div className={`text-[10px] font-medium opacity-50 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                                {student.class_name || "General Class"}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className={`text-sm font-black ${isDark ? 'text-blue-400' : 'text-[#010080]'}`}>
-                                                            {student.attendance_rate}%
-                                                        </div>
-                                                        <div className="text-[10px] font-bold uppercase tracking-widest opacity-30">Attendance</div>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-center py-8 opacity-40">No data available yet</div>
-                                        )}
-                                    </div>
-                                </div>
                             </div>
 
                             {/* Right Sidebar */}
@@ -973,6 +1063,19 @@ export default function StudentDashboard() {
                                 {/* Upcoming Events & News */}
                                 <UpcomingEventsList limit={5} viewAllHref="/portal/student/news" />
                             </div>
+                        </div>
+
+                        {/* Full Width Star Students Table (Identical to Admin Dashboard Design) */}
+                        <div className="w-full mt-8">
+                            <DataTable
+                                title="🌟 Star Students"
+                                columns={starStudentColumns}
+                                data={rankedStarStudents}
+                                isLoading={leaderboardLoading}
+                                showAddButton={false}
+                                rowsPerPage={5}
+                                emptyMessage="No top performers found in your course yet."
+                            />
                         </div>
                     </>
                 )}

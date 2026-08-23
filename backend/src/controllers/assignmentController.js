@@ -458,6 +458,7 @@ export const gradeSubmission = async (req, res) => {
 export const getAssignmentStats = async (req, res) => {
     try {
         const { program_id, class_id } = req.query;
+        const user = req.user;
 
         // Construct filters
         const examWhere = {};
@@ -467,15 +468,37 @@ export const getAssignmentStats = async (req, res) => {
         const studentWhere = {};
 
         if (class_id) {
-            const classIdInt = parseInt(class_id);
+            const classIdInt = parseInt(class_id, 10);
             examWhere.class_id = classIdInt;
             writingWhere.class_id = classIdInt;
             oralWhere.class_id = classIdInt;
             courseworkWhere.class_id = classIdInt;
             studentWhere.class_id = classIdInt;
+        } else if (user && user.role === 'teacher') {
+            // Scope to teacher's assigned classes when no specific class_id filter is passed
+            const teacherClasses = await prisma.classes.findMany({
+                where: { teacher_id: parseInt(user.userId, 10) },
+                select: { id: true }
+            });
+            const teacherClassIds = teacherClasses.map(c => c.id);
+            if (teacherClassIds.length > 0) {
+                examWhere.class_id = { in: teacherClassIds };
+                writingWhere.class_id = { in: teacherClassIds };
+                oralWhere.class_id = { in: teacherClassIds };
+                courseworkWhere.class_id = { in: teacherClassIds };
+                studentWhere.class_id = { in: teacherClassIds };
+            } else {
+                return res.json([
+                    { type: 'writing_task', completionRate: 0, avgScore: 0 },
+                    { type: 'exam', completionRate: 0, avgScore: 0 },
+                    { type: 'oral_assignment', completionRate: 0, avgScore: 0 },
+                    { type: 'course_work', completionRate: 0, avgScore: 0 }
+                ]);
+            }
         }
+
         if (program_id) {
-            const programIdInt = parseInt(program_id);
+            const programIdInt = parseInt(program_id, 10);
             examWhere.program_id = programIdInt;
             writingWhere.program_id = programIdInt;
             oralWhere.program_id = programIdInt;
@@ -509,11 +532,11 @@ export const getAssignmentStats = async (req, res) => {
             const maxPts = writingPointsMap.get(s.assignment_id) || 100;
             return (Number(s.score) / maxPts) * 100;
         });
-        const writingExpected = Math.max(1, writingTasks.length * totalStudents);
-        const writingCompletion = Math.min(100, Math.round((writingSubs.length / writingExpected) * 100));
-        const writingAvgScore = writingScores.length > 0
+        const writingExpected = writingTasks.length * totalStudents;
+        const writingCompletion = writingExpected > 0 ? Math.min(100, Math.round((writingSubs.length / writingExpected) * 100)) : 0;
+        const writingAvgScore = (writingTasks.length > 0 && writingScores.length > 0)
             ? Number((writingScores.reduce((a, b) => a + b, 0) / writingScores.length).toFixed(1))
-            : (writingTasks.length > 0 ? 0 : 0);
+            : 0;
 
         // 2. Exams
         const examTasks = await prisma.exams.findMany({
@@ -532,11 +555,11 @@ export const getAssignmentStats = async (req, res) => {
             const maxPts = examPointsMap.get(s.assignment_id) || 100;
             return (Number(s.score) / maxPts) * 100;
         });
-        const examExpected = Math.max(1, examTasks.length * totalStudents);
-        const examCompletion = Math.min(100, Math.round((examSubs.length / examExpected) * 100));
-        const examAvgScore = examScores.length > 0
+        const examExpected = examTasks.length * totalStudents;
+        const examCompletion = examExpected > 0 ? Math.min(100, Math.round((examSubs.length / examExpected) * 100)) : 0;
+        const examAvgScore = (examTasks.length > 0 && examScores.length > 0)
             ? Number((examScores.reduce((a, b) => a + b, 0) / examScores.length).toFixed(1))
-            : (examTasks.length > 0 ? 0 : 0);
+            : 0;
 
         // 3. Oral Assignments
         const oralTasks = await prisma.oral_assignments.findMany({
@@ -555,11 +578,11 @@ export const getAssignmentStats = async (req, res) => {
             const maxPts = oralPointsMap.get(s.assignment_id) || 100;
             return (Number(s.score) / maxPts) * 100;
         });
-        const oralExpected = Math.max(1, oralTasks.length * totalStudents);
-        const oralCompletion = Math.min(100, Math.round((oralSubs.length / oralExpected) * 100));
-        const oralAvgScore = oralScores.length > 0
+        const oralExpected = oralTasks.length * totalStudents;
+        const oralCompletion = oralExpected > 0 ? Math.min(100, Math.round((oralSubs.length / oralExpected) * 100)) : 0;
+        const oralAvgScore = (oralTasks.length > 0 && oralScores.length > 0)
             ? Number((oralScores.reduce((a, b) => a + b, 0) / oralScores.length).toFixed(1))
-            : (oralTasks.length > 0 ? 0 : 0);
+            : 0;
 
         // 4. Coursework
         const courseworkTasks = await prisma.course_work.findMany({
@@ -578,11 +601,11 @@ export const getAssignmentStats = async (req, res) => {
             const maxPts = courseworkPointsMap.get(s.assignment_id) || 100;
             return (Number(s.score) / maxPts) * 100;
         });
-        const courseworkExpected = Math.max(1, courseworkTasks.length * totalStudents);
-        const courseworkCompletion = Math.min(100, Math.round((courseworkSubs.length / courseworkExpected) * 100));
-        const courseworkAvgScore = courseworkScores.length > 0
+        const courseworkExpected = courseworkTasks.length * totalStudents;
+        const courseworkCompletion = courseworkExpected > 0 ? Math.min(100, Math.round((courseworkSubs.length / courseworkExpected) * 100)) : 0;
+        const courseworkAvgScore = (courseworkTasks.length > 0 && courseworkScores.length > 0)
             ? Number((courseworkScores.reduce((a, b) => a + b, 0) / courseworkScores.length).toFixed(1))
-            : (courseworkTasks.length > 0 ? 0 : 0);
+            : 0;
 
         res.json([
             { type: 'writing_task', completionRate: writingCompletion, avgScore: writingAvgScore },
