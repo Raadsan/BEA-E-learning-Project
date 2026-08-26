@@ -155,11 +155,11 @@ export default function StudentProfilePage() {
       <div className="w-full">
         <div className={`rounded-lg shadow-lg overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           {/* Banner */}
-          <div className="h-32 bg-gradient-to-r from-blue-700 to-[#010080]"></div>
+          <div className="h-28 bg-gradient-to-r from-blue-700 to-[#010080]"></div>
 
           <div className="px-8 py-6">
             {/* Avatar + Name row */}
-            <div className="flex flex-col sm:flex-row sm:items-end -mt-20 mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-end -mt-16 mb-6 gap-4">
               <div className="flex flex-col items-center sm:items-start gap-2">
                 <div className="relative group">
                   <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
@@ -218,7 +218,7 @@ export default function StudentProfilePage() {
                 <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.full_name}</h2>
                 <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Student Account</p>
                 {user?.chosen_program && (
-                  <p className={`text-sm mt-1 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{user.chosen_program}</p>
+                  <p className={`text-sm mt-2 leading-relaxed ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{user.chosen_program}</p>
                 )}
               </div>
 

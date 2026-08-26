@@ -35,6 +35,20 @@ const generateToken = (userId, role, email) => {
   );
 };
 
+// A program controls which assessment type its enrolled students may take.
+// The actual active paper is still selected randomly by the matching test page.
+async function resolveProgramTestRequirement(chosenProgram) {
+  const value = String(chosenProgram || "").trim();
+  if (!value) return "none";
+
+  const alternatives = [{ title: value }];
+  const numericId = Number(value);
+  if (Number.isInteger(numericId) && numericId > 0) alternatives.push({ id: numericId });
+
+  const program = await prisma.programs.findFirst({ where: { OR: alternatives } });
+  return program?.test_required || "none";
+}
+
 async function findUserByEmail(email) {
   let user = await prisma.admins.findUnique({ where: { email } });
   if (user) {
@@ -61,6 +75,7 @@ async function findUserByEmail(email) {
 
   user = await prisma.students.findUnique({ where: { email } });
   if (user) {
+    const program_test_required = await resolveProgramTestRequirement(user.chosen_program);
     return {
       user,
       userData: {
@@ -72,6 +87,7 @@ async function findUserByEmail(email) {
         residency_country: user.residency_country,
         residency_city: user.residency_city,
         chosen_program: user.chosen_program,
+        program_test_required,
         chosen_subprogram: user.chosen_subprogram,
         sponsor_name: user.sponsor_name,
         approval_status: user.approval_status,
@@ -84,6 +100,7 @@ async function findUserByEmail(email) {
 
   user = await prisma.IELTSTOEFL.findFirst({ where: { email } });
   if (user) {
+    const program_test_required = await resolveProgramTestRequirement(user.chosen_program);
     return {
       user,
       userData: {
@@ -95,6 +112,7 @@ async function findUserByEmail(email) {
         residency_country: user.residency_country,
         residency_city: user.residency_city,
         chosen_program: user.chosen_program,
+        program_test_required,
         exam_type: user.exam_type,
         verification_method: user.verification_method,
         approval_status: user.status || 'Pending',
@@ -341,6 +359,7 @@ export const getCurrentUser = async (req, res) => {
         } else {
           user = await prisma.IELTSTOEFL.findUnique({ where: { student_id: userId } });
           if (user) {
+            const program_test_required = await resolveProgramTestRequirement(user.chosen_program);
             user = {
               id: user.student_id,
               full_name: `${user.first_name} ${user.last_name}`,
@@ -350,6 +369,7 @@ export const getCurrentUser = async (req, res) => {
               residency_country: user.residency_country,
               residency_city: user.residency_city,
               chosen_program: user.chosen_program,
+              program_test_required,
               exam_type: user.exam_type,
               verification_method: user.verification_method,
               approval_status: user.status || 'Pending',
@@ -375,6 +395,7 @@ export const getCurrentUser = async (req, res) => {
             residency_country: user.residency_country,
             residency_city: user.residency_city,
             program: 'Proficiency Test',
+            program_test_required: 'proficiency',
             status: user.status,
             expiry_date: user.expiry_date,
             is_extended: user.is_extended

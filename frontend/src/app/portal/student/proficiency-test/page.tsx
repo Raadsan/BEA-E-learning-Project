@@ -64,8 +64,16 @@ export default function ProficiencyTestPage() {
         const activeTests = tests.filter(t => t.status === 'active');
         if (activeTests.length === 0) return null;
 
-        return activeTests[0];
-    }, [tests]);
+        // Each eligible student receives one stable, random active proficiency test.
+        // It changes only if the available active-test list changes.
+        const seed = String(studentId || "guest");
+        let hash = 0;
+        for (let i = 0; i < seed.length; i++) {
+            hash = (hash << 5) - hash + seed.charCodeAt(i);
+            hash |= 0;
+        }
+        return activeTests[Math.abs(hash) % activeTests.length];
+    }, [tests, studentId]);
 
     const isProficiencyOnly = isProficiencyOnlyStudent(user);
     const hasTakenTest = results?.find(r => r.test_id === activeTest?.id);
