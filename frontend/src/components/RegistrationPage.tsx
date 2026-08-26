@@ -773,52 +773,33 @@ export default function RegistrationPage() {
                   {/* <h3 className="text-xl font-bold text-gray-800 mb-1">Program Selection</h3>
                   <p className="text-sm text-gray-500 mb-8">Choose the program you wish to apply for.</p> */}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
                     {programsLoading ? (
-                      <div className="col-span-full py-20 text-center text-gray-400">Loading programs...</div>
+                      <div className="py-20 text-center text-gray-400">Loading programs...</div>
                     ) : programs && programs.length === 0 ? (
-                      <div className="col-span-full py-20 text-center text-gray-400">No active programs available.</div>
+                      <div className="py-20 text-center text-gray-400">No active programs available.</div>
                     ) : (
-                      getGeneralRegistrationPrograms(programs as ProgramRecord[])
-                        .map((program) => {
-                          const isSelected = String(formData.chosen_program) === String(program.id);
-                          return (
-                            <button
-                              type="button"
-                              key={program.id}
-                              onClick={() => setFormData(prev => ({ ...prev, chosen_program: String(program.id) }))}
-                              className={`group text-left p-6 bg-white border-2 rounded-2xl transition-all duration-300 hover:shadow-lg ${isSelected
-                                ? 'border-[#010080] shadow-md ring-1 ring-[#010080]/10'
-                                : 'border-gray-100'
-                                }`}
-                            >
-                              {/* Program Image Box */}
-                              <div className={`h-16 w-16 mb-4 rounded-xl overflow-hidden border ${isSelected ? 'border-blue-100 bg-blue-50' : 'border-gray-100 bg-gray-50'}`}>
-                                {program.image ? (
-                                  <img
-                                    src={resolveMediaUrl(program.image) || "/images/book1.jpg"}
-                                    alt={program.title}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                  </div>
-                                )}
-                              </div>
-
-                              <h4 className="font-bold text-[15px] mb-2 leading-tight" style={{ color: isSelected ? '#010080' : '#010080' }}>
-                                {program.title}
-                              </h4>
-                              <p className="text-xs text-gray-500 leading-relaxed mb-1 line-clamp-3">
-                                {program.description || 'Program overview available in details.'}
-                              </p>
-                            </button>
-                          );
-                        })
+                      getGeneralRegistrationPrograms(programs as ProgramRecord[]).map((program) => {
+                        const isSelected = String(formData.chosen_program) === String(program.id);
+                        return (
+                          <button type="button" key={program.id} onClick={() => setFormData(prev => ({ ...prev, chosen_program: String(program.id) }))} className={`group flex w-full items-center gap-4 rounded-xl border-2 bg-white p-4 text-left transition-all duration-200 hover:shadow-md ${isSelected ? 'border-[#010080] bg-blue-50/30 shadow-sm' : 'border-gray-200 hover:border-blue-200'}`}>
+                            <div className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border ${isSelected ? 'border-blue-200 bg-blue-50' : 'border-gray-100 bg-gray-50'}`}>
+                              {program.image ? (
+                                <img src={resolveMediaUrl(program.image) || "/images/book1.jpg"} alt={program.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-gray-300"><svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2H6a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2z" /></svg></div>
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h4 className="text-sm font-bold leading-snug text-[#010080]">{program.title}</h4>
+                              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500">{program.description || 'Program overview available in details.'}</p>
+                            </div>
+                            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${isSelected ? 'border-[#010080] bg-[#010080] text-white' : 'border-gray-300 text-transparent'}`} aria-label={isSelected ? 'Selected' : 'Not selected'}>✓</span>
+                          </button>
+                        );
+                      })
                     )}
                   </div>
-
                   <div className="mt-12 flex items-center justify-between">
                     <button
                       type="button"
@@ -966,7 +947,7 @@ export default function RegistrationPage() {
                 </div>
               )}
 
-              <p className="text-center text-gray-600 text-sm mt-4">Already have an account? <Link href="/login" className="font-semibold hover:underline" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>Sign in</Link></p>
+              <p className="text-center text-gray-600 text-sm mt-4">Already have an account? <Link href="/auth/login" className="font-semibold hover:underline" style={{ color: isDarkMode ? '#ffffff' : '#010080' }}>Sign in</Link></p>
             </form>
           </div>
           {/* Back to Home */}

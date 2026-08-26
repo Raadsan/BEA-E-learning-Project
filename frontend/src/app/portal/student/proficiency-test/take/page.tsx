@@ -215,6 +215,17 @@ export default function TakeProficiencyTestPage() {
                     </div>
 
                     <div className="flex-1">
+                        {currentQ.voiceUrl && (
+                            <div className={`mb-6 space-y-4 rounded-2xl border p-4 ${isDark ? "border-indigo-800 bg-indigo-950/30" : "border-indigo-100 bg-indigo-50/50"}`}>
+                                {currentQ.voiceUrl && (
+                                    <div>
+                                        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[#010080]">Audio prompt</p>
+                                        <audio controls className="h-10 w-full"><source src={resolveMediaUrl(currentQ.voiceUrl) || ""} /></audio>
+                                    </div>
+                                )}
+
+                            </div>
+                        )}
                         {/* 1. MCQ TYPE */}
                         {(currentQ.type === "mcq" || currentQ.type === "multiple_choice") && (
                             <div className="space-y-6">
@@ -269,6 +280,13 @@ export default function TakeProficiencyTestPage() {
                                             {sq.groupInstruction && (
                                                 <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border-l-4 border-amber-400 rounded-r-lg text-xs font-semibold text-amber-900 dark:text-amber-200">
                                                     {sq.groupInstruction}
+                                                </div>
+                                            )}
+
+                                            {sq.voiceUrl && (
+                                                <div className={`space-y-3 rounded-xl border p-3 ${isDark ? "border-indigo-800 bg-indigo-950/30" : "border-indigo-100 bg-indigo-50/50"}`}>
+                                                    {sq.voiceUrl && <audio controls className="h-9 w-full"><source src={resolveMediaUrl(sq.voiceUrl) || ""} /></audio>}
+
                                                 </div>
                                             )}
 

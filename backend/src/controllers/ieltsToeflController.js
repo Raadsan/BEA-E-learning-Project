@@ -17,6 +17,27 @@ import {
 } from '../utils/auditTrail.js';
 import { sendProficiencyExamAccessGranted } from '../utils/emailService.js';
 
+// The admin student form is also used for regular students, which have fields
+// such as `full_name` and parent details that do not exist on IELTSTOEFL.
+// Keep Prisma writes limited to columns that actually belong to this model.
+const ieltsWritableFields = new Set([
+    'student_reg_number', 'first_name', 'last_name', 'email', 'phone', 'password',
+    'age', 'sex', 'date_of_birth', 'place_of_birth', 'residency_country',
+    'residency_city', 'exam_type', 'verification_method',
+    'certificate_institution', 'certificate_date', 'certificate_document',
+    'exam_booking_date', 'exam_booking_time', 'registration_date', 'status',
+    'paid_until', 'funding_status', 'funding_amount', 'funding_month', 'class_id',
+    'chosen_program', 'payment_method', 'transaction_id', 'payment_amount',
+    'payer_phone', 'reminder_sent', 'is_extended', 'expiry_date',
+    'admin_expiry_notified'
+]);
+
+function getIeltsWritableData(data) {
+    return Object.fromEntries(
+        Object.entries(data).filter(([field]) => ieltsWritableFields.has(field))
+    );
+}
+
 export const getAllIeltsStudents = async (req, res) => {
     try {
         await backfillMissingCreatedBy(prisma.IELTSTOEFL);
@@ -39,7 +60,8 @@ function parseDateForPrisma(dateVal) {
 
 export const createIeltsStudent = async (req, res) => {
     try {
-        const { email, chosen_program, password, payment, ...rest } = req.body;
+        const { email, chosen_program, password, payment, ...rawRest } = req.body;
+        const rest = getIeltsWritableData(rawRest);
         
         if (!email) {
             return res.status(400).json({ error: "Email is required" });
@@ -151,7 +173,7 @@ export const getIeltsStudent = async (req, res) => {
 
 export const updateIeltsStudent = async (req, res) => {
     try {
-        const data = { ...req.body };
+        const data = getIeltsWritableData(req.body);
         if (req.file) {
             data.certificate_document = getStoredFileUrl(req.file);
         } else if (req.body.certificate_document === "" || req.body.certificate_document === "null" || req.body.certificate_document === null) {

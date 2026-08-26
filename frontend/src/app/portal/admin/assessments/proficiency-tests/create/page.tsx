@@ -235,6 +235,9 @@ export default function CreateProficiencyTestPage() {
         points: 25,
     });
 
+    // Optional voice material is shared by every question type.
+    const [questionSupport, setQuestionSupport] = useState({ voiceUrl: "" });
+
     const handleTestChange = (e) => {
         setTestData({ ...testData, [e.target.name]: e.target.value });
     };
@@ -257,43 +260,47 @@ export default function CreateProficiencyTestPage() {
             if (!currentMCQ.questionText || currentMCQ.options.some(o => !o)) {
                 return showToast("Fill all MCQ fields", "error");
             }
-            q = { ...currentMCQ, part: currentStep, sectionMeta: updatedMeta };
+            q = { ...currentMCQ, ...questionSupport, part: currentStep, sectionMeta: updatedMeta };
         } else if (type === "passage") {
             if (!currentPassage.passageText || currentPassage.subQuestions.length === 0) {
                 return showToast("Add passage text and sub-questions", "error");
             }
             const totalPoints = currentPassage.subQuestions.reduce((acc, sq) => acc + (parseInt(sq.points) || 0), 0);
-            q = { ...currentPassage, points: totalPoints, part: currentStep, sectionMeta: updatedMeta };
+            q = { ...currentPassage, ...questionSupport, points: totalPoints, part: currentStep, sectionMeta: updatedMeta };
         } else if (type === "essay") {
             if (!currentEssay.title) {
                 return showToast("Add essay title", "error");
             }
-            q = { ...currentEssay, part: currentStep, sectionMeta: updatedMeta };
+            q = { ...currentEssay, ...questionSupport, part: currentStep, sectionMeta: updatedMeta };
         } else if (type === "audio") {
             if (!currentAudio.title) return showToast("Add audio title", "error");
-            q = { ...currentAudio, part: currentStep, sectionMeta: updatedMeta };
+            q = { ...currentAudio, ...questionSupport, part: currentStep, sectionMeta: updatedMeta };
         } else if (type === "form-fill") {
             if (!currentFormFill.title) return showToast("Add form title", "error");
             if (currentFormFill.fields.some(f => !f.label)) return showToast("All field labels are required", "error");
-            q = { ...currentFormFill, part: currentStep, sectionMeta: updatedMeta };
+            q = { ...currentFormFill, ...questionSupport, part: currentStep, sectionMeta: updatedMeta };
         } else if (type === "sentence-completion") {
             if (currentSentenceCompletion.sentences.length === 0) return showToast("Add at least one sentence", "error");
-            q = { ...currentSentenceCompletion, part: currentStep, sectionMeta: updatedMeta };
+            q = { ...currentSentenceCompletion, ...questionSupport, part: currentStep, sectionMeta: updatedMeta };
         } else if (type === "tfng") {
             if (currentTFNG.statements.length === 0) return showToast("Add at least one statement", "error");
-            q = { ...currentTFNG, part: currentStep, sectionMeta: updatedMeta };
+            q = { ...currentTFNG, ...questionSupport, part: currentStep, sectionMeta: updatedMeta };
         } else if (type === "heading-match") {
             if (currentHeadingMatch.headings.length === 0 || currentHeadingMatch.paragraphs.length === 0)
                 return showToast("Add headings and paragraphs", "error");
-            q = { ...currentHeadingMatch, part: currentStep, sectionMeta: updatedMeta };
+            q = { ...currentHeadingMatch, ...questionSupport, part: currentStep, sectionMeta: updatedMeta };
         } else if (type === "word-box-fill") {
             if (!currentWordBoxFill.wordBank || !currentWordBoxFill.summaryText)
                 return showToast("Add word bank and summary text", "error");
-            q = { ...currentWordBoxFill, part: currentStep, sectionMeta: updatedMeta };
+            q = { ...currentWordBoxFill, ...questionSupport, part: currentStep, sectionMeta: updatedMeta };
         } else if (type === "table-essay") {
             if (!currentTableEssay.title) return showToast("Add task title", "error");
-            q = { ...currentTableEssay, part: currentStep, sectionMeta: updatedMeta };
+            q = { ...currentTableEssay, ...questionSupport, part: currentStep, sectionMeta: updatedMeta };
         }
+
+        // Do not retain the removed code fields when an existing question is updated.
+        delete q.codeSnippet;
+        delete q.codeLanguage;
 
         const nextQuestions =
             editingIndex !== null
@@ -301,6 +308,7 @@ export default function CreateProficiencyTestPage() {
                 : [...questions, q];
 
         setQuestions(renumberQuestionsByPart(nextQuestions, PROFICIENCY_MAX_PART));
+        setQuestionSupport({ voiceUrl: "" });
         if (editingIndex !== null) {
             setEditingIndex(null);
             showToast("Question updated", "success");
@@ -324,6 +332,7 @@ export default function CreateProficiencyTestPage() {
     const handleEdit = (idx) => {
         const q = questions[idx];
         setSelectedType(q.type || "mcq");
+        setQuestionSupport({ voiceUrl: q.voiceUrl || "" });
         if (q.type === "mcq") {
             setCurrentMCQ({ ...q, options: Array.isArray(q.options) ? [...q.options] : ["", ""] });
         } else if (q.type === "passage") {
@@ -573,6 +582,18 @@ export default function CreateProficiencyTestPage() {
                                                 {label}
                                             </button>
                                         ))}
+                                    </div>
+                                </div>
+
+                                <div className="mb-6 space-y-4 rounded-xl border border-indigo-100 bg-indigo-50/40 p-4">
+
+                                    <div>
+                                        <label className="mb-2 block text-sm font-bold text-gray-700">Voice / Audio <span className="font-normal text-gray-400">(optional; available for every question type)</span></label>
+                                        <div className="flex gap-2">
+                                            <input value={questionSupport.voiceUrl} onChange={(e) => setQuestionSupport({ ...questionSupport, voiceUrl: e.target.value })} placeholder="Audio URL or upload an audio file" className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#010080]" />
+                                            <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-bold hover:bg-gray-100"><input type="file" accept="audio/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const formData = new FormData(); formData.append("file", file); try { showToast("Uploading audio...", "info"); const res = await uploadFile(formData).unwrap(); setQuestionSupport({ ...questionSupport, voiceUrl: res.url }); showToast("Audio uploaded successfully!", "success"); } catch { showToast("Audio upload failed", "error"); } }} />{uploading ? "Uploading..." : "Upload voice"}</label>
+                                        </div>
+                                        {questionSupport.voiceUrl && <audio controls className="mt-2 h-8 w-full"><source src={resolveMediaUrl(questionSupport.voiceUrl) || ""} /></audio>}
                                     </div>
                                 </div>
 

@@ -222,7 +222,7 @@ export default function ForgotPasswordPage() {
           {/* Back to Login Link */}
           <div className="text-center mt-8">
             <Link
-              href="/login"
+              href="/auth/login"
               className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

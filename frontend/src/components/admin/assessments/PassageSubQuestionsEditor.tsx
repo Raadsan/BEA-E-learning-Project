@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { useUploadFileMutation } from "@/lib/api/uploadApi";
+import { resolveMediaUrl } from "@/constants";
 
 export type SubQuestionType = "mcq" | "tfng" | "fill_blank" | "word_box_fill" | "heading_match";
 
@@ -24,6 +26,8 @@ export type PassageSubQuestion = {
   headingsList?: string[];
   paragraphLabel?: string;
   correctHeadingIdx?: number;
+  // Optional voice material for every sub-question.
+  voiceUrl?: string;
   points: number;
 };
 
@@ -37,6 +41,7 @@ export default function PassageSubQuestionsEditor({
   onChange,
 }: PassageSubQuestionsEditorProps) {
   const [activeTypeToAdd, setActiveTypeToAdd] = useState<SubQuestionType>("mcq");
+  const [uploadFile, { isLoading: uploading }] = useUploadFileMutation();
 
   const updateAt = (index: number, patch: Partial<PassageSubQuestion>) => {
     onChange(
@@ -212,6 +217,16 @@ export default function PassageSubQuestionsEditor({
                   placeholder="e.g. Questions 21–24: Choose the correct letter, A, B, C or D."
                   className="w-full text-xs font-semibold px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/50 text-amber-900 placeholder-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none"
                 />
+              </div>
+
+              <div className="space-y-3 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3">
+
+                <label className="block text-xs font-bold text-gray-700">Voice / Audio <span className="font-normal text-gray-400">(optional)</span></label>
+                <div className="flex gap-2">
+                  <input value={sq.voiceUrl || ""} onChange={(e) => updateAt(i, { voiceUrl: e.target.value })} placeholder="Audio URL or upload voice" className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs" />
+                  <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold hover:bg-gray-100"><input type="file" accept="audio/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const formData = new FormData(); formData.append("file", file); try { const res = await uploadFile(formData).unwrap(); updateAt(i, { voiceUrl: res.url }); } catch { /* Upload errors are handled by the API notification layer. */ } }} />{uploading ? "Uploading..." : "Upload voice"}</label>
+                </div>
+                {sq.voiceUrl && <audio controls className="h-8 w-full"><source src={resolveMediaUrl(sq.voiceUrl) || ""} /></audio>}
               </div>
 
               {/* MCQ TYPE */}

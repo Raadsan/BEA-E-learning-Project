@@ -635,7 +635,7 @@ export default function IELTSTOEFLRegistrationPage() {
           </div>
 
           <p className="text-center text-gray-500 text-sm">
-            Already registered? <Link href="/login" className="font-bold hover:underline" style={{ color: '#010080' }}>Sign In</Link>
+            Already registered? <Link href="/auth/login" className="font-bold hover:underline" style={{ color: '#010080' }}>Sign In</Link>
           </p>
         </div >
       </div >

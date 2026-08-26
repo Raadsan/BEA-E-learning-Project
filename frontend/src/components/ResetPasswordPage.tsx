@@ -44,7 +44,7 @@ export default function ResetPasswordPage() {
             if (data.success) {
                 setSubmitted(true);
                 setTimeout(() => {
-                    router.push("/login");
+                    router.push("/auth/login");
                 }, 3000);
             } else {
                 setError(data.error || "Failed to reset password");
@@ -193,7 +193,7 @@ export default function ResetPasswordPage() {
                                 Your password has been successfully updated. You will be redirected to the login page shortly.
                             </p>
                             <Link
-                                href="/login"
+                                href="/auth/login"
                                 className="inline-block px-8 py-3 rounded-lg text-white font-semibold transition-colors hover:opacity-90"
                                 style={{ backgroundColor: '#010080' }}
                             >
