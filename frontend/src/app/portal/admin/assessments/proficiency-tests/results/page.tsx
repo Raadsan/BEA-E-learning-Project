@@ -458,6 +458,9 @@ export default function ProficiencyTestResultsPage() {
                                         } else {
                                             await extendStudentDeadline({ id: sId, durationMinutes }).unwrap();
                                         }
+                                        if (studentToExtend.attempt_id) {
+                                            await unlockProficiencyAttempt(studentToExtend.attempt_id).unwrap();
+                                        }
                                         showToast("Extra time added successfully!", "success");
                                         setIsExtensionModalOpen(false);
                                         refetch();

@@ -46,6 +46,26 @@ export default function ProficiencyResultsPage() {
 
     const studentAnswers = typeof result.answers === 'string' ? JSON.parse(result.answers) : (result.answers || {});
     const testQuestions = typeof test.questions === 'string' ? JSON.parse(test.questions) : (test.questions || []);
+    let essayMarks: Record<string, number> = {};
+    try {
+        essayMarks = result.essay_marks
+            ? (typeof result.essay_marks === 'string' ? JSON.parse(result.essay_marks) : result.essay_marks)
+            : {};
+    } catch { essayMarks = {}; }
+    let feedbackFiles: any = {};
+    try {
+        feedbackFiles = result.feedback ? JSON.parse(result.feedback) : {};
+    } catch { feedbackFiles = { essay: result.feedback }; }
+    const manualQuestions = testQuestions.filter((q: any) => q.type === 'essay' || q.type === 'table-essay' || q.type === 'audio');
+    const manualTotal = manualQuestions.reduce((sum: number, q: any) => sum + (Number(q.points) || 10), 0);
+    const manualScore = Object.values(essayMarks).reduce<number>((sum, mark) => sum + (Number(mark) || 0), 0);
+    const oralScore = Number(result.oral_review_marks) || 0;
+    const finalScore = Number(result.score) || 0;
+    const finalTotal = Number(result.total_points || result.total_questions) || 0;
+    const objectiveScore = Math.max(0, finalScore - manualScore - oralScore);
+    const objectiveTotal = Math.max(0, finalTotal - manualTotal - 20);
+    const average = finalTotal > 0 ? Math.round((finalScore / finalTotal) * 100) : 0;
+    const isReviewed = result.status === 'completed' || result.status === 'graded' || result.status === 'reviewed';
 
     return (
         <main className="min-h-screen bg-gray-50 py-10 px-4">
@@ -59,11 +79,11 @@ export default function ProficiencyResultsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
                         <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 flex flex-col items-center">
                             <span className="text-[10px] font-bold text-gray-400 uppercase">Score</span>
-                            <span className="text-xl font-semibold text-[#010080] mt-1">{result.score} / {result.total_questions || result.total_points}</span>
+                            <span className="text-xl font-semibold text-[#010080] mt-1">{finalScore} / {finalTotal}</span>
                         </div>
                         <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 flex flex-col items-center">
                             <span className="text-[10px] font-bold text-gray-400 uppercase">Accuracy</span>
-                            <span className="text-xl font-semibold text-gray-900 mt-1">{Math.round(result.percentage)}%</span>
+                            <span className="text-xl font-semibold text-gray-900 mt-1">{average}%</span>
                         </div>
                         {result.status === 'graded' || result.status === 'reviewed' || result.status === 'completed' ? (
                             <div className="p-4 rounded-lg bg-green-50 border border-green-100 flex flex-col items-center">
@@ -79,8 +99,19 @@ export default function ProficiencyResultsPage() {
                     </div>
                 </div>
 
+                {isReviewed && (
+                    <div className="bg-white p-6 rounded-xl border border-gray-200">
+                        <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Review Breakdown</h2>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="p-4 rounded-lg bg-gray-50 border border-gray-100"><p className="text-[10px] font-bold text-gray-400 uppercase">Objective</p><p className="text-lg font-semibold text-gray-900">{objectiveScore} / {objectiveTotal}</p></div>
+                            <div className="p-4 rounded-lg bg-gray-50 border border-gray-100"><p className="text-[10px] font-bold text-gray-400 uppercase">Essay/Audio</p><p className="text-lg font-semibold text-gray-900">{manualScore} / {manualTotal}</p></div>
+                            <div className="p-4 rounded-lg bg-gray-50 border border-gray-100"><p className="text-[10px] font-bold text-gray-400 uppercase">Oral Review</p><p className="text-lg font-semibold text-gray-900">{oralScore} / 20</p></div>
+                            <div className="p-4 rounded-lg bg-blue-50 border border-blue-100"><p className="text-[10px] font-bold text-blue-500 uppercase">Average</p><p className="text-lg font-semibold text-[#010080]">{average}%</p></div>
+                        </div>
+                    </div>
+                )}
                 {/* Feedback Section - Show when test is completed and feedback exists */}
-                {(result.status === 'completed' || result.status === 'graded' || result.status === 'reviewed') && result.feedback && (
+                {isReviewed && result.feedback && (
                     <div className="bg-green-50 p-6 rounded-xl border border-green-200 shadow-sm">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                             <div>
@@ -98,7 +129,7 @@ export default function ProficiencyResultsPage() {
                                 {(() => {
                                     try {
                                         // Try to parse feedback as JSON for separate essay/audio files
-                                        const feedback = JSON.parse(result.feedback);
+                                        const feedback = feedbackFiles;
                                         if (typeof feedback === 'object' && feedback !== null) {
                                             return (
                                                 <>
@@ -218,11 +249,11 @@ export default function ProficiencyResultsPage() {
                                         {studentAnswers[q.id] || "No response."}
                                     </div>
 
-                                    {result.status === 'reviewed' || result.status === 'graded' ? (
+                                    {isReviewed ? (
                                         <div className="flex flex-col gap-3 mt-4">
                                             <div className="flex justify-between items-center text-xs">
                                                 <span className="font-bold text-green-600 uppercase px-2 py-0.5 bg-green-50 rounded">Graded</span>
-                                                <span className="font-bold text-gray-900">{result.essay_marks || 0} / {q.points || 0} Marks</span>
+                                                <span className="font-bold text-gray-900">{Number(essayMarks[q.id]) || 0} / {q.points || 0} Marks</span>
                                             </div>
                                             {result.feedback && (
                                                 <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all hover:shadow-md ${typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? 'bg-blue-900/10 border-blue-800' : 'bg-blue-50/50 border-blue-100'}`}>

@@ -334,10 +334,6 @@ export default function StudentDashboard() {
         if (user.program_test_required && user.program_test_required !== 'none') {
             return user.program_test_required;
         }
-        // Fallback for older data or specific cases
-        if (user.chosen_program?.toLowerCase().includes('ielts') || user.chosen_program?.toLowerCase().includes('toefl')) {
-            return 'proficiency';
-        }
         return 'none';
     };
 

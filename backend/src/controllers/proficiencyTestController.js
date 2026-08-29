@@ -279,9 +279,15 @@ export const getAllProficiencyResults = async (req, res) => {
                 },
             })
             : [];
+        const profIeltsStudents = profProgramTitles.length
+            ? ieltsStudents.filter((student) =>
+                profProgramTitles.includes(student.chosen_program) &&
+                !['inactive', 'rejected'].includes(String(student.status || '').toLowerCase())
+            )
+            : [];
 
         // Build lookup maps
-        const ieltsById = new Map(ieltsStudents.map(s => [s.student_id, s]));
+        const ieltsById = new Map(profIeltsStudents.map(s => [s.student_id, s]));
         const candidateById = new Map(candidates.map(c => [c.student_id, c]));
         const regularById = new Map(regularProfStudents.map(s => [s.student_id, s]));
 
@@ -374,8 +380,8 @@ export const getAllProficiencyResults = async (req, res) => {
         // 3. Not Taken Rows (Registered students who haven't submitted or locked)
         const notTakenRows = [];
         
-        // From IELTS/TOEFL students
-        ieltsStudents.forEach((student) => {
+        // From IELTS/TOEFL students whose chosen program requires a proficiency test
+        profIeltsStudents.forEach((student) => {
             if (
                 !submittedStudentIds.has(student.student_id) &&
                 !lockedStudentIds.has(student.student_id) &&
@@ -534,24 +540,87 @@ export const deleteProficiencyResult = async (req, res) => {
 export const gradeProficiencyTest = async (req, res) => {
     try {
         const { resultId } = req.params;
-        const { essayMarks, oralReviewMarks } = req.body;
+        const { essayMarks = {}, oralReviewMarks = 0, essayFeedbackFile, audioFeedbackFile } = req.body;
 
         const result = await prisma.proficiency_test_results.findUnique({ where: { id: parseInt(resultId) } });
         if (!result) return res.status(404).json({ error: "Not found" });
 
-        const newScore = (result.score || 0) + (parseFloat(essayMarks) || 0) + (parseFloat(oralReviewMarks) || 0);
+        const test = await prisma.proficiency_tests.findUnique({ where: { id: result.test_id } });
+        if (!test) return res.status(404).json({ error: "Proficiency test not found" });
+
+        const questions = typeof test.questions === 'string' ? JSON.parse(test.questions) : (test.questions || []);
+        const answers = typeof result.answers === 'string' ? JSON.parse(result.answers) : (result.answers || {});
+        const cleanStr = (value) => (value ? String(value).trim().toLowerCase() : "");
+
+        let objectiveScore = 0;
+        let objectiveTotal = 0;
+        let manualTotal = 0;
+        const cleanEssayMarks = {};
+        const manualQuestionIds = new Set();
+
+        questions.forEach((q) => {
+            const qType = q.type || 'mcq';
+            if (qType === 'essay' || qType === 'table-essay' || qType === 'audio') {
+                manualQuestionIds.add(String(q.id));
+                manualTotal += parseInt(q.points) || 10;
+                const mark = Number(essayMarks?.[q.id]) || 0;
+                const max = parseInt(q.points) || 10;
+                if (mark < 0 || mark > max) {
+                    const error = new Error(`Mark for "${q.title || q.questionText || q.id}" must be between 0 and ${max}`);
+                    error.statusCode = 400;
+                    throw error;
+                }
+                cleanEssayMarks[q.id] = mark;
+                return;
+            }
+
+            if (qType === 'mcq' || qType === 'multiple_choice') {
+                const points = parseInt(q.points) || 1;
+                objectiveTotal += points;
+                if (answers[q.id] === q.options?.[q.correctOption]) objectiveScore += points;
+            } else if (qType === 'passage') {
+                (q.subQuestions || []).forEach((sq, idx) => {
+                    const sqKey = sq.id || `${q.id}_sub_${idx}`;
+                    const sqPoints = parseInt(sq.points) || 1;
+                    objectiveTotal += sqPoints;
+                    const sqType = sq.type || 'mcq';
+                    if (sqType === 'mcq' && answers[sqKey] === sq.options?.[sq.correctOption]) objectiveScore += sqPoints;
+                    if (sqType === 'tfng' && cleanStr(answers[sqKey]) === cleanStr(sq.tfngAnswer)) objectiveScore += sqPoints;
+                    if (sqType === 'fill_blank' && cleanStr(answers[sqKey]) === cleanStr(sq.blankAnswer)) objectiveScore += sqPoints;
+                    if (sqType === 'heading_match' && parseInt(answers[sqKey]) === sq.correctHeadingIdx) objectiveScore += sqPoints;
+                });
+            }
+        });
+
+        const manualScore = Object.values(cleanEssayMarks).reduce((sum, mark) => sum + (Number(mark) || 0), 0);
+        const oralTotal = 20;
+        const oralScore = Number(oralReviewMarks) || 0;
+        if (oralScore < 0 || oralScore > oralTotal) {
+            return res.status(400).json({ error: "Oral review marks must be between 0 and 20" });
+        }
+
+        const feedback = {
+            essay: essayFeedbackFile || null,
+            audio: audioFeedbackFile || null,
+        };
+        const totalPoints = objectiveTotal + manualTotal + oralTotal;
+        const totalScore = objectiveScore + manualScore + oralScore;
 
         const updated = await prisma.proficiency_test_results.update({
             where: { id: parseInt(resultId) },
             data: {
-                score: newScore,
-                essay_marks: essayMarks ? JSON.stringify(essayMarks) : undefined,
-                oral_review_marks: oralReviewMarks ? parseFloat(oralReviewMarks) : undefined,
-                status: 'completed'
+                score: totalScore,
+                essay_marks: JSON.stringify(cleanEssayMarks),
+                oral_review_marks: oralScore,
+                total_points: totalPoints,
+                feedback: JSON.stringify(feedback),
+                status: 'completed',
+                graded_at: new Date(),
+                graded_by: req.user?.userId ? parseInt(req.user.userId, 10) || null : null,
             }
         });
         res.json(updated);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(err.statusCode || 500).json({ error: err.message });
     }
 };
