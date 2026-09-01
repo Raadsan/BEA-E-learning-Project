@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
  
 import DataTable from "@/components/DataTable";
 import { useGetAllPlacementResultsQuery, useUnlockPlacementAttemptMutation, useDeletePlacementResultMutation } from "@/lib/api/placementTestApi";
+import { useExtendIeltsDeadlineMutation } from "@/lib/api/ieltsToeflApi";
 import { useExtendStudentDeadlineMutation } from "@/lib/api/studentApi";
 import { useToast } from "@/components/Toast";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
@@ -148,6 +149,7 @@ export default function PlacementResultsPage() {
  
     const { data: results, isLoading, error, refetch } = useGetAllPlacementResultsQuery();
     const [extendStudentDeadline] = useExtendStudentDeadlineMutation();
+    const [extendIeltsDeadline] = useExtendIeltsDeadlineMutation();
     const [unlockPlacementAttempt, { isLoading: isUnlocking }] = useUnlockPlacementAttemptMutation();
     const [deletePlacementResult, { isLoading: isDeletingResult }] = useDeletePlacementResultMutation();
 
@@ -215,7 +217,10 @@ export default function PlacementResultsPage() {
         {
             key: "submitted_at",
             label: "Test Date",
-            render: (val) => val ? new Date(val).toLocaleDateString() : <span className="text-gray-400">-</span>,
+            render: (val, row) => {
+                const date = val || row.started_at || row.created_at;
+                return date ? new Date(date).toLocaleDateString() : <span className="text-gray-400">-</span>;
+            },
         },
         {
             key: "percentage",
@@ -490,10 +495,17 @@ export default function PlacementResultsPage() {
                                     }
                                     const durationMinutes = timeUnit === "hours" ? parseInt(extraTime) * 60 : parseInt(extraTime);
                                     try {
-                                        await extendStudentDeadline({
-                                            id: studentToExtend.student_id,
-                                            durationMinutes: durationMinutes
-                                        }).unwrap();
+                                        if (studentToExtend.is_candidate) {
+                                            await extendIeltsDeadline({ id: studentToExtend.student_id, durationMinutes }).unwrap();
+                                        } else {
+                                            await extendStudentDeadline({
+                                                id: studentToExtend.student_id,
+                                                durationMinutes: durationMinutes
+                                            }).unwrap();
+                                        }
+                                        if (studentToExtend.attempt_id) {
+                                            await unlockPlacementAttempt(studentToExtend.attempt_id).unwrap();
+                                        }
                                         showToast("Extra time added successfully!", "success");
                                         setIsExtensionModalOpen(false);
                                         refetch();

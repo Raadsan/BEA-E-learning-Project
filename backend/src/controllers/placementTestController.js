@@ -313,7 +313,7 @@ export const gradePlacementTest = async (req, res) => {
 
 export const getAllPlacementResults = async (req, res) => {
     try {
-        const [results, placementPrograms, attemptLocks] = await Promise.all([
+        const [results, placementPrograms, attemptLocks, ieltsStudents] = await Promise.all([
             prisma.placement_test_results.findMany({ orderBy: { submitted_at: 'desc' } }),
             prisma.programs.findMany({
                 where: { test_required: 'placement' },
@@ -323,10 +323,23 @@ export const getAllPlacementResults = async (req, res) => {
                 where: { test_type: "placement" },
                 orderBy: { started_at: "desc" },
             }),
+            prisma.IELTSTOEFL.findMany({
+                select: {
+                    student_id: true,
+                    first_name: true,
+                    last_name: true,
+                    expiry_date: true,
+                    is_extended: true,
+                    status: true,
+                    class_id: true,
+                    chosen_program: true,
+                    registration_date: true,
+                },
+            }),
         ]);
 
         const placementProgramTitles = placementPrograms.map((program) => program.title);
-        const eligibleStudents = placementProgramTitles.length
+        const regularPlacementStudents = placementProgramTitles.length
             ? await prisma.students.findMany({
                 where: {
                     chosen_program: { in: placementProgramTitles },
@@ -343,38 +356,72 @@ export const getAllPlacementResults = async (req, res) => {
                 },
             })
             : [];
+        const ieltsPlacementStudents = placementProgramTitles.length
+            ? ieltsStudents.filter((student) =>
+                placementProgramTitles.includes(student.chosen_program) &&
+                !['inactive', 'rejected'].includes(String(student.status || '').toLowerCase())
+            )
+            : [];
+
+        const eligibleStudents = [
+            ...regularPlacementStudents.map((student) => ({
+                student_id: student.student_id,
+                student_name: student.full_name || '-',
+                expiry_date: student.expiry_date,
+                is_extended: student.is_extended,
+                approval_status: student.approval_status,
+                class_id: student.class_id,
+                created_at: student.created_at,
+            })),
+            ...ieltsPlacementStudents.map((student) => ({
+                student_id: student.student_id,
+                student_name: `${student.first_name || ''} ${student.last_name || ''}`.trim() || '-',
+                expiry_date: student.expiry_date,
+                is_extended: student.is_extended,
+                approval_status: student.status,
+                class_id: student.class_id,
+                created_at: student.registration_date,
+                is_candidate: true,
+            })),
+        ];
 
         const studentsById = new Map(eligibleStudents.map((student) => [student.student_id, student]));
         const submittedStudentIds = new Set(results.map((result) => result.student_id).filter(Boolean));
         const lockedStudentIds = new Set(attemptLocks.map((attempt) => attempt.student_id));
 
-        // Keep every submitted result, including legacy results whose program was later changed.
+        // Hide orphan/invalid submitted rows so Placement Results only shows real students.
         const submittedRows = await Promise.all(results.map(async (result) => {
             let student = result.student_id ? studentsById.get(result.student_id) : null;
             if (!student && result.student_id) {
-                student = await prisma.students.findUnique({ where: { student_id: result.student_id } });
+                student = await prisma.students.findUnique({ where: { student_id: result.student_id } })
+                    || await prisma.IELTSTOEFL.findUnique({ where: { student_id: result.student_id } });
             }
+            if (!student) return null;
             return {
                 ...result,
-                student_name: student?.full_name || '-',
+                student_name: student.student_name || student.full_name || [student.first_name, student.last_name].filter(Boolean).join(' ') || '-',
                 expiry_date: student?.expiry_date || null,
                 is_extended: student?.is_extended || false,
-                approval_status: student?.approval_status || null,
+                approval_status: student?.approval_status || student?.status || null,
                 class_id: student?.class_id || null,
+                is_candidate: student?.is_candidate || false,
                 has_submitted: true,
             };
         }));
+        const visibleSubmittedRows = submittedRows.filter(Boolean);
 
         const exitedRows = await Promise.all(attemptLocks
             .filter((attempt) => !submittedStudentIds.has(attempt.student_id))
             .map(async (attempt) => {
                 const student = studentsById.get(attempt.student_id)
-                    || await prisma.students.findUnique({ where: { student_id: attempt.student_id }, select: { student_id: true, full_name: true, expiry_date: true, approval_status: true } });
+                    || await prisma.students.findUnique({ where: { student_id: attempt.student_id }, select: { student_id: true, full_name: true, expiry_date: true, approval_status: true } })
+                    || await prisma.IELTSTOEFL.findUnique({ where: { student_id: attempt.student_id }, select: { student_id: true, first_name: true, last_name: true, expiry_date: true, status: true, class_id: true } });
+                if (!student) return null;
                 return {
                     id: `attempt-${attempt.id}`,
                     attempt_id: attempt.id,
                     student_id: attempt.student_id,
-                    student_name: student?.full_name || '-',
+                    student_name: student.student_name || student.full_name || [student.first_name, student.last_name].filter(Boolean).join(' ') || '-',
                     test_id: attempt.test_id,
                     score: null,
                     total_questions: null,
@@ -384,11 +431,12 @@ export const getAllPlacementResults = async (req, res) => {
                     started_at: attempt.started_at,
                     status: 'started_not_submitted',
                     expiry_date: student?.expiry_date || null,
-                    approval_status: student?.approval_status || null,
+                    approval_status: student?.approval_status || student?.status || null,
                     has_submitted: false,
                     is_locked: true,
                 };
             }));
+        const visibleExitedRows = exitedRows.filter(Boolean);
 
         // Add registered students who never entered the test, excluding inactive ones.
         const notTakenRows = eligibleStudents
@@ -399,7 +447,7 @@ export const getAllPlacementResults = async (req, res) => {
             .map((student) => ({
                 id: `not-taken-${student.student_id}`,
                 student_id: student.student_id,
-                student_name: student.full_name || '-',
+                student_name: student.student_name || '-',
                 test_id: null,
                 score: null,
                 total_questions: null,
@@ -415,7 +463,7 @@ export const getAllPlacementResults = async (req, res) => {
                 has_submitted: false,
             }));
 
-        res.json([...exitedRows, ...notTakenRows, ...submittedRows]);
+        res.json([...visibleExitedRows, ...notTakenRows, ...visibleSubmittedRows]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
