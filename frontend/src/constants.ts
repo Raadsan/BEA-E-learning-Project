@@ -19,6 +19,14 @@ const clientBackendOrigin =
         .replace(/\/api\/?$/, "")
     : serverBackendOrigin;
 
+const buildApiFileUrl = (route: "stream" | "download", ref: string): string => {
+  const encoded = encodeURIComponent(ref);
+  if (typeof window !== "undefined") {
+    return `/api/files/${route}/${encoded}`;
+  }
+  return `${serverBackendOrigin}/api/files/${route}/${encoded}`;
+};
+
 /** Multipart uploads must hit the backend directly — Next.js rewrites break FormData. */
 export const DIRECT_API_URL =
   typeof window !== "undefined"
@@ -54,11 +62,7 @@ export const resolveStreamUrl = (storedValue?: string | null): string | null => 
   const ref = value.replace(/^\//, "");
   if (!ref) return null;
 
-  const encoded = encodeURIComponent(ref);
-  if (typeof window !== "undefined") {
-    return `/api/files/stream/${encoded}`;
-  }
-  return `${serverBackendOrigin}/api/files/stream/${encoded}`;
+  return buildApiFileUrl("stream", ref);
 };
 
 /** Images, videos, materials, program media. */
@@ -67,22 +71,18 @@ export const resolveMediaUrl = (url: string | null | undefined) => resolveStream
 /** Profile pictures and avatars. */
 export const resolveProfileImageUrl = (url: string | null | undefined) => resolveStreamUrl(url);
 
-/** Student submission files (view / play in browser). */
-export const resolveSubmissionFileUrl = (fileUrl?: string | null) => resolveStreamUrl(fileUrl);
+/** Student submission files always go through the backend so private S3 objects remain accessible. */
+export const resolveSubmissionFileUrl = (fileUrl?: string | null) => {
+  const ref = toStreamRef(fileUrl);
+  if (!ref) return null;
+  return buildApiFileUrl("stream", ref);
+};
 
 /** Download submission — authenticated API (streams from S3 via backend). */
 export const resolveSubmissionDownloadUrl = (fileUrl?: string | null) => {
-  if (!fileUrl) return null;
-
-  const apiBase = typeof window !== "undefined" ? "/api" : `${serverBackendOrigin}/api`;
-
-  if (fileUrl.startsWith("http")) {
-    return `${apiBase}/files/download/${encodeURIComponent(fileUrl)}`;
-  }
-
   const ref = toStreamRef(fileUrl);
   if (!ref) return null;
-  return `${apiBase}/files/download/${encodeURIComponent(ref)}`;
+  return buildApiFileUrl("download", ref);
 };
 
 /** Alias — any file/image/video/audio URL for web + portal. */
