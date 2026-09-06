@@ -303,6 +303,22 @@ export default function StudentsPage() {
             submitData.paid_months = submitData.paid_months === "" ? null : parseInt(submitData.paid_months, 10);
             submitData.scholarship_percentage = submitData.scholarship_percentage === "" ? null : parseInt(submitData.scholarship_percentage, 10);
 
+            if (submitData.funding_status !== 'Sponsorship' || !submitData.sponsorship_package) {
+                submitData.sponsorship_package = null;
+            }
+            if (submitData.phone === "") submitData.phone = null;
+            if (submitData.place_of_birth === "") submitData.place_of_birth = null;
+            if (submitData.residency_country === "") submitData.residency_country = null;
+            if (submitData.residency_city === "") submitData.residency_city = null;
+            if (submitData.date_of_birth === "") submitData.date_of_birth = null;
+            if (submitData.sponsor_name === "") submitData.sponsor_name = null;
+            if (submitData.parent_name === "") submitData.parent_name = null;
+            if (submitData.parent_email === "") submitData.parent_email = null;
+            if (submitData.parent_phone === "") submitData.parent_phone = null;
+            if (submitData.parent_relation === "") submitData.parent_relation = null;
+            if (submitData.parent_res_county === "") submitData.parent_res_county = null;
+            if (submitData.parent_res_city === "") submitData.parent_res_city = null;
+
             if (!submitData.password || submitData.password.trim() === "") delete submitData.password;
             if (submitData.chosen_subprogram === "") submitData.chosen_subprogram = null;
 

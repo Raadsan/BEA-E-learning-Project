@@ -346,6 +346,7 @@ export const updateStudent = async (req, res) => {
     delete data.id;
     delete data.student_id;
     delete data.type;
+    delete data.original_id;
     delete data.first_name;
     delete data.last_name;
     delete data.gender;
@@ -362,6 +363,12 @@ export const updateStudent = async (req, res) => {
     delete data.created_by_name;
     delete data.updated_by;
     delete data.updated_by_name;
+    delete data.payment;
+    delete data.payment_status;
+    delete data.payment_amount;
+    delete data.payer_phone;
+    delete data.transaction_id;
+    delete data.payment_method;
 
     Object.assign(data, await buildUpdateAudit(req));
 
@@ -401,25 +408,64 @@ export const updateStudent = async (req, res) => {
       delete data.paid_months;
     }
 
+    // Nullable string fields sanitization
+    const nullableStringFields = [
+      'phone', 'place_of_birth', 'residency_country', 'residency_city',
+      'chosen_program', 'sponsor_name', 'parent_name', 'parent_email',
+      'parent_phone', 'parent_relation', 'parent_res_county', 'parent_res_city'
+    ];
+    for (const field of nullableStringFields) {
+      if (data[field] !== undefined && data[field] === "") {
+        data[field] = null;
+      }
+    }
+
+    // Sex enum validation
+    if (data.sex !== undefined) {
+      const validSexes = ['Male', 'Female'];
+      if (!validSexes.includes(data.sex)) {
+        data.sex = existing.sex || 'Male';
+      }
+    }
+
+    // Approval status enum validation
+    if (data.approval_status !== undefined) {
+      const validStatuses = ['pending', 'approved', 'rejected', 'inactive'];
+      if (!validStatuses.includes(data.approval_status)) {
+        data.approval_status = existing.approval_status || 'pending';
+      }
+    }
+
     const fundingFieldsChanged =
       data.funding_status !== undefined ||
       data.sponsorship_package !== undefined ||
       data.scholarship_percentage !== undefined ||
       req.body.paid_months !== undefined;
 
-    if (fundingFieldsChanged) {
-      const nextFundingStatus = formatFundingStatusForApi(
-        data.funding_status ?? existing.funding_status
-      );
-      const nextPackageName = req.body.sponsorship_package ?? existing.sponsorship_package;
-      const nextScholarship = data.scholarship_percentage ?? existing.scholarship_percentage;
-      const nextProgram = data.chosen_program ?? existing.chosen_program;
+    const nextFundingStatus = formatFundingStatusForApi(
+      data.funding_status ?? existing.funding_status
+    );
+    const nextPackageName = req.body.sponsorship_package ?? existing.sponsorship_package;
+    const nextScholarship = data.scholarship_percentage ?? existing.scholarship_percentage;
+    const nextProgram = data.chosen_program ?? existing.chosen_program;
 
-      if (nextFundingStatus === 'Sponsorship' && req.body.sponsorship_package) {
-        const pkg = await resolvePaymentPackage(prisma, req.body.sponsorship_package);
+    // Sponsorship package enum validation and assignment
+    const validSponsorshipEnums = ['Month', 'Months_3', 'Months_6', 'Year', 'None'];
+    if (nextFundingStatus !== 'Sponsorship') {
+      data.sponsorship_package = 'None';
+    } else {
+      const candidatePackage = req.body.sponsorship_package || data.sponsorship_package || existing.sponsorship_package;
+      if (candidatePackage && validSponsorshipEnums.includes(candidatePackage)) {
+        data.sponsorship_package = candidatePackage;
+      } else if (candidatePackage) {
+        const pkg = await resolvePaymentPackage(prisma, candidatePackage);
         data.sponsorship_package = mapMonthsToSponsorshipEnum(pkg?.duration_months || req.body.paid_months || 1);
+      } else {
+        data.sponsorship_package = 'None';
       }
+    }
 
+    if (fundingFieldsChanged) {
       // Partial discount only reduces future prices — it must not grant course access.
       if (isPartialScholarshipStatus(nextFundingStatus)) {
         const hasPaidTransaction = await studentHasPaidTransaction(prisma, id);

@@ -47,22 +47,104 @@ export const getMaterials = async (req, res) => {
 export const getStudentMaterials = async (req, res) => {
     try {
         const studentId = req.user.userId;
-        const student = await prisma.students.findUnique({ where: { student_id: studentId } });
+        let student = await prisma.students.findUnique({ where: { student_id: studentId } });
+        let isIelts = false;
+        if (!student) {
+            student = await prisma.IELTSTOEFL.findUnique({ where: { student_id: studentId } });
+            if (student) isIelts = true;
+        }
+        if (!student) {
+            student = await prisma.ProficiencyTestStudents.findUnique({ where: { student_id: studentId } });
+        }
         if (!student) return res.status(404).json({ error: 'Student not found' });
 
-        // Find their subprogram by class
+        let programId = null;
         let subprogramId = null;
+
+        // 1. Resolve subprogram and program from class if assigned
         if (student.class_id) {
-            const cls = await prisma.classes.findUnique({ where: { id: student.class_id } });
-            subprogramId = cls?.subprogram_id;
+            const cls = await prisma.classes.findUnique({
+                where: { id: student.class_id },
+                include: { subprograms: true }
+            });
+            if (cls) {
+                if (cls.subprogram_id) {
+                    subprogramId = cls.subprogram_id;
+                    programId = cls.subprograms?.program_id || null;
+                } else if (cls.course_id) {
+                    const course = await prisma.courses.findUnique({
+                        where: { id: cls.course_id },
+                        include: { subprograms: true }
+                    });
+                    if (course?.subprogram_id) {
+                        subprogramId = course.subprogram_id;
+                        programId = course.subprograms?.program_id || null;
+                    }
+                }
+            }
         }
 
-        const where = {};
-        if (subprogramId) {
-            where.OR = [{ subprogram_id: subprogramId }, { subprogram_id: null }];
+        // 2. If subprogramId not yet found, try matching student's chosen_subprogram
+        if (!subprogramId && student.chosen_subprogram) {
+            const trimmedSub = student.chosen_subprogram.trim();
+            const sp = await prisma.subprograms.findFirst({
+                where: {
+                    OR: [
+                        { subprogram_name: trimmedSub },
+                        { subprogram_name: { contains: trimmedSub } }
+                    ]
+                }
+            });
+            if (sp) {
+                subprogramId = sp.id;
+                programId = programId || sp.program_id;
+            }
         }
 
-        const materials = await prisma.learning_materials.findMany({ where, orderBy: { created_at: 'desc' } });
+        // 3. If programId not yet found, try matching student's chosen_program or exam_type
+        if (!programId) {
+            const progTitle = (student.chosen_program || (isIelts ? "IELTS & TOEFL TEST PREPARATION COURSES" : "") || "").trim();
+            if (progTitle) {
+                const prog = await prisma.programs.findFirst({
+                    where: {
+                        OR: [
+                            { title: progTitle },
+                            { title: { contains: progTitle.split(' ')[0] } }
+                        ]
+                    }
+                });
+                if (prog) {
+                    programId = prog.id;
+                }
+            }
+        }
+
+        // If neither programId nor subprogramId could be determined, return empty list
+        if (!programId && !subprogramId) {
+            return res.json([]);
+        }
+
+        // Build precise WHERE clause strictly isolating materials to the student's program and subprogram
+        const where = {
+            status: 'Active'
+        };
+
+        if (programId && subprogramId) {
+            where.program_id = programId;
+            where.OR = [
+                { subprogram_id: subprogramId },
+                { subprogram_id: null }
+            ];
+        } else if (subprogramId) {
+            where.subprogram_id = subprogramId;
+        } else if (programId) {
+            where.program_id = programId;
+        }
+
+        const materials = await prisma.learning_materials.findMany({
+            where,
+            orderBy: { created_at: 'desc' }
+        });
         
         const programs = await prisma.programs.findMany();
         const subprograms = await prisma.subprograms.findMany();
@@ -79,7 +161,10 @@ export const getStudentMaterials = async (req, res) => {
         });
 
         res.json(mappedMaterials);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        console.error("Get student materials error:", err);
+        res.status(500).json({ error: err.message });
+    }
 };
 
 export const updateMaterial = async (req, res) => {
