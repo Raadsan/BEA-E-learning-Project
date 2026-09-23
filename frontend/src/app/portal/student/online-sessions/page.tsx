@@ -81,22 +81,60 @@ export default function OnlineSessionsPage() {
     const upcoming = [];
     const past = [];
 
-    schedulesData.forEach((schedule) => {
-      const dateStr = typeof schedule.schedule_date === 'string'
-        ? schedule.schedule_date.split('T')[0].split(' ')[0]
+    // Chronological order for sequential unlock (session N opens after session N-1 ends)
+    const chronological = [...schedulesData].sort((a, b) => {
+      const da = typeof a.schedule_date === "string" ? a.schedule_date.split("T")[0] : a.schedule_date;
+      const db = typeof b.schedule_date === "string" ? b.schedule_date.split("T")[0] : b.schedule_date;
+      const ta = `${da} ${getCleanTime(a.start_time) || "00:00"}`;
+      const tb = `${db} ${getCleanTime(b.start_time) || "00:00"}`;
+      return ta.localeCompare(tb);
+    });
+
+    chronological.forEach((schedule, index) => {
+      const dateStr = typeof schedule.schedule_date === "string"
+        ? schedule.schedule_date.split("T")[0].split(" ")[0]
         : schedule.schedule_date;
 
-      const [year, month, day] = dateStr.split('-').map(Number);
+      const [year, month, day] = dateStr.split("-").map(Number);
       const cleanStartTime = getCleanTime(schedule.start_time);
       const cleanEndTime = getCleanTime(schedule.end_time);
 
+      let sessionStartDateTime = new Date(year, month - 1, day, 0, 0, 0);
+      if (cleanStartTime) {
+        const [startHours, startMinutes] = cleanStartTime.split(":").map(Number);
+        sessionStartDateTime = new Date(year, month - 1, day, startHours, startMinutes, 0);
+      }
+
       let sessionEndDateTime = new Date(year, month - 1, day, 23, 59, 59);
       if (cleanEndTime) {
-        const [endHours, endMinutes] = cleanEndTime.split(':').map(Number);
+        const [endHours, endMinutes] = cleanEndTime.split(":").map(Number);
         sessionEndDateTime = new Date(year, month - 1, day, endHours, endMinutes, 0);
       } else if (cleanStartTime) {
-        const [startHours, startMinutes] = cleanStartTime.split(':').map(Number);
+        const [startHours, startMinutes] = cleanStartTime.split(":").map(Number);
         sessionEndDateTime = new Date(year, month - 1, day, startHours + 1, startMinutes, 0);
+      }
+
+      // First session unlocks when its start time is reached (or earlier same day).
+      // Later sessions unlock only after the previous session has ended.
+      let isUnlocked = false;
+      if (index === 0) {
+        isUnlocked = now >= sessionStartDateTime || now.toDateString() === sessionStartDateTime.toDateString();
+      } else {
+        const prev = chronological[index - 1];
+        const prevDateStr = typeof prev.schedule_date === "string"
+          ? prev.schedule_date.split("T")[0].split(" ")[0]
+          : prev.schedule_date;
+        const [py, pm, pd] = prevDateStr.split("-").map(Number);
+        const prevEndClean = getCleanTime(prev.end_time) || getCleanTime(prev.start_time);
+        let prevEnd = new Date(py, pm - 1, pd, 23, 59, 59);
+        if (prevEndClean) {
+          const [eh, em] = prevEndClean.split(":").map(Number);
+          prevEnd = new Date(py, pm - 1, pd, eh, em, 0);
+          if (!getCleanTime(prev.end_time) && getCleanTime(prev.start_time)) {
+            prevEnd = new Date(py, pm - 1, pd, eh + 1, em, 0);
+          }
+        }
+        isUnlocked = now >= prevEnd;
       }
 
       const sessionData = {
@@ -109,6 +147,8 @@ export default function OnlineSessionsPage() {
         className: studentClass.class_name || "Class",
         description: schedule.description || "",
         status: getSessionStatus(dateStr, cleanStartTime, cleanEndTime),
+        isUnlocked,
+        sequenceIndex: index + 1,
       };
 
       if (sessionEndDateTime >= now) {
@@ -138,6 +178,10 @@ export default function OnlineSessionsPage() {
 
   // Direct join in new tab – no embedded view
   const handleJoin = (session) => {
+    if (!session?.isUnlocked) {
+      showToast("This session is locked. Complete the previous session first.", "error");
+      return;
+    }
     const raw = session?.zoomLink;
     const url = extractUrl(raw);
     if (!url || !url.startsWith("http")) {
@@ -196,28 +240,37 @@ export default function OnlineSessionsPage() {
               {upcomingSessions.map((session) => {
                 const isActive = session.status === "Active";
                 const isScheduled = session.status === "Scheduled";
+                const isLocked = !session.isUnlocked;
 
                 return (
                   <div
                     key={session.id}
-                    className={`relative rounded-2xl overflow-hidden shadow-xl transition-all duration-300 border-2 ${isActive
-                      ? `border-green-500 ${isDark ? "bg-green-900/20" : "bg-green-50"}`
-                      : `border-[#010080] ${isDark ? "bg-gray-800" : "bg-blue-50"}`
-                      } hover:shadow-2xl hover:scale-[1.02]`}
+                    className={`relative rounded-2xl overflow-hidden shadow-xl transition-all duration-300 border-2 ${
+                      isLocked
+                        ? `border-gray-300 ${isDark ? "bg-gray-800/60 opacity-80" : "bg-gray-50 opacity-90"}`
+                        : isActive
+                        ? `border-green-500 ${isDark ? "bg-green-900/20" : "bg-green-50"}`
+                        : `border-[#010080] ${isDark ? "bg-gray-800" : "bg-blue-50"}`
+                      } ${isLocked ? "" : "hover:shadow-2xl hover:scale-[1.02]"}`}
                   >
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <h3 className={`text-xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
-                            {session.className}
+                            Session {session.sequenceIndex}: {session.className}
                           </h3>
-                          {isActive && (
+                          {isLocked && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-500 text-white rounded-full text-xs font-semibold">
+                              🔒 Locked
+                            </span>
+                          )}
+                          {!isLocked && isActive && (
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">
                               <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
                               Active
                             </span>
                           )}
-                          {isScheduled && (
+                          {!isLocked && isScheduled && (
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold">
                               Scheduled
                             </span>
@@ -248,12 +301,16 @@ export default function OnlineSessionsPage() {
                         </div>
                       </div>
 
-                      {session.zoomLink ? (
+                      {isLocked ? (
+                        <div className={`w-full text-center px-4 py-3 rounded-lg font-semibold ${isDark ? "bg-gray-700 text-gray-400" : "bg-gray-200 text-gray-500"} cursor-not-allowed`}>
+                          Locked — finish previous session first
+                        </div>
+                      ) : session.zoomLink ? (
                         <button
                           onClick={() => handleJoin(session)}
                           className="block w-full text-center px-4 py-3 rounded-lg font-semibold transition-all bg-[#010080] hover:bg-blue-800 text-white shadow-md hover:scale-[1.02] active:scale-95"
                         >
-                          🎥 Join Session
+                          Join Session
                         </button>
                       ) : (
                         <div className={`w-full text-center px-4 py-3 rounded-lg font-semibold ${isDark ? "bg-gray-700 text-gray-400" : "bg-gray-200 text-gray-500"} cursor-not-allowed`}>

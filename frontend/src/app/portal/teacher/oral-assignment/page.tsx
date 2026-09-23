@@ -19,6 +19,7 @@ import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
 import { resolveSubmissionFileUrl } from "@/constants";
 import { downloadSubmissionFile, openSubmissionFile } from "@/utils/submissionFiles";
 import { formatDatetimeLocalValue } from "@/utils/assignmentSchedule";
+import { parseSubmissionContentMeta, resolveOralMediaKind } from "@/utils/oralMedia";
 import { useAssignmentNow } from "@/hooks/useAssignmentNow";
 import {
     getAssignmentWindowStatus,
@@ -58,25 +59,17 @@ export default function OralAssignmentPage() {
     const getSubmissionMediaMeta = (submission) => {
         if (!submission) return { kind: null, name: null };
 
-        if (submission.file_url) {
-            if (/\.(mp4|webm|mov|avi)$/i.test(submission.file_url)) {
-                return { kind: "video", name: submission.file_url.split("/").pop() };
-            }
-            if (/\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(submission.file_url)) {
-                return { kind: "image", name: submission.file_url.split("/").pop() };
-            }
-            return { kind: "audio", name: submission.file_url.split("/").pop() };
-        }
+        const contentMeta = parseSubmissionContentMeta(submission.content);
+        const kind = resolveOralMediaKind({
+            url: submission.file_url,
+            mimeType: contentMeta.mimeType,
+            submissionKind: contentMeta.submissionKind,
+        });
+        const name =
+            contentMeta.originalName ||
+            (submission.file_url ? submission.file_url.split("/").pop() : null);
 
-        try {
-            const parsed = typeof submission.content === "string" ? JSON.parse(submission.content) : submission.content;
-            return {
-                kind: parsed?.submissionKind || null,
-                name: parsed?.originalName || null,
-            };
-        } catch {
-            return { kind: null, name: null };
-        }
+        return { kind, name };
     };
 
     // Fetch audio for playback in grading view
@@ -490,12 +483,20 @@ export default function OralAssignmentPage() {
                         onClick={() => handleOpenFile(row.file_url)}
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline text-sm"
                     >
-                        {row.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                        ) : (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                        )}
-                        {row.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? 'View / Download Video' : 'Listen / Download Audio'}
+                        {(() => {
+                            const meta = getSubmissionMediaMeta(row);
+                            const isVideo = meta.kind === "video";
+                            return (
+                                <>
+                                    {isVideo ? (
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                    ) : (
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                                    )}
+                                    {isVideo ? "View / Download Video" : "Listen / Download Audio"}
+                                </>
+                            );
+                        })()}
                     </button>
                 ) : "No File";
             }
@@ -618,18 +619,22 @@ export default function OralAssignmentPage() {
                             <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-6 block">Student Submission</span>
                             {gradingSubmission.file_url ? (
                                 <div className="space-y-6">
+                                    {(() => {
+                                        const mediaMeta = getSubmissionMediaMeta(gradingSubmission);
+                                        const isVideo = mediaMeta.kind === "video";
+                                        return (
                                     <div className={`p-6 rounded-xl border ${isDark ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50 border-gray-200'} flex flex-col items-center gap-4`}>
                                         <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
                                             {isLoadingAudio ? (
                                                 <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                                            ) : gradingSubmission.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
+                                            ) : isVideo ? (
                                                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                                             ) : (
                                                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             )}
                                         </div>
                                         {gradingAudioUrl ? (
-                                            gradingSubmission.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
+                                            isVideo ? (
                                                 <video
                                                     controls
                                                     autoPlay={false}
@@ -648,12 +653,14 @@ export default function OralAssignmentPage() {
                                             <p className="text-sm opacity-50 italic">Loading media player...</p>
                                         )}
                                     </div>
+                                        );
+                                    })()}
                                     <button
                                         onClick={() => handleDownloadFile(gradingSubmission.file_url)}
                                         className="flex items-center gap-2 text-sm text-blue-600 hover:underline font-normal"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                        Download {gradingSubmission.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? 'Video' : 'Audio'} for Offline Review
+                                        Download {getSubmissionMediaMeta(gradingSubmission).kind === "video" ? "Video" : "Audio"} for Offline Review
                                     </button>
                                 </div>
                             ) : (

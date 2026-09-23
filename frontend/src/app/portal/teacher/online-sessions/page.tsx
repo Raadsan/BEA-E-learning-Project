@@ -54,14 +54,24 @@ function ClassGrid({ classes, isDark, onSelect }: { classes: any[]; isDark: bool
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {classes.map((cls: any, index: number) => {
-        const color = colors[index % colors.length];
-        const studentCount = cls._count?.students ?? cls.students_count ?? "—";
+        const finished = Boolean(cls.is_finished);
+        const color = finished
+          ? { bg: "from-gray-500 to-gray-700", badge: "bg-gray-200 text-gray-700" }
+          : colors[index % colors.length];
+        const studentCount = cls.students_count ?? cls._count?.students ?? 0;
+        const subtitle = cls.subprogram_name || cls.subprograms?.subprogram_name || cls.program_name || "";
+        const scheduleText = cls.schedule
+          || [cls.shift_session || cls.shift_name, cls.shift_start && cls.shift_end ? `${cls.shift_start} - ${cls.shift_end}` : null]
+            .filter(Boolean)
+            .join(" · ");
 
         return (
           <button
             key={cls.id}
             onClick={() => onSelect(cls)}
-            className={`group relative overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl active:scale-95 text-left ${isDark ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-100"}`}
+            className={`group relative overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl active:scale-95 text-left ${
+              finished ? "opacity-80" : ""
+            } ${isDark ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-100"}`}
           >
             <div className={`bg-gradient-to-br ${color.bg} p-6 pb-8`}>
               <div className="flex items-center justify-between mb-3">
@@ -70,13 +80,19 @@ function ClassGrid({ classes, isDark, onSelect }: { classes: any[]; isDark: bool
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <svg className="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-white/20 text-white">
+                  {finished ? "Finished" : "Active"}
+                </span>
               </div>
               <h3 className="text-xl font-bold text-white leading-tight">{cls.class_name || "Unnamed Class"}</h3>
-              {cls.subprograms?.subprogram_name && (
-                <p className="text-white/75 text-sm mt-1">{cls.subprograms.subprogram_name}</p>
+              {subtitle && (
+                <p className="text-white/75 text-sm mt-1">{subtitle}</p>
+              )}
+              {scheduleText && (
+                <p className="text-white/65 text-xs mt-2">{scheduleText}</p>
+              )}
+              {cls.term_serial && (
+                <p className="text-white/65 text-xs mt-1">Term {cls.term_serial}</p>
               )}
             </div>
             <div className={`px-5 py-4 flex items-center justify-between ${isDark ? "bg-gray-800" : "bg-white"}`}>
@@ -86,7 +102,9 @@ function ClassGrid({ classes, isDark, onSelect }: { classes: any[]; isDark: bool
                 </svg>
                 <span className={isDark ? "text-gray-400" : "text-gray-500"}>{studentCount} students</span>
               </div>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${color.badge}`}>View Sessions →</span>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${color.badge}`}>
+                {finished ? "View Archive →" : "View Sessions →"}
+              </span>
             </div>
           </button>
         );
@@ -147,7 +165,10 @@ function SessionList({ cls, isDark, onBack }: { cls: any; isDark: boolean; onBac
         <div>
           <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{cls.class_name}</h2>
           <p className={`text-sm mt-0.5 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-            {cls.subprograms?.subprogram_name || "Online Sessions"}
+            {cls.subprogram_name || cls.subprograms?.subprogram_name || cls.program_name || "Online Sessions"}
+            {cls.schedule ? ` · ${cls.schedule}` : ""}
+            {cls.term_serial ? ` · Term ${cls.term_serial}` : ""}
+            {cls.is_finished ? " · Finished" : ""}
           </p>
         </div>
       </div>

@@ -18,7 +18,7 @@ const contentTypeMap = {
     ".gif": "image/gif",
     ".webp": "image/webp",
     ".mp4": "video/mp4",
-    ".webm": "video/webm",
+    ".webm": "audio/webm",
     ".mov": "video/quicktime",
     ".mp3": "audio/mpeg",
     ".wav": "audio/wav",
@@ -92,9 +92,7 @@ const streamLocalFile = (req, res, filename, { attachment = false } = {}) => {
     const stat = fs.statSync(filePath);
     const fileSize = stat.size;
     const ext = path.extname(filename).toLowerCase();
-    const contentType = ext === ".webm" && filename.startsWith("voice-recording-")
-        ? "audio/webm"
-        : (contentTypeMap[ext] || "application/octet-stream");
+    const contentType = contentTypeMap[ext] || "application/octet-stream";
     res.setHeader("Content-Type", contentType);
     res.setHeader("Content-Disposition", attachment ? `attachment; filename="${filename}"` : "inline");
     res.setHeader("Accept-Ranges", "bytes");

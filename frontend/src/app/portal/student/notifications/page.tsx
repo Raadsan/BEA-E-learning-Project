@@ -4,13 +4,18 @@ import { useState, useEffect } from "react";
 import { useDarkMode } from "@/context/ThemeContext";
 import { useGetNotificationsQuery, useMarkAsReadMutation } from "@/lib/api/notificationApi";
 import { useGetAnnouncementsQuery } from "@/lib/api/announcementApi";
+import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import Image from "next/image";
 import StudentPageHeader from "@/components/student/StudentPageHeader";
 
 export default function StudentNotificationsPage() {
   const { isDark } = useDarkMode();
+  const { data: currentUser } = useGetCurrentUserQuery();
   const { data: notificationsData = [], isLoading: isLoadingNotifs } = useGetNotificationsQuery(undefined, { pollingInterval: 10000 });
-  const { data: announcementsData = [], isLoading: isLoadingAnnounce } = useGetAnnouncementsQuery(undefined, { pollingInterval: 10000 });
+  const { data: announcementsData = [], isLoading: isLoadingAnnounce } = useGetAnnouncementsQuery(
+    { classId: currentUser?.class_id },
+    { skip: !currentUser?.class_id, pollingInterval: 10000 }
+  );
   
   const [markAsRead] = useMarkAsReadMutation();
 

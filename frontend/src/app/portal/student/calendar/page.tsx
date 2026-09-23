@@ -137,16 +137,32 @@ export default function StudentCalendarPage() {
                             <div key={schedule.id} className={`text-[10px] p-1.5 rounded-lg border ${isDark ? 'bg-blue-900/30 border-blue-800 text-blue-300' : 'bg-blue-50 border-blue-100 text-blue-700'
                               }`}>
                               <div className="font-bold truncate">{schedule.class_name}</div>
-                              {schedule.zoom_link && (
-                                <a
-                                  href={schedule.zoom_link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-500 hover:underline font-medium block mt-1"
-                                >
-                                  Join Session
-                                </a>
-                              )}
+                              {schedule.zoom_link && (() => {
+                                const dateStr = typeof schedule.schedule_date === "string"
+                                  ? schedule.schedule_date.split("T")[0]
+                                  : schedule.schedule_date;
+                                const schedDate = dateStr ? new Date(`${dateStr}T00:00:00`) : null;
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                const canJoin = schedDate && schedDate.getTime() <= today.getTime();
+                                if (!canJoin) {
+                                  return (
+                                    <span className="text-gray-400 font-medium block mt-1">
+                                      Locked until session day
+                                    </span>
+                                  );
+                                }
+                                return (
+                                  <a
+                                    href={schedule.zoom_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-500 hover:underline font-medium block mt-1"
+                                  >
+                                    Join Session
+                                  </a>
+                                );
+                              })()}
                             </div>
                           ))}
                         </div>

@@ -33,10 +33,14 @@ export default function StudentSidebar({ isApproved, isPaid = true, isTestExpire
   const [showMyCourses, setShowMyCourses] = useState(false);
   const { activePath, handleNavClick } = usePortalNavFeedback(pathname, onClose);
 
-  const { data: announcements } = useGetAnnouncementsQuery(undefined, {
-    pollingInterval: 0,
-    refetchOnMountOrArgChange: false,
-  });
+  const { data: announcements } = useGetAnnouncementsQuery(
+    { classId: user?.class_id },
+    {
+      skip: !user?.class_id,
+      pollingInterval: 0,
+      refetchOnMountOrArgChange: false,
+    }
+  );
   const [hasNewUpdates, setHasNewUpdates] = useState(false);
 
   // Check for new updates

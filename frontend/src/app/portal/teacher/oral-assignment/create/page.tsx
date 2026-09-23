@@ -76,7 +76,21 @@ function OralAssignmentCreateContent() {
 
                 const durationParts = splitDurationMinutes(assignment.duration || 30);
                 const loadedUrl = loadedAudioUrl;
-                const isVideoPrompt = /\.(mp4|webm|mov|avi)$/i.test(loadedUrl || "");
+                let loadedMediaType = "audio";
+                try {
+                    const qs = typeof assignment.questions === "string"
+                        ? JSON.parse(assignment.questions)
+                        : assignment.questions;
+                    if (Array.isArray(qs) && qs[0]?.mediaType) {
+                        loadedMediaType = qs[0].mediaType;
+                    } else if (Array.isArray(qs) && qs[0]?.mimeType) {
+                        loadedMediaType = String(qs[0].mimeType).startsWith("video/") ? "video" : "audio";
+                    } else if (/\.(mp4|mov|avi|mkv)$/i.test(loadedUrl || "")) {
+                        loadedMediaType = "video";
+                    }
+                } catch {
+                    if (/\.(mp4|mov|avi|mkv)$/i.test(loadedUrl || "")) loadedMediaType = "video";
+                }
 
                 setFormData({
                     title: assignment.title,
@@ -93,7 +107,7 @@ function OralAssignmentCreateContent() {
                     audioUrl: loadedUrl,
                     submission_type: assignment.submission_type || "audio"
                 });
-                setPromptMediaType(loadedUrl ? (isVideoPrompt ? "video" : "audio") : null);
+                setPromptMediaType(loadedUrl ? loadedMediaType : null);
             }
         }
     }, [id, allOralAssignments]);
@@ -164,6 +178,8 @@ function OralAssignmentCreateContent() {
             {
                 type: 'audio_prompt',
                 audioUrl: formData.audioUrl,
+                mediaType: promptMediaType || "audio",
+                mimeType: audioFile?.type || (promptMediaType === "video" ? "video/mp4" : "audio/webm"),
                 questionText: formData.description // Use description as the text prompt
             }
         ];

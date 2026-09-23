@@ -218,6 +218,32 @@ export const deleteTeacher = async (req, res) => {
 };
 
 // GET TEACHER CLASSES
+const formatShiftTime = (timeVal) => {
+  if (!timeVal) return '';
+  if (timeVal instanceof Date) {
+    const hours = timeVal.getUTCHours().toString().padStart(2, '0');
+    const minutes = timeVal.getUTCMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+  const str = timeVal.toString();
+  if (str.includes('T')) {
+    const parts = str.split('T');
+    if (parts[1]) return parts[1].substring(0, 5);
+  }
+  return str.substring(0, 5);
+};
+
+const timelineIncludesClass = (timeline, classId) => {
+  const raw = timeline?.class_ids;
+  if (!raw) return false;
+  try {
+    const ids = Array.isArray(raw) ? raw : JSON.parse(raw || '[]');
+    return ids.map(Number).includes(Number(classId));
+  } catch {
+    return false;
+  }
+};
+
 export const getTeacherClasses = async (req, res) => {
   try {
     const teacherId = req.user.userId;
@@ -229,10 +255,87 @@ export const getTeacherClasses = async (req, res) => {
             programs: true
           }
         },
+        shifts: true,
         _count: { select: { students: true } }
       }
     });
-    res.json(classes);
+
+    const classIds = classes.map((c) => c.id);
+    const [ieltsCounts, timelines] = await Promise.all([
+      classIds.length
+        ? prisma.iELTSTOEFL.groupBy({
+            by: ['class_id'],
+            where: {
+              class_id: { in: classIds },
+              NOT: { status: { in: ['Rejected', 'inactive', 'Inactive'] } },
+            },
+            _count: { _all: true },
+          })
+        : Promise.resolve([]),
+      prisma.course_timeline.findMany({
+        where: { is_active: true },
+        orderBy: { end_date: 'desc' },
+      }),
+    ]);
+
+    const ieltsCountMap = {};
+    ieltsCounts.forEach((row) => {
+      if (row.class_id != null) ieltsCountMap[row.class_id] = row._count._all;
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const enriched = classes.map((cls) => {
+      const program_name = cls.subprograms?.programs?.title || 'N/A';
+      const subprogram_name = cls.subprograms?.subprogram_name || 'N/A';
+      const shift_name = cls.shifts?.shift_name || '';
+      const shift_session = cls.shifts?.session_type || '';
+      const shift_start = cls.shifts ? formatShiftTime(cls.shifts.start_time) : '';
+      const shift_end = cls.shifts ? formatShiftTime(cls.shifts.end_time) : '';
+      const scheduleParts = [shift_session || shift_name, shift_start && shift_end ? `${shift_start} - ${shift_end}` : '']
+        .filter(Boolean);
+      const schedule = scheduleParts.join(' · ') || cls.schedule || null;
+
+      const matchingTimelines = timelines.filter((t) => timelineIncludesClass(t, cls.id));
+      const currentTerm = matchingTimelines.find((t) => {
+        const start = new Date(t.start_date);
+        const end = new Date(t.end_date);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+        return today >= start && today <= end;
+      }) || matchingTimelines[0] || null;
+
+      const termEnded = currentTerm ? new Date(currentTerm.end_date) < today : false;
+      const is_finished = termEnded;
+      const regularCount = cls._count?.students || 0;
+      const ieltsCount = ieltsCountMap[cls.id] || 0;
+      const students_count = regularCount + ieltsCount;
+
+      return {
+        ...cls,
+        program_name,
+        subprogram_name,
+        course_title: subprogram_name,
+        shift_name,
+        shift_session,
+        shift_start,
+        shift_end,
+        schedule,
+        term_serial: currentTerm?.term_serial || null,
+        term_start: currentTerm?.start_date || null,
+        term_end: currentTerm?.end_date || null,
+        is_finished,
+        class_status: is_finished ? 'Finished' : 'Active',
+        students_count,
+        _count: {
+          ...cls._count,
+          students: students_count,
+        },
+      };
+    });
+
+    res.json(enriched);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -287,12 +390,25 @@ export const getDashboardStats = async (req, res) => {
 
     const classIds = classes.map(c => c.id);
 
-    // Total students across all teacher's classes
-    const students = classIds.length > 0
-      ? await prisma.students.findMany({ where: { class_id: { in: classIds } } })
-      : [];
+    // Total students across all teacher's classes (general + IELTS/TOEFL)
+    const [regularStudents, ieltsStudents] = classIds.length > 0
+      ? await Promise.all([
+          prisma.students.findMany({
+            where: {
+              class_id: { in: classIds },
+              approval_status: { not: 'inactive' },
+            },
+          }),
+          prisma.iELTSTOEFL.findMany({
+            where: {
+              class_id: { in: classIds },
+              NOT: { status: { in: ['Rejected', 'inactive', 'Inactive'] } },
+            },
+          }),
+        ])
+      : [[], []];
 
-    const totalStudents = students.length;
+    const totalStudents = regularStudents.length + ieltsStudents.length;
 
     // Unique programs
     const programSet = new Set();

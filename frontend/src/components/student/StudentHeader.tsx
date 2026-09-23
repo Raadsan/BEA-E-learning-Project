@@ -49,10 +49,13 @@ export default function StudentHeader({ onMenuClick, onNavigate }) {
     skip: deferAlerts,
     pollingInterval: 120000,
   });
-  const { data: announcements } = useGetAnnouncementsQuery(undefined, {
-    skip: deferAlerts,
-    pollingInterval: 120000,
-  });
+  const { data: announcements } = useGetAnnouncementsQuery(
+    { classId: currentStudent?.class_id },
+    {
+      skip: deferAlerts || !currentStudent?.class_id,
+      pollingInterval: 120000,
+    }
+  );
 
   const notificationList = notifications ?? EMPTY_LIST;
   const announcementList = announcements ?? EMPTY_LIST;

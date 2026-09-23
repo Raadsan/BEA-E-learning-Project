@@ -6,7 +6,7 @@ import { verifyToken, isAdmin } from "../controllers/authController.js";
 
 const router = express.Router();
 
-router.get("/", getAnnouncements);
+router.get("/", verifyToken, getAnnouncements);
 router.get("/teacher", verifyToken, getTeacherAnnouncements);
 
 // Admin only

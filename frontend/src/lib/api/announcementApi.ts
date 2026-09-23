@@ -16,8 +16,14 @@ export const announcementApi = createApi({
     tagTypes: ["Announcements"],
     keepUnusedDataFor: 300,
     endpoints: (builder) => ({
-        getAnnouncements: builder.query<any, void>({
-            query: () => "/announcements",
+        getAnnouncements: builder.query<any, { classId?: string | number } | void>({
+            query: (params) => {
+                const classId = params && typeof params === "object" ? params.classId : undefined;
+                if (classId !== undefined && classId !== null && classId !== "") {
+                    return `/announcements?classId=${encodeURIComponent(String(classId))}`;
+                }
+                return "/announcements";
+            },
             providesTags: ["Announcements"],
         }),
         getTeacherAnnouncements: builder.query<any, void>({

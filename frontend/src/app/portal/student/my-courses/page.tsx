@@ -119,11 +119,12 @@ export default function MyCoursesPage() {
             studentProgram?.title?.toLowerCase().includes("general") ||
             subprogramsData.length >= 4);
 
-    const showLevelMap = isGeneralProgram || isTestPrepProgram;
+    // ESP and other specialty programs also get a curriculum map for their own levels
+    const showLevelMap = Boolean(studentProgram) && (isGeneralProgram || isTestPrepProgram || subprogramsData.length > 0);
 
     const levelMapSubprograms = useMemo(
-        () => buildLevelMapSubprograms(allSubprograms, programs),
-        [allSubprograms, programs]
+        () => buildLevelMapSubprograms(allSubprograms, programs, studentProgram?.id),
+        [allSubprograms, programs, studentProgram?.id]
     );
 
     useEffect(() => {

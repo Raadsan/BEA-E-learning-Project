@@ -514,7 +514,8 @@ export default function StudentDashboard() {
     // Map progress data to find active course
     const activeCourse = Array.isArray(progressData)
         ? progressData.find(p => p.student_id === user?.id && p.progress < 100) || progressData[0]
-        : null;    // Fallback dynamic hours and active sessions calculation from studentAttendance
+        : null;
+    // Fallback dynamic hours and active sessions calculation from studentAttendance
     const calculatedHoursLearned = (studentAttendance?.records && Array.isArray(studentAttendance.records))
         ? studentAttendance.records.reduce((acc, r) => acc + (r.hour1 || 0) + (r.hour2 || 0), 0)
         : 0;
@@ -531,13 +532,15 @@ export default function StudentDashboard() {
         ? learningSummary.total_sessions
         : calculatedActiveSessions;
 
-    // Process attendance for chart (Dynamic active term / calendar weeks)
+    // Process attendance for chart — always scoped to the current calendar month
     const processAttendanceData = () => {
+        const now = new Date();
+        const monthLabel = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
         const defaultWeeks = [
-            { week: "Week 1", value: 0, attended: 0, excused: 0, absent: 0, total: 0 },
-            { week: "Week 2", value: 0, attended: 0, excused: 0, absent: 0, total: 0 },
-            { week: "Week 3", value: 0, attended: 0, excused: 0, absent: 0, total: 0 },
-            { week: "Week 4", value: 0, attended: 0, excused: 0, absent: 0, total: 0 },
+            { week: "Week 1", value: 0, attended: 0, excused: 0, absent: 0, total: 0, monthLabel },
+            { week: "Week 2", value: 0, attended: 0, excused: 0, absent: 0, total: 0, monthLabel },
+            { week: "Week 3", value: 0, attended: 0, excused: 0, absent: 0, total: 0, monthLabel },
+            { week: "Week 4", value: 0, attended: 0, excused: 0, absent: 0, total: 0, monthLabel },
         ];
 
         const records = studentAttendance?.records;
@@ -545,46 +548,36 @@ export default function StudentDashboard() {
             return defaultWeeks;
         }
 
-        const sorted = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        monthStart.setHours(0, 0, 0, 0);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+        const monthRecords = records.filter((r) => {
+            if (!r.date) return false;
+            const d = new Date(r.date);
+            return d >= monthStart && d <= monthEnd;
+        });
+
         const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
-
-        const earliestTime = new Date(sorted[0].date).getTime();
-        const latestTime = new Date(sorted[sorted.length - 1].date).getTime();
-        const spanMs = latestTime - earliestTime;
-
-        let baseStart;
-        if (spanMs <= 28 * 24 * 60 * 60 * 1000) {
-            baseStart = new Date(earliestTime);
-            baseStart.setHours(0, 0, 0, 0);
-        } else {
-            const latestEnd = new Date(latestTime);
-            latestEnd.setHours(23, 59, 59, 999);
-            baseStart = new Date(latestEnd.getTime() - 4 * oneWeekMs);
-            baseStart.setHours(0, 0, 0, 0);
-        }
-
         const weeks = [];
         for (let i = 0; i < 4; i++) {
-            const weekStart = new Date(baseStart.getTime() + i * oneWeekMs);
-            const weekEnd = new Date(baseStart.getTime() + (i + 1) * oneWeekMs);
-
-            const weekRecords = sorted.filter(r => {
-                if (!r.date) return false;
+            const weekStart = new Date(monthStart.getTime() + i * oneWeekMs);
+            const weekEnd = new Date(monthStart.getTime() + (i + 1) * oneWeekMs);
+            const weekRecords = monthRecords.filter((r) => {
                 const d = new Date(r.date);
                 return d >= weekStart && d < weekEnd;
             });
 
             const weekLabel = `Week ${i + 1}`;
-
             if (weekRecords.length === 0) {
-                weeks.push({ week: weekLabel, value: 0, attended: 0, excused: 0, absent: 0, total: 0 });
+                weeks.push({ week: weekLabel, value: 0, attended: 0, excused: 0, absent: 0, total: 0, monthLabel });
             } else {
                 const attended = weekRecords.reduce((acc, r) => acc + (r.hour1 === 1 ? 1 : 0) + (r.hour2 === 1 ? 1 : 0), 0);
                 const excused = weekRecords.reduce((acc, r) => acc + (r.hour1 === 2 ? 1 : 0) + (r.hour2 === 2 ? 1 : 0), 0);
                 const absent = weekRecords.reduce((acc, r) => acc + (r.hour1 === 0 ? 1 : 0) + (r.hour2 === 0 ? 1 : 0), 0);
                 const total = attended + excused + absent;
                 const rate = total > 0 ? Math.round((attended / total) * 100) : 0;
-                weeks.push({ week: weekLabel, value: rate, attended, excused, absent, total });
+                weeks.push({ week: weekLabel, value: rate, attended, excused, absent, total, monthLabel });
             }
         }
 
@@ -771,7 +764,9 @@ export default function StudentDashboard() {
                                     <div className="flex items-center justify-between mb-4">
                                         <div>
                                             <h3 className={`text-base font-extrabold ${isDark ? 'text-white' : 'text-gray-900'}`}>My Weekly Attendance</h3>
-                                            <p className="text-[10px] text-gray-400 font-medium">Presence rate by week</p>
+                                            <p className="text-[10px] text-gray-400 font-medium">
+                                                {attendanceData[0]?.monthLabel || "Current month"} — presence rate by week
+                                            </p>
                                         </div>
                                         {attendanceLoading && <span className="animate-spin h-4 w-4 border-2 border-[#010080] border-t-transparent rounded-full"></span>}
                                     </div>
@@ -999,7 +994,7 @@ export default function StudentDashboard() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className={`p-6 rounded-2xl shadow-sm border ${isDark ? 'bg-[#0f172a] border-gray-800' : 'bg-white border-gray-100'}`}>
                                         <h3 className={`text-sm font-bold uppercase tracking-widest mb-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                            My Attendance Trends
+                                            My Attendance Trends — {attendanceData[0]?.monthLabel || "Current month"}
                                         </h3>
                                         <div className="h-64 w-full">
                                             <ResponsiveContainer width="100%" height="100%">

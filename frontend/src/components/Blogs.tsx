@@ -27,7 +27,7 @@ export default function Blogs() {
         },
         { threshold: 0.1 }
       );
-      if (ref.current) observer.observe(ref.current);
+      if (ref.current) observer.observe(ref.current);  
       observers.push(observer);
     });
     return () => observers.forEach(obs => obs.disconnect());

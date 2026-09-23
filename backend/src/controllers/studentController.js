@@ -252,14 +252,34 @@ export const getStudentsByClass = async (req, res) => {
     if (isNaN(classId)) {
         return res.status(400).json({ success: false, error: "Invalid class ID" });
     }
-    const students = await prisma.students.findMany({
-      where: { 
-        class_id: classId,
-        approval_status: { not: 'inactive' }
-      },
-      include: { classes: true },
-      orderBy: { created_at: 'desc' }
-    });
+    const [regularStudents, ieltsStudents] = await Promise.all([
+      prisma.students.findMany({
+        where: {
+          class_id: classId,
+          approval_status: { not: 'inactive' },
+        },
+        include: { classes: true },
+        orderBy: { created_at: 'desc' },
+      }),
+      prisma.iELTSTOEFL.findMany({
+        where: {
+          class_id: classId,
+          NOT: { status: { in: ['Rejected', 'inactive', 'Inactive'] } },
+        },
+        orderBy: { registration_date: 'desc' },
+      }),
+    ]);
+
+    const normalizedIelts = ieltsStudents.map((s) => ({
+      ...s,
+      full_name: `${s.first_name || ''} ${s.last_name || ''}`.trim() || s.email,
+      student_type: 'ielts_toefl',
+      approval_status: s.status || 'Pending',
+      status: s.status || 'Pending',
+      created_at: s.registration_date || s.updated_at,
+    }));
+
+    const students = [...regularStudents, ...normalizedIelts];
     res.json({ success: true, students: formatStudentFundingForApi(await enrichWithAudit(students)) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

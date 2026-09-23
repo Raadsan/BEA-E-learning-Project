@@ -205,8 +205,25 @@ export function resolveTestPrepSubprogramId(
 
 export function buildLevelMapSubprograms(
     allSubprograms: Array<{ id: number | string; subprogram_name?: string; name?: string; program_id?: number | string }>,
-    programs: Array<{ id?: number | string; title?: string; program_name?: string }>
+    programs: Array<{ id?: number | string; title?: string; program_name?: string }>,
+    preferredProgramId?: number | string | null
 ) {
+    const preferredProgram = preferredProgramId
+        ? programs.find((program) => Number(program.id) === Number(preferredProgramId))
+        : null;
+
+    // Non-GEP programs (ESP, Digital Literacy, etc.): show that program's subprograms only
+    if (preferredProgram) {
+        const title = (preferredProgram.title || preferredProgram.program_name || "").toLowerCase();
+        const isGep = title.includes("general english");
+        const isTestPrep = isTestPrepProgramName(preferredProgram.title || preferredProgram.program_name);
+        if (!isGep && !isTestPrep) {
+            return allSubprograms.filter(
+                (subprogram) => Number(subprogram.program_id) === Number(preferredProgram.id)
+            );
+        }
+    }
+
     const gepProgram = programs.find((program) =>
         (program.title || program.program_name || "").toLowerCase().includes("general english")
     );
@@ -225,6 +242,11 @@ export function buildLevelMapSubprograms(
               isTestPrepSubprogramName(subprogram.subprogram_name || subprogram.name)
           )
         : [];
+
+    // Prefer student's own program when it is GEP/IELTS; otherwise return combined level map
+    if (preferredProgram && Number(preferredProgram.id) === Number(testPrepProgram?.id)) {
+        return testPrepSubs.length ? testPrepSubs : [...gepSubs, ...testPrepSubs];
+    }
 
     return [...gepSubs, ...testPrepSubs];
 }

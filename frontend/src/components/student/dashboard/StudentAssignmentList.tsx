@@ -33,6 +33,7 @@ import {
 } from "@/utils/assignmentSchedule";
 import StudentPageHeader from "@/components/student/StudentPageHeader";
 import AudioRecorderPanel from "@/components/student/AudioRecorderPanel";
+import { parseSubmissionContentMeta, resolveOralMediaKind } from "@/utils/oralMedia";
 
 
 export default function StudentAssignmentList({ type, title, externalAssignment = null, onLeaveWorkspace = undefined }) {
@@ -786,13 +787,24 @@ export default function StudentAssignmentList({ type, title, externalAssignment 
                                             Submission Completed
                                         </div>
                                         {selectedAssignment.file_url ? (
-                                            selectedAssignment.file_url.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i) ? (
-                                                <img className="w-full max-h-96 object-contain rounded-lg" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} alt="Submission" />
-                                            ) : selectedAssignment.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
-                                                <video controls className="mx-auto aspect-video w-full max-w-3xl max-h-[420px] rounded-lg bg-black object-contain" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} />
-                                            ) : (
-                                                <audio controls className="w-full" src={resolveSubmissionFileUrl(selectedAssignment.file_url) || ""} />
-                                            )
+                                            (() => {
+                                                const contentMeta = parseSubmissionContentMeta(
+                                                    selectedAssignment.student_content || selectedAssignment.content
+                                                );
+                                                const mediaKind = resolveOralMediaKind({
+                                                    url: selectedAssignment.file_url,
+                                                    mimeType: contentMeta.mimeType,
+                                                    submissionKind: contentMeta.submissionKind,
+                                                });
+                                                const src = resolveSubmissionFileUrl(selectedAssignment.file_url) || "";
+                                                if (mediaKind === "image") {
+                                                    return <img className="w-full max-h-96 object-contain rounded-lg" src={src} alt="Submission" />;
+                                                }
+                                                if (mediaKind === "video") {
+                                                    return <video controls className="mx-auto aspect-video w-full max-w-3xl max-h-[420px] rounded-lg bg-black object-contain" src={src} />;
+                                                }
+                                                return <audio controls className="w-full" src={src} />;
+                                            })()
                                         ) : (
                                             <p className="text-sm italic opacity-50">No file submitted.</p>
                                         )}

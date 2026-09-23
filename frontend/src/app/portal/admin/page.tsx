@@ -5,6 +5,8 @@ import { useGetProgramsQuery } from "@/lib/api/programApi";
 import { useGetStudentsQuery } from "@/lib/api/studentApi";
 import { useGetTeachersQuery } from "@/lib/api/teacherApi";
 import { useGetClassesQuery } from "@/lib/api/classApi";
+import { useGetStudentStatsQuery } from "@/lib/api/reportApi";
+import { useGetIeltsToeflStudentsQuery } from "@/lib/api/ieltsToeflApi";
 
 
 import UpcomingEventsList from "@/components/UpcomingEventsList";
@@ -23,12 +25,23 @@ export default function AdminDashboard() {
   const { data: studentsData, isLoading: studentsLoading } = useGetStudentsQuery();
   const { data: teachersData, isLoading: teachersLoading } = useGetTeachersQuery();
   const { data: classesData, isLoading: classesLoading } = useGetClassesQuery();
+  const { data: studentStats } = useGetStudentStatsQuery({});
+  const { data: ieltsData } = useGetIeltsToeflStudentsQuery();
 
   // Extract counts
   const totalPrograms = Array.isArray(programsData) ? programsData.length : 0;
 
   const studentsArray = studentsData?.students || (Array.isArray(studentsData) ? studentsData : []);
-  const totalStudents = studentsArray.length;
+  const ieltsArray = Array.isArray(ieltsData) ? ieltsData : [];
+  const activeIelts = ieltsArray.filter((s) => {
+    const status = String(s.status || "").toLowerCase();
+    return status !== "rejected" && status !== "inactive";
+  });
+  // General students (non-inactive) + active IELTS/TOEFL. Fall back to reports total if needed.
+  const mergedStudentTotal = studentsArray.length + activeIelts.length;
+  const totalStudents = mergedStudentTotal > 0
+    ? mergedStudentTotal
+    : (studentStats?.totalStudents ?? studentsArray.length);
 
   const teachersArray = Array.isArray(teachersData) ? teachersData : [];
   const totalTeachers = teachersArray.length;

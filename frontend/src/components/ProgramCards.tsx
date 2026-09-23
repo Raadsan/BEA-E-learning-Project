@@ -146,7 +146,7 @@ export default function ProgramCards() {
     color: index % 2 === 0 ? "blue" : "red",
   }));
 
-  const displayPrograms = sortedPrograms.slice(0, 3);
+  const displayPrograms = sortedPrograms.slice(0, 6);
 
   return (
     <section ref={sectionRef} className={`py-12 sm:py-16 lg:py-20 overflow-hidden ${isDarkMode ? 'bg-[#03002e]' : 'bg-white'}`}>
