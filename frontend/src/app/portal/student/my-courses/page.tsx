@@ -81,7 +81,7 @@ export default function MyCoursesPage() {
     const { showToast } = useToast();
 
 
-    // Fetch student's class
+    // Fetch student's class (enriched with shift + term)
     const { data: classData, isLoading: classLoading } = useGetClassQuery(
         user?.class_id,
         { skip: !user?.class_id }
@@ -699,8 +699,18 @@ export default function MyCoursesPage() {
 
                                 return myOwnClasses.map((cls) => {
                                     const isActive = studentClass && Number(cls.id) == Number(studentClass.id);
-                                    const isMorning = cls.type === 'morning';
-                                    const isNight = cls.type === 'night';
+                                    const sessionLabel = (cls.shift_session || cls.shift_name || cls.schedule || "").toString();
+                                    const sessionLower = sessionLabel.toLowerCase();
+                                    const isMorning = /morning|am\b/.test(sessionLower);
+                                    const isNight = /evening|night|pm\b/.test(sessionLower);
+                                    const timeText = cls.shift_start && cls.shift_end
+                                        ? `${String(cls.shift_start).slice(0, 5)} - ${String(cls.shift_end).slice(0, 5)}`
+                                        : null;
+                                    const termText = cls.term_serial
+                                        ? `Term ${cls.term_serial}`
+                                        : (studentClass && Number(cls.id) === Number(studentClass.id) && studentClass.term_serial
+                                            ? `Term ${studentClass.term_serial}`
+                                            : null);
 
                                     return (
                                         <div
@@ -717,21 +727,25 @@ export default function MyCoursesPage() {
                                                         <h3 className={`text-xl font-normal mb-3 ${isDark ? "text-white" : "text-gray-900"}`}>
                                                             {cls.class_name}
                                                         </h3>
-                                                        <div className="flex items-center gap-2 mb-3">
+                                                        <div className="flex flex-wrap items-center gap-2 mb-3">
                                                             <span className={`px-3 py-1.5 rounded-full text-xs font-normal ${isMorning
                                                                 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
                                                                 : isNight
                                                                     ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
                                                                     : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                                                                 }`}>
-                                                                {cls.type ? (
-                                                                    <>
-                                                                        {isMorning && '🌅 '}
-                                                                        {isNight && '🌙 '}
-                                                                        {cls.type.charAt(0).toUpperCase() + cls.type.slice(1)} Class
-                                                                    </>
-                                                                ) : 'N/A'}
+                                                                {sessionLabel || "Session N/A"}
                                                             </span>
+                                                            {timeText && (
+                                                                <span className={`px-3 py-1.5 rounded-full text-xs font-normal ${isDark ? "bg-gray-700 text-gray-200" : "bg-white text-gray-700 border border-gray-200"}`}>
+                                                                    {timeText}
+                                                                </span>
+                                                            )}
+                                                            {termText && (
+                                                                <span className={`px-3 py-1.5 rounded-full text-xs font-normal ${isDark ? "bg-indigo-900/40 text-indigo-300" : "bg-indigo-50 text-indigo-700"}`}>
+                                                                    {termText}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
                                                     {isActive ? (
@@ -751,6 +765,12 @@ export default function MyCoursesPage() {
                                                     )}
                                                 </div>
 
+                                                {(cls.program_name || cls.subprogram_name) && (
+                                                    <p className={`text-sm mb-3 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                                                        {[cls.program_name, cls.subprogram_name].filter((v) => v && v !== "N/A").join(" — ")}
+                                                    </p>
+                                                )}
+
                                                 {cls.description && (
                                                     <p className={`text-sm mb-4 leading-relaxed ${isDark ? "text-gray-300" : "text-gray-600"}`}>
                                                         {cls.description}
@@ -761,7 +781,7 @@ export default function MyCoursesPage() {
                                                     {cls.teacher_name && (
                                                         <div>
                                                             <p className={`text-xs font-normal mb-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                                                                👨‍🏫 Teacher
+                                                                Teacher
                                                             </p>
                                                             <p className={`text-lg font-normal whitespace-nowrap ${isDark ? "text-white" : "text-gray-900"}`}>
                                                                 {cls.teacher_name}

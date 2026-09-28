@@ -9,7 +9,7 @@ import {
     useGetAssignmentsQuery
 } from "@/lib/api/assignmentApi";
 import { useToast } from "@/components/Toast";
-import { API_URL, resolveMediaUrl } from "@/constants";
+import { API_URL, resolveSubmissionFileUrl } from "@/constants";
 import { formatDatetimeLocalValue, syncAssignmentSchedule, splitDurationMinutes } from "@/utils/assignmentSchedule";
 
 import { useDarkMode } from "@/context/ThemeContext";
@@ -317,11 +317,11 @@ function OralAssignmentCreateContent() {
                                             <p className="font-medium text-sm">Preview Uploaded {promptMediaType === "video" ? "Video" : "Audio"}</p>
                                             {promptMediaType === "video" ? (
                                                 <video controls className="w-full mt-2 rounded-lg">
-                                                    <source src={resolveMediaUrl(formData.audioUrl) || ""} />
+                                                    <source src={resolveSubmissionFileUrl(formData.audioUrl) || ""} />
                                                 </video>
                                             ) : (
                                                 <audio controls className="w-full mt-2 h-8">
-                                                    <source src={resolveMediaUrl(formData.audioUrl) || ""} />
+                                                    <source src={resolveSubmissionFileUrl(formData.audioUrl) || ""} />
                                                 </audio>
                                             )}
                                         </div>

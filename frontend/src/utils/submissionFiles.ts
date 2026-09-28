@@ -11,7 +11,7 @@ export async function fetchSubmissionBlob(fileUrl: string): Promise<Blob> {
     const streamUrl = resolveSubmissionFileUrl(fileUrl);
     if (streamUrl) {
         const response = await fetch(streamUrl, { cache: "no-store" });
-        if (response.ok) return response.blob();
+        if (response.ok) return normalizeMediaBlob(await response.blob(), fileUrl);
     }
 
     const downloadUrl = resolveSubmissionDownloadUrl(fileUrl);
@@ -23,21 +23,50 @@ export async function fetchSubmissionBlob(fileUrl: string): Promise<Blob> {
         cache: "no-store",
     });
     if (!response.ok) throw new Error("File not found");
-    return response.blob();
+    return normalizeMediaBlob(await response.blob(), fileUrl);
+}
+
+/** Ensure .webm oral recordings are typed as audio so the player timer/seek work. */
+function normalizeMediaBlob(blob: Blob, fileUrl: string): Blob {
+    if (blob.type && blob.type !== "application/octet-stream") return blob;
+    if (/\.webm(\?|$)/i.test(fileUrl)) return new Blob([blob], { type: "audio/webm" });
+    if (/\.mp3(\?|$)/i.test(fileUrl)) return new Blob([blob], { type: "audio/mpeg" });
+    if (/\.m4a(\?|$)/i.test(fileUrl)) return new Blob([blob], { type: "audio/mp4" });
+    if (/\.wav(\?|$)/i.test(fileUrl)) return new Blob([blob], { type: "audio/wav" });
+    if (/\.mp4(\?|$)/i.test(fileUrl)) return new Blob([blob], { type: "video/mp4" });
+    return blob;
 }
 
 /** Open a student submission in a new tab (PDF, audio, video, etc.). */
 export async function openSubmissionFile(fileUrl?: string | null): Promise<void> {
     if (!fileUrl) throw new Error("No file");
 
-    const streamUrl = resolveSubmissionFileUrl(fileUrl);
-    if (streamUrl) {
-        window.open(streamUrl, "_blank", "noopener,noreferrer");
+    // Always fetch via backend proxy (blob) so private S3 objects and .webm audio work
+    const blob = await fetchSubmissionBlob(fileUrl);
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    // Browsers often open raw .webm as a video tab — wrap audio in a simple player page
+    const looksLikeWebmAudio =
+        blob.type.startsWith("audio/") ||
+        ((!blob.type || blob.type === "application/octet-stream") && /\.webm(\?|$)/i.test(fileUrl));
+
+    if (looksLikeWebmAudio) {
+        const pageHtml = [
+            `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Oral Audio</title></head>`,
+            `<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a">`,
+                `<audio controls autoplay preload="auto" src="${blobUrl}" style="width:min(640px,90vw)"></audio>`,
+                `</body></html>`,
+            ].join("");
+        const page = new Blob([pageHtml], { type: "text/html" });
+        const pageUrl = window.URL.createObjectURL(page);
+        window.open(pageUrl, "_blank", "noopener,noreferrer");
+        window.setTimeout(() => {
+            window.URL.revokeObjectURL(pageUrl);
+            window.URL.revokeObjectURL(blobUrl);
+        }, 120_000);
         return;
     }
 
-    const blob = await fetchSubmissionBlob(fileUrl);
-    const blobUrl = window.URL.createObjectURL(blob);
     window.open(blobUrl, "_blank", "noopener,noreferrer");
     window.setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60_000);
 }

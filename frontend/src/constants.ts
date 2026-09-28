@@ -20,11 +20,12 @@ const clientBackendOrigin =
     : serverBackendOrigin;
 
 const buildApiFileUrl = (route: "stream" | "download", ref: string): string => {
+  // Query string avoids path truncation when refs contain slashes or full S3 URLs
   const encoded = encodeURIComponent(ref);
   if (typeof window !== "undefined") {
-    return `/api/files/${route}/${encoded}`;
+    return `/api/files/${route}?ref=${encoded}`;
   }
-  return `${serverBackendOrigin}/api/files/${route}/${encoded}`;
+  return `${serverBackendOrigin}/api/files/${route}?ref=${encoded}`;
 };
 
 /** Multipart uploads must hit the backend directly — Next.js rewrites break FormData. */
@@ -35,15 +36,29 @@ export const DIRECT_API_URL =
 
 export const UPLOAD_ENDPOINT = `${DIRECT_API_URL}/uploads`;
 
-/** Normalize any stored file reference to a stream API ref. */
+/**
+ * Normalize any stored file reference for the backend stream/download API.
+ * Prefer a short storage key/filename so proxies never split on encoded slashes.
+ */
 const toStreamRef = (storedValue?: string | null): string | null => {
   if (!storedValue) return null;
   const value = storedValue.trim();
   if (!value) return null;
 
-  if (value.startsWith("http")) return value;
+  if (/^https?:\/\//i.test(value)) {
+    try {
+      const pathname = decodeURIComponent(new URL(value).pathname).replace(/^\//, "");
+      // Keep bea_uploads/file.ext or uploads/file.ext when present; else basename
+      if (pathname.startsWith("bea_uploads/") || pathname.startsWith("uploads/")) {
+        return pathname;
+      }
+      const base = pathname.split("/").filter(Boolean).pop();
+      return base || null;
+    } catch {
+      return null;
+    }
+  }
 
-  // Keep full storage path (bea_uploads/... or uploads/...) for backend resolution
   return value.replace(/^\//, "");
 };
 

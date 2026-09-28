@@ -205,6 +205,27 @@ const DashboardTermCounter = ({ isDark, user }) => {
                     <p className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                         {timeLeft.label === "No Scheduled Classes" ? "No Timeline Assigned" : timeLeft.label}
                     </p>
+                    {(studentClass?.class_name || studentClass?.schedule || studentClass?.shift_session) && (
+                        <div className={`mt-3 space-y-1 text-sm ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+                            {studentClass?.class_name && (
+                                <p className="font-semibold">{studentClass.class_name}</p>
+                            )}
+                            <p>
+                                {[
+                                    studentClass.shift_session || studentClass.shift_name,
+                                    studentClass.shift_start && studentClass.shift_end
+                                        ? `${String(studentClass.shift_start).slice(0, 5)} - ${String(studentClass.shift_end).slice(0, 5)}`
+                                        : null,
+                                    studentClass.schedule,
+                                ].filter(Boolean).filter((v, i, arr) => arr.indexOf(v) === i).join(" · ") || "Schedule not set"}
+                            </p>
+                            {(studentClass.program_name || studentClass.subprogram_name) && (
+                                <p className="text-xs opacity-80">
+                                    {[studentClass.program_name, studentClass.subprogram_name].filter((v) => v && v !== "N/A").join(" — ")}
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex flex-wrap justify-center gap-4 md:gap-8">

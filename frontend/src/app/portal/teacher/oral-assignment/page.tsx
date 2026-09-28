@@ -17,7 +17,7 @@ import {
 import { useGetCurrentUserQuery } from "@/lib/api/authApi";
 import { useGetTeacherClassesQuery } from "@/lib/api/teacherApi";
 import { resolveSubmissionFileUrl } from "@/constants";
-import { downloadSubmissionFile, openSubmissionFile } from "@/utils/submissionFiles";
+import { downloadSubmissionFile, loadSubmissionPreviewUrl } from "@/utils/submissionFiles";
 import { formatDatetimeLocalValue } from "@/utils/assignmentSchedule";
 import { parseSubmissionContentMeta, resolveOralMediaKind } from "@/utils/oralMedia";
 import { useAssignmentNow } from "@/hooks/useAssignmentNow";
@@ -55,6 +55,19 @@ export default function OralAssignmentPage() {
 
     const [gradingAudioUrl, setGradingAudioUrl] = useState(null);
     const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+    const [previewSubmission, setPreviewSubmission] = useState(null);
+    const [previewMediaUrl, setPreviewMediaUrl] = useState(null);
+    const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+
+    const probeWebmDuration = (el) => {
+        if (!el || (Number.isFinite(el.duration) && el.duration !== Infinity)) return;
+        const fix = () => {
+            el.currentTime = 0;
+            el.removeEventListener("timeupdate", fix);
+        };
+        el.addEventListener("timeupdate", fix);
+        el.currentTime = 1e101;
+    };
 
     const getSubmissionMediaMeta = (submission) => {
         if (!submission) return { kind: null, name: null };
@@ -72,14 +85,43 @@ export default function OralAssignmentPage() {
         return { kind, name };
     };
 
-    // Fetch audio for playback in grading view
+    // Load full media blob so duration / seek / timer work (stream URLs break webm progress)
     useEffect(() => {
-        if (view === "grading" && gradingSubmission?.file_url) {
-            setGradingAudioUrl(resolveSubmissionFileUrl(gradingSubmission.file_url));
-            setIsLoadingAudio(false);
-        } else {
+        let objectUrl: string | null = null;
+        let cancelled = false;
+
+        const load = async () => {
+            if (view !== "grading" || !gradingSubmission?.file_url) {
+                setGradingAudioUrl(null);
+                setIsLoadingAudio(false);
+                return;
+            }
+
+            setIsLoadingAudio(true);
             setGradingAudioUrl(null);
-        }
+            try {
+                objectUrl = await loadSubmissionPreviewUrl(gradingSubmission.file_url);
+                if (cancelled) {
+                    window.URL.revokeObjectURL(objectUrl);
+                    return;
+                }
+                setGradingAudioUrl(objectUrl);
+            } catch {
+                if (!cancelled) {
+                    // Fallback to stream URL if blob fetch fails
+                    setGradingAudioUrl(resolveSubmissionFileUrl(gradingSubmission.file_url));
+                }
+            } finally {
+                if (!cancelled) setIsLoadingAudio(false);
+            }
+        };
+
+        load();
+
+        return () => {
+            cancelled = true;
+            if (objectUrl) window.URL.revokeObjectURL(objectUrl);
+        };
     }, [view, gradingSubmission]);
 
     // Scroll Lock when Modal is open
@@ -335,13 +377,34 @@ export default function OralAssignmentPage() {
         }
     };
 
-    const handleOpenFile = async (fileUrl) => {
-        if (!fileUrl) return;
+    const closePreviewModal = () => {
+        if (previewMediaUrl?.startsWith("blob:")) {
+            window.URL.revokeObjectURL(previewMediaUrl);
+        }
+        setPreviewSubmission(null);
+        setPreviewMediaUrl(null);
+        setIsLoadingPreview(false);
+    };
+
+    const handleOpenFile = async (submission) => {
+        if (!submission?.file_url) return;
+        setPreviewSubmission(submission);
+        setPreviewMediaUrl(null);
+        setIsLoadingPreview(true);
         try {
-            await openSubmissionFile(fileUrl);
+            const url = await loadSubmissionPreviewUrl(submission.file_url);
+            setPreviewMediaUrl(url);
         } catch (error) {
             console.error("Open file error:", error);
-            showToast("Could not open this file.", "error");
+            const fallback = resolveSubmissionFileUrl(submission.file_url);
+            if (fallback) {
+                setPreviewMediaUrl(fallback);
+            } else {
+                closePreviewModal();
+                showToast("Could not open this file.", "error");
+            }
+        } finally {
+            setIsLoadingPreview(false);
         }
     };
 
@@ -480,7 +543,7 @@ export default function OralAssignmentPage() {
                 if (!row) return "No File";
                 return row.file_url ? (
                     <button
-                        onClick={() => handleOpenFile(row.file_url)}
+                        onClick={() => handleOpenFile(row)}
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline text-sm"
                     >
                         {(() => {
@@ -636,21 +699,30 @@ export default function OralAssignmentPage() {
                                         {gradingAudioUrl ? (
                                             isVideo ? (
                                                 <video
+                                                    key={gradingAudioUrl}
                                                     controls
+                                                    preload="auto"
                                                     autoPlay={false}
                                                     className="w-full rounded-lg"
                                                     src={gradingAudioUrl}
                                                 />
                                             ) : (
                                                 <audio
+                                                    key={gradingAudioUrl}
                                                     controls
+                                                    preload="auto"
                                                     autoPlay={false}
                                                     className="w-full"
                                                     src={gradingAudioUrl}
+                                                    onLoadedMetadata={(e) => {
+                                                        probeWebmDuration(e.currentTarget);
+                                                    }}
                                                 />
                                             )
                                         ) : (
-                                            <p className="text-sm opacity-50 italic">Loading media player...</p>
+                                            <p className="text-sm opacity-50 italic">
+                                                {isLoadingAudio ? "Loading media player..." : "Media unavailable"}
+                                            </p>
                                         )}
                                     </div>
                                         );
@@ -1083,6 +1155,85 @@ export default function OralAssignmentPage() {
                                 <button onClick={() => setShowDeleteModal(false)} className={`flex-1 py-2.5 rounded-lg font-semibold ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>Cancel</button>
                                 <button onClick={confirmDelete} className="flex-1 py-2.5 rounded-lg font-bold bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/30">Delete</button>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Listen / View submission — same player as Grade → Student Submission */}
+                {previewSubmission && (
+                    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closePreviewModal} />
+                        <div className={`relative w-full max-w-xl rounded-2xl shadow-2xl p-6 sm:p-8 ${isDark ? "bg-gray-800 border border-gray-700" : "bg-white"}`}>
+                            <div className="flex items-start justify-between gap-4 mb-6">
+                                <div>
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1 block">Student Submission</span>
+                                    <h3 className={`text-lg font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
+                                        {previewSubmission.student_name || "Student"}
+                                    </h3>
+                                    <p className="text-sm opacity-60">{selectedAssignment?.title}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={closePreviewModal}
+                                    className={`p-2 rounded-lg ${isDark ? "hover:bg-gray-700 text-gray-300" : "hover:bg-gray-100 text-gray-500"}`}
+                                    aria-label="Close"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+
+                            {(() => {
+                                const mediaMeta = getSubmissionMediaMeta(previewSubmission);
+                                const isVideo = mediaMeta.kind === "video";
+                                return (
+                                    <div className={`p-6 rounded-xl border ${isDark ? "bg-gray-900/50 border-gray-700" : "bg-gray-50 border-gray-200"} flex flex-col items-center gap-4`}>
+                                        <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
+                                            {isLoadingPreview ? (
+                                                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                            ) : isVideo ? (
+                                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                            ) : (
+                                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            )}
+                                        </div>
+                                        {previewMediaUrl ? (
+                                            isVideo ? (
+                                                <video
+                                                    key={previewMediaUrl}
+                                                    controls
+                                                    preload="auto"
+                                                    autoPlay
+                                                    className="w-full rounded-lg"
+                                                    src={previewMediaUrl}
+                                                />
+                                            ) : (
+                                                <audio
+                                                    key={previewMediaUrl}
+                                                    controls
+                                                    preload="auto"
+                                                    autoPlay
+                                                    className="w-full"
+                                                    src={previewMediaUrl}
+                                                    onLoadedMetadata={(e) => probeWebmDuration(e.currentTarget)}
+                                                />
+                                            )
+                                        ) : (
+                                            <p className="text-sm opacity-50 italic">
+                                                {isLoadingPreview ? "Loading media player..." : "Media unavailable"}
+                                            </p>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+
+                            <button
+                                type="button"
+                                onClick={() => handleDownloadFile(previewSubmission.file_url)}
+                                className="mt-4 flex items-center gap-2 text-sm text-blue-600 hover:underline font-normal"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                Download {getSubmissionMediaMeta(previewSubmission).kind === "video" ? "Video" : "Audio"} for Offline Review
+                            </button>
                         </div>
                     </div>
                 )}

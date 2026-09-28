@@ -1,10 +1,12 @@
 import path from "path";
 import fs from "fs";
+import { Readable } from "stream";
 import {
     isRemoteFileUrl,
     resolveS3Key,
     isS3Enabled,
     getS3ObjectStream,
+    buildPublicUrl,
 } from "../utils/s3Service.js";
 
 const contentTypeMap = {
@@ -54,33 +56,85 @@ const localFilenameFromRef = (ref) => {
     return withoutPrefix.split("/").pop() || withoutPrefix || null;
 };
 
+const pipeHttpBodyToRes = (body, res) => {
+    if (!body) return false;
+    if (typeof body.pipe === "function") {
+        body.pipe(res);
+        return true;
+    }
+    // fetch() ReadableStream (Node 18+)
+    Readable.fromWeb(body).pipe(res);
+    return true;
+};
+
+/** When IAM GetObject is denied, public bucket objects can still be fetched over HTTPS. */
+const streamFromPublicS3Url = async (req, res, ref, { attachment = false } = {}) => {
+    const key = resolveS3Key(ref);
+    if (!key || !process.env.AWS_BUCKET_NAME || !process.env.AWS_REGION) return false;
+
+    const publicUrl = buildPublicUrl(key);
+    const headers = {};
+    const requestedRange = attachment ? null : req.headers.range;
+    if (requestedRange) headers.Range = requestedRange;
+
+    const upstream = await fetch(publicUrl, { headers });
+    if (!(upstream.ok || upstream.status === 206)) return false;
+
+    const basename = localFilenameFromRef(ref) || "file";
+    const ext = path.extname(basename).toLowerCase();
+    const contentType =
+        upstream.headers.get("content-type") || contentTypeMap[ext] || "application/octet-stream";
+
+    res.status(upstream.status);
+    res.setHeader("Content-Type", contentType);
+    res.setHeader(
+        "Content-Disposition",
+        attachment ? `attachment; filename="${basename}"` : "inline"
+    );
+    res.setHeader("Accept-Ranges", upstream.headers.get("accept-ranges") || "bytes");
+    const contentLength = upstream.headers.get("content-length");
+    if (contentLength) res.setHeader("Content-Length", contentLength);
+    const contentRange = upstream.headers.get("content-range");
+    if (contentRange) res.setHeader("Content-Range", contentRange);
+    res.setHeader("Cache-Control", "private, max-age=3600");
+
+    return pipeHttpBodyToRes(upstream.body, res);
+};
+
 const streamFromS3 = async (req, res, ref, { attachment = false } = {}) => {
     const key = resolveS3Key(ref);
     if (!key) return false;
 
     const requestedRange = attachment ? null : req.headers.range;
-    const s3Object = await getS3ObjectStream(key, requestedRange);
-    if (!s3Object?.stream) return false;
 
-    const basename = localFilenameFromRef(ref) || "file";
-    const ext = path.extname(basename).toLowerCase();
-    res.setHeader(
-        "Content-Type",
-        s3Object.contentType || contentTypeMap[ext] || "application/octet-stream"
-    );
-    res.setHeader(
-        "Content-Disposition",
-        attachment ? `attachment; filename="${basename}"` : "inline"
-    );
-    res.setHeader("Accept-Ranges", "bytes");
-    if (s3Object.contentLength) res.setHeader("Content-Length", String(s3Object.contentLength));
-    if (s3Object.contentRange) {
-        res.status(206);
-        res.setHeader("Content-Range", s3Object.contentRange);
+    try {
+        const s3Object = await getS3ObjectStream(key, requestedRange);
+        if (s3Object?.stream) {
+            const basename = localFilenameFromRef(ref) || "file";
+            const ext = path.extname(basename).toLowerCase();
+            res.setHeader(
+                "Content-Type",
+                s3Object.contentType || contentTypeMap[ext] || "application/octet-stream"
+            );
+            res.setHeader(
+                "Content-Disposition",
+                attachment ? `attachment; filename="${basename}"` : "inline"
+            );
+            res.setHeader("Accept-Ranges", "bytes");
+            if (s3Object.contentLength) res.setHeader("Content-Length", String(s3Object.contentLength));
+            if (s3Object.contentRange) {
+                res.status(206);
+                res.setHeader("Content-Range", s3Object.contentRange);
+            }
+            res.setHeader("Cache-Control", "private, max-age=3600");
+            s3Object.stream.pipe(res);
+            return true;
+        }
+    } catch (err) {
+        console.warn("S3 GetObject failed, trying public URL:", err.message);
     }
-    res.setHeader("Cache-Control", "private, max-age=3600");
-    s3Object.stream.pipe(res);
-    return true;
+
+    return streamFromPublicS3Url(req, res, ref, { attachment });
 };
 
 const streamLocalFile = (req, res, filename, { attachment = false } = {}) => {
@@ -128,7 +182,7 @@ const serveStoredFile = async (req, res, ref, { attachment = false } = {}) => {
         try {
             if (await streamFromS3(req, res, ref, { attachment })) return true;
         } catch (err) {
-            console.error("S3 stream error:", err.message);
+            console.error("S3 stream error:", err.message, "ref=", ref, "key=", resolveS3Key(ref));
         }
     }
 
@@ -138,21 +192,23 @@ const serveStoredFile = async (req, res, ref, { attachment = false } = {}) => {
 /** Stream media inline (video/audio/images) — local disk first, S3 backup. */
 export const streamFile = async (req, res) => {
     try {
-        const ref = decodeFileParam(req.params.filename || "");
+        const raw = req.query.ref || req.params.filename || "";
+        const ref = decodeFileParam(Array.isArray(raw) ? raw[0] : raw);
         if (!ref) return res.status(400).json({ error: "File reference required" });
 
         if (await serveStoredFile(req, res, ref, { attachment: false })) return;
 
         return res.status(404).json({ error: "File not found" });
     } catch (err) {
+        console.error("streamFile error:", err.message);
         if (!res.headersSent) res.status(500).json({ error: err.message });
     }
 };
 
 export const downloadFile = async (req, res) => {
     try {
-        let { filename } = req.params;
-        filename = decodeFileParam(filename);
+        const raw = req.query.ref || req.params.filename || "";
+        let filename = decodeFileParam(Array.isArray(raw) ? raw[0] : raw);
         if (!filename) return res.status(400).json({ error: "File reference required" });
 
         if (isRemoteFileUrl(filename)) {
@@ -164,6 +220,7 @@ export const downloadFile = async (req, res) => {
 
         return res.status(404).json({ error: "File not found" });
     } catch (err) {
+        console.error("downloadFile error:", err.message);
         res.status(500).json({ error: err.message });
     }
 };

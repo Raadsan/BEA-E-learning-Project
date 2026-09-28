@@ -234,6 +234,48 @@ export const getClass = async (req, res) => {
     const shift_session = classItem.shifts?.session_type || '';
     const shift_start = classItem.shifts ? formatTime(classItem.shifts.start_time) : '';
     const shift_end = classItem.shifts ? formatTime(classItem.shifts.end_time) : '';
+    const scheduleParts = [shift_session || shift_name, shift_start && shift_end ? `${String(shift_start).slice(0, 5)} - ${String(shift_end).slice(0, 5)}` : '']
+      .filter(Boolean);
+    const schedule = scheduleParts.join(' · ') || classItem.schedule || null;
+
+    // Resolve active/latest term for this class from course timelines
+    let term_serial = null;
+    let term_start = null;
+    let term_end = null;
+    let is_finished = false;
+    try {
+      const timelines = await prisma.course_timeline.findMany({
+        where: { is_active: true },
+        orderBy: { end_date: 'desc' },
+      });
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const matching = timelines.filter((t) => {
+        const raw = t.class_ids;
+        if (!raw) return false;
+        try {
+          const ids = Array.isArray(raw) ? raw : JSON.parse(raw || '[]');
+          return ids.map(Number).includes(Number(classItem.id));
+        } catch {
+          return false;
+        }
+      });
+      const current = matching.find((t) => {
+        const start = new Date(t.start_date);
+        const end = new Date(t.end_date);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+        return today >= start && today <= end;
+      }) || matching[0] || null;
+      if (current) {
+        term_serial = current.term_serial;
+        term_start = current.start_date;
+        term_end = current.end_date;
+        is_finished = new Date(current.end_date) < today;
+      }
+    } catch {
+      // term enrichment is optional
+    }
 
     res.json(await enrichWithAudit({
       ...classItem,
@@ -244,7 +286,13 @@ export const getClass = async (req, res) => {
       shift_name,
       shift_session,
       shift_start,
-      shift_end
+      shift_end,
+      schedule,
+      term_serial,
+      term_start,
+      term_end,
+      is_finished,
+      class_status: is_finished ? 'Finished' : 'Active',
     }));
   } catch (err) {
     res.status(500).json({ error: err.message });
