@@ -9,7 +9,25 @@ import DataTable from "@/components/DataTable";
 import { useGetTimelinesQuery } from "@/lib/api/courseTimelineApi";
 import TeacherReviewForm from "@/components/ReviewFlows/TeacherReviewForm";
 
-const InfoCard = ({ title, subtitle, details, footer, isDark, type, statusLabel, finished }) => (
+const InfoCard = ({
+    title,
+    subtitle,
+    details,
+    footer,
+    isDark,
+    type,
+    statusLabel = null,
+    finished = false,
+}: {
+    title: React.ReactNode;
+    subtitle: React.ReactNode;
+    details: { icon: React.ReactNode; text: string }[];
+    footer: React.ReactNode;
+    isDark: boolean;
+    type: string;
+    statusLabel?: string | null;
+    finished?: boolean;
+}) => (
     <div className={`rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg border ${
         finished
             ? (isDark ? "bg-gray-900/70 border-gray-700 opacity-80" : "bg-gray-50 border-gray-200 opacity-90")
@@ -275,6 +293,8 @@ export default function MyClassesPage() {
                                         key={prog.subprogram_id || prog.id}
                                         isDark={isDark}
                                         type="program"
+                                        finished={false}
+                                        statusLabel={prog.status || "Program"}
                                         title={prog.subprogram_name}
                                         subtitle={prog.title || "Main Program"}
                                         details={[

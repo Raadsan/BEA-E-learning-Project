@@ -76,12 +76,12 @@ function OralAssignmentCreateContent() {
 
                 const durationParts = splitDurationMinutes(assignment.duration || 30);
                 const loadedUrl = loadedAudioUrl;
-                let loadedMediaType = "audio";
+                let loadedMediaType: "audio" | "video" = "audio";
                 try {
                     const qs = typeof assignment.questions === "string"
                         ? JSON.parse(assignment.questions)
                         : assignment.questions;
-                    if (Array.isArray(qs) && qs[0]?.mediaType) {
+                    if (Array.isArray(qs) && (qs[0]?.mediaType === "audio" || qs[0]?.mediaType === "video")) {
                         loadedMediaType = qs[0].mediaType;
                     } else if (Array.isArray(qs) && qs[0]?.mimeType) {
                         loadedMediaType = String(qs[0].mimeType).startsWith("video/") ? "video" : "audio";
